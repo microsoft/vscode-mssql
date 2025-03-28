@@ -54,9 +54,7 @@ export function getColumnsTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableColumnProperty.Description,
-            description: vscode.l10n.t(
-                "Displays the description of the column",
-            ),
+            description: vscode.l10n.t("Displays the description of the column"),
             componentProperties: {
                 title: vscode.l10n.t("Description"),
                 width: 400,
@@ -78,9 +76,7 @@ export function getColumnsTabComponents(
             componentType: "dropdown",
             propertyName: designer.TableColumnProperty.Type,
             showInPropertiesView: false,
-            description: vscode.l10n.t(
-                "Displays the data type name for the column",
-            ),
+            description: vscode.l10n.t("Displays the data type name for the column"),
             componentProperties: {
                 title: vscode.l10n.t("Type"),
                 width: 100,
@@ -111,9 +107,7 @@ export function getColumnsTabComponents(
         {
             componentType: "checkbox",
             propertyName: designer.TableColumnProperty.AllowNulls,
-            description: vscode.l10n.t(
-                "Specifies whether the column may have a NULL value.",
-            ),
+            description: vscode.l10n.t("Specifies whether the column may have a NULL value."),
             componentProperties: {
                 title: vscode.l10n.t("Allow Nulls"),
             },
@@ -180,13 +174,10 @@ export function getColumnsTabComponents(
                 canInsertRows: columnTableOptions.canInsertRows,
                 canMoveRows: columnTableOptions.canMoveRows,
                 canRemoveRows: columnTableOptions.canRemoveRows,
-                removeRowConfirmationMessage:
-                    columnTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation:
-                    columnTableOptions.showRemoveRowConfirmation,
+                removeRowConfirmationMessage: columnTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation: columnTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    columnTableOptions.labelForAddNewButton ??
-                    vscode.l10n.t("New Column"),
+                    columnTableOptions.labelForAddNewButton ?? vscode.l10n.t("New Column"),
                 expandedGroups: [TableDesigner.General],
             } as designer.DesignerTableProperties,
         },
@@ -251,8 +242,7 @@ export function getPrimaryKeyTabComponents(
         });
     }
 
-    const primaryKeyTableOptions =
-        view.primaryKeyColumnSpecificationTableOptions;
+    const primaryKeyTableOptions = view.primaryKeyColumnSpecificationTableOptions;
     if (primaryKeyTableOptions) {
         tabComponents.push({
             componentType: "table",
@@ -272,14 +262,11 @@ export function getPrimaryKeyTabComponents(
                 objectTypeDisplayName: "",
                 canAddRows: primaryKeyTableOptions.canAddRows,
                 canRemoveRows: primaryKeyTableOptions.canRemoveRows,
-                removeRowConfirmationMessage:
-                    primaryKeyTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation:
-                    primaryKeyTableOptions.showRemoveRowConfirmation,
+                removeRowConfirmationMessage: primaryKeyTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation: primaryKeyTableOptions.showRemoveRowConfirmation,
                 showItemDetailInPropertiesView: false,
                 labelForAddNewButton:
-                    primaryKeyTableOptions.labelForAddNewButton ??
-                    vscode.l10n.t("Add Column"),
+                    primaryKeyTableOptions.labelForAddNewButton ?? vscode.l10n.t("Add Column"),
                 canMoveRows: primaryKeyTableOptions.canMoveRows,
             } as designer.DesignerTableProperties,
         });
@@ -355,13 +342,10 @@ export function getIndexesTabComponents(
                 objectTypeDisplayName: "",
                 canAddRows: columnSpecTableOptions.canAddRows,
                 canRemoveRows: columnSpecTableOptions.canRemoveRows,
-                removeRowConfirmationMessage:
-                    columnSpecTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation:
-                    columnSpecTableOptions.showRemoveRowConfirmation,
+                removeRowConfirmationMessage: columnSpecTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation: columnSpecTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    columnSpecTableOptions.labelForAddNewButton ??
-                    vscode.l10n.t("Add Column"),
+                    columnSpecTableOptions.labelForAddNewButton ?? vscode.l10n.t("Add Column"),
             } as designer.DesignerTableProperties,
         });
     }
@@ -369,12 +353,9 @@ export function getIndexesTabComponents(
     const tabComponents: designer.DesignerDataPropertyInfo[] = [];
 
     if (indexTableOptions) {
-        const includedColumnsGroupName =
-            indexTableOptions.additionalProperties.find(
-                (c) =>
-                    c.propertyName ===
-                    designer.TableIndexProperty.IncludedColumns,
-            )?.group;
+        const includedColumnsGroupName = indexTableOptions.additionalProperties.find(
+            (c) => c.propertyName === designer.TableIndexProperty.IncludedColumns,
+        )?.group;
 
         // Making all other properties as advanced options
         indexTableOptions.additionalProperties.forEach((property) => {
@@ -391,24 +372,15 @@ export function getIndexesTabComponents(
                 columns: getTableDisplayProperties(indexTableOptions, [
                     designer.TableIndexProperty.Name,
                 ]),
-                itemProperties: addAdditionalTableProperties(
-                    indexTableOptions,
-                    indexProperties,
-                ),
+                itemProperties: addAdditionalTableProperties(indexTableOptions, indexProperties),
                 objectTypeDisplayName: vscode.l10n.t("Index"),
                 canAddRows: indexTableOptions.canAddRows,
                 canRemoveRows: indexTableOptions.canRemoveRows,
-                removeRowConfirmationMessage:
-                    indexTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation:
-                    indexTableOptions.showRemoveRowConfirmation,
+                removeRowConfirmationMessage: indexTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation: indexTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    indexTableOptions.labelForAddNewButton ??
-                    vscode.l10n.t("New Index"),
-                expandedGroups: [
-                    TableDesigner.Columns,
-                    includedColumnsGroupName,
-                ],
+                    indexTableOptions.labelForAddNewButton ?? vscode.l10n.t("New Index"),
+                expandedGroups: [TableDesigner.Columns, includedColumnsGroupName],
             } as designer.DesignerTableProperties,
         });
     }
@@ -420,10 +392,7 @@ export function getIndexesTabComponents(
 
     if (additionalComponents) {
         additionalComponents.forEach((component) => {
-            if (
-                component.propertyName ===
-                designer.TableIndexProperty.ColumnStoreIndex
-            ) {
+            if (component.propertyName === designer.TableIndexProperty.ColumnStoreIndex) {
                 // Making all ungrouped properties of column store index as advanced options
                 const properties =
                     component.componentProperties as designer.DesignerTableProperties;
@@ -448,26 +417,24 @@ export function getForeignKeysTabComponents(
     }
     const foreignKeyTableOptions = view.foreignKeyTableOptions;
     const columnMappingTableOptions = view!.foreignKeyColumnMappingTableOptions;
-    const foreignKeyColumnMappingProperties: designer.DesignerDataPropertyInfo[] =
-        [
-            {
-                componentType: "dropdown",
-                propertyName:
-                    designer.ForeignKeyColumnMappingProperty.ForeignColumn,
-                componentProperties: {
-                    title: vscode.l10n.t("Foreign Column"),
-                    width: 150,
-                },
+    const foreignKeyColumnMappingProperties: designer.DesignerDataPropertyInfo[] = [
+        {
+            componentType: "dropdown",
+            propertyName: designer.ForeignKeyColumnMappingProperty.ForeignColumn,
+            componentProperties: {
+                title: vscode.l10n.t("Foreign Column"),
+                width: 150,
             },
-            {
-                componentType: "dropdown",
-                propertyName: designer.ForeignKeyColumnMappingProperty.Column,
-                componentProperties: {
-                    title: vscode.l10n.t("Column"),
-                    width: 150,
-                },
+        },
+        {
+            componentType: "dropdown",
+            propertyName: designer.ForeignKeyColumnMappingProperty.Column,
+            componentProperties: {
+                title: vscode.l10n.t("Column"),
+                width: 150,
             },
-        ];
+        },
+    ];
 
     const foreignKeyProperties: designer.DesignerDataPropertyInfo[] = [
         {
@@ -583,13 +550,10 @@ export function getForeignKeysTabComponents(
                 objectTypeDisplayName: vscode.l10n.t("Foreign Key"),
                 canAddRows: foreignKeyTableOptions.canAddRows,
                 canRemoveRows: foreignKeyTableOptions.canRemoveRows,
-                removeRowConfirmationMessage:
-                    foreignKeyTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation:
-                    foreignKeyTableOptions.showRemoveRowConfirmation,
+                removeRowConfirmationMessage: foreignKeyTableOptions.removeRowConfirmationMessage,
+                showRemoveRowConfirmation: foreignKeyTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
-                    foreignKeyTableOptions.labelForAddNewButton ??
-                    vscode.l10n.t("New Foreign Key"),
+                    foreignKeyTableOptions.labelForAddNewButton ?? vscode.l10n.t("New Foreign Key"),
                 expandedGroups: [TableDesigner.Columns],
             } as designer.DesignerTableProperties,
         });
@@ -626,9 +590,7 @@ export function getCheckConstraintsTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Description,
-            description: vscode.l10n.t(
-                "The description of the check constraint.",
-            ),
+            description: vscode.l10n.t("The description of the check constraint."),
             componentProperties: {
                 title: vscode.l10n.t("Description"),
             },
@@ -636,9 +598,7 @@ export function getCheckConstraintsTabComponents(
         {
             componentType: "input",
             propertyName: designer.TableCheckConstraintProperty.Expression,
-            description: vscode.l10n.t(
-                "The expression defining the check constraint.",
-            ),
+            description: vscode.l10n.t("The expression defining the check constraint."),
             componentProperties: {
                 title: vscode.l10n.t("Expression"),
                 width: 300,
@@ -655,13 +615,10 @@ export function getCheckConstraintsTabComponents(
             showInPropertiesView: false,
             componentProperties: {
                 ariaLabel: vscode.l10n.t("Check Constraints"),
-                columns: getTableDisplayProperties(
-                    checkConstraintTableOptions,
-                    [
-                        designer.TableCheckConstraintProperty.Name,
-                        designer.TableCheckConstraintProperty.Expression,
-                    ],
-                ),
+                columns: getTableDisplayProperties(checkConstraintTableOptions, [
+                    designer.TableCheckConstraintProperty.Name,
+                    designer.TableCheckConstraintProperty.Expression,
+                ]),
                 itemProperties: addAdditionalTableProperties(
                     checkConstraintTableOptions,
                     checkConstraintProperties,
@@ -671,8 +628,7 @@ export function getCheckConstraintsTabComponents(
                 canRemoveRows: checkConstraintTableOptions.canRemoveRows,
                 removeRowConfirmationMessage:
                     checkConstraintTableOptions.removeRowConfirmationMessage,
-                showRemoveRowConfirmation:
-                    checkConstraintTableOptions.showRemoveRowConfirmation,
+                showRemoveRowConfirmation: checkConstraintTableOptions.showRemoveRowConfirmation,
                 labelForAddNewButton:
                     checkConstraintTableOptions.labelForAddNewButton ??
                     vscode.l10n.t("New Check Constraint"),
@@ -766,9 +722,7 @@ function addAdditionalTableProperties(
 
 function getAdditionalComponentsForTab(
     tabId: designer.TableProperty,
-    additionalComponents:
-        | designer.DesignerDataPropertyWithTabInfo[]
-        | undefined,
+    additionalComponents: designer.DesignerDataPropertyWithTabInfo[] | undefined,
 ): designer.DesignerDataPropertyInfo[] {
     if (additionalComponents) {
         return additionalComponents.filter((c) => c.tab === tabId);

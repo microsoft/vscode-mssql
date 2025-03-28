@@ -5,21 +5,13 @@
 
 import * as vscode from "vscode";
 
-import {
-    ActivityStatus,
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import {
     LogEvent,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../sharedInterfaces/webview";
-import {
-    sendActionEvent,
-    sendErrorEvent,
-    startActivity,
-} from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
 import { getNonce } from "../utils/utils";
 import { Logger } from "../models/logger";
@@ -32,26 +24,17 @@ import VscodeWrapper from "./vscodeWrapper";
  * @template State The type of the state object that the webview will use
  * @template Reducers The type of the reducers that the webview will use
  */
-export abstract class ReactWebviewBaseController<State, Reducers>
-    implements vscode.Disposable
-{
+export abstract class ReactWebviewBaseController<State, Reducers> implements vscode.Disposable {
     private _disposables: vscode.Disposable[] = [];
     private _isDisposed: boolean = false;
     private _state: State;
-    private _webviewRequestHandlers: { [key: string]: (params: any) => any } =
-        {};
+    private _webviewRequestHandlers: { [key: string]: (params: any) => any } = {};
     private _reducers: Record<
         keyof Reducers,
-        (
-            state: State,
-            payload: Reducers[keyof Reducers],
-        ) => ReducerResponse<State>
+        (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
     > = {} as Record<
         keyof Reducers,
-        (
-            state: State,
-            payload: Reducers[keyof Reducers],
-        ) => ReducerResponse<State>
+        (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
     >;
     private _isFirstLoad: boolean = true;
     protected _loadStartTime: number = Date.now();
@@ -59,8 +42,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
         TelemetryViews.WebviewController,
         TelemetryActions.Load,
     );
-    private _onDisposed: vscode.EventEmitter<void> =
-        new vscode.EventEmitter<void>();
+    private _onDisposed: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
     protected _webviewMessageHandler = async (message) => {
         if (message.type === "request") {
@@ -80,10 +62,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                     endActivity.end(ActivityStatus.Succeeded, {
                         type: this._sourceFile,
                         method: message.method,
-                        reducer:
-                            message.method === "action"
-                                ? message.params.type
-                                : undefined,
+                        reducer: message.method === "action" ? message.params.type : undefined,
                     });
                 } catch (error) {
                     endActivity.endFailed(
@@ -94,28 +73,17 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                         {
                             type: this._sourceFile,
                             method: message.method,
-                            reducer:
-                                message.method === "action"
-                                    ? message.params.type
-                                    : undefined,
+                            reducer: message.method === "action" ? message.params.type : undefined,
                         },
                     );
                     throw error;
                 }
             } else {
-                const error = new Error(
-                    `No handler registered for method ${message.method}`,
-                );
-                endActivity.endFailed(
-                    error,
-                    true,
-                    "NoHandlerRegistered",
-                    "NoHandlerRegistered",
-                    {
-                        type: this._sourceFile,
-                        method: message.method,
-                    },
-                );
+                const error = new Error(`No handler registered for method ${message.method}`);
+                endActivity.endFailed(error, true, "NoHandlerRegistered", "NoHandlerRegistered", {
+                    type: this._sourceFile,
+                    method: message.method,
+                });
                 throw error;
             }
         }
@@ -157,13 +125,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
         const nonce = getNonce();
 
         const baseUrl = this._getWebview().asWebviewUri(
-            vscode.Uri.joinPath(
-                this._context.extensionUri,
-                "out",
-                "src",
-                "reactviews",
-                "assets",
-            ),
+            vscode.Uri.joinPath(this._context.extensionUri, "out", "src", "reactviews", "assets"),
         );
         const baseUrlString = baseUrl.toString() + "/";
 
@@ -198,10 +160,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
     protected setupTheming() {
         this._disposables.push(
             vscode.window.onDidChangeActiveColorTheme((theme) => {
-                this.postNotification(
-                    DefaultWebviewNotifications.onDidChangeTheme,
-                    theme.kind,
-                );
+                this.postNotification(DefaultWebviewNotifications.onDidChangeTheme, theme.kind);
             }),
         );
         this.postNotification(
@@ -220,9 +179,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
             if (reducer) {
                 this.state = await reducer(this.state, action.payload);
             } else {
-                throw new Error(
-                    `No reducer registered for action ${action.type}`,
-                );
+                throw new Error(`No reducer registered for action ${action.type}`);
             }
         };
 
@@ -235,9 +192,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
             const timeToLoad = timeStamp - this._loadStartTime;
             if (this._isFirstLoad) {
                 console.log(
-                    `Load stats for ${this._sourceFile}` +
-                        "\n" +
-                        `Total time: ${timeToLoad} ms`,
+                    `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
                 );
                 this._endLoadActivity.end(ActivityStatus.Succeeded, {
                     type: this._sourceFile,
@@ -257,9 +212,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
             );
         };
 
-        this._webviewRequestHandlers["sendErrorEvent"] = (
-            message: WebviewTelemetryErrorEvent,
-        ) => {
+        this._webviewRequestHandlers["sendErrorEvent"] = (message: WebviewTelemetryErrorEvent) => {
             sendErrorEvent(
                 message.telemetryView,
                 message.telemetryAction,
@@ -274,9 +227,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
 
         this._webviewRequestHandlers["getLocalization"] = async () => {
             if (vscode.l10n.uri?.fsPath) {
-                const file = await vscode.workspace.fs.readFile(
-                    vscode.l10n.uri,
-                );
+                const file = await vscode.workspace.fs.readFile(vscode.l10n.uri);
                 const fileContents = Buffer.from(file).toString();
                 return fileContents;
             } else {
@@ -290,10 +241,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
                 return;
             }
             const args = message?.args ?? [];
-            return await vscode.commands.executeCommand(
-                message.command,
-                ...args,
-            );
+            return await vscode.commands.executeCommand(message.command, ...args);
         };
 
         this._webviewRequestHandlers["getPlatform"] = async () => {
@@ -310,10 +258,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
      * @param method The method name that the webview will use to call the handler
      * @param handler The handler that will be called when the method is called
      */
-    public registerRequestHandler(
-        method: string,
-        handler: (params: any) => any,
-    ) {
+    public registerRequestHandler(method: string, handler: (params: any) => any) {
         this._webviewRequestHandlers[method] = handler;
     }
 
@@ -326,10 +271,7 @@ export abstract class ReactWebviewBaseController<State, Reducers>
      */
     public registerReducer<Method extends keyof Reducers>(
         method: Method,
-        reducer: (
-            state: State,
-            payload: Reducers[Method],
-        ) => ReducerResponse<State>,
+        reducer: (state: State, payload: Reducers[Method]) => ReducerResponse<State>,
     ) {
         this._reducers[method] = reducer;
     }

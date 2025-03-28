@@ -12,11 +12,7 @@ import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentServic
 import { getDesignerView } from "./tableDesignerTabDefinition";
 import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
-import {
-    ActivityStatus,
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
@@ -77,15 +73,12 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
 
     private async initialize() {
         if (!this._targetNode) {
-            await vscode.window.showErrorMessage(
-                "Unable to find object explorer node",
-            );
+            await vscode.window.showErrorMessage("Unable to find object explorer node");
             return;
         }
 
         this._isEdit =
-            this._targetNode.nodeType === "Table" ||
-            this._targetNode.nodeType === "View"
+            this._targetNode.nodeType === "Table" || this._targetNode.nodeType === "View"
                 ? true
                 : false;
 
@@ -101,15 +94,12 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         let connectionString;
         try {
             const connectionDetails =
-                await this._connectionManager.createConnectionDetails(
-                    connectionInfo,
-                );
-            connectionString =
-                await this._connectionManager.getConnectionString(
-                    connectionDetails,
-                    true,
-                    true,
-                );
+                await this._connectionManager.createConnectionDetails(connectionInfo);
+            connectionString = await this._connectionManager.getConnectionString(
+                connectionDetails,
+                true,
+                true,
+            );
 
             if (!connectionString || connectionString === "") {
                 await vscode.window.showErrorMessage(
@@ -119,8 +109,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             }
         } catch (e) {
             await vscode.window.showErrorMessage(
-                "Unable to find connection string for the connection: " +
-                    getErrorMessage(e),
+                "Unable to find connection string for the connection: " + getErrorMessage(e),
             );
             return;
         }
@@ -162,9 +151,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             }
             this.panel.title = tableInfo.title;
             const initializeResult =
-                await this._tableDesignerService.initializeTableDesigner(
-                    tableInfo,
-                );
+                await this._tableDesignerService.initializeTableDesigner(tableInfo);
             endActivity.end(ActivityStatus.Succeeded);
             initializeResult.tableInfo.database = databaseName ?? "master";
             this.state = {
@@ -213,35 +200,26 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
     private registerRpcHandlers() {
         this.registerReducer("processTableEdit", async (state, payload) => {
             try {
-                const editResponse =
-                    await this._tableDesignerService.processTableEdit(
-                        payload.table,
-                        payload.tableChangeInfo,
-                    );
-                sendActionEvent(
-                    TelemetryViews.TableDesigner,
-                    TelemetryActions.Edit,
-                    {
-                        type: payload.tableChangeInfo.type.toString(),
-                        source: payload.tableChangeInfo.source,
-                        correlationId: this._correlationId,
-                    },
+                const editResponse = await this._tableDesignerService.processTableEdit(
+                    payload.table,
+                    payload.tableChangeInfo,
                 );
+                sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Edit, {
+                    type: payload.tableChangeInfo.type.toString(),
+                    source: payload.tableChangeInfo.source,
+                    correlationId: this._correlationId,
+                });
                 if (editResponse.issues?.length === 0) {
-                    state.tabStates.resultPaneTab =
-                        designer.DesignerResultPaneTabs.Script;
+                    state.tabStates.resultPaneTab = designer.DesignerResultPaneTabs.Script;
                 } else {
-                    state.tabStates.resultPaneTab =
-                        designer.DesignerResultPaneTabs.Issues;
+                    state.tabStates.resultPaneTab = designer.DesignerResultPaneTabs.Issues;
                 }
 
                 this.showRestorePromptAfterClose = true;
 
                 const afterEditState = {
                     ...state,
-                    view: editResponse.view
-                        ? getDesignerView(editResponse.view)
-                        : state.view,
+                    view: editResponse.view ? getDesignerView(editResponse.view) : state.view,
                     model: editResponse.viewModel,
                     issues: editResponse.issues,
                     isValid: editResponse.isValid,
@@ -275,10 +253,9 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 },
             };
             try {
-                const publishResponse =
-                    await this._tableDesignerService.publishChanges(
-                        payload.table,
-                    );
+                const publishResponse = await this._tableDesignerService.publishChanges(
+                    payload.table,
+                );
                 endActivity.end(ActivityStatus.Succeeded);
                 state = {
                     ...state,
@@ -330,16 +307,10 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     generateScriptState: designer.LoadState.Loading,
                 },
             };
-            const script = await this._tableDesignerService.generateScript(
-                payload.table,
-            );
-            sendActionEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.GenerateScript,
-                {
-                    correlationId: this._correlationId,
-                },
-            );
+            const script = await this._tableDesignerService.generateScript(payload.table);
+            sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
+                correlationId: this._correlationId,
+            });
             state = {
                 ...state,
                 apiState: {
@@ -352,44 +323,36 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer(
-            "generatePreviewReport",
-            async (state, payload) => {
-                this.state = {
-                    ...this.state,
-                    apiState: {
-                        ...this.state.apiState,
-                        previewState: designer.LoadState.Loading,
-                        publishState: designer.LoadState.NotStarted,
-                    },
-                    publishingError: undefined,
-                };
-                const previewReport =
-                    await this._tableDesignerService.generatePreviewReport(
-                        payload.table,
-                    );
-                sendActionEvent(
-                    TelemetryViews.TableDesigner,
-                    TelemetryActions.GenerateScript,
-                    {
-                        correlationId: this._correlationId,
-                    },
-                );
+        this.registerReducer("generatePreviewReport", async (state, payload) => {
+            this.state = {
+                ...this.state,
+                apiState: {
+                    ...this.state.apiState,
+                    previewState: designer.LoadState.Loading,
+                    publishState: designer.LoadState.NotStarted,
+                },
+                publishingError: undefined,
+            };
+            const previewReport = await this._tableDesignerService.generatePreviewReport(
+                payload.table,
+            );
+            sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
+                correlationId: this._correlationId,
+            });
 
-                state = {
-                    ...state,
-                    apiState: {
-                        ...state.apiState,
-                        previewState: previewReport.schemaValidationError
-                            ? designer.LoadState.Error
-                            : designer.LoadState.Loaded,
-                        publishState: designer.LoadState.NotStarted,
-                    },
-                    generatePreviewReportResult: previewReport,
-                };
-                return state;
-            },
-        );
+            state = {
+                ...state,
+                apiState: {
+                    ...state.apiState,
+                    previewState: previewReport.schemaValidationError
+                        ? designer.LoadState.Error
+                        : designer.LoadState.Loaded,
+                    publishState: designer.LoadState.NotStarted,
+                },
+                generatePreviewReportResult: previewReport,
+            };
+            return state;
+        });
 
         this.registerReducer("initializeTableDesigner", async (state) => {
             await this.initialize();
@@ -398,16 +361,14 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
 
         this.registerReducer("scriptAsCreate", async (state) => {
             await this._untitledSqlDocumentService.newQuery(
-                (state.model["script"] as designer.InputBoxProperties).value ??
-                    "",
+                (state.model["script"] as designer.InputBoxProperties).value ?? "",
             );
             return state;
         });
 
         this.registerReducer("copyScriptAsCreateToClipboard", async (state) => {
             await vscode.env.clipboard.writeText(
-                (state.model["script"] as designer.InputBoxProperties).value ??
-                    "",
+                (state.model["script"] as designer.InputBoxProperties).value ?? "",
             );
             await vscode.window.showInformationMessage(scriptCopiedToClipboard);
             return state;
@@ -418,13 +379,10 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer(
-            "setPropertiesComponents",
-            async (state, payload) => {
-                state.propertiesPaneData = payload.components;
-                return state;
-            },
-        );
+        this.registerReducer("setPropertiesComponents", async (state, payload) => {
+            state.propertiesPaneData = payload.components;
+            return state;
+        });
 
         this.registerReducer("setResultTab", async (state, payload) => {
             state.tabStates.resultPaneTab = payload.tabId;
@@ -432,26 +390,18 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("closeDesigner", async (state) => {
-            sendActionEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.Close,
-                {
-                    correlationId: this._correlationId,
-                },
-            );
+            sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Close, {
+                correlationId: this._correlationId,
+            });
             this.panel.dispose();
             return state;
         });
 
         this.registerReducer("continueEditing", async (state) => {
             this.state.apiState.publishState = designer.LoadState.NotStarted;
-            sendActionEvent(
-                TelemetryViews.TableDesigner,
-                TelemetryActions.ContinueEditing,
-                {
-                    correlationId: this._correlationId,
-                },
-            );
+            sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.ContinueEditing, {
+                correlationId: this._correlationId,
+            });
             return state;
         });
         this.registerReducer("copyPublishErrorToClipboard", async (state) => {

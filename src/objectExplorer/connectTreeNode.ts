@@ -10,10 +10,7 @@ import { TreeNodeInfo } from "./treeNodeInfo";
 
 export class ConnectTreeNode extends vscode.TreeItem {
     constructor(private _parentNode: TreeNodeInfo) {
-        super(
-            LocalizedConstants.msgConnect,
-            vscode.TreeItemCollapsibleState.None,
-        );
+        super(LocalizedConstants.msgConnect, vscode.TreeItemCollapsibleState.None);
 
         this.command = {
             title: LocalizedConstants.msgConnect,

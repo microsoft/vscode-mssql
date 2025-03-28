@@ -42,15 +42,9 @@ export async function getUniqueFilePath(
         while (await exists(`${basename}${counter}.${fileExtension}`, folder)) {
             counter += 1;
         }
-        uniqueFileName = vscode.Uri.joinPath(
-            folder,
-            `${basename}${counter}.${fileExtension}`,
-        );
+        uniqueFileName = vscode.Uri.joinPath(folder, `${basename}${counter}.${fileExtension}`);
     } else {
-        uniqueFileName = vscode.Uri.joinPath(
-            folder,
-            `${basename}.${fileExtension}`,
-        );
+        uniqueFileName = vscode.Uri.joinPath(folder, `${basename}.${fileExtension}`);
     }
     return uniqueFileName;
 }
@@ -60,8 +54,7 @@ export async function getUniqueFilePath(
  */
 export function getNonce(): string {
     let text = "";
-    const possible =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     for (let i = 0; i < 32; i++) {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
@@ -70,13 +63,9 @@ export function getNonce(): string {
 
 export class CancelError extends Error {}
 
-export function isIConnectionInfo(
-    connectionInfo: any,
-): connectionInfo is IConnectionInfo {
+export function isIConnectionInfo(connectionInfo: any): connectionInfo is IConnectionInfo {
     return (
-        (connectionInfo &&
-            connectionInfo.server &&
-            connectionInfo.authenticationType) ||
+        (connectionInfo && connectionInfo.server && connectionInfo.authenticationType) ||
         connectionInfo.connectionString
     );
 }
@@ -96,9 +85,7 @@ export function getErrorMessage(error: any): string {
 }
 
 // Copied from https://github.com/microsoft/vscode-azuretools/blob/5794d9d2ccbbafdb09d44b2e1883e515077e4a72/azure/src/utils/uiUtils.ts#L26
-export async function listAllIterator<T>(
-    iterator: PagedAsyncIterableIterator<T>,
-): Promise<T[]> {
+export async function listAllIterator<T>(iterator: PagedAsyncIterableIterator<T>): Promise<T[]> {
     const resources: T[] = [];
     for await (const r of iterator) {
         resources.push(r);

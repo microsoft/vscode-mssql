@@ -21,26 +21,16 @@ export class AzureResourceService implements mssql.IAzureResourceService {
     /**
      * Returns Azure locations for given subscription
      */
-    public async getLocations(
-        session: mssql.IAzureAccountSession,
-    ): Promise<Location[]> {
-        await this._azureController.checkAndRefreshToken(
-            session,
-            this._accountStore,
-        );
+    public async getLocations(session: mssql.IAzureAccountSession): Promise<Location[]> {
+        await this._azureController.checkAndRefreshToken(session, this._accountStore);
         return await this._azureResourceController.getLocations(session);
     }
 
     /**
      * Returns Azure resource groups for given subscription
      */
-    public async getResourceGroups(
-        session: mssql.IAzureAccountSession,
-    ): Promise<ResourceGroup[]> {
-        await this._azureController.checkAndRefreshToken(
-            session,
-            this._accountStore,
-        );
+    public async getResourceGroups(session: mssql.IAzureAccountSession): Promise<ResourceGroup[]> {
+        await this._azureController.checkAndRefreshToken(session, this._accountStore);
         return await this._azureResourceController.getResourceGroups(session);
     }
 
@@ -53,10 +43,7 @@ export class AzureResourceService implements mssql.IAzureResourceService {
         serverName: string,
         parameters: Server,
     ): Promise<string | undefined> {
-        await this._azureController.checkAndRefreshToken(
-            session,
-            this._accountStore,
-        );
+        await this._azureController.checkAndRefreshToken(session, this._accountStore);
         return await this._azureResourceController.createOrUpdateServer(
             session.subscription.subscriptionId,
             resourceGroupName,

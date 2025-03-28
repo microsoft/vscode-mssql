@@ -7,11 +7,7 @@ import path from "path";
 import fs from "fs";
 import { FrameLocator } from "@playwright/test";
 
-const istanbulCLIOutput = path.join(
-    process.cwd(),
-    "coverage",
-    "reactviews-coverage",
-);
+const istanbulCLIOutput = path.join(process.cwd(), "coverage", "reactviews-coverage");
 
 export async function writeCoverage(iframe: FrameLocator, testname: string) {
     // Get the HTML evaluate of the iframe
@@ -40,24 +36,17 @@ export async function writeCoverage(iframe: FrameLocator, testname: string) {
             // If the file already exists, merge the coverage data
             if (fs.existsSync(coverageFilePath)) {
                 try {
-                    const existingCoverage = JSON.parse(
-                        fs.readFileSync(coverageFilePath, "utf-8"),
-                    );
+                    const existingCoverage = JSON.parse(fs.readFileSync(coverageFilePath, "utf-8"));
                     mergedCoverage = { ...existingCoverage, ...coverage };
                 } catch (error) {
-                    console.error(
-                        "Error reading existing coverage file:",
-                        error,
-                    );
+                    console.error("Error reading existing coverage file:", error);
                 }
             }
             const coverageJSON = JSON.stringify(mergedCoverage, null, 2);
 
             fs.writeFileSync(coverageFilePath, coverageJSON, "utf-8");
 
-            console.log(
-                `Coverage data successfully written to: ${coverageFilePath}`,
-            );
+            console.log(`Coverage data successfully written to: ${coverageFilePath}`);
         } else {
             console.warn("No coverage data found.");
         }

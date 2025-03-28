@@ -15,10 +15,7 @@ export class EmptyHistoryNode extends vscode.TreeItem {
     private static readonly contextValue = "emptyHistoryNode";
 
     constructor() {
-        super(
-            LocalizedConstants.msgNoQueriesAvailable,
-            vscode.TreeItemCollapsibleState.None,
-        );
+        super(LocalizedConstants.msgNoQueriesAvailable, vscode.TreeItemCollapsibleState.None);
         this.contextValue = EmptyHistoryNode.contextValue;
     }
 }
@@ -29,14 +26,8 @@ export class EmptyHistoryNode extends vscode.TreeItem {
 export class QueryHistoryNode extends vscode.TreeItem {
     private static readonly contextValue = "queryHistoryNode";
     private readonly iconsPath: string = path.join(__dirname, "icons");
-    private readonly successIcon: string = path.join(
-        this.iconsPath,
-        "status_success.svg",
-    );
-    private readonly failureIcon: string = path.join(
-        this.iconsPath,
-        "status_error.svg",
-    );
+    private readonly successIcon: string = path.join(this.iconsPath, "status_success.svg");
+    private readonly failureIcon: string = path.join(this.iconsPath, "status_error.svg");
     private _ownerUri: string;
     private _timeStamp: Date;
     private _isSuccess: boolean;
@@ -68,8 +59,7 @@ export class QueryHistoryNode extends vscode.TreeItem {
 
     /** Getters */
     public get historyNodeLabel(): string {
-        const label =
-            typeof this.label === "string" ? this.label : this.label.label;
+        const label = typeof this.label === "string" ? this.label : this.label.label;
         return label;
     }
 

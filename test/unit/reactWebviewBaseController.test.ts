@@ -53,34 +53,17 @@ suite("ReactWebviewController Tests", () => {
         assert.ok("getState" in handlers, "getState handler is not registered");
         assert.ok("action" in handlers, "dispatch handler is not registered");
         assert.ok("getTheme" in handlers, "getTheme handler is not registered");
-        assert.ok(
-            "loadStats" in handlers,
-            "loadStats handler is not registered",
-        );
-        assert.ok(
-            "sendActionEvent" in handlers,
-            "sendActionEvent handler is not registered",
-        );
-        assert.ok(
-            "sendErrorEvent" in handlers,
-            "sendErrorEvent handler is not registered",
-        );
-        assert.ok(
-            "getLocalization" in handlers,
-            "getLocalization handler is not registered",
-        );
-        assert.ok(
-            "executeCommand" in handlers,
-            "executeCommand handler is not registered",
-        );
+        assert.ok("loadStats" in handlers, "loadStats handler is not registered");
+        assert.ok("sendActionEvent" in handlers, "sendActionEvent handler is not registered");
+        assert.ok("sendErrorEvent" in handlers, "sendErrorEvent handler is not registered");
+        assert.ok("getLocalization" in handlers, "getLocalization handler is not registered");
+        assert.ok("executeCommand" in handlers, "executeCommand handler is not registered");
     });
 
     test("should register a new reducer", () => {
-        const reducer = sandbox
-            .stub()
-            .callsFake((state: TestState, payload: any) => {
-                return { count: state.count + payload.amount };
-            });
+        const reducer = sandbox.stub().callsFake((state: TestState, payload: any) => {
+            return { count: state.count + payload.amount };
+        });
 
         controller.registerReducer("increment", reducer);
         const reducers = (controller as any)._reducers;
@@ -95,11 +78,7 @@ suite("ReactWebviewController Tests", () => {
             params: {},
         };
         await (controller as any)._webviewMessageHandler(message);
-        assert.deepStrictEqual(
-            controller.state,
-            { count: 0 },
-            "State is not returned correctly",
-        );
+        assert.deepStrictEqual(controller.state, { count: 0 }, "State is not returned correctly");
         assert.ok(
             (controller as any)._webview.postMessage.calledWith({
                 type: "response",
@@ -111,11 +90,9 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("should handle action request with registered reducer", async () => {
-        const reducer = sandbox
-            .stub()
-            .callsFake((_state: TestState, _payload: any) => {
-                return { count: 5 };
-            });
+        const reducer = sandbox.stub().callsFake((_state: TestState, _payload: any) => {
+            return { count: 5 };
+        });
         controller.registerReducer("increment", reducer);
 
         const message = {
@@ -129,11 +106,7 @@ suite("ReactWebviewController Tests", () => {
             reducer.calledOnceWith({ count: 0 }, { amount: 5 }),
             "Reducer is not called correctly",
         );
-        assert.deepStrictEqual(
-            controller.state,
-            { count: 5 },
-            "State is not updated correctly",
-        );
+        assert.deepStrictEqual(controller.state, { count: 5 }, "State is not updated correctly");
         assert.ok(
             controller._webview.postMessage.calledWith({
                 type: "notification",
@@ -184,8 +157,9 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should handle executeCommand request", async () => {
-        const mockExecuteCommand = ((vscode.commands.executeCommand as any) =
-            sandbox.stub().resolves("commandResult"));
+        const mockExecuteCommand = ((vscode.commands.executeCommand as any) = sandbox
+            .stub()
+            .resolves("commandResult"));
         const message = {
             type: "request",
             method: "executeCommand",
@@ -220,11 +194,7 @@ suite("ReactWebviewController Tests", () => {
 
     test("Should set state and send notification to webview", () => {
         controller.state = { count: 5 };
-        assert.deepStrictEqual(
-            controller.state,
-            { count: 5 },
-            "State is not updated correctly",
-        );
+        assert.deepStrictEqual(controller.state, { count: 5 }, "State is not updated correctly");
         assert.ok(
             controller._webview.postMessage.calledWith({
                 type: "notification",
@@ -237,11 +207,7 @@ suite("ReactWebviewController Tests", () => {
 
     test("Should update state and send notification to webview", () => {
         controller.updateState({ count: 6 });
-        assert.deepStrictEqual(
-            controller.state,
-            { count: 6 },
-            "State is not updated correctly",
-        );
+        assert.deepStrictEqual(controller.state, { count: 6 }, "State is not updated correctly");
         assert.ok(
             controller._webview.postMessage.calledWith({
                 type: "notification",
@@ -258,10 +224,7 @@ suite("ReactWebviewController Tests", () => {
         };
         (controller as any)._disposables.push(disposable);
         controller.dispose();
-        assert.ok(
-            disposable.dispose.calledOnce,
-            "Disposables are not disposed",
-        );
+        assert.ok(disposable.dispose.calledOnce, "Disposables are not disposed");
     });
 
     test("Should not post message if disposed", () => {
@@ -278,8 +241,7 @@ suite("ReactWebviewController Tests", () => {
 
     test("Should setup theming and handle theme change", () => {
         (vscode.window.onDidChangeActiveColorTheme as any) = sandbox.stub();
-        const onDidThemeChange = vscode.window
-            .onDidChangeActiveColorTheme as Sinon.SinonStub;
+        const onDidThemeChange = vscode.window.onDidChangeActiveColorTheme as Sinon.SinonStub;
         const themeChangedCallback = sandbox.stub();
         onDidThemeChange.callsFake((callback) => {
             themeChangedCallback.callsFake(callback);
@@ -308,9 +270,7 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should generate correct HTML content", () => {
-        const webviewUriStub = sandbox
-            .stub()
-            .returns(vscode.Uri.parse("https://example.com/"));
+        const webviewUriStub = sandbox.stub().returns(vscode.Uri.parse("https://example.com/"));
         sandbox.stub(utils, "getNonce").returns("test-nonce");
         (controller as any)._getWebview().asWebviewUri = webviewUriStub;
         const html = controller["_getHtmlTemplate"]();
@@ -369,22 +329,12 @@ interface TestReducers {
     decrement: { amount: number };
 }
 
-const vscodeWrapper = TypeMoq.Mock.ofType(
-    VscodeWrapper,
-    TypeMoq.MockBehavior.Loose,
-);
+const vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
 
-class TestWebviewController extends ReactWebviewBaseController<
-    TestState,
-    TestReducers
-> {
+class TestWebviewController extends ReactWebviewBaseController<TestState, TestReducers> {
     public _webview: TestWebView;
 
-    constructor(
-        context: vscode.ExtensionContext,
-        sourceFile: string,
-        initialData: TestState,
-    ) {
+    constructor(context: vscode.ExtensionContext, sourceFile: string, initialData: TestState) {
         super(context, vscodeWrapper.object, sourceFile, initialData);
         this._webview = {
             postMessage: sinon.stub(),

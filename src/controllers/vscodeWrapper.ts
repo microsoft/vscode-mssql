@@ -23,9 +23,7 @@ export default class VscodeWrapper {
      */
     public constructor() {
         if (typeof VscodeWrapper._outputChannel === "undefined") {
-            VscodeWrapper._outputChannel = this.createOutputChannel(
-                Constants.outputChannelName,
-            );
+            VscodeWrapper._outputChannel = this.createOutputChannel(Constants.outputChannelName);
         }
     }
 
@@ -41,9 +39,7 @@ export default class VscodeWrapper {
      * has changed. *Note* that the event also fires when the active editor changes
      * to `undefined`.
      */
-    public get onDidChangeActiveTextEditor(): vscode.Event<
-        vscode.TextEditor | undefined
-    > {
+    public get onDidChangeActiveTextEditor(): vscode.Event<vscode.TextEditor | undefined> {
         return vscode.window.onDidChangeActiveTextEditor;
     }
 
@@ -96,10 +92,7 @@ export default class VscodeWrapper {
      * the command handler function doesn't return anything.
      * @see vscode.commands.executeCommand
      */
-    public executeCommand<T>(
-        command: string,
-        ...rest: any[]
-    ): Thenable<T | undefined> {
+    public executeCommand<T>(command: string, ...rest: any[]): Thenable<T | undefined> {
         return vscode.commands.executeCommand<T>(command, ...rest);
     }
 
@@ -119,10 +112,7 @@ export default class VscodeWrapper {
                 resource = undefined;
             }
         }
-        return vscode.workspace.getConfiguration(
-            extensionName,
-            resource as vscode.Uri,
-        );
+        return vscode.workspace.getConfiguration(extensionName, resource as vscode.Uri);
     }
 
     /**
@@ -182,9 +172,7 @@ export default class VscodeWrapper {
      * @return A promise that resolves to a [document](#TextDocument).
      * @see vscode.workspace.openTextDocument
      */
-    public async openTextDocument(
-        uri: vscode.Uri,
-    ): Promise<vscode.TextDocument> {
+    public async openTextDocument(uri: vscode.Uri): Promise<vscode.TextDocument> {
         const doc = await vscode.workspace.openTextDocument(uri);
         return doc;
     }
@@ -200,9 +188,7 @@ export default class VscodeWrapper {
      * @return A promise that resolves to a [document](#TextDocument).
      * @see vscode.workspace.openTextDocument
      */
-    public async openMsSqlTextDocument(
-        content?: string,
-    ): Promise<vscode.TextDocument> {
+    public async openMsSqlTextDocument(content?: string): Promise<vscode.TextDocument> {
         const doc = await vscode.workspace.openTextDocument({
             language: "sql",
             content: content,
@@ -251,46 +237,29 @@ export default class VscodeWrapper {
      * @param start The start postion of the selection
      * @param end The end position of the selection
      */
-    public selection(
-        start: vscode.Position,
-        end: vscode.Position,
-    ): vscode.Selection {
+    public selection(start: vscode.Position, end: vscode.Position): vscode.Selection {
         return new vscode.Selection(start, end);
     }
 
     /**
      * Formats and shows a vscode error message
      */
-    public showErrorMessage(
-        msg: string,
-        ...items: string[]
-    ): Thenable<string | undefined> {
-        return vscode.window.showErrorMessage(
-            Constants.extensionName + ": " + msg,
-            ...items,
-        );
+    public showErrorMessage(msg: string, ...items: string[]): Thenable<string | undefined> {
+        return vscode.window.showErrorMessage(Constants.extensionName + ": " + msg, ...items);
     }
 
     /**
      * Shows an input box with given options
      */
-    public showInputBox(
-        options?: vscode.InputBoxOptions,
-    ): Thenable<string | undefined> {
+    public showInputBox(options?: vscode.InputBoxOptions): Thenable<string | undefined> {
         return vscode.window.showInputBox(options);
     }
 
     /**
      * Formats and shows a vscode information message
      */
-    public showInformationMessage(
-        msg: string,
-        ...items: string[]
-    ): Thenable<string | undefined> {
-        return vscode.window.showInformationMessage(
-            Constants.extensionName + ": " + msg,
-            ...items,
-        );
+    public showInformationMessage(msg: string, ...items: string[]): Thenable<string | undefined> {
+        return vscode.window.showInformationMessage(Constants.extensionName + ": " + msg, ...items);
     }
 
     public showQuickPickStrings(
@@ -300,9 +269,7 @@ export default class VscodeWrapper {
         return vscode.window.showQuickPick(items, options);
     }
 
-    public createQuickPick<
-        T extends vscode.QuickPickItem,
-    >(): vscode.QuickPick<T> {
+    public createQuickPick<T extends vscode.QuickPickItem>(): vscode.QuickPick<T> {
         return vscode.window.createQuickPick<T>();
     }
 
@@ -326,9 +293,7 @@ export default class VscodeWrapper {
      * @param options Configures the behavior of the save dialog
      * @return A promise that resolves to the selected resource or `undefined`.
      */
-    public showSaveDialog(
-        options: vscode.SaveDialogOptions,
-    ): Thenable<vscode.Uri | undefined> {
+    public showSaveDialog(options: vscode.SaveDialogOptions): Thenable<vscode.Uri | undefined> {
         return vscode.window.showSaveDialog(options);
     }
 
@@ -354,9 +319,7 @@ export default class VscodeWrapper {
      * Formats and shows a vscode warning message
      */
     public showWarningMessage(msg: string): Thenable<string | undefined> {
-        return vscode.window.showWarningMessage(
-            Constants.extensionName + ": " + msg,
-        );
+        return vscode.window.showWarningMessage(Constants.extensionName + ": " + msg);
     }
 
     /**
@@ -438,11 +401,7 @@ export default class VscodeWrapper {
         value: any,
         target: ConfigurationTarget = ConfigurationTarget.Global,
     ): Thenable<void> {
-        return this.getConfiguration(extensionName).update(
-            resource,
-            value,
-            target,
-        );
+        return this.getConfiguration(extensionName).update(resource, value, target);
     }
 
     /**
@@ -470,9 +429,7 @@ export default class VscodeWrapper {
      * Gets the Azure Account extension
      */
     public get azureAccountExtension(): vscode.Extension<any> | undefined {
-        return vscode.extensions.getExtension(
-            Constants.azureAccountExtensionId,
-        );
+        return vscode.extensions.getExtension(Constants.azureAccountExtensionId);
     }
 
     /**
@@ -480,10 +437,7 @@ export default class VscodeWrapper {
      * but not active
      */
     public get azureAccountExtensionActive(): boolean {
-        return (
-            this.azureAccountExtension !== undefined &&
-            this.azureAccountExtension.isActive
-        );
+        return this.azureAccountExtension !== undefined && this.azureAccountExtension.isActive;
     }
 
     /**
@@ -492,8 +446,7 @@ export default class VscodeWrapper {
     public get isAccountSignedIn(): boolean {
         return (
             this.azureAccountExtensionActive &&
-            this.azureAccountExtension!.exports.status ===
-                AzureLoginStatus.LoggedIn
+            this.azureAccountExtension!.exports.status === AzureLoginStatus.LoggedIn
         );
     }
 }

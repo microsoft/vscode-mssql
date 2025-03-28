@@ -3,13 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    Divider,
-    Spinner,
-    makeStyles,
-    shorthands,
-} from "@fluentui/react-components";
+import { Button, Divider, Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext } from "react";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
@@ -111,8 +105,7 @@ export const TableDesigner = () => {
 
     return (
         <div className={classes.root}>
-            {tableDesignerState.apiState?.initializeState ===
-                designer.LoadState.Loading && (
+            {tableDesignerState.apiState?.initializeState === designer.LoadState.Loading && (
                 <div className={classes.pageContext}>
                     <Spinner
                         label={locConstants.tableDesigner.loadingTableDesigner}
@@ -120,8 +113,7 @@ export const TableDesigner = () => {
                     />
                 </div>
             )}
-            {tableDesignerState.apiState?.initializeState ===
-                designer.LoadState.Error && (
+            {tableDesignerState.apiState?.initializeState === designer.LoadState.Error && (
                 <div className={classes.pageContext}>
                     <ErrorCircleRegular className={classes.errorIcon} />
                     <div>{locConstants.tableDesigner.errorLoadingDesigner}</div>
@@ -130,8 +122,7 @@ export const TableDesigner = () => {
                     </Button>
                 </div>
             )}
-            {tableDesignerState.apiState?.initializeState ===
-                designer.LoadState.Loaded && (
+            {tableDesignerState.apiState?.initializeState === designer.LoadState.Loaded && (
                 <div className={classes.mainContent}>
                     <DesignerPageRibbon />
                     <div className={classes.editor}>
@@ -151,27 +142,18 @@ export const TableDesigner = () => {
                                 width={
                                     context.propertiesPaneResizeInfo.isMaximized
                                         ? 9999999
-                                        : context.propertiesPaneResizeInfo
-                                              .currentWidth
+                                        : context.propertiesPaneResizeInfo.currentWidth
                                 }
                                 onResizeStart={(_e, _div) => {
-                                    context.propertiesPaneResizeInfo.setIsMaximized(
-                                        false,
-                                    );
+                                    context.propertiesPaneResizeInfo.setIsMaximized(false);
                                 }}
                                 onResizeStop={(_e, div) => {
                                     const parentContainerWidth =
-                                        div.node!.parentElement!.parentElement!
-                                            .offsetWidth!;
+                                        div.node!.parentElement!.parentElement!.offsetWidth!;
 
                                     const currentDivWidth = div.size.width;
-                                    if (
-                                        currentDivWidth >=
-                                        parentContainerWidth - 50
-                                    ) {
-                                        context.propertiesPaneResizeInfo.setIsMaximized(
-                                            true,
-                                        );
+                                    if (currentDivWidth >= parentContainerWidth - 50) {
+                                        context.propertiesPaneResizeInfo.setIsMaximized(true);
                                         context.propertiesPaneResizeInfo.setCurrentWidth(
                                             parentContainerWidth,
                                         );
@@ -188,13 +170,8 @@ export const TableDesigner = () => {
                                 maxConstraints={[Infinity, Infinity]}
                                 minConstraints={[10, Infinity]}
                                 resizeHandles={["w"]}
-                                handle={
-                                    <div
-                                        className={classes.propertiesPaneHandle}
-                                    />
-                                }
-                                className={classes.propertiesPaneContainer}
-                            >
+                                handle={<div className={classes.propertiesPaneHandle} />}
+                                className={classes.propertiesPaneContainer}>
                                 <DesignerPropertiesPane />
                             </ResizableBox>
                         )}
@@ -216,30 +193,19 @@ export const TableDesigner = () => {
                         }}
                         onResizeStop={(_e, div) => {
                             const parentContainerHeight =
-                                div.node!.parentElement!.parentElement!
-                                    .offsetHeight!;
+                                div.node!.parentElement!.parentElement!.offsetHeight!;
 
                             const currentDivHeight = div.size.height;
-                            if (
-                                currentDivHeight >=
-                                parentContainerHeight - 50
-                            ) {
-                                context.resultPaneResizeInfo.setIsMaximized(
-                                    true,
-                                );
+                            if (currentDivHeight >= parentContainerHeight - 50) {
+                                context.resultPaneResizeInfo.setIsMaximized(true);
                                 context.resultPaneResizeInfo.setCurrentHeight(
                                     parentContainerHeight,
                                 );
                             } else {
-                                context.resultPaneResizeInfo.setCurrentHeight(
-                                    div.size.height,
-                                );
-                                context.resultPaneResizeInfo.setOriginalHeight(
-                                    div.size.height,
-                                );
+                                context.resultPaneResizeInfo.setCurrentHeight(div.size.height);
+                                context.resultPaneResizeInfo.setOriginalHeight(div.size.height);
                             }
-                        }}
-                    >
+                        }}>
                         <DesignerResultPane />
                     </ResizableBox>
                 </div>

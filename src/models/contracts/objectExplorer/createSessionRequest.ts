@@ -11,12 +11,9 @@ import { NodeInfo } from "./nodeInfo";
 
 // Create session request message callback declaration
 export namespace CreateSessionRequest {
-    export const type = new RequestType<
-        ConnectionDetails,
-        CreateSessionResponse,
-        void,
-        void
-    >("objectexplorer/createsession");
+    export const type = new RequestType<ConnectionDetails, CreateSessionResponse, void, void>(
+        "objectexplorer/createsession",
+    );
 }
 
 /**

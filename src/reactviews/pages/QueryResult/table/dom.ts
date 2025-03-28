@@ -42,11 +42,7 @@ class DomListener {
             return;
         }
 
-        this._node.removeEventListener(
-            this._type,
-            this._handler,
-            this._options,
-        );
+        this._node.removeEventListener(this._type, this._handler, this._options);
 
         // Prevent leakers from holding on to the dom or handler func
         this._node = null!;
@@ -163,14 +159,8 @@ export function $<T extends HTMLElement>(
 }
 
 export function append<T extends Node>(parent: HTMLElement, child: T): T;
-export function append<T extends Node>(
-    parent: HTMLElement,
-    ...children: (T | string)[]
-): void;
-export function append<T extends Node>(
-    parent: HTMLElement,
-    ...children: (T | string)[]
-): T | void {
+export function append<T extends Node>(parent: HTMLElement, ...children: (T | string)[]): void;
+export function append<T extends Node>(parent: HTMLElement, ...children: (T | string)[]): T | void {
     parent.append(...children);
     if (children.length === 1 && typeof children[0] !== "string") {
         return <T>children[0];

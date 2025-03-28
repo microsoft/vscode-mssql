@@ -131,9 +131,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     const [id, setId] = useState<string>("");
     const [items, setItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
     const [isFiltered, setIsFiltered] = useState<boolean>(false);
-    const [unfilteredItems, setUnfilteredItems] = useState<
-        ep.ExecutionPlanPropertyTableItem[]
-    >([]);
+    const [unfilteredItems, setUnfilteredItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
     const [numItems, setNumItems] = useState<number>(0);
     const [inputValue, setInputValue] = useState<string>("");
 
@@ -184,13 +182,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         setId(element.id);
 
         // make items list, and sort it based on importance
-        const unsortedItems = buildItemListFromProperties(
-            element.properties,
-            0,
-            0,
-            false,
-            -1,
-        );
+        const unsortedItems = buildItemListFromProperties(element.properties, 0, 0, false, -1);
         setItems(
             recursiveSort(
                 unsortedItems,
@@ -201,25 +193,17 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         setNumItems(unsortedItems.length);
     }
 
-    const handleShowChildrenClick = async (
-        buttonName: string,
-        children: number[],
-    ) => {
+    const handleShowChildrenClick = async (buttonName: string, children: number[]) => {
         if (shownChildren.includes(children[0])) {
             // If the first child is in shownChildren, this means it is collapsing,
             // so remove all children passed in and change the button icon
             setShownChildren((prevShownChildren) =>
                 prevShownChildren.filter((child) => !children.includes(child)),
             );
-            setOpenedButtons(
-                openedButtons.filter((button) => button !== buttonName),
-            );
+            setOpenedButtons(openedButtons.filter((button) => button !== buttonName));
         } else {
             // Otherwise, it is expanding, so add all children, and change button icon
-            setShownChildren((prevShownChildren) => [
-                ...prevShownChildren,
-                ...children,
-            ]);
+            setShownChildren((prevShownChildren) => [...prevShownChildren, ...children]);
             setOpenedButtons([...openedButtons, buttonName]);
         }
     };
@@ -262,14 +246,10 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             // items hasn't been updated yet, ie. on the first filter, use items instead
             const currentItems = firstFilter ? items : unfilteredItems;
             let filteredItems = currentItems.filter(
-                (item) =>
-                    item.name.includes(searchValue) ||
-                    item.value.includes(searchValue),
+                (item) => item.name.includes(searchValue) || item.value.includes(searchValue),
             );
 
-            setItems(
-                buildFilteredItemsFromChildList(filteredItems, currentItems),
-            );
+            setItems(buildFilteredItemsFromChildList(filteredItems, currentItems));
             setIsFiltered(true);
         }
         // filtering is removed
@@ -289,54 +269,48 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         return currentItems;
     }
 
-    const columns: TableColumnDefinition<ep.ExecutionPlanPropertyTableItem>[] =
-        [
-            createTableColumn<ep.ExecutionPlanPropertyTableItem>({
-                columnId: "name",
-                renderHeaderCell: () => NAME,
-                renderCell: (item) => (
-                    // Add tabbing based on the "level" of the item in the table,
-                    // and add expand button based on whether the item has children
-                    <TableCellLayout truncate className={classes.textContainer}>
-                        {`\u200b\t`.repeat(item.level * 6)}
-                        {item.children.length > 0 && (
-                            <Button
-                                size="small"
-                                className={classes.chevronButton}
-                                aria-label={
-                                    openedButtons.includes(item.name)
-                                        ? locConstants.executionPlan.collapse
-                                        : locConstants.executionPlan.expand
-                                }
-                                icon={
-                                    openedButtons.includes(item.name) ? (
-                                        <ChevronDown20Regular />
-                                    ) : (
-                                        <ChevronRight20Regular />
-                                    )
-                                }
-                                onClick={() =>
-                                    handleShowChildrenClick(
-                                        item.name,
-                                        item.children,
-                                    )
-                                }
-                            />
-                        )}
-                        {item.name}
-                    </TableCellLayout>
-                ),
-            }),
-            createTableColumn<ep.ExecutionPlanPropertyTableItem>({
-                columnId: "value",
-                renderHeaderCell: () => VALUE,
-                renderCell: (item) => (
-                    <TableCellLayout truncate className={classes.textContainer}>
-                        {item.value}
-                    </TableCellLayout>
-                ),
-            }),
-        ];
+    const columns: TableColumnDefinition<ep.ExecutionPlanPropertyTableItem>[] = [
+        createTableColumn<ep.ExecutionPlanPropertyTableItem>({
+            columnId: "name",
+            renderHeaderCell: () => NAME,
+            renderCell: (item) => (
+                // Add tabbing based on the "level" of the item in the table,
+                // and add expand button based on whether the item has children
+                <TableCellLayout truncate className={classes.textContainer}>
+                    {`\u200b\t`.repeat(item.level * 6)}
+                    {item.children.length > 0 && (
+                        <Button
+                            size="small"
+                            className={classes.chevronButton}
+                            aria-label={
+                                openedButtons.includes(item.name)
+                                    ? locConstants.executionPlan.collapse
+                                    : locConstants.executionPlan.expand
+                            }
+                            icon={
+                                openedButtons.includes(item.name) ? (
+                                    <ChevronDown20Regular />
+                                ) : (
+                                    <ChevronRight20Regular />
+                                )
+                            }
+                            onClick={() => handleShowChildrenClick(item.name, item.children)}
+                        />
+                    )}
+                    {item.name}
+                </TableCellLayout>
+            ),
+        }),
+        createTableColumn<ep.ExecutionPlanPropertyTableItem>({
+            columnId: "value",
+            renderHeaderCell: () => VALUE,
+            renderCell: (item) => (
+                <TableCellLayout truncate className={classes.textContainer}>
+                    {item.value}
+                </TableCellLayout>
+            ),
+        }),
+    ];
 
     return (
         <div
@@ -345,22 +319,19 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             style={{
                 background: tokens.colorNeutralBackground2,
                 borderLeft: `0.5px solid ${tokens.colorNeutralStroke1}`,
-            }}
-        >
+            }}>
             <div
                 style={{
                     position: "sticky",
                     top: 0,
                     zIndex: 1,
                     background: tokens.colorNeutralBackground1,
-                }}
-            >
+                }}>
                 <div
                     className={classes.propertiesHeader}
                     style={{
                         background: tokens.colorNeutralBackground2,
-                    }}
-                >
+                    }}>
                     <div aria-label={PROPERTIES} tabIndex={0}>
                         {PROPERTIES}
                     </div>
@@ -378,11 +349,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         />
                     </div>
                 </div>
-                <div
-                    className={classes.nameContainer}
-                    aria-label={name}
-                    tabIndex={0}
-                >
+                <div className={classes.nameContainer} aria-label={name} tabIndex={0}>
                     {name}
                 </div>
                 <Toolbar className={classes.toolbar} size="small">
@@ -424,9 +391,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                                 alt={REVERSE_ALPHABETICAL}
                             />
                         }
-                        onClick={() =>
-                            handleSort(ep.SortOption.ReverseAlphabetical)
-                        }
+                        onClick={() => handleSort(ep.SortOption.ReverseAlphabetical)}
                         title={REVERSE_ALPHABETICAL}
                         aria-label={REVERSE_ALPHABETICAL}
                     />
@@ -484,39 +449,29 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     columns={columns}
                     focusMode="composite"
                     resizableColumns={true}
-                    size="small"
-                >
+                    size="small">
                     <DataGridHeader
                         className={classes.tableHeader}
                         style={{
                             background: tokens.colorNeutralBackground2,
-                        }}
-                    >
+                        }}>
                         <DataGridRow className={classes.tableRow}>
                             {({ renderHeaderCell }) => (
-                                <DataGridHeaderCell
-                                    className={classes.tableHeader}
-                                >
+                                <DataGridHeaderCell className={classes.tableHeader}>
                                     {renderHeaderCell()}
                                 </DataGridHeaderCell>
                             )}
                         </DataGridRow>
                     </DataGridHeader>
-                    <DataGridBody<ep.ExecutionPlanPropertyTableItem>
-                        tabIndex={0}
-                    >
+                    <DataGridBody<ep.ExecutionPlanPropertyTableItem> tabIndex={0}>
                         {({ item, rowId }) => (
                             <>
-                                {(!item.isChild ||
-                                    shownChildren.includes(item.id)) && (
+                                {(!item.isChild || shownChildren.includes(item.id)) && (
                                     <DataGridRow<ep.ExecutionPlanPropertyTableItem>
                                         key={rowId}
-                                        className={classes.tableRow}
-                                    >
+                                        className={classes.tableRow}>
                                         {({ renderCell }) => (
-                                            <DataGridCell
-                                                className={classes.tableCell}
-                                            >
+                                            <DataGridCell className={classes.tableCell}>
                                                 {renderCell(item)}
                                             </DataGridCell>
                                         )}
@@ -587,18 +542,9 @@ function buildFilteredItemsFromChildList(
     for (const child of childList) {
         if (child.parent != -1) {
             const parent = itemList.find((item) => child.parent === item.id)!;
-            if (
-                parent &&
-                !fullItemList.some((fullItem) => fullItem.id === parent.id)
-            ) {
-                const parentList = buildFilteredItemsFromChildList(
-                    [parent],
-                    itemList,
-                ).filter(
-                    (parentItem) =>
-                        !fullItemList.some(
-                            (fullItem) => fullItem.id === parentItem.id,
-                        ),
+            if (parent && !fullItemList.some((fullItem) => fullItem.id === parent.id)) {
+                const parentList = buildFilteredItemsFromChildList([parent], itemList).filter(
+                    (parentItem) => !fullItemList.some((fullItem) => fullItem.id === parentItem.id),
                 );
 
                 fullItemList = fullItemList.concat(parentList);
@@ -630,17 +576,13 @@ function recursiveSort(
         let childList: ep.ExecutionPlanPropertyTableItem[] = [];
 
         for (const childId of item.children) {
-            const childItem = items.find(
-                (childItem) => childItem.id === childId,
-            );
+            const childItem = items.find((childItem) => childItem.id === childId);
             if (childItem) {
                 childList.push(childItem);
             }
         }
 
-        sortedList = sortedList.concat(
-            recursiveSort(items, childList, sortOption),
-        );
+        sortedList = sortedList.concat(recursiveSort(items, childList, sortOption));
     }
     return sortedList;
 }

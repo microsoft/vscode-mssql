@@ -18,10 +18,7 @@ suite("Prompts test", () => {
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 
     setup(() => {
-        vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
     });
 
     test("Test string prompt", () => {
@@ -87,8 +84,6 @@ suite("Prompts test", () => {
         let question: any = {
             type: "fail",
         };
-        assert.Throw(() =>
-            PromptFactory.createPrompt(question, vscodeWrapper.object),
-        );
+        assert.Throw(() => PromptFactory.createPrompt(question, vscodeWrapper.object));
     });
 });

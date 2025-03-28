@@ -41,9 +41,7 @@ export interface CssIconCellValue {
 export namespace DBCellValue {
     export function isDBCellValue(object: any): boolean {
         return (
-            object !== undefined &&
-            object.displayValue !== undefined &&
-            object.isNull !== undefined
+            object !== undefined && object.displayValue !== undefined && object.isNull !== undefined
         );
     }
 }
@@ -52,15 +50,11 @@ export namespace DBCellValue {
  * Checks whether the specified object is a HyperlinkCellValue object or not
  * @param obj The object to test
  */
-export function isHyperlinkCellValue(
-    obj: any | undefined,
-): obj is HyperlinkCellValue {
+export function isHyperlinkCellValue(obj: any | undefined): obj is HyperlinkCellValue {
     return !!(<HyperlinkCellValue>obj)?.linkOrCommand;
 }
 
-export function isCssIconCellValue(
-    obj: any | undefined,
-): obj is CssIconCellValue {
+export function isCssIconCellValue(obj: any | undefined): obj is CssIconCellValue {
     return !!(<CssIconCellValue>obj)?.iconCssClass;
 }
 
@@ -153,8 +147,7 @@ export function textFormatter(
 }
 
 export function getCellDisplayValue(cellValue: string): string {
-    let valueToDisplay =
-        cellValue.length > 250 ? cellValue.slice(0, 250) + "..." : cellValue;
+    let valueToDisplay = cellValue.length > 250 ? cellValue.slice(0, 250) + "..." : cellValue;
     // allow-any-unicode-next-line
     valueToDisplay = valueToDisplay.replace(/(\r\n|\n|\r)/g, "↵");
     return escape(valueToDisplay);

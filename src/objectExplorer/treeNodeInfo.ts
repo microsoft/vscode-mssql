@@ -217,9 +217,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     }
 
     //split the context value with, and is in the form of key=value and convert it to TreeNodeContextValue
-    private _convertToTreeNodeContext(
-        contextValue: string,
-    ): vscodeMssql.TreeNodeContextValue {
+    private _convertToTreeNodeContext(contextValue: string): vscodeMssql.TreeNodeContextValue {
         let contextArray = contextValue.split(",");
         let context: vscodeMssql.TreeNodeContextValue = {
             filterable: false,
@@ -235,9 +233,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     }
 
     //convert TreeNodeContextValue to context value string
-    private _convertToContextValue(
-        context: vscodeMssql.TreeNodeContextValue,
-    ): string {
+    private _convertToContextValue(context: vscodeMssql.TreeNodeContextValue): string {
         if (context === undefined) {
             return "";
         }

@@ -24,9 +24,7 @@ suite("ExtConfig Tests", () => {
         expectedFromExtensionConfig: string,
     ): ExtConfig {
         let toolsConfigKey = `${Constants.sqlToolsServiceConfigKey}.${configKey}`;
-        config
-            .setup((x) => x.getSqlToolsConfigValue(configKey))
-            .returns(() => expectedFromConfig);
+        config.setup((x) => x.getSqlToolsConfigValue(configKey)).returns(() => expectedFromConfig);
         extensionConfig
             .setup((x) => x.get(toolsConfigKey))
             .returns(() => expectedFromExtensionConfig);
@@ -54,11 +52,7 @@ suite("ExtConfig Tests", () => {
     test("getSqlToolsServiceDownloadUrl should return value from extension config first", (done) => {
         return new Promise((resolve, reject) => {
             let configKey = Constants.sqlToolsServiceDownloadUrlConfigKey;
-            let extConfig = createExtConfigInstance(
-                configKey,
-                fromConfig,
-                fromExtensionConfig,
-            );
+            let extConfig = createExtConfigInstance(configKey, fromConfig, fromExtensionConfig);
             let actual = extConfig.getSqlToolsServiceDownloadUrl();
             assert.equal(actual, fromExtensionConfig);
             done();
@@ -68,11 +62,7 @@ suite("ExtConfig Tests", () => {
     test("getSqlToolsServiceDownloadUrl should return value from config.json if not exit in extension config", (done) => {
         return new Promise((resolve, reject) => {
             let configKey = Constants.sqlToolsServiceDownloadUrlConfigKey;
-            let extConfig = createExtConfigInstance(
-                configKey,
-                fromConfig,
-                undefined,
-            );
+            let extConfig = createExtConfigInstance(configKey, fromConfig, undefined);
             let actual = extConfig.getSqlToolsServiceDownloadUrl();
             assert.equal(actual, fromConfig);
             done();
@@ -82,11 +72,7 @@ suite("ExtConfig Tests", () => {
     test("getSqlToolsConfigValue should return value from extension config first", (done) => {
         return new Promise((resolve, reject) => {
             let configKey = Constants.sqlToolsServiceInstallDirConfigKey;
-            let extConfig = createExtConfigInstance(
-                configKey,
-                fromConfig,
-                fromExtensionConfig,
-            );
+            let extConfig = createExtConfigInstance(configKey, fromConfig, fromExtensionConfig);
             let actual = extConfig.getSqlToolsConfigValue(configKey);
             assert.equal(actual, fromExtensionConfig);
             done();
@@ -96,11 +82,7 @@ suite("ExtConfig Tests", () => {
     test("getSqlToolsConfigValue should return value from config.json if not exit in extension config", (done) => {
         return new Promise((resolve, reject) => {
             let configKey = Constants.sqlToolsServiceInstallDirConfigKey;
-            let extConfig = createExtConfigInstance(
-                configKey,
-                fromConfig,
-                undefined,
-            );
+            let extConfig = createExtConfigInstance(configKey, fromConfig, undefined);
             let actual = extConfig.getSqlToolsConfigValue(configKey);
             assert.equal(actual, fromConfig);
             done();
@@ -110,9 +92,7 @@ suite("ExtConfig Tests", () => {
     test("getExtensionConfig should return value from extension config", (done) => {
         return new Promise((resolve, reject) => {
             let configKey = "config key";
-            extensionConfig
-                .setup((x) => x.get(configKey))
-                .returns(() => fromExtensionConfig);
+            extensionConfig.setup((x) => x.get(configKey)).returns(() => fromExtensionConfig);
             let extConfig = new ExtConfig(
                 config.object,
                 extensionConfig.object,
@@ -128,9 +108,7 @@ suite("ExtConfig Tests", () => {
         return new Promise((resolve, reject) => {
             let configKey = "config key";
             let defaultValue = "default value";
-            extensionConfig
-                .setup((x) => x.get(configKey))
-                .returns(() => undefined);
+            extensionConfig.setup((x) => x.get(configKey)).returns(() => undefined);
             let extConfig = new ExtConfig(
                 config.object,
                 extensionConfig.object,
@@ -145,9 +123,7 @@ suite("ExtConfig Tests", () => {
     test("getWorkspaceConfig should return value from workspace config", (done) => {
         return new Promise((resolve, reject) => {
             let configKey = "config key";
-            workspaceConfig
-                .setup((x) => x.get(configKey))
-                .returns(() => fromExtensionConfig);
+            workspaceConfig.setup((x) => x.get(configKey)).returns(() => fromExtensionConfig);
             let extConfig = new ExtConfig(
                 config.object,
                 extensionConfig.object,
@@ -163,9 +139,7 @@ suite("ExtConfig Tests", () => {
         return new Promise((resolve, reject) => {
             let configKey = "config key";
             let defaultValue = "default value";
-            workspaceConfig
-                .setup((x) => x.get(configKey))
-                .returns(() => undefined);
+            workspaceConfig.setup((x) => x.get(configKey)).returns(() => undefined);
             let extConfig = new ExtConfig(
                 config.object,
                 extensionConfig.object,

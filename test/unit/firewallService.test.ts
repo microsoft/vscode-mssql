@@ -16,10 +16,7 @@ import {
 } from "../../src/models/contracts/firewall/firewallRequest";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { assert } from "chai";
-import {
-    IAzureSession,
-    IAzureResourceFilter,
-} from "../../src/models/interfaces";
+import { IAzureSession, IAzureResourceFilter } from "../../src/models/interfaces";
 import {
     AzureAuthType,
     IAccount,
@@ -36,10 +33,7 @@ suite("Firewall Service Tests", () => {
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 
     setup(() => {
-        client = TypeMoq.Mock.ofType(
-            SqlToolsServiceClient,
-            TypeMoq.MockBehavior.Loose,
-        );
+        client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
         let mockHandleFirewallResponse: IHandleFirewallRuleResponse = {
             result: true,
             ipAddress: "128.0.0.0",
@@ -49,25 +43,12 @@ suite("Firewall Service Tests", () => {
             errorMessage: "",
         };
         client
-            .setup((c) =>
-                c.sendResourceRequest(
-                    HandleFirewallRuleRequest.type,
-                    TypeMoq.It.isAny(),
-                ),
-            )
+            .setup((c) => c.sendResourceRequest(HandleFirewallRuleRequest.type, TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(mockHandleFirewallResponse));
         client
-            .setup((c) =>
-                c.sendResourceRequest(
-                    CreateFirewallRuleRequest.type,
-                    TypeMoq.It.isAny(),
-                ),
-            )
+            .setup((c) => c.sendResourceRequest(CreateFirewallRuleRequest.type, TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(mockCreateFirewallRuleResponse));
-        vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         let mockSession: IAzureSession = {
             environment: undefined,
             userId: "test",
@@ -92,17 +73,9 @@ suite("Firewall Service Tests", () => {
                 filters: mockFilter,
             },
         };
-        vscodeWrapper
-            .setup((v) => v.azureAccountExtension)
-            .returns(() => mockExtension);
-        accountService = TypeMoq.Mock.ofType(
-            AccountService,
-            TypeMoq.MockBehavior.Loose,
-        );
-        firewallService = TypeMoq.Mock.ofType(
-            FirewallService,
-            TypeMoq.MockBehavior.Loose,
-        );
+        vscodeWrapper.setup((v) => v.azureAccountExtension).returns(() => mockExtension);
+        accountService = TypeMoq.Mock.ofType(AccountService, TypeMoq.MockBehavior.Loose);
+        firewallService = TypeMoq.Mock.ofType(FirewallService, TypeMoq.MockBehavior.Loose);
     });
 
     test("Handle Firewall Rule test", async () => {
@@ -110,10 +83,7 @@ suite("Firewall Service Tests", () => {
             12345,
             "firewall error!",
         );
-        assert.isNotNull(
-            handleResult,
-            "Handle Firewall Rule request is sent successfully",
-        );
+        assert.isNotNull(handleResult, "Handle Firewall Rule request is sent successfully");
     });
 
     test("Create Firewall Rule Test", async () => {
@@ -156,15 +126,11 @@ suite("Firewall Service Tests", () => {
             startIpAddress: startIpAddress,
             endIpAddress: endIpAddress,
             serverName: server,
-            securityTokenMappings:
-                accountService.object.createSecurityTokenMapping(
-                    mockAccount,
-                    mockTenant.id,
-                ),
+            securityTokenMappings: accountService.object.createSecurityTokenMapping(
+                mockAccount,
+                mockTenant.id,
+            ),
         });
-        assert.isNotNull(
-            result,
-            "Create Firewall Rule request is sent successfully",
-        );
+        assert.isNotNull(result, "Create Firewall Rule request is sent successfully");
     });
 });

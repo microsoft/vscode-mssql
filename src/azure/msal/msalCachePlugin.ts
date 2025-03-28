@@ -54,16 +54,13 @@ export class MsalCachePluginProvider {
 
     public getCachePlugin(): ICachePlugin {
         const lockFilePath = this.getLockfilePath();
-        const beforeCacheAccess = async (
-            cacheContext: TokenCacheContext,
-        ): Promise<void> => {
+        const beforeCacheAccess = async (cacheContext: TokenCacheContext): Promise<void> => {
             await this.waitAndLock(lockFilePath);
             try {
                 const cache = await fsPromises.readFile(this._msalFilePath, {
                     encoding: "utf8",
                 });
-                const decryptedCache =
-                    await this._fileEncryptionHelper.fileOpener(cache);
+                const decryptedCache = await this._fileEncryptionHelper.fileOpener(cache);
                 try {
                     cacheContext.tokenCache.deserialize(decryptedCache);
                 } catch (e) {
@@ -74,9 +71,7 @@ export class MsalCachePluginProvider {
                     );
                     await fsPromises.unlink(this._msalFilePath);
                 }
-                this._logger.verbose(
-                    `MsalCachePlugin: Token read from cache successfully.`,
-                );
+                this._logger.verbose(`MsalCachePlugin: Token read from cache successfully.`);
             } catch (e) {
                 if (e.code === "ENOENT") {
                     // File doesn't exist, log and continue
@@ -95,29 +90,18 @@ export class MsalCachePluginProvider {
             }
         };
 
-        const afterCacheAccess = async (
-            cacheContext: TokenCacheContext,
-        ): Promise<void> => {
+        const afterCacheAccess = async (cacheContext: TokenCacheContext): Promise<void> => {
             if (cacheContext.cacheHasChanged) {
                 await this.waitAndLock(lockFilePath);
                 try {
                     const cache = cacheContext.tokenCache.serialize();
-                    const encryptedCache =
-                        await this._fileEncryptionHelper.fileSaver(cache);
-                    await fsPromises.writeFile(
-                        this._msalFilePath,
-                        encryptedCache,
-                        {
-                            encoding: "utf8",
-                        },
-                    );
-                    this._logger.verbose(
-                        `MsalCachePlugin: Token written to cache successfully.`,
-                    );
+                    const encryptedCache = await this._fileEncryptionHelper.fileSaver(cache);
+                    await fsPromises.writeFile(this._msalFilePath, encryptedCache, {
+                        encoding: "utf8",
+                    });
+                    this._logger.verbose(`MsalCachePlugin: Token written to cache successfully.`);
                 } catch (e) {
-                    this._logger.error(
-                        `MsalCachePlugin: Failed to write to cache file. ${e}`,
-                    );
+                    this._logger.error(`MsalCachePlugin: Failed to write to cache file. ${e}`);
                     throw e;
                 } finally {
                     lockFile.unlockSync(lockFilePath);
@@ -146,9 +130,7 @@ export class MsalCachePluginProvider {
         // so we check if the lockfile exists and if it does, calling unlockSync() will clear it.
         if (lockFile.checkSync(lockFilePath) && !this._lockTaken) {
             lockFile.unlockSync(lockFilePath);
-            this._logger.verbose(
-                `MsalCachePlugin: Stale lockfile found and has been removed.`,
-            );
+            this._logger.verbose(`MsalCachePlugin: Stale lockfile found and has been removed.`);
         }
 
         let retryAttempt = 0;
@@ -173,9 +155,7 @@ export class MsalCachePluginProvider {
                     `MsalCachePlugin: Failed to acquire lock on cache file. Retrying in ${retryWait} ms.`,
                 );
 
-                await new Promise((resolve) =>
-                    setTimeout(() => resolve, retryWait),
-                );
+                await new Promise((resolve) => setTimeout(() => resolve, retryWait));
             }
         }
     }
