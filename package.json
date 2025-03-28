@@ -426,7 +426,7 @@
         {
           "command": "mssql.objectExplorerChatWithDatabase",
           "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Database)\\b/",
-          "group": "MS_SQL@1"
+          "group": "MS_SQL@11"
         },
         {
           "command": "mssql.filterNode",
