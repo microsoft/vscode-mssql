@@ -36,6 +36,10 @@
         <source xml:lang="en">Account not found</source>
         <target state="translated">アカウントが見つかりません</target>
       </trans-unit>
+      <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
+        <source xml:lang="en">Action</source>
+        <target state="new">Action</target>
+      </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
         <target state="translated">実際の経過時間 CPU 時間</target>
@@ -129,9 +133,17 @@
         <source xml:lang="en">Apply</source>
         <target state="translated">適用</target>
       </trans-unit>
+      <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
+        <source xml:lang="en">Apply changes to target</source>
+        <target state="new">Apply changes to target</target>
+      </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
         <target state="translated">切断しますか?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
+        <source xml:lang="en">Are you sure you want to update the target?</source>
+        <target state="new">Are you sure you want to update the target?</target>
       </trans-unit>
       <trans-unit id="++CODE++7eef7067697ade3fc0f13737f97978c65df37d0c48ff8f50718f6062f6e6e246">
         <source xml:lang="en">Are you sure you want to {0}?</source>
@@ -231,6 +243,11 @@
         <source xml:lang="en">Cancel</source>
         <target state="translated">キャンセル</target>
       </trans-unit>
+      <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
+        <source xml:lang="en">Cancel schema compare failed: '{0}'</source>
+        <note>{0} is the error message returned from the cancel operation</note>
+        <target state="new">Cancel schema compare failed: '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++13ca2ee2499310d97a5515fb5fd80b75da66f4cf2775273658eb2b3fdcd3bd3d">
         <source xml:lang="en">Canceled</source>
         <target state="translated">キャンセル済み</target>
@@ -263,6 +280,10 @@
       <trans-unit id="++CODE++db1e549937a7102cda82a262a27f86166ea3c25f6441098efbc9c17de5eb362c">
         <source xml:lang="en">Cannot create foreign key with duplicate columns</source>
         <target state="new">Cannot create foreign key with duplicate columns</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
+        <source xml:lang="en">Change</source>
+        <target state="new">Change</target>
       </trans-unit>
       <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
         <source xml:lang="en">Changed Tables</source>
@@ -399,6 +420,10 @@
       <trans-unit id="++CODE++9504ef48c5eab40c3e3a086cbbdc3d70b44e607552db6adfbdd7c278ddabe357">
         <source xml:lang="en">Columns in the primary key.</source>
         <target state="translated">主キーの列。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
+        <source xml:lang="en">Compare</source>
+        <target state="new">Compare</target>
       </trans-unit>
       <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
         <source xml:lang="en">Confirm to clear recent connections list</source>
@@ -546,9 +571,17 @@
 {3} is target column</note>
         <target state="new">Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
+        <source xml:lang="en">Data-tier Application File (.dacpac)</source>
+        <target state="new">Data-tier Application File (.dacpac)</target>
+      </trans-unit>
       <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
         <source xml:lang="en">Database</source>
         <target state="translated">データベース</target>
+      </trans-unit>
+      <trans-unit id="++CODE++667dd91d86c6b574073536489e39f0c5ab034846a63d946e8ef9f7bedeb1f4fb">
+        <source xml:lang="en">Database Project</source>
+        <target state="new">Database Project</target>
       </trans-unit>
       <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
         <source xml:lang="en">Database name</source>
@@ -847,6 +880,10 @@
         <source xml:lang="en">Failed to save results. </source>
         <target state="translated">結果を保存できませんでした。</target>
       </trans-unit>
+      <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
+        <source xml:lang="en">File</source>
+        <target state="new">File</target>
+      </trans-unit>
       <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
         <source xml:lang="en">Filter</source>
         <target state="new">Filter</target>
@@ -887,6 +924,14 @@
       <trans-unit id="++CODE++3a5a47667104807574cb0875e1ad13546429f3ed63efe6b4bddee62fe1f4cf5b">
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">ファイアウォール規則が正常に作成されました。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
+        <source xml:lang="en">Flat</source>
+        <target state="new">Flat</target>
+      </trans-unit>
+      <trans-unit id="++CODE++13fc8c5ffacfa92740bde97ad456803b31784d6451d83afd89f0a993d75c59e5">
+        <source xml:lang="en">Folder Structure</source>
+        <target state="new">Folder Structure</target>
       </trans-unit>
       <trans-unit id="++CODE++52742c9dc235ecbc2154d3bef091d1e39dd0b8b542ebac8031331a146b83242d">
         <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.</source>
@@ -940,9 +985,22 @@
         <source xml:lang="en">General</source>
         <target state="translated">全般</target>
       </trans-unit>
+      <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
+        <source xml:lang="en">General Options</source>
+        <target state="new">General Options</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
         <target state="translated">スクリプトの生成</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3d3813ca1c7608ef69cb91a5f621e6c1507ffca56b18275740366df04e5cff6e">
+        <source xml:lang="en">Generate script failed: '{0}'</source>
+        <note>{0} is the error message returned from the generate script operation</note>
+        <target state="new">Generate script failed: '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
+        <source xml:lang="en">Generate script to deploy changes to target</source>
+        <target state="new">Generate script to deploy changes to target</target>
       </trans-unit>
       <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
         <source xml:lang="en">Getting definition ...</source>
@@ -993,6 +1051,14 @@
         <source xml:lang="en">In progress</source>
         <target state="translated">処理中</target>
       </trans-unit>
+      <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
+        <source xml:lang="en">Include</source>
+        <target state="new">Include</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e6918522718725ba7a74b087c48f889648bbfc7627b1d4ab826ac2cc1b30aa31">
+        <source xml:lang="en">Include Object Types</source>
+        <target state="new">Include Object Types</target>
+      </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
         <target state="translated">インデックス</target>
@@ -1000,6 +1066,10 @@
       <trans-unit id="++CODE++90b901a30c3f089e10d82e1b842bbdc736a36b536a19d207b36a8e7be1904dcb">
         <source xml:lang="en">Indexes</source>
         <target state="translated">インデックス</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9d044dc2d1fe411614adccd3125e540b1b0176ec4bf30509e693113050ef11b0">
+        <source xml:lang="en">Initializing comparison, this might take a while...</source>
+        <target state="new">Initializing comparison, this might take a while...</target>
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
@@ -1066,6 +1136,10 @@
         <source xml:lang="en">Line {0}</source>
         <note>{0} is the line number</note>
         <target state="translated">行 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
+        <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
+        <target state="new">Load source, target, and options saved in an .scmp file</target>
       </trans-unit>
       <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
         <source xml:lang="en">Loading</source>
@@ -1258,6 +1332,10 @@
         <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
         <target state="translated">アクティブなエディターの結果が見つかりませんでした。クエリを実行するか、別のエディターに切り替えてください。</target>
       </trans-unit>
+      <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
+        <source xml:lang="en">No schema differences were found.</source>
+        <target state="new">No schema differences were found.</target>
+      </trans-unit>
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">使用できるサブスクリプションがありません。サブスクリプション フィルターを調整して、もう一度お試しください。</target>
@@ -1314,6 +1392,10 @@
         <source xml:lang="en">Object Explorer Filter (Preview)</source>
         <target state="translated">オブジェクト エクスプローラー フィルター (プレビュー)</target>
       </trans-unit>
+      <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
+        <source xml:lang="en">Object Type</source>
+        <target state="new">Object Type</target>
+      </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
         <target state="translated">オフ</target>
@@ -1329,6 +1411,10 @@
       <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
         <source xml:lang="en">Open</source>
         <target state="translated">開く</target>
+      </trans-unit>
+      <trans-unit id="++CODE++afe20ac8b79880f255ada45b4113ce2356e2e96da5a833a6262b495ef67c7c33">
+        <source xml:lang="en">Open .scmp file</source>
+        <target state="new">Open .scmp file</target>
       </trans-unit>
       <trans-unit id="++CODE++27d46ec89f6c8889936e3d885b71d612efdbf08d8514f16157875104d01fd5f5">
         <source xml:lang="en">Open Query</source>
@@ -1354,6 +1440,11 @@
         <source xml:lang="en">Open in editor</source>
         <target state="translated">エディターで開く</target>
       </trans-unit>
+      <trans-unit id="++CODE++fa609eef6a71158c74ec8b70843376b31d961185cb835dc3d9de4aba1877a667">
+        <source xml:lang="en">Open scmp failed '{0}'</source>
+        <note>{0} is the error message returned from the open scmp operation</note>
+        <target state="new">Open scmp failed '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
         <target state="translated">接続するには、OpenSSL バージョン 1.0.1 以上が必要です。</target>
@@ -1362,9 +1453,21 @@
         <source xml:lang="en">Operator</source>
         <target state="translated">演算子</target>
       </trans-unit>
+      <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
+        <source xml:lang="en">Option Description</source>
+        <target state="new">Option Description</target>
+      </trans-unit>
       <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
         <source xml:lang="en">Optional (False)</source>
         <target state="translated">省略可能 (False)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d0db8b5e364b6989e4b8f38a2b3846b87d99a51c1592ebf35d21cc66405a8e39">
+        <source xml:lang="en">Options</source>
+        <target state="new">Options</target>
+      </trans-unit>
+      <trans-unit id="++CODE++974ccf82fb956ae52dd736ed3f1046fe6da2fcb80bc6679104cbd37773665175">
+        <source xml:lang="en">Options have changed. Recompare to see the comparison?</source>
+        <target state="new">Options have changed. Recompare to see the comparison?</target>
       </trans-unit>
       <trans-unit id="++CODE++eabaa5ba70b7871bd005170e9a540a993456433cdaad54eacc4e4c07a13c71bb">
         <source xml:lang="en">Overall, how satisfied are you with the MSSQL extension?</source>
@@ -1551,6 +1654,10 @@
         <note>{0} is the object type</note>
         <target state="translated">{0} の削除</target>
       </trans-unit>
+      <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
+        <source xml:lang="en">Reset</source>
+        <target state="new">Reset</target>
+      </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
         <target state="translated">リソース グループ</target>
@@ -1599,6 +1706,10 @@
         <source xml:lang="en">Save</source>
         <target state="new">Save</target>
       </trans-unit>
+      <trans-unit id="++CODE++dee3e3871faf828499426928ded1c3d2762c767a5c9f07e954d25a63aca26da2">
+        <source xml:lang="en">Save .scmp file</source>
+        <target state="new">Save .scmp file</target>
+      </trans-unit>
       <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
         <source xml:lang="en">Save As</source>
         <target state="new">Save As</target>
@@ -1631,6 +1742,15 @@
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
         <target state="translated">結果の保存コマンドは、複数が選択された状態では使用できません。</target>
       </trans-unit>
+      <trans-unit id="++CODE++b9aac16eb8e26c69eda61b82e7f9833c80becf442d1664142ab784c7e5eb15f0">
+        <source xml:lang="en">Save scmp failed: '{0}'</source>
+        <note>{0} is the error message returned from the save scmp operation</note>
+        <target state="new">Save scmp failed: '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a12b3e51f64e705d6de90db7bcada67844d93e118f414b2fc703b2014efabc5">
+        <source xml:lang="en">Save source and target, options, and excluded elements</source>
+        <target state="new">Save source and target, options, and excluded elements</target>
+      </trans-unit>
       <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
         <source xml:lang="en">Saved Connections</source>
         <target state="translated">保存された接続</target>
@@ -1647,9 +1767,27 @@
         <source xml:lang="en">Schema Compare</source>
         <target state="translated">Schema Compare</target>
       </trans-unit>
+      <trans-unit id="++CODE++e43490715378a6a8dd51a85cfd3710df78a7e895658739053758638820a0b93b">
+        <source xml:lang="en">Schema Compare Apply failed '{0}'</source>
+        <note>{0} is the error message returned from the publish changes operation</note>
+        <target state="new">Schema Compare Apply failed '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
+        <source xml:lang="en">Schema Compare Options</source>
+        <target state="new">Schema Compare Options</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8bd05764f179b5c53231ee8df7d8f52d5906689eb660f1bd0ff33d1e0817290c">
+        <source xml:lang="en">Schema Compare failed: '{0}'</source>
+        <note>{0} is the error message returned from the compare operation</note>
+        <target state="new">Schema Compare failed: '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
         <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
         <target state="new">Schema Designer Model is ready. Changes can now be published.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
+        <source xml:lang="en">Schema/Object Type</source>
+        <target state="new">Schema/Object Type</target>
       </trans-unit>
       <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
         <source xml:lang="en">Script</source>
@@ -1670,6 +1808,14 @@
       <trans-unit id="++CODE++d1ec69e64b9609d089aae09f7adc5c566d2cd222f8d8325f0ab3b523f0ac2690">
         <source xml:lang="en">Select All</source>
         <target state="translated">すべて選択</target>
+      </trans-unit>
+      <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
+        <source xml:lang="en">Select Source</source>
+        <target state="new">Select Source</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
+        <source xml:lang="en">Select Target</source>
+        <target state="new">Select Target</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -1729,6 +1875,10 @@
         <source xml:lang="en">Server name or ADO.NET connection string</source>
         <target state="translated">サーバー名または ADO.NET 接続文字列</target>
       </trans-unit>
+      <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
+        <source xml:lang="en">Settings</source>
+        <target state="new">Settings</target>
+      </trans-unit>
       <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
         <source xml:lang="en">Severity</source>
         <target state="translated">重大度</target>
@@ -1769,9 +1919,17 @@
         <source xml:lang="en">Sort Descending</source>
         <target state="translated">降順で並べ替え</target>
       </trans-unit>
+      <trans-unit id="++CODE++0e570ca6fabe24f94e52c1833f3ffd25567022beb826fa16891f3322051bc221">
+        <source xml:lang="en">Source</source>
+        <target state="new">Source</target>
+      </trans-unit>
       <trans-unit id="++CODE++2b25c7e56081a32eca68cf954d0dae7f5d558f2111699c5b4e39596584c40b39">
         <source xml:lang="en">Source Column</source>
         <target state="new">Source Column</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
+        <source xml:lang="en">Source Name</source>
+        <target state="new">Source Name</target>
       </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -1801,6 +1959,10 @@
       <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
         <source xml:lang="en">Starts With</source>
         <target state="translated">次で始まる</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
+        <source xml:lang="en">Stop</source>
+        <target state="new">Stop</target>
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
@@ -1837,6 +1999,14 @@
         <source xml:lang="en">Successfully saved results to </source>
         <target state="translated">次の場所に結果が正常に保存されました:</target>
       </trans-unit>
+      <trans-unit id="++CODE++175f5352107a324eb25f4342a9114e2685b64a1ef54a5ff6ba3a24d0ac215ea7">
+        <source xml:lang="en">Switch Direction</source>
+        <target state="new">Switch Direction</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d7a3cd6cbe28889d5ba18259f276a78a6023030468a7b4013b74a45a2923b9d9">
+        <source xml:lang="en">Switch Source and Target</source>
+        <target state="new">Switch Source and Target</target>
+      </trans-unit>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
         <target state="translated">MSAL に切り替える</target>
@@ -1866,6 +2036,14 @@
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
         <target state="translated">アンケートに答える</target>
+      </trans-unit>
+      <trans-unit id="++CODE++978354db0c00fc78c3a5524f462a73bc425df3fb2767e51a5f46352ae26ae6f9">
+        <source xml:lang="en">Target</source>
+        <target state="new">Target</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9ba1ac70c4386df695c803041aec395325f7f6cb8151ca597c9715b3f99262fb">
+        <source xml:lang="en">Target Name</source>
+        <target state="new">Target Name</target>
       </trans-unit>
       <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
         <source xml:lang="en">Target Table</source>
@@ -1982,9 +2160,17 @@
         <source xml:lang="en">The table which contains the primary or unique key column.</source>
         <target state="translated">主キー列または一意キー列を含むテーブルです。</target>
       </trans-unit>
+      <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
+        <source xml:lang="en">There was an error updating the project</source>
+        <target state="new">There was an error updating the project</target>
+      </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">タイムスタンプ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++94843fe76f0c666e2bce801eb3dbfa672cd6517a14f968c8e41669c580b60cb3">
+        <source xml:lang="en">To compare two schemas, first select a source schema and target schema, then press compare.</source>
+        <target state="new">To compare two schemas, first select a source schema and target schema, then press compare.</target>
       </trans-unit>
       <trans-unit id="++CODE++4c4d50191531a82f528c2802cf6b245d0c776a5d4b51d3b5da127aaf21728547">
         <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source>
@@ -2136,6 +2322,10 @@
       <trans-unit id="++CODE++3549b0028b75d981cdda2e573e9cb49dedc200185876df299f912b79f69dabd8">
         <source xml:lang="en">database</source>
         <target state="translated">データベース</target>
+      </trans-unit>
+      <trans-unit id="++CODE++37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f">
+        <source xml:lang="en">default</source>
+        <target state="new">default</target>
       </trans-unit>
       <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
         <source xml:lang="en">delete the saved connection: {0}?</source>
