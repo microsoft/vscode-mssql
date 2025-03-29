@@ -458,6 +458,117 @@ export class LocConstants {
             defaultValue: l10n.t("Default Value"),
         };
     }
+
+    public get schemaCompare() {
+        return {
+            intro: l10n.t(
+                "To compare two schemas, first select a source schema and target schema, then press compare.",
+            ),
+            noDifferences: l10n.t("No schema differences were found."),
+            initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
+            server: l10n.t("Server"),
+            database: l10n.t("Database"),
+            defaultUserName: l10n.t("default"),
+            folderStructure: l10n.t("Folder Structure"),
+            file: l10n.t("File"),
+            flat: l10n.t("Flat"),
+            objectType: l10n.t("Object Type"),
+            schema: l10n.t("Schema"),
+            schemaObjectType: l10n.t("Schema/Object Type"),
+            description: l10n.t("Description"),
+            settings: l10n.t("Settings"),
+            compare: l10n.t("Compare"),
+            schemaCompareOptions: l10n.t("Schema Compare Options"),
+            generalOptions: l10n.t("General Options"),
+            includeObjectTypes: l10n.t("Include Object Types"),
+            optionDescription: l10n.t("Option Description"),
+            reset: l10n.t("Reset"),
+            stop: l10n.t("Stop"),
+            generateScript: l10n.t("Generate Script"),
+            generateScriptToDeployChangesToTarget: l10n.t(
+                "Generate script to deploy changes to target",
+            ),
+            apply: l10n.t("Apply"),
+            applyChangesToTarget: l10n.t("Apply changes to target"),
+            options: l10n.t("Options"),
+            switchDirection: l10n.t("Switch Direction"),
+            switchSourceAndTarget: l10n.t("Switch Source and Target"),
+            openScmpFile: l10n.t("Open .scmp file"),
+            open: l10n.t("Open"),
+            save: l10n.t("Save"),
+            loadSourceTargetAndOptionsSavedInAnScmpFile: l10n.t(
+                "Load source, target, and options saved in an .scmp file",
+            ),
+            saveScmpFile: l10n.t("Save .scmp file"),
+            saveSourceAndTargetOptionsAndExcludedElements: l10n.t(
+                "Save source and target, options, and excluded elements",
+            ),
+            type: l10n.t("Type"),
+            sourceName: l10n.t("Source Name"),
+            include: l10n.t("Include"),
+            action: l10n.t("Action"),
+            targetName: l10n.t("Target Name"),
+            add: l10n.t("Add"),
+            change: l10n.t("Change"),
+            delete: l10n.t("Delete"),
+            selectSource: l10n.t("Select Source"),
+            selectTarget: l10n.t("Select Target"),
+            close: l10n.t("Close"),
+            dataTierApplicationFile: l10n.t("Data-tier Application File (.dacpac)"),
+            databaseProject: l10n.t("Database Project"),
+            ok: l10n.t("OK"),
+            cancel: l10n.t("Cancel"),
+            source: l10n.t("Source"),
+            target: l10n.t("Target"),
+            areYouSureYouWantToUpdateTheTarget: l10n.t(
+                "Are you sure you want to update the target?",
+            ),
+            yes: l10n.t("Yes"),
+            no: l10n.t("No"),
+            optionsChangedMessage: l10n.t("Options have changed. Recompare to see the comparison?"),
+            compareErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Schema Compare failed: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the compare operation"],
+                }),
+            cancelErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Cancel schema compare failed: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the cancel operation"],
+                }),
+            generateScriptErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Generate script failed: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: [
+                        "{0} is the error message returned from the generate script operation",
+                    ],
+                }),
+            thereWasAnErrorUpdatingTheProject: l10n.t("There was an error updating the project"),
+            schemaCompareApplyFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Schema Compare Apply failed '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: [
+                        "{0} is the error message returned from the publish changes operation",
+                    ],
+                }),
+            openScmpErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Open scmp failed '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the open scmp operation"],
+                }),
+            saveScmpErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Save scmp failed: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the save scmp operation"],
+                }),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

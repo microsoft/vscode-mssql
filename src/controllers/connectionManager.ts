@@ -35,6 +35,7 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
+import * as events from "events";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -103,6 +104,8 @@ export default class ConnectionManager {
     private _accountService: AccountService;
     private _firewallService: FirewallService;
     public azureController: AzureController;
+
+    private _event: events.EventEmitter = new events.EventEmitter();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -213,6 +216,10 @@ export default class ConnectionManager {
      */
     public set vscodeWrapper(wrapper: VscodeWrapper) {
         this._vscodeWrapper = wrapper;
+    }
+
+    public get activeConnections(): { [fileUri: string]: ConnectionInfo } {
+        return this._connections;
     }
 
     /**
@@ -978,7 +985,7 @@ export default class ConnectionManager {
                 this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgDisconnected(fileUri));
             }
 
-            delete this._connections[fileUri];
+            this.removeActiveConnection(fileUri);
             vscode.commands.executeCommand("setContext", "mssql.connections", this._connections);
             return result;
         } else if (this.isConnecting(fileUri)) {
@@ -1187,7 +1194,7 @@ export default class ConnectionManager {
                     let connectionInfo: ConnectionInfo = new ConnectionInfo();
                     connectionInfo.credentials = connectionCreds;
                     connectionInfo.connecting = true;
-                    this._connections[fileUri] = connectionInfo;
+                    this.addActiveConnection(fileUri, connectionInfo);
 
                     // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
                     if (this.statusView) {
@@ -1309,6 +1316,25 @@ export default class ConnectionManager {
         }
 
         return await connectionCompletePromise;
+    }
+
+    /**
+     * Registers a listener that is triggered when the active connections change.
+     *
+     * @param listener - A callback function to be invoked when the "activeConnectionsChanged" event occurs.
+     */
+    public onActiveConnectionsChanged(listener: () => void): void {
+        this._event.on("activeConnectionsChanged", listener);
+    }
+
+    private addActiveConnection(fileUri: string, connectionInfo: ConnectionInfo) {
+        this._connections[fileUri] = connectionInfo;
+        this._event.emit("activeConnectionsChanged");
+    }
+
+    private removeActiveConnection(fileUri: string): void {
+        delete this._connections[fileUri];
+        this._event.emit("activeConnectionsChanged");
     }
 
     public async onCancelConnect(): Promise<void> {

@@ -26,39 +26,113 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
             value={{
                 state: schemaCompareState,
                 themeKind: webViewState?.themeKind,
+
+                isSqlProjectExtensionInstalled: function (): void {
+                    webViewState?.extensionRpc.action("isSqlProjectExtensionInstalled", {});
+                },
+                listActiveServers: function (): void {
+                    webViewState?.extensionRpc.action("listActiveServers", {});
+                },
+                listDatabasesForActiveServer: function (connectionUri: string): void {
+                    webViewState?.extensionRpc.action("listDatabasesForActiveServer", {
+                        connectionUri: connectionUri,
+                    });
+                },
+                openAddNewConnectionDialog: function (): void {
+                    webViewState?.extensionRpc.action("openAddNewConnectionDialog", {});
+                },
+                selectFile: function (
+                    endpoint: mssql.SchemaCompareEndpointInfo,
+                    endpointType: "source" | "target",
+                    fileType: "dacpac" | "sqlproj",
+                ): void {
+                    webViewState?.extensionRpc.action("selectFile", {
+                        endpoint: endpoint,
+                        endpointType: endpointType,
+                        fileType: fileType,
+                    });
+                },
+                confirmSelectedSchema: function (
+                    endpointType: "source" | "target",
+                    folderStructure: string,
+                ): void {
+                    webViewState?.extensionRpc.action("confirmSelectedSchema", {
+                        endpointType: endpointType,
+                        folderStructure: folderStructure,
+                    });
+                },
+                confirmSelectedDatabase: function (
+                    endpointType: "source" | "target",
+                    serverConnectionUri: string,
+                    databaseName: string,
+                ): void {
+                    webViewState?.extensionRpc.action("confirmSelectedDatabase", {
+                        endpointType: endpointType,
+                        serverConnectionUri: serverConnectionUri,
+                        databaseName: databaseName,
+                    });
+                },
+                setIntermediarySchemaOptions: function (): void {
+                    webViewState?.extensionRpc.action("setIntermediarySchemaOptions", {});
+                },
+                intermediaryGeneralOptionsChanged(key: string): void {
+                    webViewState?.extensionRpc.action("intermediaryGeneralOptionsChanged", {
+                        key: key,
+                    });
+                },
+                intermediaryIncludeObjectTypesOptionsChanged(key: string): void {
+                    webViewState?.extensionRpc.action(
+                        "intermediaryIncludeObjectTypesOptionsChanged",
+                        { key: key },
+                    );
+                },
+                confirmSchemaOptions: function (optionsChanged: boolean): void {
+                    webViewState?.extensionRpc.action("confirmSchemaOptions", {
+                        optionsChanged: optionsChanged,
+                    });
+                },
+                switchEndpoints: function (
+                    newSourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
+                    newTargetEndpointInfo: mssql.SchemaCompareEndpointInfo,
+                ): void {
+                    webViewState?.extensionRpc.action("switchEndpoints", {
+                        newSourceEndpointInfo: newSourceEndpointInfo,
+                        newTargetEndpointInfo: newTargetEndpointInfo,
+                    });
+                },
                 compare: function (
                     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
                     targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-                    taskExecutionMode: mssql.TaskExecutionMode,
                     deploymentOptions: mssql.DeploymentOptions,
                 ): void {
                     webViewState?.extensionRpc.action("compare", {
                         sourceEndpointInfo: sourceEndpointInfo,
                         targetEndpointInfo: targetEndpointInfo,
-                        taskExecutionMode: taskExecutionMode,
                         deploymentOptions: deploymentOptions,
                     });
                 },
                 generateScript: function (
                     targetServerName: string,
                     targetDatabaseName: string,
-                    taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action("generateScript", {
                         targetServerName: targetServerName,
                         targetDatabaseName: targetDatabaseName,
-                        taskExecutionMode: taskExecutionMode,
+                    });
+                },
+                publishChanges: function (targetDatabaseName: string, targetServerName: string) {
+                    webViewState?.extensionRpc.action("publishChanges", {
+                        targetServerName: targetServerName,
+                        targetDatabaseName: targetDatabaseName,
                     });
                 },
                 publishDatabaseChanges: function (
                     targetServerName: string,
                     targetDatabaseName: string,
-                    taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action("publishDatabaseChanges", {
                         targetServerName: targetServerName,
                         targetDatabaseName: targetDatabaseName,
-                        taskExecutionMode: taskExecutionMode,
                     });
                 },
                 publishProjectChanges: function (
@@ -72,43 +146,25 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         taskExecutionMode: taskExecutionMode,
                     });
                 },
-                getDefaultOptions: function (): void {
-                    webViewState?.extensionRpc.action("getDefaultOptions", {});
+                resetOptions: function (): void {
+                    webViewState?.extensionRpc.action("resetOptions", {});
                 },
                 includeExcludeNode: function (
+                    id: number,
                     diffEntry: mssql.DiffEntry,
                     includeRequest: boolean,
-                    taskExecutionMode: mssql.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action("includeExcludeNode", {
+                        id: id,
                         diffEntry: diffEntry,
                         includeRequest: includeRequest,
-                        taskExecutionMode: taskExecutionMode,
                     });
                 },
-                openScmp: function (filePath: string): void {
-                    webViewState?.extensionRpc.action("openScmp", {
-                        filePath: filePath,
-                    });
+                openScmp: function (): void {
+                    webViewState?.extensionRpc.action("openScmp", {});
                 },
-                saveScmp: function (
-                    sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
-                    targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-                    taskExecutionMode: mssql.TaskExecutionMode,
-                    deploymentOptions: mssql.DeploymentOptions,
-                    scmpFilePath: string,
-                    excludedSourceObjects: mssql.SchemaCompareObjectId[],
-                    excludedTargetObjects: mssql.SchemaCompareObjectId[],
-                ): void {
-                    webViewState?.extensionRpc.action("saveScmp", {
-                        sourceEndpointInfo: sourceEndpointInfo,
-                        targetEndpointInfo: targetEndpointInfo,
-                        taskExecutionMode: taskExecutionMode,
-                        deploymentOptions: deploymentOptions,
-                        scmpFilePath: scmpFilePath,
-                        excludedSourceObjects: excludedSourceObjects,
-                        excludedTargetObjects: excludedTargetObjects,
-                    });
+                saveScmp: function (): void {
+                    webViewState?.extensionRpc.action("saveScmp", {});
                 },
                 cancel: function (): void {
                     webViewState?.extensionRpc.action("cancel", {});
@@ -119,4 +175,4 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
     );
 };
 
-export { SchemaCompareStateProvider };
+export { schemaCompareContext, SchemaCompareStateProvider };
