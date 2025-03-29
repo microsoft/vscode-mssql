@@ -247,7 +247,7 @@ jobs:
 
       - name: Write PR results to markdown
         run: |
-          echo github.event_name
+          echo "$GITHUB_EVENT_NAME"
           echo "### PR Changes" >> results.md
           echo "| Category                      | Main Branch        | PR Branch         | Difference           |" >> results.md
           echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
@@ -311,7 +311,7 @@ jobs:
             # Updates to localized strings required
 
       - name: Create or update comment
-        if: github.event_name == 'pull_request' && ${{ env.loc_update_required == 'true' }}
+        if: github.event_name == 'pull_request' && env.loc_update_required == 'true'
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.loc-comment.outputs.comment-id }}
