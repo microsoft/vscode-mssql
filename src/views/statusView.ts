@@ -52,14 +52,12 @@ export default class StatusView implements vscode.Disposable {
             this._vscodeWrapper = new VscodeWrapper();
         }
         this._statusBars = {};
-        this._onDidChangeActiveTextEditorEvent =
-            this._vscodeWrapper.onDidChangeActiveTextEditor((params) =>
-                this.onDidChangeActiveTextEditor(params),
-            );
-        this._onDidCloseTextDocumentEvent =
-            this._vscodeWrapper.onDidCloseTextDocument((params) =>
-                this.onDidCloseTextDocument(params),
-            );
+        this._onDidChangeActiveTextEditorEvent = this._vscodeWrapper.onDidChangeActiveTextEditor(
+            (params) => this.onDidChangeActiveTextEditor(params),
+        );
+        this._onDidCloseTextDocumentEvent = this._vscodeWrapper.onDidCloseTextDocument((params) =>
+            this.onDidCloseTextDocument(params),
+        );
     }
 
     dispose(): void {
@@ -88,28 +86,15 @@ export default class StatusView implements vscode.Disposable {
             vscode.StatusBarAlignment.Right,
             90,
         );
-        bar.statusConnection = vscode.window.createStatusBarItem(
-            vscode.StatusBarAlignment.Right,
-        );
-        bar.statusQuery = vscode.window.createStatusBarItem(
-            vscode.StatusBarAlignment.Right,
-        );
+        bar.statusConnection = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
+        bar.statusQuery = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
         bar.statusQuery.accessibilityInformation = { role: "alert", label: "" };
         bar.statusLanguageService = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Right,
         );
-        bar.sqlCmdMode = vscode.window.createStatusBarItem(
-            vscode.StatusBarAlignment.Right,
-            90,
-        );
-        bar.rowCount = vscode.window.createStatusBarItem(
-            vscode.StatusBarAlignment.Right,
-            80,
-        );
-        bar.executionTime = vscode.window.createStatusBarItem(
-            vscode.StatusBarAlignment.Right,
-            70,
-        );
+        bar.sqlCmdMode = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
+        bar.rowCount = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 80);
+        bar.executionTime = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 70);
         this._statusBars[fileUri] = bar;
     }
 
@@ -184,14 +169,9 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.text = LocalizedConstants.connectingLabel;
         bar.statusConnection.command = Constants.cmdDisconnect;
         bar.statusConnection.tooltip =
-            LocalizedConstants.connectingTooltip +
-            ConnInfo.getTooltip(connCreds);
+            LocalizedConstants.connectingTooltip + ConnInfo.getTooltip(connCreds);
         this.showStatusBarItem(fileUri, bar.statusConnection);
-        this.showProgress(
-            fileUri,
-            LocalizedConstants.connectingLabel,
-            bar.statusConnection,
-        );
+        this.showProgress(fileUri, LocalizedConstants.connectingLabel, bar.statusConnection);
     }
 
     public connectSuccess(
@@ -201,12 +181,8 @@ export default class StatusView implements vscode.Disposable {
     ): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdChooseDatabase;
-        bar.statusConnection.text =
-            ConnInfo.getConnectionDisplayString(connCreds);
-        bar.statusConnection.tooltip = ConnInfo.getTooltip(
-            connCreds,
-            serverInfo,
-        );
+        bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);
+        bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.sqlCmdModeChanged(fileUri, false);
     }
@@ -219,11 +195,7 @@ export default class StatusView implements vscode.Disposable {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
         bar.statusConnection.text = LocalizedConstants.connectErrorLabel;
-        if (
-            error.errorNumber &&
-            error.errorMessage &&
-            !Utils.isEmpty(error.errorMessage)
-        ) {
+        if (error.errorNumber && error.errorMessage && !Utils.isEmpty(error.errorMessage)) {
             bar.statusConnection.tooltip =
                 LocalizedConstants.connectErrorTooltip +
                 credentials.server +
@@ -249,11 +221,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusQuery.command = undefined;
         bar.statusQuery.text = LocalizedConstants.executeQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
-        this.showProgress(
-            fileUri,
-            LocalizedConstants.executeQueryLabel,
-            bar.statusQuery,
-        );
+        this.showProgress(fileUri, LocalizedConstants.executeQueryLabel, bar.statusQuery);
     }
 
     public executedQuery(fileUri: string): void {
@@ -278,11 +246,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusQuery.command = undefined;
         bar.statusQuery.text = LocalizedConstants.cancelingQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
-        this.showProgress(
-            fileUri,
-            LocalizedConstants.cancelingQueryLabel,
-            bar.statusQuery,
-        );
+        this.showProgress(fileUri, LocalizedConstants.cancelingQueryLabel, bar.statusQuery);
     }
 
     public languageServiceStatusChanged(fileUri: string, status: string): void {
@@ -340,12 +304,9 @@ export default class StatusView implements vscode.Disposable {
             case LocalizedConstants.definitionRequestedStatus:
                 setTimeout(() => {
                     if (
-                        getCurrentStatus() !==
-                        LocalizedConstants.definitionRequestCompletedStatus
+                        getCurrentStatus() !== LocalizedConstants.definitionRequestCompletedStatus
                     ) {
-                        updateMessage(
-                            LocalizedConstants.gettingDefinitionMessage,
-                        );
+                        updateMessage(LocalizedConstants.gettingDefinitionMessage);
                     }
                 }, 500);
                 break;
@@ -418,10 +379,7 @@ export default class StatusView implements vscode.Disposable {
         this.destroyStatusBar(doc.uri.toString(true));
     }
 
-    private showStatusBarItem(
-        fileUri: string,
-        statusBarItem: vscode.StatusBarItem,
-    ): void {
+    private showStatusBarItem(fileUri: string, statusBarItem: vscode.StatusBarItem): void {
         let currentOpenFile = Utils.getActiveTextEditorUri();
 
         // Only show the status bar if it matches the currently open file and is not empty

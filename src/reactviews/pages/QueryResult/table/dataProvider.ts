@@ -6,8 +6,7 @@
 /**
  * Interface for table data providers
  */
-export interface IDisposableDataProvider<T extends Slick.SlickData>
-    extends Slick.DataProvider<T> {
+export interface IDisposableDataProvider<T extends Slick.SlickData> extends Slick.DataProvider<T> {
     /**
      * Gets the rows of the giving range
      * @param startIndex Start index of the range

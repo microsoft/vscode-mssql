@@ -5,12 +5,7 @@
 
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
-import {
-    IConnectionInfo,
-    IExtension,
-    IServerInfo,
-    ITreeNodeInfo,
-} from "vscode-mssql";
+import { IConnectionInfo, IExtension, IServerInfo, ITreeNodeInfo } from "vscode-mssql";
 import MainController from "../../src/controllers/mainController";
 import * as Extension from "../../src/extension";
 import { activateExtension } from "./utils";
@@ -60,12 +55,8 @@ suite("Extension API Tests", () => {
             mockContext.object,
         );
 
-        connectionManager
-            .setup((cm) => cm.connectionStore)
-            .returns(() => connectionStore.object);
-        connectionManager
-            .setup((cm) => cm.connectionUI)
-            .returns(() => connectionUi.object);
+        connectionManager.setup((cm) => cm.connectionStore).returns(() => connectionStore.object);
+        connectionManager.setup((cm) => cm.connectionUI).returns(() => connectionUi.object);
 
         // the Extension class doesn't reinitialize the controller for each test,
         // so we need to save the original properties we swap here and restore then after each test.
@@ -101,16 +92,12 @@ suite("Extension API Tests", () => {
             });
 
         connectionUi
-            .setup((c) =>
-                c.promptForConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((c) => c.promptForConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => {
                 return Promise.resolve(testConnInfo);
             });
 
-        const result = await vscodeMssql.promptForConnection(
-            true /* ignoreFocusOut */,
-        );
+        const result = await vscodeMssql.promptForConnection(true /* ignoreFocusOut */);
         expect(result.server).to.equal(testConnInfo.server);
         connectionUi.verify(
             (c) => c.promptForConnection([testQuickpickItem], true),
@@ -162,10 +149,7 @@ suite("Extension API Tests", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (Extension as any).controller = mockMainController.object;
 
-            const returnedUri = await vscodeMssql.connect(
-                testConnInfo,
-                false /* saveConnection */,
-            );
+            const returnedUri = await vscodeMssql.connect(testConnInfo, false /* saveConnection */);
 
             expect(returnedUri).to.equal(passedUri);
         } finally {
@@ -184,10 +168,7 @@ suite("Extension API Tests", () => {
 
         const result = await vscodeMssql.listDatabases("test-uri");
 
-        connectionManager.verify(
-            (c) => c.listDatabases("test-uri"),
-            TypeMoq.Times.once(),
-        );
+        connectionManager.verify((c) => c.listDatabases("test-uri"), TypeMoq.Times.once());
 
         expect(result).to.deep.equal(testDatabaseList);
     });
@@ -199,20 +180,17 @@ suite("Extension API Tests", () => {
             label: "TestDatabase",
         } as ITreeNodeInfo;
 
-        const mockObjectExplorerUtils =
-            TypeMoq.Mock.ofType<typeof ObjectExplorerUtils>();
+        const mockObjectExplorerUtils = TypeMoq.Mock.ofType<typeof ObjectExplorerUtils>();
         mockObjectExplorerUtils
             .setup((o) => o.getDatabaseName(TypeMoq.It.isValue(mockTreeNode)))
             .returns(() => "MockDatabase");
 
         // Replace the actual ObjectExplorerUtils with the mock
         const originalGetDatabaseName = ObjectExplorerUtils.getDatabaseName;
-        ObjectExplorerUtils.getDatabaseName =
-            mockObjectExplorerUtils.object.getDatabaseName;
+        ObjectExplorerUtils.getDatabaseName = mockObjectExplorerUtils.object.getDatabaseName;
 
         try {
-            const result =
-                vscodeMssql.getDatabaseNameFromTreeNode(mockTreeNode);
+            const result = vscodeMssql.getDatabaseNameFromTreeNode(mockTreeNode);
 
             expect(result).to.equal("MockDatabase");
         } finally {
@@ -226,19 +204,11 @@ suite("Extension API Tests", () => {
 
         connectionManager
             .setup((c) =>
-                c.getConnectionString(
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                ),
+                c.getConnectionString(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             )
             .returns(() => Promise.resolve(mockConnectionString));
 
-        const result = await vscodeMssql.getConnectionString(
-            "test-uri",
-            true,
-            false,
-        );
+        const result = await vscodeMssql.getConnectionString("test-uri", true, false);
 
         connectionManager.verify(
             (c) => c.getConnectionString("test-uri", true, false),
@@ -277,12 +247,7 @@ suite("Extension API Tests", () => {
     test("sendRequest", async () => {
         type TestParams = { testParam: string };
         type TestResponse = { success: boolean };
-        const mockRequestType = {} as RequestType<
-            TestParams,
-            TestResponse,
-            void,
-            void
-        >;
+        const mockRequestType = {} as RequestType<TestParams, TestResponse, void, void>;
         const mockParams: TestParams = { testParam: "testValue" };
         const mockResponse: TestResponse = { success: true };
 
@@ -290,10 +255,7 @@ suite("Extension API Tests", () => {
             .setup((c) => c.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(mockResponse));
 
-        const result = await vscodeMssql.sendRequest(
-            mockRequestType,
-            mockParams,
-        );
+        const result = await vscodeMssql.sendRequest(mockRequestType, mockParams);
 
         connectionManager.verify(
             (c) => c.sendRequest(mockRequestType, mockParams),
@@ -320,10 +282,7 @@ suite("Extension API Tests", () => {
 
         const result = vscodeMssql.getServerInfo(testConnInfo);
 
-        connectionManager.verify(
-            (c) => c.getServerInfo(testConnInfo),
-            TypeMoq.Times.once(),
-        );
+        connectionManager.verify((c) => c.getServerInfo(testConnInfo), TypeMoq.Times.once());
 
         expect(result.serverVersion).to.equal(mockServerInfo.serverVersion);
         expect(result.serverEdition).to.equal(mockServerInfo.serverEdition);

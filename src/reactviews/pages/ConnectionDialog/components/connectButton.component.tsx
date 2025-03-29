@@ -37,8 +37,7 @@ export const ConnectButton = ({
                 context.state.connectionStatus === ApiStatus.Loading ? (
                     <Spinner size="tiny" />
                 ) : undefined
-            }
-        >
+            }>
             {locConstants.connectionDialog.connect}
         </Button>
     );

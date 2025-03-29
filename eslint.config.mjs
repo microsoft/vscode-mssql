@@ -144,6 +144,8 @@ export default [
         "error",
         {
           endOfLine: "auto",
+          printWidth: 100,
+          bracketSameLine: true,
         },
       ],
     },

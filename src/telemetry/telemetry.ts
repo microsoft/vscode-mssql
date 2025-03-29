@@ -20,9 +20,7 @@ import AdsTelemetryReporter, {
 import { IConnectionProfile } from "../models/interfaces";
 import { v4 as uuidv4 } from "uuid";
 
-const packageJson = vscode.extensions.getExtension(
-    vscodeMssql.extension.name,
-).packageJSON;
+const packageJson = vscode.extensions.getExtension(vscodeMssql.extension.name).packageJSON;
 
 let packageInfo = {
     name: "vscode-mssql", // Differentiate this from the mssql extension in ADS
@@ -48,9 +46,7 @@ export function sendActionEvent(
     telemetryView: TelemetryViews,
     telemetryAction: TelemetryActions,
     additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
-    additionalMeasurements:
-        | TelemetryEventMeasures
-        | { [key: string]: number } = {},
+    additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
     connectionInfo?: IConnectionProfile,
     serverInfo?: vscodeMssql.IServerInfo,
 ): void {
@@ -89,9 +85,7 @@ export function sendErrorEvent(
     errorCode?: string,
     errorType?: string,
     additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
-    additionalMeasurements:
-        | TelemetryEventMeasures
-        | { [key: string]: number } = {},
+    additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
     connectionInfo?: IConnectionProfile,
     serverInfo?: vscodeMssql.IServerInfo,
 ): void {

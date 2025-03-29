@@ -9,10 +9,7 @@ import {
     AzureSubscription,
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
-import {
-    GenericResourceExpanded,
-    ResourceManagementClient,
-} from "@azure/arm-resources";
+import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 
 import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../reactviews/common/forms/form";
@@ -21,23 +18,18 @@ import {
     AzureSqlServerInfo,
     ConnectionDialogWebviewState,
 } from "../sharedInterfaces/connectionDialog";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 
-export const azureSubscriptionFilterConfigKey =
-    "azureResourceGroups.selectedSubscriptions";
+export const azureSubscriptionFilterConfigKey = "azureResourceGroups.selectedSubscriptions";
 
 //#region VS Code integration
 
 export async function confirmVscodeAzureSignin(): Promise<
     VSCodeAzureSubscriptionProvider | undefined
 > {
-    const auth: VSCodeAzureSubscriptionProvider =
-        new VSCodeAzureSubscriptionProvider();
+    const auth: VSCodeAzureSubscriptionProvider = new VSCodeAzureSubscriptionProvider();
 
     if (!(await auth.isSignedIn())) {
         const result = await auth.signIn();
@@ -50,9 +42,7 @@ export async function confirmVscodeAzureSignin(): Promise<
     return auth;
 }
 
-export async function promptForAzureSubscriptionFilter(
-    state: ConnectionDialogWebviewState,
-) {
+export async function promptForAzureSubscriptionFilter(state: ConnectionDialogWebviewState) {
     try {
         const auth = await confirmVscodeAzureSignin();
 
@@ -61,14 +51,11 @@ export async function promptForAzureSubscriptionFilter(
             return;
         }
 
-        const selectedSubs = await vscode.window.showQuickPick(
-            getQuickPickItems(auth),
-            {
-                canPickMany: true,
-                ignoreFocusOut: true,
-                placeHolder: l10n.t("Select subscriptions"),
-            },
-        );
+        const selectedSubs = await vscode.window.showQuickPick(getQuickPickItems(auth), {
+            canPickMany: true,
+            ignoreFocusOut: true,
+            placeHolder: l10n.t("Select subscriptions"),
+        });
 
         if (!selectedSubs) {
             return;
@@ -109,9 +96,7 @@ export async function getQuickPickItems(
                 label: `${sub.name} (${sub.subscriptionId})`,
                 tenantId: sub.tenantId,
                 subscriptionId: sub.subscriptionId,
-                picked: prevSelectedSubs
-                    ? prevSelectedSubs.includes(sub.subscriptionId)
-                    : true,
+                picked: prevSelectedSubs ? prevSelectedSubs.includes(sub.subscriptionId) : true,
             };
         })
         .sort((a, b) => a.label.localeCompare(b.label));
@@ -122,22 +107,15 @@ export async function getQuickPickItems(
 const serverResourceType = "Microsoft.Sql/servers";
 const databaseResourceType = "Microsoft.Sql/servers/databases";
 
-export async function fetchServersFromAzure(
-    sub: AzureSubscription,
-): Promise<AzureSqlServerInfo[]> {
+export async function fetchServersFromAzure(sub: AzureSubscription): Promise<AzureSqlServerInfo[]> {
     const result: AzureSqlServerInfo[] = [];
-    const client = new ResourceManagementClient(
-        sub.credential,
-        sub.subscriptionId,
-    );
+    const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
 
     // for some subscriptions, supplying a `resourceType eq 'Microsoft.Sql/servers/databases'` filter to list() causes an error:
     // > invalid filter in query string 'resourceType eq "Microsoft.Sql/servers/databases'"
     // no idea why, so we're fetching all resources and filtering them ourselves
 
-    const resources = await listAllIterator<GenericResourceExpanded>(
-        client.resources.list(),
-    );
+    const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
 
     const servers = resources.filter((r) => r.type === serverResourceType);
     const databases = resources.filter((r) => r.type === databaseResourceType);
@@ -156,9 +134,7 @@ export async function fetchServersFromAzure(
         const serverName = extractFromResourceId(database.id, "servers");
         const server = result.find((s) => s.server === serverName);
         if (server) {
-            server.databases.push(
-                database.name.substring(serverName.length + 1),
-            ); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
+            server.databases.push(database.name.substring(serverName.length + 1)); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
         }
     }
 
@@ -182,9 +158,7 @@ export async function getAccounts(
             };
         });
     } catch (error) {
-        console.error(
-            `Error loading Azure accounts: ${getErrorMessage(error)}`,
-        );
+        console.error(`Error loading Azure accounts: ${getErrorMessage(error)}`);
 
         sendErrorEvent(
             TelemetryViews.ConnectionDialog,
@@ -196,8 +170,7 @@ export async function getAccounts(
             undefined, // additionalProperties
             {
                 accountCount: accounts.length,
-                undefinedAccountCount: accounts.filter((x) => x === undefined)
-                    .length,
+                undefinedAccountCount: accounts.filter((x) => x === undefined).length,
                 undefinedDisplayInfoCount: accounts.filter(
                     (x) => x !== undefined && x.displayInfo === undefined,
                 ).length,
@@ -243,8 +216,7 @@ export async function getTenants(
             undefined, // additionalProperties
             {
                 tenant: tenants.length,
-                undefinedTenantCount: tenants.filter((x) => x === undefined)
-                    .length,
+                undefinedTenantCount: tenants.filter((x) => x === undefined).length,
             }, // additionalMeasurements
         );
 
@@ -256,10 +228,7 @@ export async function getTenants(
 
 //#region Miscellaneous Auzre helpers
 
-function extractFromResourceId(
-    resourceId: string,
-    property: string,
-): string | undefined {
+function extractFromResourceId(resourceId: string, property: string): string | undefined {
     if (!property.endsWith("/")) {
         property += "/";
     }
@@ -272,10 +241,7 @@ function extractFromResourceId(
         startIndex += property.length;
     }
 
-    return resourceId.substring(
-        startIndex,
-        resourceId.indexOf("/", startIndex),
-    );
+    return resourceId.substring(startIndex, resourceId.indexOf("/", startIndex));
 }
 
 //#endregion

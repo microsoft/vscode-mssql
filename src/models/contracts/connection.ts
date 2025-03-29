@@ -4,19 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-languageclient";
-import {
-    ConnectionDetails,
-    IServerInfo,
-    DataProtocolServerCapabilities,
-} from "vscode-mssql";
+import { ConnectionDetails, IServerInfo, DataProtocolServerCapabilities } from "vscode-mssql";
 
 // ------------------------------- < Connect Request > ----------------------------------------------
 
 // Connection request message callback declaration
 export namespace ConnectionRequest {
-    export const type = new RequestType<ConnectParams, boolean, void, void>(
-        "connection/connect",
-    );
+    export const type = new RequestType<ConnectParams, boolean, void, void>("connection/connect");
 }
 
 /**
@@ -42,9 +36,7 @@ export class ConnectParams {
  * Connection complete event callback declaration.
  */
 export namespace ConnectionCompleteNotification {
-    export const type = new NotificationType<ConnectionCompleteParams, void>(
-        "connection/complete",
-    );
+    export const type = new NotificationType<ConnectionCompleteParams, void>("connection/complete");
 }
 
 /**
@@ -95,12 +87,9 @@ export class ConnectionCompleteParams {
  * Cancel connect request message callback declaration
  */
 export namespace CancelConnectRequest {
-    export const type = new RequestType<
-        CancelConnectParams,
-        CancelConnectResult,
-        void,
-        void
-    >("connection/cancelconnect");
+    export const type = new RequestType<CancelConnectParams, CancelConnectResult, void, void>(
+        "connection/cancelconnect",
+    );
 }
 
 /**
@@ -172,12 +161,9 @@ export class ConnectionChangedParams {
 
 // Disconnect request message callback declaration
 export namespace DisconnectRequest {
-    export const type = new RequestType<
-        DisconnectParams,
-        DisconnectResult,
-        void,
-        void
-    >("connection/disconnect");
+    export const type = new RequestType<DisconnectParams, DisconnectResult, void, void>(
+        "connection/disconnect",
+    );
 }
 
 // Disconnect request message format
@@ -195,12 +181,9 @@ export type DisconnectResult = boolean;
 
 // List databases request callback declaration
 export namespace ListDatabasesRequest {
-    export const type = new RequestType<
-        ListDatabasesParams,
-        ListDatabasesResult,
-        void,
-        void
-    >("connection/listdatabases");
+    export const type = new RequestType<ListDatabasesParams, ListDatabasesResult, void, void>(
+        "connection/listdatabases",
+    );
 }
 
 // List databases request format
@@ -221,12 +204,9 @@ export class ListDatabasesResult {
  * Get Connection String request callback declaration
  */
 export namespace GetConnectionStringRequest {
-    export const type = new RequestType<
-        GetConnectionStringParams,
-        string,
-        void,
-        void
-    >("connection/getconnectionstring");
+    export const type = new RequestType<GetConnectionStringParams, string, void, void>(
+        "connection/getconnectionstring",
+    );
 }
 
 /**
@@ -290,10 +270,9 @@ export class DidChangeEncryptionIVKeyParams {
  * Notification sent when the encryption keys are changed.
  */
 export namespace EncryptionKeysChangedNotification {
-    export const type = new NotificationType<
-        DidChangeEncryptionIVKeyParams,
-        void
-    >("connection/encryptionKeysChanged");
+    export const type = new NotificationType<DidChangeEncryptionIVKeyParams, void>(
+        "connection/encryptionKeysChanged",
+    );
 }
 
 // ------------------------------- < Clear Pooled Connections Request > ---------------------------------------

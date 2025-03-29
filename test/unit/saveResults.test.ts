@@ -20,15 +20,10 @@ suite("save results tests", () => {
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
 
     setup(() => {
-        serverClient = TypeMoq.Mock.ofType(
-            SqlToolsServerClient,
-            TypeMoq.MockBehavior.Strict,
-        );
+        serverClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Strict);
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapper
-            .setup((x) =>
-                x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns((extensionName) => {
                 return vscode.workspace.getConfiguration(extensionName);
             });
@@ -62,42 +57,31 @@ suite("save results tests", () => {
                 return Promise.resolve({ messages: "failure" });
             });
 
-        let saveResults = new ResultsSerializer(
-            serverClient.object,
-            vscodeWrapper.object,
-        );
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
 
         saveResults.onSaveResults(testFile, 0, 0, "csv", undefined);
     });
 
     function testSaveSuccess(format: string): Thenable<void> {
         // setup mocks
-        vscodeWrapper.setup((x) =>
-            x.showInformationMessage(TypeMoq.It.isAnyString()),
-        );
+        vscodeWrapper.setup((x) => x.showInformationMessage(TypeMoq.It.isAnyString()));
         vscodeWrapper
             .setup((x) => x.openTextDocument(TypeMoq.It.isAny()))
             .returns(() => {
                 return Promise.resolve(undefined);
             });
         vscodeWrapper
-            .setup((x) =>
-                x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => {
                 return Promise.resolve(undefined);
             });
         vscodeWrapper
-            .setup((x) =>
-                x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => {
                 return Promise.resolve(undefined);
             });
         vscodeWrapper
-            .setup((x) =>
-                x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => {
                 return Promise.resolve(undefined);
             });
@@ -111,26 +95,19 @@ suite("save results tests", () => {
                 return Promise.resolve({ messages: undefined });
             });
 
-        let saveResults = new ResultsSerializer(
-            serverClient.object,
-            vscodeWrapper.object,
-        );
-        return saveResults
-            .onSaveResults(testFile, 0, 0, format, undefined)
-            .then(() => {
-                // check if information message was displayed
-                vscodeWrapper.verify(
-                    (x) => x.showInformationMessage(TypeMoq.It.isAnyString()),
-                    TypeMoq.Times.once(),
-                );
-            });
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
+        return saveResults.onSaveResults(testFile, 0, 0, format, undefined).then(() => {
+            // check if information message was displayed
+            vscodeWrapper.verify(
+                (x) => x.showInformationMessage(TypeMoq.It.isAnyString()),
+                TypeMoq.Times.once(),
+            );
+        });
     }
 
     function testSaveFailure(format: string): Thenable<void> {
         // setup mocks
-        vscodeWrapper.setup((x) =>
-            x.showErrorMessage(TypeMoq.It.isAnyString()),
-        );
+        vscodeWrapper.setup((x) => x.showErrorMessage(TypeMoq.It.isAnyString()));
         vscodeWrapper
             .setup((x) => x.showSaveDialog(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(fileUri));
@@ -140,19 +117,14 @@ suite("save results tests", () => {
                 return Promise.resolve({ messages: "failure" });
             });
 
-        let saveResults = new ResultsSerializer(
-            serverClient.object,
-            vscodeWrapper.object,
-        );
-        return saveResults
-            .onSaveResults(testFile, 0, 0, format, undefined)
-            .then(() => {
-                // check if error message was displayed
-                vscodeWrapper.verify(
-                    (x) => x.showErrorMessage(TypeMoq.It.isAnyString()),
-                    TypeMoq.Times.once(),
-                );
-            });
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
+        return saveResults.onSaveResults(testFile, 0, 0, format, undefined).then(() => {
+            // check if error message was displayed
+            vscodeWrapper.verify(
+                (x) => x.showErrorMessage(TypeMoq.It.isAnyString()),
+                TypeMoq.Times.once(),
+            );
+        });
     }
 
     test("Save as CSV - test if information message is displayed on success", () => {
@@ -190,18 +162,14 @@ suite("save results tests", () => {
         ];
 
         // setup mocks
-        vscodeWrapper.setup((x) =>
-            x.showInformationMessage(TypeMoq.It.isAnyString()),
-        );
+        vscodeWrapper.setup((x) => x.showInformationMessage(TypeMoq.It.isAnyString()));
         vscodeWrapper
             .setup((x) => x.openTextDocument(TypeMoq.It.isAny()))
             .returns(() => {
                 return Promise.resolve(undefined);
             });
         vscodeWrapper
-            .setup((x) =>
-                x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => {
                 return Promise.resolve(undefined);
             });
@@ -222,10 +190,7 @@ suite("save results tests", () => {
                 return Promise.resolve({ messages: undefined });
             });
 
-        let saveResults = new ResultsSerializer(
-            serverClient.object,
-            vscodeWrapper.object,
-        );
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
         return saveResults.onSaveResults(testFile, 0, 0, "csv", selection);
     });
 
@@ -240,18 +205,14 @@ suite("save results tests", () => {
         ];
 
         // setup mocks
-        vscodeWrapper.setup((x) =>
-            x.showInformationMessage(TypeMoq.It.isAnyString()),
-        );
+        vscodeWrapper.setup((x) => x.showInformationMessage(TypeMoq.It.isAnyString()));
         vscodeWrapper
             .setup((x) => x.openTextDocument(TypeMoq.It.isAny()))
             .returns(() => {
                 return Promise.resolve(undefined);
             });
         vscodeWrapper
-            .setup((x) =>
-                x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.showTextDocument(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => {
                 return Promise.resolve(undefined);
             });
@@ -274,10 +235,7 @@ suite("save results tests", () => {
                 return Promise.resolve({ messages: undefined });
             });
 
-        let saveResults = new ResultsSerializer(
-            serverClient.object,
-            vscodeWrapper.object,
-        );
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
         return saveResults.onSaveResults(testFile, 0, 0, "csv", selection);
     });
 
@@ -287,24 +245,15 @@ suite("save results tests", () => {
             .setup((x) => x.showSaveDialog(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
         // setup mock sql tools server client
-        serverClient.setup((x) =>
-            x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-        );
+        serverClient.setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()));
 
-        let saveResults = new ResultsSerializer(
-            serverClient.object,
-            vscodeWrapper.object,
-        );
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
 
         saveResults.onSaveResults(testFile, 0, 0, "csv", undefined).then(
             () => {
                 try {
                     serverClient.verify(
-                        (x) =>
-                            x.sendRequest(
-                                TypeMoq.It.isAny(),
-                                TypeMoq.It.isAny(),
-                            ),
+                        (x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                         TypeMoq.Times.never(),
                     );
                     done();

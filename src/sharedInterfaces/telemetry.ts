@@ -14,6 +14,7 @@ export enum TelemetryViews {
     WebviewController = "WebviewController",
     ObjectExplorerFilter = "ObjectExplorerFilter",
     TableDesigner = "TableDesigner",
+    SchemaCompare = "SchemaCompare",
     UserSurvey = "UserSurvey",
     General = "General",
     ConnectionDialog = "ConnectionDialog",
@@ -21,6 +22,12 @@ export enum TelemetryViews {
 }
 
 export enum TelemetryActions {
+    Compare = "Compare",
+    Switch = "Switch",
+    OpenScmp = "OpenScmp",
+    SaveScmp = "SaveScmp",
+    OptionsChanged = "OptionsChanged",
+    ResetOptions = "ResetOptions",
     Activated = "Activated",
     GenerateScript = "GenerateScript",
     Refresh = "Refresh",

@@ -11,9 +11,7 @@ import { IExtension } from "vscode-mssql";
 
 // Launches and activates the extension.
 export async function activateExtension(): Promise<IExtension> {
-    const extension = vscode.extensions.getExtension<IExtension>(
-        constants.extensionId,
-    );
+    const extension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
     return await extension.activate();
 }
 
@@ -24,21 +22,13 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
 } {
     if (sandbox) {
         return {
-            sendActionEvent: sandbox
-                .stub(telemetry, "sendActionEvent")
-                .callsFake(() => {}),
-            sendErrorEvent: sandbox
-                .stub(telemetry, "sendErrorEvent")
-                .callsFake(() => {}),
+            sendActionEvent: sandbox.stub(telemetry, "sendActionEvent").callsFake(() => {}),
+            sendErrorEvent: sandbox.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
         };
     } else {
         return {
-            sendActionEvent: sinon
-                .stub(telemetry, "sendActionEvent")
-                .callsFake(() => {}),
-            sendErrorEvent: sinon
-                .stub(telemetry, "sendErrorEvent")
-                .callsFake(() => {}),
+            sendActionEvent: sinon.stub(telemetry, "sendActionEvent").callsFake(() => {}),
+            sendErrorEvent: sinon.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
         };
     }
 }

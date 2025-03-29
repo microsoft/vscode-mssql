@@ -41,9 +41,7 @@ export const DesignerMainPaneTab = ({ tabId }: DesignerMainPaneTabProps) => {
     if (!state) {
         return null;
     }
-    const components = state.view?.tabs.find(
-        (tab) => tab.id === tabId,
-    )?.components;
+    const components = state.view?.tabs.find((tab) => tab.id === tabId)?.components;
     return (
         <div className={classes.root}>
             {components

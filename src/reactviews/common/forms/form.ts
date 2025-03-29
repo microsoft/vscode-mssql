@@ -75,10 +75,7 @@ export interface FormItemSpec<
     /**
      * Validation callback for the form item
      */
-    validate?: (
-        state: TState,
-        value: string | boolean | number,
-    ) => FormItemValidationState;
+    validate?: (state: TState, value: string | boolean | number) => FormItemValidationState;
     /**
      * Validation state and message for the form item
      */

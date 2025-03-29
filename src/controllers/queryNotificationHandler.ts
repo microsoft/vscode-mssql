@@ -70,8 +70,7 @@ export class QueryNotificationHandler {
         // _handlerCallbackQueue will be non-empty. Run all handlers in the queue first
         // so that notifications are handled in order they arrived
         while (this._handlerCallbackQueue.length > 0) {
-            let handler: NotificationHandler<any> =
-                this._handlerCallbackQueue.shift();
+            let handler: NotificationHandler<any> = this._handlerCallbackQueue.shift();
             handler(runner);
         }
 
@@ -112,10 +111,7 @@ export class QueryNotificationHandler {
                 }
             };
 
-            self.enqueueOrRun(
-                handlerCallback,
-                self._queryRunners.get(event.ownerUri),
-            );
+            self.enqueueOrRun(handlerCallback, self._queryRunners.get(event.ownerUri));
         };
     }
 
@@ -127,10 +123,7 @@ export class QueryNotificationHandler {
             let handlerCallback = (runner: QueryRunner) => {
                 runner.handleBatchStart(event);
             };
-            self.enqueueOrRun(
-                handlerCallback,
-                self._queryRunners.get(event.ownerUri),
-            );
+            self.enqueueOrRun(handlerCallback, self._queryRunners.get(event.ownerUri));
         };
     }
 
@@ -142,10 +135,7 @@ export class QueryNotificationHandler {
             let handlerCallback = (runner: QueryRunner) => {
                 runner.handleBatchComplete(event);
             };
-            self.enqueueOrRun(
-                handlerCallback,
-                self._queryRunners.get(event.ownerUri),
-            );
+            self.enqueueOrRun(handlerCallback, self._queryRunners.get(event.ownerUri));
         };
     }
 
@@ -157,10 +147,7 @@ export class QueryNotificationHandler {
             let handlerCallback = (runner: QueryRunner) => {
                 runner.handleResultSetComplete(event);
             };
-            self.enqueueOrRun(
-                handlerCallback,
-                self._queryRunners.get(event.ownerUri),
-            );
+            self.enqueueOrRun(handlerCallback, self._queryRunners.get(event.ownerUri));
         };
     }
 
@@ -172,10 +159,7 @@ export class QueryNotificationHandler {
             let handlerCallback = (runner: QueryRunner) => {
                 runner.handleMessage(event);
             };
-            self.enqueueOrRun(
-                handlerCallback,
-                self._queryRunners.get(event.ownerUri),
-            );
+            self.enqueueOrRun(handlerCallback, self._queryRunners.get(event.ownerUri));
         };
     }
 }

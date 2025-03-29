@@ -68,13 +68,12 @@ export class FileEncryptionHelper {
         }
 
         if (getEnableSqlAuthenticationProviderConfig()) {
-            SqlToolsServerClient.instance.sendNotification(
-                EncryptionKeysChangedNotification.type,
-                <DidChangeEncryptionIVKeyParams>{
-                    iv: this._ivBuffer.toString(this._bufferEncoding),
-                    key: this._keyBuffer.toString(this._bufferEncoding),
-                },
-            );
+            SqlToolsServerClient.instance.sendNotification(EncryptionKeysChangedNotification.type, <
+                DidChangeEncryptionIVKeyParams
+            >{
+                iv: this._ivBuffer.toString(this._bufferEncoding),
+                key: this._keyBuffer.toString(this._bufferEncoding),
+            });
         }
     }
 
@@ -82,19 +81,12 @@ export class FileEncryptionHelper {
         if (!this._keyBuffer || !this._ivBuffer) {
             await this.init();
         }
-        const cipherIv = crypto.createCipheriv(
-            this._algorithm,
-            this._keyBuffer!,
-            this._ivBuffer!,
-        );
+        const cipherIv = crypto.createCipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
         let cipherText = `${cipherIv.update(content, "utf8", this._binaryEncoding)}${cipherIv.final(this._binaryEncoding)}`;
         return cipherText;
     };
 
-    fileOpener = async (
-        content: string,
-        resetOnError?: boolean,
-    ): Promise<string> => {
+    fileOpener = async (content: string, resetOnError?: boolean): Promise<string> => {
         try {
             if (!this._keyBuffer || !this._ivBuffer) {
                 await this.init();
@@ -131,40 +123,31 @@ export class FileEncryptionHelper {
         return `${azureAccountProviderCredentials}|${credentialId}`;
     }
 
-    private async readEncryptionKey(
-        credentialId: string,
-    ): Promise<string | undefined> {
+    private async readEncryptionKey(credentialId: string): Promise<string | undefined> {
         return (
-            await this._credentialStore.readCredential(
-                this.getPrefixedCredentialId(credentialId),
-            )
+            await this._credentialStore.readCredential(this.getPrefixedCredentialId(credentialId))
         )?.password;
     }
 
-    private async saveEncryptionKey(
-        credentialId: string,
-        password: string,
-    ): Promise<boolean> {
+    private async saveEncryptionKey(credentialId: string, password: string): Promise<boolean> {
         let status = false;
         let prefixedCredentialId = this.getPrefixedCredentialId(credentialId);
         try {
-            await this._credentialStore
-                .saveCredential(prefixedCredentialId, password)
-                .then(
-                    (result) => {
-                        status = result;
-                        if (result) {
-                            this._logger.info(
-                                `FileEncryptionHelper: Successfully saved encryption key ${prefixedCredentialId} for persistent cache encryption in system credential store.`,
-                            );
-                        }
-                    },
-                    (e) => {
-                        throw Error(
-                            `FileEncryptionHelper: Could not save encryption key: ${prefixedCredentialId}: ${e}`,
+            await this._credentialStore.saveCredential(prefixedCredentialId, password).then(
+                (result) => {
+                    status = result;
+                    if (result) {
+                        this._logger.info(
+                            `FileEncryptionHelper: Successfully saved encryption key ${prefixedCredentialId} for persistent cache encryption in system credential store.`,
                         );
-                    },
-                );
+                    }
+                },
+                (e) => {
+                    throw Error(
+                        `FileEncryptionHelper: Could not save encryption key: ${prefixedCredentialId}: ${e}`,
+                    );
+                },
+            );
         } catch (ex) {
             if (os.platform() === "win32") {
                 this._logger.error(
@@ -184,9 +167,7 @@ export class FileEncryptionHelper {
         this._keyBuffer = undefined;
     }
 
-    protected async deleteEncryptionKey(
-        credentialId: string,
-    ): Promise<boolean> {
+    protected async deleteEncryptionKey(credentialId: string): Promise<boolean> {
         return await this._credentialStore.deleteCredential(credentialId);
     }
 
@@ -196,17 +177,12 @@ export class FileEncryptionHelper {
                 .showWarningMessageAdvanced(
                     LocalizedConstants.msgAzureCredStoreSaveFailedError,
                     undefined,
-                    [
-                        LocalizedConstants.reloadChoice,
-                        LocalizedConstants.Common.cancel,
-                    ],
+                    [LocalizedConstants.reloadChoice, LocalizedConstants.Common.cancel],
                 )
                 .then(
                     async (selection) => {
                         if (selection === LocalizedConstants.reloadChoice) {
-                            await vscode.commands.executeCommand(
-                                "workbench.action.reloadWindow",
-                            );
+                            await vscode.commands.executeCommand("workbench.action.reloadWindow");
                         }
                     },
                     (error) => {

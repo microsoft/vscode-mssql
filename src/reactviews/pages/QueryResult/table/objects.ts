@@ -24,11 +24,7 @@ export function isObject(obj: unknown): obj is Object {
  * Copies all properties of source into destination. The optional parameter "overwrite" allows to control
  * if existing properties on the destination should be overwritten or not. Defaults to true (overwrite).
  */
-export function mixin(
-    destination: any,
-    source: any,
-    overwrite: boolean = true,
-): any {
+export function mixin(destination: any, source: any, overwrite: boolean = true): any {
     if (!isObject(destination)) {
         return source;
     }

@@ -20,15 +20,9 @@ import {
     FormItemType,
 } from "../reactviews/common/forms/form";
 import { sendErrorEvent } from "../telemetry/telemetry";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ConnectionDialog as Loc } from "../constants/locConstants";
-import {
-    CapabilitiesResult,
-    GetCapabilitiesRequest,
-} from "../models/contracts/connection";
+import { CapabilitiesResult, GetCapabilitiesRequest } from "../models/contracts/connection";
 import { getErrorMessage } from "../utils/utils";
 import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionDialogWebviewController } from "./connectionDialogWebviewController";
@@ -37,20 +31,16 @@ export async function generateConnectionComponents(
     connectionManager: ConnectionManager,
     azureAccountOptions: Promise<FormItemOptions[]>,
     azureActionButtons: Promise<FormItemActionButton[]>,
-): Promise<
-    Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
-> {
+): Promise<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>> {
     // get list of connection options from Tools Service
-    const capabilitiesResult: CapabilitiesResult =
-        await connectionManager.client.sendRequest(
-            GetCapabilitiesRequest.type,
-            {},
-        );
+    const capabilitiesResult: CapabilitiesResult = await connectionManager.client.sendRequest(
+        GetCapabilitiesRequest.type,
+        {},
+    );
     const connectionOptions: ConnectionOption[] =
         capabilitiesResult.capabilities.connectionProvider.options;
 
-    const groupNames =
-        capabilitiesResult.capabilities.connectionProvider.groupDisplayNames;
+    const groupNames = capabilitiesResult.capabilities.connectionProvider.groupDisplayNames;
 
     const result: Record<
         keyof IConnectionDialogProfile,
@@ -69,8 +59,7 @@ export async function generateConnectionComponents(
                 ...convertToFormComponent(option),
                 isAdvancedOption: !_mainOptionNames.has(option.name),
                 optionCategory: option.groupName,
-                optionCategoryLabel:
-                    groupNames[option.groupName] ?? option.groupName,
+                optionCategoryLabel: groupNames[option.groupName] ?? option.groupName,
             };
         } catch (err) {
             console.error(
@@ -90,20 +79,13 @@ export async function generateConnectionComponents(
         }
     }
 
-    await completeFormComponents(
-        result,
-        await azureAccountOptions,
-        await azureActionButtons,
-    );
+    await completeFormComponents(result, await azureAccountOptions, await azureActionButtons);
 
     return result;
 }
 
 export function groupAdvancedOptions(
-    components: Record<
-        keyof IConnectionDialogProfile,
-        ConnectionDialogFormItemSpec
-    >,
+    components: Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>,
     componentsInfo: ConnectionComponentsInfo,
 ): ConnectionComponentGroup[] {
     const groupMap: Map<string, ConnectionComponentGroup> = new Map([
@@ -134,9 +116,7 @@ export function groupAdvancedOptions(
                 options: [option.propertyName],
             });
         } else {
-            groupMap
-                .get(option.optionCategory)
-                .options.push(option.propertyName);
+            groupMap.get(option.optionCategory).options.push(option.propertyName);
         }
     }
 
@@ -210,9 +190,7 @@ export function convertToFormComponent(
 }
 
 export async function completeFormComponents(
-    components: Partial<
-        Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>
-    >,
+    components: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>,
     azureAccountOptions: FormItemOptions[],
     azureActionButtons: FormItemActionButton[],
 ) {
@@ -243,8 +221,7 @@ export async function completeFormComponents(
         actionButtons: azureActionButtons,
         validate: (state: ConnectionDialogWebviewState, value: string) => {
             if (
-                state.connectionProfile.authenticationType ===
-                    AuthenticationType.AzureMFA &&
+                state.connectionProfile.authenticationType === AuthenticationType.AzureMFA &&
                 !value
             ) {
                 return {
@@ -270,8 +247,7 @@ export async function completeFormComponents(
         placeholder: Loc.selectATenant,
         validate: (state: ConnectionDialogWebviewState, value: string) => {
             if (
-                state.connectionProfile.authenticationType ===
-                    AuthenticationType.AzureMFA &&
+                state.connectionProfile.authenticationType === AuthenticationType.AzureMFA &&
                 !value
             ) {
                 return {
@@ -293,11 +269,7 @@ export async function completeFormComponents(
         label: Loc.connectionString,
         required: true,
         validate: (state: ConnectionDialogWebviewState, value: string) => {
-            if (
-                state.selectedInputMode ===
-                    ConnectionInputMode.ConnectionString &&
-                !value
-            ) {
+            if (state.selectedInputMode === ConnectionInputMode.ConnectionString && !value) {
                 return {
                     isValid: false,
                     validationMessage: Loc.connectionStringIsRequired,
@@ -312,15 +284,8 @@ export async function completeFormComponents(
     };
 
     // add missing validation functions for generated components
-    components["server"].validate = (
-        state: ConnectionDialogWebviewState,
-        value: string,
-    ) => {
-        if (
-            state.connectionProfile.authenticationType ===
-                AuthenticationType.SqlLogin &&
-            !value
-        ) {
+    components["server"].validate = (state: ConnectionDialogWebviewState, value: string) => {
+        if (state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
             return {
                 isValid: false,
                 validationMessage: Loc.serverIsRequired,
@@ -332,15 +297,8 @@ export async function completeFormComponents(
         };
     };
 
-    components["user"].validate = (
-        state: ConnectionDialogWebviewState,
-        value: string,
-    ) => {
-        if (
-            state.connectionProfile.authenticationType ===
-                AuthenticationType.SqlLogin &&
-            !value
-        ) {
+    components["user"].validate = (state: ConnectionDialogWebviewState, value: string) => {
+        if (state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
             return {
                 isValid: false,
                 validationMessage: Loc.usernameIsRequired,
