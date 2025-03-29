@@ -247,7 +247,6 @@ jobs:
 
       - name: Write PR results to markdown
         run: |
-          echo "$GITHUB_EVENT_NAME"
           echo "### PR Changes" >> results.md
           echo "| Category                      | Main Branch        | PR Branch         | Difference           |" >> results.md
           echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
