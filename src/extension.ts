@@ -16,7 +16,8 @@ import { ConnectionProfile } from "./models/connectionProfile";
 import { FirewallRuleError } from "./languageservice/interfaces";
 import { RequestType } from "vscode-languageclient";
 
-let controller: MainController = undefined;
+/** exported for testing purposes only */
+export let controller: MainController = undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     let vscodeWrapper = new VscodeWrapper();
