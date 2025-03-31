@@ -5,10 +5,6 @@
 
 import { useContext, useEffect, useState } from "react";
 import {
-    Accordion,
-    AccordionHeader,
-    AccordionItem,
-    AccordionPanel,
     Button,
     Checkbox,
     Drawer,
@@ -16,6 +12,7 @@ import {
     DrawerFooter,
     DrawerHeader,
     DrawerHeaderTitle,
+    InfoLabel,
     Label,
     makeStyles,
     SelectTabData,
@@ -31,12 +28,7 @@ import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
 
 const useStyles = makeStyles({
-    generalOptionsContainer: {
-        height: "55vh",
-        overflowY: "auto",
-    },
-
-    objectTypesContainer: {
+    optionsContainer: {
         height: "80vh",
         overflowY: "auto",
     },
@@ -80,7 +72,6 @@ const SchemaOptionsDrawer = (props: Props) => {
 
     const [optionsChanged, setOptionsChanged] = useState(false);
     const [selectedValue, setSelectedValue] = useState<TabValue>("generalOptions");
-    const [description, setDescription] = useState<string>("");
 
     const onTabSelect = (_: SelectTabEvent, data: SelectTabData) => {
         setSelectedValue(data.value);
@@ -136,43 +127,27 @@ const SchemaOptionsDrawer = (props: Props) => {
                     </Tab>
                 </TabList>
                 {selectedValue === "generalOptions" && (
-                    <Accordion collapsible multiple defaultOpenItems={["0", "1"]}>
-                        <AccordionItem value="0">
-                            <AccordionHeader>{loc.schemaCompare.settings}</AccordionHeader>
-                            <AccordionPanel className={classes.generalOptionsContainer}>
-                                <List>
-                                    {optionsToValueNameLookup &&
-                                        generalOptionEntries.map(([key, value]) => {
-                                            return (
-                                                <ListItem
-                                                    key={key}
-                                                    value={key}
-                                                    aria-label={value.displayName}>
-                                                    <Checkbox
-                                                        checked={value.value}
-                                                        onChange={() => handleSettingChanged(key)}
-                                                    />
-                                                    <Label
-                                                        aria-label={value.displayName}
-                                                        onClick={() =>
-                                                            setDescription(value.description)
-                                                        }>
-                                                        {value.displayName}
-                                                    </Label>
-                                                </ListItem>
-                                            );
-                                        })}
-                                </List>
-                            </AccordionPanel>
-                        </AccordionItem>
-                        <AccordionItem value="1">
-                            <AccordionHeader>{loc.schemaCompare.description}</AccordionHeader>
-                            {!!description && <AccordionPanel>{description}</AccordionPanel>}
-                        </AccordionItem>
-                    </Accordion>
+                    <List className={classes.optionsContainer}>
+                        {optionsToValueNameLookup &&
+                            generalOptionEntries.map(([key, value]) => {
+                                return (
+                                    <ListItem key={key} value={key} aria-label={value.displayName}>
+                                        <Checkbox
+                                            checked={value.value}
+                                            onChange={() => handleSettingChanged(key)}
+                                        />
+                                        <InfoLabel
+                                            aria-label={value.displayName}
+                                            info={<>{value.description}</>}>
+                                            {value.displayName}
+                                        </InfoLabel>
+                                    </ListItem>
+                                );
+                            })}
+                    </List>
                 )}
                 {selectedValue === "includeObjectTypes" && (
-                    <List className={classes.objectTypesContainer}>
+                    <List className={classes.optionsContainer}>
                         {includeObjectTypesLookup &&
                             includeObjectTypesEntries.map(([key, value]) => {
                                 return (
