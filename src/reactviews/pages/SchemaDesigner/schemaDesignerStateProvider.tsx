@@ -35,6 +35,7 @@ export interface SchemaDesignerContextProps
     deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteSelectedNodes: () => void;
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
+    setCenter: (nodeId: string) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -168,13 +169,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             reactFlow.addNodes(nodeWithPosition);
             reactFlow.addEdges(edgesForNewTable);
             requestAnimationFrame(async () => {
-                await reactFlow.setCenter(
-                    nodeWithPosition.position.x,
-                    nodeWithPosition.position.y,
-                    {
-                        duration: 500,
-                    },
-                );
+                setCenter(nodeWithPosition.id);
             });
 
             eventBus.emit("getScript");
@@ -277,6 +272,20 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 nodes: [],
                 edges: selectedEdges,
             });
+        }
+    };
+
+    const setCenter = (nodeId: string) => {
+        const node = reactFlow.getNode(nodeId) as Node<SchemaDesigner.Table>;
+        if (node) {
+            void reactFlow.setCenter(
+                node.position.x + flowUtils.getTableWidth() / 2,
+                node.position.y + flowUtils.getTableHeight(node.data) / 2,
+                {
+                    zoom: reactFlow.getZoom(),
+                    duration: 500,
+                },
+            );
         }
     };
 
