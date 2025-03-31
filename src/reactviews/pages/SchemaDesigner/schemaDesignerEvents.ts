@@ -15,6 +15,7 @@ export type MyEvents = {
         showForeignKeys?: boolean,
     ) => void;
     newTable: (schema: SchemaDesigner.Schema) => void;
+    onFindWidgetValueChange: (searchText: string) => void;
 };
 
 const eventBus = new TypedEventEmitter<MyEvents>();

@@ -35,6 +35,7 @@ export interface SchemaDesignerContextProps
     deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteSelectedNodes: () => void;
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
+    updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
 }
 
@@ -275,6 +276,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     };
 
+    const updateSelectedNodes = (nodesIds: string[]) => {
+        reactFlow.getNodes().forEach((node) => {
+            reactFlow.updateNode(node.id, {
+                selected: nodesIds.includes(node.id),
+            });
+        });
+    };
+
     const setCenter = (nodeId: string, shouldZoomIn: boolean = false) => {
         const node = reactFlow.getNode(nodeId) as Node<SchemaDesigner.Table>;
         if (node) {
@@ -311,6 +320,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 addTable,
                 deleteTable,
                 deleteSelectedNodes,
+                updateSelectedNodes,
+                setCenter,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
