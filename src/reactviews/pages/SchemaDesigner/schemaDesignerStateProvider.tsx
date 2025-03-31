@@ -169,7 +169,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             reactFlow.addNodes(nodeWithPosition);
             reactFlow.addEdges(edgesForNewTable);
             requestAnimationFrame(async () => {
-                setCenter(nodeWithPosition.id);
+                setCenter(nodeWithPosition.id, true);
             });
 
             eventBus.emit("getScript");
