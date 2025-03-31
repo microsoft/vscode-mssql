@@ -1,26 +1,59 @@
+/* Root container styles */
 #root {
     left: 0;
     right: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
-    color: "var(--vscode-foreground)";
+    color: var(--vscode-foreground);
 }
 
-/* Make fluent focus fields look more like vscode focus  */
-a:focus,
-input:not([type="search"]):focus,
-select:focus,
-textarea:focus,
-button[role="combobox"]:focus,
-.fui-Combobox:focus-within,
-.fui-Input:focus-within,
-.fui-Dropdown:focus-within {
-    outline: 1px solid var(--colorCompoundBrandStroke, --vscode-focusBorder) !important;
-    border-radius: var(--borderRadiusSmall, 2px) !important;
+/* fluent ui adds some hover styles to the input elements, which vscode doens't have. This is a workaround to remove those styles. */
+.fui-Input,
+.fui-Textarea,
+.fui-Input:hover,
+.fui-Textarea:hover {
+    background-color: var(--vscode-input-background) !important;
+    color: var(--vscode-input-foreground) !important;
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 2px;
+}
+
+/* Combobox styling */
+.fui-Dropdown {
     border: none !important;
 }
+button[role="combobox"] {
+    background-color: var(--vscode-dropdown-background) !important;
+    color: var(--vscode-dropdown-foreground) !important;
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 2px;
+    min-height: 26px !important;
+    line-height: 19px !important;
+}
+button[role="combobox"] .placeholder {
+    color: var(--vscode-input-placeholderForeground) !important;
+}
 
-input[type="search"]:focus {
+/* Adding focus styles to the input elements */
+a:focus,
+select:focus,
+.fui-Combobox:focus-within,
+.fui-Input:focus-within,
+.fui-Dropdown:focus-within,
+.fui-Textarea:focus-within,
+button[role="combobox"].dropdown-open {
+    border: 1px solid var(--vscode-focusBorder) !important;
+    border-radius: var(--borderRadiusSmall, 2px) !important;
+}
+
+/* Removing focus styling on actual elements as we have already added focus styles to the container */
+input[type="search"]:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input:not([type="search"]):focus,
+textarea:focus,
+button[role="combobox"]:focus {
     outline: none !important;
+    border: none !important;
 }
