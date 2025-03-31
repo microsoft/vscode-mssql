@@ -291,6 +291,9 @@
     <trans-unit id="++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e">
       <source xml:lang="en">Close Designer</source>
     </trans-unit>
+    <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
+      <source xml:lang="en">Close Find</source>
+    </trans-unit>
     <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
       <source xml:lang="en">Close the current connection</source>
     </trans-unit>
@@ -686,11 +689,20 @@
     <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
       <source xml:lang="en">Filter for any field...</source>
     </trans-unit>
+    <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
+      <source xml:lang="en">Find</source>
+    </trans-unit>
+    <trans-unit id="++CODE++664d6cdf0494d6e50579257917eb2ad1b6aa7534db584c3368f24b47c08cdc22">
+      <source xml:lang="en">Find Next</source>
+    </trans-unit>
     <trans-unit id="++CODE++051ab9f3bd7362945f1e2adc7c118c48d4286a3e181158b32e8e87f915103e73">
       <source xml:lang="en">Find Node</source>
     </trans-unit>
     <trans-unit id="++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855">
       <source xml:lang="en">Find Nodes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf0e5179cb962af6329b97f24951139ae47f60ff00cdcd1ccbacd816608b6866">
+      <source xml:lang="en">Find Previous</source>
     </trans-unit>
     <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
       <source xml:lang="en">Finished query execution for document &quot;{0}&quot;</source>
@@ -1013,6 +1025,9 @@
     </trans-unit>
     <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
       <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
+      <source xml:lang="en">No results</source>
     </trans-unit>
     <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
       <source xml:lang="en">No schema differences were found.</source>
@@ -1833,6 +1848,11 @@
     <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
       <source xml:lang="en">{0} issues</source>
       <note>{0} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++48f8bded11e525503381f9350e33b4f291585451934e4dfff2baed0e7a8959a3">
+      <source xml:lang="en">{0} of {1}</source>
+      <note>{0} is the number of active elements
+{1} is the total number of elements</note>
     </trans-unit>
     <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
       <source xml:lang="en">{0} properties</source>

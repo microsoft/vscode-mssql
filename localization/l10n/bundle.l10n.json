@@ -98,6 +98,18 @@
   "Close": "Close",
   "Apply": "Apply",
   "Clear Selection": "Clear Selection",
+  "Find": "Find",
+  "Find Next": "Find Next",
+  "Find Previous": "Find Previous",
+  "No results": "No results",
+  "{0} of {1}/{0} is the number of active elements{1} is the total number of elements": {
+    "message": "{0} of {1}",
+    "comment": [
+      "{0} is the number of active elements",
+      "{1} is the total number of elements"
+    ]
+  },
+  "Close Find": "Close Find",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
