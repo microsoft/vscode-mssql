@@ -39,6 +39,8 @@ class FileStatusBar {
     public executionTime: vscode.StatusBarItem;
 
     public currentLanguageServiceStatus: string;
+
+    public timerTest: NodeJS.Timeout;
 }
 
 export default class StatusView implements vscode.Disposable {
@@ -73,6 +75,7 @@ export default class StatusView implements vscode.Disposable {
                 this._statusBars[bar].rowCount.dispose();
                 this._statusBars[bar].executionTime.dispose();
                 clearInterval(this._statusBars[bar].progressTimerId);
+                clearInterval(this._statusBars[bar].timerTest);
                 delete this._statusBars[bar];
             }
         }
@@ -131,6 +134,9 @@ export default class StatusView implements vscode.Disposable {
             if (bar.progressTimerId) {
                 clearInterval(bar.progressTimerId);
             }
+            if (bar.timerTest) {
+                clearInterval(bar.timerTest);
+            }
             if (bar.sqlCmdMode) {
                 bar.sqlCmdMode.dispose();
             }
@@ -154,6 +160,9 @@ export default class StatusView implements vscode.Disposable {
         let bar = this._statusBars[fileUri];
         if (bar.progressTimerId) {
             clearInterval(bar.progressTimerId);
+        }
+        if (bar.timerTest) {
+            clearInterval(bar.timerTest);
         }
         return bar;
     }
@@ -249,6 +258,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusQuery.command = undefined;
         bar.statusQuery.text = LocalizedConstants.executeQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
+        //TODO: add timer here
         this.showProgress(
             fileUri,
             LocalizedConstants.executeQueryLabel,
@@ -266,6 +276,7 @@ export default class StatusView implements vscode.Disposable {
     }
 
     public setExecutionTime(fileUri: string, time: string): void {
+        ///TODO: remove timer here
         let bar = this.getStatusBar(fileUri);
         bar.executionTime.text = time;
         this.showStatusBarItem(fileUri, bar.executionTime);
@@ -462,5 +473,19 @@ export default class StatusView implements vscode.Disposable {
             statusBarItem.text = statusText + " " + progressTick;
             self.showStatusBarItem(fileUri, statusBarItem);
         }, 200);
+        let milliseconds = 0;
+        bar.timerTest = setInterval(() => {
+            milliseconds += 1000;
+            //convert milliseconds to display time
+            const timeString = self.formatMilliseconds(milliseconds);
+            statusBarItem.text = timeString;
+            self.showStatusBarItem(fileUri, statusBarItem);
+        }, 1000);
+    }
+
+    private formatMilliseconds(milliseconds: number): string {
+        const minutes = Math.floor(milliseconds / 60000);
+        const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
+        return minutes + ":" + (parseInt(seconds) < 10 ? "0" : "") + seconds;
     }
 }
