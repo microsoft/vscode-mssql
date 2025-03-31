@@ -229,7 +229,6 @@ export function FindWidget<T extends SearchableItem>({
             }
 
             if (isKeyboardShortcutPressed) {
-                // Prevent default browser behavior (like browser's own search)
                 event.preventDefault();
                 if (isVisible) {
                     // If already visible, just focus the search box
