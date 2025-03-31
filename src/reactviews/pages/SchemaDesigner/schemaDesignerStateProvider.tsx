@@ -35,7 +35,7 @@ export interface SchemaDesignerContextProps
     deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteSelectedNodes: () => void;
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
-    setCenter: (nodeId: string) => void;
+    setCenter: (nodeId: string, zoomIn?: boolean) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -275,14 +275,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     };
 
-    const setCenter = (nodeId: string) => {
+    const setCenter = (nodeId: string, shouldZoomIn: boolean = false) => {
         const node = reactFlow.getNode(nodeId) as Node<SchemaDesigner.Table>;
         if (node) {
             void reactFlow.setCenter(
                 node.position.x + flowUtils.getTableWidth() / 2,
                 node.position.y + flowUtils.getTableHeight(node.data) / 2,
                 {
-                    zoom: reactFlow.getZoom(),
+                    zoom: shouldZoomIn ? 1 : reactFlow.getZoom(),
                     duration: 500,
                 },
             );
