@@ -12,9 +12,7 @@
     --xy-minimap-mask-background-color-default: rgba(60, 60, 60, 0.6);
     --xy-minimap-mask-stroke-color-default: var(--vscode-editor-foreground);
     --xy-minimap-mask-stroke-width-default: 1;
-    --xy-minimap-node-background-color-default: var(
-        --vscode-editor-selectionBackground
-    );
+    --xy-minimap-node-background-color-default: var(--vscode-editor-selectionBackground);
     --xy-minimap-node-stroke-color-default: var(--vscode-editor-foreground);
     --xy-minimap-node-stroke-width-default: 1;
 
@@ -28,9 +26,7 @@
     --xy-node-color-default: var(--vscode-editor-foreground);
     --xy-node-border-default: 1px solid var(--vscode-badge-background);
     --xy-node-background-color-default: var(--vscode-editor-background);
-    --xy-node-group-background-color-default: var(
-        --vscode-editorWidget-background
-    );
+    --xy-node-group-background-color-default: var(--vscode-editorWidget-background);
     --xy-node-boxshadow-hover-default: 0 1px 4px 1px rgba(0, 0, 0, 0.3);
     --xy-node-boxshadow-selected-default: 0 0 0 2px var(--vscode-focusBorder);
 
@@ -48,23 +44,15 @@
     --xy-selection-border-default: 1px dotted var(--vscode-focusBorder);
 
     /* Controls styling */
-    --xy-controls-button-background-color-default: var(
-        --vscode-editorWidget-background
-    );
-    --xy-controls-button-background-color-hover-default: var(
-        --vscode-toolbar-hoverBackground
-    );
+    --xy-controls-button-background-color-default: var(--vscode-editorWidget-background);
+    --xy-controls-button-background-color-hover-default: var(--vscode-toolbar-hoverBackground);
     --xy-controls-button-color-default: var(--vscode-editor-foreground);
     --xy-controls-button-color-hover-default: var(--vscode-editor-foreground);
-    --xy-controls-button-border-color-default: var(
-        --vscode-editorWidget-border
-    );
+    --xy-controls-button-border-color-default: var(--vscode-editorWidget-border);
     --xy-controls-box-shadow-default: var(--vscode-widget-shadow);
 
     /* Edge label styling */
-    --xy-edge-label-background-color-default: var(
-        --vscode-editorWidget-background
-    );
+    --xy-edge-label-background-color-default: var(--vscode-editorWidget-background);
     --xy-edge-label-color-default: var(--vscode-editor-foreground);
 }
 
