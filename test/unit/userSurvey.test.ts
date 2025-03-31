@@ -9,10 +9,7 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../../src/sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 import { UserSurvey } from "../../src/nps/userSurvey";
 import { stubTelemetry } from "./utils";
@@ -31,20 +28,14 @@ suite("UserSurvey Tests", () => {
             update: sandbox.stub(),
         };
 
-        const vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        const vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
 
         context = {
             globalState: globalState,
             extensionUri: vscode.Uri.file("test"),
         };
 
-        showInformationMessageStub = sandbox.stub(
-            vscode.window,
-            "showInformationMessage",
-        );
+        showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
         UserSurvey.createInstance(context, vscodeWrapper.object);
     });
 
@@ -59,8 +50,8 @@ suite("UserSurvey Tests", () => {
 
     test("should not prompt the user if they opted out of the survey", async () => {
         globalState.get.withArgs("nps/never", false).returns(true);
-        const instance = UserSurvey.getInstance();
-        await instance.promptUserForNPSFeedback();
+        const userSurvey = UserSurvey.getInstance();
+        await (userSurvey as any).promptUserForNPSFeedbackAsync();
         assert.strictEqual(
             (globalState.get as sinon.SinonStub).calledWith("nps/never", false),
             true,
@@ -84,8 +75,8 @@ suite("UserSurvey Tests", () => {
             },
         } as any);
         globalState.get.withArgs("nps/skipVersion", "").returns("someVersion");
-        const instance = UserSurvey.getInstance();
-        await instance.promptUserForNPSFeedback();
+        const userSurvey = UserSurvey.getInstance();
+        await (userSurvey as any).promptUserForNPSFeedbackAsync();
         assert.strictEqual(
             showInformationMessageStub.called,
             false,
@@ -105,7 +96,7 @@ suite("UserSurvey Tests", () => {
             run: sandbox.stub(),
         });
         const userSurvey = UserSurvey.getInstance();
-        await userSurvey.promptUserForNPSFeedback();
+        await (userSurvey as any).promptUserForNPSFeedbackAsync();
         assert.strictEqual(
             showInformationMessageStub.calledOnce,
             true,
@@ -146,7 +137,7 @@ suite("UserSurvey Tests", () => {
 
         (userSurvey as any)._webviewController = mockWebviewController;
 
-        await userSurvey.promptUserForNPSFeedback();
+        await (userSurvey as any).promptUserForNPSFeedbackAsync();
 
         assert.strictEqual(
             mockWebviewController.revealToForeground.calledOnce,
@@ -154,11 +145,7 @@ suite("UserSurvey Tests", () => {
             "revealToForeground should have been called",
         );
 
-        assert.strictEqual(
-            sendActionEvent.calledOnce,
-            true,
-            "sendActionEvent should be called",
-        );
+        assert.strictEqual(sendActionEvent.calledOnce, true, "sendActionEvent should be called");
 
         assert.strictEqual(
             sendActionEvent.calledWith(
@@ -168,6 +155,7 @@ suite("UserSurvey Tests", () => {
                     surveyId: "nps",
                     q1: "answer1",
                     q2: "answer2",
+                    modernFeaturesEnabled: true,
                 },
                 {
                     q3: 3,
@@ -191,7 +179,7 @@ suite("UserSurvey Tests", () => {
         const userSurvey = UserSurvey.getInstance();
         sandbox.stub(userSurvey, "launchSurvey").resolves();
 
-        await userSurvey.promptUserForNPSFeedback();
+        await (userSurvey as any).promptUserForNPSFeedbackAsync();
 
         assert.strictEqual(
             globalState.update.calledWith("nps/sessionCount", 3),
@@ -211,7 +199,7 @@ suite("UserSurvey Tests", () => {
         const userSurvey = UserSurvey.getInstance();
         sandbox.stub(userSurvey, "launchSurvey").resolves();
 
-        await userSurvey.promptUserForNPSFeedback();
+        await (userSurvey as any).promptUserForNPSFeedbackAsync();
 
         assert.strictEqual(
             globalState.update.calledWith("nps/never", true),

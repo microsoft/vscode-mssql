@@ -14,20 +14,14 @@ suite.skip("Test Confirm Prompt", () => {
         let question = {
             name: "test",
         };
-        let vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         vscodeWrapper
-            .setup((v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(LocalizedConstants.msgYes));
         let confirm = new ConfirmPrompt(question, vscodeWrapper.object);
         confirm.render();
         vscodeWrapper.verify(
-            (v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
     });
@@ -36,20 +30,14 @@ suite.skip("Test Confirm Prompt", () => {
         let question = {
             name: "test",
         };
-        let vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         vscodeWrapper
-            .setup((v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
         let confirm = new ConfirmPrompt(question, vscodeWrapper.object);
         confirm.render();
         vscodeWrapper.verify(
-            (v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
     });

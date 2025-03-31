@@ -22,8 +22,7 @@ export enum QueryResultSaveAsTrigger {
     Toolbar = "Toolbar",
 }
 
-export interface QueryResultReactProvider
-    extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
+export interface QueryResultReactProvider extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     /**
      * Gets the execution plan graph from the provider for a result set
@@ -73,8 +72,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     autoSizeColumns?: boolean;
 }
 
-export interface QueryResultReducers
-    extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
+export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
     setResultTab: {
         tabId: QueryResultPaneTabs;
     };

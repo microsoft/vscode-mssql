@@ -9,7 +9,7 @@
 
 /* Make fluent focus fields look more like vscode focus  */
 a:focus,
-input:focus,
+input:not([type="search"]):focus,
 select:focus,
 textarea:focus,
 button[role="combobox"]:focus,
@@ -19,4 +19,8 @@ button[role="combobox"]:focus,
     outline: 1px solid var(--colorCompoundBrandStroke, --vscode-focusBorder) !important;
     border-radius: var(--borderRadiusSmall, 2px) !important;
     border: none !important;
+}
+
+input[type="search"]:focus {
+    outline: none !important;
 }

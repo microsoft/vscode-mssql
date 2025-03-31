@@ -17,20 +17,14 @@ suite("Test Checkbox prompt", () => {
                 { name: "test2", checked: false },
             ],
         };
-        let vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         vscodeWrapper
-            .setup((v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve("test1"));
         let checkbox = new CheckboxPrompt(question, vscodeWrapper.object);
         checkbox.render();
         vscodeWrapper.verify(
-            (v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
     });
@@ -42,20 +36,14 @@ suite("Test Checkbox prompt", () => {
                 { name: "test2", checked: false },
             ],
         };
-        let vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         vscodeWrapper
-            .setup((v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
         let checkbox = new CheckboxPrompt(question, vscodeWrapper.object);
         checkbox.render();
         vscodeWrapper.verify(
-            (v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
     });
@@ -67,20 +55,14 @@ suite("Test Checkbox prompt", () => {
                 { name: "test2", checked: false },
             ],
         };
-        let vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         vscodeWrapper
-            .setup((v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(figures.tick));
         let checkbox = new CheckboxPrompt(question, vscodeWrapper.object);
         checkbox.render();
         vscodeWrapper.verify(
-            (v) =>
-                v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
     });

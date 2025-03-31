@@ -8,15 +8,8 @@ import * as locConstants from "../constants/locConstants";
 import * as vscode from "vscode";
 import * as os from "os";
 
-import {
-    Answers,
-    UserSurveyReducers,
-    UserSurveyState,
-} from "../sharedInterfaces/userSurvey";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { Answers, UserSurveyReducers, UserSurveyState } from "../sharedInterfaces/userSurvey";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -47,12 +40,15 @@ export class UserSurvey {
     }
 
     /** checks user eligibility for NPS survey and, if eligible, displays the survey and submits feedback */
-    public async promptUserForNPSFeedback(): Promise<void> {
+    public promptUserForNPSFeedback(): void {
+        void (async () => this.promptUserForNPSFeedbackAsync)();
+    }
+
+    private async promptUserForNPSFeedbackAsync(): Promise<void> {
         const globalState = this._context.globalState;
         const sessionCount = globalState.get(SESSION_COUNT_KEY, 0) + 1;
         const extensionVersion =
-            vscode.extensions.getExtension(constants.extensionId).packageJSON
-                .version || "unknown";
+            vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown";
 
         if (!(await this.shouldPromptForFeedback())) {
             return;
@@ -92,10 +88,7 @@ export class UserSurvey {
     }
 
     /** launches the survey directly and submits feedback; does not check for survey eligibility first */
-    public async launchSurvey(
-        surveyId: string,
-        survey: UserSurveyState,
-    ): Promise<Answers> {
+    public async launchSurvey(surveyId: string, survey: UserSurveyState): Promise<Answers> {
         const state: UserSurveyState = survey;
         if (!this._webviewController || this._webviewController.isDisposed) {
             this._webviewController = new UserSurveyWebviewController(
@@ -133,18 +126,14 @@ export class UserSurvey {
 
         // If the user has already been prompted for feedback in this version, don't prompt again
         const extensionVersion =
-            vscode.extensions.getExtension(constants.extensionId).packageJSON
-                .version || "unknown";
+            vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown";
         const skipVersion = globalState.get(SKIP_VERSION_KEY, "");
         if (skipVersion === extensionVersion) {
             return false;
         }
 
         const date = new Date().toDateString();
-        const lastSessionDate = globalState.get(
-            LAST_SESSION_DATE_KEY,
-            new Date(0).toDateString(),
-        );
+        const lastSessionDate = globalState.get(LAST_SESSION_DATE_KEY, new Date(0).toDateString());
 
         if (date === lastSessionDate) {
             return false;
@@ -159,9 +148,7 @@ export class UserSurvey {
             return false;
         }
 
-        const isCandidate =
-            globalState.get(IS_CANDIDATE_KEY, false) ||
-            Math.random() < PROBABILITY;
+        const isCandidate = globalState.get(IS_CANDIDATE_KEY, false) || Math.random() < PROBABILITY;
 
         await globalState.update(IS_CANDIDATE_KEY, isCandidate);
 
@@ -194,6 +181,9 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
         TelemetryActions.SurveySubmit,
         {
             surveyId: surveyId,
+            modernFeaturesEnabled: vscode.workspace
+                .getConfiguration()
+                .get(constants.configEnableRichExperiences),
             ...stringAnswers,
         },
         numericalAnswers,
@@ -209,8 +199,7 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
     >();
     public readonly onSubmit: vscode.Event<Answers> = this._onSubmit.event;
 
-    private _onCancel: vscode.EventEmitter<void> =
-        new vscode.EventEmitter<void>();
+    private _onCancel: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onCancel: vscode.Event<void> = this._onCancel.event;
 
     constructor(
@@ -222,16 +211,8 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
             title: locConstants.UserSurvey.mssqlFeedback,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {
-                dark: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "feedback_dark.svg",
-                ),
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "feedback_light.svg",
-                ),
+                dark: vscode.Uri.joinPath(context.extensionUri, "media", "feedback_dark.svg"),
+                light: vscode.Uri.joinPath(context.extensionUri, "media", "feedback_light.svg"),
             },
         });
 
@@ -250,16 +231,12 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
                     locConstants.Common.cancel,
                 );
 
-                sendActionEvent(
-                    TelemetryViews.UserSurvey,
-                    TelemetryActions.SubmitGithubIssue,
-                    {
-                        response:
-                            response === locConstants.UserSurvey.submitIssue
-                                ? "submitted"
-                                : "not submitted",
-                    },
-                );
+                sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SubmitGithubIssue, {
+                    response:
+                        response === locConstants.UserSurvey.submitIssue
+                            ? "submitted"
+                            : "not submitted",
+                });
 
                 if (response === locConstants.UserSurvey.submitIssue) {
                     const encodedIssueBody = encodeURIComponent(
@@ -285,9 +262,7 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("openPrivacyStatement", async (state) => {
-            vscode.env.openExternal(
-                vscode.Uri.parse(constants.microsoftPrivacyStatementUrl),
-            );
+            vscode.env.openExternal(vscode.Uri.parse(constants.microsoftPrivacyStatementUrl));
             return state;
         });
         this.panel.onDidDispose(() => {
@@ -296,10 +271,7 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
     }
 }
 
-export function getGithubIssueText(
-    comments: string,
-    extensionVersion: string,
-): string {
+export function getGithubIssueText(comments: string, extensionVersion: string): string {
     return `**Describe issue:**
 ${comments}
 
@@ -328,22 +300,16 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
             {
                 id: "nps",
                 label: featureName
-                    ? locConstants.UserSurvey.howLikelyAreYouToRecommendFeature(
-                          featureName,
-                      )
-                    : locConstants.UserSurvey
-                          .howlikelyAreYouToRecommendMSSQLExtension,
+                    ? locConstants.UserSurvey.howLikelyAreYouToRecommendFeature(featureName)
+                    : locConstants.UserSurvey.howlikelyAreYouToRecommendMSSQLExtension,
                 type: "nps",
                 required: true,
             },
             {
                 id: "nsat",
                 label: featureName
-                    ? locConstants.UserSurvey.overallHowStatisfiedAreYouWithFeature(
-                          featureName,
-                      )
-                    : locConstants.UserSurvey
-                          .overallHowSatisfiedAreYouWithMSSQLExtension,
+                    ? locConstants.UserSurvey.overallHowStatisfiedAreYouWithFeature(featureName)
+                    : locConstants.UserSurvey.overallHowSatisfiedAreYouWithMSSQLExtension,
                 type: "nsat",
                 required: true,
             },

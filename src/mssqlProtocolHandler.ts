@@ -7,10 +7,7 @@ import * as vscode from "vscode";
 import * as Utils from "./models/utils";
 import { IConnectionInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "./languageservice/serviceclient";
-import {
-    CapabilitiesResult,
-    GetCapabilitiesRequest,
-} from "./models/contracts/connection";
+import { CapabilitiesResult, GetCapabilitiesRequest } from "./models/contracts/connection";
 
 enum Command {
     connect = "/connect",
@@ -37,15 +34,11 @@ export class MssqlProtocolHandler {
      * @returns The connection information or undefined if not applicable.
      */
     public handleUri(uri: vscode.Uri): Promise<IConnectionInfo | undefined> {
-        Utils.logDebug(
-            `[MssqlProtocolHandler][handleUri] URI: ${uri.toString()}`,
-        );
+        Utils.logDebug(`[MssqlProtocolHandler][handleUri] URI: ${uri.toString()}`);
 
         switch (uri.path) {
             case Command.connect:
-                Utils.logDebug(
-                    `[MssqlProtocolHandler][handleUri] connect: ${uri.path}`,
-                );
+                Utils.logDebug(`[MssqlProtocolHandler][handleUri] connect: ${uri.path}`);
 
                 return this.connect(uri);
 
@@ -77,17 +70,16 @@ export class MssqlProtocolHandler {
      * @param query - The query string containing connection information.
      * @returns The connection information object or undefined if the query is empty.
      */
-    private async readProfileFromArgs(
-        query: string,
-    ): Promise<IConnectionInfo | undefined> {
+    private async readProfileFromArgs(query: string): Promise<IConnectionInfo | undefined> {
         if (!query) {
             return undefined;
         }
 
-        const capabilitiesResult: CapabilitiesResult =
-            await this.client.sendRequest(GetCapabilitiesRequest.type, {});
-        const connectionOptions =
-            capabilitiesResult.capabilities.connectionProvider.options;
+        const capabilitiesResult: CapabilitiesResult = await this.client.sendRequest(
+            GetCapabilitiesRequest.type,
+            {},
+        );
+        const connectionOptions = capabilitiesResult.capabilities.connectionProvider.options;
 
         const connectionInfo = {};
         const args = new URLSearchParams(query);
@@ -103,14 +95,13 @@ export class MssqlProtocolHandler {
             return connectionInfo as IConnectionInfo;
         }
 
-        const connectionOptionProperties: ConnectionOptionProperty[] =
-            connectionOptions.map(
-                (option) =>
-                    ({
-                        name: option.name as keyof IConnectionInfo,
-                        type: option.valueType,
-                    }) as ConnectionOptionProperty,
-            );
+        const connectionOptionProperties: ConnectionOptionProperty[] = connectionOptions.map(
+            (option) =>
+                ({
+                    name: option.name as keyof IConnectionInfo,
+                    type: option.valueType,
+                }) as ConnectionOptionProperty,
+        );
 
         for (const property of connectionOptionProperties) {
             const propName = property.name as string;
@@ -134,8 +125,7 @@ export class MssqlProtocolHandler {
                     break;
 
                 case "boolean":
-                    connectionInfo[propName] =
-                        propValue === "true" || propValue === "1";
+                    connectionInfo[propName] = propValue === "true" || propValue === "1";
                     break;
 
                 default:

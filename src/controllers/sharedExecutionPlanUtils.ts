@@ -15,10 +15,7 @@ import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import * as vscode from "vscode";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { sqlPlanLanguageId } from "../constants/constants";
 import { executionPlanFileFilter } from "../constants/locConstants";
@@ -33,16 +30,13 @@ export async function saveExecutionPlan(
     const saveUri = await vscode.window.showSaveDialog({
         defaultUri: await getUniqueFilePath(folder, `plan`, sqlPlanLanguageId),
         filters: {
-            [executionPlanFileFilter]: [`.${sqlPlanLanguageId}`],
+            [executionPlanFileFilter]: [`${sqlPlanLanguageId}`],
         },
     });
 
     if (saveUri) {
         // Write the content to the new file
-        void vscode.workspace.fs.writeFile(
-            saveUri,
-            Buffer.from(payload.sqlPlanContent),
-        );
+        void vscode.workspace.fs.writeFile(saveUri, Buffer.from(payload.sqlPlanContent));
     }
 
     return state;
@@ -80,16 +74,20 @@ export async function updateTotalCost(
         ...state,
         executionPlanState: {
             ...state.executionPlanState,
-            totalCost: (state.executionPlanState.totalCost +=
-                payload.addedCost),
+            totalCost: (state.executionPlanState.totalCost += payload.addedCost),
         },
     };
 }
 
+/**
+ * Creates the execution plan graph state from XML, and loads them into `state`
+ * @param source the UI making the call, for telemetry purposes.
+ */
 export async function createExecutionPlanGraphs(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
     executionPlanService: ExecutionPlanService,
     xmlPlans: string[],
+    source: "SqlplanFile" | "QueryResults",
 ) {
     let newState = {
         ...state.executionPlanState,
@@ -105,23 +103,25 @@ export async function createExecutionPlanGraphs(
                 (await executionPlanService.getExecutionPlan(planFile)).graphs,
             );
             newState.loadState = ApiStatus.Loaded;
-
-            sendActionEvent(
-                TelemetryViews.ExecutionPlan,
-                TelemetryActions.OpenExecutionPlan,
-                {},
-                {
-                    numberOfPlans:
-                        state.executionPlanState.executionPlanGraphs.length,
-                    loadTimeInMs: performance.now() - startTime,
-                },
-            );
         } catch (e) {
             // malformed xml
             newState.loadState = ApiStatus.Error;
             newState.errorMessage = getErrorMessage(e);
         }
     }
+
+    sendActionEvent(
+        TelemetryViews.ExecutionPlan,
+        TelemetryActions.OpenExecutionPlan,
+        {
+            source: source,
+        },
+        {
+            numberOfPlans: state.executionPlanState.executionPlanGraphs.length,
+            loadTimeInMs: performance.now() - startTime,
+        },
+    );
+
     state.executionPlanState = newState;
     state.executionPlanState.totalCost = calculateTotalCost(state);
 
@@ -155,11 +155,7 @@ export function formatXml(xmlContents: string): string {
                 currentLevel--;
             }
             formattedXml += "\t".repeat(currentLevel) + element + "\n";
-            if (
-                element.startsWith("<") &&
-                !element.startsWith("</") &&
-                !element.endsWith("/>")
-            ) {
+            if (element.startsWith("<") && !element.startsWith("</") && !element.endsWith("/>")) {
                 // Opening tag: increment the level
                 currentLevel++;
             }

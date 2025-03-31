@@ -307,10 +307,7 @@ export namespace ScriptingRequest {
     /**
      * Returns children of a given node as a NodeInfo array.
      */
-    export const type = new RequestType<
-        IScriptingParams,
-        IScriptingResult,
-        void,
-        void
-    >("scripting/script");
+    export const type = new RequestType<IScriptingParams, IScriptingResult, void, void>(
+        "scripting/script",
+    );
 }

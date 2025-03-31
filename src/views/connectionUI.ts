@@ -23,12 +23,7 @@ import {
 import * as Utils from "../models/utils";
 import { Timer } from "../models/utils";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
-import {
-    INameValueChoice,
-    IPrompter,
-    IQuestion,
-    QuestionTypes,
-} from "../prompts/question";
+import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { CancelError } from "../utils/utils";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 
@@ -96,13 +91,12 @@ export class ConnectionUI {
      * @returns The connectionInfo choosen or created from the user, or undefined if the user cancels the prompt.
      */
     public async promptForConnection(
+        connectionProfileList: IConnectionCredentialsQuickPickItem[],
         ignoreFocusOut: boolean = false,
     ): Promise<IConnectionInfo | undefined> {
         // Let this design use Promise and resolve/reject pattern instead of async/await
         // because resolve/reject is done in in callback events.
         return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
-            let connectionProfileList =
-                this._connectionStore.getPickListItems();
             // We have recent connections - show them in a prompt for connection profiles
             const connectionProfileQuickPick =
                 this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
@@ -175,10 +169,7 @@ export class ConnectionUI {
             matchOptions: options,
             choices: choices,
         };
-        return this._prompter.promptSingle(
-            question,
-            question.matchOptions.ignoreFocusOut,
-        );
+        return this._prompter.promptSingle(question, question.matchOptions.ignoreFocusOut);
     }
 
     /**
@@ -190,14 +181,7 @@ export class ConnectionUI {
         } else if (this.vscodeWrapper.isEditingSqlFile) {
             resolve(true);
         } else {
-            setTimeout(
-                this.waitForLanguageModeToBeSqlHelper.bind(
-                    this,
-                    resolve,
-                    timer,
-                ),
-                50,
-            );
+            setTimeout(this.waitForLanguageModeToBeSqlHelper.bind(this, resolve, timer), 50);
         }
     }
 
@@ -275,15 +259,11 @@ export class ConnectionUI {
                 .then((value) => {
                     if (value) {
                         this._vscodeWrapper
-                            .executeCommand(
-                                "workbench.action.editor.changeLanguageMode",
-                            )
+                            .executeCommand("workbench.action.editor.changeLanguageMode")
                             .then(() => {
-                                self.waitForLanguageModeToBeSql().then(
-                                    (result) => {
-                                        resolve(result);
-                                    },
-                                );
+                                self.waitForLanguageModeToBeSql().then((result) => {
+                                    resolve(result);
+                                });
                             });
                     } else {
                         resolve(false);
@@ -302,27 +282,22 @@ export class ConnectionUI {
     ): Promise<IConnectionInfo> {
         const self = this;
         return new Promise<IConnectionInfo>((resolve, reject) => {
-            const pickListItems: vscode.QuickPickItem[] = databaseNames.map(
-                (name) => {
-                    let newCredentials: IConnectionInfo = <any>{};
-                    Object.assign<IConnectionInfo, IConnectionInfo>(
-                        newCredentials,
-                        currentCredentials,
-                    );
-                    if (newCredentials["profileName"]) {
-                        delete newCredentials["profileName"];
-                    }
-                    newCredentials.database = name;
+            const pickListItems: vscode.QuickPickItem[] = databaseNames.map((name) => {
+                let newCredentials: IConnectionInfo = <any>{};
+                Object.assign<IConnectionInfo, IConnectionInfo>(newCredentials, currentCredentials);
+                if (newCredentials["profileName"]) {
+                    delete newCredentials["profileName"];
+                }
+                newCredentials.database = name;
 
-                    return <IConnectionCredentialsQuickPickItem>{
-                        label: name,
-                        description: "",
-                        detail: "",
-                        connectionCreds: newCredentials,
-                        quickPickItemType: CredentialsQuickPickItemType.Mru,
-                    };
-                },
-            );
+                return <IConnectionCredentialsQuickPickItem>{
+                    label: name,
+                    description: "",
+                    detail: "",
+                    connectionCreds: newCredentials,
+                    quickPickItemType: CredentialsQuickPickItemType.Mru,
+                };
+            });
 
             // Add an option to disconnect from the current server
             const disconnectItem: vscode.QuickPickItem = {
@@ -337,10 +312,7 @@ export class ConnectionUI {
 
             // show database picklist, and modify the current connection to switch the active database
             self.vscodeWrapper
-                .showQuickPick<vscode.QuickPickItem>(
-                    pickListItems,
-                    pickListOptions,
-                )
+                .showQuickPick<vscode.QuickPickItem>(pickListItems, pickListOptions)
                 .then((selection) => {
                     if (selection === disconnectItem) {
                         self.handleDisconnectChoice().then(
@@ -348,10 +320,7 @@ export class ConnectionUI {
                             (err) => reject(err),
                         );
                     } else if (typeof selection !== "undefined") {
-                        resolve(
-                            (selection as IConnectionCredentialsQuickPickItem)
-                                .connectionCreds,
-                        );
+                        resolve((selection as IConnectionCredentialsQuickPickItem).connectionCreds);
                     } else {
                         resolve(undefined);
                     }
@@ -387,39 +356,33 @@ export class ConnectionUI {
         connection: IConnectionInfo,
     ): Promise<IConnectionInfo> {
         return new Promise<IConnectionInfo>((resolve, reject) => {
-            this.promptForRetryConnectWithDifferentCredentials().then(
-                (result) => {
-                    if (result) {
-                        let connectionWithoutCredentials = Object.assign(
-                            {},
-                            connection,
-                            {
-                                user: "",
-                                password: "",
-                                emptyPasswordInput: false,
-                            },
-                        );
-                        ConnectionCredentials.ensureRequiredPropertiesSet(
-                            connectionWithoutCredentials, // connection profile
-                            true, // isProfile
-                            false, // isPasswordRequired
-                            true, // wasPasswordEmptyInConfigFile
-                            this._prompter,
-                            this._connectionStore,
-                            connection,
-                        ).then(
-                            (connectionResult) => {
-                                resolve(connectionResult);
-                            },
-                            (error) => {
-                                reject(error);
-                            },
-                        );
-                    } else {
-                        resolve(undefined);
-                    }
-                },
-            );
+            this.promptForRetryConnectWithDifferentCredentials().then((result) => {
+                if (result) {
+                    let connectionWithoutCredentials = Object.assign({}, connection, {
+                        user: "",
+                        password: "",
+                        emptyPasswordInput: false,
+                    });
+                    ConnectionCredentials.ensureRequiredPropertiesSet(
+                        connectionWithoutCredentials, // connection profile
+                        true, // isProfile
+                        false, // isPasswordRequired
+                        true, // wasPasswordEmptyInConfigFile
+                        this._prompter,
+                        this._connectionStore,
+                        connection,
+                    ).then(
+                        (connectionResult) => {
+                            resolve(connectionResult);
+                        },
+                        (error) => {
+                            reject(error);
+                        },
+                    );
+                } else {
+                    resolve(undefined);
+                }
+            });
         });
     }
 
@@ -429,10 +392,7 @@ export class ConnectionUI {
         return new Promise<IConnectionInfo>((resolve, reject) => {
             if (selection !== undefined) {
                 let connectFunc: Promise<IConnectionInfo>;
-                if (
-                    selection.quickPickItemType ===
-                    CredentialsQuickPickItemType.NewConnection
-                ) {
+                if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
                     // call the workflow to create a new connection
                     connectFunc = this.createAndSaveProfile();
                 } else {
@@ -507,51 +467,43 @@ export class ConnectionUI {
                 onAnswered: (value) => {
                     switch (value) {
                         case ManageProfileTask.Create:
-                            self.connectionManager
-                                .onCreateProfile()
-                                .then((result) => {
-                                    resolve(result);
-                                });
+                            self.connectionManager.onCreateProfile().then((result) => {
+                                resolve(result);
+                            });
                             break;
                         case ManageProfileTask.ClearRecentlyUsed:
-                            self.promptToClearRecentConnectionsList().then(
-                                (result) => {
-                                    if (result) {
-                                        self.connectionManager
-                                            .clearRecentConnectionsList()
-                                            .then((credentialsDeleted) => {
-                                                if (credentialsDeleted) {
-                                                    self.vscodeWrapper.showInformationMessage(
-                                                        LocalizedConstants.msgClearedRecentConnections,
-                                                    );
-                                                } else {
-                                                    self.vscodeWrapper.showWarningMessage(
-                                                        LocalizedConstants.msgClearedRecentConnectionsWithErrors,
-                                                    );
-                                                }
-                                                resolve(true);
-                                            });
-                                    } else {
-                                        resolve(false);
-                                    }
-                                },
-                            );
+                            self.promptToClearRecentConnectionsList().then((result) => {
+                                if (result) {
+                                    self.connectionManager
+                                        .clearRecentConnectionsList()
+                                        .then((credentialsDeleted) => {
+                                            if (credentialsDeleted) {
+                                                self.vscodeWrapper.showInformationMessage(
+                                                    LocalizedConstants.msgClearedRecentConnections,
+                                                );
+                                            } else {
+                                                self.vscodeWrapper.showWarningMessage(
+                                                    LocalizedConstants.msgClearedRecentConnectionsWithErrors,
+                                                );
+                                            }
+                                            resolve(true);
+                                        });
+                                } else {
+                                    resolve(false);
+                                }
+                            });
                             break;
                         case ManageProfileTask.Edit:
                             self.vscodeWrapper
-                                .executeCommand(
-                                    "workbench.action.openGlobalSettings",
-                                )
+                                .executeCommand("workbench.action.openGlobalSettings")
                                 .then(() => {
                                     resolve(true);
                                 });
                             break;
                         case ManageProfileTask.Remove:
-                            self.connectionManager
-                                .onRemoveProfile()
-                                .then((result) => {
-                                    resolve(result);
-                                });
+                            self.connectionManager.onRemoveProfile().then((result) => {
+                                resolve(result);
+                            });
                             break;
                         default:
                             resolve(false);
@@ -583,9 +535,7 @@ export class ConnectionUI {
                         LocalizedConstants.msgProfileCreatedAndConnected,
                     );
                 } else {
-                    this.vscodeWrapper.showInformationMessage(
-                        LocalizedConstants.msgProfileCreated,
-                    );
+                    this.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreated);
                 }
             }
             return savedProfile;
@@ -610,27 +560,17 @@ export class ConnectionUI {
             return await this.saveProfile(profile);
         } else {
             // Check whether the error was for firewall rule or not
-            if (
-                this.connectionManager.failedUriToFirewallIpMap.has(uri)
-            ) {
+            if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
                 let success = await this.addFirewallRule(uri, profile);
                 if (success) {
                     return await this.validateAndSaveProfile(profile);
                 }
                 return undefined;
-            } else if (
-                this.connectionManager.failedUriToSSLMap.has(uri)
-            ) {
+            } else if (this.connectionManager.failedUriToSSLMap.has(uri)) {
                 // SSL error
-                let updatedConn =
-                    await this.connectionManager.handleSSLError(
-                        uri,
-                        profile,
-                    );
+                let updatedConn = await this.connectionManager.handleSSLError(uri, profile);
                 if (updatedConn) {
-                    return await this.validateAndSaveProfile(
-                        updatedConn as IConnectionProfile,
-                    );
+                    return await this.validateAndSaveProfile(updatedConn as IConnectionProfile);
                 }
                 return undefined;
             } else {
@@ -650,19 +590,11 @@ export class ConnectionUI {
         return result;
     }
 
-    public async addFirewallRule(
-        uri: string,
-        profile: IConnectionProfile,
-    ): Promise<boolean> {
+    public async addFirewallRule(uri: string, profile: IConnectionProfile): Promise<boolean> {
         if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
             // Firewall rule error
-            const clientIp =
-                this.connectionManager.failedUriToFirewallIpMap.get(uri);
-            let success = await this.handleFirewallError(
-                uri,
-                profile,
-                clientIp,
-            );
+            const clientIp = this.connectionManager.failedUriToFirewallIpMap.get(uri);
+            let success = await this.handleFirewallError(uri, profile, clientIp);
             if (success) {
                 // Retry creating the profile if firewall rule
                 // was successful
@@ -695,12 +627,11 @@ export class ConnectionUI {
                 LocalizedConstants.azureAddAccount,
             );
             if (selection === LocalizedConstants.azureAddAccount) {
-                profile =
-                    await this.connectionManager.azureController.populateAccountProperties(
-                        profile,
-                        this._accountStore,
-                        providerSettings.resources.azureManagementResource,
-                    );
+                profile = await this.connectionManager.azureController.populateAccountProperties(
+                    profile,
+                    this._accountStore,
+                    providerSettings.resources.azureManagementResource,
+                );
             }
             let account = this._accountStore.getAccount(profile.accountId);
             this.connectionManager.accountService.setAccount(account!);
@@ -712,9 +643,7 @@ export class ConnectionUI {
     /**
      * Save a connection profile using the connection store
      */
-    public async saveProfile(
-        profile: IConnectionProfile,
-    ): Promise<IConnectionProfile> {
+    public async saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
         return await this._connectionStore.saveProfile(profile);
     }
 
@@ -734,10 +663,7 @@ export class ConnectionUI {
         profile: IConnectionProfile,
         isFirewallError: boolean = false,
     ): Promise<IConnectionProfile> {
-        const updatedProfile = await this.promptForRetryCreateProfile(
-            profile,
-            isFirewallError,
-        );
+        const updatedProfile = await this.promptForRetryCreateProfile(profile, isFirewallError);
         if (updatedProfile) {
             return await this.validateAndSaveProfile(updatedProfile);
         } else {
@@ -799,8 +725,9 @@ export class ConnectionUI {
             );
         }
 
-        let azureAccountChoices: INameValueChoice[] =
-            ConnectionProfile.getAccountChoices(this._accountStore);
+        let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(
+            this._accountStore,
+        );
         let tenantChoices: INameValueChoice[] = [];
         let defaultFirewallRuleName = `ClientIPAddress_${formatDate(new Date())}`;
 
@@ -816,10 +743,7 @@ export class ConnectionUI {
                 placeHolder: startIpAddress,
                 default: startIpAddress,
                 validate: (value: string) => {
-                    if (
-                        !Number.parseFloat(value) ||
-                        !value.match(constants.ipAddressRegex)
-                    ) {
+                    if (!Number.parseFloat(value) || !value.match(constants.ipAddressRegex)) {
                         return LocalizedConstants.msgInvalidIpAddress;
                     }
                 },
@@ -833,8 +757,7 @@ export class ConnectionUI {
                     if (
                         !Number.parseFloat(value) ||
                         !value.match(constants.ipAddressRegex) ||
-                        Number.parseFloat(value) >
-                            Number.parseFloat(startIpAddress)
+                        Number.parseFloat(value) > Number.parseFloat(startIpAddress)
                     ) {
                         return LocalizedConstants.msgInvalidIpAddress;
                     }
@@ -891,9 +814,7 @@ export class ConnectionUI {
             let result: ICreateFirewallRuleParams = {
                 account: accountAnswer,
                 startIpAddress: answers[LocalizedConstants.startIpAddressPrompt]
-                    ? (answers[
-                          LocalizedConstants.startIpAddressPrompt
-                      ] as string)
+                    ? (answers[LocalizedConstants.startIpAddressPrompt] as string)
                     : startIpAddress,
                 endIpAddress: answers[LocalizedConstants.endIpAddressPrompt]
                     ? (answers[LocalizedConstants.endIpAddressPrompt] as string)
@@ -912,26 +833,16 @@ export class ConnectionUI {
         }
     }
 
-    private async createFirewallRule(
-        serverName: string,
-        ipAddress: string,
-    ): Promise<boolean> {
+    private async createFirewallRule(serverName: string, ipAddress: string): Promise<boolean> {
         let result = await this._vscodeWrapper.showInformationMessage(
-            LocalizedConstants.msgPromptRetryFirewallRuleSignedIn(
-                ipAddress,
-                serverName,
-            ),
+            LocalizedConstants.msgPromptRetryFirewallRuleSignedIn(ipAddress, serverName),
             LocalizedConstants.createFirewallRuleLabel,
         );
         if (result === LocalizedConstants.createFirewallRuleLabel) {
             const firewallService = this.connectionManager.firewallService;
-            let params = await this.promptForFirewallRuleCreation(
-                ipAddress,
-                serverName,
-            );
+            let params = await this.promptForFirewallRuleCreation(ipAddress, serverName);
             if (params) {
-                let firewallResult =
-                    await firewallService.createFirewallRule(params);
+                let firewallResult = await firewallService.createFirewallRule(params);
                 if (firewallResult.result) {
                     this._vscodeWrapper.showInformationMessage(
                         LocalizedConstants.msgPromptFirewallRuleCreated,
@@ -981,8 +892,7 @@ export class ConnectionUI {
         return this._connectionStore.addSavedPassword(selection).then((sel) => {
             return ConnectionCredentials.ensureRequiredPropertiesSet(
                 sel.connectionCreds,
-                selection.quickPickItemType ===
-                    CredentialsQuickPickItemType.Profile,
+                selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
                 false,
                 passwordEmptyInConfigFile,
                 this._prompter,
@@ -992,9 +902,7 @@ export class ConnectionUI {
     }
 
     public async addNewAccount(): Promise<IAccount> {
-        return await this.connectionManager.azureController.addAccount(
-            this._accountStore,
-        );
+        return await this.connectionManager.azureController.addAccount(this._accountStore);
     }
 
     // Prompts the user to pick a profile for removal, then removes from the global saved state
@@ -1002,17 +910,13 @@ export class ConnectionUI {
         let self = this;
 
         // Flow: Select profile to remove, confirm removal, remove, notify
-        let profiles = self._connectionStore.getProfilePickListItems(false);
+        let profiles = await self._connectionStore.getProfilePickListItems(false);
         let profile = await self.selectProfileForRemoval(profiles);
-        let profileRemoved = profile
-            ? await self._connectionStore.removeProfile(profile)
-            : false;
+        let profileRemoved = profile ? await self._connectionStore.removeProfile(profile) : false;
 
         if (profileRemoved) {
             // TODO again consider moving information prompts to the prompt package
-            this._vscodeWrapper.showInformationMessage(
-                LocalizedConstants.msgProfileRemoved,
-            );
+            this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
         }
         return profileRemoved;
     }
@@ -1024,9 +928,7 @@ export class ConnectionUI {
         if (!profiles || profiles.length === 0) {
             // Inform the user we have no profiles available for deletion
             // TODO: consider moving to prompter if we separate all UI logic from workflows in the future
-            this._vscodeWrapper.showErrorMessage(
-                LocalizedConstants.msgNoProfilesSaved,
-            );
+            this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgNoProfilesSaved);
             return Promise.resolve(undefined);
         }
 
@@ -1052,9 +954,7 @@ export class ConnectionUI {
         // Prompt and return the value if the user confirmed
         return self._prompter.prompt(questions).then((answers) => {
             if (answers && answers[confirm]) {
-                let profilePickItem = <IConnectionCredentialsQuickPickItem>(
-                    answers[chooseProfile]
-                );
+                let profilePickItem = <IConnectionCredentialsQuickPickItem>answers[chooseProfile];
                 return <IConnectionProfile>profilePickItem.connectionCreds;
             } else {
                 return undefined;

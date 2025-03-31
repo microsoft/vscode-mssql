@@ -4,11 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
-import {
-    FormItemSpec,
-    FormReducers,
-    FormState,
-} from "../reactviews/common/forms/form";
+import { FormItemSpec, FormReducers, FormState } from "../reactviews/common/forms/form";
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 
 export abstract class FormWebviewController<
@@ -25,14 +21,7 @@ export abstract class FormWebviewController<
         initialData: TState,
         options: MssqlWebviewPanelOptions,
     ) {
-        super(
-            context,
-            vscodeWrapper,
-            sourceFile,
-            _viewId,
-            initialData,
-            options,
-        );
+        super(context, vscodeWrapper, sourceFile, _viewId, initialData, options);
 
         this.registerFormRpcHandlers();
     }
@@ -40,10 +29,7 @@ export abstract class FormWebviewController<
     private registerFormRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
             if (payload.event.isAction) {
-                const component = this.getFormComponent(
-                    this.state,
-                    payload.event.propertyName,
-                );
+                const component = this.getFormComponent(this.state, payload.event.propertyName);
                 if (component && component.actionButtons) {
                     const actionButton = component.actionButtons.find(
                         (b) => b.id === payload.event.value,
@@ -57,10 +43,7 @@ export abstract class FormWebviewController<
                     payload.event.propertyName
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ] as any) = payload.event.value;
-                await this.validateForm(
-                    this.state.formState,
-                    payload.event.propertyName,
-                );
+                await this.validateForm(this.state.formState, payload.event.propertyName);
                 await this.afterSetFormProperty(payload.event.propertyName);
             }
             await this.updateItemVisibility();
@@ -75,10 +58,7 @@ export abstract class FormWebviewController<
      * @param propertyName
      * @returns array of fields with errors
      */
-    protected async validateForm(
-        formTarget: TForm,
-        propertyName?: keyof TForm,
-    ): Promise<string[]> {
+    protected async validateForm(formTarget: TForm, propertyName?: keyof TForm): Promise<string[]> {
         const erroredInputs = [];
         if (propertyName) {
             const component = this.state.formComponents[propertyName];
@@ -105,10 +85,7 @@ export abstract class FormWebviewController<
                         if (c.validate) {
                             c.validation = c.validate(
                                 this.state,
-                                formTarget[c.propertyName] as
-                                    | string
-                                    | boolean
-                                    | number,
+                                formTarget[c.propertyName] as string | boolean | number,
                             );
                             if (!c.validation.isValid) {
                                 erroredInputs.push(c.propertyName);

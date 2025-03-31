@@ -1,0 +1,5 @@
+{
+    "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": false,
+    "mssql.enableRichExperiences": false,
+    "mssql.autoDisableNonTSqlLanguageService": false
+}

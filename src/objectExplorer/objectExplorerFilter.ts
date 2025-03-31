@@ -10,10 +10,7 @@ import {
     ObjectExplorerFilterState,
     ObjectExplorerReducers,
 } from "../sharedInterfaces/objectExplorerFilter";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { TreeNodeInfo } from "./treeNodeInfo";
@@ -25,13 +22,12 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPane
     ObjectExplorerFilterState,
     ObjectExplorerReducers
 > {
-    private _onSubmit: vscode.EventEmitter<vscodeMssql.NodeFilter[]> =
-        new vscode.EventEmitter<vscodeMssql.NodeFilter[]>();
-    public readonly onSubmit: vscode.Event<vscodeMssql.NodeFilter[]> =
-        this._onSubmit.event;
+    private _onSubmit: vscode.EventEmitter<vscodeMssql.NodeFilter[]> = new vscode.EventEmitter<
+        vscodeMssql.NodeFilter[]
+    >();
+    public readonly onSubmit: vscode.Event<vscodeMssql.NodeFilter[]> = this._onSubmit.event;
 
-    private _onCancel: vscode.EventEmitter<void> =
-        new vscode.EventEmitter<void>();
+    private _onCancel: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onCancel: vscode.Event<void> = this._onCancel.event;
 
     constructor(
@@ -53,16 +49,8 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPane
                 title: vscode.l10n.t("Object Explorer Filter (Preview)"),
                 viewColumn: vscode.ViewColumn.Beside,
                 iconPath: {
-                    dark: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "filter_dark.svg",
-                    ),
-                    light: vscode.Uri.joinPath(
-                        context.extensionUri,
-                        "media",
-                        "filter_light.svg",
-                    ),
+                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "filter_dark.svg"),
+                    light: vscode.Uri.joinPath(context.extensionUri, "media", "filter_light.svg"),
                 },
             },
         );
@@ -100,28 +88,20 @@ export class ObjectExplorerFilter {
     ): Promise<vscodeMssql.NodeFilter[] | undefined> {
         return await new Promise((resolve, _reject) => {
             const correlationId = randomUUID();
-            sendActionEvent(
-                TelemetryViews.ObjectExplorerFilter,
-                TelemetryActions.Open,
-                {
-                    nodeType: treeNode.nodeType,
-                    correlationId,
-                },
-            );
-            if (
-                !this._filterWebviewController ||
-                this._filterWebviewController.isDisposed
-            ) {
-                this._filterWebviewController =
-                    new ObjectExplorerFilterReactWebviewController(
-                        context,
-                        vscodeWrapper,
-                        {
-                            filterProperties: treeNode.filterableProperties,
-                            existingFilters: treeNode.filters,
-                            nodePath: treeNode.nodePath,
-                        },
-                    );
+            sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Open, {
+                nodeType: treeNode.nodeType,
+                correlationId,
+            });
+            if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {
+                this._filterWebviewController = new ObjectExplorerFilterReactWebviewController(
+                    context,
+                    vscodeWrapper,
+                    {
+                        filterProperties: treeNode.filterableProperties,
+                        existingFilters: treeNode.filters,
+                        nodePath: treeNode.nodePath,
+                    },
+                );
             } else {
                 this._filterWebviewController.loadData({
                     filterProperties: treeNode.filterableProperties,
@@ -148,25 +128,17 @@ export class ObjectExplorerFilter {
                 resolve(e);
             });
             this._filterWebviewController.onCancel(() => {
-                sendActionEvent(
-                    TelemetryViews.ObjectExplorerFilter,
-                    TelemetryActions.Cancel,
-                    {
-                        nodeType: treeNode.nodeType,
-                        correlationId,
-                    },
-                );
+                sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
+                    nodeType: treeNode.nodeType,
+                    correlationId,
+                });
                 resolve(undefined);
             });
             this._filterWebviewController.onDisposed(() => {
-                sendActionEvent(
-                    TelemetryViews.ObjectExplorerFilter,
-                    TelemetryActions.Cancel,
-                    {
-                        nodeType: treeNode.nodeType,
-                        correlationId,
-                    },
-                );
+                sendActionEvent(TelemetryViews.ObjectExplorerFilter, TelemetryActions.Cancel, {
+                    nodeType: treeNode.nodeType,
+                    correlationId,
+                });
                 resolve(undefined);
             });
         });

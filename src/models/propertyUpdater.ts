@@ -21,12 +21,7 @@ export class PropertyUpdater<T> {
         propertyChecker: (obj: T) => boolean,
         propertySetter: (obj: T, input: string) => void,
     ): PropertyUpdater<T> {
-        return new PropertyUpdater<T>(
-            undefined,
-            quickPickOptions,
-            propertyChecker,
-            propertySetter,
-        );
+        return new PropertyUpdater<T>(undefined, quickPickOptions, propertyChecker, propertySetter);
     }
 
     public static createInputBoxUpdater<T>(
@@ -34,12 +29,7 @@ export class PropertyUpdater<T> {
         propertyChecker: (obj: T) => boolean,
         propertySetter: (obj: T, input: string) => void,
     ): PropertyUpdater<T> {
-        return new PropertyUpdater<T>(
-            inputBoxOptions,
-            undefined,
-            propertyChecker,
-            propertySetter,
-        );
+        return new PropertyUpdater<T>(inputBoxOptions, undefined, propertyChecker, propertySetter);
     }
 
     public isQuickPickUpdater(): boolean {

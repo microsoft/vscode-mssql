@@ -1,5 +1,21 @@
 # Change Log
 
+## Version 1.30.0
+* Release date: March 31, 2025
+* Release status: GA
+### What’s new in 1.30.0
+* Enabled new UI enhancements by default for improved development experience
+* Improved reliability in Connection Dialog and Connections view
+* Enhanced usability in Query Results pane
+* Fixed Azure subscription loading issues
+* Accessibility improvements across the extension
+
+## Version 1.29.1
+* Release date: March 12, 2025
+* Release status: GA
+### What's new in 1.29.1
+* Resolved an issue in the Azure Browse feature where subscriptions failed to load due to an outdated dependency
+
 ## Version 1.29.0
 * Release date: February 26, 2025
 * Release status: GA

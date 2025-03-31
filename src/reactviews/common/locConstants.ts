@@ -31,6 +31,7 @@ export class LocConstants {
                 }),
             close: l10n.t("Close"),
             apply: l10n.t("Apply"),
+            clearSelection: l10n.t("Clear Selection"),
         };
     }
 
@@ -58,14 +59,11 @@ export class LocConstants {
                 l10n.t({
                     message: "Path: {0}",
                     args: [path],
-                    comment: [
-                        "{0} is the path of the node in the object explorer",
-                    ],
+                    comment: ["{0} is the path of the node in the object explorer"],
                 }),
             firstValueEmptyError: (operator: string, filterName: string) =>
                 l10n.t({
-                    message:
-                        "The first value must be set for the {0} operator in the {1} filter",
+                    message: "The first value must be set for the {0} operator in the {1} filter",
                     args: [operator, filterName],
                     comment: [
                         "{0} is the operator for the filter",
@@ -74,18 +72,14 @@ export class LocConstants {
                 }),
             secondValueEmptyError: (operator: string, filterName: string) =>
                 l10n.t({
-                    message:
-                        "The second value must be set for the {0} operator in the {1} filter",
+                    message: "The second value must be set for the {0} operator in the {1} filter",
                     args: [operator, filterName],
                     comment: [
                         "{0} is the operator for the filter",
                         "{1} is the name of the filter",
                     ],
                 }),
-            firstValueLessThanSecondError: (
-                operator: string,
-                filterName: string,
-            ) =>
+            firstValueLessThanSecondError: (operator: string, filterName: string) =>
                 l10n.t({
                     message:
                         "The first value must be less than the second value for the {0} operator in the {1} filter",
@@ -105,9 +99,7 @@ export class LocConstants {
     public get tableDesigner() {
         return {
             publishingChanges: l10n.t("Publishing Changes"),
-            changesPublishedSuccessfully: l10n.t(
-                "Changes published successfully",
-            ),
+            changesPublishedSuccessfully: l10n.t("Changes published successfully"),
             closeDesigner: l10n.t("Close Designer"),
             continueEditing: l10n.t("Continue Editing"),
             loadingTableDesigner: l10n.t("Loading Table Designer"),
@@ -151,9 +143,7 @@ export class LocConstants {
             schema: l10n.t("Schema"),
             backToPreview: l10n.t("Back to preview"),
             copy: l10n.t("Copy"),
-            youMustReviewAndAccept: l10n.t(
-                "You must review and accept the terms to proceed",
-            ),
+            youMustReviewAndAccept: l10n.t("You must review and accept the terms to proceed"),
         };
     }
 
@@ -163,7 +153,7 @@ export class LocConstants {
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
             advancedSettings: l10n.t("Advanced"),
             testConnection: l10n.t("Test Connection"),
-            connectToSQLServer: l10n.t("Connect to SQL Server"),
+            connectToDatabase: l10n.t("Connect to Database"),
             parameters: l10n.t("Parameters"),
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
@@ -188,13 +178,9 @@ export class LocConstants {
                 "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
             ),
             readMore: l10n.t("Read more"),
-            enableTrustServerCertificateButton: l10n.t(
-                "Enable 'Trust Server Certificate'",
-            ),
+            enableTrustServerCertificateButton: l10n.t("Enable 'Trust Server Certificate'"),
             createNewFirewallRule: l10n.t("Create a new firewall rule"),
-            firewallRuleNeededMessage: l10n.t(
-                "A firewall rule is required to access this server.",
-            ),
+            firewallRuleNeededMessage: l10n.t("A firewall rule is required to access this server."),
             addFirewallRule: l10n.t("Add Firewall Rule"),
             azureFilterPlaceholder: (dropdownContentType: string) =>
                 l10n.t({
@@ -220,18 +206,11 @@ export class LocConstants {
 
     public get executionPlan() {
         return {
-            queryCostRelativeToScript: (
-                index: number,
-                costPercentage: string,
-            ) =>
+            queryCostRelativeToScript: (index: number, costPercentage: string) =>
                 l10n.t({
-                    message:
-                        "Query {0}:  Query cost (relative to the script):  {1}%",
+                    message: "Query {0}:  Query cost (relative to the script):  {1}%",
                     args: [index, costPercentage],
-                    comment: [
-                        "{0} is the query number",
-                        "{1} is the query cost",
-                    ],
+                    comment: ["{0} is the query number", "{1} is the query cost"],
                 }),
             equals: l10n.t("Equals"),
             contains: l10n.t("Contains"),
@@ -239,9 +218,7 @@ export class LocConstants {
             actualElapsedCpuTime: l10n.t("Actual Elapsed CPU Time"),
             cost: l10n.t("Cost"),
             subtreeCost: l10n.t("Subtree Cost"),
-            actualNumberOfRowsForAllExecutions: l10n.t(
-                "Actual Number of Rows For All Executions",
-            ),
+            actualNumberOfRowsForAllExecutions: l10n.t("Actual Number of Rows For All Executions"),
             numberOfRowsRead: l10n.t("Number of Rows Read"),
             off: l10n.t("Off"),
             metric: l10n.t("Metric"),
@@ -254,9 +231,7 @@ export class LocConstants {
             zoomToFit: l10n.t("Zoom to Fit"),
             customZoom: l10n.t("Custom Zoom"),
             findNode: l10n.t("Find Node"),
-            highlightExpensiveOperation: l10n.t(
-                "Highlight Expensive Operation",
-            ),
+            highlightExpensiveOperation: l10n.t("Highlight Expensive Operation"),
             toggleTooltips: l10n.t("Toggle Tooltips"),
             properties: l10n.t("Properties"),
             name: l10n.t("Name"),
@@ -276,9 +251,7 @@ export class LocConstants {
 
     public get userFeedback() {
         return {
-            microsoftWouldLikeYourFeedback: l10n.t(
-                "Microsoft would like your feedback",
-            ),
+            microsoftWouldLikeYourFeedback: l10n.t("Microsoft would like your feedback"),
             overallHowSatisfiedAreYouWithMSSQLExtension: l10n.t(
                 "Overall, how satisfied are you with the MSSQL extension?",
             ),
@@ -330,6 +303,270 @@ export class LocConstants {
             close: l10n.t("Close"),
             maximize: l10n.t("Maximize"),
             restore: l10n.t("Restore"),
+        };
+    }
+
+    public get schemaDesigner() {
+        return {
+            schema: l10n.t("Schema"),
+            columns: l10n.t("Columns"),
+            newColumn: l10n.t("Add new column"),
+            name: l10n.t("Name"),
+            table: l10n.t("Table"),
+            foreignKeys: l10n.t("Foreign Keys"),
+            save: l10n.t("Save"),
+            add: l10n.t("Add"),
+            cancel: l10n.t("Cancel"),
+            dataType: l10n.t("Type"),
+            primaryKey: l10n.t("Primary Key"),
+            delete: l10n.t("Delete"),
+            newForeignKey: l10n.t("Add new foreign key"),
+            foreignKeyIndex: (index: number) =>
+                l10n.t({
+                    message: "Foreign Key {0}",
+                    args: [index],
+                    comment: ["{0} is the index of the foreign key"],
+                }),
+            sourceColumn: l10n.t("Source Column"),
+            targetTable: l10n.t("Target Table"),
+            foreignColumn: l10n.t("Foreign Column"),
+            zoomIn: l10n.t("Zoom In"),
+            zoomOut: l10n.t("Zoom Out"),
+            zoomToFit: l10n.t("Zoom to Fit"),
+            export: l10n.t("Export"),
+            addTable: l10n.t("Add Table"),
+            autoArrange: l10n.t("Auto Arrange"),
+            filter: l10n.t("Filter"),
+            clearFilter: l10n.t("Clear All"),
+            applyFilter: l10n.t("Apply"),
+            refresh: l10n.t("Refresh"),
+            publishChanges: l10n.t("Publish Changes"),
+            viewCode: l10n.t("View Code"),
+            editTable: l10n.t("Edit Table"),
+            openInEditor: l10n.t("Open in Editor"),
+            changedTables: l10n.t("Changed Tables"),
+            createAsScript: l10n.t("Create As Script"),
+            details: l10n.t("Details"),
+            script: l10n.t("Script"),
+            newColumnMapping: l10n.t("New column mapping"),
+            columnName: l10n.t("Column Name"),
+            dismiss: l10n.t("Dismiss"),
+            tableNameRepeatedError: (tableName: string) =>
+                l10n.t({
+                    message: "Table '{0}' already exists",
+                    args: [tableName],
+                    comment: ["{0} is the table name"],
+                }),
+            tableNameEmptyError: l10n.t("Table name cannot be empty"),
+            tableNotFound: (tableName: string) =>
+                l10n.t({
+                    message: "Table '{0}' not found",
+                    args: [tableName],
+                    comment: ["{0} is the table name"],
+                }),
+            referencedTableNotFound: (tableName: string) =>
+                l10n.t({
+                    message: "Referenced table '{0}' not found",
+                    args: [tableName],
+                    comment: ["{0} is the table name"],
+                }),
+            columnNotFound: (columnName: string) =>
+                l10n.t({
+                    message: "Column '{0}' not found",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            referencedColumnNotFound: (columnName: string) =>
+                l10n.t({
+                    message: "Referenced column '{0}' not found",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            incompatibleDataTypes: (
+                dataType: string,
+                sourceColumn: string,
+                targetDataType: string,
+                targetColumn: string,
+            ) =>
+                l10n.t({
+                    message:
+                        "Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'",
+                    args: [dataType, sourceColumn, targetDataType, targetColumn],
+                    comment: [
+                        "{0} is source data type",
+                        "{1} is source column",
+                        "{2} is target data type",
+                        "{3} is target column",
+                    ],
+                }),
+            incompatibleLength: (
+                sourceColumn: string,
+                targetColumn: string,
+                sourceLength: number,
+                targetLength: number,
+            ) =>
+                l10n.t({
+                    message: "Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})",
+                    args: [sourceColumn, sourceLength, targetColumn, targetLength],
+                    comment: [
+                        "{0} is source column",
+                        "{1} is source length",
+                        "{2} is target column",
+                        "{3} is target length",
+                    ],
+                }),
+            incompatiblePrecisionOrScale: (sourceColumn: string, targetColumn: string) =>
+                l10n.t({
+                    message: "Precision/scale mismatch between '{0}' and '{1}'",
+                    args: [sourceColumn, targetColumn],
+                    comment: ["{0} is source column", "{1} is target column"],
+                }),
+            referencedColumnNotPK: (targetColumn: string) =>
+                l10n.t({
+                    message: "Column '{0}' must be a primary key",
+                    args: [targetColumn],
+                    comment: ["{0} is the referenced column"],
+                }),
+            cyclicForeignKeyDetected: (tableName: string, targetTable: string) =>
+                l10n.t({
+                    message: "Circular reference detected: '{0}' → '{1}' creates a cycle",
+                    args: [tableName, targetTable],
+                    comment: ["{0} is source table", "{1} is target table"],
+                }),
+            foreignKeyError: l10n.t("Cannot create foreign key"),
+            duplicateForeignKeyColumns: l10n.t("Cannot create foreign key with duplicate columns"),
+            foreignKeyNameEmptyError: l10n.t("Foreign key name cannot be empty"),
+            foreignKeyNameRepeatedError: (foreignKeyName: string) =>
+                l10n.t({
+                    message: "Foreign key '{0}' already exists",
+                    args: [foreignKeyName],
+                    comment: ["{0} is the foreign key name"],
+                }),
+            tableNodeSubText: (colCount: number) =>
+                l10n.t({
+                    message: "{0} column data",
+                    args: [colCount],
+                    comment: ["{0} is the number of columns"],
+                }),
+            manageRelationships: l10n.t("Manage relationships"),
+            noChangesDetected: l10n.t("No changes detected"),
+            allowNull: l10n.t("Allow Null"),
+            maxLength: l10n.t("Max Length"),
+            isIdentity: l10n.t("Is Identity"),
+            scale: l10n.t("Scale"),
+            precision: l10n.t("Precision"),
+            defaultValue: l10n.t("Default Value"),
+        };
+    }
+
+    public get schemaCompare() {
+        return {
+            intro: l10n.t(
+                "To compare two schemas, first select a source schema and target schema, then press compare.",
+            ),
+            noDifferences: l10n.t("No schema differences were found."),
+            initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
+            server: l10n.t("Server"),
+            database: l10n.t("Database"),
+            defaultUserName: l10n.t("default"),
+            folderStructure: l10n.t("Folder Structure"),
+            file: l10n.t("File"),
+            flat: l10n.t("Flat"),
+            objectType: l10n.t("Object Type"),
+            schema: l10n.t("Schema"),
+            schemaObjectType: l10n.t("Schema/Object Type"),
+            description: l10n.t("Description"),
+            settings: l10n.t("Settings"),
+            compare: l10n.t("Compare"),
+            schemaCompareOptions: l10n.t("Schema Compare Options"),
+            generalOptions: l10n.t("General Options"),
+            includeObjectTypes: l10n.t("Include Object Types"),
+            optionDescription: l10n.t("Option Description"),
+            reset: l10n.t("Reset"),
+            stop: l10n.t("Stop"),
+            generateScript: l10n.t("Generate Script"),
+            generateScriptToDeployChangesToTarget: l10n.t(
+                "Generate script to deploy changes to target",
+            ),
+            apply: l10n.t("Apply"),
+            applyChangesToTarget: l10n.t("Apply changes to target"),
+            options: l10n.t("Options"),
+            switchDirection: l10n.t("Switch Direction"),
+            switchSourceAndTarget: l10n.t("Switch Source and Target"),
+            openScmpFile: l10n.t("Open .scmp file"),
+            open: l10n.t("Open"),
+            save: l10n.t("Save"),
+            loadSourceTargetAndOptionsSavedInAnScmpFile: l10n.t(
+                "Load source, target, and options saved in an .scmp file",
+            ),
+            saveScmpFile: l10n.t("Save .scmp file"),
+            saveSourceAndTargetOptionsAndExcludedElements: l10n.t(
+                "Save source and target, options, and excluded elements",
+            ),
+            type: l10n.t("Type"),
+            sourceName: l10n.t("Source Name"),
+            include: l10n.t("Include"),
+            action: l10n.t("Action"),
+            targetName: l10n.t("Target Name"),
+            add: l10n.t("Add"),
+            change: l10n.t("Change"),
+            delete: l10n.t("Delete"),
+            selectSource: l10n.t("Select Source"),
+            selectTarget: l10n.t("Select Target"),
+            close: l10n.t("Close"),
+            dataTierApplicationFile: l10n.t("Data-tier Application File (.dacpac)"),
+            databaseProject: l10n.t("Database Project"),
+            ok: l10n.t("OK"),
+            cancel: l10n.t("Cancel"),
+            source: l10n.t("Source"),
+            target: l10n.t("Target"),
+            areYouSureYouWantToUpdateTheTarget: l10n.t(
+                "Are you sure you want to update the target?",
+            ),
+            yes: l10n.t("Yes"),
+            no: l10n.t("No"),
+            optionsChangedMessage: l10n.t("Options have changed. Recompare to see the comparison?"),
+            compareErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Schema Compare failed: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the compare operation"],
+                }),
+            cancelErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Cancel schema compare failed: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the cancel operation"],
+                }),
+            generateScriptErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Generate script failed: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: [
+                        "{0} is the error message returned from the generate script operation",
+                    ],
+                }),
+            thereWasAnErrorUpdatingTheProject: l10n.t("There was an error updating the project"),
+            schemaCompareApplyFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Schema Compare Apply failed '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: [
+                        "{0} is the error message returned from the publish changes operation",
+                    ],
+                }),
+            openScmpErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Open scmp failed '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the open scmp operation"],
+                }),
+            saveScmpErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Save scmp failed: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the save scmp operation"],
+                }),
         };
     }
 }

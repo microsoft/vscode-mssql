@@ -72,8 +72,7 @@ export interface Divider {
     type: "divider";
 }
 
-export interface UserSurveyContextProps
-    extends WebviewContextProps<UserSurveyState> {
+export interface UserSurveyContextProps extends WebviewContextProps<UserSurveyState> {
     submit(answers: Answers): void;
     cancel(): void;
     openPrivacyStatement(): void;

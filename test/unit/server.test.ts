@@ -29,10 +29,7 @@ suite("Server tests", () => {
             ServiceDownloadProvider,
             TypeMoq.MockBehavior.Strict,
         );
-        testStatusView = TypeMoq.Mock.ofType(
-            ServerStatusView,
-            TypeMoq.MockBehavior.Strict,
-        );
+        testStatusView = TypeMoq.Mock.ofType(ServerStatusView, TypeMoq.MockBehavior.Strict);
         testConfig = TypeMoq.Mock.ofType(Config, TypeMoq.MockBehavior.Strict);
     });
 
@@ -89,11 +86,9 @@ suite("Server tests", () => {
             testStatusView.object,
         );
 
-        return server
-            .findServerPath(fixture.executableFileName)
-            .then((result) => {
-                assert.equal(result, fixture.executableFileName);
-            });
+        return server.findServerPath(fixture.executableFileName).then((result) => {
+            assert.equal(result, fixture.executableFileName);
+        });
     });
 
     test("findServerPath should not return the given file path if does not exist", () => {
@@ -129,11 +124,9 @@ suite("Server tests", () => {
             testStatusView.object,
         );
 
-        return server
-            .findServerPath(fixture.executableFileName)
-            .then((result) => {
-                assert.equal(result, fixture.executableFileName);
-            });
+        return server.findServerPath(fixture.executableFileName).then((result) => {
+            assert.equal(result, fixture.executableFileName);
+        });
     });
 
     test("getOrDownloadServer should download the service if not exist and return the valid service file path", () => {

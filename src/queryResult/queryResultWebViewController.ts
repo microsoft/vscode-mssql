@@ -10,10 +10,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { ReactWebviewViewController } from "../controllers/reactWebviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { sendActionEvent } from "../telemetry/telemetry";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { randomUUID } from "crypto";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
@@ -31,12 +28,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     qr.QueryResultWebviewState,
     qr.QueryResultReducers
 > {
-    private _queryResultStateMap: Map<string, qr.QueryResultWebviewState> =
-        new Map<string, qr.QueryResultWebviewState>();
-    private _queryResultWebviewPanelControllerMap: Map<
+    private _queryResultStateMap: Map<string, qr.QueryResultWebviewState> = new Map<
         string,
-        QueryResultWebviewPanelController
-    > = new Map<string, QueryResultWebviewPanelController>();
+        qr.QueryResultWebviewState
+    >();
+    private _queryResultWebviewPanelControllerMap: Map<string, QueryResultWebviewPanelController> =
+        new Map<string, QueryResultWebviewPanelController>();
     private _sqlOutputContentProvider: SqlOutputContentProvider;
     private _correlationId: string = randomUUID();
     public actualPlanStatuses: string[] = [];
@@ -93,9 +90,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.fontSettings.fontFamily = this.vscodeWrapper
                             .getConfiguration(Constants.extensionName)
-                            .get(
-                                Constants.extConfigResultKeys.ResultsFontFamily,
-                            );
+                            .get(Constants.extConfigResultKeys.ResultsFontFamily);
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
@@ -104,19 +99,14 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         state.fontSettings.fontSize =
                             (this.vscodeWrapper
                                 .getConfiguration(Constants.extensionName)
-                                .get(
-                                    Constants.extConfigResultKeys
-                                        .ResultsFontSize,
-                                ) as number) ??
+                                .get(Constants.extConfigResultKeys.ResultsFontSize) as number) ??
                             (this.vscodeWrapper
                                 .getConfiguration("editor")
                                 .get("fontSize") as number);
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
-                if (
-                    e.affectsConfiguration("mssql.resultsGrid.autoSizeColumns")
-                ) {
+                if (e.affectsConfiguration("mssql.resultsGrid.autoSizeColumns")) {
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.autoSizeColumns = this.getAutoSizeColumnsConfig();
                         this._queryResultStateMap.set(uri, state);
@@ -131,9 +121,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     }
 
     private get isRichExperiencesEnabled(): boolean {
-        return this.vscodeWrapper
-            .getConfiguration()
-            .get(Constants.configEnableRichExperiences);
+        return this.vscodeWrapper.getConfiguration().get(Constants.configEnableRichExperiences);
     }
 
     private get isOpenQueryResultsInTabByDefaultEnabled(): boolean {
@@ -160,12 +148,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             void this.createPanelController(message.uri);
 
             if (this.shouldShowDefaultQueryResultToDocumentPrompt) {
-                const response =
-                    await this.vscodeWrapper.showInformationMessage(
-                        LocalizedConstants.openQueryResultsInTabByDefaultPrompt,
-                        LocalizedConstants.alwaysShowInNewTab,
-                        LocalizedConstants.keepInQueryPane,
-                    );
+                const response = await this.vscodeWrapper.showInformationMessage(
+                    LocalizedConstants.openQueryResultsInTabByDefaultPrompt,
+                    LocalizedConstants.alwaysShowInNewTab,
+                    LocalizedConstants.keepInQueryPane,
+                );
                 let telemResponse: string;
                 switch (response) {
                     case LocalizedConstants.alwaysShowInNewTab:
@@ -214,9 +201,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     public async createPanelController(uri: string) {
         const viewColumn = getNewResultPaneViewColumn(uri, this.vscodeWrapper);
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
-            this._queryResultWebviewPanelControllerMap
-                .get(uri)
-                .revealToForeground();
+            this._queryResultWebviewPanelControllerMap.get(uri).revealToForeground();
             return;
         }
 
@@ -232,9 +217,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         if (this.isVisible()) {
-            await vscode.commands.executeCommand(
-                "workbench.action.togglePanel",
-            );
+            await vscode.commands.executeCommand("workbench.action.togglePanel");
         }
     }
 
@@ -281,12 +264,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return (
             (this.vscodeWrapper
                 .getConfiguration(Constants.extensionName)
-                .get(
-                    Constants.extConfigResultKeys.ResultsFontSize,
-                ) as number) ??
-            (this.vscodeWrapper
-                .getConfiguration("editor")
-                .get("fontSize") as number)
+                .get(Constants.extConfigResultKeys.ResultsFontSize) as number) ??
+            (this.vscodeWrapper.getConfiguration("editor").get("fontSize") as number)
         );
     }
 
@@ -305,9 +284,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             this._queryResultWebviewPanelControllerMap
                 .get(uri)
                 .updateState(this.getQueryResultState(uri));
-            this._queryResultWebviewPanelControllerMap
-                .get(uri)
-                .revealToForeground();
+            this._queryResultWebviewPanelControllerMap.get(uri).revealToForeground();
         }
     }
 
@@ -330,10 +307,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return res;
     }
 
-    public addResultSetSummary(
-        uri: string,
-        resultSetSummary: qr.ResultSetSummary,
-    ) {
+    public addResultSetSummary(uri: string, resultSetSummary: qr.ResultSetSummary) {
         let state = this.getQueryResultState(uri);
         const batchId = resultSetSummary.batchId;
         const resultId = resultSetSummary.id;
@@ -343,9 +317,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         state.resultSetSummaries[batchId][resultId] = resultSetSummary;
     }
 
-    public setSqlOutputContentProvider(
-        provider: SqlOutputContentProvider,
-    ): void {
+    public setSqlOutputContentProvider(provider: SqlOutputContentProvider): void {
         this._sqlOutputContentProvider = provider;
     }
 
@@ -361,9 +333,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this.executionPlanService;
     }
 
-    public setUntitledDocumentService(
-        service: UntitledSqlDocumentService,
-    ): void {
+    public setUntitledDocumentService(service: UntitledSqlDocumentService): void {
         this.untitledSqlDocumentService = service;
     }
 
@@ -373,9 +343,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     public async copyAllMessagesToClipboard(uri: string): Promise<void> {
         const messages = uri
-            ? this.getQueryResultState(uri)?.messages?.map((message) =>
-                  messageToString(message),
-              )
+            ? this.getQueryResultState(uri)?.messages?.map((message) => messageToString(message))
             : this.state?.messages?.map((message) => messageToString(message));
 
         if (!messages) {
@@ -399,10 +367,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         Object.values(resultSetSummaries).forEach((batch) => {
             Object.values(batch).forEach((result) => {
                 // Check if any column in columnInfo has the specific column name
-                if (
-                    result.columnInfo[0].columnName ===
-                    Constants.showPlanXmlColumnName
-                ) {
+                if (result.columnInfo[0].columnName === Constants.showPlanXmlColumnName) {
                     total++;
                 }
             });

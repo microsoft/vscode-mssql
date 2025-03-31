@@ -28,10 +28,7 @@ let mocha = new Mocha({
 
 let testCoverOptions: ITestCoverOptions | undefined = undefined;
 
-export function configure(
-    mochaOpts: Mocha.MochaOptions,
-    testCoverOpts: ITestCoverOptions,
-): void {
+export function configure(mochaOpts: Mocha.MochaOptions, testCoverOpts: ITestCoverOptions): void {
     mocha = new Mocha(mochaOpts);
     testCoverOptions = testCoverOpts;
 }
@@ -66,10 +63,7 @@ class CoverageRunner {
         self.instrumenter = new istanbul.Instrumenter({
             coverageVariable: self.coverageVar,
         });
-        let sourceRoot = paths.join(
-            self.testsRoot,
-            self.options.relativeSourcePath,
-        );
+        let sourceRoot = paths.join(self.testsRoot, self.options.relativeSourcePath);
 
         // Glob source files
         let srcFiles = glob.sync("**/**.js", {
@@ -102,9 +96,7 @@ class CoverageRunner {
         // Hook up to the Require function so that when this is called, if any of our source files
         // are required, the instrumented version is pulled in instead. These instrumented versions
         // write to a global coverage variable with hit counts whenever they are accessed
-        self.transformer = self.instrumenter.instrumentSync.bind(
-            self.instrumenter,
-        );
+        self.transformer = self.instrumenter.instrumentSync.bind(self.instrumenter);
         let hookOpts = { verbose: false, extensions: [".js"] };
         istanbul.hook.hookRequire(self.matchFn, self.transformer, hookOpts);
 
@@ -160,16 +152,10 @@ class CoverageRunner {
         });
 
         // TODO Allow config of reporting directory with
-        let reportingDir = paths.join(
-            self.testsRoot,
-            self.options.relativeCoverageDir,
-        );
+        let reportingDir = paths.join(self.testsRoot, self.options.relativeCoverageDir);
         let includePid = self.options.includePid;
         let pidExt = includePid ? "-" + process.pid : "",
-            coverageFile = paths.resolve(
-                reportingDir,
-                "coverage" + pidExt + ".json",
-            );
+            coverageFile = paths.resolve(reportingDir, "coverage" + pidExt + ".json");
 
         mkDirIfExists(reportingDir); // yes, do this again since some test runners could clean the dir initially created
 
@@ -186,10 +172,7 @@ class CoverageRunner {
         });
 
         let reporter = new istanbul.Reporter(undefined, reportingDir);
-        let reportTypes =
-            self.options.reports instanceof Array
-                ? self.options.reports
-                : ["lcov"];
+        let reportTypes = self.options.reports instanceof Array ? self.options.reports : ["lcov"];
         reporter.addAll(reportTypes);
         reporter.write(remappedCollector, true, () => {
             console.log(`reports written to ${reportingDir}`);
@@ -211,17 +194,13 @@ function readCoverOptions(testsRoot: string): ITestRunnerOptions {
     return coverConfig;
 }
 
-export function run(
-    testsRoot: string,
-    clb: (error: any, failures?: number) => void,
-): any {
+export function run(testsRoot: string, clb: (error: any, failures?: number) => void): any {
     // Enable source map support
     // tslint:disable-next-line:no-require-imports
     require("source-map-support").install();
 
     // Read configuration for the coverage file
-    let coverOptions: ITestRunnerOptions | undefined =
-        readCoverOptions(testsRoot);
+    let coverOptions: ITestRunnerOptions | undefined = readCoverOptions(testsRoot);
     if (coverOptions?.enabled) {
         // Setup coverage pre-test, including post-test hook to report
         let coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);

@@ -7,11 +7,7 @@ import "./executionPlan.css";
 
 import * as ep from "./executionPlanInterfaces";
 
-import {
-    ArrowDown20Regular,
-    ArrowUp20Regular,
-    Dismiss20Regular,
-} from "@fluentui/react-icons";
+import { ArrowDown20Regular, ArrowUp20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import {
     Button,
     Combobox,
@@ -61,6 +57,7 @@ interface FindNodeProps {
     setExecutionPlanView: any;
     findNodeOptions: string[];
     setFindNodeClicked: any;
+    inputRef: any;
 }
 
 export const FindNode: React.FC<FindNodeProps> = ({
@@ -68,6 +65,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
     setExecutionPlanView,
     findNodeOptions,
     setFindNodeClicked,
+    inputRef,
 }) => {
     const classes = useStyles();
     const findNodeComparisonOptions: string[] = [
@@ -89,15 +87,12 @@ export const FindNode: React.FC<FindNodeProps> = ({
         ep.SearchType.LesserAndGreaterThan,
     ];
 
-    const [findNodeSelection, setFindNodeSelection] = useState(
-        findNodeOptions[0],
+    const [findNodeSelection, setFindNodeSelection] = useState(findNodeOptions[0]);
+    const [findNodeComparisonSelection, setFindNodeComparisonSelection] = useState(
+        findNodeComparisonOptions[0],
     );
-    const [findNodeComparisonSelection, setFindNodeComparisonSelection] =
-        useState(findNodeComparisonOptions[0]);
     const [findNodeSearchValue, setFindNodeSearchValue] = useState("");
-    const [findNodeResults, setFindNodeResults] = useState<
-        ep.ExecutionPlanNode[]
-    >([]);
+    const [findNodeResults, setFindNodeResults] = useState<ep.ExecutionPlanNode[]>([]);
     const [findNodeResultsIndex, setFindNodeResultsIndex] = useState(-1);
 
     const handleFoundNode = async (node: number) => {
@@ -105,28 +100,19 @@ export const FindNode: React.FC<FindNodeProps> = ({
         let resultIndex = 0;
         if (executionPlanView) {
             const enumSelected =
-                findNodeEnum[
-                    findNodeComparisonOptions.indexOf(
-                        findNodeComparisonSelection,
-                    )
-                ];
+                findNodeEnum[findNodeComparisonOptions.indexOf(findNodeComparisonSelection)];
             if (findNodeResultsIndex === -1 && executionPlanView) {
                 let searchQuery: ep.SearchQuery = {
                     propertyName: findNodeSelection,
                     value: findNodeSearchValue,
                     searchType: enumSelected,
                 };
-                results = executionPlanView.searchNodes(
-                    searchQuery,
-                ) as ep.ExecutionPlanNode[];
+                results = executionPlanView.searchNodes(searchQuery) as ep.ExecutionPlanNode[];
                 setFindNodeResults(results);
                 setFindNodeResultsIndex(0);
             } else if (node === -1 && findNodeResultsIndex === 0) {
                 setFindNodeResultsIndex(findNodeResults.length - 1);
-            } else if (
-                node === 1 &&
-                findNodeResultsIndex === findNodeResults.length - 1
-            ) {
+            } else if (node === 1 && findNodeResultsIndex === findNodeResults.length - 1) {
                 setFindNodeResultsIndex(0);
             } else {
                 setFindNodeResultsIndex(findNodeResultsIndex + node);
@@ -134,10 +120,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
             if (!findNodeResults.length) {
                 executionPlanView.selectElement(results[resultIndex], true);
             } else {
-                executionPlanView.selectElement(
-                    findNodeResults[findNodeResultsIndex],
-                    true,
-                );
+                executionPlanView.selectElement(findNodeResults[findNodeResultsIndex], true);
             }
             setExecutionPlanView(executionPlanView);
         }
@@ -149,8 +132,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
             className={classes.inputContainer}
             style={{
                 background: tokens.colorNeutralBackground1,
-            }}
-        >
+            }}>
             {locConstants.executionPlan.findNodes}
             <div style={{ paddingRight: "12px" }} />
             <Combobox
@@ -165,7 +147,7 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
                 }}
-            >
+                ref={inputRef}>
                 {findNodeOptions.map((option) => (
                     <Option key={option} className={classes.option}>
                         {option}
@@ -184,13 +166,10 @@ export const FindNode: React.FC<FindNodeProps> = ({
                 }}
                 defaultValue={findNodeComparisonOptions[0]}
                 onOptionSelect={(_, data) => {
-                    setFindNodeComparisonSelection(
-                        data.optionText ?? findNodeComparisonOptions[0],
-                    );
+                    setFindNodeComparisonSelection(data.optionText ?? findNodeComparisonOptions[0]);
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
-                }}
-            >
+                }}>
                 {findNodeComparisonOptions.map((option) => (
                     <Option key={option} className={classes.option}>
                         {option}

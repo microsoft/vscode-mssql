@@ -34,11 +34,7 @@ export const ConnectionStringPage = () => {
             >
                 key={index++}
                 context={connectionDialogContext}
-                component={
-                    connectionDialogContext.state.formComponents[
-                        "connectionString"
-                    ]!
-                }
+                component={connectionDialogContext.state.formComponents["connectionString"]!}
                 idx={index}
                 props={{ orientation: "horizontal" }}
                 componentProps={

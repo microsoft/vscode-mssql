@@ -31,8 +31,7 @@ suite("MssqlProtocolHandler Tests", () => {
                                     isIdentity: true,
                                     name: "server",
                                     displayName: "Server name",
-                                    description:
-                                        "Name of the SQL Server instance",
+                                    description: "Name of the SQL Server instance",
                                     groupName: "Source",
                                     valueType: "string",
                                     defaultValue: null,
@@ -88,8 +87,7 @@ suite("MssqlProtocolHandler Tests", () => {
                                             name: "SqlLogin",
                                         },
                                         {
-                                            displayName:
-                                                "Windows Authentication",
+                                            displayName: "Windows Authentication",
                                             name: "Integrated",
                                         },
                                         {
@@ -137,9 +135,7 @@ suite("MssqlProtocolHandler Tests", () => {
                 }),
             );
 
-        mssqlProtocolHandler = new MssqlProtocolHandler(
-            sqlToolsServiceClientMock.object,
-        );
+        mssqlProtocolHandler = new MssqlProtocolHandler(sqlToolsServiceClientMock.object);
     });
 
     test("handleUri - with no command and empty query - returns undefined", async () => {

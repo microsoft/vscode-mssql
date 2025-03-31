@@ -122,8 +122,19 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         return this._parentNode;
     }
 
+    /**
+     * Returns a **copy** of the node's connection information.
+     *
+     * ⚠️ Note: This is a **shallow copy**—modifying the returned object will NOT affect the original connection info.
+     * If you want to update the actual connection info stored in the node, use the `updateConnectionInfo` method instead.
+     */
     public get connectionInfo(): IConnectionInfo {
-        return this._connectionInfo;
+        if (!this._connectionInfo) {
+            return undefined;
+        }
+        return {
+            ...this._connectionInfo,
+        };
     }
 
     public get metadata(): ObjectMetadata {
@@ -176,10 +187,6 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._parentNode = value;
     }
 
-    public set connectionInfo(value: IConnectionInfo) {
-        this._connectionInfo = value;
-    }
-
     public set filterableProperties(value: vscodeMssql.NodeFilterProperty[]) {
         this._filterableProperties = value;
         this._updateContextValue();
@@ -198,6 +205,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this.contextValue = this._convertToContextValue(value);
     }
 
+    public updateConnectionInfo(value: IConnectionInfo): void {
+        this._connectionInfo = value;
+    }
+
     private _updateContextValue() {
         const contextValue = this.context;
         contextValue.filterable = this.filterableProperties?.length > 0;
@@ -206,9 +217,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     }
 
     //split the context value with, and is in the form of key=value and convert it to TreeNodeContextValue
-    private _convertToTreeNodeContext(
-        contextValue: string,
-    ): vscodeMssql.TreeNodeContextValue {
+    private _convertToTreeNodeContext(contextValue: string): vscodeMssql.TreeNodeContextValue {
         let contextArray = contextValue.split(",");
         let context: vscodeMssql.TreeNodeContextValue = {
             filterable: false,
@@ -224,9 +233,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     }
 
     //convert TreeNodeContextValue to context value string
-    private _convertToContextValue(
-        context: vscodeMssql.TreeNodeContextValue,
-    ): string {
+    private _convertToContextValue(context: vscodeMssql.TreeNodeContextValue): string {
         if (context === undefined) {
             return "";
         }

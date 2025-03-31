@@ -112,10 +112,4 @@ export interface LogEvent {
 export type LogCallback = (message: string, level?: LoggerLevel) => void;
 
 // Names of the logging level methods (not the enums) in the Logger class
-export type LoggerLevel =
-    | "critical"
-    | "error"
-    | "warn"
-    | "info"
-    | "verbose"
-    | "log";
+export type LoggerLevel = "critical" | "error" | "warn" | "info" | "verbose" | "log";

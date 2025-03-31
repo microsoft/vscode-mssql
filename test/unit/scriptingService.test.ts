@@ -30,18 +30,13 @@ suite("Scripting Service Tests", () => {
             TestExtensionContext.object,
         );
         connectionManager.setup((c) => c.client).returns(() => client.object);
-        client = TypeMoq.Mock.ofType(
-            SqlToolsServiceClient,
-            TypeMoq.MockBehavior.Loose,
-        );
+        client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
         const mockScriptResult: IScriptingResult = {
             operationId: undefined,
             script: "test_script",
         };
         client
-            .setup((c) =>
-                c.sendRequest(ScriptingRequest.type, TypeMoq.It.isAny()),
-            )
+            .setup((c) => c.sendRequest(ScriptingRequest.type, TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(mockScriptResult));
         connectionManager.object.client = client.object;
         connectionManager
@@ -126,18 +121,9 @@ suite("Scripting Service Tests", () => {
         const scriptingObject = scriptingService.getObjectFromNode(testNode);
         assert.notEqual(scriptingParams, undefined);
         assert.equal(scriptingParams.scriptDestination, "ToEditor");
-        assert.equal(
-            scriptingParams.scriptingObjects[0].name,
-            scriptingObject.name,
-        );
-        assert.equal(
-            scriptingParams.scriptingObjects[0].schema,
-            scriptingObject.schema,
-        );
-        assert.equal(
-            scriptingParams.scriptingObjects[0].type,
-            scriptingObject.type,
-        );
+        assert.equal(scriptingParams.scriptingObjects[0].name, scriptingObject.name);
+        assert.equal(scriptingParams.scriptingObjects[0].schema, scriptingObject.schema);
+        assert.equal(scriptingParams.scriptingObjects[0].type, scriptingObject.type);
         assert.equal(scriptingParams.operation, ScriptOperation.Select);
     });
 
@@ -163,11 +149,7 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.script(
-            testNode,
-            "test_uri",
-            ScriptOperation.Select,
-        );
+        const script = await scriptingService.script(testNode, "test_uri", ScriptOperation.Select);
         assert.notEqual(script, undefined);
     });
 
@@ -193,11 +175,7 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.script(
-            testNode,
-            "test_uri",
-            ScriptOperation.Create,
-        );
+        const script = await scriptingService.script(testNode, "test_uri", ScriptOperation.Create);
         assert.notEqual(script, undefined);
     });
 
@@ -223,11 +201,7 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.script(
-            testNode,
-            "test_uri",
-            ScriptOperation.Execute,
-        );
+        const script = await scriptingService.script(testNode, "test_uri", ScriptOperation.Execute);
         assert.notEqual(script, undefined);
     });
 
@@ -253,11 +227,7 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.script(
-            testNode,
-            "test_uri",
-            ScriptOperation.Delete,
-        );
+        const script = await scriptingService.script(testNode, "test_uri", ScriptOperation.Delete);
         assert.notEqual(script, undefined);
     });
 
@@ -283,11 +253,7 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.script(
-            testNode,
-            "test_uri",
-            ScriptOperation.Alter,
-        );
+        const script = await scriptingService.script(testNode, "test_uri", ScriptOperation.Alter);
         assert.notEqual(script, undefined);
     });
 });

@@ -71,10 +71,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         styles: ITableStyles,
         private uri: string,
         private resultSetSummary: ResultSetSummary,
-        private webViewState: VscodeWebviewContext<
-            QueryResultWebviewState,
-            QueryResultReducers
-        >,
+        private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
         context: QueryResultContextProps,
         private linkHandler: (fileContent: string, fileType: string) => void,
         private gridId: string,
@@ -143,12 +140,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         }
         this._container.appendChild(this._tableContainer);
         this.styleElement = DOM.createStyleSheet(this._container);
-        this._grid = new Slick.Grid<T>(
-            this._tableContainer,
-            this._data,
-            [],
-            newOptions,
-        );
+        this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
         this.registerPlugin(
             new HeaderFilter(
                 webViewState.themeKind,
@@ -205,11 +197,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.setSelectionModel(this.selectionModel);
         this.mapMouseEvent(this._grid.onContextMenu);
         this.mapMouseEvent(this._grid.onClick);
-        this.mapMouseEvent(this._grid.onHeaderClick);
         this.mapMouseEvent(this._grid.onDblClick);
-        this._grid.onColumnsResized.subscribe(() =>
-            console.log("oncolumnresize"),
-        );
+        this._grid.onColumnsResized.subscribe(() => console.log("oncolumnresize"));
         this.style(styles);
         // this.registerPlugin(new MouseWheelSupport());
     }
@@ -219,12 +208,11 @@ export class Table<T extends Slick.SlickData> implements IThemable {
      * @returns true if filters were successfully loaded and applied, false if no filters were found
      */
     public async setupFilterState(): Promise<boolean> {
-        const filterMapArray = (await this.webViewState.extensionRpc.call(
-            "getFilters",
-            {
-                uri: this.queryResultContext.state.uri,
-            },
-        )) as GridColumnMap[];
+        let sortColumn: Slick.Column<T> | undefined = undefined;
+        let sortDirection: boolean | undefined = undefined;
+        const filterMapArray = (await this.webViewState.extensionRpc.call("getFilters", {
+            uri: this.queryResultContext.state.uri,
+        })) as GridColumnMap[];
         if (!filterMapArray) {
             return false;
         }
@@ -237,18 +225,33 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             for (const columnFilterMap of filterMap[this.gridId]) {
                 if (columnFilterMap[column.id!]) {
                     const filterStateArray = columnFilterMap[column.id!];
-                    filterStateArray.forEach(
-                        (filterState: ColumnFilterState) => {
-                            if (filterState.columnDef === column.field) {
-                                (column as FilterableColumn<T>).filterValues =
-                                    filterState.filterValues;
-                            }
-                        },
-                    );
+                    filterStateArray.forEach((filterState: ColumnFilterState) => {
+                        if (filterState.columnDef === column.field) {
+                            (column as FilterableColumn<T>).filterValues = filterState.filterValues;
+                        }
+                    });
+                    let columnSortDirection = columnFilterMap[column.id!][0].sorted;
+                    if (
+                        (columnSortDirection === "ASC" || columnSortDirection === "DESC") &&
+                        !sortDirection
+                    ) {
+                        sortColumn = column;
+                        (column as FilterableColumn<T>).sorted = columnSortDirection;
+                        sortDirection = columnSortDirection === "ASC" ? true : false;
+                    }
                 }
             }
         }
         await this._data.filter(this.columns);
+        if (sortDirection !== undefined && sortColumn) {
+            let sortArgs = {
+                grid: this._grid,
+                multiColumnSort: false,
+                sortCol: sortColumn,
+                sortAsc: sortDirection,
+            };
+            await this._data.sort(sortArgs);
+        }
         return true;
     }
 
@@ -263,19 +266,17 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         slickEvent.subscribe((e: Slick.EventData) => {
             const originalEvent = (e as JQuery.TriggeredEvent).originalEvent;
             const cell = this._grid.getCellFromEvent(originalEvent!);
-            const anchor =
-                originalEvent instanceof MouseEvent
-                    ? { x: originalEvent.x, y: originalEvent.y }
-                    : (originalEvent!.srcElement as HTMLElement);
-            console.log("anchor: ", anchor);
-            console.log("cell: ", cell);
-            this.handleLinkClick(cell);
-            // emitter.fire({ anchor, cell });
+            if (cell) {
+                this.handleLinkClick(cell);
+            }
         });
     }
 
     private handleLinkClick(cell: Slick.Cell): void {
         const columnInfo = this.resultSetSummary.columnInfo[cell.cell - 1];
+        if (!columnInfo) {
+            return;
+        }
         if (columnInfo.isXml || columnInfo.isJson) {
             this.linkHandler(
                 this.getCellValue(cell.row, cell.cell),
@@ -350,10 +351,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     onSelectedRowsChanged(
-        fn: (
-            e: Slick.EventData,
-            data: Slick.OnSelectedRowsChangedEventArgs<T>,
-        ) => any,
+        fn: (e: Slick.EventData, data: Slick.OnSelectedRowsChangedEventArgs<T>) => any,
     ): void;
     // onSelectedRowsChanged(fn: (e: Slick.DOMEvent, data: Slick.OnSelectedRowsChangedEventArgs<T>) => any): vscode.Disposable;
     onSelectedRowsChanged(fn: any): void {

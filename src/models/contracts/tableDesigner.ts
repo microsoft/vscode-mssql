@@ -12,12 +12,9 @@ export interface ITableDesignerEditRequestParams {
 }
 
 export namespace InitializeTableDesignerRequest {
-    export const type = new RequestType<
-        designer.TableInfo,
-        designer.TableDesignerInfo,
-        void,
-        void
-    >("tabledesigner/initialize");
+    export const type = new RequestType<designer.TableInfo, designer.TableDesignerInfo, void, void>(
+        "tabledesigner/initialize",
+    );
 }
 
 export namespace ProcessTableDesignerEditRequest {

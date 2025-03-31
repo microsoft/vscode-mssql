@@ -69,9 +69,7 @@ export class ScriptingService {
         operation: ScriptOperation,
     ): IScriptingParams {
         const scriptingObject = this.getObjectFromNode(node);
-        let serverInfo = this._connectionManager.getServerInfo(
-            node.connectionInfo,
-        );
+        let serverInfo = this._connectionManager.getServerInfo(node.connectionInfo);
         let scriptCreateDropOption: string;
         switch (operation) {
             case ScriptOperation.Select:
@@ -91,19 +89,13 @@ export class ScriptingService {
             scriptStatistics: "ScriptStatsNone",
             targetDatabaseEngineEdition:
                 serverInfo && serverInfo.engineEditionId
-                    ? this.targetDatabaseEngineEditionMap[
-                          serverInfo.engineEditionId
-                      ]
+                    ? this.targetDatabaseEngineEditionMap[serverInfo.engineEditionId]
                     : "SqlServerEnterpriseEdition",
             targetDatabaseEngineType:
-                serverInfo && serverInfo.isCloud
-                    ? "SqlAzure"
-                    : "SingleInstance",
+                serverInfo && serverInfo.isCloud ? "SqlAzure" : "SingleInstance",
             scriptCompatibilityOption:
                 serverInfo && serverInfo.serverMajorVersion
-                    ? this.scriptCompatibilityOptionMap[
-                          serverInfo.serverMajorVersion
-                      ]
+                    ? this.scriptCompatibilityOptionMap[serverInfo.serverMajorVersion]
                     : "Script140Compat",
         };
         let scriptingParams: IScriptingParams = {
@@ -132,10 +124,7 @@ export class ScriptingService {
         operation: ScriptOperation,
     ): Promise<string> {
         let scriptingParams = this.createScriptingParams(node, uri, operation);
-        const result = await this._client.sendRequest(
-            ScriptingRequest.type,
-            scriptingParams,
-        );
+        const result = await this._client.sendRequest(ScriptingRequest.type, scriptingParams);
         return result.script;
     }
 }

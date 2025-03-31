@@ -61,6 +61,33 @@
     flex: 0 0 auto;
 }
 
+.slick-header-sort-button,
+.slick-header-sortdesc-button,
+.slick-header-sortasc-button {
+    background-position: center center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    display: inline-block;
+    width: 16px;
+    flex: 0 0 auto;
+    margin-right: 2px;
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+}
+
+.slick-header-sort-button {
+    background-image: url("sort_inverse.svg");
+}
+
+.slick-header-sortdesc-button {
+    background-image: url("sort_desc_inverse.svg");
+}
+
+.slick-header-sortasc-button {
+    background-image: url("sort_asc_inverse.svg");
+}
+
 .slick-header-menubutton {
     background-position: center center;
     background-repeat: no-repeat;

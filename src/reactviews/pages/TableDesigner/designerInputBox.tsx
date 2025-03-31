@@ -11,13 +11,7 @@ import {
     DesignerUIArea,
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
-import {
-    Field,
-    InfoLabel,
-    Input,
-    Textarea,
-    useId,
-} from "@fluentui/react-components";
+import { Field, InfoLabel, Input, Textarea, useId } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 
 export type DesignerInputBoxProps = {
@@ -51,9 +45,7 @@ export const DesignerInputBox = ({
     }
     const dropdownId = useId(context.getComponentId(componentPath) ?? "");
     const width =
-        UiArea === "PropertiesView"
-            ? "100%"
-            : (component.componentProperties.width ?? "400px");
+        UiArea === "PropertiesView" ? "100%" : (component.componentProperties.width ?? "400px");
     useEffect(() => {
         setValue(model.value);
     }, [model]);
@@ -63,18 +55,12 @@ export const DesignerInputBox = ({
             label={{
                 children: showLabel ? (
                     <InfoLabel size="small" info={component.description}>
-                        {showLabel
-                            ? component.componentProperties.title
-                            : undefined}
+                        {showLabel ? component.componentProperties.title : undefined}
                     </InfoLabel>
                 ) : undefined,
             }}
-            validationState={
-                context.getErrorMessage(componentPath) ? "error" : undefined
-            }
-            validationMessage={
-                showError ? context.getErrorMessage(componentPath) : undefined
-            }
+            validationState={context.getErrorMessage(componentPath) ? "error" : undefined}
+            validationMessage={showError ? context.getErrorMessage(componentPath) : undefined}
             validationMessageIcon={
                 showError && context.getErrorMessage(componentPath) ? (
                     <ErrorCircleRegular />
@@ -82,14 +68,11 @@ export const DesignerInputBox = ({
             }
             style={{ width: width }}
             size="small"
-            orientation={horizontal ? "horizontal" : "vertical"}
-        >
+            orientation={horizontal ? "horizontal" : "vertical"}>
             {!multiline ? (
                 <Input
                     aria-labelledby={dropdownId}
-                    ref={(el) =>
-                        context.addElementRef(componentPath, el, UiArea)
-                    }
+                    ref={(el) => context.addElementRef(componentPath, el, UiArea)}
                     value={value ?? ""}
                     onChange={(_event, newValue) => {
                         setValue(newValue.value ?? "");
@@ -105,18 +88,14 @@ export const DesignerInputBox = ({
                             source: UiArea,
                         });
                     }}
-                    disabled={
-                        model.enabled === undefined ? false : !model.enabled
-                    }
+                    disabled={model.enabled === undefined ? false : !model.enabled}
                     type={model.inputType}
                     size="small"
                 />
             ) : (
                 <Textarea
                     aria-labelledby={dropdownId}
-                    ref={(el) =>
-                        context.addElementRef(componentPath, el, UiArea)
-                    }
+                    ref={(el) => context.addElementRef(componentPath, el, UiArea)}
                     value={value ?? ""}
                     onChange={(_event, newValue) => {
                         setValue(newValue.value ?? "");
@@ -132,9 +111,7 @@ export const DesignerInputBox = ({
                             source: UiArea,
                         });
                     }}
-                    disabled={
-                        model.enabled === undefined ? false : !model.enabled
-                    }
+                    disabled={model.enabled === undefined ? false : !model.enabled}
                     size="small"
                 />
             )}

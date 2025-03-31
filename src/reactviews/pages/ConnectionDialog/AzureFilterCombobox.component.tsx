@@ -3,17 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Combobox,
-    ComboboxProps,
-    Field,
-    makeStyles,
-    OptionOnSelectData,
-    SelectionEvents,
-    Option,
-} from "@fluentui/react-components";
+import { Field, makeStyles } from "@fluentui/react-components";
 import { useFormStyles } from "../../common/forms/form.component";
 import { useEffect, useState } from "react";
+import {
+    SearchableDropdown,
+    SearchableDropdownOptions,
+} from "../../common/searchableDropdown.component";
 
 const useFieldDecorationStyles = makeStyles({
     decoration: {
@@ -29,7 +25,6 @@ export const AzureFilterCombobox = ({
     clearable,
     content,
     decoration,
-    props,
 }: {
     label: string;
     required?: boolean;
@@ -51,7 +46,6 @@ export const AzureFilterCombobox = ({
         invalidOptionErrorMessage: string;
     };
     decoration?: JSX.Element;
-    props?: Partial<ComboboxProps>;
 }) => {
     const formStyles = useFormStyles();
     const decorationStyles = useFieldDecorationStyles();
@@ -68,26 +62,15 @@ export const AzureFilterCombobox = ({
     const onBlur = () => {
         if (content.value) {
             setValidationMessage(
-                content.valueList.includes(content.value)
-                    ? ""
-                    : content.invalidOptionErrorMessage,
+                content.valueList.includes(content.value) ? "" : content.invalidOptionErrorMessage,
             );
         }
     };
 
-    const onOptionSelect: (
-        _: SelectionEvents,
-        data: OptionOnSelectData,
-    ) => void = (_, data: OptionOnSelectData) => {
-        content.setSelection(
-            data.selectedOptions.length > 0 ? data.selectedOptions[0] : "",
-        );
-        content.setValue(data.optionText ?? "");
+    const onOptionChange = (selectedOption: SearchableDropdownOptions) => {
+        content.setSelection(selectedOption.value ?? "");
+        content.setValue(selectedOption.value ?? "");
     };
-
-    function onInput(ev: React.ChangeEvent<HTMLInputElement>) {
-        content.setValue(ev.target.value);
-    }
 
     return (
         <div className={formStyles.formComponentDiv}>
@@ -105,27 +88,22 @@ export const AzureFilterCombobox = ({
                 orientation="horizontal"
                 required={required}
                 validationMessage={validationMessage}
-                onBlur={onBlur}
-            >
-                <Combobox
-                    {...props}
-                    value={content.value}
-                    selectedOptions={
-                        content.selection ? [content.selection] : []
-                    }
-                    onInput={onInput}
-                    onOptionSelect={onOptionSelect}
+                onBlur={onBlur}>
+                <SearchableDropdown
+                    size="small"
+                    selectedOption={{
+                        value: content.value,
+                    }}
+                    onSelect={onOptionChange}
                     placeholder={content.placeholder}
-                    clearable={clearable}
-                >
-                    {content.valueList.map((val, idx) => {
-                        return (
-                            <Option key={idx} value={val}>
-                                {val}
-                            </Option>
-                        );
+                    searchBoxPlaceholder={content.placeholder}
+                    options={content.valueList.map((val) => {
+                        return {
+                            value: val,
+                            label: val,
+                        };
                     })}
-                </Combobox>
+                    clearable={clearable}></SearchableDropdown>
             </Field>
         </div>
     );

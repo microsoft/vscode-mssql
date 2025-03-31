@@ -10,14 +10,11 @@ export interface IObservableCollection<T> {
     getLength(): number;
     at(index: number): T;
     getRange(start: number, end: number): T[];
-    setCollectionChangedCallback(
-        callback: (startIndex: number, count: number) => void,
-    ): void;
+    setCollectionChangedCallback(callback: (startIndex: number, count: number) => void): void;
     setLength(length: number): void;
 }
 
-export interface ISlickColumn<T extends Slick.SlickData>
-    extends Slick.Column<T> {
+export interface ISlickColumn<T extends Slick.SlickData> extends Slick.Column<T> {
     isEditable?: boolean;
 }
 
@@ -48,10 +45,7 @@ class DataWindow<T> {
     }
 
     public contains(dataSourceIndex: number): boolean {
-        return (
-            dataSourceIndex >= this.getStartIndex() &&
-            dataSourceIndex < this.getEndIndex()
-        );
+        return dataSourceIndex >= this.getStartIndex() && dataSourceIndex < this.getEndIndex();
     }
 
     public getItem(index: number): T {
@@ -86,18 +80,13 @@ class DataWindow<T> {
     }
 }
 
-export class VirtualizedCollection<T extends Slick.SlickData>
-    implements IObservableCollection<T>
-{
+export class VirtualizedCollection<T extends Slick.SlickData> implements IObservableCollection<T> {
     private _bufferWindowBefore: DataWindow<T>;
     private _window: DataWindow<T>;
     private _bufferWindowAfter: DataWindow<T>;
     private _lengthChanged = false;
 
-    private collectionChangedCallback?: (
-        startIndex: number,
-        count: number,
-    ) => void;
+    private collectionChangedCallback?: (startIndex: number, count: number) => void;
 
     constructor(
         private readonly windowSize: number,
@@ -116,11 +105,7 @@ export class VirtualizedCollection<T extends Slick.SlickData>
             placeHolderGenerator,
             loadCompleteCallback,
         );
-        this._window = new DataWindow(
-            loadFn,
-            placeHolderGenerator,
-            loadCompleteCallback,
-        );
+        this._window = new DataWindow(loadFn, placeHolderGenerator, loadCompleteCallback);
         this._bufferWindowAfter = new DataWindow(
             loadFn,
             placeHolderGenerator,
@@ -168,10 +153,7 @@ export class VirtualizedCollection<T extends Slick.SlickData>
             this._bufferWindowAfter = this._window;
             this._window = this._bufferWindowBefore;
             this._bufferWindowBefore = windowToRecycle;
-            let newWindowOffset = Math.max(
-                0,
-                this._window.getStartIndex() - this.windowSize,
-            );
+            let newWindowOffset = Math.max(0, this._window.getStartIndex() - this.windowSize);
 
             this._bufferWindowBefore.positionWindow(
                 newWindowOffset,
@@ -187,15 +169,9 @@ export class VirtualizedCollection<T extends Slick.SlickData>
                 this._window.getStartIndex() + this.windowSize,
                 this.length,
             );
-            let newWindowLength = Math.min(
-                this.length - newWindowOffset,
-                this.windowSize,
-            );
+            let newWindowLength = Math.min(this.length - newWindowOffset, this.windowSize);
 
-            this._bufferWindowAfter.positionWindow(
-                newWindowOffset,
-                newWindowLength,
-            );
+            this._bufferWindowAfter.positionWindow(newWindowOffset, newWindowLength);
         }
 
         return currentData;
@@ -223,10 +199,7 @@ export class VirtualizedCollection<T extends Slick.SlickData>
     }
 
     public resetWindowsAroundIndex(index: number): void {
-        let bufferWindowBeforeStart = Math.max(
-            0,
-            index - this.windowSize * 1.5,
-        );
+        let bufferWindowBeforeStart = Math.max(0, index - this.windowSize * 1.5);
         let bufferWindowBeforeEnd = Math.max(0, index - this.windowSize / 2);
         this._bufferWindowBefore.positionWindow(
             bufferWindowBeforeStart,
@@ -234,20 +207,11 @@ export class VirtualizedCollection<T extends Slick.SlickData>
         );
 
         let mainWindowStart = bufferWindowBeforeEnd;
-        let mainWindowEnd = Math.min(
-            mainWindowStart + this.windowSize,
-            this.length,
-        );
-        this._window.positionWindow(
-            mainWindowStart,
-            mainWindowEnd - mainWindowStart,
-        );
+        let mainWindowEnd = Math.min(mainWindowStart + this.windowSize, this.length);
+        this._window.positionWindow(mainWindowStart, mainWindowEnd - mainWindowStart);
 
         let bufferWindowAfterStart = mainWindowEnd;
-        let bufferWindowAfterEnd = Math.min(
-            bufferWindowAfterStart + this.windowSize,
-            this.length,
-        );
+        let bufferWindowAfterEnd = Math.min(bufferWindowAfterStart + this.windowSize, this.length);
         this._bufferWindowAfter.positionWindow(
             bufferWindowAfterStart,
             bufferWindowAfterEnd - bufferWindowAfterStart,
@@ -255,9 +219,7 @@ export class VirtualizedCollection<T extends Slick.SlickData>
     }
 }
 
-export class AsyncDataProvider<T extends Slick.SlickData>
-    implements IDisposableDataProvider<T>
-{
+export class AsyncDataProvider<T extends Slick.SlickData> implements IDisposableDataProvider<T> {
     // private _onFilterStateChange = new vscode.EventEmitter<void>();
     // get onFilterStateChange(): vscode.Event<void> { return this._onFilterStateChange.event; }
 
@@ -283,6 +245,10 @@ export class AsyncDataProvider<T extends Slick.SlickData>
     }
 
     filter(_columns?: Slick.Column<T>[]): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
+    resetSort(): void {
         throw new Error("Method not implemented.");
     }
 

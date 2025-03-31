@@ -27,3 +27,4 @@ tslint*.json
 webviews-metafile.json
 images/ux
 FEATURES.md
+.nyc_output

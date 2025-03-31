@@ -16,9 +16,7 @@ export class AccountStore {
 
     public getAccounts(): IAccount[] {
         let configValues =
-            this._context.globalState.get<IAccount[]>(
-                Constants.configAzureAccount,
-            ) ?? [];
+            this._context.globalState.get<IAccount[]>(Constants.configAzureAccount) ?? [];
         this._logger.verbose(
             `Retreived ${configValues?.length} Azure accounts from account store.`,
         );
@@ -27,9 +25,7 @@ export class AccountStore {
 
     public getAccount(key: string): IAccount | undefined {
         let account: IAccount | undefined;
-        let configValues = this._context.globalState.get<IAccount[]>(
-            Constants.configAzureAccount,
-        );
+        let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount);
         if (!configValues) {
             throw new Error("No Azure accounts stored");
         }
@@ -49,16 +45,11 @@ export class AccountStore {
 
     public removeAccount(key: string): void {
         if (!key) {
-            this._logger.error(
-                "Azure Account key not received for removal request.",
-            );
+            this._logger.error("Azure Account key not received for removal request.");
         }
         let configValues = this.getAccounts();
         configValues = configValues.filter((val) => val.key.id !== key);
-        this._context.globalState.update(
-            Constants.configAzureAccount,
-            configValues,
-        );
+        this._context.globalState.update(Constants.configAzureAccount, configValues);
         return;
     }
 
@@ -73,21 +64,14 @@ export class AccountStore {
             let configValues = this.getAccounts();
             // remove element if already present in map
             if (configValues.length > 0) {
-                configValues = configValues.filter(
-                    (val) => val.key.id !== account.key.id,
-                );
+                configValues = configValues.filter((val) => val.key.id !== account.key.id);
             } else {
                 configValues = [];
             }
             configValues.unshift(account);
-            await this._context.globalState.update(
-                Constants.configAzureAccount,
-                configValues,
-            );
+            await this._context.globalState.update(Constants.configAzureAccount, configValues);
         } else {
-            this._logger.error(
-                "Empty Azure Account cannot be added to account store.",
-            );
+            this._logger.error("Empty Azure Account cannot be added to account store.");
         }
     }
 
@@ -103,19 +87,13 @@ export class AccountStore {
                 return false;
             }
         });
-        await this._context.globalState.update(
-            Constants.configAzureAccount,
-            configValues,
-        );
+        await this._context.globalState.update(Constants.configAzureAccount, configValues);
         return;
     }
 
     public async clearAccounts(): Promise<void> {
         let configValues = [];
-        await this._context.globalState.update(
-            Constants.configAzureAccount,
-            configValues,
-        );
+        await this._context.globalState.update(Constants.configAzureAccount, configValues);
         this._logger.verbose("Cleared all saved Azure accounts");
     }
 }
