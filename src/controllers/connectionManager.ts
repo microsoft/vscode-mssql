@@ -237,17 +237,10 @@ export default class ConnectionManager {
     }
 
     /**
-     * Exposed for testing purposes
+     * Get the connection view
      */
     public get connectionUI(): ConnectionUI {
         return this._connectionUI!;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set connectionUI(value: ConnectionUI) {
-        this._connectionUI = value;
     }
 
     /**
