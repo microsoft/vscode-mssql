@@ -35,7 +35,7 @@ export interface SchemaDesignerContextProps
     deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteSelectedNodes: () => void;
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
-    setCenter: (nodeId: string, zoomIn?: boolean) => void;
+    setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
