@@ -417,14 +417,13 @@ export default class StatusView implements vscode.Disposable {
         let milliseconds = 0;
         bar.queryTimer = setInterval(() => {
             milliseconds += 1000;
-            //convert milliseconds to display time
-            const timeString = self.formatMilliseconds(milliseconds);
+            const timeString = self.formatMillisecondsToTimeString(milliseconds);
             statusBarItem.text = statusText + " " + timeString;
             self.showStatusBarItem(fileUri, statusBarItem);
         }, 1000);
     }
 
-    private formatMilliseconds(milliseconds: number): string {
+    private formatMillisecondsToTimeString(milliseconds: number): string {
         const minutes = Math.floor(milliseconds / 60000);
         const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
         return minutes + ":" + (parseInt(seconds) < 10 ? "0" : "") + seconds;
