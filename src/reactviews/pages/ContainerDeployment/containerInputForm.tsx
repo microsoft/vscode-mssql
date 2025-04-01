@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { Button, makeStyles, tokens } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
@@ -27,17 +27,16 @@ const useStyles = makeStyles({
         marginLeft: "5px",
         marginRight: "5px",
         padding: "8px",
-        height: "100%",
+        height: "85%",
         width: "500px",
         whiteSpace: "nowrap",
-        marginBottom: "30px",
     },
     button: {
         height: "28px",
         width: "130px",
     },
     advancedOptionsDiv: {
-        marginLeft: "20px",
+        marginLeft: "24px",
     },
     bottomDiv: {
         marginTop: "auto",
@@ -85,6 +84,14 @@ export const ContainerInputForm: React.FC = () => {
                     />
                 </div>
             ));
+
+    const handleSubmit = async () => {
+        await state.checkDockerProfile();
+    };
+
+    useEffect(() => {
+        setShowNext(state.state.isDockerProfileValid);
+    }, [state.state.isDockerProfileValid]);
 
     return showNext ? (
         <ContainerSetupStepsPage />
@@ -137,7 +144,7 @@ export const ContainerInputForm: React.FC = () => {
                 <Button
                     className={classes.button}
                     type="submit"
-                    onClick={() => setShowNext(true)}
+                    onClick={() => handleSubmit()}
                     appearance={"primary"}
                 >
                     Create Container

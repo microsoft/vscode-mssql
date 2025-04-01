@@ -50,6 +50,8 @@ export class ContainerDeploymentWebviewState
     isValidContainerName: boolean = false;
     // Used for port number validation within the form
     isValidPortNumber: boolean = false;
+    // Used to check whether docker container creation can proceed
+    isDockerProfileValid: boolean = false;
     constructor(params?: Partial<ContainerDeploymentWebviewState>) {
         for (const key in params) {
             if (key in this) {
@@ -106,6 +108,10 @@ export interface ContainerDeploymentContextProps
     /**
      * Gets the execution plan graph from the provider
      */
+    checkDockerProfile(): void;
+    /**
+     * Gets the execution plan graph from the provider
+     */
     startContainer(): void;
     /**
      * Gets the execution plan graph from the provider
@@ -136,6 +142,11 @@ export interface ContainerDeploymentReducers {
      * Gets the execution plan graph from the provider
      */
     checkLinuxEngine: {};
+
+    /**
+     * Gets the execution plan graph from the provider
+     */
+    checkDockerProfile: {};
 
     formAction: {
         event: FormEvent<DockerConnectionProfile>;

@@ -96,6 +96,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return state;
         });
         this.registerReducer("checkDockerInstallation", async (state, _) => {
+            if (state.dockerInstallStatus.loadState != ApiStatus.Loading)
+                return state;
             const dockerInstallResult = await checkDockerInstallation();
             let newState = state;
             if (!dockerInstallResult) {
@@ -110,6 +112,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("startDocker", async (state, payload) => {
+            if (state.dockerStatus.loadState != ApiStatus.Loading) return state;
             const startDockerResult = await startDocker();
             let newState = state;
             if (!startDockerResult.success) {
@@ -123,6 +126,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("checkLinuxEngine", async (state, payload) => {
+            if (state.dockerEngineStatus.loadState != ApiStatus.Loading)
+                return state;
             if (state.platform == "win32") {
                 state.dockerEngineStatus.loadState = ApiStatus.Loaded;
                 return state;
@@ -139,7 +144,19 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             newState.dockerStatus.loadState = ApiStatus.Loaded;
             return newState;
         });
+        this.registerReducer("checkDockerProfile", async (state, _) => {
+            const errors = await this.validateDockerConnectionProfile(
+                state.formState,
+            );
+            state.isDockerProfileValid = errors.length === 0;
+            return state;
+        });
         this.registerReducer("startContainer", async (state, payload) => {
+            if (
+                state.dockerContainerCreationStatus.loadState !=
+                ApiStatus.Loading
+            )
+                return state;
             if (this.state.formState.containerName.trim() == "") {
                 this.state.formState.containerName =
                     await validateContainerName(
@@ -169,6 +186,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("checkContainer", async (state, payload) => {
+            if (state.dockerContainerStatus.loadState != ApiStatus.Loading)
+                return state;
             const containerStatusResult =
                 await checkIfContainerIsReadyForConnections(
                     this.state.formState.containerName,
@@ -185,6 +204,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("connectToContainer", async (state, payload) => {
+            if (state.dockerConnectionStatus.loadState != ApiStatus.Loading)
+                return state;
             const connectionProfile = await this.addContainerConnection(
                 state.formState,
             );
@@ -233,17 +254,21 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
     async validateDockerConnectionProfile(
         dockerConnectionProfile: cd.DockerConnectionProfile,
-        propertyName: keyof cd.DockerConnectionProfile,
+        propertyName?: keyof cd.DockerConnectionProfile,
     ): Promise<string[]> {
         const erroredInputs: string[] = [];
-        const component = this.state.formComponents[propertyName];
-        if (component && component.validate) {
-            component.validation = component.validate(
-                this.state,
-                dockerConnectionProfile[propertyName],
-            );
-            if (!component.validation.isValid) {
-                erroredInputs.push(component.propertyName);
+        const components = propertyName
+            ? [this.state.formComponents[propertyName]]
+            : Object.values(this.state.formComponents);
+        for (const component of components) {
+            if (component && component.validate) {
+                component.validation = component.validate(
+                    this.state,
+                    dockerConnectionProfile[component.propertyName],
+                );
+                if (!component.validation.isValid) {
+                    erroredInputs.push(component.propertyName);
+                }
             }
         }
         return erroredInputs;
@@ -365,9 +390,9 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 isAdvancedOption: false,
                 tooltip: "Connection Name",
                 validate(_, value) {
-                    const profileNameValid = validateConnectionName(
-                        value.toString(),
-                    );
+                    const profileNameValid =
+                        value.toString() === "" ||
+                        validateConnectionName(value.toString());
                     return {
                         isValid: profileNameValid,
                         validationMessage: profileNameValid
@@ -388,7 +413,11 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 required: false,
                 isAdvancedOption: true,
                 tooltip: "Container Name",
-                validate(containerDeploymentState, _) {
+                validate(containerDeploymentState, value) {
+                    if (!value || value.toString() === "") {
+                        return { isValid: true, validationMessage: "" };
+                    }
+
                     return containerDeploymentState.isValidContainerName
                         ? { isValid: true, validationMessage: "" }
                         : {
@@ -410,13 +439,16 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 required: false,
                 isAdvancedOption: true,
                 tooltip: "Port",
-                validate(containerDeploymentState, _) {
+                validate(containerDeploymentState, value) {
+                    if (!value || value.toString() === "") {
+                        return { isValid: true, validationMessage: "" };
+                    }
                     return containerDeploymentState.isValidPortNumber
                         ? { isValid: true, validationMessage: "" }
                         : {
                               isValid: false,
                               validationMessage:
-                                  "Please choose an avaiable port",
+                                  "Please choose an available port",
                           };
                 },
             } as FormItemSpec<
