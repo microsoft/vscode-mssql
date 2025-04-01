@@ -31,8 +31,7 @@ export default class ServerProvider {
 
         // Otherwise, search the specified folder.
         if (this._config !== undefined) {
-            let executableFiles: string[] =
-                this._config.getSqlToolsExecutableFiles();
+            let executableFiles: string[] = this._config.getSqlToolsExecutableFiles();
             for (const executableFile of executableFiles) {
                 const executablePath = path.join(filePath, executableFile);
                 try {
@@ -67,8 +66,7 @@ export default class ServerProvider {
      * Returns the path of the installed service if it exists, or undefined if not
      */
     public async getServerPath(runtime: Runtime): Promise<string | undefined> {
-        const installDirectory =
-            await this._downloadProvider.getOrMakeInstallDirectory(runtime);
+        const installDirectory = await this._downloadProvider.getOrMakeInstallDirectory(runtime);
         return this.findServerPath(installDirectory);
     }
 
@@ -76,8 +74,7 @@ export default class ServerProvider {
      * Downloads the service and returns the path of the installed service if it exists
      */
     public async downloadServerFiles(runtime: Runtime): Promise<string> {
-        const installDirectory =
-            await this._downloadProvider.getOrMakeInstallDirectory(runtime);
+        const installDirectory = await this._downloadProvider.getOrMakeInstallDirectory(runtime);
         try {
             await this._downloadProvider.installSQLToolsService(runtime);
             return this.findServerPath(installDirectory);

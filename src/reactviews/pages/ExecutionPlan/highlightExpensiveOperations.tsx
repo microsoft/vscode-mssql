@@ -7,15 +7,8 @@ import "./executionPlan.css";
 
 import * as ep from "./executionPlanInterfaces";
 
-import {
-    Button,
-    Combobox,
-    Option,
-    makeStyles,
-    tokens,
-} from "@fluentui/react-components";
+import { Button, Combobox, Option, makeStyles, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-
 import { ExecutionPlanView } from "./executionPlanView";
 import { locConstants } from "../../common/locConstants";
 import { useState } from "react";
@@ -46,13 +39,18 @@ interface HighlightExpensiveOperationsProps {
     executionPlanView: ExecutionPlanView;
     setExecutionPlanView: any;
     setHighlightOpsClicked: any;
+    inputRef: any;
 }
 
-export const HighlightExpensiveOperations: React.FC<
-    HighlightExpensiveOperationsProps
-> = ({ executionPlanView, setExecutionPlanView, setHighlightOpsClicked }) => {
+export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperationsProps> = ({
+    executionPlanView,
+    setExecutionPlanView,
+    setHighlightOpsClicked,
+    inputRef,
+}) => {
     const classes = useStyles();
     const [highlightMetricSelected, setHighlightMetricSelected] = useState("");
+    const [highlightedElement, setHighlightedElement] = useState("");
 
     const highlightMetricOptions: string[] = [
         locConstants.executionPlan.actualElapsedTime,
@@ -76,21 +74,19 @@ export const HighlightExpensiveOperations: React.FC<
     const handleHighlightExpensiveOperation = async () => {
         if (executionPlanView) {
             const enumSelected =
-                highlightMetricOptionsEnum[
-                    highlightMetricOptions.indexOf(highlightMetricSelected)
-                ];
-            const expensiveOperationDelegate: (
-                cell: ep.AzDataGraphCell,
-            ) => number | undefined =
+                highlightMetricOptionsEnum[highlightMetricOptions.indexOf(highlightMetricSelected)];
+            const expensiveOperationDelegate: (cell: ep.AzDataGraphCell) => number | undefined =
                 getExpensiveOperationDelegate(enumSelected)!;
             executionPlanView.clearExpensiveOperatorHighlighting();
             const elementId = executionPlanView.highlightExpensiveOperator(
                 expensiveOperationDelegate,
             );
             if (elementId) {
-                executionPlanView.centerElement(
-                    executionPlanView.getElementById(elementId)!,
-                );
+                const element = executionPlanView.getElementById(
+                    elementId,
+                )! as ep.ExecutionPlanNode;
+                executionPlanView.centerElement(element);
+                setHighlightedElement(element.name);
             }
             setExecutionPlanView(executionPlanView);
         }
@@ -104,6 +100,12 @@ export const HighlightExpensiveOperations: React.FC<
         setHighlightOpsClicked(false);
     };
 
+    const handleKeyDownOnAccept = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (event.key === "ArrowLeft") {
+            inputRef.current?.focus(); // Move focus to the combobox
+        }
+    };
+
     return (
         <div
             id="highlightExpensiveOpsContainer"
@@ -111,7 +113,7 @@ export const HighlightExpensiveOperations: React.FC<
             style={{
                 background: tokens.colorNeutralBackground1,
             }}
-        >
+            aria-label={highlightedElement}>
             <div>{locConstants.executionPlan.metric}</div>
             <div style={{ paddingRight: "12px" }} />
             <Combobox
@@ -119,10 +121,8 @@ export const HighlightExpensiveOperations: React.FC<
                 size="small"
                 input={{ style: { textOverflow: "ellipsis" } }}
                 listbox={{ style: { minWidth: "fit-content" } }}
-                onOptionSelect={(_, data) =>
-                    setHighlightMetricSelected(data.optionText ?? "")
-                }
-            >
+                onOptionSelect={(_, data) => setHighlightMetricSelected(data.optionText ?? "")}
+                ref={inputRef}>
                 {highlightMetricOptions.map((option) => (
                     <Option key={option}>{option}</Option>
                 ))}
@@ -135,6 +135,7 @@ export const HighlightExpensiveOperations: React.FC<
                 title={locConstants.common.apply}
                 aria-label={locConstants.common.apply}
                 icon={<Checkmark20Regular />}
+                onKeyDown={handleKeyDownOnAccept}
             />
             <Button
                 icon={<Dismiss20Regular />}
@@ -154,12 +155,8 @@ function getExpensiveOperationDelegate(
     const getElapsedTimeInMs = (cell: ep.AzDataGraphCell): number | undefined =>
         cell.elapsedTimeInMs;
 
-    const getElapsedCpuTimeInMs = (
-        cell: ep.AzDataGraphCell,
-    ): number | undefined => {
-        const elapsedCpuMetric = cell.costMetrics.find(
-            (m) => m.name === "ElapsedCpuTime",
-        );
+    const getElapsedCpuTimeInMs = (cell: ep.AzDataGraphCell): number | undefined => {
+        const elapsedCpuMetric = cell.costMetrics.find((m) => m.name === "ElapsedCpuTime");
 
         if (elapsedCpuMetric === undefined) {
             return undefined;
@@ -169,23 +166,15 @@ function getExpensiveOperationDelegate(
     };
 
     const getCost = (cell: ep.AzDataGraphCell): number | undefined => cell.cost;
-    const getSubtreeCost = (cell: ep.AzDataGraphCell): number | undefined =>
-        cell.subTreeCost;
+    const getSubtreeCost = (cell: ep.AzDataGraphCell): number | undefined => cell.subTreeCost;
 
-    const getRowsForAllExecutions = (
-        cell: ep.AzDataGraphCell,
-    ): number | undefined => {
-        const actualRowsMetric = cell.costMetrics.find(
-            (m) => m.name === "ActualRows",
-        );
+    const getRowsForAllExecutions = (cell: ep.AzDataGraphCell): number | undefined => {
+        const actualRowsMetric = cell.costMetrics.find((m) => m.name === "ActualRows");
         const estimateRowsForAllExecutionsMetric = cell.costMetrics.find(
             (m) => m.name === "EstimateRowsAllExecs",
         );
 
-        if (
-            actualRowsMetric === undefined &&
-            estimateRowsForAllExecutionsMetric === undefined
-        ) {
+        if (actualRowsMetric === undefined && estimateRowsForAllExecutionsMetric === undefined) {
             return undefined;
         }
 
@@ -201,20 +190,13 @@ function getExpensiveOperationDelegate(
         return result;
     };
 
-    const getNumberOfRowsRead = (
-        cell: ep.AzDataGraphCell,
-    ): number | undefined => {
-        const actualRowsReadMetric = cell.costMetrics.find(
-            (m) => m.name === "ActualRowsRead",
-        );
+    const getNumberOfRowsRead = (cell: ep.AzDataGraphCell): number | undefined => {
+        const actualRowsReadMetric = cell.costMetrics.find((m) => m.name === "ActualRowsRead");
         const estimatedRowsReadMetric = cell.costMetrics.find(
             (m) => m.name === "EstimatedRowsRead",
         );
 
-        if (
-            actualRowsReadMetric === undefined &&
-            estimatedRowsReadMetric === undefined
-        ) {
+        if (actualRowsReadMetric === undefined && estimatedRowsReadMetric === undefined) {
             return undefined;
         }
 

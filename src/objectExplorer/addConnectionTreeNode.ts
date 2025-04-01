@@ -11,10 +11,7 @@ import { ObjectExplorerUtils } from "./objectExplorerUtils";
 
 export class AddConnectionTreeNode extends vscode.TreeItem {
     constructor() {
-        super(
-            LocalizedConstants.msgAddConnection,
-            vscode.TreeItemCollapsibleState.None,
-        );
+        super(LocalizedConstants.msgAddConnection, vscode.TreeItemCollapsibleState.None);
         this.command = {
             title: LocalizedConstants.msgAddConnection,
             command: Constants.cmdAddObjectExplorer,

@@ -11,13 +11,8 @@ import {
     DesignerUIArea,
     DropDownProperties,
 } from "../../../sharedInterfaces/tableDesigner";
-import {
-    Dropdown,
-    useId,
-    Option,
-    Field,
-    InfoLabel,
-} from "@fluentui/react-components";
+import { Field, InfoLabel } from "@fluentui/react-components";
+import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
 export type DesignerDropdownProps = {
     component: DesignerDataPropertyInfo;
@@ -44,10 +39,8 @@ export const DesignerDropdown = ({
         return undefined;
     }
     const width =
-        UiArea === "PropertiesView"
-            ? "100%"
-            : (component.componentProperties.width ?? "350px");
-    const dropdownId = useId(context.getComponentId(componentPath) ?? "");
+        UiArea === "PropertiesView" ? "100%" : (component.componentProperties.width ?? "350px");
+    //const dropdownId = useId(context.getComponentId(componentPath) ?? "");
 
     useEffect(() => {
         setValue([model.value]);
@@ -58,25 +51,49 @@ export const DesignerDropdown = ({
             label={{
                 children: showLabel ? (
                     <InfoLabel size="small" info={component.description}>
-                        {showLabel
-                            ? component.componentProperties.title
-                            : undefined}
+                        {showLabel ? component.componentProperties.title : undefined}
                     </InfoLabel>
                 ) : undefined,
             }}
             validationState={
-                showError && context.getErrorMessage(componentPath)
-                    ? "error"
-                    : undefined
+                showError && context.getErrorMessage(componentPath) ? "error" : undefined
             }
-            validationMessage={
-                showError ? context.getErrorMessage(componentPath) : ""
-            }
+            validationMessage={showError ? context.getErrorMessage(componentPath) : ""}
             style={{ width: width }}
             size="small"
-            orientation={horizontal ? "horizontal" : "vertical"}
-        >
-            <Dropdown
+            orientation={horizontal ? "horizontal" : "vertical"}>
+            <SearchableDropdown
+                style={{
+                    width: width,
+                    minWidth: width,
+                    maxWidth: width,
+                    border: context.getErrorMessage(componentPath)
+                        ? "1px solid var(--vscode-errorForeground)"
+                        : undefined,
+                }}
+                options={model.values
+                    .sort((a, b) => a.localeCompare(b))
+                    .map((option) => ({
+                        text: option,
+                        value: option,
+                    }))}
+                onSelect={(option) => {
+                    if (model.enabled === false) {
+                        return;
+                    }
+                    context.processTableEdit({
+                        path: componentPath,
+                        value: option.value.toString(),
+                        type: DesignerEditType.Update,
+                        source: UiArea,
+                    });
+                }}
+                size="small"
+                selectedOption={{
+                    value: value[0],
+                }}
+            />
+            {/* <Dropdown
                 aria-labelledby={dropdownId}
                 ref={(el) => context.addElementRef(componentPath, el, UiArea)}
                 selectedOptions={value}
@@ -115,7 +132,7 @@ export const DesignerDropdown = ({
                             {option}
                         </Option>
                     ))}
-            </Dropdown>
+            </Dropdown> */}
         </Field>
     );
 };

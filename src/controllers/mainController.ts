@@ -44,10 +44,7 @@ import ConnectionManager from "./connectionManager";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
 import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
@@ -61,11 +58,11 @@ import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
-import { SchemaDesignerWebviewController } from "../schemaDesigner/schemaDesignerWebviewController";
 import { CopilotService } from "../services/copilotService";
 import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
+import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
 
 /**
  * The main controller class that initializes the extension
@@ -120,9 +117,7 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr = connectionManager;
         }
         this._vscodeWrapper = vscodeWrapper ?? new VscodeWrapper();
-        this._untitledSqlDocumentService = new UntitledSqlDocumentService(
-            this._vscodeWrapper,
-        );
+        this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
         this.configuration = vscode.workspace.getConfiguration();
         UserSurvey.createInstance(this._context, this._vscodeWrapper);
     }
@@ -133,9 +128,7 @@ export default class MainController implements vscode.Disposable {
     public registerCommand(command: string): void {
         const self = this;
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(command, () =>
-                self._event.emit(command),
-            ),
+            vscode.commands.registerCommand(command, () => self._event.emit(command)),
         );
     }
 
@@ -168,9 +161,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     public get isExperimentalEnabled(): boolean {
-        return this.configuration.get(
-            Constants.configEnableExperimentalFeatures,
-        );
+        return this.configuration.get(Constants.configEnableExperimentalFeatures);
     }
 
     public get isRichExperiencesEnabled(): boolean {
@@ -196,8 +187,7 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
                 void UserSurvey.getInstance().promptUserForNPSFeedback();
-                this._executionPlanOptions.includeEstimatedExecutionPlanXml =
-                    false;
+                this._executionPlanOptions.includeEstimatedExecutionPlanXml = false;
                 void this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -226,10 +216,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
             this._event.on(Constants.cmdLaunchUserFeedback, async () => {
-                await UserSurvey.getInstance().launchSurvey(
-                    "nps",
-                    getStandardNPSQuestions(),
-                );
+                await UserSurvey.getInstance().launchSurvey("nps", getStandardNPSQuestions());
             });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, () => {
@@ -240,9 +227,7 @@ export default class MainController implements vscode.Disposable {
                 await this.launchGettingStartedPage();
             });
             this.registerCommand(Constants.cmdNewQuery);
-            this._event.on(Constants.cmdNewQuery, () =>
-                this.runAndLogErrors(this.onNewQuery()),
-            );
+            this._event.on(Constants.cmdNewQuery, () => this.runAndLogErrors(this.onNewQuery()));
             this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
             this._event.on(Constants.cmdRebuildIntelliSenseCache, () => {
                 this.onRebuildIntelliSense();
@@ -263,17 +248,12 @@ export default class MainController implements vscode.Disposable {
                 this.removeAadAccount(this._prompter),
             );
             this.registerCommand(Constants.cmdAadAddAccount);
-            this._event.on(Constants.cmdAadAddAccount, () =>
-                this.addAadAccount(),
-            );
+            this._event.on(Constants.cmdAadAddAccount, () => this.addAadAccount());
             this.registerCommandWithArgs(Constants.cmdClearAzureTokenCache);
-            this._event.on(Constants.cmdClearAzureTokenCache, () =>
-                this.onClearAzureTokenCache(),
-            );
+            this._event.on(Constants.cmdClearAzureTokenCache, () => this.onClearAzureTokenCache());
             this.registerCommand(Constants.cmdShowExecutionPlanInResults);
             this._event.on(Constants.cmdShowExecutionPlanInResults, () => {
-                this._executionPlanOptions.includeEstimatedExecutionPlanXml =
-                    true;
+                this._executionPlanOptions.includeEstimatedExecutionPlanXml = true;
                 void this.onRunQuery();
             });
             this.registerCommand(Constants.cmdEnableActualPlan);
@@ -286,9 +266,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.initializeObjectExplorer();
 
-            this.registerCommandWithArgs(
-                Constants.cmdConnectObjectExplorerProfile,
-            );
+            this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
             this._event.on(
                 Constants.cmdConnectObjectExplorerProfile,
                 (profile: IConnectionProfile) => {
@@ -303,55 +281,32 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
-            this.registerCommand(
-                Constants.cmdObjectExplorerEnableGroupBySchemaCommand,
-            );
-            this._event.on(
-                Constants.cmdObjectExplorerEnableGroupBySchemaCommand,
-                () => {
-                    vscode.workspace
-                        .getConfiguration()
-                        .update(
-                            Constants.cmdObjectExplorerGroupBySchemaFlagName,
-                            true,
-                            true,
-                        );
-                },
-            );
-            this.registerCommand(
-                Constants.cmdObjectExplorerDisableGroupBySchemaCommand,
-            );
-            this._event.on(
-                Constants.cmdObjectExplorerDisableGroupBySchemaCommand,
-                () => {
-                    vscode.workspace
-                        .getConfiguration()
-                        .update(
-                            Constants.cmdObjectExplorerGroupBySchemaFlagName,
-                            false,
-                            true,
-                        );
-                },
-            );
+            this.registerCommand(Constants.cmdObjectExplorerEnableGroupBySchemaCommand);
+            this._event.on(Constants.cmdObjectExplorerEnableGroupBySchemaCommand, () => {
+                vscode.workspace
+                    .getConfiguration()
+                    .update(Constants.cmdObjectExplorerGroupBySchemaFlagName, true, true);
+            });
+            this.registerCommand(Constants.cmdObjectExplorerDisableGroupBySchemaCommand);
+            this._event.on(Constants.cmdObjectExplorerDisableGroupBySchemaCommand, () => {
+                vscode.workspace
+                    .getConfiguration()
+                    .update(Constants.cmdObjectExplorerGroupBySchemaFlagName, false, true);
+            });
 
             this.registerCommand(Constants.cmdEnableRichExperiencesCommand);
-            this._event.on(
-                Constants.cmdEnableRichExperiencesCommand,
-                async () => {
-                    await this._vscodeWrapper
-                        .getConfiguration()
-                        .update(
-                            Constants.configEnableRichExperiences,
-                            true,
-                            vscode.ConfigurationTarget.Global,
-                        );
-
-                    // reload immediately so that the changes take effect
-                    await vscode.commands.executeCommand(
-                        "workbench.action.reloadWindow",
+            this._event.on(Constants.cmdEnableRichExperiencesCommand, async () => {
+                await this._vscodeWrapper
+                    .getConfiguration()
+                    .update(
+                        Constants.configEnableRichExperiences,
+                        true,
+                        vscode.ConfigurationTarget.Global,
                     );
-                },
-            );
+
+                // reload immediately so that the changes take effect
+                await vscode.commands.executeCommand("workbench.action.reloadWindow");
+            });
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
             this._event.on(
@@ -442,12 +397,8 @@ export default class MainController implements vscode.Disposable {
                 this._untitledSqlDocumentService,
             );
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
-            this.sqlProjectsService = new SqlProjectsService(
-                SqlToolsServerClient.instance,
-            );
-            this.schemaCompareService = new SchemaCompareService(
-                SqlToolsServerClient.instance,
-            );
+            this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
+            this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
                 this._connectionMgr.azureController,
@@ -458,26 +409,18 @@ export default class MainController implements vscode.Disposable {
                 azureResourceController,
                 this._connectionMgr.accountStore,
             );
-            this.tableDesignerService = new TableDesignerService(
-                SqlToolsServerClient.instance,
-            );
-            this.executionPlanService = new ExecutionPlanService(
-                SqlToolsServerClient.instance,
-            );
-            this.copilotService = new CopilotService(
+            this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
+            this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
+	    this.copilotService = new CopilotService(
                 SqlToolsServerClient.instance,
             );
 
-            this._queryResultWebviewController.setExecutionPlanService(
-                this.executionPlanService,
-            );
+            this._queryResultWebviewController.setExecutionPlanService(this.executionPlanService);
             this._queryResultWebviewController.setUntitledDocumentService(
                 this._untitledSqlDocumentService,
             );
 
-            this.schemaDesignerService = new SchemaDesignerService(
-                SqlToolsServerClient.instance,
-            );
+            this.schemaDesignerService = new SchemaDesignerService(SqlToolsServerClient.instance);
 
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
@@ -485,10 +428,7 @@ export default class MainController implements vscode.Disposable {
                 this.executionPlanService,
                 this._untitledSqlDocumentService,
             );
-            vscode.window.registerCustomEditorProvider(
-                "mssql.executionPlanView",
-                providerInstance,
-            );
+            vscode.window.registerCustomEditorProvider("mssql.executionPlanView", providerInstance);
 
             const self = this;
             const uriHandler: vscode.UriHandler = {
@@ -497,13 +437,9 @@ export default class MainController implements vscode.Disposable {
                         self._connectionMgr.client,
                     );
 
-                    const connectionInfo =
-                        await mssqlProtocolHandler.handleUri(uri);
+                    const connectionInfo = await mssqlProtocolHandler.handleUri(uri);
 
-                    vscode.commands.executeCommand(
-                        Constants.cmdAddObjectExplorer,
-                        connectionInfo,
-                    );
+                    vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, connectionInfo);
                 },
             };
             vscode.window.registerUriHandler(uriHandler);
@@ -535,7 +471,7 @@ export default class MainController implements vscode.Disposable {
         executeScript: boolean = false,
     ): Promise<void> {
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-        let connectionCreds = Object.assign({}, node.connectionInfo);
+        let connectionCreds = node.connectionInfo;
         const databaseName = ObjectExplorerUtils.getDatabaseName(node);
         // if not connected or different database
         if (
@@ -546,36 +482,20 @@ export default class MainController implements vscode.Disposable {
             connectionCreds.database = databaseName;
             if (!this.connectionManager.isConnecting(nodeUri)) {
                 const promise = new Deferred<boolean>();
-                await this.connectionManager.connect(
-                    nodeUri,
-                    connectionCreds,
-                    promise,
-                );
+                await this.connectionManager.connect(nodeUri, connectionCreds, promise);
                 await promise;
             }
         }
 
-        const selectStatement = await this._scriptingService.script(
-            node,
-            nodeUri,
-            operation,
-        );
-        const editor =
-            await this._untitledSqlDocumentService.newQuery(selectStatement);
+        const selectStatement = await this._scriptingService.script(node, nodeUri, operation);
+        const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
         let uri = editor.document.uri.toString(true);
         let scriptingObject = this._scriptingService.getObjectFromNode(node);
         let title = `${scriptingObject.schema}.${scriptingObject.name}`;
         const queryUriPromise = new Deferred<boolean>();
-        await this.connectionManager.connect(
-            uri,
-            connectionCreds,
-            queryUriPromise,
-        );
+        await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
         await queryUriPromise;
-        this._statusview.languageFlavorChanged(
-            uri,
-            Constants.mssqlProviderName,
-        );
+        this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
         this._statusview.sqlCmdModeChanged(uri, false);
         if (executeScript) {
             const queryPromise = new Deferred<boolean>();
@@ -670,9 +590,7 @@ export default class MainController implements vscode.Disposable {
         this._outputContentProvider.setQueryResultWebviewController(
             this._queryResultWebviewController,
         );
-        this._queryResultWebviewController.setSqlOutputContentProvider(
-            this._outputContentProvider,
-        );
+        this._queryResultWebviewController.setSqlOutputContentProvider(this._outputContentProvider);
 
         // Init connection manager and connection MRU
         this._connectionMgr = new ConnectionManager(
@@ -691,6 +609,13 @@ export default class MainController implements vscode.Disposable {
         await this.sanitizeConnectionProfiles();
         await this.loadTokenCache();
         Utils.logDebug("activated.");
+
+        // capture basic metadata
+        sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
+            experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
+            modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
+        });
+
         this._initialized = true;
         return true;
     }
@@ -721,9 +646,7 @@ export default class MainController implements vscode.Disposable {
                 // remove password
                 if (!Utils.isEmpty(conn.password)) {
                     // save the password in the credential store if save password is true
-                    await this.connectionManager.connectionStore.saveProfilePasswordIfNeeded(
-                        conn,
-                    );
+                    await this.connectionManager.connectionStore.saveProfilePasswordIfNeeded(conn);
                     conn.password = "";
                     profileChanged = true;
                 }
@@ -744,10 +667,7 @@ export default class MainController implements vscode.Disposable {
                 );
             }
         };
-        const profileMapping = new Map<
-            vscode.ConfigurationTarget,
-            IConnectionProfile[]
-        >();
+        const profileMapping = new Map<vscode.ConfigurationTarget, IConnectionProfile[]>();
         const configuration = this._vscodeWrapper.getConfiguration(
             Constants.extensionName,
             this._vscodeWrapper.activeTextEditorUri,
@@ -755,14 +675,8 @@ export default class MainController implements vscode.Disposable {
         const configValue = configuration.inspect<IConnectionProfile[]>(
             Constants.connectionsArrayName,
         );
-        profileMapping.set(
-            vscode.ConfigurationTarget.Global,
-            configValue.globalValue || [],
-        );
-        profileMapping.set(
-            vscode.ConfigurationTarget.Workspace,
-            configValue.workspaceValue || [],
-        );
+        profileMapping.set(vscode.ConfigurationTarget.Global, configValue.globalValue || []);
+        profileMapping.set(vscode.ConfigurationTarget.Workspace, configValue.workspaceValue || []);
         profileMapping.set(
             vscode.ConfigurationTarget.WorkspaceFolder,
             configValue.workspaceFolderValue || [],
@@ -828,15 +742,11 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper,
             this._connectionMgr,
         );
-        this.objectExplorerTree = vscode.window.createTreeView(
-            "objectExplorer",
-            {
-                treeDataProvider: this._objectExplorerProvider,
-                canSelectMany: false,
-                dragAndDropController:
-                    new ObjectExplorerDragAndDropController(),
-            },
-        );
+        this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
+            treeDataProvider: this._objectExplorerProvider,
+            canSelectMany: false,
+            dragAndDropController: new ObjectExplorerDragAndDropController(),
+        });
         this._context.subscriptions.push(this.objectExplorerTree);
 
         // Sets the correct current node on any node selection
@@ -844,8 +754,7 @@ export default class MainController implements vscode.Disposable {
             this.objectExplorerTree.onDidChangeSelection(
                 (e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
                     if (e.selection?.length > 0) {
-                        self._objectExplorerProvider.currentNode =
-                            e.selection[0];
+                        self._objectExplorerProvider.currentNode = e.selection[0];
                     }
                 },
             ),
@@ -885,10 +794,7 @@ export default class MainController implements vscode.Disposable {
         // redirect the "(preview)" command to the original command
         this.registerCommandWithArgs(Constants.cmdAddObjectExplorerPreview);
         this._event.on(Constants.cmdAddObjectExplorerPreview, (args) => {
-            vscode.commands.executeCommand(
-                Constants.cmdAddObjectExplorer,
-                args,
-            );
+            vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, args);
         });
 
         // Object Explorer New Query
@@ -896,23 +802,18 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNewQuery,
                 async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = Object.assign(
-                        {},
-                        treeNodeInfo.connectionInfo,
-                    );
-                    const databaseName =
-                        ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                    const connectionCredentials = treeNodeInfo.connectionInfo;
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+
                     if (
                         databaseName !== connectionCredentials.database &&
                         databaseName !== LocalizedConstants.defaultDatabaseLabel
                     ) {
                         connectionCredentials.database = databaseName;
-                    } else if (
-                        databaseName === LocalizedConstants.defaultDatabaseLabel
-                    ) {
+                    } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
                         connectionCredentials.database = "";
                     }
-                    treeNodeInfo.connectionInfo = connectionCredentials;
+                    treeNodeInfo.updateConnectionInfo(connectionCredentials);
                     await self.onNewQuery(treeNodeInfo);
                 },
             ),
@@ -923,16 +824,9 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdRemoveObjectExplorerNode,
                 async (treeNodeInfo: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.removeObjectExplorerNode(
-                        treeNodeInfo,
-                    );
-                    let profile = <IConnectionProfile>(
-                        treeNodeInfo.connectionInfo
-                    );
-                    await this._connectionMgr.connectionStore.removeProfile(
-                        profile,
-                        false,
-                    );
+                    await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo);
+                    let profile = <IConnectionProfile>treeNodeInfo.connectionInfo;
+                    await this._connectionMgr.connectionStore.removeProfile(profile, false);
                     return this._objectExplorerProvider.refresh(undefined);
                 },
             ),
@@ -943,9 +837,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdRefreshObjectExplorerNode,
                 async (treeNodeInfo: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.refreshNode(
-                        treeNodeInfo,
-                    );
+                    await this._objectExplorerProvider.refreshNode(treeNodeInfo);
                 },
             ),
         );
@@ -955,23 +847,15 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNodeSignIn,
                 async (node: AccountSignInTreeNode) => {
-                    let profile = <IConnectionProfile>(
-                        node.parentNode.connectionInfo
-                    );
+                    let profile = <IConnectionProfile>node.parentNode.connectionInfo;
                     profile =
                         await self.connectionManager.connectionUI.promptForRetryCreateProfile(
                             profile,
                         );
                     if (profile) {
-                        node.parentNode.connectionInfo = <IConnectionInfo>(
-                            profile
-                        );
-                        self._objectExplorerProvider.updateNode(
-                            node.parentNode,
-                        );
-                        self._objectExplorerProvider.signInNodeServer(
-                            node.parentNode,
-                        );
+                        node.parentNode.updateConnectionInfo(profile);
+                        self._objectExplorerProvider.updateNode(node.parentNode);
+                        self._objectExplorerProvider.signInNodeServer(node.parentNode);
                         return self._objectExplorerProvider.refresh(undefined);
                     }
                 },
@@ -983,9 +867,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdConnectObjectExplorerNode,
                 async (node: ConnectTreeNode) => {
-                    await self.createObjectExplorerSession(
-                        node.parentNode.connectionInfo,
-                    );
+                    await self.createObjectExplorerSession(node.parentNode.connectionInfo);
                 },
             ),
         );
@@ -995,10 +877,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdDisconnectObjectExplorerNode,
                 async (node: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.removeObjectExplorerNode(
-                        node,
-                        true,
-                    );
+                    await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
                     return this._objectExplorerProvider.refresh(undefined);
                 },
             ),
@@ -1006,9 +885,8 @@ export default class MainController implements vscode.Disposable {
 
         if (this.isRichExperiencesEnabled) {
             this._context.subscriptions.push(
-                vscode.commands.registerCommand(
-                    Constants.cmdSchemaCompare,
-                    async (node: any) => this.onSchemaCompare(node),
+                vscode.commands.registerCommand(Constants.cmdSchemaCompare, async (node: any) =>
+                    this.onSchemaCompare(node),
                 ),
             );
 
@@ -1016,14 +894,13 @@ export default class MainController implements vscode.Disposable {
                 vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
                     async (node: TreeNodeInfo) => {
-                        const connDialog =
-                            new ConnectionDialogWebviewController(
-                                this._context,
-                                this._vscodeWrapper,
-                                this,
-                                this._objectExplorerProvider,
-                                node.connectionInfo,
-                            );
+                        const connDialog = new ConnectionDialogWebviewController(
+                            this._context,
+                            this._vscodeWrapper,
+                            this,
+                            this._objectExplorerProvider,
+                            node.connectionInfo,
+                        );
                         connDialog.revealToForeground();
                     },
                 ),
@@ -1031,29 +908,24 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
-                    Constants.cmdVisualizeSchema,
+                    Constants.cmdDesignSchema,
                     async (node: TreeNodeInfo) => {
-                        const uri = this.connectionManager.getUriForConnection(
+                        const connectionUri = this.connectionManager.getUriForConnection(
                             node.connectionInfo,
                         );
-                        const schema =
-                            await this.schemaDesignerService.getSchemaModel({
-                                connectionUri: uri,
-                                databaseName: node.metadata.name,
-                            });
 
-                        console.log(schema);
-
-                        const schemaDesignerWebvie =
-                            new SchemaDesignerWebviewController(
+                        const schemaDesigner =
+                            SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
                                 this._context,
                                 this._vscodeWrapper,
+                                this,
                                 this.schemaDesignerService,
+                                connectionUri,
                                 node.metadata.name,
-                                schema,
+                                node,
                             );
 
-                        schemaDesignerWebvie.revealToForeground();
+                        schemaDesigner.revealToForeground();
                     },
                 ),
             );
@@ -1104,15 +976,9 @@ export default class MainController implements vscode.Disposable {
                 );
                 if (filters) {
                     node.filters = filters;
-                    if (
-                        node.collapsibleState ===
-                        vscode.TreeItemCollapsibleState.Collapsed
-                    ) {
+                    if (node.collapsibleState === vscode.TreeItemCollapsibleState.Collapsed) {
                         await this._objectExplorerProvider.refreshNode(node);
-                    } else if (
-                        node.collapsibleState ===
-                        vscode.TreeItemCollapsibleState.Expanded
-                    ) {
+                    } else if (node.collapsibleState === vscode.TreeItemCollapsibleState.Expanded) {
                         await this._objectExplorerProvider.expandNode(
                             node,
                             node.sessionId,
@@ -1135,10 +1001,7 @@ export default class MainController implements vscode.Disposable {
             };
 
             this._context.subscriptions.push(
-                vscode.commands.registerCommand(
-                    Constants.cmdFilterNode,
-                    filterNode,
-                ),
+                vscode.commands.registerCommand(Constants.cmdFilterNode, filterNode),
             );
 
             this._context.subscriptions.push(
@@ -1180,7 +1043,7 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Select, true);
-                    await UserSurvey.getInstance().promptUserForNPSFeedback();
+                    UserSurvey.getInstance().promptUserForNPSFeedback();
                 },
             ),
         );
@@ -1189,8 +1052,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptCreate,
-                async (node: TreeNodeInfo) =>
-                    await this.scriptNode(node, ScriptOperation.Create),
+                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Create),
             ),
         );
 
@@ -1198,8 +1060,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptDelete,
-                async (node: TreeNodeInfo) =>
-                    await this.scriptNode(node, ScriptOperation.Delete),
+                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Delete),
             ),
         );
 
@@ -1207,8 +1068,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptExecute,
-                async (node: TreeNodeInfo) =>
-                    await this.scriptNode(node, ScriptOperation.Execute),
+                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Execute),
             ),
         );
 
@@ -1216,80 +1076,55 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptAlter,
-                async (node: TreeNodeInfo) =>
-                    await this.scriptNode(node, ScriptOperation.Alter),
+                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Alter),
             ),
         );
 
         // Copy object name command
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdCopyObjectName,
-                async () => {
-                    let node = this._objectExplorerProvider.currentNode;
-                    // Folder node
-                    if (node.context.type === Constants.folderLabel) {
-                        return;
-                    } else if (
-                        node.context.type === Constants.serverLabel ||
-                        node.context.type ===
-                            Constants.disconnectedServerNodeType
-                    ) {
-                        const label =
-                            typeof node.label === "string"
-                                ? node.label
-                                : node.label.label;
-                        await this._vscodeWrapper.clipboardWriteText(label);
-                    } else {
-                        let scriptingObject =
-                            this._scriptingService.getObjectFromNode(node);
-                        const escapedName = Utils.escapeClosingBrackets(
-                            scriptingObject.name,
+            vscode.commands.registerCommand(Constants.cmdCopyObjectName, async () => {
+                let node = this._objectExplorerProvider.currentNode;
+                // Folder node
+                if (node.context.type === Constants.folderLabel) {
+                    return;
+                } else if (
+                    node.context.type === Constants.serverLabel ||
+                    node.context.type === Constants.disconnectedServerNodeType
+                ) {
+                    const label = typeof node.label === "string" ? node.label : node.label.label;
+                    await this._vscodeWrapper.clipboardWriteText(label);
+                } else {
+                    let scriptingObject = this._scriptingService.getObjectFromNode(node);
+                    const escapedName = Utils.escapeClosingBrackets(scriptingObject.name);
+                    if (scriptingObject.schema) {
+                        let database = ObjectExplorerUtils.getDatabaseName(node);
+                        const databaseName = Utils.escapeClosingBrackets(database);
+                        const escapedSchema = Utils.escapeClosingBrackets(scriptingObject.schema);
+                        await this._vscodeWrapper.clipboardWriteText(
+                            `[${databaseName}].${escapedSchema}.[${escapedName}]`,
                         );
-                        if (scriptingObject.schema) {
-                            let database =
-                                ObjectExplorerUtils.getDatabaseName(node);
-                            const databaseName =
-                                Utils.escapeClosingBrackets(database);
-                            const escapedSchema = Utils.escapeClosingBrackets(
-                                scriptingObject.schema,
-                            );
-                            await this._vscodeWrapper.clipboardWriteText(
-                                `[${databaseName}].${escapedSchema}.[${escapedName}]`,
-                            );
-                        } else {
-                            await this._vscodeWrapper.clipboardWriteText(
-                                `[${escapedName}]`,
-                            );
-                        }
+                    } else {
+                        await this._vscodeWrapper.clipboardWriteText(`[${escapedName}]`);
                     }
-                },
-            ),
+                }
+            }),
         );
 
         // Reveal Query Results command
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdrevealQueryResultPanel,
-                () => {
-                    vscode.commands.executeCommand("queryResult.focus", {
-                        preserveFocus: true,
-                    });
-                },
-            ),
+            vscode.commands.registerCommand(Constants.cmdrevealQueryResultPanel, () => {
+                vscode.commands.executeCommand("queryResult.focus", {
+                    preserveFocus: true,
+                });
+            }),
         );
 
         // Query Results copy messages command
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdCopyAll,
-                async (context) => {
-                    const uri = context.uri;
-                    await this._queryResultWebviewController.copyAllMessagesToClipboard(
-                        uri,
-                    );
-                },
-            ),
+            vscode.commands.registerCommand(Constants.cmdCopyAll, async (context) => {
+                const uri = context.uri;
+                await this._queryResultWebviewController.copyAllMessagesToClipboard(uri);
+            }),
         );
     }
 
@@ -1297,12 +1132,8 @@ export default class MainController implements vscode.Disposable {
      * Initializes the Query History commands
      */
     private initializeQueryHistory(): void {
-        let config = this._vscodeWrapper.getConfiguration(
-            Constants.extensionConfigSectionName,
-        );
-        let queryHistoryFeature = config.get(
-            Constants.configEnableQueryHistoryFeature,
-        );
+        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let queryHistoryFeature = config.get(Constants.configEnableQueryHistoryFeature);
         // If the query history feature is enabled
         if (queryHistoryFeature && !this._queryHistoryRegistered) {
             // Register the query history tree provider
@@ -1316,10 +1147,7 @@ export default class MainController implements vscode.Disposable {
             );
 
             this._context.subscriptions.push(
-                vscode.window.registerTreeDataProvider(
-                    "queryHistory",
-                    this._queryHistoryProvider,
-                ),
+                vscode.window.registerTreeDataProvider("queryHistory", this._queryHistoryProvider),
             );
 
             // Command to refresh Query History
@@ -1336,16 +1164,9 @@ export default class MainController implements vscode.Disposable {
                         let queryHistoryCaptureEnabled = config.get(
                             Constants.configEnableQueryHistoryCapture,
                         );
-                        if (
-                            queryHistoryFeatureEnabled &&
-                            queryHistoryCaptureEnabled
-                        ) {
+                        if (queryHistoryFeatureEnabled && queryHistoryCaptureEnabled) {
                             const timeStamp = new Date();
-                            this._queryHistoryProvider.refresh(
-                                ownerUri,
-                                timeStamp,
-                                hasError,
-                            );
+                            this._queryHistoryProvider.refresh(ownerUri, timeStamp, hasError);
                         }
                     },
                 ),
@@ -1353,12 +1174,9 @@ export default class MainController implements vscode.Disposable {
 
             // Command to enable clear all entries in Query History
             this._context.subscriptions.push(
-                vscode.commands.registerCommand(
-                    Constants.cmdClearAllQueryHistory,
-                    () => {
-                        this._queryHistoryProvider.clearAll();
-                    },
-                ),
+                vscode.commands.registerCommand(Constants.cmdClearAllQueryHistory, () => {
+                    this._queryHistoryProvider.clearAll();
+                }),
             );
 
             // Command to enable delete an entry in Query History
@@ -1366,9 +1184,7 @@ export default class MainController implements vscode.Disposable {
                 vscode.commands.registerCommand(
                     Constants.cmdDeleteQueryHistory,
                     (node: QueryHistoryNode) => {
-                        this._queryHistoryProvider.deleteQueryHistoryEntry(
-                            node,
-                        );
+                        this._queryHistoryProvider.deleteQueryHistoryEntry(node);
                     },
                 ),
             );
@@ -1378,9 +1194,7 @@ export default class MainController implements vscode.Disposable {
                 vscode.commands.registerCommand(
                     Constants.cmdOpenQueryHistory,
                     async (node: QueryHistoryNode) => {
-                        await this._queryHistoryProvider.openQueryHistoryEntry(
-                            node,
-                        );
+                        await this._queryHistoryProvider.openQueryHistoryEntry(node);
                     },
                 ),
             );
@@ -1390,10 +1204,7 @@ export default class MainController implements vscode.Disposable {
                 vscode.commands.registerCommand(
                     Constants.cmdRunQueryHistory,
                     async (node: QueryHistoryNode) => {
-                        await this._queryHistoryProvider.openQueryHistoryEntry(
-                            node,
-                            true,
-                        );
+                        await this._queryHistoryProvider.openQueryHistoryEntry(node, true);
                     },
                 ),
             );
@@ -1446,20 +1257,11 @@ export default class MainController implements vscode.Disposable {
             isSqlCmd = false;
             const editor = this._vscodeWrapper.activeTextEditor;
             const title = path.basename(editor.document.fileName);
-            this._outputContentProvider.createQueryRunner(
-                this._statusview,
-                uri,
-                title,
-            );
+            this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
         }
-        await this._outputContentProvider.toggleSqlCmd(
-            this._vscodeWrapper.activeTextEditorUri,
-        );
+        await this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri);
         await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);
-        this._statusview.sqlCmdModeChanged(
-            this._vscodeWrapper.activeTextEditorUri,
-            !isSqlCmd,
-        );
+        this._statusview.sqlCmdModeChanged(this._vscodeWrapper.activeTextEditorUri, !isSqlCmd);
     }
 
     /**
@@ -1473,9 +1275,7 @@ export default class MainController implements vscode.Disposable {
             let uri = this._vscodeWrapper.activeTextEditorUri;
             this._outputContentProvider.cancelQuery(uri);
         } catch (err) {
-            console.warn(
-                `Unexpected error cancelling query : ${getErrorMessage(err)}`,
-            );
+            console.warn(`Unexpected error cancelling query : ${getErrorMessage(err)}`);
         }
     }
 
@@ -1500,9 +1300,7 @@ export default class MainController implements vscode.Disposable {
             if (fileUri && this._vscodeWrapper.isEditingSqlFile) {
                 void this._connectionMgr.onChooseLanguageFlavor();
             } else {
-                this._vscodeWrapper.showWarningMessage(
-                    LocalizedConstants.msgOpenSqlFile,
-                );
+                this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             }
         }
         return false;
@@ -1514,18 +1312,13 @@ export default class MainController implements vscode.Disposable {
     private async onDisconnect(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             let fileUri = this._vscodeWrapper.activeTextEditorUri;
-            let queryRunner =
-                this._outputContentProvider.getQueryRunner(fileUri);
+            let queryRunner = this._outputContentProvider.getQueryRunner(fileUri);
             if (queryRunner && queryRunner.isExecutingQuery) {
                 this._outputContentProvider.cancelQuery(fileUri);
             }
             const success = await this._connectionMgr.onDisconnect();
             if (success) {
-                vscode.commands.executeCommand(
-                    "setContext",
-                    "mssql.editorConnected",
-                    false,
-                );
+                vscode.commands.executeCommand("setContext", "mssql.editorConnected", false);
             }
             return success;
         }
@@ -1617,9 +1410,7 @@ export default class MainController implements vscode.Disposable {
                     },
                 );
             } else {
-                this._vscodeWrapper.showWarningMessage(
-                    LocalizedConstants.msgOpenSqlFile,
-                );
+                this._vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             }
         }
     }
@@ -1628,18 +1419,13 @@ export default class MainController implements vscode.Disposable {
      * Send completion extension load request to language service
      */
     public onLoadCompletionExtension(params: CompletionExtensionParams): void {
-        SqlToolsServerClient.instance.sendRequest(
-            CompletionExtLoadRequest.type,
-            params,
-        );
+        SqlToolsServerClient.instance.sendRequest(CompletionExtLoadRequest.type, params);
     }
 
     /**
      * execute the SQL statement for the current cursor position
      */
-    public async onRunCurrentStatement(
-        callbackThis?: MainController,
-    ): Promise<void> {
+    public async onRunCurrentStatement(callbackThis?: MainController): Promise<void> {
         // the 'this' context is lost in retry callback, so capture it here
         let self: MainController = callbackThis ? callbackThis : this;
         try {
@@ -1658,11 +1444,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             // check if we're connected and editing a SQL file
-            if (
-                await self.isRetryRequiredBeforeQuery(
-                    self.onRunCurrentStatement,
-                )
-            ) {
+            if (await self.isRetryRequiredBeforeQuery(self.onRunCurrentStatement)) {
                 return;
             }
 
@@ -1715,12 +1497,9 @@ export default class MainController implements vscode.Disposable {
 
             if (self._queryResultWebviewController) {
                 self._executionPlanOptions.includeActualExecutionPlanXml =
-                    self._queryResultWebviewController.actualPlanStatuses.includes(
-                        uri,
-                    );
+                    self._queryResultWebviewController.actualPlanStatuses.includes(uri);
             } else {
-                self._executionPlanOptions.includeActualExecutionPlanXml =
-                    false;
+                self._executionPlanOptions.includeActualExecutionPlanXml = false;
             }
 
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
@@ -1735,10 +1514,7 @@ export default class MainController implements vscode.Disposable {
             // create new connection
             if (!self.connectionManager.isConnected(uri)) {
                 await self.onNewConnection();
-                sendActionEvent(
-                    TelemetryViews.QueryEditor,
-                    TelemetryActions.CreateConnection,
-                );
+                sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
             }
             // check if current connection is still valid / active - if not, refresh azure account token
             await self._connectionMgr.refreshAzureAccountToken(uri);
@@ -1758,9 +1534,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             // Trim down the selection. If it is empty after selecting, then we don't execute
-            let selectionToTrim = editor.selection.isEmpty
-                ? undefined
-                : editor.selection;
+            let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
@@ -1783,21 +1557,14 @@ export default class MainController implements vscode.Disposable {
      * Check if the state is ready to execute a query and retry
      * the query execution method if needed
      */
-    public async isRetryRequiredBeforeQuery(
-        retryMethod: any,
-    ): Promise<boolean> {
+    public async isRetryRequiredBeforeQuery(retryMethod: any): Promise<boolean> {
         let self = this;
         let result: boolean = undefined;
         try {
             if (!self._vscodeWrapper.isEditingSqlFile) {
                 // Prompt the user to change the language mode to SQL before running a query
-                result =
-                    await self._connectionMgr.connectionUI.promptToChangeLanguageMode();
-            } else if (
-                !self._connectionMgr.isConnected(
-                    self._vscodeWrapper.activeTextEditorUri,
-                )
-            ) {
+                result = await self._connectionMgr.connectionUI.promptToChangeLanguageMode();
+            } else if (!self._connectionMgr.isConnected(self._vscodeWrapper.activeTextEditorUri)) {
                 result = await self.onNewConnection();
             }
             if (result) {
@@ -1808,9 +1575,7 @@ export default class MainController implements vscode.Disposable {
                 return false;
             }
         } catch (err) {
-            await self._vscodeWrapper.showErrorMessage(
-                LocalizedConstants.msgError + err,
-            );
+            await self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
         }
     }
 
@@ -1820,25 +1585,23 @@ export default class MainController implements vscode.Disposable {
     private runAndLogErrors<T>(promise: Promise<T>): Promise<T> {
         let self = this;
         return promise.catch((err) => {
-            self._vscodeWrapper.showErrorMessage(
-                LocalizedConstants.msgError + err,
-            );
+            self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
             return undefined;
         });
     }
 
     public onToggleActualPlan(isEnable: boolean): void {
         const uri = this._vscodeWrapper.activeTextEditorUri;
-        let actualPlanStatuses =
-            this._queryResultWebviewController.actualPlanStatuses;
+        let actualPlanStatuses = this._queryResultWebviewController.actualPlanStatuses;
 
         // adds the current uri to the list of uris with actual plan enabled
         // or removes the uri if the user is disabling it
         if (isEnable && !actualPlanStatuses.includes(uri)) {
             actualPlanStatuses.push(uri);
         } else {
-            this._queryResultWebviewController.actualPlanStatuses =
-                actualPlanStatuses.filter((statusUri) => statusUri != uri);
+            this._queryResultWebviewController.actualPlanStatuses = actualPlanStatuses.filter(
+                (statusUri) => statusUri != uri,
+            );
         }
 
         // sets the vscode context variable associated with the
@@ -1862,9 +1625,7 @@ export default class MainController implements vscode.Disposable {
         this._connectionMgr = connectionManager;
     }
 
-    public set untitledSqlDocumentService(
-        untitledSqlDocumentService: UntitledSqlDocumentService,
-    ) {
+    public set untitledSqlDocumentService(untitledSqlDocumentService: UntitledSqlDocumentService) {
         this._untitledSqlDocumentService = untitledSqlDocumentService;
     }
 
@@ -1912,9 +1673,7 @@ export default class MainController implements vscode.Disposable {
         return !(
             this._vscodeWrapper
                 .getConfiguration()
-                .get<boolean>(
-                    Constants.configEnableRichExperiencesDoNotShowPrompt,
-                ) ||
+                .get<boolean>(Constants.configEnableRichExperiencesDoNotShowPrompt) ||
             this._vscodeWrapper
                 .getConfiguration()
                 .get<boolean>(Constants.configEnableRichExperiences)
@@ -1930,9 +1689,7 @@ export default class MainController implements vscode.Disposable {
         }
 
         const response = await this._vscodeWrapper.showInformationMessage(
-            LocalizedConstants.enableRichExperiencesPrompt(
-                Constants.richFeaturesLearnMoreLink,
-            ),
+            LocalizedConstants.enableRichExperiencesPrompt(Constants.richFeaturesLearnMoreLink),
             LocalizedConstants.enableRichExperiences,
             LocalizedConstants.Common.dontShowAgain,
         );
@@ -1950,20 +1707,14 @@ export default class MainController implements vscode.Disposable {
                 telemResponse = "dismissed";
         }
 
-        sendActionEvent(
-            TelemetryViews.General,
-            TelemetryActions.EnableRichExperiencesPrompt,
-            {
-                response: telemResponse,
-            },
-        );
+        sendActionEvent(TelemetryViews.General, TelemetryActions.EnableRichExperiencesPrompt, {
+            response: telemResponse,
+        });
 
         this.doesExtensionLaunchedFileExist(); // create the "extensionLaunched" file since this takes the place of the release notes prompt
 
         if (response === LocalizedConstants.enableRichExperiences) {
-            await vscode.commands.executeCommand(
-                Constants.cmdEnableRichExperiencesCommand,
-            );
+            await vscode.commands.executeCommand(Constants.cmdEnableRichExperiencesCommand);
         } else if (response === LocalizedConstants.Common.dontShowAgain) {
             await this._vscodeWrapper
                 .getConfiguration()
@@ -2002,31 +1753,23 @@ export default class MainController implements vscode.Disposable {
      * Shows the release notes page in the preview browser
      */
     private async launchReleaseNotesPage(): Promise<void> {
-        await vscode.env.openExternal(
-            vscode.Uri.parse(Constants.changelogLink),
-        );
+        await vscode.env.openExternal(vscode.Uri.parse(Constants.changelogLink));
     }
 
     /**
      * Shows the Getting Started page in the preview browser
      */
     private async launchGettingStartedPage(): Promise<void> {
-        await vscode.env.openExternal(
-            vscode.Uri.parse(Constants.gettingStartedGuideLink),
-        );
+        await vscode.env.openExternal(vscode.Uri.parse(Constants.gettingStartedGuideLink));
     }
 
     /**
      * Opens a new query and creates new connection
      */
-    public async onNewQuery(
-        node?: TreeNodeInfo,
-        content?: string,
-    ): Promise<boolean> {
+    public async onNewQuery(node?: TreeNodeInfo, content?: string): Promise<boolean> {
         if (this.canRunCommand()) {
             // from the object explorer context menu
-            const editor =
-                await this._untitledSqlDocumentService.newQuery(content);
+            const editor = await this._untitledSqlDocumentService.newQuery(content);
             const uri = editor.document.uri.toString(true);
             if (node) {
                 // connect to the node if the command came from the context
@@ -2036,10 +1779,7 @@ export default class MainController implements vscode.Disposable {
                     // connect it first
                     await this.createObjectExplorerSession(node.connectionInfo);
                 }
-                this._statusview.languageFlavorChanged(
-                    uri,
-                    Constants.mssqlProviderName,
-                );
+                this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
                 // connection string based credential
                 if (connectionCreds.connectionString) {
                     if ((connectionCreds as IConnectionProfile).savePassword) {
@@ -2092,7 +1832,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     public async onSchemaCompare(node: any): Promise<void> {
-        const result = await this.schemaCompareService.getDefaultOptions();
+        const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
             this._vscodeWrapper,
@@ -2137,14 +1877,8 @@ export default class MainController implements vscode.Disposable {
      * or a renamed file
      * @param doc The document that was closed
      */
-    public async onDidCloseTextDocument(
-        doc: vscode.TextDocument,
-    ): Promise<void> {
-        if (
-            this._connectionMgr === undefined ||
-            doc === undefined ||
-            doc.uri === undefined
-        ) {
+    public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
+        if (this._connectionMgr === undefined || doc === undefined || doc.uri === undefined) {
             // Avoid processing events before initialization is complete
             return;
         }
@@ -2167,20 +1901,15 @@ export default class MainController implements vscode.Disposable {
         if (
             this._lastSavedUri &&
             closedDocumentUriScheme === LocalizedConstants.untitledScheme &&
-            this._lastSavedTimer.getDuration() <
-                Constants.untitledSaveTimeThreshold
+            this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold
         ) {
             // Untitled file was saved and connection will be transfered
-            await this._connectionMgr.transferFileConnection(
-                closedDocumentUri,
-                this._lastSavedUri,
-            );
+            await this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastSavedUri);
 
             // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
         } else if (
             this._lastOpenedUri &&
-            this._lastOpenedTimer.getDuration() <
-                Constants.renamedOpenTimeThreshold
+            this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold
         ) {
             // File was renamed and connection will be transfered
             await this._connectionMgr.transferFileConnection(
@@ -2195,11 +1924,7 @@ export default class MainController implements vscode.Disposable {
 
         // clean up: if a document is closed with actual plan enabled, remove it
         // from our status list
-        if (
-            this._queryResultWebviewController.actualPlanStatuses.includes(
-                closedDocumentUri,
-            )
-        ) {
+        if (this._queryResultWebviewController.actualPlanStatuses.includes(closedDocumentUri)) {
             this._queryResultWebviewController.actualPlanStatuses.filter(
                 (uri) => uri != closedDocumentUri,
             );
@@ -2286,9 +2011,7 @@ export default class MainController implements vscode.Disposable {
      * Called by VS Code when user settings are changed
      * @param ConfigurationChangeEvent event that is fired when config is changed
      */
-    public async onDidChangeConfiguration(
-        e: vscode.ConfigurationChangeEvent,
-    ): Promise<void> {
+    public async onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): Promise<void> {
         if (e.affectsConfiguration(Constants.extensionName)) {
             // Query History settings change
             this.onChangeQueryHistoryConfig();
@@ -2298,45 +2021,34 @@ export default class MainController implements vscode.Disposable {
             // user connections is a super set of object explorer connections
             // read the connections from glocal settings and workspace settings.
             let userConnections: any[] =
-                this.connectionManager.connectionStore.connectionConfig.getConnections(
-                    true,
-                );
-            let objectExplorerConnections =
-                this._objectExplorerProvider.rootNodeConnections;
+                await this.connectionManager.connectionStore.connectionConfig.getConnections(true);
+            let objectExplorerConnections = this._objectExplorerProvider.rootNodeConnections;
 
             // if a connection(s) was/were manually removed
-            let staleConnections = objectExplorerConnections.filter(
-                (oeConn) => {
-                    return !userConnections.some((userConn) =>
-                        Utils.isSameConnectionInfo(oeConn, userConn),
-                    );
-                },
-            );
+            let staleConnections = objectExplorerConnections.filter((oeConn) => {
+                return !userConnections.some((userConn) =>
+                    Utils.isSameConnectionInfo(oeConn, userConn),
+                );
+            });
             // disconnect that/those connection(s) and then
             // remove its/their credentials from the credential store
             // and MRU
             for (let conn of staleConnections) {
                 let profile = <IConnectionProfile>conn;
                 if (this.connectionManager.isActiveConnection(conn)) {
-                    const uri =
-                        this.connectionManager.getUriForConnection(conn);
+                    const uri = this.connectionManager.getUriForConnection(conn);
                     await this.connectionManager.disconnect(uri);
                 }
-                await this.connectionManager.connectionStore.removeRecentlyUsed(
-                    profile,
-                );
+                await this.connectionManager.connectionStore.removeRecentlyUsed(profile);
                 if (
-                    profile.authenticationType ===
-                        Constants.sqlAuthentication &&
+                    profile.authenticationType === Constants.sqlAuthentication &&
                     profile.savePassword
                 ) {
                     await this.connectionManager.deleteCredential(profile);
                 }
             }
             // remove them from object explorer
-            await this._objectExplorerProvider.removeConnectionNodes(
-                staleConnections,
-            );
+            await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
             needsRefresh = staleConnections.length > 0;
 
             // if a connection(s) was/were manually added
@@ -2349,10 +2061,7 @@ export default class MainController implements vscode.Disposable {
                 // if a connection is not connected
                 // that means it was added manually
                 const newConnectionProfile = <IConnectionProfile>conn;
-                const uri =
-                    ObjectExplorerUtils.getNodeUriFromProfile(
-                        newConnectionProfile,
-                    );
+                const uri = ObjectExplorerUtils.getNodeUriFromProfile(newConnectionProfile);
                 if (
                     !this.connectionManager.isActiveConnection(conn) &&
                     !this.connectionManager.isConnecting(uri)
@@ -2365,26 +2074,18 @@ export default class MainController implements vscode.Disposable {
 
             await this.sanitizeConnectionProfiles();
 
-            if (
-                e.affectsConfiguration(
-                    Constants.cmdObjectExplorerGroupBySchemaFlagName,
-                )
-            ) {
+            if (e.affectsConfiguration(Constants.cmdObjectExplorerGroupBySchemaFlagName)) {
                 let errorFoundWhileRefreshing = false;
-                (await this._objectExplorerProvider.getChildren()).forEach(
-                    (n: TreeNodeInfo) => {
-                        try {
-                            void this._objectExplorerProvider.refreshNode(n);
-                        } catch (e) {
-                            errorFoundWhileRefreshing = true;
-                            this._connectionMgr.client.logger.error(e);
-                        }
-                    },
-                );
+                (await this._objectExplorerProvider.getChildren()).forEach((n: TreeNodeInfo) => {
+                    try {
+                        void this._objectExplorerProvider.refreshNode(n);
+                    } catch (e) {
+                        errorFoundWhileRefreshing = true;
+                        this._connectionMgr.client.logger.error(e);
+                    }
+                });
                 if (errorFoundWhileRefreshing) {
-                    Utils.showErrorMsg(
-                        LocalizedConstants.objectExplorerNodeRefreshError,
-                    );
+                    Utils.showErrorMsg(LocalizedConstants.objectExplorerNodeRefreshError);
                 }
             }
 
@@ -2403,14 +2104,8 @@ export default class MainController implements vscode.Disposable {
                 Constants.configEnableRichExperiences,
             ];
 
-            if (
-                configSettingsRequiringReload.some((setting) =>
-                    e.affectsConfiguration(setting),
-                )
-            ) {
-                await this.displayReloadMessage(
-                    LocalizedConstants.reloadPromptGeneric,
-                );
+            if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {
+                await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
             }
         }
     }
@@ -2436,9 +2131,7 @@ export default class MainController implements vscode.Disposable {
             LocalizedConstants.reloadChoice,
         );
         if (result === LocalizedConstants.reloadChoice) {
-            await vscode.commands.executeCommand(
-                "workbench.action.reloadWindow",
-            );
+            await vscode.commands.executeCommand("workbench.action.reloadWindow");
             return true;
         } else {
             return false;
@@ -2457,9 +2150,7 @@ export default class MainController implements vscode.Disposable {
         this.connectionManager.onClearTokenCache();
     }
 
-    private ExecutionPlanCustomEditorProvider = class
-        implements vscode.CustomTextEditorProvider
-    {
+    private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {
         constructor(
             public context: vscode.ExtensionContext,
             public vscodeWrapper: VscodeWrapper,
@@ -2471,9 +2162,7 @@ export default class MainController implements vscode.Disposable {
             this.untitledSqlService = untitledSqlService;
         }
 
-        public async resolveCustomTextEditor(
-            document: vscode.TextDocument,
-        ): Promise<void> {
+        public async resolveCustomTextEditor(document: vscode.TextDocument): Promise<void> {
             await this.onOpenExecutionPlanFile(document);
         }
 
@@ -2482,9 +2171,7 @@ export default class MainController implements vscode.Disposable {
             let docName = document.fileName;
             docName = docName.substring(docName.lastIndexOf(path.sep) + 1);
 
-            vscode.commands.executeCommand(
-                "workbench.action.closeActiveEditor",
-            );
+            vscode.commands.executeCommand("workbench.action.closeActiveEditor");
 
             const executionPlanController = new ExecutionPlanWebviewController(
                 this.context,

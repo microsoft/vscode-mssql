@@ -1,0 +1,97 @@
+.react-flow {
+    /* Edge styling */
+    --xy-edge-stroke-default: var(--vscode-editor-foreground);
+    --xy-edge-stroke-width-default: 1;
+    --xy-edge-stroke-selected-default: var(--vscode-focusBorder);
+    --xy-connectionline-stroke-default: var(--vscode-editor-foreground);
+    --xy-connectionline-stroke-width-default: 1;
+
+    /* Minimap styling */
+    --xy-attribution-background-color-default: var(--vscode-editor-background);
+    --xy-minimap-background-color-default: var(--vscode-editor-background);
+    --xy-minimap-mask-background-color-default: rgba(60, 60, 60, 0.6);
+    --xy-minimap-mask-stroke-color-default: var(--vscode-editor-foreground);
+    --xy-minimap-mask-stroke-width-default: 1;
+    --xy-minimap-node-background-color-default: var(--vscode-editor-selectionBackground);
+    --xy-minimap-node-stroke-color-default: var(--vscode-editor-foreground);
+    --xy-minimap-node-stroke-width-default: 1;
+
+    /* Background styling */
+    --xy-background-color-default: var(--vscode-editor-background);
+    --xy-background-pattern-dots-color-default: var(--vscode-badge-background);
+    --xy-background-pattern-lines-color-default: var(--vscode-badge-background);
+    --xy-background-pattern-cross-color-default: var(--vscode-badge-background);
+
+    /* Node styling */
+    --xy-node-color-default: var(--vscode-editor-foreground);
+    --xy-node-border-default: 1px solid var(--vscode-badge-background);
+    --xy-node-background-color-default: var(--vscode-editor-background);
+    --xy-node-group-background-color-default: var(--vscode-editorWidget-background);
+    --xy-node-boxshadow-hover-default: 0 1px 4px 1px rgba(0, 0, 0, 0.3);
+    --xy-node-boxshadow-selected-default: 0 0 0 2px var(--vscode-focusBorder);
+
+    /* Handle styling */
+    --xy-handle-background-color-default: var(--vscode-focusBorder);
+    --xy-handle-border-color-default: var(--vscode-editor-background);
+
+    /* Selection styling */
+    --xy-selection-background-color-default: rgba(
+        38,
+        79,
+        120,
+        0.25
+    ); /* Similar to hover highlight */
+    --xy-selection-border-default: 1px dotted var(--vscode-focusBorder);
+
+    /* Controls styling */
+    --xy-controls-button-background-color-default: var(--vscode-editorWidget-background);
+    --xy-controls-button-background-color-hover-default: var(--vscode-toolbar-hoverBackground);
+    --xy-controls-button-color-default: var(--vscode-editor-foreground);
+    --xy-controls-button-color-hover-default: var(--vscode-editor-foreground);
+    --xy-controls-button-border-color-default: var(--vscode-editorWidget-border);
+    --xy-controls-box-shadow-default: var(--vscode-widget-shadow);
+
+    /* Edge label styling */
+    --xy-edge-label-background-color-default: var(--vscode-editorWidget-background);
+    --xy-edge-label-color-default: var(--vscode-editor-foreground);
+}
+
+div.react-flow__node.react-flow__node-tableNode > div {
+    border: 1px solid var(--vscode-foreground);
+}
+
+div.react-flow__node.react-flow__node-tableNode:focus > div {
+    border: 1px solid var(--vscode-focusBorder);
+}
+
+div.react-flow__node.react-flow__node-tableNode.selected > div {
+    border: 1px solid var(--vscode-focusBorder);
+}
+
+div.react-flow__node.react-flow__node-tableNode .column {
+    padding: 0 5px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    font-weight: 400;
+    font-size: 12px;
+    position: relative;
+}
+
+div.react-flow__node.react-flow__node-tableNode .column:hover {
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.react-flow__node-tableNode .column .react-flow__handle {
+    opacity: 0;
+    width: 10px;
+    height: 10px;
+}
+
+.react-flow__node-tableNode .column .react-flow__handle.connectingto.valid,
+.react-flow__node-tableNode .column .react-flow__handle.connectingfrom,
+.react-flow__node-tableNode .column:hover .react-flow__handle {
+    opacity: 1;
+}

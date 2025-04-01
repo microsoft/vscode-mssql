@@ -98,14 +98,11 @@ export const UserSurveyPage = () => {
             <h2
                 style={{
                     marginBottom: "30px",
-                }}
-            >
+                }}>
                 {userSurveryProvider.state.title ??
                     locConstants.userFeedback.microsoftWouldLikeYourFeedback}
             </h2>
-            {userSurveryProvider.state.subtitle && (
-                <p>{userSurveryProvider.state.subtitle}</p>
-            )}
+            {userSurveryProvider.state.subtitle && <p>{userSurveryProvider.state.subtitle}</p>}
 
             {userSurveryProvider.state.questions.map((question, index) => {
                 switch (question.type) {
@@ -144,23 +141,19 @@ export const UserSurveyPage = () => {
                     <Button
                         appearance="primary"
                         disabled={isSubmitDisabled}
-                        onClick={() => userSurveryProvider.submit(userAnswers)}
-                    >
+                        onClick={() => userSurveryProvider.submit(userAnswers)}>
                         {userSurveryProvider.state.submitButtonText ??
                             locConstants.userFeedback.submit}
                     </Button>
                     <Button onClick={() => userSurveryProvider.cancel()}>
-                        {userSurveryProvider.state.cancelButtonText ??
-                            locConstants.common.cancel}
+                        {userSurveryProvider.state.cancelButtonText ?? locConstants.common.cancel}
                     </Button>
                 </div>
             </div>
             <div className={classes.privacyDisclaimer}>
                 <Popover inline openOnHover positioning={{ coverTarget: true }}>
                     <PopoverTrigger>
-                        <p>
-                            {locConstants.userFeedback.feedbackStatementShort}
-                        </p>
+                        <p>{locConstants.userFeedback.feedbackStatementShort}</p>
                     </PopoverTrigger>
                     <PopoverSurface>
                         <div style={{ width: "600px" }}>
@@ -171,8 +164,7 @@ export const UserSurveyPage = () => {
                 <Link
                     onClick={() => {
                         userSurveryProvider.openPrivacyStatement();
-                    }}
-                >
+                    }}>
                     {locConstants.userFeedback.privacyStatement}
                 </Link>
             </div>
@@ -185,10 +177,7 @@ export interface QuestionProps<T> {
     onChange: (data: string | number) => void;
 }
 
-export const NSATQuestion = ({
-    question,
-    onChange,
-}: QuestionProps<NsatQuestion>) => {
+export const NSATQuestion = ({ question, onChange }: QuestionProps<NsatQuestion>) => {
     const userSurveryProvider = useContext(UserSurveyContext);
     if (!userSurveryProvider) {
         return undefined;
@@ -198,41 +187,23 @@ export const NSATQuestion = ({
             label={
                 <Text weight="bold">
                     {question.label ??
-                        locConstants.userFeedback
-                            .overallHowSatisfiedAreYouWithMSSQLExtension}
+                        locConstants.userFeedback.overallHowSatisfiedAreYouWithMSSQLExtension}
                 </Text>
             }
-            required={question.required ?? false}
-        >
+            required={question.required ?? false}>
             <RadioGroup
                 layout="horizontal-stacked"
-                onChange={(_e, d) => onChange(parseInt(d.value))}
-            >
-                <Radio
-                    value={"0"}
-                    label={locConstants.userFeedback.veryDissatisfied}
-                />
-                <Radio
-                    value={"1"}
-                    label={locConstants.userFeedback.dissatisfied}
-                />
-                <Radio
-                    value={"2"}
-                    label={locConstants.userFeedback.satisfied}
-                />
-                <Radio
-                    value={"3"}
-                    label={locConstants.userFeedback.verySatisfied}
-                />
+                onChange={(_e, d) => onChange(parseInt(d.value))}>
+                <Radio value={"0"} label={locConstants.userFeedback.veryDissatisfied} />
+                <Radio value={"1"} label={locConstants.userFeedback.dissatisfied} />
+                <Radio value={"2"} label={locConstants.userFeedback.satisfied} />
+                <Radio value={"3"} label={locConstants.userFeedback.verySatisfied} />
             </RadioGroup>
         </Field>
     );
 };
 
-export const NPSQuestion = ({
-    question,
-    onChange,
-}: QuestionProps<NpsQuestion>) => {
+export const NPSQuestion = ({ question, onChange }: QuestionProps<NpsQuestion>) => {
     const userSurveryProvider = useContext(UserSurveyContext);
     if (!userSurveryProvider) {
         return undefined;
@@ -243,12 +214,10 @@ export const NPSQuestion = ({
             required={question.required ?? false}
             style={{
                 marginBottom: "25px",
-            }}
-        >
+            }}>
             <RadioGroup
                 layout="horizontal-stacked"
-                onChange={(_e, d) => onChange(parseInt(d.value))}
-            >
+                onChange={(_e, d) => onChange(parseInt(d.value))}>
                 <Radio
                     value={"0"}
                     label={
@@ -257,8 +226,7 @@ export const NPSQuestion = ({
                                 position: "relative",
                                 display: "flex",
                                 flexDirection: "column",
-                            }}
-                        >
+                            }}>
                             {"0"}
                             <br />
                             <Text
@@ -269,8 +237,7 @@ export const NPSQuestion = ({
                                     left: "0px",
                                     fontSize: "10px",
                                 }}
-                                size={200}
-                            >
+                                size={200}>
                                 {locConstants.userFeedback.notLikelyAtAll}
                             </Text>
                         </div>
@@ -293,8 +260,7 @@ export const NPSQuestion = ({
                                 position: "relative",
                                 display: "flex",
                                 flexDirection: "column",
-                            }}
-                        >
+                            }}>
                             {"10"}
                             <br />
                             <Text
@@ -305,8 +271,7 @@ export const NPSQuestion = ({
                                     right: "0px",
                                     fontSize: "10px",
                                 }}
-                                size={200}
-                            >
+                                size={200}>
                                 {locConstants.userFeedback.extremelyLikely}
                             </Text>
                         </div>
@@ -317,10 +282,7 @@ export const NPSQuestion = ({
     );
 };
 
-export const TextAreaQuestion = ({
-    question,
-    onChange,
-}: QuestionProps<TextareaQuestion>) => {
+export const TextAreaQuestion = ({ question, onChange }: QuestionProps<TextareaQuestion>) => {
     const userSurveryProvider = useContext(UserSurveyContext);
     if (!userSurveryProvider) {
         return undefined;
@@ -329,12 +291,8 @@ export const TextAreaQuestion = ({
         <Field
             required={question.required ?? false}
             label={<Text weight="bold">{question.label}</Text>}
-            hint={question.placeholder}
-        >
-            <Textarea
-                onChange={(_e, data) => onChange(data.value)}
-                resize="vertical"
-            />
+            hint={question.placeholder}>
+            <Textarea onChange={(_e, data) => onChange(data.value)} resize="vertical" />
         </Field>
     );
 };

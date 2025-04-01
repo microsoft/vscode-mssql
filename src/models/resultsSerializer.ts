@@ -172,10 +172,7 @@ export default class ResultsSerializer {
     public isSelected(selection: Interfaces.ISlickRange): boolean {
         return (
             selection &&
-            !(
-                selection.fromCell === selection.toCell &&
-                selection.fromRow === selection.toRow
-            )
+            !(selection.fromCell === selection.toCell && selection.fromRow === selection.toRow)
         );
     }
 
@@ -211,9 +208,7 @@ export default class ResultsSerializer {
             type = Contracts.SaveResultsAsExcelRequest.type;
         }
 
-        self._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgSaveStarted + this._filePath,
-        );
+        self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveStarted + this._filePath);
 
         // send message to the sqlserverclient for converting results to the requested format and saving to filepath
         return self._client.sendRequest(type, saveResultsParams).then(

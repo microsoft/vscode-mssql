@@ -79,9 +79,7 @@ export class LinuxDistribution {
         // at https://www.freedesktop.org/software/systemd/man/os-release.html.
         return LinuxDistribution.fromFilePath("/etc/os-release")
             .catch(() => LinuxDistribution.fromFilePath("/usr/lib/os-release"))
-            .catch(() =>
-                Promise.resolve(new LinuxDistribution(unknown, unknown)),
-            );
+            .catch(() => Promise.resolve(new LinuxDistribution(unknown, unknown)));
     }
 
     public toString(): string {
@@ -100,10 +98,7 @@ export class LinuxDistribution {
         });
     }
 
-    public static fromReleaseInfo(
-        releaseInfo: string,
-        eol: string = os.EOL,
-    ): LinuxDistribution {
+    public static fromReleaseInfo(releaseInfo: string, eol: string = os.EOL): LinuxDistribution {
         let name = unknown;
         let version = unknown;
         let idLike: string[] = undefined;
@@ -118,17 +113,9 @@ export class LinuxDistribution {
                 let value = line.substring(equalsIndex + 1);
 
                 // Strip quotes if necessary
-                if (
-                    value.length > 1 &&
-                    value.startsWith('"') &&
-                    value.endsWith('"')
-                ) {
+                if (value.length > 1 && value.startsWith('"') && value.endsWith('"')) {
                     value = value.substring(1, value.length - 1);
-                } else if (
-                    value.length > 1 &&
-                    value.startsWith("'") &&
-                    value.endsWith("'")
-                ) {
+                } else if (value.length > 1 && value.startsWith("'") && value.endsWith("'")) {
                     value = value.substring(1, value.length - 1);
                 }
 
@@ -140,11 +127,7 @@ export class LinuxDistribution {
                     idLike = value.split(" ");
                 }
 
-                if (
-                    name !== unknown &&
-                    version !== unknown &&
-                    idLike !== undefined
-                ) {
+                if (name !== unknown && version !== unknown && idLike !== undefined) {
                     break;
                 }
             }
@@ -162,11 +145,7 @@ export class PlatformInformation {
         public distribution: LinuxDistribution = undefined,
     ) {
         try {
-            this.runtimeId = PlatformInformation.getRuntimeId(
-                platform,
-                architecture,
-                distribution,
-            );
+            this.runtimeId = PlatformInformation.getRuntimeId(platform, architecture, distribution);
         } catch (err) {
             this.runtimeId = undefined;
         }
@@ -185,10 +164,7 @@ export class PlatformInformation {
     }
 
     public get isValidRuntime(): boolean {
-        return (
-            this.runtimeId !== undefined &&
-            this.runtimeId !== Runtime.UnknownRuntime
-        );
+        return this.runtimeId !== undefined && this.runtimeId !== Runtime.UnknownRuntime;
     }
 
     public getRuntimeDisplayName(): string {
@@ -199,10 +175,7 @@ export class PlatformInformation {
         if (this.isMacOS) {
             try {
                 let versionInfo = plist.parse(
-                    fs.readFileSync(
-                        "/System/Library/CoreServices/SystemVersion.plist",
-                        "utf-8",
-                    ),
+                    fs.readFileSync("/System/Library/CoreServices/SystemVersion.plist", "utf-8"),
                 );
                 if (
                     versionInfo &&
@@ -247,8 +220,7 @@ export class PlatformInformation {
 
         switch (platform) {
             case "win32":
-                architecturePromise =
-                    PlatformInformation.getWindowsArchitecture();
+                architecturePromise = PlatformInformation.getWindowsArchitecture();
                 distributionPromise = Promise.resolve(undefined);
                 break;
 
@@ -289,15 +261,13 @@ export class PlatformInformation {
     }
 
     private static getUnixArchitecture(): Promise<string> {
-        return PlatformInformation.execChildProcess("uname -m").then(
-            (architecture) => {
-                if (architecture) {
-                    return architecture.trim();
-                }
+        return PlatformInformation.execChildProcess("uname -m").then((architecture) => {
+            if (architecture) {
+                return architecture.trim();
+            }
 
-                return undefined;
-            },
-        );
+            return undefined;
+        });
     }
 
     private static execChildProcess(process: string): Promise<string> {
@@ -346,9 +316,7 @@ export class PlatformInformation {
                     default:
                 }
 
-                throw new Error(
-                    `Unsupported Windows architecture: ${architecture}`,
-                );
+                throw new Error(`Unsupported Windows architecture: ${architecture}`);
 
             case "darwin":
                 switch (architecture) {
@@ -360,9 +328,7 @@ export class PlatformInformation {
                     default:
                 }
 
-                throw new Error(
-                    `Unsupported macOS architecture: ${architecture}`,
-                );
+                throw new Error(`Unsupported macOS architecture: ${architecture}`);
 
             case "linux":
                 if (architecture === "x86_64") {
@@ -441,10 +407,7 @@ export class PlatformInformation {
 
                 break;
             case "linuxmint":
-                if (
-                    distributionVersion.startsWith("18") ||
-                    distributionVersion.startsWith("19")
-                ) {
+                if (distributionVersion.startsWith("18") || distributionVersion.startsWith("19")) {
                     // Linux Mint 18 is binary compatible with Ubuntu 16.04
                     return Runtime.Ubuntu_16;
                 }

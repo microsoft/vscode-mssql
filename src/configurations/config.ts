@@ -29,38 +29,28 @@ export default class Config implements IConfig {
     }
 
     public getSqlToolsServiceDownloadUrl(): string {
-        return this.getSqlToolsConfigValue(
-            Constants.sqlToolsServiceDownloadUrlConfigKey,
-        );
+        return this.getSqlToolsConfigValue(Constants.sqlToolsServiceDownloadUrlConfigKey);
     }
 
     public getSqlToolsInstallDirectory(): string {
-        return this.getSqlToolsConfigValue(
-            Constants.sqlToolsServiceInstallDirConfigKey,
-        );
+        return this.getSqlToolsConfigValue(Constants.sqlToolsServiceInstallDirConfigKey);
     }
 
     public getSqlToolsExecutableFiles(): string[] {
-        return this.getSqlToolsConfigValue(
-            Constants.sqlToolsServiceExecutableFilesConfigKey,
-        );
+        return this.getSqlToolsConfigValue(Constants.sqlToolsServiceExecutableFilesConfigKey);
     }
 
     public getSqlToolsPackageVersion(): string {
-        return this.getSqlToolsConfigValue(
-            Constants.sqlToolsServiceVersionConfigKey,
-        );
+        return this.getSqlToolsConfigValue(Constants.sqlToolsServiceVersionConfigKey);
     }
 
     public useServiceVersion(version: number): void {
         switch (version) {
             case 1:
-                this._sqlToolsServiceConfigKey =
-                    Constants.v1SqlToolsServiceConfigKey;
+                this._sqlToolsServiceConfigKey = Constants.v1SqlToolsServiceConfigKey;
                 break;
             default:
-                this._sqlToolsServiceConfigKey =
-                    Constants.sqlToolsServiceConfigKey;
+                this._sqlToolsServiceConfigKey = Constants.sqlToolsServiceConfigKey;
         }
         this.version = version;
     }
@@ -99,9 +89,7 @@ export default class Config implements IConfig {
     }
 
     private loadConfig(): any {
-        let configContent = fs.readFileSync(
-            path.join(__dirname, "../config.json"),
-        );
+        let configContent = fs.readFileSync(path.join(__dirname, "../config.json"));
         return JSON.parse(configContent.toString());
     }
 }

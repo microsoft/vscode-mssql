@@ -5,10 +5,7 @@
 
 import * as qr from "../../../sharedInterfaces/queryResult";
 
-import {
-    useVscodeWebview,
-    WebviewContextProps,
-} from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview, WebviewContextProps } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
 
@@ -16,21 +13,14 @@ export interface QueryResultContextProps
     extends WebviewContextProps<qr.QueryResultWebviewState>,
         qr.QueryResultReactProvider {}
 
-const QueryResultContext = createContext<QueryResultContextProps | undefined>(
-    undefined,
-);
+const QueryResultContext = createContext<QueryResultContextProps | undefined>(undefined);
 
 interface QueryResultProviderProps {
     children: ReactNode;
 }
 
-const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({
-    children,
-}) => {
-    const webViewState = useVscodeWebview<
-        qr.QueryResultWebviewState,
-        qr.QueryResultReducers
-    >();
+const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children }) => {
+    const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
     // const queryResultState = webViewState?.state as qr.QueryResultWebviewState;
     return (
         <QueryResultContext.Provider
@@ -46,10 +36,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({
                         uri: uri,
                     });
                 },
-                openFileThroughLink: function (
-                    content: string,
-                    type: string,
-                ): void {
+                openFileThroughLink: function (content: string, type: string): void {
                     webViewState?.extensionRpc.action("openFileThroughLink", {
                         content: content,
                         type: type,
@@ -78,8 +65,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({
 
                 state: webViewState?.state as qr.QueryResultWebviewState,
                 themeKind: webViewState?.themeKind,
-            }}
-        >
+            }}>
             {children}
         </QueryResultContext.Provider>
     );

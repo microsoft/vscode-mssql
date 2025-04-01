@@ -24,12 +24,7 @@ import {
     IToken,
 } from "../models/contracts/azure";
 import { Logger } from "../models/logger";
-import {
-    INameValueChoice,
-    IPrompter,
-    IQuestion,
-    QuestionTypes,
-} from "../prompts/question";
+import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { AccountStore } from "./accountStore";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
 
@@ -72,9 +67,7 @@ export abstract class AzureController {
 
     public abstract loadTokenCache(): Promise<void>;
 
-    public abstract login(
-        authType: AzureAuthType,
-    ): Promise<IAccount | undefined>;
+    public abstract login(authType: AzureAuthType): Promise<IAccount | undefined>;
 
     public abstract populateAccountProperties(
         profile: ConnectionProfile,
@@ -107,9 +100,7 @@ export abstract class AzureController {
         return this._isSqlAuthProviderEnabled;
     }
 
-    public async addAccount(
-        accountStore: AccountStore,
-    ): Promise<IAccount | undefined> {
+    public async addAccount(accountStore: AccountStore): Promise<IAccount | undefined> {
         let config = azureUtils.getAzureActiveDirectoryConfig();
         let account = await this.login(config!);
         await accountStore.addAccount(account!);
@@ -125,9 +116,7 @@ export abstract class AzureController {
     ): Promise<ConnectionProfile | undefined> {
         let account = accountStore.getAccount(accountAnswer.key.id);
         if (!account) {
-            await this._vscodeWrapper.showErrorMessage(
-                LocalizedConstants.msgAccountNotFound,
-            );
+            await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgAccountNotFound);
             throw new Error(LocalizedConstants.msgAccountNotFound);
         }
         if (!this._isSqlAuthProviderEnabled) {
@@ -143,18 +132,14 @@ export abstract class AzureController {
             if (!azureAccountToken) {
                 let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
                 return this._vscodeWrapper
-                    .showErrorMessage(
-                        errorMessage,
-                        LocalizedConstants.refreshTokenLabel,
-                    )
+                    .showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel)
                     .then(async (result) => {
                         if (result === LocalizedConstants.refreshTokenLabel) {
-                            let refreshedProfile =
-                                await this.populateAccountProperties(
-                                    profile,
-                                    accountStore,
-                                    settings,
-                                );
+                            let refreshedProfile = await this.populateAccountProperties(
+                                profile,
+                                accountStore,
+                                settings,
+                            );
                             return refreshedProfile;
                         } else {
                             return undefined;
@@ -177,9 +162,7 @@ export abstract class AzureController {
     /**
      * Returns Azure sessions with subscriptions, tenant and token for each given account
      */
-    public async getAccountSessions(
-        account: IAccount,
-    ): Promise<IAzureAccountSession[]> {
+    public async getAccountSessions(account: IAccount): Promise<IAzureAccountSession[]> {
         const sessions: IAzureAccountSession[] = [];
         const tenants = <ITenant[]>account.properties.tenants;
         for (const tenant of tenants) {
@@ -191,24 +174,22 @@ export abstract class AzureController {
             );
             const subClient = this._subscriptionClientFactory(token!);
             const newSubPages = await subClient.subscriptions.list();
-            const array = await azureUtils.getAllValues<
-                Subscription,
-                IAzureAccountSession
-            >(newSubPages, (nextSub) => {
-                return {
-                    subscription: nextSub,
-                    tenantId: tenantId,
-                    account: account,
-                    token: token,
-                };
-            });
+            const array = await azureUtils.getAllValues<Subscription, IAzureAccountSession>(
+                newSubPages,
+                (nextSub) => {
+                    return {
+                        subscription: nextSub,
+                        tenantId: tenantId,
+                        account: account,
+                        token: token,
+                    };
+                },
+            );
             sessions.push(...array);
         }
 
         return sessions.sort((a, b) =>
-            (a.subscription.displayName || "").localeCompare(
-                b.subscription.displayName || "",
-            ),
+            (a.subscription.displayName || "").localeCompare(b.subscription.displayName || ""),
         );
     }
 
@@ -222,10 +203,7 @@ export abstract class AzureController {
     ): Promise<void> {
         if (
             session?.account &&
-            !AzureController.isTokenValid(
-                session.token!.token,
-                session.token!.expiresOn,
-            )
+            !AzureController.isTokenValid(session.token!.token, session.token!.expiresOn)
         ) {
             const token = await this.refreshAccessToken(
                 session.account,
@@ -234,9 +212,7 @@ export abstract class AzureController {
                 providerSettings.resources.azureManagementResource,
             );
             session.token = token!;
-            this.logger.verbose(
-                `Access Token refreshed for account: ${session?.account?.key.id}`,
-            );
+            this.logger.verbose(`Access Token refreshed for account: ${session?.account?.key.id}`);
         } else {
             this.logger.verbose(
                 `Access Token not refreshed for account: ${session?.account?.key.id}`,
@@ -270,9 +246,10 @@ export abstract class AzureController {
         account: IAccount,
         profile: ConnectionProfile,
     ): Promise<void> {
-        let tenantChoices: INameValueChoice[] = account.properties.tenants?.map(
-            (t) => ({ name: t.displayName, value: t }),
-        );
+        let tenantChoices: INameValueChoice[] = account.properties.tenants?.map((t) => ({
+            name: t.displayName,
+            value: t,
+        }));
         if (tenantChoices && tenantChoices.length === 1) {
             profile.tenantId = tenantChoices[0].value.id;
             return;
@@ -282,8 +259,7 @@ export abstract class AzureController {
             name: LocalizedConstants.tenant,
             message: LocalizedConstants.azureChooseTenant,
             choices: tenantChoices,
-            shouldPrompt: (answers) =>
-                profile.isAzureActiveDirectory() && tenantChoices.length > 1,
+            shouldPrompt: (answers) => profile.isAzureActiveDirectory() && tenantChoices.length > 1,
             onAnswered: (value: ITenant) => {
                 profile.tenantId = value.id;
             },
@@ -294,10 +270,7 @@ export abstract class AzureController {
     // Generates storage path for Azure Account cache, e.g C:\users\<>\AppData\Roaming\Code\Azure Accounts\
     protected async findOrMakeStoragePath(): Promise<string | undefined> {
         let defaultOutputLocation = this.getDefaultOutputLocation();
-        let storagePath = path.join(
-            defaultOutputLocation,
-            AzureConstants.azureAccountDirectory,
-        );
+        let storagePath = path.join(defaultOutputLocation, AzureConstants.azureAccountDirectory);
 
         try {
             await fs.mkdir(defaultOutputLocation, { recursive: true });
@@ -312,9 +285,7 @@ export abstract class AzureController {
             await fs.mkdir(storagePath, { recursive: true });
         } catch (e) {
             if (e.code !== "EEXIST") {
-                this.logger.error(
-                    `Initialization of vscode-mssql storage failed: ${e}`,
-                );
+                this.logger.error(`Initialization of vscode-mssql storage failed: ${e}`);
                 this.logger.error("Azure accounts will not be available");
                 return undefined;
             }
@@ -325,9 +296,6 @@ export abstract class AzureController {
     }
 
     private getDefaultOutputLocation(): string {
-        return path.join(
-            azureUtils.getAppDataPath(),
-            AzureConstants.serviceName,
-        );
+        return path.join(azureUtils.getAppDataPath(), AzureConstants.serviceName);
     }
 }

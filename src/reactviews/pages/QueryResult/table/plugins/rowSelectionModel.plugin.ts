@@ -39,12 +39,8 @@ export class RowSelectionModel<T extends Slick.SlickData>
                 (e: Event, data: Slick.OnActiveCellChangedEventArgs<T>) =>
                     this.handleActiveCellChange(e, data),
             )
-            .subscribe(this._grid.onKeyDown, (e) =>
-                console.log("keydown event", e),
-            ) //this.handleKeyDown(console.log('keydown event', e)))
-            .subscribe(this._grid.onClick, (e) =>
-                this.handleClick(e as MouseEvent),
-            );
+            .subscribe(this._grid.onKeyDown, (e) => console.log("keydown event", e)) //this.handleKeyDown(console.log('keydown event', e)))
+            .subscribe(this._grid.onClick, (e) => this.handleClick(e as MouseEvent));
     }
 
     private rangesToRows(ranges: Slick.Range[]): number[] {
@@ -76,10 +72,7 @@ export class RowSelectionModel<T extends Slick.SlickData>
 
     public setSelectedRanges(ranges: Slick.Range[]): void {
         // simle check for: empty selection didn't change, prevent firing onSelectedRangesChanged
-        if (
-            (!this._ranges || this._ranges.length === 0) &&
-            (!ranges || ranges.length === 0)
-        ) {
+        if ((!this._ranges || this._ranges.length === 0) && (!ranges || ranges.length === 0)) {
             return;
         }
         this._ranges = ranges;
@@ -101,18 +94,10 @@ export class RowSelectionModel<T extends Slick.SlickData>
     // 	return rows;
     // }
 
-    private handleActiveCellChange(
-        _e: Event,
-        data: Slick.OnActiveCellChangedEventArgs<T>,
-    ): void {
+    private handleActiveCellChange(_e: Event, data: Slick.OnActiveCellChangedEventArgs<T>): void {
         if (this._options.selectActiveRow && data.row !== null) {
             this.setSelectedRanges([
-                new Slick.Range(
-                    data.row,
-                    0,
-                    data.row,
-                    this._grid.getColumns().length - 1,
-                ),
+                new Slick.Range(data.row, 0, data.row, this._grid.getColumns().length - 1),
             ]);
         }
     }
@@ -154,10 +139,7 @@ export class RowSelectionModel<T extends Slick.SlickData>
             return false;
         }
 
-        if (
-            !this._grid.getOptions().multiSelect ||
-            (!e.ctrlKey && !e.shiftKey && !e.metaKey)
-        ) {
+        if (!this._grid.getOptions().multiSelect || (!e.ctrlKey && !e.shiftKey && !e.metaKey)) {
             return false;
         }
 

@@ -39,14 +39,9 @@ export const TrustServerCertificateDialog = ({
         <Dialog open={dialogProps.type === "trustServerCert"}>
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>
-                        {locConstants.connectionDialog.connectionErrorTitle}
-                    </DialogTitle>
+                    <DialogTitle>{locConstants.connectionDialog.connectionErrorTitle}</DialogTitle>
                     <DialogContent>
-                        <MessageBar
-                            intent="error"
-                            style={{ paddingRight: "12px" }}
-                        >
+                        <MessageBar intent="error" style={{ paddingRight: "12px" }}>
                             {dialogProps.message}
                         </MessageBar>
                         <br />
@@ -71,8 +66,7 @@ export const TrustServerCertificateDialog = ({
                                     context.formAction({
                                         propertyName: "connectionString",
                                         value: setConnectionStringProperty(
-                                            context.state.formState
-                                                .connectionString ?? "",
+                                            context.state.formState.connectionString ?? "",
                                             "trustServerCertificate",
                                             true,
                                         ),
@@ -86,19 +80,14 @@ export const TrustServerCertificateDialog = ({
                                     });
                                 }
                                 context.connect();
-                            }}
-                        >
-                            {
-                                locConstants.connectionDialog
-                                    .enableTrustServerCertificateButton
-                            }
+                            }}>
+                            {locConstants.connectionDialog.enableTrustServerCertificateButton}
                         </Button>
                         <Button
                             appearance="secondary"
                             onClick={() => {
                                 context.closeDialog();
-                            }}
-                        >
+                            }}>
                             {locConstants.common.cancel}
                         </Button>
                     </DialogActions>

@@ -20,10 +20,7 @@ export type TableSortFunc<T extends Slick.SlickData> = (
     args: Slick.OnSortEventArgs<T>,
     data: Array<T>,
 ) => Array<T>;
-export type TableFindFunc<T extends Slick.SlickData> = (
-    val: T,
-    exp: string,
-) => Array<number>;
+export type TableFindFunc<T extends Slick.SlickData> = (val: T, exp: string) => Array<number>;
 
 export function defaultCellValueGetter(data: any): any {
     return data;
@@ -72,18 +69,14 @@ export function defaultFilter<T extends Slick.SlickData>(
     columns?.forEach((column) => {
         if (column.filterValues!?.length > 0 && column.field) {
             filteredData = filteredData.filter((item) => {
-                return column.filterValues!.includes(
-                    cellValueGetter(item[column.field!]),
-                );
+                return column.filterValues!.includes(cellValueGetter(item[column.field!]));
             });
         }
     });
     return filteredData;
 }
 
-export class TableDataView<T extends Slick.SlickData>
-    implements IDisposableDataProvider<T>
-{
+export class TableDataView<T extends Slick.SlickData> implements IDisposableDataProvider<T> {
     //The data exposed publicly, when filter is enabled, _data holds the filtered data.
     private _data: Array<T>;
     //Used when filtering is enabled, _allData holds the complete set of data.
@@ -148,9 +141,7 @@ export class TableDataView<T extends Slick.SlickData>
         this._data.forEach((items) => {
             const value = items[column.field!];
             const valueArr = value instanceof Array ? value : [value];
-            valueArr.forEach((v) =>
-                distinctValues.add(this._cellValueGetter(v)),
-            );
+            valueArr.forEach((v) => distinctValues.add(this._cellValueGetter(v)));
         });
 
         return Array.from(distinctValues);
@@ -168,10 +159,7 @@ export class TableDataView<T extends Slick.SlickData>
         this._currentColumnFilters = columns!;
         this._data = this._filterFn!(this._allData, columns!);
         if (this._resetSortData.length > 0) {
-            this._resetSortData = this._filterFn!(
-                this._resetSortData,
-                columns!,
-            );
+            this._resetSortData = this._filterFn!(this._resetSortData, columns!);
         }
         if (this._data.length === this._allData.length) {
             await this.clearFilter();
@@ -193,9 +181,7 @@ export class TableDataView<T extends Slick.SlickData>
                 this._data = this._sortFn!(
                     {
                         sortCol: this._currentColumnSort.column,
-                        sortAsc:
-                            this._currentColumnSort.sortDirection ===
-                            "sort-asc",
+                        sortAsc: this._currentColumnSort.sortDirection === "sort-asc",
                         grid: undefined,
                         multiColumnSort: false,
                     },
@@ -234,10 +220,7 @@ export class TableDataView<T extends Slick.SlickData>
         }
         // if there are filters applied, we need to reapply them to the reset data
         if (this._currentColumnFilters.length > 0) {
-            this._data = this._filterFn!(
-                this._data,
-                this._currentColumnFilters,
-            );
+            this._data = this._filterFn!(this._data, this._currentColumnFilters);
         }
         this._currentColumnSort = undefined;
         this._resetSortData = [];
@@ -272,10 +255,7 @@ export class TableDataView<T extends Slick.SlickData>
 
         if (this._filterEnabled) {
             this._allData.push(...inputArray);
-            let filteredArray = this._filterFn!(
-                inputArray,
-                this._currentColumnFilters,
-            );
+            let filteredArray = this._filterFn!(inputArray, this._currentColumnFilters);
             if (filteredArray.length !== 0) {
                 this._data.push(...filteredArray);
             }
@@ -324,10 +304,7 @@ export class TableDataView<T extends Slick.SlickData>
                     this._findArray!.push(index);
                     console.log(this._findArray!.length);
                     // this._onFindCountChange.fire(this._findArray!.length);
-                    if (
-                        maxMatches > 0 &&
-                        this._findArray!.length === maxMatches
-                    ) {
+                    if (maxMatches > 0 && this._findArray!.length === maxMatches) {
                         breakout = true;
                         break;
                     }

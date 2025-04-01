@@ -28,21 +28,16 @@ export function updateComboboxSelection(
     // if there is no current selection or if the current selection is no longer in the list of options (due to filter changes),
     // then select the only option if there is only one option, then make a default selection according to specified `defaultSelectionMode`
 
-    if (
-        selected === undefined ||
-        (selected && !optionList.includes(selected))
-    ) {
+    if (selected === undefined || (selected && !optionList.includes(selected))) {
         let optionToSelect: string | undefined = undefined;
 
         if (optionList.length > 0) {
             switch (defaultSelectionMode) {
                 case DefaultSelectionMode.SelectFirstIfAny:
-                    optionToSelect =
-                        optionList.length > 0 ? optionList[0] : undefined;
+                    optionToSelect = optionList.length > 0 ? optionList[0] : undefined;
                     break;
                 case DefaultSelectionMode.SelectOnlyOrNone:
-                    optionToSelect =
-                        optionList.length === 1 ? optionList[0] : undefined;
+                    optionToSelect = optionList.length === 1 ? optionList[0] : undefined;
                     break;
                 case DefaultSelectionMode.AlwaysSelectNone:
                 default:
