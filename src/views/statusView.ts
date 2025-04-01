@@ -40,7 +40,7 @@ class FileStatusBar {
 
     public currentLanguageServiceStatus: string;
 
-    public timerTest: NodeJS.Timeout;
+    public queryTimer: NodeJS.Timeout;
 }
 
 export default class StatusView implements vscode.Disposable {
@@ -73,7 +73,7 @@ export default class StatusView implements vscode.Disposable {
                 this._statusBars[bar].rowCount.dispose();
                 this._statusBars[bar].executionTime.dispose();
                 clearInterval(this._statusBars[bar].progressTimerId);
-                clearInterval(this._statusBars[bar].timerTest);
+                clearInterval(this._statusBars[bar].queryTimer);
                 delete this._statusBars[bar];
             }
         }
@@ -119,8 +119,8 @@ export default class StatusView implements vscode.Disposable {
             if (bar.progressTimerId) {
                 clearInterval(bar.progressTimerId);
             }
-            if (bar.timerTest) {
-                clearInterval(bar.timerTest);
+            if (bar.queryTimer) {
+                clearInterval(bar.queryTimer);
             }
             if (bar.sqlCmdMode) {
                 bar.sqlCmdMode.dispose();
@@ -242,7 +242,7 @@ export default class StatusView implements vscode.Disposable {
         let bar = this.getStatusBar(fileUri);
         bar.executionTime.text = time;
         this.showStatusBarItem(fileUri, bar.executionTime);
-        clearInterval(bar.timerTest);
+        clearInterval(bar.queryTimer);
     }
 
     public cancelingQuery(fileUri: string): void {
@@ -414,7 +414,7 @@ export default class StatusView implements vscode.Disposable {
         const self = this;
         let bar = this.getStatusBar(fileUri);
         let milliseconds = 0;
-        bar.timerTest = setInterval(() => {
+        bar.queryTimer = setInterval(() => {
             milliseconds += 1000;
             //convert milliseconds to display time
             const timeString = self.formatMilliseconds(milliseconds);
