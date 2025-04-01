@@ -417,7 +417,12 @@
     ]
   },
   "Cannot create foreign key": "Cannot create foreign key",
-  "Cannot create foreign key with duplicate columns": "Cannot create foreign key with duplicate columns",
+  "Column '{0}' already has a foreign key/{0} is the column name": {
+    "message": "Column '{0}' already has a foreign key",
+    "comment": [
+      "{0} is the column name"
+    ]
+  },
   "Foreign key name cannot be empty": "Foreign key name cannot be empty",
   "Foreign key '{0}' already exists/{0} is the foreign key name": {
     "message": "Foreign key '{0}' already exists",

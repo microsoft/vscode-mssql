@@ -9,7 +9,7 @@ import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerEditorFooter } from "./schemaDesignerEditorFooter";
 import { SchemaDesignerEditorTablePanel } from "./schemaDesignerEditorTablePanel";
 import { SchemaDesignerEditorForeignKeyPanel } from "./schemaDesignerEditorForeignKeyPanel";
-import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
+import { SchemaDesignerEditorContext, SchemaDesignerEditorTab } from "./schemaDesignerEditorDrawer";
 
 const useStyles = makeStyles({
     editor: {
@@ -61,15 +61,22 @@ export const SchemaDesignerEditor = () => {
         return undefined;
     }
 
-    const [selectedTabValue, setSelectedTabValue] = useState<TabValue>("table");
+    const [selectedTabValue, setSelectedTabValue] = useState<TabValue>(
+        SchemaDesignerEditorTab.Table,
+    );
 
     useEffect(() => {
         if (context.showForeignKey) {
-            setSelectedTabValue("foreignKeys");
+            setSelectedTabValue(SchemaDesignerEditorTab.ForeignKeys);
         } else {
-            setSelectedTabValue("table");
+            setSelectedTabValue(SchemaDesignerEditorTab.Table);
         }
     }, [context.schema, context.showForeignKey]);
+
+    const tabErrorCount = (tab: SchemaDesignerEditorTab) =>
+        Object.keys(context.errors).filter((key) => {
+            return key.includes(`${tab}_`) && context.errors[key];
+        }).length;
 
     if (!context.table) {
         return undefined;
@@ -80,26 +87,30 @@ export const SchemaDesignerEditor = () => {
             <TabList
                 selectedValue={selectedTabValue}
                 onTabSelect={(_e, data) => setSelectedTabValue(data.value)}>
-                <Tab value="table">
+                <Tab value={SchemaDesignerEditorTab.Table}>
                     {locConstants.schemaDesigner.table}
                     <CounterBadge
                         size="small"
-                        count={Object.keys(context.errors).length}
+                        count={tabErrorCount(SchemaDesignerEditorTab.Table)}
                         color="danger"
                     />
                 </Tab>
-                <Tab value="foreignKeys">
+                <Tab value={SchemaDesignerEditorTab.ForeignKeys}>
                     {locConstants.schemaDesigner.foreignKeys}
                     <CounterBadge
                         size="small"
-                        count={Object.keys(context.errors).length}
+                        count={tabErrorCount(SchemaDesignerEditorTab.ForeignKeys)}
                         color="danger"
                     />
                 </Tab>
             </TabList>
             <div className={classes.editorPanel}>
-                {selectedTabValue === "table" && <SchemaDesignerEditorTablePanel />}
-                {selectedTabValue === "foreignKeys" && <SchemaDesignerEditorForeignKeyPanel />}
+                {selectedTabValue === SchemaDesignerEditorTab.Table && (
+                    <SchemaDesignerEditorTablePanel />
+                )}
+                {selectedTabValue === SchemaDesignerEditorTab.ForeignKeys && (
+                    <SchemaDesignerEditorForeignKeyPanel />
+                )}
             </div>
             <SchemaDesignerEditorFooter />
         </div>

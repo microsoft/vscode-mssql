@@ -448,7 +448,12 @@ export class LocConstants {
                     comment: ["{0} is source table", "{1} is target table"],
                 }),
             foreignKeyError: l10n.t("Cannot create foreign key"),
-            duplicateForeignKeyColumns: l10n.t("Cannot create foreign key with duplicate columns"),
+            duplicateForeignKeyColumns: (columnName: string) =>
+                l10n.t({
+                    message: "Column '{0}' already has a foreign key",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
             foreignKeyNameEmptyError: l10n.t("Foreign key name cannot be empty"),
             foreignKeyNameRepeatedError: (foreignKeyName: string) =>
                 l10n.t({

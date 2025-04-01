@@ -36,7 +36,7 @@ import { v4 as uuidv4 } from "uuid";
 import { AdvancedColumnOption, columnUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
-import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
+import { SchemaDesignerEditorContext, TABLE_NAME_ERROR_KEY } from "./schemaDesignerEditorDrawer";
 
 const useStyles = makeStyles({
     panel: {
@@ -499,17 +499,6 @@ export const SchemaDesignerEditorTablePanel = () => {
             ...context.table,
             name: name,
         });
-        const error = tableUtils.tableNameValidationError(context.schema, context.table);
-        if (error) {
-            context.setErrors({
-                ...context.errors,
-                name: error,
-            });
-        } else {
-            const newErrors = { ...context.errors };
-            delete newErrors.name;
-            context.setErrors(newErrors);
-        }
     };
 
     if (!context.table) {
@@ -536,7 +525,7 @@ export const SchemaDesignerEditorTablePanel = () => {
             </Field>
 
             {/* Table Name */}
-            <Field validationMessage={context.errors.name}>
+            <Field validationMessage={context.errors[TABLE_NAME_ERROR_KEY]}>
                 <Label>{locConstants.schemaDesigner.name}</Label>
                 <Input
                     autoFocus

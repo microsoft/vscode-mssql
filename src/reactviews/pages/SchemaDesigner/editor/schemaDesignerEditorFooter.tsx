@@ -24,6 +24,15 @@ export function SchemaDesignerEditorFooter() {
         return undefined;
     }
     const classes = useStyles();
+    const errorCount = () => {
+        let errorCount = 0;
+        for (const key in context.errors) {
+            if (context.errors[key]) {
+                errorCount++;
+            }
+        }
+        return errorCount;
+    };
     return (
         <div className={classes.editorFooter}>
             <Button
@@ -32,7 +41,7 @@ export function SchemaDesignerEditorFooter() {
                     context.save();
                     eventBus.emit("getScript");
                 }}
-                disabled={Object.keys(context.errors).length > 0}>
+                disabled={errorCount() > 0}>
                 {context.isNewTable
                     ? locConstants.schemaDesigner.add
                     : locConstants.schemaDesigner.save}
