@@ -161,7 +161,11 @@ const SchemaOptionsDrawer = (props: Props) => {
                         {includeObjectTypesLookup &&
                             includeObjectTypesEntries.map(([key, value]) => {
                                 return (
-                                    <ListItem key={key} value={key} aria-label={value}>
+                                    <ListItem
+                                        className={classes.listItemContainer}
+                                        key={key}
+                                        value={key}
+                                        aria-label={value}>
                                         <Checkbox
                                             checked={handleSetObjectTypesCheckedState(key)}
                                             onChange={() => handleObjectTypesOptionChanged(key)}
