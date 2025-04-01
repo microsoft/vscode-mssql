@@ -253,6 +253,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusQuery.text = LocalizedConstants.cancelingQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
         this.showProgress(fileUri, LocalizedConstants.cancelingQueryLabel, bar.statusQuery);
+        clearInterval(bar.queryTimer);
     }
 
     public languageServiceStatusChanged(fileUri: string, status: string): void {
