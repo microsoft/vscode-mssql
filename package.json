@@ -515,6 +515,16 @@
                     "group": "inline"
                 },
                 {
+                    "command": "mssql.newTable",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/  && config.mssql.enableRichExperiences",
+                    "group": "MS_SQL@1"
+                },
+                {
+                    "command": "mssql.editTable",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
+                    "group": "MS_SQL@1"
+                },
+                {
                     "command": "mssql.copyObjectName",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/"
                 },
