@@ -396,13 +396,6 @@ const ColumnsTable = ({
         }
     };
 
-    const isColumnErrorPresent = (columns: SchemaDesigner.Column[]) => {
-        return columns.some((column) => {
-            const error = context.errors[`columns_${column.id}`];
-            return error !== undefined && error !== "";
-        });
-    };
-
     return (
         <>
             <Table
