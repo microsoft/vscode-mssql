@@ -91,7 +91,7 @@ export const ContainerInputForm: React.FC = () => {
 
     useEffect(() => {
         setShowNext(state.state.isDockerProfileValid);
-    }, [state.state.isDockerProfileValid]);
+    }, [state]);
 
     return showNext ? (
         <ContainerSetupStepsPage />
