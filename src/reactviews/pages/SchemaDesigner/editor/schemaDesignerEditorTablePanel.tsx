@@ -45,7 +45,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         overflowY: "auto",
         overflowX: "hidden",
-        padding: "10px",
+        padding: "5px",
         gap: "10px",
     },
     scrollContainer: {
@@ -184,10 +184,6 @@ const ColumnsTable = ({
     // Define table columns
     const columnDefinitions = [
         createTableColumn({
-            columnId: "error",
-            renderHeaderCell: () => <></>,
-        }),
-        createTableColumn({
             columnId: "name",
             renderHeaderCell: () => <Text>{locConstants.schemaDesigner.name}</Text>,
         }),
@@ -206,6 +202,10 @@ const ColumnsTable = ({
         createTableColumn({
             columnId: "menu",
             renderHeaderCell: () => <Text></Text>,
+        }),
+        createTableColumn({
+            columnId: "error",
+            renderHeaderCell: () => <></>,
         }),
     ];
 
@@ -232,14 +232,14 @@ const ColumnsTable = ({
             idealWidth: 70,
         },
         delete: {
-            defaultWidth: 30,
-            minWidth: 30,
-            idealWidth: 30,
+            defaultWidth: 20,
+            minWidth: 20,
+            idealWidth: 20,
         },
         menu: {
-            defaultWidth: 30,
-            minWidth: 30,
-            idealWidth: 30,
+            defaultWidth: 20,
+            minWidth: 20,
+            idealWidth: 20,
         },
     });
 
@@ -414,9 +414,6 @@ const ColumnsTable = ({
                 <TableHeader>
                     <TableRow>
                         {columnDefinitions.map((column) => {
-                            if (column.columnId === "error" && !isColumnErrorPresent(columns)) {
-                                return null;
-                            }
                             return (
                                 <TableHeaderCell
                                     {...columnSizing_unstable.getTableHeaderCellProps(
@@ -433,9 +430,6 @@ const ColumnsTable = ({
                     {getRows().map((row, index) => (
                         <TableRow key={index}>
                             {tableColumns.map((column) => {
-                                if (column.columnId === "error" && !isColumnErrorPresent(columns)) {
-                                    return null;
-                                }
                                 return (
                                     <TableCell
                                         {...columnSizing_unstable.getTableCellProps(
