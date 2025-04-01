@@ -319,6 +319,13 @@
         "path": "./snippets/mssql.json"
       }
     ],
+    "submenus": [
+      {
+        "id": "mssql.copilot.editorSubmenu",
+        "title": "%mssql.copilot.editorSubmenu%",
+        "label": "%mssql.copilot.editorSubmenu%"
+      }
+    ],
     "menus": {
       "editor/title": [
         {
@@ -371,6 +378,30 @@
         {
           "command": "mssql.runQuery",
           "when": "editorLangId == sql"
+        },
+        {
+          "submenu": "mssql.copilot.editorSubmenu",
+          "when": "editorLangId == sql && mssql.copilot.isGHCInstalled"
+        }
+      ],
+      "mssql.copilot.editorSubmenu": [
+        {
+          "command": "mssql.copilot.explainQuery",
+          "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+          "title": "%mssql.copilot.explainQuery%",
+          "group": "navigation@1"
+        },
+        {
+          "command": "mssql.copilot.rewriteQuery",
+          "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+          "title": "%mssql.copilot.rewriteQuery%",
+          "group": "navigation@2"
+        },
+        {
+          "command": "mssql.copilot.analyzeQueryPerformance",
+          "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+          "title": "%mssql.copilot.analyzeQueryPerformance%",
+          "group": "navigation@3"
         }
       ],
       "view/title": [
@@ -425,7 +456,7 @@
         },
         {
           "command": "mssql.objectExplorerChatWithDatabase",
-          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Database)\\b/",
+          "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
           "group": "MS_SQL@11"
         },
         {
@@ -956,6 +987,21 @@
           "command": "mssql.enableRichExperiences",
           "title": "%mssql.enableRichExperiences%",
           "category": "MS SQL"
+      },
+      {
+        "command": "mssql.copilot.explainQuery",
+        "title": "%mssql.copilot.explainQuery%",
+        "category": "MSSQL"
+      },
+      {
+        "command": "mssql.copilot.analyzeQueryPerformance",
+        "title": "%mssql.copilot.analyzeQueryPerformance%",
+        "category": "MSSQL"
+      },
+      {
+        "command": "mssql.copilot.rewriteQuery",
+        "title": "%mssql.copilot.rewriteQuery%",
+        "category": "MSSQL"
       }
     ],
     "keybindings": [

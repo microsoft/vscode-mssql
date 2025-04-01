@@ -66,6 +66,7 @@ import { CopilotService } from "../services/copilotService";
 import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
+import * as Prompts from "../chat/prompts";
 
 /**
  * The main controller class that initializes the extension
@@ -353,6 +354,37 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
+            const launchEditorChatWithPrompt = async (
+                prompt: string,
+                selectionPrompt: string | undefined = undefined,
+            ) => {
+                const activeEditor = vscode.window.activeTextEditor;
+                const uri = activeEditor?.document.uri.toString();
+                const promptToUse =
+                    activeEditor?.selection.isEmpty || !selectionPrompt
+                        ? prompt
+                        : selectionPrompt;
+                if (!uri) {
+                    // No active editor, so don't open chat
+                    // TODO: Show a message to the user
+                    return;
+                }
+                // create new connection
+                if (!this.connectionManager.isConnected(uri)) {
+                    await this.onNewConnection();
+                    sendActionEvent(
+                        TelemetryViews.QueryEditor,
+                        TelemetryActions.CreateConnection,
+                    );
+                }
+
+                // Open chat window
+                vscode.commands.executeCommand(
+                    "workbench.action.chat.open",
+                    promptToUse,
+                );
+            };
+
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
             this._event.on(
                 Constants.cmdChatWithDatabase,
@@ -408,7 +440,7 @@ export default class MainController implements vscode.Disposable {
                                 await activeEditor.edit((editBuilder) => {
                                     editBuilder.insert(
                                         new vscode.Position(0, 0),
-                                        `-- @${Constants.mssqlChatParticipantName} Chat Query Editor (${server} : ${connectionCredentials.database} : ${connectionCredentials.user})\n`,
+                                        `-- @${Constants.mssqlChatParticipantName} Chat Query Editor (${server}:${connectionCredentials.database}:${connectionCredentials.user})\n`,
                                     );
                                 });
                             } else {
@@ -433,6 +465,47 @@ export default class MainController implements vscode.Disposable {
                         );
                     }
                 },
+            );
+
+            // -- EXPLAIN QUERY --
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdExplainQuery,
+                    async () => {
+                        await launchEditorChatWithPrompt(
+                            Prompts.explainQueryPrompt,
+                            Prompts.explainQuerySelectionPrompt,
+                        );
+                        // TODO: Add telemetry
+                    },
+                ),
+            );
+
+            // -- REWRITE QUERY --
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdRewriteQuery,
+                    async () => {
+                        await launchEditorChatWithPrompt(
+                            Prompts.rewriteQueryPrompt,
+                            Prompts.rewriteQuerySelectionPrompt,
+                        );
+                        // TODO: Add telemetry
+                    },
+                ),
+            );
+
+            // -- ANALYZE QUERY PERFORMANCE --
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdAnalyzeQueryPerformance,
+                    async () => {
+                        await launchEditorChatWithPrompt(
+                            Prompts.analyzeQueryPerformancePrompt,
+                        );
+                        // TODO: Add telemetry
+                    },
+                ),
             );
 
             this.initializeQueryHistory();
