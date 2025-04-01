@@ -32,6 +32,20 @@ export class LocConstants {
             close: l10n.t("Close"),
             apply: l10n.t("Apply"),
             clearSelection: l10n.t("Clear Selection"),
+            find: l10n.t("Find"),
+            findNext: l10n.t("Find Next"),
+            findPrevious: l10n.t("Find Previous"),
+            noResults: l10n.t("No results"),
+            searchResultSummary: (activeElement: number, totalElements: number) =>
+                l10n.t({
+                    message: "{0} of {1}",
+                    args: [activeElement, totalElements],
+                    comment: [
+                        "{0} is the number of active elements",
+                        "{1} is the total number of elements",
+                    ],
+                }),
+            closeFind: l10n.t("Close Find"),
         };
     }
 
@@ -456,6 +470,9 @@ export class LocConstants {
             scale: l10n.t("Scale"),
             precision: l10n.t("Precision"),
             defaultValue: l10n.t("Default Value"),
+            svg: l10n.t("SVG"),
+            png: l10n.t("PNG"),
+            jpeg: l10n.t("JPEG"),
         };
     }
 

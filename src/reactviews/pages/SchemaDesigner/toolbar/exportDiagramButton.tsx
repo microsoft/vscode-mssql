@@ -5,11 +5,11 @@
 
 import {
     Menu,
-    MenuButton,
     MenuItem,
     MenuList,
     MenuPopover,
     MenuTrigger,
+    ToolbarButton,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
@@ -86,20 +86,25 @@ export function ExportDiagramButton() {
     return (
         <Menu>
             <MenuTrigger disableButtonEnhancement>
-                <MenuButton
+                <ToolbarButton
                     icon={<FluentIcons.ArrowExportUp16Filled />}
-                    size="small"
                     title={locConstants.schemaDesigner.export}
                     appearance="subtle">
                     {locConstants.schemaDesigner.export}
-                </MenuButton>
+                </ToolbarButton>
             </MenuTrigger>
 
             <MenuPopover>
                 <MenuList>
-                    <MenuItem onClick={() => exportAs("svg")}>SVG</MenuItem>
-                    <MenuItem onClick={() => exportAs("png")}>PNG</MenuItem>
-                    <MenuItem onClick={() => exportAs("jpeg")}>JPEG</MenuItem>
+                    <MenuItem onClick={() => exportAs("svg")}>
+                        {locConstants.schemaDesigner.svg}
+                    </MenuItem>
+                    <MenuItem onClick={() => exportAs("png")}>
+                        {locConstants.schemaDesigner.png}
+                    </MenuItem>
+                    <MenuItem onClick={() => exportAs("jpeg")}>
+                        {locConstants.schemaDesigner.jpeg}
+                    </MenuItem>
                 </MenuList>
             </MenuPopover>
         </Menu>

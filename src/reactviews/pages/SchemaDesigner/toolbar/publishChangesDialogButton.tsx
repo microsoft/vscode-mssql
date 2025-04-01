@@ -16,6 +16,7 @@ import {
     Spinner,
     Tab,
     TabList,
+    ToolbarButton,
     Tree,
     TreeItem,
     TreeItemLayout,
@@ -37,6 +38,7 @@ export function PublishChangesDialogButton() {
     }
 
     const [report, setReport] = useState<SchemaDesigner.GetReportResponse | undefined>(undefined);
+    const [reportError, setReportError] = useState<string | undefined>(undefined);
     const [loading, setLoading] = useState<ApiStatus>(ApiStatus.NotStarted);
 
     const [selectedReportId, setSelectedReportId] = useState<string>("");
@@ -154,8 +156,7 @@ export function PublishChangesDialogButton() {
     return (
         <Dialog>
             <DialogTrigger disableButtonEnhancement>
-                <Button
-                    size="small"
+                <ToolbarButton
                     icon={<FluentIcons.DatabaseArrowUp16Filled />}
                     title={locConstants.schemaDesigner.publishChanges}
                     appearance="subtle"
@@ -164,13 +165,18 @@ export function PublishChangesDialogButton() {
                         setLoading(ApiStatus.Loading);
                         setReportTab("report");
                         const report = await context.getReport();
-                        if (report) {
-                            setReport(report);
+                        if (report.error) {
+                            setReportError(report.error);
+                            setReport(undefined);
+                        } else {
+                            if (report.report) {
+                                setReport(report.report);
+                            }
                         }
                         setLoading(ApiStatus.Loaded);
                     }}>
                     {locConstants.schemaDesigner.publishChanges}
-                </Button>
+                </ToolbarButton>
             </DialogTrigger>
             <DialogSurface
                 style={{
@@ -206,6 +212,25 @@ export function PublishChangesDialogButton() {
                                     }}
                                 />
                                 {locConstants.schemaDesigner.noChangesDetected}
+                            </div>
+                        )}
+                        {loading === ApiStatus.Loaded && reportError && reportError !== "" && (
+                            <div
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    minHeight: "200px",
+                                }}>
+                                <FluentIcons.ErrorCircleFilled
+                                    style={{
+                                        marginRight: "10px",
+                                        width: "50px",
+                                        height: "50px",
+                                    }}
+                                />
+                                {reportError}
                             </div>
                         )}
                         {loading === ApiStatus.Loaded && report && report?.reports?.length > 0 && (

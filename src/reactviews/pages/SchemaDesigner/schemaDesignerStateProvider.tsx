@@ -24,7 +24,10 @@ export interface SchemaDesignerContextProps
         edges: Edge<SchemaDesigner.ForeignKey>[];
     }>;
     saveAsFile: (fileProps: SchemaDesigner.ExportFileOptions) => void;
-    getReport: () => Promise<SchemaDesigner.GetReportResponse>;
+    getReport: () => Promise<{
+        report: SchemaDesigner.GetReportResponse;
+        error?: string;
+    }>;
     openInEditor: (text: string) => void;
     openInEditorWithConnection: (text: string) => void;
     setSelectedTable: (selectedTable: SchemaDesigner.Table) => void;
@@ -35,6 +38,7 @@ export interface SchemaDesignerContextProps
     deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteSelectedNodes: () => void;
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
+    updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
 }
 
@@ -104,11 +108,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return;
         }
 
-        const report = (await extensionRpc.call("getReport", {
+        const result = await extensionRpc.call("getReport", {
             updatedSchema: schema,
-        })) as SchemaDesigner.GetReportResponse;
-
-        return report;
+        });
+        return result;
     };
 
     const copyToClipboard = (text: string) => {
@@ -275,6 +278,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     };
 
+    const updateSelectedNodes = (nodesIds: string[]) => {
+        reactFlow.getNodes().forEach((node) => {
+            reactFlow.updateNode(node.id, {
+                selected: nodesIds.includes(node.id),
+            });
+        });
+    };
+
     const setCenter = (nodeId: string, shouldZoomIn: boolean = false) => {
         const node = reactFlow.getNode(nodeId) as Node<SchemaDesigner.Table>;
         if (node) {
@@ -311,6 +322,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 addTable,
                 deleteTable,
                 deleteSelectedNodes,
+                updateSelectedNodes,
+                setCenter,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
