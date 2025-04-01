@@ -144,13 +144,14 @@ const SchemaOptionsDrawer = (props: Props) => {
                                         <Checkbox
                                             checked={value.value}
                                             onChange={() => handleSettingChanged(key)}
+                                            label={
+                                                <InfoLabel
+                                                    aria-label={value.displayName}
+                                                    info={<>{value.description}</>}>
+                                                    {value.displayName}
+                                                </InfoLabel>
+                                            }
                                         />
-
-                                        <InfoLabel
-                                            aria-label={value.displayName}
-                                            info={<>{value.description}</>}>
-                                            {value.displayName}
-                                        </InfoLabel>
                                     </ListItem>
                                 );
                             })}
@@ -169,8 +170,8 @@ const SchemaOptionsDrawer = (props: Props) => {
                                         <Checkbox
                                             checked={handleSetObjectTypesCheckedState(key)}
                                             onChange={() => handleObjectTypesOptionChanged(key)}
+                                            label={<Label aria-label={value}>{value}</Label>}
                                         />
-                                        <Label aria-label={value}>{value}</Label>
                                     </ListItem>
                                 );
                             })}
