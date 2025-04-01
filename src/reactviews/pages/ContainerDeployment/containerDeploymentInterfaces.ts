@@ -53,6 +53,8 @@ export class ContainerDeploymentWebviewState
     platform: string = "";
     // Used for container name validation within the form
     isValidContainerName: boolean = false;
+    // Used for port number validation within the form
+    isValidPortNumber: boolean = false;
 
     constructor(params?: Partial<ContainerDeploymentWebviewState>) {
         for (const key in params) {
@@ -68,6 +70,9 @@ export class ContainerDeploymentWebviewState
 export interface DockerConnectionProfile extends vscodeMssql.IConnectionInfo {
     containerLoadState: ApiStatus.Loading;
     version: string;
+    hostname: string;
+    profileName: string;
+    savePassword: boolean;
     acceptEula: boolean;
 }
 
@@ -183,8 +188,9 @@ export const COMMANDS = {
         password: string,
         port: number,
         version: number,
+        hostname: string,
     ) =>
-        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:1433 --name ${name} -d mcr.microsoft.com/mssql/server:${version}-latest`,
+        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:1433 --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
     CHECK_CONTAINER_RUNNING: (name: string) =>
         `docker ps --filter "name=${name}" --filter "status=running" --format "{{.Names}}"`,
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',

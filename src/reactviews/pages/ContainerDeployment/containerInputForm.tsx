@@ -86,7 +86,7 @@ export const ContainerInputForm: React.FC = () => {
                         context={state}
                         component={component}
                         idx={index}
-                        props={{ orientation: "horizontal" }}
+                        props={{ orientation: "vertical" }}
                     />
                 ),
             )}

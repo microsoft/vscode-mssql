@@ -81,6 +81,11 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                         payload.event.value.toString(),
                     )) !== "";
             }
+            if (payload.event.propertyName == "port") {
+                this.state.isValidPortNumber = await this.validatePort(
+                    payload.event.value.toString(),
+                );
+            }
             await this.validateDockerConnectionProfile(
                 this.state.formState,
                 payload.event.propertyName,
@@ -148,6 +153,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                     this.state.formState.containerName,
                     this.state.formState.password,
                     this.state.formState.version,
+                    this.state.formState.hostname,
+                    this.state.formState.port,
                 );
             let newState = state;
             if (!startContainerResult.success) {
@@ -257,6 +264,19 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
     }
 
+    public async validatePort(port: string): Promise<boolean> {
+        // No port chosen
+        if (!port) return true;
+
+        const portNumber = Number(port);
+
+        // Check if portNumber is a valid number
+        if (isNaN(portNumber) || portNumber <= 0) return false;
+
+        const newPort = await this.findAvailablePort(portNumber);
+        return newPort === portNumber;
+    }
+
     public async validateDockerConnectionProfile(
         dockerConnectionProfile: cd.DockerConnectionProfile,
         propertyName: keyof cd.DockerConnectionProfile,
@@ -328,15 +348,27 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         containerName: string,
         password: string,
         version: string,
+        hostname: string,
+        port?: number,
     ): Promise<cd.DockerCommandParams> {
-        const port = await this.findAvailablePort(1433);
+        const validatedPort = port ? port : await this.findAvailablePort(1433);
+        console.log(
+            cd.COMMANDS.START_SQL_SERVER(
+                containerName,
+                password,
+                validatedPort,
+                Number(version),
+                hostname,
+            ),
+        );
         return new Promise((resolve) => {
             exec(
                 cd.COMMANDS.START_SQL_SERVER(
                     containerName,
                     password,
-                    port,
+                    validatedPort,
                     Number(version),
+                    hostname,
                 ),
                 async (error) => {
                     if (error) {
@@ -352,7 +384,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                     );
                     return resolve({
                         success: true,
-                        port: port,
+                        port: validatedPort,
                     });
                 },
             );
@@ -372,8 +404,9 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     ): Promise<IConnectionProfile> {
         let connection: any = {
             ...dockerProfile,
-            profileName: dockerProfile.containerName,
-            savePassword: true,
+            profileName:
+                dockerProfile.profileName || dockerProfile.containerName,
+            savePassword: dockerProfile.savePassword,
             emptyPasswordInput: false,
             azureAuthType: undefined,
             accountStore: undefined,
@@ -419,13 +452,50 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 required: true,
                 tooltip: "SQL Server Container Password",
                 validate(_, value) {
-                    if (validateSqlServerPassword(value.toString())) {
+                    const testPassword = validateSqlServerPassword(
+                        value.toString(),
+                    );
+                    if (testPassword === "") {
                         return { isValid: true, validationMessage: "" };
                     }
                     return {
                         isValid: false,
-                        validationMessage:
-                            "Please make your password at least 8 characters",
+                        validationMessage: testPassword,
+                    };
+                },
+            } as FormItemSpec<
+                cd.DockerConnectionProfile,
+                cd.ContainerDeploymentWebviewState,
+                cd.ContainerDeploymentFormItemSpec
+            >,
+
+            savePassword: {
+                type: FormItemType.Checkbox,
+                propertyName: "savePassword",
+                label: "Save Password",
+                required: false,
+                tooltip: "Save Password",
+            } as FormItemSpec<
+                cd.DockerConnectionProfile,
+                cd.ContainerDeploymentWebviewState,
+                cd.ContainerDeploymentFormItemSpec
+            >,
+
+            profileName: {
+                type: FormItemType.Input,
+                propertyName: "profileName",
+                label: "Connection Name",
+                required: false,
+                tooltip: "Connection Name",
+                validate(_, value) {
+                    const profileNameValid = validateConnectionName(
+                        value.toString(),
+                    );
+                    return {
+                        isValid: profileNameValid,
+                        validationMessage: profileNameValid
+                            ? ""
+                            : "Please choose a unique connection name",
                     };
                 },
             } as FormItemSpec<
@@ -455,19 +525,53 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 cd.ContainerDeploymentFormItemSpec
             >,
 
+            port: {
+                type: FormItemType.Input,
+                propertyName: "port",
+                label: "Port",
+                required: false,
+                tooltip: "Port",
+                validate(containerDeploymentState, _) {
+                    return containerDeploymentState.isValidPortNumber
+                        ? { isValid: true, validationMessage: "" }
+                        : {
+                              isValid: false,
+                              validationMessage:
+                                  "Please choose an avaiable port",
+                          };
+                },
+            } as FormItemSpec<
+                cd.DockerConnectionProfile,
+                cd.ContainerDeploymentWebviewState,
+                cd.ContainerDeploymentFormItemSpec
+            >,
+
+            hostname: {
+                type: FormItemType.Input,
+                propertyName: "hostname",
+                label: "Hostname",
+                required: false,
+                tooltip: "Hostname",
+            } as FormItemSpec<
+                cd.DockerConnectionProfile,
+                cd.ContainerDeploymentWebviewState,
+                cd.ContainerDeploymentFormItemSpec
+            >,
+
             acceptEula: {
                 type: FormItemType.Checkbox,
                 propertyName: "acceptEula",
-                label: "Accept Docker Eula",
+                label: "Accept Terms and Conditions",
                 required: true,
-                tooltip: "Accept Docker Eula",
+                tooltip: "Accept Terms and Conditions",
                 validate(_, value) {
                     if (value) {
                         return { isValid: true, validationMessage: "" };
                     }
                     return {
                         isValid: false,
-                        validationMessage: "Please accept the Docker Eula",
+                        validationMessage:
+                            "Please accept the Terms and Conditions",
                     };
                 },
             } as FormItemSpec<
@@ -491,19 +595,51 @@ export function getDefaultConnectionProfile(): cd.DockerConnectionProfile {
         password: "",
         applicationName: "vscode-mssql",
         authenticationType: sqlAuthentication,
-        savePassword: true,
+        savePassword: false,
         containerName: "",
         version: "2022",
+        hostname: "",
         loadStatus: ApiStatus.Loading,
     };
 
     return connection;
 }
 
-export function validateSqlServerPassword(password: string): boolean {
-    return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/.test(
-        password,
+export function validateSqlServerPassword(password: string): string {
+    if (password.length < 8) {
+        return "Please make your password at least 8 characters long.";
+    }
+
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasDigit = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*]/.test(password);
+
+    // Count the number of required character categories met
+    const categoryCount = [
+        hasUpperCase,
+        hasLowerCase,
+        hasDigit,
+        hasSpecialChar,
+    ].filter(Boolean).length;
+
+    if (categoryCount < 3) {
+        return "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).";
+    }
+
+    return ""; // Return an empty string if the password is valid
+}
+
+export function validateConnectionName(connectionName: string): boolean {
+    const connections = vscode.workspace
+        .getConfiguration("mssql")
+        .get("connections", []);
+    console.log(connections);
+    console.log(connections[0].profileName);
+    const isDuplicate = connections.some(
+        (profile) => profile.profileName === connectionName,
     );
+    return !isDuplicate;
 }
 
 export async function startDocker(): Promise<cd.DockerCommandParams> {
