@@ -6,12 +6,11 @@
 import {
     Menu,
     MenuTrigger,
-    MenuButton,
     MenuPopover,
     SearchBox,
     Text,
     Button,
-    //Button,
+    ToolbarButton,
 } from "@fluentui/react-components";
 import { List, ListItem } from "@fluentui/react-list-preview";
 import * as FluentIcons from "@fluentui/react-icons";
@@ -90,9 +89,8 @@ export function FilterTablesButton() {
     return (
         <Menu open={isFilterMenuOpen}>
             <MenuTrigger disableButtonEnhancement>
-                <MenuButton
+                <ToolbarButton
                     icon={<FluentIcons.Filter16Filled />}
-                    size="small"
                     style={{
                         minWidth: "85px",
                     }}
@@ -102,7 +100,7 @@ export function FilterTablesButton() {
                     }}
                     appearance="subtle">
                     {locConstants.schemaDesigner.filter}
-                </MenuButton>
+                </ToolbarButton>
             </MenuTrigger>
 
             <MenuPopover

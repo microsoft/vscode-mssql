@@ -470,6 +470,9 @@ export class LocConstants {
             scale: l10n.t("Scale"),
             precision: l10n.t("Precision"),
             defaultValue: l10n.t("Default Value"),
+            svg: l10n.t("SVG"),
+            png: l10n.t("PNG"),
+            jpeg: l10n.t("JPEG"),
         };
     }
 

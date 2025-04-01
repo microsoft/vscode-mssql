@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button } from "@fluentui/react-components";
+import { ToolbarButton } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
@@ -19,9 +19,8 @@ export function AutoArrangeButton() {
         return undefined;
     }
     return (
-        <Button
+        <ToolbarButton
             icon={<FluentIcons.Flowchart16Filled />}
-            size="small"
             onClick={() => {
                 const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
                 const schema = flowUtils.extractSchemaModel(
@@ -29,24 +28,12 @@ export function AutoArrangeButton() {
                     reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
                 );
                 const generateComponenets = flowUtils.generateSchemaDesignerFlowComponents(schema);
-
-                nodes.forEach((node) => {
-                    const nodeId = node.id;
-                    const tableId = node.data.id;
-                    const table = generateComponenets.nodes.find((n) => n.data.id === tableId);
-                    if (table) {
-                        reactFlow.updateNode(nodeId, {
-                            position: {
-                                x: table.position.x,
-                                y: table.position.y,
-                            },
-                        });
-                    }
-                });
+                reactFlow.setNodes(generateComponenets.nodes);
+                reactFlow.setEdges(generateComponenets.edges);
             }}
             title={locConstants.schemaDesigner.autoArrange}
             appearance="subtle">
             {locConstants.schemaDesigner.autoArrange}
-        </Button>
+        </ToolbarButton>
     );
 }

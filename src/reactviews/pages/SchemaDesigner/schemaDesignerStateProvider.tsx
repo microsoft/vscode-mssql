@@ -24,7 +24,10 @@ export interface SchemaDesignerContextProps
         edges: Edge<SchemaDesigner.ForeignKey>[];
     }>;
     saveAsFile: (fileProps: SchemaDesigner.ExportFileOptions) => void;
-    getReport: () => Promise<SchemaDesigner.GetReportResponse>;
+    getReport: () => Promise<{
+        report: SchemaDesigner.GetReportResponse;
+        error?: string;
+    }>;
     openInEditor: (text: string) => void;
     openInEditorWithConnection: (text: string) => void;
     setSelectedTable: (selectedTable: SchemaDesigner.Table) => void;
@@ -105,11 +108,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return;
         }
 
-        const report = (await extensionRpc.call("getReport", {
+        const result = await extensionRpc.call("getReport", {
             updatedSchema: schema,
-        })) as SchemaDesigner.GetReportResponse;
-
-        return report;
+        });
+        return result;
     };
 
     const copyToClipboard = (text: string) => {
