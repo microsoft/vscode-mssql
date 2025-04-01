@@ -314,6 +314,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     aria-expanded={isMenuOpen}
                     aria-label={props.ariaLabel}
                     disabled={props.disabled}
+                    className={isMenuOpen ? "dropdown-open" : ""}
                     style={{
                         ...props.style,
                         justifyContent: "space-between",
@@ -324,6 +325,12 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                         }}
+                        className={
+                            getOptionDisplayText(selectedOption, props.placeholder) ===
+                            props.placeholder
+                                ? "placeholder"
+                                : ""
+                        }
                         title={getOptionDisplayText(selectedOption, props.placeholder)}>
                         {getOptionDisplayText(selectedOption, props.placeholder)}
                     </Text>

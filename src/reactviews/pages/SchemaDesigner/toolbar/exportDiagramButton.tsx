@@ -5,16 +5,16 @@
 
 import {
     Menu,
-    MenuButton,
     MenuItem,
     MenuList,
     MenuPopover,
     MenuTrigger,
+    ToolbarButton,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import * as htmlToImage from "html-to-image";
-import { getNodesBounds, useReactFlow } from "@xyflow/react";
+import { getNodesBounds, getViewportForBounds, useReactFlow } from "@xyflow/react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
 
@@ -28,9 +28,17 @@ export function ExportDiagramButton() {
         const graphBackgroundColor = computedStyle.getPropertyValue("--vscode-editor-background");
 
         const nodesBounds = getNodesBounds(getNodes());
+        const viewport = getViewportForBounds(
+            nodesBounds,
+            nodesBounds.width,
+            nodesBounds.height,
+            0.5,
+            2,
+            50,
+        );
 
-        const width = nodesBounds.width + 20;
-        const height = nodesBounds.height + 20;
+        const width = nodesBounds.width + 100;
+        const height = nodesBounds.height + 100;
 
         switch (format) {
             case "png":
@@ -39,6 +47,11 @@ export function ExportDiagramButton() {
                         width: width,
                         height: height,
                         backgroundColor: graphBackgroundColor,
+                        style: {
+                            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+                            width: `${width}px`,
+                            height: `${height}px`,
+                        },
                     })
                     .then((dataUrl) => {
                         context.saveAsFile({
@@ -55,6 +68,11 @@ export function ExportDiagramButton() {
                         width: width,
                         height: height,
                         backgroundColor: graphBackgroundColor,
+                        style: {
+                            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+                            width: `${width}px`,
+                            height: `${height}px`,
+                        },
                     })
                     .then((dataUrl) => {
                         context.saveAsFile({
@@ -71,6 +89,11 @@ export function ExportDiagramButton() {
                         width: width,
                         height: height,
                         backgroundColor: graphBackgroundColor,
+                        style: {
+                            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+                            width: `${width}px`,
+                            height: `${height}px`,
+                        },
                     })
                     .then((dataUrl) => {
                         context.saveAsFile({
@@ -86,20 +109,25 @@ export function ExportDiagramButton() {
     return (
         <Menu>
             <MenuTrigger disableButtonEnhancement>
-                <MenuButton
+                <ToolbarButton
                     icon={<FluentIcons.ArrowExportUp16Filled />}
-                    size="small"
                     title={locConstants.schemaDesigner.export}
                     appearance="subtle">
                     {locConstants.schemaDesigner.export}
-                </MenuButton>
+                </ToolbarButton>
             </MenuTrigger>
 
             <MenuPopover>
                 <MenuList>
-                    <MenuItem onClick={() => exportAs("svg")}>SVG</MenuItem>
-                    <MenuItem onClick={() => exportAs("png")}>PNG</MenuItem>
-                    <MenuItem onClick={() => exportAs("jpeg")}>JPEG</MenuItem>
+                    <MenuItem onClick={() => exportAs("svg")}>
+                        {locConstants.schemaDesigner.svg}
+                    </MenuItem>
+                    <MenuItem onClick={() => exportAs("png")}>
+                        {locConstants.schemaDesigner.png}
+                    </MenuItem>
+                    <MenuItem onClick={() => exportAs("jpeg")}>
+                        {locConstants.schemaDesigner.jpeg}
+                    </MenuItem>
                 </MenuList>
             </MenuPopover>
         </Menu>

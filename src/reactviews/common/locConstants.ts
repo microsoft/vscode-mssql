@@ -32,6 +32,20 @@ export class LocConstants {
             close: l10n.t("Close"),
             apply: l10n.t("Apply"),
             clearSelection: l10n.t("Clear Selection"),
+            find: l10n.t("Find"),
+            findNext: l10n.t("Find Next"),
+            findPrevious: l10n.t("Find Previous"),
+            noResults: l10n.t("No results"),
+            searchResultSummary: (activeElement: number, totalElements: number) =>
+                l10n.t({
+                    message: "{0} of {1}",
+                    args: [activeElement, totalElements],
+                    comment: [
+                        "{0} is the number of active elements",
+                        "{1} is the total number of elements",
+                    ],
+                }),
+            closeFind: l10n.t("Close Find"),
         };
     }
 
@@ -434,7 +448,12 @@ export class LocConstants {
                     comment: ["{0} is source table", "{1} is target table"],
                 }),
             foreignKeyError: l10n.t("Cannot create foreign key"),
-            duplicateForeignKeyColumns: l10n.t("Cannot create foreign key with duplicate columns"),
+            duplicateForeignKeyColumns: (columnName: string) =>
+                l10n.t({
+                    message: "Column '{0}' already has a foreign key",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
             foreignKeyNameEmptyError: l10n.t("Foreign key name cannot be empty"),
             foreignKeyNameRepeatedError: (foreignKeyName: string) =>
                 l10n.t({
@@ -456,6 +475,22 @@ export class LocConstants {
             scale: l10n.t("Scale"),
             precision: l10n.t("Precision"),
             defaultValue: l10n.t("Default Value"),
+            svg: l10n.t("SVG"),
+            png: l10n.t("PNG"),
+            jpeg: l10n.t("JPEG"),
+            columnNameRepeatedError: (columnName: string) =>
+                l10n.t({
+                    message: "Column '{0}' already exists",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            columnNameEmptyError: l10n.t("Column name cannot be empty"),
+            columnPKCannotBeNull: (columnName: string) =>
+                l10n.t({
+                    message: "Column '{0}' cannot be null because it is a primary key",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
         };
     }
 

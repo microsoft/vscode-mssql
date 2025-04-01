@@ -277,10 +277,6 @@
         <source xml:lang="en">Cannot create foreign key</source>
         <target state="new">Cannot create foreign key</target>
       </trans-unit>
-      <trans-unit id="++CODE++db1e549937a7102cda82a262a27f86166ea3c25f6441098efbc9c17de5eb362c">
-        <source xml:lang="en">Cannot create foreign key with duplicate columns</source>
-        <target state="new">Cannot create foreign key with duplicate columns</target>
-      </trans-unit>
       <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
         <source xml:lang="en">Change</source>
         <target state="new">Change</target>
@@ -383,6 +379,10 @@
         <source xml:lang="en">Close Designer</source>
         <target state="translated">Cerrar Designer</target>
       </trans-unit>
+      <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
+        <source xml:lang="en">Close Find</source>
+        <target state="new">Close Find</target>
+      </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
         <target state="translated">Cierra la conexión actual.</target>
@@ -398,6 +398,11 @@
       <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
         <source xml:lang="en">Column</source>
         <target state="translated">Columna</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b5f14952d79f90995588047df35fde3562e4851c778c9ee4853fed33252eceba">
+        <source xml:lang="en">Column '{0}' already has a foreign key</source>
+        <note>{0} is the column name</note>
+        <target state="new">Column '{0}' already has a foreign key</target>
       </trans-unit>
       <trans-unit id="++CODE++c360b9bc22466a897cd5a6398646517f1bc0236d4bd579846b258d267dfd859c">
         <source xml:lang="en">Column '{0}' must be a primary key</source>
@@ -439,7 +444,7 @@
       </trans-unit>
       <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
         <source xml:lang="en">Connect to Database</source>
-        <target state="new">Connect to Database</target>
+        <target state="translated">Conectar a base de datos</target>
       </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
@@ -900,6 +905,14 @@
         <source xml:lang="en">Filter for any field...</source>
         <target state="translated">Filtrar por cualquier campo...</target>
       </trans-unit>
+      <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
+        <source xml:lang="en">Find</source>
+        <target state="new">Find</target>
+      </trans-unit>
+      <trans-unit id="++CODE++664d6cdf0494d6e50579257917eb2ad1b6aa7534db584c3368f24b47c08cdc22">
+        <source xml:lang="en">Find Next</source>
+        <target state="new">Find Next</target>
+      </trans-unit>
       <trans-unit id="++CODE++051ab9f3bd7362945f1e2adc7c118c48d4286a3e181158b32e8e87f915103e73">
         <source xml:lang="en">Find Node</source>
         <target state="translated">Buscar nodo</target>
@@ -907,6 +920,10 @@
       <trans-unit id="++CODE++92fddef2012c2e36eec5c67f7c3c447fbc326c9700a9501f395ce6409de2c855">
         <source xml:lang="en">Find Nodes</source>
         <target state="translated">Buscar nodos</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bf0e5179cb962af6329b97f24951139ae47f60ff00cdcd1ccbacd816608b6866">
+        <source xml:lang="en">Find Previous</source>
+        <target state="new">Find Previous</target>
       </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
@@ -1095,6 +1112,10 @@
         <source xml:lang="en">Issues ({0})</source>
         <note>{0} is the number of issues</note>
         <target state="translated">Incidencias ({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f4dc1c96a30fbdeb2a15cb6d4229469fff36c0266dc0c346599093c24d4c0a01">
+        <source xml:lang="en">JPEG</source>
+        <target state="new">JPEG</target>
       </trans-unit>
       <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
         <source xml:lang="en">JSON</source>
@@ -1332,6 +1353,10 @@
         <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
         <target state="translated">No se encontró ningún resultado para el editor activo; ejecute una consulta o cambie a otro editor.</target>
       </trans-unit>
+      <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
+        <source xml:lang="en">No results</source>
+        <target state="new">No results</target>
+      </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
         <target state="new">No schema differences were found.</target>
@@ -1477,6 +1502,10 @@
         <source xml:lang="en">Overall, how satisfied are you with {0}?</source>
         <note>{0} is the feature name</note>
         <target state="translated">En general, ¿cuál es su grado de satisfacción con {0}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++796120837694d3f3f29259cfeb25091698c2a0aa87873658d840b4993ee889b3">
+        <source xml:lang="en">PNG</source>
+        <target state="new">PNG</target>
       </trans-unit>
       <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
         <source xml:lang="en">Parameters</source>
@@ -1697,6 +1726,10 @@
       <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
         <source xml:lang="en">SQL Plan Files</source>
         <target state="translated">Archivos de plan de SQL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
+        <source xml:lang="en">SVG</source>
+        <target state="new">SVG</target>
       </trans-unit>
       <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
         <source xml:lang="en">Satisfied</source>
@@ -2409,6 +2442,12 @@
         <source xml:lang="en">{0} issues</source>
         <note>{0} is the number of issues</note>
         <target state="translated">{0} problemas</target>
+      </trans-unit>
+      <trans-unit id="++CODE++48f8bded11e525503381f9350e33b4f291585451934e4dfff2baed0e7a8959a3">
+        <source xml:lang="en">{0} of {1}</source>
+        <note>{0} is the number of active elements
+{1} is the total number of elements</note>
+        <target state="new">{0} of {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
         <source xml:lang="en">{0} properties</source>

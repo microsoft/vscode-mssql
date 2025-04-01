@@ -17,8 +17,8 @@ import {
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
-import { Handle, Position } from "@xyflow/react";
-import { useContext } from "react";
+import { Handle, NodeProps, Position } from "@xyflow/react";
+import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
@@ -161,12 +161,59 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 // TableHeader component for the table title and subtitle
 const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
     const styles = useStyles();
+    const [searchText, setSearchText] = useState<string>("");
 
+    useEffect(() => {
+        // Store the search text in state when the event is triggered
+        const handleSearch = (text: string) => {
+            setSearchText(text);
+        };
+        eventBus.on("onFindWidgetValueChange", handleSearch);
+        return () => {
+            eventBus.off("onFindWidgetValueChange", handleSearch);
+        };
+    });
+
+    // Function to highlight text based on search
+    const highlightText = (text: string) => {
+        if (!searchText || searchText.trim() === "") {
+            return <span>{text}</span>;
+        }
+
+        // Case insensitive search
+        const regex = new RegExp(`(${searchText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+        const parts = text.split(regex);
+
+        return (
+            <>
+                {parts.map((part, index) => {
+                    // Check if this part matches the search text (case insensitive)
+                    const isMatch = part.toLowerCase() === searchText.toLowerCase();
+                    return isMatch ? (
+                        <span
+                            key={index}
+                            style={{
+                                backgroundColor: "var(--vscode-editor-findMatchBackground)",
+                                color: "var(--vscode-editor-background)",
+                                padding: "0 2px",
+                                borderRadius: "3px",
+                            }}>
+                            {part}
+                        </span>
+                    ) : (
+                        <span key={index}>{part}</span>
+                    );
+                })}
+            </>
+        );
+    };
     return (
         <div className={styles.tableHeader}>
             <div className={styles.tableHeaderRow}>
                 <FluentIcons.TableRegular className={styles.tableIcon} />
-                <Text className={styles.tableTitle}>{`${table.schema}.${table.name}`}</Text>
+                <Text className={styles.tableTitle}>
+                    {highlightText(`${table.schema}.${table.name}`)}
+                </Text>
                 <TableHeaderActions table={table} />
             </div>
             <div className={styles.tableSubtitle}>
@@ -214,22 +261,22 @@ const TableColumn = ({ column }: { column: SchemaDesigner.Column }) => {
 const TableColumns = ({ columns }: { columns: SchemaDesigner.Column[] }) => {
     return (
         <div>
-            {columns.map((column) => (
-                <TableColumn key={column.name} column={column} />
+            {columns.map((column, index) => (
+                <TableColumn key={`${index}-${column.name}`} column={column} />
             ))}
         </div>
     );
 };
 
 // Main SchemaDesignerTableNode component
-export const SchemaDesignerTableNode = ({ data }: { data: SchemaDesigner.Table }) => {
+export const SchemaDesignerTableNode = (props: NodeProps) => {
     const styles = useStyles();
 
     return (
         <div className={styles.tableNodeContainer}>
-            <TableHeader table={data} />
+            <TableHeader table={props.data as SchemaDesigner.Table} />
             <Divider />
-            <TableColumns columns={data.columns} />
+            <TableColumns columns={(props.data as SchemaDesigner.Table).columns} />
         </div>
     );
 };

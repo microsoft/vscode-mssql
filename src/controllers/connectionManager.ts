@@ -237,7 +237,7 @@ export default class ConnectionManager {
     }
 
     /**
-     * Get the connection view.
+     * Get the connection view
      */
     public get connectionUI(): ConnectionUI {
         return this._connectionUI!;

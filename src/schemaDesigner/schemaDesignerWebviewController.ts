@@ -139,11 +139,19 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.registerRequestHandler("getReport", async (payload) => {
-            const report = await this.schemaDesignerService.getReport({
-                updatedSchema: payload.updatedSchema,
-                sessionId: this._sessionId,
-            });
-            return report;
+            try {
+                const report = await this.schemaDesignerService.getReport({
+                    updatedSchema: payload.updatedSchema,
+                    sessionId: this._sessionId,
+                });
+                return {
+                    report,
+                };
+            } catch (error) {
+                return {
+                    error: error.toString(),
+                };
+            }
         });
 
         this.registerRequestHandler("copyToClipboard", async (payload) => {

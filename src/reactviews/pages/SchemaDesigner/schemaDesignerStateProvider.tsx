@@ -3,15 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { useVscodeWebview, WebviewContextProps } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
-import { Edge, Node, useReactFlow } from "@xyflow/react";
+import { Edge, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
 import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
+import { UndoRedoStack } from "../../common/undoRedoStack";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -24,7 +25,10 @@ export interface SchemaDesignerContextProps
         edges: Edge<SchemaDesigner.ForeignKey>[];
     }>;
     saveAsFile: (fileProps: SchemaDesigner.ExportFileOptions) => void;
-    getReport: () => Promise<SchemaDesigner.GetReportResponse>;
+    getReport: () => Promise<{
+        report: SchemaDesigner.GetReportResponse;
+        error?: string;
+    }>;
     openInEditor: (text: string) => void;
     openInEditorWithConnection: (text: string) => void;
     setSelectedTable: (selectedTable: SchemaDesigner.Table) => void;
@@ -35,6 +39,8 @@ export interface SchemaDesignerContextProps
     deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteSelectedNodes: () => void;
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
+    updateSelectedNodes: (nodesIds: string[]) => void;
+    setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -44,6 +50,10 @@ const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
 interface SchemaDesignerProviderProps {
     children: React.ReactNode;
 }
+
+export const stateStack = new UndoRedoStack<
+    ReactFlowJsonObject<Node<SchemaDesigner.Table>, Edge<SchemaDesigner.ForeignKey>>
+>();
 
 const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ children }) => {
     // Set up necessary webview context
@@ -56,6 +66,55 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     // Setups for schema designer model
     const [datatypes, setDatatypes] = useState<string[]>([]);
     const [schemaNames, setSchemaNames] = useState<string[]>([]);
+    const reactFlow = useReactFlow();
+
+    useEffect(() => {
+        const handleScript = () => {
+            setTimeout(() => {
+                const state = reactFlow.toObject() as ReactFlowJsonObject<
+                    Node<SchemaDesigner.Table>,
+                    Edge<SchemaDesigner.ForeignKey>
+                >;
+                stateStack.pushState(state);
+                eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
+            }, 100);
+        };
+        eventBus.on("pushState", handleScript);
+
+        const handleUndo = () => {
+            if (!stateStack.canUndo()) {
+                return;
+            }
+            const state = stateStack.undo();
+            if (!state) {
+                return;
+            }
+            reactFlow.setNodes(state.nodes);
+            reactFlow.setEdges(state.edges);
+            eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
+        };
+        eventBus.on("undo", handleUndo);
+
+        const handleRedo = () => {
+            if (!stateStack.canRedo()) {
+                return;
+            }
+            const state = stateStack.redo();
+            if (!state) {
+                return;
+            }
+            reactFlow.setNodes(state.nodes);
+            reactFlow.setEdges(state.edges);
+            eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
+        };
+        eventBus.on("redo", handleRedo);
+
+        return () => {
+            eventBus.off("pushState", handleScript);
+            eventBus.off("undo", handleUndo);
+            eventBus.off("redo", handleRedo);
+        };
+    }, []);
 
     const initializeSchemaDesigner = async () => {
         const model = (await extensionRpc.call(
@@ -67,13 +126,20 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         setDatatypes(model.dataTypes);
         setSchemaNames(model.schemaNames);
 
+        setTimeout(() => {
+            stateStack.setInitialState(
+                reactFlow.toObject() as ReactFlowJsonObject<
+                    Node<SchemaDesigner.Table>,
+                    Edge<SchemaDesigner.ForeignKey>
+                >,
+            );
+        });
+
         return {
             nodes,
             edges,
         };
     };
-
-    const reactFlow = useReactFlow();
 
     // Get the script from the server
     const getScript = async () => {
@@ -103,11 +169,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return;
         }
 
-        const report = (await extensionRpc.call("getReport", {
+        const result = await extensionRpc.call("getReport", {
             updatedSchema: schema,
-        })) as SchemaDesigner.GetReportResponse;
-
-        return report;
+        });
+        return result;
     };
 
     const copyToClipboard = (text: string) => {
@@ -168,13 +233,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             reactFlow.addNodes(nodeWithPosition);
             reactFlow.addEdges(edgesForNewTable);
             requestAnimationFrame(async () => {
-                await reactFlow.setCenter(
-                    nodeWithPosition.position.x,
-                    nodeWithPosition.position.y,
-                    {
-                        duration: 500,
-                    },
-                );
+                setCenter(nodeWithPosition.id, true);
             });
 
             eventBus.emit("getScript");
@@ -197,6 +256,21 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         if (!tableNode) {
             console.warn(`Table with id ${table.id} not found`);
             return false;
+        }
+
+        for (const t of schemaModel.tables) {
+            if (t.id !== table.id) {
+                // Update the foreign keys for other tables
+                t.foreignKeys.forEach((fk) => {
+                    if (
+                        fk.referencedSchemaName === tableNode.schema &&
+                        fk.referencedTableName === tableNode.name
+                    ) {
+                        fk.referencedSchemaName = table.schema;
+                        fk.referencedTableName = table.name;
+                    }
+                });
+            }
         }
 
         const updatedTable = {
@@ -242,6 +316,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return false;
         }
         void reactFlow.deleteElements({ nodes: [node] });
+        eventBus.emit("pushState");
     };
 
     /**
@@ -280,6 +355,28 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     };
 
+    const updateSelectedNodes = (nodesIds: string[]) => {
+        reactFlow.getNodes().forEach((node) => {
+            reactFlow.updateNode(node.id, {
+                selected: nodesIds.includes(node.id),
+            });
+        });
+    };
+
+    const setCenter = (nodeId: string, shouldZoomIn: boolean = false) => {
+        const node = reactFlow.getNode(nodeId) as Node<SchemaDesigner.Table>;
+        if (node) {
+            void reactFlow.setCenter(
+                node.position.x + flowUtils.getTableWidth() / 2,
+                node.position.y + flowUtils.getTableHeight(node.data) / 2,
+                {
+                    zoom: shouldZoomIn ? 1 : reactFlow.getZoom(),
+                    duration: 500,
+                },
+            );
+        }
+    };
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -302,6 +399,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 addTable,
                 deleteTable,
                 deleteSelectedNodes,
+                updateSelectedNodes,
+                setCenter,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
