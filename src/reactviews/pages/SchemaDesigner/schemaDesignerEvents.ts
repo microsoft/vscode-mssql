@@ -16,6 +16,10 @@ export type MyEvents = {
     ) => void;
     newTable: (schema: SchemaDesigner.Schema) => void;
     onFindWidgetValueChange: (searchText: string) => void;
+    pushState: () => void;
+    undo: () => void;
+    redo: () => void;
+    updateUndoRedoState: (undoEnabled: boolean, redoEnabled: boolean) => void;
 };
 
 const eventBus = new TypedEventEmitter<MyEvents>();

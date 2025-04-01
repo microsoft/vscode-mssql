@@ -27,7 +27,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner.js";
-import { flowUtils, foreignKeyUtils } from "../schemaDesignerUtils.js";
+import { flowUtils, foreignKeyUtils, namingUtils } from "../schemaDesignerUtils.js";
 import {
     Toast,
     ToastBody,
@@ -37,6 +37,7 @@ import {
     useToastController,
 } from "@fluentui/react-components";
 import eventBus from "../schemaDesignerEvents.js";
+import { v4 as uuidv4 } from "uuid";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
@@ -107,9 +108,12 @@ export const SchemaDesignerFlow = () => {
             return;
         }
 
-        // Check if there's already a foreign key between these tables
-        const existingForeignKey = relationshipEdges.find(
-            (edge) => edge.source === sourceNode.id && edge.target === targetNode.id,
+        const schema = flowUtils.extractSchemaModel(schemaNodes, relationshipEdges);
+
+        const existingForeignKeys = foreignKeyUtils.extractForeignKeysFromEdges(
+            relationshipEdges,
+            sourceNode.data.id,
+            schema,
         );
 
         // Create the edge data from foreign key
@@ -127,8 +131,8 @@ export const SchemaDesignerFlow = () => {
                 targetNode,
                 sourceColumn.name,
                 targetColumn.name,
-                existingForeignKey?.data?.id,
-                existingForeignKey?.data?.name,
+                uuidv4(),
+                namingUtils.getNextForeignKeyName(existingForeignKeys, schema.tables),
             ),
         };
 
@@ -136,6 +140,7 @@ export const SchemaDesignerFlow = () => {
 
         // Update create script
         eventBus.emit("getScript");
+        eventBus.emit("pushState");
     };
 
     /**
@@ -220,6 +225,10 @@ export const SchemaDesignerFlow = () => {
                 connectionMode={ConnectionMode.Loose}
                 onDelete={() => {
                     eventBus.emit("getScript");
+                    eventBus.emit("pushState");
+                }}
+                onNodeDragStop={() => {
+                    eventBus.emit("pushState");
                 }}
                 fitView>
                 <Controls />

@@ -11,6 +11,7 @@ import { AddTableButton } from "./addTableButton";
 import { PublishChangesDialogButton } from "./publishChangesDialogButton";
 import { AutoArrangeButton } from "./autoArrangeButton";
 import { DeleteNodesButton } from "./deleteNodesButton";
+import { UndoRedoButtons } from "./undoRedoButton";
 
 export function SchemaDesignerToolbar() {
     return (
@@ -28,6 +29,7 @@ export function SchemaDesignerToolbar() {
             <ExportDiagramButton />
             <ToolbarDivider />
             <AddTableButton />
+            <UndoRedoButtons />
             <AutoArrangeButton />
             <DeleteNodesButton />
             <ToolbarDivider />

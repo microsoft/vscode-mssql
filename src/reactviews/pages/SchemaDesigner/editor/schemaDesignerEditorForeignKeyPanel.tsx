@@ -32,12 +32,15 @@ import {
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { foreignKeyUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
+import { namingUtils, tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 import * as FluentIcons from "@fluentui/react-icons";
-import { SchemaDesignerEditorContext } from "./schemaDesignerEditorDrawer";
+import {
+    FOREIGN_KEY_ERROR_PREFIX,
+    SchemaDesignerEditorContext,
+} from "./schemaDesignerEditorDrawer";
 
 const useStyles = makeStyles({
     panel: {
@@ -292,17 +295,25 @@ const ForeignKeyCard = ({
     allTables,
     onDelete,
     onUpdate,
+    lastAddedForeignKeyIndex,
 }: {
     foreignKey: SchemaDesigner.ForeignKey;
     index: number;
     allTables: SchemaDesigner.Table[];
     onDelete: (index: number) => void;
     onUpdate: (index: number, updatedForeignKey: SchemaDesigner.ForeignKey) => void;
+    lastAddedForeignKeyIndex: number;
 }) => {
     const classes = useStyles();
     const context = useContext(SchemaDesignerEditorContext);
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [errorMessage, setErrorMessage] = useState<string>("");
+
+    useEffect(() => {
+        if (index === lastAddedForeignKeyIndex) {
+            inputRef.current?.focus();
+        }
+    }, [index, lastAddedForeignKeyIndex]);
 
     // Add a mapping between source and target columns
     const addColumnMapping = () => {
@@ -327,7 +338,7 @@ const ForeignKeyCard = ({
     };
 
     useEffect(() => {
-        const error = context.errors[`foreignKey-${foreignKey.id}`];
+        const error = context.errors[`${FOREIGN_KEY_ERROR_PREFIX}${foreignKey.id}`];
         if (error) {
             setErrorMessage(error);
         } else {
@@ -458,24 +469,6 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
         if (context.table) {
             setLastAddedForeignKeyIndex(-1);
         }
-        context.table.foreignKeys.forEach((foreignKey) => {
-            const validationResult = foreignKeyUtils.isForeignKeyValid(
-                context.schema?.tables ?? [],
-                context.table,
-                foreignKey,
-            );
-            if (!validationResult.isValid) {
-                context.setErrors({
-                    ...context.errors,
-                    [`foreignKey-${foreignKey.id}`]: validationResult.errorMessage ?? "",
-                });
-            } else {
-                // Remove error message if valid
-                const updatedErrors = { ...context.errors };
-                delete updatedErrors[`foreignKey-${foreignKey.id}`];
-                context.setErrors(updatedErrors);
-            }
-        });
     }, [context.table]);
 
     // Focus on the newly added foreign key's name input
@@ -495,7 +488,10 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
         const firstTable = availableTables[0];
         const newForeignKey: SchemaDesigner.ForeignKey = {
             id: uuidv4(),
-            name: namingUtils.getNextForeignKeyName(context.table.foreignKeys),
+            name: namingUtils.getNextForeignKeyName(
+                context.table.foreignKeys,
+                context.schema.tables,
+            ),
             columns: [context.table.columns[0]?.name || ""],
             referencedSchemaName: firstTable.schema,
             referencedTableName: firstTable.name,
@@ -554,6 +550,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
                         allTables={availableTables}
                         onDelete={deleteForeignKey}
                         onUpdate={updateForeignKey}
+                        lastAddedForeignKeyIndex={lastAddedForeignKeyIndex}
                     />
                 ))}
             </div>
