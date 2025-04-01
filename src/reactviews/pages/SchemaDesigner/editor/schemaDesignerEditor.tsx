@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CounterBadge, makeStyles, Tab, TabList, TabValue } from "@fluentui/react-components";
-import { useContext, useEffect, useState } from "react";
+import { CounterBadge, makeStyles, Tab, TabList } from "@fluentui/react-components";
+import { useContext } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerEditorFooter } from "./schemaDesignerEditorFooter";
 import { SchemaDesignerEditorTablePanel } from "./schemaDesignerEditorTablePanel";
@@ -61,18 +61,6 @@ export const SchemaDesignerEditor = () => {
         return undefined;
     }
 
-    const [selectedTabValue, setSelectedTabValue] = useState<TabValue>(
-        SchemaDesignerEditorTab.Table,
-    );
-
-    useEffect(() => {
-        if (context.showForeignKey) {
-            setSelectedTabValue(SchemaDesignerEditorTab.ForeignKeys);
-        } else {
-            setSelectedTabValue(SchemaDesignerEditorTab.Table);
-        }
-    }, [context.schema, context.showForeignKey]);
-
     const tabErrorCount = (tab: SchemaDesignerEditorTab) =>
         Object.keys(context.errors).filter((key) => {
             return key.includes(`${tab}_`) && context.errors[key];
@@ -85,8 +73,8 @@ export const SchemaDesignerEditor = () => {
     return (
         <div className={classes.editor}>
             <TabList
-                selectedValue={selectedTabValue}
-                onTabSelect={(_e, data) => setSelectedTabValue(data.value)}>
+                selectedValue={context.selectedTabValue}
+                onTabSelect={(_e, data) => context.setSelectedTabValue(data.value)}>
                 <Tab value={SchemaDesignerEditorTab.Table}>
                     {locConstants.schemaDesigner.table}
                     <CounterBadge
@@ -105,10 +93,10 @@ export const SchemaDesignerEditor = () => {
                 </Tab>
             </TabList>
             <div className={classes.editorPanel}>
-                {selectedTabValue === SchemaDesignerEditorTab.Table && (
+                {context.selectedTabValue === SchemaDesignerEditorTab.Table && (
                     <SchemaDesignerEditorTablePanel />
                 )}
-                {selectedTabValue === SchemaDesignerEditorTab.ForeignKeys && (
+                {context.selectedTabValue === SchemaDesignerEditorTab.ForeignKeys && (
                     <SchemaDesignerEditorForeignKeyPanel />
                 )}
             </div>
