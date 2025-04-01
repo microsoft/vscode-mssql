@@ -11,6 +11,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { Node, Edge, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { flowUtils } from "../schemaDesignerUtils";
+import eventBus from "../schemaDesignerEvents";
 
 export function AutoArrangeButton() {
     const context = useContext(SchemaDesignerContext);
@@ -22,6 +23,7 @@ export function AutoArrangeButton() {
         <ToolbarButton
             icon={<FluentIcons.Flowchart16Filled />}
             onClick={() => {
+                eventBus.emit("pushState");
                 const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
                 const schema = flowUtils.extractSchemaModel(
                     nodes,
