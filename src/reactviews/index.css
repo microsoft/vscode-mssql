@@ -21,7 +21,7 @@
 
 /* Combobox styling */
 .fui-Dropdown {
-    border: none !important;
+    border: 1px solid var(--vscode-input-border, transparent);
 }
 button[role="combobox"] {
     background-color: var(--vscode-dropdown-background) !important;
@@ -30,6 +30,7 @@ button[role="combobox"] {
     border-radius: 2px;
     min-height: 26px !important;
     line-height: 19px !important;
+    outline: none !important;
 }
 button[role="combobox"] .placeholder {
     color: var(--vscode-input-placeholderForeground) !important;
@@ -52,8 +53,7 @@ input[type="search"]:focus,
 input[type="text"]:focus,
 input[type="password"]:focus,
 input:not([type="search"]):focus,
-textarea:focus,
-button[role="combobox"]:focus {
+textarea:focus {
     outline: none !important;
     border: none !important;
 }

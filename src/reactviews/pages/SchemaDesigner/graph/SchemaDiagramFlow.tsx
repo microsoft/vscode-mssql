@@ -79,7 +79,7 @@ export const SchemaDesignerFlow = () => {
      */
     const showErrorNotification = (errorMessage: string) =>
         dispatchToast(
-            <Toast>
+            <Toast appearance="inverted">
                 <ToastTitle>Failed to create foreign key</ToastTitle>
                 <ToastBody>{errorMessage}</ToastBody>
             </Toast>,
@@ -209,7 +209,7 @@ export const SchemaDesignerFlow = () => {
 
     return (
         <div style={{ width: "100vw", height: "100vh" }}>
-            <Toaster toasterId={toasterId} />
+            <Toaster toasterId={toasterId} position="top-end" />
             <ReactFlow
                 nodes={schemaNodes}
                 edges={relationshipEdges}
