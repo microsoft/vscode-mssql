@@ -146,9 +146,6 @@ export default class StatusView implements vscode.Disposable {
         if (bar.progressTimerId) {
             clearInterval(bar.progressTimerId);
         }
-        if (bar.timerTest) {
-            clearInterval(bar.timerTest);
-        }
         return bar;
     }
 
@@ -180,7 +177,6 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.tooltip =
             LocalizedConstants.connectingTooltip + ConnInfo.getTooltip(connCreds);
         this.showStatusBarItem(fileUri, bar.statusConnection);
-        this.showProgress(fileUri, LocalizedConstants.connectingLabel, bar.statusConnection);
     }
 
     public connectSuccess(
@@ -230,7 +226,6 @@ export default class StatusView implements vscode.Disposable {
         bar.statusQuery.command = undefined;
         bar.statusQuery.text = LocalizedConstants.executeQueryLabel;
         this.showStatusBarItem(fileUri, bar.statusQuery);
-        //TODO: add timer here
         this.showProgress(fileUri, LocalizedConstants.executeQueryLabel, bar.statusQuery);
     }
 
@@ -244,10 +239,10 @@ export default class StatusView implements vscode.Disposable {
     }
 
     public setExecutionTime(fileUri: string, time: string): void {
-        ///TODO: remove timer here
         let bar = this.getStatusBar(fileUri);
         bar.executionTime.text = time;
         this.showStatusBarItem(fileUri, bar.executionTime);
+        clearInterval(bar.timerTest);
     }
 
     public cancelingQuery(fileUri: string): void {
@@ -417,26 +412,13 @@ export default class StatusView implements vscode.Disposable {
             return;
         }
         const self = this;
-        let index = 0;
-        let progressTicks = ["|", "/", "-", "\\"];
-
         let bar = this.getStatusBar(fileUri);
-        bar.progressTimerId = setInterval(() => {
-            index++;
-            if (index > 3) {
-                index = 0;
-            }
-
-            let progressTick = progressTicks[index];
-            statusBarItem.text = statusText + " " + progressTick;
-            self.showStatusBarItem(fileUri, statusBarItem);
-        }, 200);
         let milliseconds = 0;
         bar.timerTest = setInterval(() => {
             milliseconds += 1000;
             //convert milliseconds to display time
             const timeString = self.formatMilliseconds(milliseconds);
-            statusBarItem.text = timeString;
+            statusBarItem.text = statusText + " " + timeString;
             self.showStatusBarItem(fileUri, statusBarItem);
         }, 1000);
     }
