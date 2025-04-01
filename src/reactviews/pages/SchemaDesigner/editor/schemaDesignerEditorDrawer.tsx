@@ -113,11 +113,6 @@ export const SchemaDesignerEditorDrawer = () => {
     }, []);
 
     const saveTable = async () => {
-        // If errors are present, do not save
-        if (Object.keys(errors).length > 0) {
-            return;
-        }
-
         let success = false;
 
         if (isNewTable) {
