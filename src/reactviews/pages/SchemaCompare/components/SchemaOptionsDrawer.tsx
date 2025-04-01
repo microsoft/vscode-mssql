@@ -32,6 +32,11 @@ const useStyles = makeStyles({
         height: "80vh",
         overflowY: "auto",
     },
+
+    listItemContainer: {
+        display: "flex",
+        alignItems: "center",
+    },
 });
 
 interface Props {
@@ -131,11 +136,16 @@ const SchemaOptionsDrawer = (props: Props) => {
                         {optionsToValueNameLookup &&
                             generalOptionEntries.map(([key, value]) => {
                                 return (
-                                    <ListItem key={key} value={key} aria-label={value.displayName}>
+                                    <ListItem
+                                        className={classes.listItemContainer}
+                                        key={key}
+                                        value={key}
+                                        aria-label={value.displayName}>
                                         <Checkbox
                                             checked={value.value}
                                             onChange={() => handleSettingChanged(key)}
                                         />
+
                                         <InfoLabel
                                             aria-label={value.displayName}
                                             info={<>{value.description}</>}>
