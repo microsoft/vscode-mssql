@@ -42,20 +42,14 @@ export class ContainerDeploymentWebviewState
     };
     // @ts-ignore
     formState: DockerConnectionProfile = undefined;
-    formComponents: Record<
-        string,
-        FormItemSpec<
-            DockerConnectionProfile,
-            ContainerDeploymentWebviewState,
-            ContainerDeploymentFormItemSpec
-        >
+    formComponents: Partial<
+        Record<keyof DockerConnectionProfile, ContainerDeploymentFormItemSpec>
     > = {};
     platform: string = "";
     // Used for container name validation within the form
     isValidContainerName: boolean = false;
     // Used for port number validation within the form
     isValidPortNumber: boolean = false;
-
     constructor(params?: Partial<ContainerDeploymentWebviewState>) {
         for (const key in params) {
             if (key in this) {
@@ -87,7 +81,8 @@ export interface ContainerDeploymentFormItemSpec
         ContainerDeploymentWebviewState,
         ContainerDeploymentFormItemSpec
     > {
-    isAdvancedOption?: boolean;
+    componentWidth: string;
+    isAdvancedOption: boolean;
 }
 
 export interface ContainerDeploymentContextProps
