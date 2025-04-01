@@ -16,7 +16,7 @@ import { SchemaDesignerEditor } from "./schemaDesignerEditor";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { createContext, useContext, useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
-import { foreignKeyUtils, tableUtils } from "../schemaDesignerUtils";
+import { columnUtils, foreignKeyUtils, tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 
@@ -143,6 +143,13 @@ export const SchemaDesignerEditorDrawer = () => {
             const errors: Record<string, string> = {};
             const nameErrors = tableUtils.tableNameValidationError(schema, table);
             errors[TABLE_NAME_ERROR_KEY] = nameErrors ?? "";
+
+            for (const column of table.columns) {
+                const columnErrors = columnUtils.isColumnValid(column, table.columns);
+                if (columnErrors) {
+                    errors[`columns_${column.id}`] = columnErrors ?? "";
+                }
+            }
 
             // Validate foreign keys
             table.foreignKeys.forEach((fk) => {
