@@ -45,7 +45,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         overflowY: "auto",
         overflowX: "hidden",
-        padding: "10px",
+        padding: "5px",
         gap: "10px",
     },
     scrollContainer: {
@@ -179,6 +179,7 @@ const ColumnsTable = ({
 }) => {
     const classes = useStyles();
     const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
+    const context = useContext(SchemaDesignerEditorContext);
 
     // Define table columns
     const columnDefinitions = [
@@ -202,10 +203,19 @@ const ColumnsTable = ({
             columnId: "menu",
             renderHeaderCell: () => <Text></Text>,
         }),
+        createTableColumn({
+            columnId: "error",
+            renderHeaderCell: () => <></>,
+        }),
     ];
 
     // Column sizing
     const [columnSizingOptions] = useState<TableColumnSizingOptions>({
+        error: {
+            defaultWidth: 18,
+            minWidth: 18,
+            idealWidth: 18,
+        },
         name: {
             defaultWidth: 150,
             minWidth: 150,
@@ -222,14 +232,14 @@ const ColumnsTable = ({
             idealWidth: 70,
         },
         delete: {
-            defaultWidth: 30,
-            minWidth: 30,
-            idealWidth: 30,
+            defaultWidth: 20,
+            minWidth: 20,
+            idealWidth: 20,
         },
         menu: {
-            defaultWidth: 30,
-            minWidth: 30,
-            idealWidth: 30,
+            defaultWidth: 20,
+            minWidth: 20,
+            idealWidth: 20,
         },
     });
 
@@ -253,6 +263,31 @@ const ColumnsTable = ({
     // Render cell content based on column id
     const renderCell = (column: SchemaDesigner.Column, columnId: TableColumnId, index: number) => {
         switch (columnId) {
+            case "error":
+                return (
+                    <>
+                        {context.errors[`columns_${column.id}`] && (
+                            <Popover>
+                                <PopoverTrigger disableButtonEnhancement>
+                                    <Button
+                                        icon={
+                                            <FluentIcons.ErrorCircleRegular
+                                                style={{
+                                                    color: "var(--vscode-errorForeground)",
+                                                }}
+                                                title={context.errors[column.name]}
+                                            />
+                                        }
+                                        appearance="transparent"
+                                    />
+                                </PopoverTrigger>
+                                <PopoverSurface tabIndex={-1}>
+                                    <div>{context.errors[`columns_${column.id}`]}</div>
+                                </PopoverSurface>
+                            </Popover>
+                        )}
+                    </>
+                );
             case "name":
                 return (
                     <Input
@@ -310,6 +345,7 @@ const ColumnsTable = ({
                             updateColumn(index, {
                                 ...column,
                                 isPrimaryKey: data.checked as boolean,
+                                isNullable: data.checked ? false : column.isNullable,
                             });
                         }}
                     />
@@ -361,37 +397,47 @@ const ColumnsTable = ({
     };
 
     return (
-        <Table
-            {...keyboardNavAttr}
-            as="table"
-            size="extra-small"
-            {...columnSizing_unstable.getTableProps()}
-            ref={tableRef}>
-            <TableHeader>
-                <TableRow>
-                    {columnDefinitions.map((column) => (
-                        <TableHeaderCell
-                            {...columnSizing_unstable.getTableHeaderCellProps(column.columnId)}
-                            key={column.columnId}>
-                            {column.renderHeaderCell()}
-                        </TableHeaderCell>
-                    ))}
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {getRows().map((row, index) => (
-                    <TableRow key={index}>
-                        {tableColumns.map((column) => (
-                            <TableCell
-                                {...columnSizing_unstable.getTableCellProps(column.columnId)}
-                                key={column.columnId}>
-                                {renderCell(row.item, column.columnId, index)}
-                            </TableCell>
-                        ))}
+        <>
+            <Table
+                {...keyboardNavAttr}
+                as="table"
+                size="extra-small"
+                {...columnSizing_unstable.getTableProps()}
+                ref={tableRef}>
+                <TableHeader>
+                    <TableRow>
+                        {columnDefinitions.map((column) => {
+                            return (
+                                <TableHeaderCell
+                                    {...columnSizing_unstable.getTableHeaderCellProps(
+                                        column.columnId,
+                                    )}
+                                    key={column.columnId}>
+                                    {column.renderHeaderCell()}
+                                </TableHeaderCell>
+                            );
+                        })}
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {getRows().map((row, index) => (
+                        <TableRow key={index}>
+                            {tableColumns.map((column) => {
+                                return (
+                                    <TableCell
+                                        {...columnSizing_unstable.getTableCellProps(
+                                            column.columnId,
+                                        )}
+                                        key={column.columnId}>
+                                        {renderCell(row.item, column.columnId, index)}
+                                    </TableCell>
+                                );
+                            })}
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </>
     );
 };
 

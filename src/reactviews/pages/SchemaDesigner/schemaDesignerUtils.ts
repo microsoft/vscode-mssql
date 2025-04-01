@@ -96,7 +96,7 @@ export const tableUtils = {
                     maxLength: 0,
                     precision: 0,
                     scale: 0,
-                    isNullable: true,
+                    isNullable: false,
                     isPrimaryKey: true,
                     isUnique: false,
                     id: uuidv4(),
@@ -126,6 +126,21 @@ export interface AdvancedColumnOption {
 }
 
 export const columnUtils = {
+    isColumnValid: (
+        column: SchemaDesigner.Column,
+        columns: SchemaDesigner.Column[],
+    ): string | undefined => {
+        const conflict = columns.find(
+            (c) =>
+                c.name.toLowerCase() === column.name.toLowerCase() &&
+                c.id !== column.id &&
+                c.dataType === column.dataType,
+        );
+        if (conflict) return locConstants.schemaDesigner.columnNameRepeatedError(column.name);
+        if (!column.name) return locConstants.schemaDesigner.columnNameEmptyError;
+        if (column.isPrimaryKey && column.isNullable)
+            return locConstants.schemaDesigner.columnPKCannotBeNull(column.name);
+    },
     isLengthBasedType: (type: string): boolean => {
         return ["char", "varchar", "nchar", "nvarchar", "binary", "varbinary"].includes(type);
     },
@@ -188,16 +203,18 @@ export const columnUtils = {
     getAdvancedOptions: (column: SchemaDesigner.Column): AdvancedColumnOption[] => {
         const options: AdvancedColumnOption[] = [];
         // Adding allow null option
-        options.push({
-            label: locConstants.schemaDesigner.allowNull,
-            type: "checkbox",
-            value: false,
-            columnProperty: "isNullable",
-            columnModifier: (column, value) => {
-                column.isNullable = value as boolean;
-                return column;
-            },
-        });
+        if (!column.isPrimaryKey) {
+            options.push({
+                label: locConstants.schemaDesigner.allowNull,
+                type: "checkbox",
+                value: false,
+                columnProperty: "isNullable",
+                columnModifier: (column, value) => {
+                    column.isNullable = value as boolean;
+                    return column;
+                },
+            });
+        }
 
         // Push is identity option
         options.push({

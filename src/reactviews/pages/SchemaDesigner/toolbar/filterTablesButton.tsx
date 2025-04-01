@@ -87,7 +87,7 @@ export function FilterTablesButton() {
     }, [selectedTables]);
 
     return (
-        <Menu open={isFilterMenuOpen}>
+        <Menu open={isFilterMenuOpen} onOpenChange={(_, data) => setIsFilterMenuOpen(data.open)}>
             <MenuTrigger disableButtonEnhancement>
                 <ToolbarButton
                     icon={<FluentIcons.Filter16Filled />}

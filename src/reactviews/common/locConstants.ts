@@ -478,6 +478,19 @@ export class LocConstants {
             svg: l10n.t("SVG"),
             png: l10n.t("PNG"),
             jpeg: l10n.t("JPEG"),
+            columnNameRepeatedError: (columnName: string) =>
+                l10n.t({
+                    message: "Column '{0}' already exists",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
+            columnNameEmptyError: l10n.t("Column name cannot be empty"),
+            columnPKCannotBeNull: (columnName: string) =>
+                l10n.t({
+                    message: "Column '{0}' cannot be null because it is a primary key",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
         };
     }
 
