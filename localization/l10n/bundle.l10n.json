@@ -444,6 +444,19 @@
   "SVG": "SVG",
   "PNG": "PNG",
   "JPEG": "JPEG",
+  "Column '{0}' already exists/{0} is the column name": {
+    "message": "Column '{0}' already exists",
+    "comment": [
+      "{0} is the column name"
+    ]
+  },
+  "Column name cannot be empty": "Column name cannot be empty",
+  "Column '{0}' cannot be null because it is a primary key/{0} is the column name": {
+    "message": "Column '{0}' cannot be null because it is a primary key",
+    "comment": [
+      "{0} is the column name"
+    ]
+  },
   "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
   "No schema differences were found.": "No schema differences were found.",
   "Initializing comparison, this might take a while...": "Initializing comparison, this might take a while...",
