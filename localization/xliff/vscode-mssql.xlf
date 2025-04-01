@@ -209,9 +209,6 @@
     <trans-unit id="++CODE++7c2b8feda9e74131c46fcd8892b9661d32e0dcfc3d10d9f4d4d948540ea4bb87">
       <source xml:lang="en">Cannot create foreign key</source>
     </trans-unit>
-    <trans-unit id="++CODE++db1e549937a7102cda82a262a27f86166ea3c25f6441098efbc9c17de5eb362c">
-      <source xml:lang="en">Cannot create foreign key with duplicate columns</source>
-    </trans-unit>
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
     </trans-unit>
@@ -305,6 +302,10 @@
     </trans-unit>
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b5f14952d79f90995588047df35fde3562e4851c778c9ee4853fed33252eceba">
+      <source xml:lang="en">Column &apos;{0}&apos; already has a foreign key</source>
+      <note>{0} is the column name</note>
     </trans-unit>
     <trans-unit id="++CODE++c360b9bc22466a897cd5a6398646517f1bc0236d4bd579846b258d267dfd859c">
       <source xml:lang="en">Column &apos;{0}&apos; must be a primary key</source>
