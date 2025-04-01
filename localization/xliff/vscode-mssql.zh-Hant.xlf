@@ -399,10 +399,20 @@
         <source xml:lang="en">Column</source>
         <target state="translated">資料行</target>
       </trans-unit>
+      <trans-unit id="++CODE++2a1e6a732f104ee56a84bfe7a04f48a47af3401ee2df16272b47af0195bae023">
+        <source xml:lang="en">Column '{0}' already exists</source>
+        <note>{0} is the column name</note>
+        <target state="new">Column '{0}' already exists</target>
+      </trans-unit>
       <trans-unit id="++CODE++b5f14952d79f90995588047df35fde3562e4851c778c9ee4853fed33252eceba">
         <source xml:lang="en">Column '{0}' already has a foreign key</source>
         <note>{0} is the column name</note>
         <target state="new">Column '{0}' already has a foreign key</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0d1cea3ad10431de23b65a45a897f8a04520ae0353bb863064c38d0c6b7fa7aa">
+        <source xml:lang="en">Column '{0}' cannot be null because it is a primary key</source>
+        <note>{0} is the column name</note>
+        <target state="new">Column '{0}' cannot be null because it is a primary key</target>
       </trans-unit>
       <trans-unit id="++CODE++c360b9bc22466a897cd5a6398646517f1bc0236d4bd579846b258d267dfd859c">
         <source xml:lang="en">Column '{0}' must be a primary key</source>
@@ -417,6 +427,10 @@
       <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
         <source xml:lang="en">Column Name</source>
         <target state="new">Column Name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
+        <source xml:lang="en">Column name cannot be empty</source>
+        <target state="new">Column name cannot be empty</target>
       </trans-unit>
       <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
         <source xml:lang="en">Columns</source>
