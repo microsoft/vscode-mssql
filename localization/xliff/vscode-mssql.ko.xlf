@@ -1848,6 +1848,10 @@
         <source xml:lang="en">Script copied to clipboard</source>
         <target state="translated">클립보드에 복사된 스크립트</target>
       </trans-unit>
+      <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
+        <source xml:lang="en">Search options...</source>
+        <target state="new">Search options...</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
         <target state="translated">검색...</target>
