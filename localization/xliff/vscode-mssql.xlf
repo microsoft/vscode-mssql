@@ -1406,6 +1406,9 @@
     <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
       <source xml:lang="en">Script copied to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
+      <source xml:lang="en">Search options...</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
       <source xml:lang="en">Search...</source>
     </trans-unit>
