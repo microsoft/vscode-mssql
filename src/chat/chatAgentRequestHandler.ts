@@ -294,6 +294,9 @@ export const createSqlAgentRequestHandler = (
         });
 
         // Step 3: Include the reference messages
+        // TODO: respect file context visibility setting
+        // TODO: properly constuct and pass the reference message
+        // TODO: should we cut off the reference message if it is too long? (especially without selection)
         const referenceMessages = referenceMessage
             ? [vscode.LanguageModelChatMessage.Assistant(referenceMessage)]
             : [];
