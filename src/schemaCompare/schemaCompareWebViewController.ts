@@ -32,6 +32,7 @@ import {
     showOpenDialogForScmp,
     showSaveDialogForScmp,
     showOpenDialogForDacpacOrSqlProj,
+    includeExcludeAllNodes,
 } from "./schemaCompareUtils";
 import { locConstants as loc } from "../reactviews/common/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -725,6 +726,23 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         }
                     });
                 }
+
+                this.updateState(state);
+            }
+
+            return state;
+        });
+
+        this.registerReducer("includeExcludeAllNodes", async (state, payload) => {
+            const result = await includeExcludeAllNodes(
+                this.operationId,
+                TaskExecutionMode.execute,
+                payload,
+                this.schemaCompareService,
+            );
+
+            if (result.success) {
+                // exclude or include all schema differences here
 
                 this.updateState(state);
             }

@@ -51,6 +51,15 @@ export namespace SchemaCompareGetDefaultOptionsRequest {
     >("schemaCompare/getDefaultOptions");
 }
 
+export namespace SchemaCompareIncludeExcludeAllNodesRequest {
+    export const type = new RequestType<
+        mssql.SchemaCompareIncludeExcludeAllNodesParams,
+        mssql.ResultStatus,
+        void,
+        void
+    >("schemaCompare/includeExcludeAllNodes");
+}
+
 export namespace SchemaCompareIncludeExcludeNodeRequest {
     export const type = new RequestType<
         mssql.SchemaCompareNodeParams,

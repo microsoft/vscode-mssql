@@ -127,6 +127,11 @@ export interface SchemaCompareReducers {
         includeRequest: boolean;
     };
 
+    includeExcludeAllNodes: {
+        id: number;
+        includeRequest: boolean;
+    };
+
     openScmp: {};
 
     saveScmp: {};
@@ -194,6 +199,8 @@ export interface SchemaCompareContextProps {
     resetOptions: () => void;
 
     includeExcludeNode: (id: number, diffEntry: DiffEntry, includeRequest: boolean) => void;
+
+    includeExcludeAllNodes: (id: number, includeRequest: boolean) => void;
 
     openScmp: () => void;
 

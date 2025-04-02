@@ -274,6 +274,30 @@ export async function includeExcludeNode(
 }
 
 /**
+ * Includes or excludes a node in the schema comparison.
+ *
+ * @param operationId - The ID of the schema comparison operation.
+ * @param taskExecutionMode - The mode of task execution.
+ * @param payload - The payload containing the details for including or excluding the node.
+ * @param schemaCompareService - The service used to perform the include/exclude operation.
+ * @returns A promise that resolves to the result of the include/exclude operation.
+ */
+export async function includeExcludeAllNodes(
+    operationId: string,
+    taskExecutionMode: mssql.TaskExecutionMode,
+    payload: SchemaCompareReducers["includeExcludeAllNodes"],
+    schemaCompareService: mssql.ISchemaCompareService,
+): Promise<mssql.ResultStatus> {
+    const result = await schemaCompareService.includeExcludeAllNodes(
+        operationId,
+        payload.includeRequest,
+        taskExecutionMode,
+    );
+
+    return result;
+}
+
+/**
  * Opens a schema compare (.scmp) file and returns the result.
  *
  * @param filePath - The path to the .scmp file to be opened.

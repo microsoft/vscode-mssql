@@ -59,7 +59,8 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
     };
 
     const handleIncludeExcludeNode = (diffEntry: DiffItem, include: boolean) => {
-        context.includeExcludeNode(diffEntry.id, diffEntry, include);
+        // context.includeExcludeNode(diffEntry.id, diffEntry, include);
+        context.includeExcludeAllNodes(diffEntry.id, include);
     };
 
     let items: DiffEntry[] = [];
