@@ -230,7 +230,7 @@ export const SchemaDesignerFlow = () => {
                 onNodeDragStop={() => {
                     eventBus.emit("pushState");
                 }}
-                minZoom={0.0001}
+                minZoom={0.05}
                 fitView>
                 <Controls />
                 <MiniMap pannable zoomable />
