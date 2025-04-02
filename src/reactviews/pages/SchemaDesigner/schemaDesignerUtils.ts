@@ -152,7 +152,9 @@ export const columnUtils = {
         }
     },
     isLengthBasedType: (type: string): boolean => {
-        return ["char", "varchar", "nchar", "nvarchar", "binary", "varbinary"].includes(type);
+        return ["char", "varchar", "nchar", "nvarchar", "binary", "varbinary", "vector"].includes(
+            type,
+        );
     },
 
     isPrecisionBasedType: (type: string): boolean => {
@@ -169,6 +171,7 @@ export const columnUtils = {
             case "char":
             case "nchar":
             case "binary":
+            case "vector":
                 return "1";
             case "varchar":
             case "nvarchar":
