@@ -87,7 +87,7 @@ export const ConnectionsListContainer = () => {
                     return (
                         <ConnectionCard
                             connection={connection}
-                            cardKey={"saved" + index}
+                            key={"saved" + index}
                             actionButton={{
                                 icon: <Delete16Regular />,
                                 onClick: (e) => {
@@ -116,7 +116,7 @@ export const ConnectionsListContainer = () => {
                     return (
                         <ConnectionCard
                             connection={connection}
-                            cardKey={"mru" + index}
+                            key={"mru" + index}
                             actionButton={{
                                 icon: <Delete16Regular />,
                                 onClick: (e) => {
@@ -135,11 +135,11 @@ export const ConnectionsListContainer = () => {
 
 export const ConnectionCard = ({
     connection,
-    cardKey,
+    key,
     actionButton,
 }: {
     connection: IConnectionDialogProfile;
-    cardKey?: string;
+    key?: string;
     actionButton?: {
         icon: Slot<"span">;
         onClick: MouseEventHandler;
@@ -155,7 +155,7 @@ export const ConnectionCard = ({
 
     return (
         <Card
-            key={cardKey}
+            key={key}
             className={styles.connectionContainer}
             appearance="subtle"
             onClick={() => {
