@@ -649,19 +649,17 @@ export class ObjectExplorerService {
         if (connectionCredentials) {
             const connectionProfile = connectionCredentials as IConnectionProfile;
 
-            /*
             // Check if connection is a Docker container
             const serverName = connectionCredentials.connectionString
                 ? connectionCredentials.connectionString.match(/^Server=([^;]+)/)?.[1]
                 : connectionCredentials.server;
 
-            if (serverName) {
-                const containerName =
-                    await checkIfConnectionIsDockerContainer(serverName);
+            if (serverName && !connectionCredentials.containerName) {
+                const containerName = await checkIfConnectionIsDockerContainer(serverName);
                 if (containerName) {
                     connectionCredentials.containerName = containerName;
                 }
-            } */
+            }
 
             if (!connectionProfile.id) {
                 connectionProfile.id = Utils.generateGuid();

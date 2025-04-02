@@ -158,6 +158,7 @@ export class ConnectionCredentials implements IConnectionInfo {
             accountId: options["accountId"],
             tenantId: options["tenantId"],
             expiresOn: options["expiresOn"],
+            containerName: options["containerName"],
         };
 
         return connInfo;

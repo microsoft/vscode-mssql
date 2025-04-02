@@ -1991,11 +1991,11 @@
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
     </trans-unit>
-    <trans-unit id="mssql.designSchema">
-      <source xml:lang="en">Design Schema (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.deployLocalDockerContainer">
       <source xml:lang="en">Deploy and connect to a SQL Server Docker Container</source>
+    </trans-unit>
+    <trans-unit id="mssql.designSchema">
+      <source xml:lang="en">Design Schema (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
       <source xml:lang="en">Disable Actual Plan</source>
