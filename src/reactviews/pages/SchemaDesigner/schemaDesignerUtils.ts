@@ -446,20 +446,50 @@ export const foreignKeyUtils = {
                     errorMessage: locConstants.schemaDesigner.referencedColumnNotPK(refCol.name),
                 };
             }
-
-            // Check if foreign key is not cyclic
-            if (foreignKeyUtils.isCyclicForeignKey(tables, refTable, table)) {
-                return {
-                    isValid: false,
-                    errorMessage: locConstants.schemaDesigner.cyclicForeignKeyDetected(
-                        table.name,
-                        refTable.name,
-                    ),
-                };
-            }
         }
 
         return { isValid: true };
+    },
+
+    getForeignKeyWarnings: (
+        tables: SchemaDesigner.Table[],
+        table: SchemaDesigner.Table,
+        fk: SchemaDesigner.ForeignKey,
+    ): ForeignKeyValidationResult => {
+        // Check if foreign key name is empty
+        let hasWarnings = false;
+        let warningMessages: string[] = [];
+
+        // Check if foreign table exists
+        const refTable = tables.find(
+            (t) => t.name === fk.referencedTableName && t.schema === fk.referencedSchemaName,
+        );
+
+        if (!refTable) {
+            return {
+                isValid: false,
+                errorMessage: locConstants.schemaDesigner.referencedTableNotFound(
+                    fk.referencedTableName,
+                ),
+            };
+        }
+
+        if (!fk.name) {
+            hasWarnings = true;
+            warningMessages.push(locConstants.schemaDesigner.foreignKeyNameEmptyError);
+        }
+
+        if (foreignKeyUtils.isCyclicForeignKey(tables, refTable, table)) {
+            hasWarnings = true;
+            warningMessages.push(
+                locConstants.schemaDesigner.cyclicForeignKeyDetected(table.name, refTable.name),
+            );
+        }
+
+        return {
+            isValid: !hasWarnings,
+            errorMessage: hasWarnings ? warningMessages.join(", ") : undefined,
+        };
     },
 
     extractForeignKeysFromEdges: (

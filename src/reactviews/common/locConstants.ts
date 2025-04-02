@@ -500,6 +500,18 @@ export class LocConstants {
                 }),
             loadingSchemaDesigner: l10n.t("Loading Schema Designer"),
             generatingReport: l10n.t("Generating report, this might take a while..."),
+            nWarnings: (warningCount: number) =>
+                l10n.t({
+                    message: "{0} warnings",
+                    args: [warningCount],
+                    comment: ["{0} is the number of warnings"],
+                }),
+            nErrors: (errorCount: number) =>
+                l10n.t({
+                    message: "{0} errors",
+                    args: [errorCount],
+                    comment: ["{0} is the number of errors"],
+                }),
         };
     }
 
