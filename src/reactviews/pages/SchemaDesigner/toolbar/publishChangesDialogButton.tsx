@@ -156,6 +156,7 @@ export function PublishChangesDialogButton() {
                             setReportError(report.error);
                             setReport(undefined);
                         } else {
+                            setReportError(undefined);
                             if (report.report) {
                                 setReport(report.report);
                             }
