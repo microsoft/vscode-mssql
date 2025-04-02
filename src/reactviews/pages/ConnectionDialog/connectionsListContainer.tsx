@@ -135,11 +135,9 @@ export const ConnectionsListContainer = () => {
 
 export const ConnectionCard = ({
     connection,
-    key,
     actionButton,
 }: {
     connection: IConnectionDialogProfile;
-    key?: string;
     actionButton?: {
         icon: Slot<"span">;
         onClick: MouseEventHandler;
@@ -155,7 +153,6 @@ export const ConnectionCard = ({
 
     return (
         <Card
-            key={key}
             className={styles.connectionContainer}
             appearance="subtle"
             onClick={() => {
