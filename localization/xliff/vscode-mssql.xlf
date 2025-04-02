@@ -791,8 +791,8 @@
     <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
       <source xml:lang="en">Generate script to deploy changes to target</source>
     </trans-unit>
-    <trans-unit id="++CODE++0fec6815da7d5965b1059fa3da1b4f8c25819a32ac6b124f29abc4e5bae3124b">
-      <source xml:lang="en">Generating report</source>
+    <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
+      <source xml:lang="en">Generating report, this might take a while...</source>
     </trans-unit>
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
