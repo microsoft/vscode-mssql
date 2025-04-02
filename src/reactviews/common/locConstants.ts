@@ -498,6 +498,7 @@ export class LocConstants {
                     args: [maxLength],
                     comment: ["{0} is the max length"],
                 }),
+            loadingSchemaDesigner: l10n.t("Loading Schema Designer"),
         };
     }
 
