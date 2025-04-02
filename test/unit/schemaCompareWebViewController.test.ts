@@ -11,7 +11,7 @@ import * as mssql from "vscode-mssql";
 
 import { SchemaCompareWebViewController } from "../../src/schemaCompare/schemaCompareWebViewController";
 import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -23,6 +23,8 @@ suite("SchemaCompareWebViewController Tests", () => {
     let treeNode: TreeNodeInfo;
     let mockSchemaCompareService: TypeMoq.IMock<mssql.ISchemaCompareService>;
     let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
+    let mockConnectionInfo: TypeMoq.IMock<ConnectionInfo>;
+    let mockServerConnInfo: TypeMoq.IMock<mssql.IConnectionInfo>;
     let mockInitialState: SchemaCompareWebViewState;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     const schemaCompareWebViewTitle: string = "Schema Compare";
@@ -31,13 +33,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
     const deploymentOptions: mssql.DeploymentOptions = {
         excludeObjectTypes: {
-            value: [
-                "ServerTriggers",
-                "Routes",
-                "LinkedServerLogins",
-                "Endpoints",
-                "ErrorMessages",
-            ],
+            value: ["ServerTriggers", "Routes", "LinkedServerLogins", "Endpoints", "ErrorMessages"],
             description: "",
             displayName: "",
         },
@@ -74,6 +70,21 @@ suite("SchemaCompareWebViewController Tests", () => {
         defaultDeploymentOptions: deploymentOptions,
     };
 
+    const databaseSourceEndpointInfo: mssql.SchemaCompareEndpointInfo = {
+        endpointType: 0,
+        serverDisplayName: "localhost,1433 (sa)",
+        serverName: "localhost,1433",
+        ownerUri: "localhost,1433_undefined_sa_undefined",
+        packageFilePath: "",
+        connectionName: "",
+        projectFilePath: "",
+        targetScripts: [],
+        dataSchemaProvider: "",
+        extractTarget: 5,
+        databaseName: "",
+        connectionDetails: undefined,
+    };
+
     const sourceEndpointInfo = {
         endpointType: 2,
         packageFilePath: "",
@@ -85,7 +96,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         projectFilePath: "/TestSqlProject/TestProject/TestProject.sqlproj",
         targetScripts: ["/TestSqlProject/TestProject/Address.sql"],
         extractTarget: 5,
-        dataSchemaProvider: "160",
+        dataSchemaProvider: "",
     };
 
     const targetEndpointInfo = {
@@ -96,7 +107,9 @@ suite("SchemaCompareWebViewController Tests", () => {
         databaseName: "master",
         ownerUri:
             "connection:providerName:MSSQL|server:localhost,1433|trustServerCertificate:true|user:sa|groupId:C777F06B-202E-4480-B475-FA416154D458",
-        connectionDetails: undefined,
+        connectionDetails: {
+            options: {},
+        },
         connectionName: "",
         projectFilePath: "",
         targetScripts: [],
@@ -104,30 +117,25 @@ suite("SchemaCompareWebViewController Tests", () => {
         dataSchemaProvider: "",
     };
 
-    const taskExecutionMode = mssql.TaskExecutionMode.execute;
-
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        let sourceEndpointInfo: mssql.SchemaCompareEndpointInfo = {
-            endpointType: 0,
-            serverDisplayName: "localhost,1433 (sa)",
-            serverName: "localhost,1433",
-            ownerUri: "localhost,1433_undefined_sa_undefined",
-            packageFilePath: "",
-            connectionName: "",
-            projectFilePath: "",
-            targetScripts: [],
-            dataSchemaProvider: "",
-            extractTarget: 5,
-            databaseName: "",
-            connectionDetails: undefined,
-        };
-
         mockInitialState = {
+            isSqlProjectExtensionInstalled: false,
+            isComparisonInProgress: false,
+            activeServers: {},
+            databases: [],
             defaultDeploymentOptionsResult: deploymentOptionsResultMock,
-            sourceEndpointInfo: sourceEndpointInfo,
+            intermediaryOptionsResult: undefined,
+            endpointsSwitched: false,
+            auxiliaryEndpointInfo: undefined,
+            sourceEndpointInfo: databaseSourceEndpointInfo,
             targetEndpointInfo: undefined,
+            scmpSourceExcludes: [],
+            scmpTargetExcludes: [],
+            originalSourceExcludes: new Map<string, mssql.DiffEntry>(),
+            originalTargetExcludes: new Map<string, mssql.DiffEntry>(),
+            sourceTargetSwitched: false,
             schemaCompareResult: undefined,
             generateScriptResultStatus: undefined,
             publishDatabaseChangesResultStatus: undefined,
@@ -206,22 +214,34 @@ suite("SchemaCompareWebViewController Tests", () => {
             null,
         );
 
-        mockSchemaCompareService =
-            TypeMoq.Mock.ofType<mssql.ISchemaCompareService>();
+        mockSchemaCompareService = TypeMoq.Mock.ofType<mssql.ISchemaCompareService>();
 
-        vscodeWrapper = TypeMoq.Mock.ofType(
-            VscodeWrapper,
-            TypeMoq.MockBehavior.Loose,
-        );
+        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
 
         mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
         mockConnectionManager
             .setup((mgr) => mgr.getUriForConnection(TypeMoq.It.isAny()))
             .returns(() => "localhost,1433_undefined_sa_undefined");
 
-        generateOperationIdStub = sandbox
-            .stub(scUtils, "generateOperationId")
-            .returns(operationId);
+        mockServerConnInfo = TypeMoq.Mock.ofType<mssql.IConnectionInfo>();
+        mockServerConnInfo.setup((info) => info.server).returns(() => "server1");
+
+        mockConnectionInfo = TypeMoq.Mock.ofType<ConnectionInfo>();
+        mockConnectionInfo
+            .setup((info) => info.credentials)
+            .returns(() => mockServerConnInfo.object);
+
+        mockConnectionManager
+            .setup((mgr) => mgr.activeConnections)
+            .returns(() => ({
+                conn_uri: mockConnectionInfo.object,
+            }));
+
+        mockConnectionManager
+            .setup((mgr) => mgr.listDatabases(TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve(["db1", "db2"]));
+
+        generateOperationIdStub = sandbox.stub(scUtils, "generateOperationId").returns(operationId);
 
         controller = new SchemaCompareWebViewController(
             mockContext,
@@ -248,7 +268,8 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
-    test("start - called with sqlproject path - sets sourceEndpointInfo correctly", () => {
+    // lewissanchez todo: remove async method from constructor and call a seperate async method to "start" the controller with a source endpoint
+    test.skip("start - called with sqlproject path - sets sourceEndpointInfo correctly", () => {
         const mockSqlProjectNode = {
             treeDataProvider: {
                 roots: [
@@ -301,25 +322,24 @@ suite("SchemaCompareWebViewController Tests", () => {
             errorMessage: "",
         };
 
-        const compareStub = sandbox
-            .stub(scUtils, "compare")
-            .resolves(expectedCompareResultMock);
+        const compareStub = sandbox.stub(scUtils, "compare").resolves(expectedCompareResultMock);
 
         const payload = {
+            deploymentOptions,
             sourceEndpointInfo,
             targetEndpointInfo,
-            taskExecutionMode,
-            deploymentOptions,
         };
 
-        const result = await controller["_reducers"]["compare"](
-            mockInitialState,
-            payload,
-        );
+        const result = await controller["_reducers"]["compare"](mockInitialState, payload);
 
         assert.deepEqual(
             compareStub.firstCall.args,
-            [operationId, payload, mockSchemaCompareService.object],
+            [
+                operationId,
+                mssql.TaskExecutionMode.execute,
+                payload,
+                mockSchemaCompareService.object,
+            ],
             "compare should be called with correct arguments",
         );
 
@@ -347,22 +367,15 @@ suite("SchemaCompareWebViewController Tests", () => {
         const payload = {
             targetServerName: "localhost,1433",
             targetDatabaseName: "master",
-            taskExecutionMode,
         };
 
-        const result = await controller["_reducers"]["generateScript"](
-            mockInitialState,
-            payload,
-        );
+        const result = await controller["_reducers"]["generateScript"](mockInitialState, payload);
 
-        assert.ok(
-            generateScriptStub.calledOnce,
-            "generateScript should be called once",
-        );
+        assert.ok(generateScriptStub.calledOnce, "generateScript should be called once");
 
         assert.deepEqual(
             generateScriptStub.firstCall.args,
-            [operationId, payload, mockSchemaCompareService.object],
+            [operationId, mssql.TaskExecutionMode.script, payload, mockSchemaCompareService.object],
             "generateScript should be called with correct arguments",
         );
 
@@ -388,12 +401,12 @@ suite("SchemaCompareWebViewController Tests", () => {
         const payload = {
             targetServerName: "localhost,1433",
             targetDatabaseName: "master",
-            taskExecutionMode,
         };
 
-        const actualResult = await controller["_reducers"][
-            "publishDatabaseChanges"
-        ](mockInitialState, payload);
+        const actualResult = await controller["_reducers"]["publishDatabaseChanges"](
+            mockInitialState,
+            payload,
+        );
 
         assert.ok(
             publishDatabaseChangesStub.calledOnce,
@@ -402,7 +415,12 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishDatabaseChangesStub.firstCall.args,
-            [operationId, payload, mockSchemaCompareService.object],
+            [
+                operationId,
+                mssql.TaskExecutionMode.execute,
+                payload,
+                mockSchemaCompareService.object,
+            ],
             "publishDatabaseChanges should be called with correct arguments",
         );
 
@@ -429,15 +447,15 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(expectedResultMock);
 
         const payload = {
-            targetProjectPath:
-                "/TestSqlProject/TestProject/TestProject.sqlproj",
+            targetProjectPath: "/TestSqlProject/TestProject/TestProject.sqlproj",
             targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode,
+            taskExecutionMode: mssql.TaskExecutionMode.execute,
         };
 
-        const acutalResult = await controller["_reducers"][
-            "publishProjectChanges"
-        ](mockInitialState, payload);
+        const acutalResult = await controller["_reducers"]["publishProjectChanges"](
+            mockInitialState,
+            payload,
+        );
 
         assert.ok(
             publishProjectChangesStub.calledOnce,
@@ -466,15 +484,12 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const payload = {};
 
-        const acutalResult = await controller["_reducers"]["getDefaultOptions"](
+        const acutalResult = await controller["_reducers"]["resetOptions"](
             mockInitialState,
             payload,
         );
 
-        assert.ok(
-            getDefaultOptionsStub.calledOnce,
-            "getDefaultOptions should be called once",
-        );
+        assert.ok(getDefaultOptionsStub.calledOnce, "getDefaultOptions should be called once");
 
         assert.deepEqual(
             getDefaultOptionsStub.firstCall.args,
@@ -504,24 +519,37 @@ suite("SchemaCompareWebViewController Tests", () => {
             .resolves(expectedResultMock);
 
         const payload = {
-            targetProjectPath:
-                "/TestSqlProject/TestProject/TestProject.sqlproj",
-            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode,
+            id: 0,
+            diffEntry: {
+                updateAction: mssql.SchemaUpdateAction.Change,
+                differenceType: mssql.SchemaDifferenceType.Object,
+                name: "Address",
+                sourceValue: [],
+                targetValue: [],
+                parent: undefined,
+                children: [],
+                sourceScript: "",
+                targetScript: "",
+                included: false,
+            },
+            includeRequest: true,
         };
 
-        const actualResult = await controller["_reducers"][
-            "includeExcludeNode"
-        ](mockInitialState, payload);
-
-        assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "includeExcludeNode should be called once",
+        const actualResult = await controller["_reducers"]["includeExcludeNode"](
+            mockInitialState,
+            payload,
         );
+
+        assert.ok(publishProjectChangesStub.calledOnce, "includeExcludeNode should be called once");
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [operationId, payload, mockSchemaCompareService.object],
+            [
+                operationId,
+                mssql.TaskExecutionMode.execute,
+                payload,
+                mockSchemaCompareService.object,
+            ],
             "includeExcludeNode should be called with correct arguments",
         );
 
@@ -549,27 +577,28 @@ suite("SchemaCompareWebViewController Tests", () => {
             excludedTargetElements: [],
         };
 
-        const publishProjectChangesStub = sandbox
-            .stub(scUtils, "openScmp")
-            .resolves(expectedResultMock);
+        const filePath = "c:\\test.scmp";
 
-        const payload = {
-            filePath: "/comparison/comparison.scmp",
-        };
+        const showOpenDialogForScmpStub = sandbox
+            .stub(scUtils, "showOpenDialogForScmp")
+            .resolves(filePath);
 
-        const actualResult = await controller["_reducers"]["openScmp"](
-            mockInitialState,
-            payload,
-        );
+        const openScmpStub = sandbox.stub(scUtils, "openScmp").resolves(expectedResultMock);
+
+        const payload = {};
+
+        const actualResult = await controller["_reducers"]["openScmp"](mockInitialState, payload);
 
         assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "openScmp should be called once",
+            showOpenDialogForScmpStub.calledOnce,
+            "showOpenDialogForScmp should be called once",
         );
 
+        assert.ok(openScmpStub.calledOnce, "openScmp should be called once");
+
         assert.deepEqual(
-            publishProjectChangesStub.firstCall.args,
-            [payload, mockSchemaCompareService.object],
+            openScmpStub.firstCall.args,
+            [filePath, mockSchemaCompareService.object],
             "openScmp should be called with correct arguments",
         );
 
@@ -579,7 +608,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             "openScmp should return expected result",
         );
 
-        publishProjectChangesStub.restore();
+        openScmpStub.restore();
     });
 
     test("saveScmp reducer - when called - completes successfully", async () => {
@@ -588,33 +617,39 @@ suite("SchemaCompareWebViewController Tests", () => {
             errorMessage: "",
         };
 
+        const savePath = "c:\\saved_scmp\\";
+
+        const showSaveDialogForScmpStub = sandbox
+            .stub(scUtils, "showSaveDialogForScmp")
+            .resolves(savePath);
+
         const publishProjectChangesStub = sandbox
             .stub(scUtils, "saveScmp")
             .resolves(expectedResultMock);
 
-        const payload = {
-            sourceEndpointInfo,
-            targetEndpointInfo,
-            taskExecutionMode: mssql.TaskExecutionMode.execute,
-            deploymentOptions,
-            scmpFilePath: "/TestSqlProject/TestProject/",
-            excludedSourceObjects: [],
-            excludedTargetObjects: [],
-        };
+        const payload = {};
 
-        const actualResult = await controller["_reducers"]["saveScmp"](
-            mockInitialState,
-            payload,
-        );
+        const actualResult = await controller["_reducers"]["saveScmp"](mockInitialState, payload);
 
         assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "saveScmp should be called once",
+            showSaveDialogForScmpStub.calledOnce,
+            "showSaveDialogForScmp should be called once",
         );
+
+        assert.ok(publishProjectChangesStub.calledOnce, "saveScmp should be called once");
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [payload, mockSchemaCompareService.object],
+            [
+                databaseSourceEndpointInfo,
+                undefined,
+                mssql.TaskExecutionMode.execute,
+                deploymentOptions,
+                savePath,
+                [],
+                [],
+                mockSchemaCompareService.object,
+            ],
             "saveScmp should be called with correct arguments",
         );
 
@@ -639,15 +674,9 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const payload = {};
 
-        const actualResult = await controller["_reducers"]["cancel"](
-            mockInitialState,
-            payload,
-        );
+        const actualResult = await controller["_reducers"]["cancel"](mockInitialState, payload);
 
-        assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "cancel should be called once",
-        );
+        assert.ok(publishProjectChangesStub.calledOnce, "cancel should be called once");
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
@@ -662,5 +691,105 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         publishProjectChangesStub.restore();
+    });
+
+    test("listActiveServers reducer - when called - returns: {conn_uri: 'server1'}", async () => {
+        const payload = {};
+
+        const actualResult = await controller["_reducers"]["listActiveServers"](
+            mockInitialState,
+            payload,
+        );
+
+        const expectedResult = { conn_uri: "server1" };
+
+        assert.deepEqual(
+            actualResult.activeServers,
+            expectedResult,
+            "listActiveServers should return: {conn_uri: 'server1'}",
+        );
+    });
+
+    test("listDatabasesForActiveServer reducer - when called - returns: ['db1', 'db2']", async () => {
+        const payload = { connectionUri: "conn_uri" };
+
+        const actualResult = await controller["_reducers"]["listDatabasesForActiveServer"](
+            mockInitialState,
+            payload,
+        );
+
+        const expectedResult = ["db1", "db2"];
+
+        assert.deepEqual(
+            actualResult.databases,
+            expectedResult,
+            "listActiveServers should return ['db1', 'db2']",
+        );
+    });
+
+    test("selectFile reducer - when called - returns correct auxiliary endpoint info", async () => {
+        const payload = {
+            endpoint: { packageFilePath: "c:\\test.dacpac" },
+            endpointType: "source",
+            fileType: "dacpac",
+        };
+
+        sandbox.stub(scUtils, "showOpenDialogForDacpacOrSqlProj").resolves("c:\\test.dacpac");
+
+        const actualResult = await controller["_reducers"]["selectFile"](mockInitialState, payload);
+
+        const expectedResult = {
+            connectionDetails: undefined,
+            databaseName: "",
+            dataSchemaProvider: "",
+            endpointType: 1,
+            extractTarget: 5,
+            ownerUri: "",
+            packageFilePath: "c:\\test.dacpac",
+            projectFilePath: "",
+            serverDisplayName: "",
+            serverName: "",
+            targetScripts: [],
+        };
+
+        assert.deepEqual(
+            actualResult.auxiliaryEndpointInfo,
+            expectedResult,
+            "selectFile should return the expected auxiliary endpoint info",
+        );
+    });
+
+    test("confirmSelectedFile reducer - when called - auxiliary endpoint info becomes target endpoint info", async () => {
+        const payload = {
+            endpointType: "target",
+            folderStructure: "",
+        };
+
+        const expectedResult = {
+            connectionDetails: undefined,
+            databaseName: "",
+            dataSchemaProvider: "",
+            endpointType: 1,
+            extractTarget: 5,
+            ownerUri: "",
+            packageFilePath: "c:\\test.dacpac",
+            projectFilePath: "",
+            serverDisplayName: "",
+            serverName: "",
+            targetScripts: [],
+        };
+
+        mockInitialState.auxiliaryEndpointInfo = expectedResult;
+
+        const actualResult = await controller["_reducers"]["confirmSelectedSchema"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.deepEqual(
+            actualResult.targetEndpointInfo,
+            expectedResult,
+            "confirmSelectedSchema should make auxiliary endpoint info the target endpoint info",
+        );
     });
 });

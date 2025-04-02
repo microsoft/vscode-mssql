@@ -15,8 +15,7 @@ class QueryResultSingletonStore {
     // Method to get the single instance of the store
     public static getInstance(): QueryResultSingletonStore {
         if (!QueryResultSingletonStore.instance) {
-            QueryResultSingletonStore.instance =
-                new QueryResultSingletonStore();
+            QueryResultSingletonStore.instance = new QueryResultSingletonStore();
         }
         return QueryResultSingletonStore.instance;
     }

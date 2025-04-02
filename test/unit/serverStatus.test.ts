@@ -23,8 +23,7 @@ suite("Server Status View Tests", () => {
                     statusBarItem.command,
                     "Status Bar Item command should be undefined",
                 );
-                let installingServiceText =
-                    "$(desktop-download) " + Constants.serviceInstalling;
+                let installingServiceText = "$(desktop-download) " + Constants.serviceInstalling;
                 assert.isTrue(
                     statusBarItem.text.includes(installingServiceText),
                     "Status Bar Item text should be updated",
@@ -39,8 +38,7 @@ suite("Server Status View Tests", () => {
     test("Test update service download progress status", () => {
         serverStatusView.updateServiceDownloadingProgress(50);
         let statusBarItem = serverStatusView.statusBarItem;
-        let progressText =
-            "$(cloud-download) " + `${Constants.serviceDownloading} ... 50%`;
+        let progressText = "$(cloud-download) " + `${Constants.serviceDownloading} ... 50%`;
         assert.equal(
             statusBarItem.text,
             progressText,
@@ -52,10 +50,7 @@ suite("Server Status View Tests", () => {
     test("Test service installed status", () => {
         serverStatusView.serviceInstalled();
         let statusBarItem = serverStatusView.statusBarItem;
-        assert.isUndefined(
-            statusBarItem.command,
-            "Status Bar Item command should be undefined",
-        );
+        assert.isUndefined(statusBarItem.command, "Status Bar Item command should be undefined");
         assert.equal(
             statusBarItem.text,
             Constants.serviceInstalled,
@@ -67,10 +62,7 @@ suite("Server Status View Tests", () => {
     test("Test service installation failed status", () => {
         serverStatusView.serviceInstallationFailed();
         let statusBarItem = serverStatusView.statusBarItem;
-        assert.isUndefined(
-            statusBarItem.command,
-            "Status Bar Item command should be undefined",
-        );
+        assert.isUndefined(statusBarItem.command, "Status Bar Item command should be undefined");
         assert.equal(
             statusBarItem.text,
             Constants.serviceInstallationFailed,

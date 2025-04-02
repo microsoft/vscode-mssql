@@ -26,8 +26,7 @@ export class VirtualizedList<T> {
     ) {
         this._config = { ...defaultConfig, ..._config };
         this._visibleCount =
-            Math.ceil(_container.clientHeight / _config.itemHeight) +
-            _config.buffer;
+            Math.ceil(_container.clientHeight / _config.itemHeight) + _config.buffer;
         this._scrollOffset = 0;
         this.init();
     }
@@ -46,9 +45,7 @@ export class VirtualizedList<T> {
         this._container.appendChild(spacer);
 
         // Set up scroll listener
-        this._eventManager.addEventListener(this._container, "scroll", () =>
-            this.onScroll(),
-        );
+        this._eventManager.addEventListener(this._container, "scroll", () => this.onScroll());
 
         // Reset focused item index
         this._focusedItemIndex = 0;
@@ -63,12 +60,8 @@ export class VirtualizedList<T> {
 
         if (itemTop < this._container.scrollTop) {
             this._container.scrollTop = itemTop;
-        } else if (
-            itemBottom >
-            this._container.scrollTop + this._container.clientHeight
-        ) {
-            this._container.scrollTop =
-                itemBottom - this._container.clientHeight;
+        } else if (itemBottom > this._container.scrollTop + this._container.clientHeight) {
+            this._container.scrollTop = itemBottom - this._container.clientHeight;
         }
     }
 
@@ -76,9 +69,7 @@ export class VirtualizedList<T> {
         if (newIndex < 0 || newIndex >= this._items.length) {
             return;
         }
-        const oldItem = document.getElementById(
-            `${this._listId}-${this._focusedItemIndex}`,
-        );
+        const oldItem = document.getElementById(`${this._listId}-${this._focusedItemIndex}`);
         if (oldItem) {
             oldItem.setAttribute("tabindex", "-1");
         }
@@ -93,9 +84,7 @@ export class VirtualizedList<T> {
     }
 
     private onScroll() {
-        const newOffset = Math.floor(
-            this._container.scrollTop / this._config.itemHeight,
-        );
+        const newOffset = Math.floor(this._container.scrollTop / this._config.itemHeight);
         if (newOffset !== this._scrollOffset) {
             this._scrollOffset = newOffset;
             this.renderList();
@@ -103,21 +92,14 @@ export class VirtualizedList<T> {
     }
 
     private renderList() {
-        const startIndex = Math.max(
-            this._scrollOffset - this._config.buffer,
-            0,
-        );
+        const startIndex = Math.max(this._scrollOffset - this._config.buffer, 0);
         const endIndex = Math.min(
             this._scrollOffset + this._visibleCount + this._config.buffer,
             this._items.length,
         );
         // Remove existing visible items
         Array.from(this._container.children)
-            .filter(
-                (child) =>
-                    child.tagName === "DIV" &&
-                    child !== this._container.firstChild,
-            )
+            .filter((child) => child.tagName === "DIV" && child !== this._container.firstChild)
             .forEach((child) => this._container.removeChild(child));
 
         for (let i = startIndex; i < endIndex; i++) {
@@ -130,10 +112,7 @@ export class VirtualizedList<T> {
             itemDiv.style.width = "100%";
             itemDiv.style.top = `${i * this._config.itemHeight}px`;
             this._container.appendChild(itemDiv);
-            itemDiv.setAttribute(
-                "tabindex",
-                i === this._focusedItemIndex ? "0" : "-1",
-            );
+            itemDiv.setAttribute("tabindex", i === this._focusedItemIndex ? "0" : "-1");
 
             // Set up click listener
             this._eventManager.addEventListener(itemDiv, "click", (e) => {
@@ -154,10 +133,7 @@ export class VirtualizedList<T> {
                 } else if (event.key === Keys.ArrowUp) {
                     this.updateFocusedItemIndex(i - 1);
                     handled = true;
-                } else if (
-                    event.key === Keys.Enter ||
-                    event.key === Keys.Space
-                ) {
+                } else if (event.key === Keys.Enter || event.key === Keys.Space) {
                     this._itemSelected(itemDiv, item);
                     handled = true;
                 }

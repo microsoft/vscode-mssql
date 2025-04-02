@@ -9,10 +9,7 @@ import {
     QueryResultWebviewState,
     QueryResultReducers,
 } from "../../../../../sharedInterfaces/queryResult";
-import {
-    TelemetryActions,
-    TelemetryViews,
-} from "../../../../../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../../../../sharedInterfaces/telemetry";
 import { WebviewTelemetryActionEvent } from "../../../../../sharedInterfaces/webview";
 import { deepClone } from "../../../../common/utils";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
@@ -33,9 +30,7 @@ const defaultOptions: IAutoColumnSizeOptions = {
 
 export const NUM_COLUMNS_TO_SCAN = 50;
 
-export class AutoColumnSize<T extends Slick.SlickData>
-    implements Slick.Plugin<T>
-{
+export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T> {
     private _grid!: Slick.Grid<T>;
     private _$container!: JQuery;
     private _context!: CanvasRenderingContext2D;
@@ -44,10 +39,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
 
     constructor(
         options: IAutoColumnSizeOptions = defaultOptions,
-        private webViewState: VscodeWebviewContext<
-            QueryResultWebviewState,
-            QueryResultReducers
-        >,
+        private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
     ) {
         this._options = mixin(options, defaultOptions, false);
         this.webViewState = webViewState;
@@ -56,16 +48,12 @@ export class AutoColumnSize<T extends Slick.SlickData>
     public init(grid: Slick.Grid<T>) {
         this._grid = grid;
         if (this._options.autoSizeOnRender) {
-            this.onPostEventHandler.subscribe(this._grid.onRendered, () =>
-                this.onPostRender(),
-            );
+            this.onPostEventHandler.subscribe(this._grid.onRendered, () => this.onPostRender());
         }
 
         this._$container = jQuery(this._grid.getContainerNode());
-        this._$container.on(
-            "dblclick.autosize",
-            ".slick-resizable-handle",
-            (e) => this.handleDoubleClick(e),
+        this._$container.on("dblclick.autosize", ".slick-resizable-handle", (e) =>
+            this.handleDoubleClick(e),
         );
         this._context = document.createElement("canvas").getContext("2d")!;
     }
@@ -118,9 +106,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
             let colIndices: number[] = [];
 
             for (let i = 0; i <= headerColumns.children.length; i++) {
-                let headerEl = jQuery(
-                    headerColumns.children.item(i)! as HTMLElement,
-                );
+                let headerEl = jQuery(headerColumns.children.item(i)! as HTMLElement);
                 let columnDef = headerEl.data("column");
                 if (columnDef) {
                     headerElements.push(headerEl[0]);
@@ -133,16 +119,12 @@ export class AutoColumnSize<T extends Slick.SlickData>
             headerWidths = headerWidths.map((width) => {
                 return width + this._options.extraColumnHeaderWidth!;
             });
-            let maxColumnTextWidths: number[] = this.getMaxColumnTextWidths(
-                columnDefs,
-                colIndices,
-            );
+            let maxColumnTextWidths: number[] = this.getMaxColumnTextWidths(columnDefs, colIndices);
 
             for (let i = 0; i < columnDefs.length; i++) {
                 let colIndex: number = colIndices[i];
                 let column: Slick.Column<T> = allColumns[colIndex];
-                let autoSizeWidth: number =
-                    Math.max(headerWidths[i], maxColumnTextWidths[i]) + 1;
+                let autoSizeWidth: number = Math.max(headerWidths[i], maxColumnTextWidths[i]) + 1;
                 if (autoSizeWidth !== column.width) {
                     allColumns[colIndex].width = autoSizeWidth;
                     change = true;
@@ -182,10 +164,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
         });
 
         let autoSizeWidth =
-            Math.max(
-                headerWidth,
-                this.getMaxColumnTextWidth(columnDef, colIndex),
-            ) + 1;
+            Math.max(headerWidth, this.getMaxColumnTextWidth(columnDef, colIndex)) + 1;
 
         allColumns[colIndex].width = autoSizeWidth;
         this._grid.setColumns(allColumns);
@@ -198,10 +177,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
      * @param colIndices Column indices of all columns that need to be resized
      * @returns An array of the max widths of each column
      */
-    private getMaxColumnTextWidths(
-        columnDefs: Slick.Column<T>[],
-        colIndices: number[],
-    ): number[] {
+    private getMaxColumnTextWidths(columnDefs: Slick.Column<T>[], colIndices: number[]): number[] {
         let data = this._grid.getData() as Slick.DataProvider<T>;
         let dataLength = data.getLength();
         let viewPort = this._grid.getViewport();
@@ -237,18 +213,13 @@ export class AutoColumnSize<T extends Slick.SlickData>
             this.deleteRow(rowElement);
         });
         if (this._options.maxWidth) {
-            return widths.map((width) =>
-                Math.min(this._options.maxWidth!, width),
-            );
+            return widths.map((width) => Math.min(this._options.maxWidth!, width));
         } else {
             return widths.map((width) => width);
         }
     }
 
-    private getMaxColumnTextWidth(
-        columnDef: Slick.Column<T>,
-        colIndex: number,
-    ): number {
+    private getMaxColumnTextWidth(columnDef: Slick.Column<T>, colIndex: number): number {
         let texts: Array<string> = [];
         let rowEl = this.createRow();
         let data = this._grid.getData() as Slick.DataProvider<T>;
@@ -260,19 +231,10 @@ export class AutoColumnSize<T extends Slick.SlickData>
             texts.push(data.getItem(i)[columnDef.field!]);
         }
         // adding -1 for column since this is a single column resize
-        let template = this.getMaxTextTemplate(
-            texts,
-            columnDef,
-            colIndex,
-            data,
-            rowEl,
-            -1,
-        );
+        let template = this.getMaxTextTemplate(texts, columnDef, colIndex, data, rowEl, -1);
         let width = this.getTemplateWidths([rowEl], [template])[0];
         this.deleteRow(rowEl);
-        return width > this._options.maxWidth!
-            ? this._options.maxWidth!
-            : width;
+        return width > this._options.maxWidth! ? this._options.maxWidth! : width;
     }
 
     private getTemplateWidths(
@@ -329,20 +291,12 @@ export class AutoColumnSize<T extends Slick.SlickData>
             if (formatFun) {
                 template = jQuery(
                     "<span>" +
-                        formatFun(
-                            index,
-                            colIndex,
-                            text,
-                            columnDef,
-                            data.getItem(index),
-                        ) +
+                        formatFun(index, colIndex, text, columnDef, data.getItem(index)) +
                         "</span>",
                 );
                 text = template.text() || text;
             }
-            let length = text
-                ? this.getElementWidthUsingCanvas(rowEl, text)
-                : 0;
+            let length = text ? this.getElementWidthUsingCanvas(rowEl, text) : 0;
             if (length > max) {
                 max = length;
                 maxTemplate = template || text;
@@ -364,9 +318,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
     }
 
     private createRow(): JQuery {
-        let rowEl = jQuery(
-            '<div class="slick-row"><div class="slick-cell"></div></div>',
-        );
+        let rowEl = jQuery('<div class="slick-row"><div class="slick-cell"></div></div>');
         rowEl.find(".slick-cell").css({
             visibility: "hidden",
             "text-overflow": "initial",
@@ -407,8 +359,7 @@ export class AutoColumnSize<T extends Slick.SlickData>
     }
 
     private getElementWidthUsingCanvas(element: JQuery, text: string): number {
-        this._context.font =
-            element.css("font-size") + " " + element.css("font-family");
+        this._context.font = element.css("font-size") + " " + element.css("font-family");
         let metrics = this._context.measureText(text);
         return metrics.width;
     }

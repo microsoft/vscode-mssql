@@ -88,8 +88,7 @@ export interface IConnectionProfileWithSource extends IConnectionProfile {
     profileSource: CredentialsQuickPickItemType;
 }
 
-export interface IConnectionCredentialsQuickPickItem
-    extends vscode.QuickPickItem {
+export interface IConnectionCredentialsQuickPickItem extends vscode.QuickPickItem {
     connectionCreds: vscodeMssql.IConnectionInfo;
     quickPickItemType: CredentialsQuickPickItemType;
 }
@@ -318,19 +317,8 @@ export interface IColumnDefinition {
     cssClass?: string;
     focusable?: boolean;
     selectable?: boolean;
-    asyncPostRender?: (
-        cellRef: string,
-        row: number,
-        dataContext: JSON,
-        colDef: any,
-    ) => void;
-    formatter?: (
-        row: number,
-        cell: any,
-        value: any,
-        columnDef: any,
-        dataContext: any,
-    ) => string;
+    asyncPostRender?: (cellRef: string, row: number, dataContext: JSON, colDef: any) => void;
+    formatter?: (row: number, cell: any, value: any, columnDef: any, dataContext: any) => string;
 }
 
 export interface IGridDataRow {
@@ -449,12 +437,7 @@ export interface ISubscription {
  * @readonly
  * @enum {string}
  */
-export type SubscriptionState =
-    | "Enabled"
-    | "Warned"
-    | "PastDue"
-    | "Disabled"
-    | "Deleted";
+export type SubscriptionState = "Enabled" | "Warned" | "PastDue" | "Disabled" | "Deleted";
 
 /**
  * Subscription policies.

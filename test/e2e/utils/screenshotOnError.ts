@@ -5,15 +5,10 @@
 
 import type { Page, TestInfo } from "@playwright/test";
 
-export async function screenshotOnFailure(
-    page: Page,
-    testInfo: TestInfo,
-): Promise<void> {
+export async function screenshotOnFailure(page: Page, testInfo: TestInfo): Promise<void> {
     if (testInfo.status !== testInfo.expectedStatus) {
         const formattedTestTitle = testInfo.title.replace(/ /g, "-");
-        const screenshotPath = testInfo.outputPath(
-            `${formattedTestTitle}-failure.png`,
-        );
+        const screenshotPath = testInfo.outputPath(`${formattedTestTitle}-failure.png`);
         testInfo.attachments.push({
             name: `${formattedTestTitle}-failure.png`,
             path: screenshotPath,

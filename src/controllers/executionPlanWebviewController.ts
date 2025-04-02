@@ -76,13 +76,13 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
                 state,
                 this.executionPlanService,
                 [this.executionPlanContents],
+                "SqlplanFile",
             );
             return {
                 ...state,
                 executionPlanState: {
                     ...state.executionPlanState,
-                    executionPlanGraphs:
-                        this.state.executionPlanState.executionPlanGraphs,
+                    executionPlanGraphs: this.state.executionPlanState.executionPlanGraphs,
                 },
             };
         });

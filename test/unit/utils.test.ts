@@ -68,35 +68,25 @@ suite("Utility Tests - isSameConnection", () => {
     });
 
     test("should return true for matching non-connectionstring connections", () => {
-        expect(Utils.isSameConnectionInfo(connection1, connection2)).to.equal(
-            true,
-        );
+        expect(Utils.isSameConnectionInfo(connection1, connection2)).to.equal(true);
     });
 
     test("should return false for non-matching non-connectionstring connections", () => {
         connection2.server = "some-other-server";
-        expect(Utils.isSameConnectionInfo(connection1, connection2)).to.equal(
-            false,
-        );
+        expect(Utils.isSameConnectionInfo(connection1, connection2)).to.equal(false);
     });
 
     test("should return true for matching connectionstring connections", () => {
-        expect(Utils.isSameConnectionInfo(connection3, connection4)).to.equal(
-            true,
-        );
+        expect(Utils.isSameConnectionInfo(connection3, connection4)).to.equal(true);
     });
 
     test("should return false for non-matching connectionstring connections", () => {
         connection4.connectionString = "Server=some-other-server";
-        expect(Utils.isSameConnectionInfo(connection3, connection4)).to.equal(
-            false,
-        );
+        expect(Utils.isSameConnectionInfo(connection3, connection4)).to.equal(false);
     });
 
     test("should return false for connectionstring and non-connectionstring connections", () => {
-        expect(Utils.isSameConnectionInfo(connection1, connection3)).to.equal(
-            false,
-        );
+        expect(Utils.isSameConnectionInfo(connection1, connection3)).to.equal(false);
     });
 });
 
@@ -114,20 +104,14 @@ suite("Utility tests - getSignInQuickPickItems", () => {
         let signInWithDeviceCodeItem = quickPickItems[1];
         assert.notEqual(signInWithDeviceCodeItem.label, undefined);
         assert.notEqual(signInWithDeviceCodeItem.description, undefined);
-        assert.equal(
-            signInWithDeviceCodeItem.command,
-            Constants.cmdAzureSignInWithDeviceCode,
-        );
+        assert.equal(signInWithDeviceCodeItem.command, Constants.cmdAzureSignInWithDeviceCode);
     });
 
     test("third quick pick item should be Azure Sign In to Azure Cloud", () => {
         let signInToAzureCloudItem = quickPickItems[2];
         assert.notEqual(signInToAzureCloudItem.label, undefined);
         assert.notEqual(signInToAzureCloudItem.description, undefined);
-        assert.equal(
-            signInToAzureCloudItem.command,
-            Constants.cmdAzureSignInToCloud,
-        );
+        assert.equal(signInToAzureCloudItem.command, Constants.cmdAzureSignInToCloud);
     });
 });
 

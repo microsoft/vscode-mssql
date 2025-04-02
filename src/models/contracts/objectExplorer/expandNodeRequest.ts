@@ -65,9 +65,7 @@ export namespace ExpandRequest {
     /**
      * Returns children of a given node as a NodeInfo array
      */
-    export const type = new RequestType<ExpandParams, boolean, void, void>(
-        "objectexplorer/expand",
-    );
+    export const type = new RequestType<ExpandParams, boolean, void, void>("objectexplorer/expand");
 }
 
 /**

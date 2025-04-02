@@ -25,8 +25,7 @@ export interface ICellRangeSelectorOptions {
     dragClass?: string;
 }
 
-export interface ICellRangeSelector<T extends Slick.SlickData>
-    extends Slick.Plugin<T> {
+export interface ICellRangeSelector<T extends Slick.SlickData> extends Slick.Plugin<T> {
     onCellRangeSelected: Slick.Event<Slick.Range>;
     onBeforeCellRangeSelected: Slick.Event<Slick.Cell>;
     onAppendCellRangeSelected: Slick.Event<Slick.Range>;
@@ -37,9 +36,7 @@ export interface ICellRangeDecorator {
     hide(): void;
 }
 
-export class CellRangeSelector<T extends Slick.SlickData>
-    implements ICellRangeSelector<T>
-{
+export class CellRangeSelector<T extends Slick.SlickData> implements ICellRangeSelector<T> {
     private grid!: Slick.Grid<T>;
     private dragging?: boolean;
     private handler = new Slick.EventHandler();
@@ -57,8 +54,7 @@ export class CellRangeSelector<T extends Slick.SlickData>
 
     public init(grid: Slick.Grid<T>) {
         this.decorator =
-            this.options.cellDecorator ||
-            new (<any>Slick).CellRangeDecorator(grid, this.options);
+            this.options.cellDecorator || new (<any>Slick).CellRangeDecorator(grid, this.options);
         this.grid = grid;
         this.canvas = this.grid.getCanvasNode();
         this.handler
@@ -136,12 +132,7 @@ export class CellRangeSelector<T extends Slick.SlickData>
         dd.range.end = end;
         this.currentlySelectedRange = dd.range;
         this.decorator.show(
-            new Slick.Range(
-                dd.range.start.row,
-                dd.range.start.cell,
-                end.row,
-                end.cell,
-            ),
+            new Slick.Range(dd.range.start.row, dd.range.start.cell, end.row, end.cell),
         );
     }
 

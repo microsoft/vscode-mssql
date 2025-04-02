@@ -81,10 +81,7 @@ export interface SearchableDropdownProps {
     clearable?: boolean;
 }
 
-const getOptionDisplayText = (
-    option: SearchableDropdownOptions,
-    placeholder?: string,
-): string => {
+const getOptionDisplayText = (option: SearchableDropdownOptions, placeholder?: string): string => {
     const optionText = option.text || option.value;
     if (optionText === "" && placeholder) {
         return placeholder;
@@ -144,9 +141,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const [isSearchFocused, setIsSearchFocused] = useState(false);
 
     const updateOption = (option: SearchableDropdownOptions) => {
-        const index = props.options.findIndex(
-            (opt) => opt.value === option.value,
-        );
+        const index = props.options.findIndex((opt) => opt.value === option.value);
         setSelectedOption(option);
         setSelectedOptionIndex(index);
         props.onSelect(option, index);
@@ -215,15 +210,12 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         // Focus to the selected item if the search box was focused
                         if (menuItemRefs.current[selectedOption.value]) {
                             setTimeout(() => {
-                                menuItemRefs.current[
-                                    selectedOption.value
-                                ]?.focus();
+                                menuItemRefs.current[selectedOption.value]?.focus();
                             }, 0);
                         }
                         setIsSearchFocused(false);
                     }
-                }}
-            >
+                }}>
                 {getOptionDisplayText(option)}
             </MenuItemRadio>
         ));
@@ -274,6 +266,9 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
     useEffect(() => {
         setSelectedOption(props.selectedOption ?? props.options[0]);
+        setSelectedOptionIndex(
+            props.options.findIndex((opt) => opt.value === props.selectedOption?.value),
+        );
     }, [props.selectedOption]);
 
     return (
@@ -287,8 +282,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                 setIsMenuOpen(data.open);
                 if (selectedOptionIndex !== -1 && !listScrolled) {
                     requestAnimationFrame(() => {
-                        const selectedItemRef =
-                            menuItemRefs.current[selectedOption.value];
+                        const selectedItemRef = menuItemRefs.current[selectedOption.value];
                         if (selectedItemRef && menuContainerRef.current) {
                             selectedItemRef.scrollIntoView({
                                 block: "nearest",
@@ -307,8 +301,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             checkedValues={{
                 "dropdown-options": [selectedOption.value],
             }}
-            aria-label={props.ariaLabel || "options"}
-        >
+            aria-label={props.ariaLabel || "options"}>
             <MenuTrigger disableButtonEnhancement>
                 <Button
                     id={id}
@@ -321,26 +314,25 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     aria-expanded={isMenuOpen}
                     aria-label={props.ariaLabel}
                     disabled={props.disabled}
+                    className={isMenuOpen ? "dropdown-open" : ""}
                     style={{
                         ...props.style,
                         justifyContent: "space-between",
                         fontWeight: 400,
-                    }}
-                >
+                    }}>
                     <Text
                         style={{
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                         }}
-                        title={getOptionDisplayText(
-                            selectedOption,
-                            props.placeholder,
-                        )}
-                    >
-                        {getOptionDisplayText(
-                            selectedOption,
-                            props.placeholder,
-                        )}
+                        className={
+                            getOptionDisplayText(selectedOption, props.placeholder) ===
+                            props.placeholder
+                                ? "placeholder"
+                                : ""
+                        }
+                        title={getOptionDisplayText(selectedOption, props.placeholder)}>
+                        {getOptionDisplayText(selectedOption, props.placeholder)}
                     </Text>
                 </Button>
             </MenuTrigger>
@@ -385,8 +377,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                 searchBoxRef.current?.focus();
                                 searchBoxRef.current.value = e.key;
                             }
-                        }}
-                    >
+                        }}>
                         {renderOptions()}
                     </div>
                 </MenuList>

@@ -122,10 +122,9 @@ export class DidChangeLanguageFlavorParams {
  * Notification sent when the language flavor is changed
  */
 export namespace LanguageFlavorChangedNotification {
-    export const type = new NotificationType<
-        DidChangeLanguageFlavorParams,
-        void
-    >("connection/languageflavorchanged");
+    export const type = new NotificationType<DidChangeLanguageFlavorParams, void>(
+        "connection/languageflavorchanged",
+    );
 }
 
 // ------------------------------- < Load Completion Extension Request > ------------------------------------
@@ -148,10 +147,7 @@ export class CompletionExtensionParams {
 }
 
 export namespace CompletionExtLoadRequest {
-    export const type = new RequestType<
-        CompletionExtensionParams,
-        boolean,
-        void,
-        void
-    >("completion/extLoad");
+    export const type = new RequestType<CompletionExtensionParams, boolean, void, void>(
+        "completion/extLoad",
+    );
 }

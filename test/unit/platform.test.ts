@@ -5,11 +5,7 @@
 
 import * as assert from "assert";
 import { expect } from "chai";
-import {
-    Runtime,
-    PlatformInformation,
-    LinuxDistribution,
-} from "../../src/models/platform";
+import { Runtime, PlatformInformation, LinuxDistribution } from "../../src/models/platform";
 
 function getPlatform(): Promise<Runtime> {
     return PlatformInformation.getCurrent().then((platformInfo) => {
@@ -72,9 +68,7 @@ suite("Platform Tests", () => {
     test("Compute correct RID for Windows ARM 64-bit", () => {
         const platformInfo = new PlatformInformation("win32", "arm64");
 
-        expect(platformInfo.runtimeId).to.equal(
-            Runtime.Windows_ARM64.toString(),
-        );
+        expect(platformInfo.runtimeId).to.equal(Runtime.Windows_ARM64.toString());
     });
 
     test("Compute no RID for Windows with bad architecture", () => {
@@ -86,9 +80,7 @@ suite("Platform Tests", () => {
     test("Compute correct RID for MacOS Intel", () => {
         const platformInfo = new PlatformInformation("darwin", "x86_64");
 
-        expect(platformInfo.runtimeId).to.equal(
-            Runtime.OSX_10_11_64.toString(),
-        );
+        expect(platformInfo.runtimeId).to.equal(Runtime.OSX_10_11_64.toString());
     });
 
     test("Compute correct RID for MacOS ARM", () => {
@@ -104,61 +96,37 @@ suite("Platform Tests", () => {
     });
 
     test("Compute correct RID for Ubuntu 14.04", () => {
-        const platformInfo = new PlatformInformation(
-            "linux",
-            "x86_64",
-            distro_ubuntu_14_04(),
-        );
+        const platformInfo = new PlatformInformation("linux", "x86_64", distro_ubuntu_14_04());
 
         expect(platformInfo.runtimeId).to.equal(Runtime.Ubuntu_14.toString());
     });
 
     test("Compute correct RID for Fedora 23", () => {
-        const platformInfo = new PlatformInformation(
-            "linux",
-            "x86_64",
-            distro_fedora_23(),
-        );
+        const platformInfo = new PlatformInformation("linux", "x86_64", distro_fedora_23());
 
         expect(platformInfo.runtimeId).to.equal(Runtime.Fedora_23.toString());
     });
 
     test("Compute correct RID for Debian 8", () => {
-        const platformInfo = new PlatformInformation(
-            "linux",
-            "x86_64",
-            distro_debian_8(),
-        );
+        const platformInfo = new PlatformInformation("linux", "x86_64", distro_debian_8());
 
         expect(platformInfo.runtimeId).to.equal(Runtime.Debian_8.toString());
     });
 
     test("Compute correct RID for CentOS 7", () => {
-        const platformInfo = new PlatformInformation(
-            "linux",
-            "x86_64",
-            distro_centos_7(),
-        );
+        const platformInfo = new PlatformInformation("linux", "x86_64", distro_centos_7());
 
         expect(platformInfo.runtimeId).to.equal(Runtime.CentOS_7.toString());
     });
 
     test("Compute correct RID for KDE neon", () => {
-        const platformInfo = new PlatformInformation(
-            "linux",
-            "x86_64",
-            distro_kde_neon_5_8(),
-        );
+        const platformInfo = new PlatformInformation("linux", "x86_64", distro_kde_neon_5_8());
 
         expect(platformInfo.runtimeId).to.equal(Runtime.Ubuntu_16.toString());
     });
 
     test("Compute no RID for CentOS 7 with 32-bit architecture", () => {
-        const platformInfo = new PlatformInformation(
-            "linux",
-            "x86",
-            distro_centos_7(),
-        );
+        const platformInfo = new PlatformInformation("linux", "x86", distro_centos_7());
 
         expect(platformInfo.runtimeId).to.equal(undefined);
     });

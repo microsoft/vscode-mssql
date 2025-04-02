@@ -18,9 +18,7 @@ import * as Utils from "./utils";
  * @param connCreds connection to be fixed up
  * @returns the updated connection
  */
-export function fixupConnectionCredentials(
-    connCreds: IConnectionInfo,
-): IConnectionInfo {
+export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnectionInfo {
     if (!connCreds.server) {
         connCreds.server = "";
     }
@@ -98,18 +96,13 @@ function isAzureDatabase(server: string): boolean {
  * @param itemType type of quickpick item to display - this influences the icon shown to the user
  * @returns user readable label
  */
-export function getSimpleConnectionDisplayName(
-    connection: IConnectionInfo,
-): string {
-    let profile: Interfaces.IConnectionProfile =
-        connection as Interfaces.IConnectionProfile;
+export function getSimpleConnectionDisplayName(connection: IConnectionInfo): string {
+    let profile: Interfaces.IConnectionProfile = connection as Interfaces.IConnectionProfile;
 
     if (profile.profileName) {
         return profile.profileName;
     } else {
-        return connection.server
-            ? connection.server
-            : connection.connectionString;
+        return connection.server ? connection.server : connection.connectionString;
     }
 }
 
@@ -180,19 +173,14 @@ function appendIfNotEmpty(connectionText: string, value: string): string {
  * @param [defaultValue] optional default value to use if username is empty and this is not an Integrated auth profile
  * @returns
  */
-export function getUserNameOrDomainLogin(
-    creds: IConnectionInfo,
-    defaultValue?: string,
-): string {
+export function getUserNameOrDomainLogin(creds: IConnectionInfo, defaultValue?: string): string {
     if (!defaultValue) {
         defaultValue = "";
     }
 
     if (
         creds.authenticationType ===
-        Interfaces.AuthenticationTypes[
-            Interfaces.AuthenticationTypes.Integrated
-        ]
+        Interfaces.AuthenticationTypes[Interfaces.AuthenticationTypes.Integrated]
     ) {
         return process.platform === "win32"
             ? process.env.USERDOMAIN + "\\" + process.env.USERNAME
@@ -209,10 +197,7 @@ export function getUserNameOrDomainLogin(
  * @param connCreds connection
  * @returns tooltip
  */
-export function getTooltip(
-    connCreds: IConnectionInfo,
-    serverInfo?: IServerInfo,
-): string {
+export function getTooltip(connCreds: IConnectionInfo, serverInfo?: IServerInfo): string {
     let tooltip: string = connCreds.connectionString
         ? "Connection string: " + connCreds.connectionString + "\r\n"
         : "Server: " +
@@ -235,9 +220,7 @@ export function getTooltip(
     return tooltip;
 }
 
-export function getEncryptionMode(
-    encryption: string | boolean | undefined,
-): EncryptOptions {
+export function getEncryptionMode(encryption: string | boolean | undefined): EncryptOptions {
     let encryptionMode = EncryptOptions.Mandatory;
     if (encryption !== undefined) {
         let encrypt = encryption.toString().toLowerCase();

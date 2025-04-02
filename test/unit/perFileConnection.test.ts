@@ -100,8 +100,7 @@ function createTestConnectionManager(
     connectionStore?: ConnectionStore,
     connectionUI?: ConnectionUI,
 ): ConnectionManager {
-    let prompterMock: TypeMoq.IMock<IPrompter> =
-        TypeMoq.Mock.ofType(TestPrompter);
+    let prompterMock: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
     if (!statusView) {
         statusView = TypeMoq.Mock.ofType(StatusView).object;
     }
@@ -140,8 +139,7 @@ function createTestListDatabasesResult(): ConnectionContracts.ListDatabasesResul
 
 suite("Per File Connection Tests", () => {
     test("onNewConnection should ask user for different credentials if connection failed because of invalid credentials", (done) => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> =
-            TypeMoq.Mock.ofType(VscodeWrapper);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         let outputChannel = TypeMoq.Mock.ofType<OutputChannel>();
         let none: void;
         const testFile = "file:///my/test/file.sql";
@@ -153,9 +151,7 @@ suite("Per File Connection Tests", () => {
         vscodeWrapperMock
             .setup((x) => x.logToOutputChannel(TypeMoq.It.isAny()))
             .returns(() => none);
-        vscodeWrapperMock
-            .setup((x) => x.activeTextEditorUri)
-            .returns(() => testFile);
+        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => testFile);
 
         let connectionCreds = createTestCredentials();
 
@@ -169,9 +165,7 @@ suite("Per File Connection Tests", () => {
 
         // Return undefined to simulate the scenario that user doesn't want to enter new credentials
         connectionUIMock
-            .setup((x) =>
-                x.createProfileWithDifferentCredentials(TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.createProfileWithDifferentCredentials(TypeMoq.It.isAny()))
             .returns((x) => Promise.resolve(undefined));
         let manager: ConnectionManager = createTestConnectionManager(
             undefined,
@@ -190,10 +184,7 @@ suite("Per File Connection Tests", () => {
                 manager.handleConnectionCompleteNotification().call(
                     manager,
                     // Make connection fail with login failed error
-                    createTestFailedConnectionResult(
-                        params.ownerUri,
-                        Constants.errorLoginFailed,
-                    ),
+                    createTestFailedConnectionResult(params.ownerUri, Constants.errorLoginFailed),
                 );
             })
             .returns(() => Promise.resolve(true));
@@ -204,10 +195,7 @@ suite("Per File Connection Tests", () => {
             .onNewConnection()
             .then((result) => {
                 connectionUIMock.verify(
-                    (x) =>
-                        x.createProfileWithDifferentCredentials(
-                            TypeMoq.It.isAny(),
-                        ),
+                    (x) => x.createProfileWithDifferentCredentials(TypeMoq.It.isAny()),
                     TypeMoq.Times.once(),
                 );
                 done();
@@ -218,8 +206,7 @@ suite("Per File Connection Tests", () => {
     });
 
     test("onNewConnection only prompt user for new credentials onces even if the connection fails again", (done) => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> =
-            TypeMoq.Mock.ofType(VscodeWrapper);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         let outputChannel = TypeMoq.Mock.ofType<OutputChannel>();
         let none: void;
         const testFile = "file:///my/test/file.sql";
@@ -231,9 +218,7 @@ suite("Per File Connection Tests", () => {
         vscodeWrapperMock
             .setup((x) => x.logToOutputChannel(TypeMoq.It.isAny()))
             .returns(() => none);
-        vscodeWrapperMock
-            .setup((x) => x.activeTextEditorUri)
-            .returns(() => testFile);
+        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => testFile);
 
         let connectionCreds = createTestCredentials();
 
@@ -246,9 +231,7 @@ suite("Per File Connection Tests", () => {
             .returns((x) => Promise.resolve(connectionCreds));
 
         connectionUIMock
-            .setup((x) =>
-                x.createProfileWithDifferentCredentials(TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.createProfileWithDifferentCredentials(TypeMoq.It.isAny()))
             .returns((x) => Promise.resolve(connectionCreds));
         let manager: ConnectionManager = createTestConnectionManager(
             undefined,
@@ -267,10 +250,7 @@ suite("Per File Connection Tests", () => {
                 manager.handleConnectionCompleteNotification().call(
                     manager,
                     // Make connection fail with login failed error
-                    createTestFailedConnectionResult(
-                        params.ownerUri,
-                        Constants.errorLoginFailed,
-                    ),
+                    createTestFailedConnectionResult(params.ownerUri, Constants.errorLoginFailed),
                 );
             })
             .returns(() => Promise.resolve(true));
@@ -281,10 +261,7 @@ suite("Per File Connection Tests", () => {
             .onNewConnection()
             .then((result) => {
                 connectionUIMock.verify(
-                    (x) =>
-                        x.createProfileWithDifferentCredentials(
-                            TypeMoq.It.isAny(),
-                        ),
+                    (x) => x.createProfileWithDifferentCredentials(TypeMoq.It.isAny()),
                     TypeMoq.Times.once(),
                 );
                 done();
@@ -355,9 +332,7 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.ConnectionRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.ConnectionRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
@@ -370,9 +345,7 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.DisconnectRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.DisconnectRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
@@ -407,14 +380,8 @@ suite("Per File Connection Tests", () => {
 
                                 // Check that only the second file disconnected
                                 assert.equal(manager.connectionCount, 1);
-                                assert.equal(
-                                    manager.isConnected(testFile1),
-                                    true,
-                                );
-                                assert.equal(
-                                    manager.isConnected(testFile2),
-                                    false,
-                                );
+                                assert.equal(manager.isConnected(testFile1), true);
+                                assert.equal(manager.isConnected(testFile2), false);
 
                                 done();
                             })
@@ -443,9 +410,7 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.ConnectionRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.ConnectionRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
@@ -458,9 +423,7 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.DisconnectRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.DisconnectRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
@@ -495,14 +458,8 @@ suite("Per File Connection Tests", () => {
 
                                 // Check that only the second file disconnected
                                 assert.equal(manager.connectionCount, 1);
-                                assert.equal(
-                                    manager.isConnected(testFile1),
-                                    true,
-                                );
-                                assert.equal(
-                                    manager.isConnected(testFile2),
-                                    false,
-                                );
+                                assert.equal(manager.isConnected(testFile1), true);
+                                assert.equal(manager.isConnected(testFile2), false);
 
                                 // Reconnect the second file
                                 manager
@@ -511,18 +468,9 @@ suite("Per File Connection Tests", () => {
                                         assert.equal(result4, true);
 
                                         // Check that two connections are estabilished
-                                        assert.equal(
-                                            manager.connectionCount,
-                                            2,
-                                        );
-                                        assert.equal(
-                                            manager.isConnected(testFile1),
-                                            true,
-                                        );
-                                        assert.equal(
-                                            manager.isConnected(testFile2),
-                                            true,
-                                        );
+                                        assert.equal(manager.connectionCount, 2);
+                                        assert.equal(manager.isConnected(testFile1), true);
+                                        assert.equal(manager.isConnected(testFile2), true);
 
                                         done();
                                     })
@@ -554,9 +502,7 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.ConnectionRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.ConnectionRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
@@ -569,9 +515,7 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.DisconnectRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.DisconnectRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
@@ -579,9 +523,7 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.ListDatabasesRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.ListDatabasesRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
@@ -590,9 +532,7 @@ suite("Per File Connection Tests", () => {
         let newDatabaseCredentials = createTestCredentials();
         newDatabaseCredentials.database = "master";
 
-        const newDatabaseChoice = <
-            Interfaces.IConnectionCredentialsQuickPickItem
-        >{
+        const newDatabaseChoice = <Interfaces.IConnectionCredentialsQuickPickItem>{
             label: "master",
             description: "",
             detail: "",
@@ -600,17 +540,12 @@ suite("Per File Connection Tests", () => {
             quickPickItemType: Interfaces.CredentialsQuickPickItemType.Mru,
         };
 
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> =
-            TypeMoq.Mock.ofType(VscodeWrapper);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.callBase = true;
         vscodeWrapperMock
-            .setup((x) =>
-                x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(newDatabaseChoice));
-        vscodeWrapperMock
-            .setup((x) => x.activeTextEditorUri)
-            .returns(() => testFile);
+        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => testFile);
 
         manager.client = serviceClientMock.object;
         manager.vscodeWrapper = vscodeWrapperMock.object;
@@ -642,27 +577,21 @@ suite("Per File Connection Tests", () => {
                             (x) =>
                                 x.sendRequest(
                                     TypeMoq.It.isValue(
-                                        ConnectionContracts.ListDatabasesRequest
-                                            .type,
+                                        ConnectionContracts.ListDatabasesRequest.type,
                                     ),
                                     TypeMoq.It.isAny(),
                                 ),
                             TypeMoq.Times.once(),
                         );
                         vscodeWrapperMock.verify(
-                            (x) =>
-                                x.showQuickPick(
-                                    TypeMoq.It.isAny(),
-                                    TypeMoq.It.isAny(),
-                                ),
+                            (x) => x.showQuickPick(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                             TypeMoq.Times.once(),
                         );
 
                         // Check that the database was changed
                         assert.equal(manager.isConnected(testFile), true);
                         assert.equal(
-                            manager.getConnectionInfo(testFile).credentials
-                                .database,
+                            manager.getConnectionInfo(testFile).credentials.database,
                             "master",
                         );
 
@@ -688,9 +617,7 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.ConnectionRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.ConnectionRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
@@ -703,9 +630,7 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.DisconnectRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.DisconnectRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
@@ -713,9 +638,7 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.ListDatabasesRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.ListDatabasesRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
@@ -724,32 +647,21 @@ suite("Per File Connection Tests", () => {
         let newDatabaseCredentials = createTestCredentials();
         newDatabaseCredentials.database = "master";
 
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> =
-            TypeMoq.Mock.ofType(VscodeWrapper);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.callBase = true;
-        vscodeWrapperMock
-            .setup((x) => x.activeTextEditorUri)
-            .returns(() => testFile);
+        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => testFile);
 
         manager.client = serviceClientMock.object;
         manager.vscodeWrapper = vscodeWrapperMock.object;
         manager.connectionUI.vscodeWrapper = vscodeWrapperMock.object;
 
         // Override the database list prompt to select the disconnect option and the promptSingle method to automatically return true
-        manager.connectionUI.vscodeWrapper.showQuickPick = function (
-            options: any[],
-        ): any {
+        manager.connectionUI.vscodeWrapper.showQuickPick = function (options: any[]): any {
             return Promise.resolve(
-                options.find(
-                    (option) =>
-                        option.label ===
-                        LocalizedConstants.disconnectOptionLabel,
-                ),
+                options.find((option) => option.label === LocalizedConstants.disconnectOptionLabel),
             );
         };
-        (manager.connectionUI as any)._prompter.promptSingle = function (
-            _: any,
-        ): Promise<boolean> {
+        (manager.connectionUI as any)._prompter.promptSingle = function (_: any): Promise<boolean> {
             return Promise.resolve(true);
         };
 
@@ -779,8 +691,7 @@ suite("Per File Connection Tests", () => {
                             (x) =>
                                 x.sendRequest(
                                     TypeMoq.It.isValue(
-                                        ConnectionContracts.ListDatabasesRequest
-                                            .type,
+                                        ConnectionContracts.ListDatabasesRequest.type,
                                     ),
                                     TypeMoq.It.isAny(),
                                 ),
@@ -803,24 +714,18 @@ suite("Per File Connection Tests", () => {
 
     test("Prompts for new connection before running query if disconnected", () => {
         // Setup mocking
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> =
-            TypeMoq.Mock.ofType(VscodeWrapper);
+        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.setup((x) => x.isEditingSqlFile).returns(() => true);
         vscodeWrapperMock
             .setup((x) => x.activeTextEditorUri)
             .returns(() => "file://my/test/file.sql");
-        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> =
-            TypeMoq.Mock.ofType(
-                ConnectionManager,
-                TypeMoq.MockBehavior.Loose,
-                TestExtensionContext.object,
-            );
-        connectionManagerMock
-            .setup((x) => x.isConnected(TypeMoq.It.isAny()))
-            .returns(() => false);
-        connectionManagerMock
-            .setup((x) => x.isConnected(TypeMoq.It.isAny()))
-            .returns(() => true);
+        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(
+            ConnectionManager,
+            TypeMoq.MockBehavior.Loose,
+            TestExtensionContext.object,
+        );
+        connectionManagerMock.setup((x) => x.isConnected(TypeMoq.It.isAny())).returns(() => false);
+        connectionManagerMock.setup((x) => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
         connectionManagerMock
             .setup((x) => x.onNewConnection())
             .returns(() => Promise.resolve(undefined));
@@ -832,17 +737,13 @@ suite("Per File Connection Tests", () => {
 
         // Attempt to run a query without connecting
         void controller.onRunQuery();
-        connectionManagerMock.verify(
-            (x) => x.onNewConnection(),
-            TypeMoq.Times.once(),
-        );
+        connectionManagerMock.verify((x) => x.onNewConnection(), TypeMoq.Times.once());
     });
 
     test("Change connection notification changes database context", (done) => {
         const testFile = "file:///my/test/file.sql";
 
-        let connectionManager: ConnectionManager =
-            createTestConnectionManager();
+        let connectionManager: ConnectionManager = createTestConnectionManager();
 
         // Setup mocking
         let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> =
@@ -850,19 +751,14 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) =>
                 x.sendRequest(
-                    TypeMoq.It.isValue(
-                        ConnectionContracts.ConnectionRequest.type,
-                    ),
+                    TypeMoq.It.isValue(ConnectionContracts.ConnectionRequest.type),
                     TypeMoq.It.isAny(),
                 ),
             )
             .callback((type, params: ConnectionContracts.ConnectParams) => {
                 connectionManager
                     .handleConnectionCompleteNotification()
-                    .call(
-                        connectionManager,
-                        createTestConnectionResult(params.ownerUri),
-                    );
+                    .call(connectionManager, createTestConnectionResult(params.ownerUri));
             })
             .returns(() => Promise.resolve(true));
 
@@ -871,42 +767,35 @@ suite("Per File Connection Tests", () => {
         // Open a connection using the connection manager
         let connectionCreds = createTestCredentials();
 
-        void connectionManager
-            .connect(testFile, connectionCreds)
-            .then((result) => {
-                assert.equal(result, true);
+        void connectionManager.connect(testFile, connectionCreds).then((result) => {
+            assert.equal(result, true);
 
-                // Check that the connection was established
-                assert.equal(connectionManager.isConnected(testFile), true);
-                assert.equal(
-                    connectionManager.getConnectionInfo(testFile).credentials
-                        .database,
-                    connectionCreds.database,
-                );
+            // Check that the connection was established
+            assert.equal(connectionManager.isConnected(testFile), true);
+            assert.equal(
+                connectionManager.getConnectionInfo(testFile).credentials.database,
+                connectionCreds.database,
+            );
 
-                // Simulate a connection changed notification
-                let parameters =
-                    new ConnectionContracts.ConnectionChangedParams();
-                parameters.ownerUri = testFile;
-                parameters.connection =
-                    new ConnectionContracts.ConnectionSummary();
-                parameters.connection.serverName = connectionCreds.server;
-                parameters.connection.databaseName = "myOtherDatabase";
-                parameters.connection.userName = connectionCreds.user;
+            // Simulate a connection changed notification
+            let parameters = new ConnectionContracts.ConnectionChangedParams();
+            parameters.ownerUri = testFile;
+            parameters.connection = new ConnectionContracts.ConnectionSummary();
+            parameters.connection.serverName = connectionCreds.server;
+            parameters.connection.databaseName = "myOtherDatabase";
+            parameters.connection.userName = connectionCreds.user;
 
-                let notificationObject =
-                    connectionManager.handleConnectionChangedNotification();
-                notificationObject.call(connectionManager, parameters);
+            let notificationObject = connectionManager.handleConnectionChangedNotification();
+            notificationObject.call(connectionManager, parameters);
 
-                // Verify that the connection changed to the other database for the file
-                assert.equal(
-                    connectionManager.getConnectionInfo(testFile).credentials
-                        .database,
-                    "myOtherDatabase",
-                );
+            // Verify that the connection changed to the other database for the file
+            assert.equal(
+                connectionManager.getConnectionInfo(testFile).credentials.database,
+                "myOtherDatabase",
+            );
 
-                done();
-            });
+            done();
+        });
     });
 
     test("Should use actual database name instead of <default>", (done) => {
@@ -920,10 +809,7 @@ suite("Per File Connection Tests", () => {
         connectionCreds.database = "";
 
         // When the result will return 'master' as the database connected to
-        let myResult = createConnectionResultForCreds(
-            connectionCreds,
-            expectedDbName,
-        );
+        let myResult = createConnectionResultForCreds(connectionCreds, expectedDbName);
         myResult.ownerUri = testFile;
 
         let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> =
@@ -931,28 +817,19 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .callback((type, params: ConnectionContracts.ConnectParams) => {
-                manager
-                    .handleConnectionCompleteNotification()
-                    .call(manager, myResult);
+                manager.handleConnectionCompleteNotification().call(manager, myResult);
             })
             .returns(() => Promise.resolve(true));
 
-        let statusViewMock: TypeMoq.IMock<StatusView> =
-            TypeMoq.Mock.ofType(StatusView);
+        let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
         let actualDbName = undefined;
         statusViewMock
             .setup((x) =>
-                x.connectSuccess(
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                ),
+                x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             )
-            .callback(
-                (fileUri, creds: IConnectionInfo, server: IServerInfo) => {
-                    actualDbName = creds.database;
-                },
-            );
+            .callback((fileUri, creds: IConnectionInfo, server: IServerInfo) => {
+                actualDbName = creds.database;
+            });
 
         manager.client = serviceClientMock.object;
         manager.statusView = statusViewMock.object;
@@ -1017,10 +894,7 @@ suite("Per File Connection Tests", () => {
         connectionCreds.database = "";
 
         // When the result will return 'master' as the database connected to
-        let myResult = createConnectionResultForCreds(
-            connectionCreds,
-            expectedDbName,
-        );
+        let myResult = createConnectionResultForCreds(connectionCreds, expectedDbName);
         myResult.ownerUri = testFile;
 
         let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> =
@@ -1028,21 +902,14 @@ suite("Per File Connection Tests", () => {
         serviceClientMock
             .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .callback((type, params: ConnectionContracts.ConnectParams) => {
-                manager
-                    .handleConnectionCompleteNotification()
-                    .call(manager, myResult);
+                manager.handleConnectionCompleteNotification().call(manager, myResult);
             })
             .returns(() => Promise.resolve(true));
 
-        let statusViewMock: TypeMoq.IMock<StatusView> =
-            TypeMoq.Mock.ofType(StatusView);
+        let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
         statusViewMock
             .setup((x) =>
-                x.connectSuccess(
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                ),
+                x.connectSuccess(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             )
             .callback((fileUri, creds: IConnectionInfo) => {
                 return;
@@ -1097,8 +964,7 @@ suite("Per File Connection Tests", () => {
         const testFile = "file:///my/test/file.sql";
 
         let manager: ConnectionManager = createTestConnectionManager();
-        let statusViewMock: TypeMoq.IMock<StatusView> =
-            TypeMoq.Mock.ofType(StatusView);
+        let statusViewMock: TypeMoq.IMock<StatusView> = TypeMoq.Mock.ofType(StatusView);
         let serviceClientMock: TypeMoq.IMock<SqlToolsServiceClient> =
             TypeMoq.Mock.ofType(SqlToolsServiceClient);
         serviceClientMock
@@ -1136,12 +1002,9 @@ suite("Per File Connection Tests", () => {
                 );
 
                 // Send a mock notification that the language service was updated
-                let langResult =
-                    new LanguageServiceContracts.IntelliSenseReadyParams();
+                let langResult = new LanguageServiceContracts.IntelliSenseReadyParams();
                 langResult.ownerUri = testFile;
-                manager
-                    .handleLanguageServiceUpdateNotification()
-                    .call(manager, langResult);
+                manager.handleLanguageServiceUpdateNotification().call(manager, langResult);
 
                 statusViewMock.verify(
                     (x) =>

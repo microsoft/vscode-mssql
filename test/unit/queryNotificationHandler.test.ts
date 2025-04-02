@@ -32,10 +32,7 @@ suite("QueryNotificationHandler tests", () => {
         eventData = { ownerUri: "testUri" };
 
         // Setup mock - Use the same QueryRunner for the whole test - this tests if it can be reused
-        runnerMock = TypeMoq.Mock.ofType(
-            QueryRunner,
-            TypeMoq.MockBehavior.Loose,
-        );
+        runnerMock = TypeMoq.Mock.ofType(QueryRunner, TypeMoq.MockBehavior.Loose);
         runnerMock.callBase = true;
         runnerMock
             .setup((x) => x.handleBatchStart(TypeMoq.It.isAny()))
@@ -67,12 +64,9 @@ suite("QueryNotificationHandler tests", () => {
         // Get handlers
         batchStartHandler = notificationHandler.handleBatchStartNotification();
         messageHandler = notificationHandler.handleMessageNotification();
-        resultSetCompleteHandler =
-            notificationHandler.handleResultSetCompleteNotification();
-        batchCompleteHandler =
-            notificationHandler.handleBatchCompleteNotification();
-        queryCompleteHandler =
-            notificationHandler.handleQueryCompleteNotification();
+        resultSetCompleteHandler = notificationHandler.handleResultSetCompleteNotification();
+        batchCompleteHandler = notificationHandler.handleBatchCompleteNotification();
+        queryCompleteHandler = notificationHandler.handleQueryCompleteNotification();
     });
 
     // Setup booleans to track if handlers were called
@@ -89,10 +83,7 @@ suite("QueryNotificationHandler tests", () => {
         resetBools();
 
         // If registerRunner is called, the query runner map should be populated
-        notificationHandler.registerRunner(
-            runnerMock.object,
-            eventData.ownerUri,
-        );
+        notificationHandler.registerRunner(runnerMock.object, eventData.ownerUri);
         assert.equal(notificationHandler._queryRunners.size, 1);
 
         // If the notifications are fired, the callbacks should be immediately fired too
@@ -135,10 +126,7 @@ suite("QueryNotificationHandler tests", () => {
         assert.equal(messageHandlerCalled, false);
 
         // If register runner is then called, the query runner map should be populated and the callbacks should occur
-        notificationHandler.registerRunner(
-            runnerMock.object,
-            eventData.ownerUri,
-        );
+        notificationHandler.registerRunner(runnerMock.object, eventData.ownerUri);
         assert.equal(notificationHandler._queryRunners.size, 1);
         assert.equal(batchStartHandlerCalled, true);
         assert.equal(messageHandlerCalled, true);
@@ -185,10 +173,7 @@ suite("QueryNotificationHandler tests", () => {
         assert.equal(queryCompleteHandlerCalled, false);
 
         // If register runner is then called, the callbacks should occur and the map should not be populated
-        notificationHandler.registerRunner(
-            runnerMock.object,
-            eventData.ownerUri,
-        );
+        notificationHandler.registerRunner(runnerMock.object, eventData.ownerUri);
         assert.equal(batchStartHandlerCalled, true);
         assert.equal(messageHandlerCalled, true);
         assert.equal(resultSetCompleteHandlerCalled, true);

@@ -13,11 +13,7 @@ import {
     Location,
 } from "@azure/arm-subscriptions";
 import { PagedAsyncIterableIterator } from "@azure/core-paging";
-import {
-    ResourceGroup,
-    ResourceGroups,
-    ResourceManagementClient,
-} from "@azure/arm-resources";
+import { ResourceGroup, ResourceGroups, ResourceManagementClient } from "@azure/arm-resources";
 import { AzureResourceController } from "../../src/azure/azureResourceController";
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { TokenCredentialWrapper } from "../../src/azure/credentialWrapper";
@@ -58,10 +54,7 @@ export function createContext(): ITestContext {
             isSignedIn: true,
         },
     ];
-    const subscriptions: Subscription[] = [
-        { subscriptionId: "id1" },
-        { subscriptionId: "id2" },
-    ];
+    const subscriptions: Subscription[] = [{ subscriptionId: "id1" }, { subscriptionId: "id2" }];
     const locations: Location[] = [{ id: "id1" }, { id: "id2" }];
     const groups: ResourceGroup[] = [
         { id: "id1", location: "l1" },
@@ -87,21 +80,11 @@ export function createContext(): ITestContext {
             tokenType: "",
         },
     };
-    const azureAccountService = TypeMoq.Mock.ofType(
-        AzureAccountService,
-        undefined,
-        undefined,
-    );
+    const azureAccountService = TypeMoq.Mock.ofType(AzureAccountService, undefined, undefined);
+    azureAccountService.setup((x) => x.getAccounts()).returns(() => Promise.resolve(accounts));
+    azureAccountService.setup((x) => x.addAccount()).returns(() => Promise.resolve(accounts[0]));
     azureAccountService
-        .setup((x) => x.getAccounts())
-        .returns(() => Promise.resolve(accounts));
-    azureAccountService
-        .setup((x) => x.addAccount())
-        .returns(() => Promise.resolve(accounts[0]));
-    azureAccountService
-        .setup((x) =>
-            x.getAccountSecurityToken(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-        )
+        .setup((x) => x.getAccountSecurityToken(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
         .returns(() =>
             Promise.resolve({
                 key: "",
@@ -156,9 +139,7 @@ suite("Azure SQL client", function (): void {
             list: () => undefined!,
             get: () => undefined!,
         };
-        testContext.subscriptionClient
-            .setup((x) => x.subscriptions)
-            .returns(() => subscriptions);
+        testContext.subscriptionClient.setup((x) => x.subscriptions).returns(() => subscriptions);
 
         const result = await azureSqlClient.getLocations(testContext.session);
         assert.deepStrictEqual(result.length, testContext.locations.length);
@@ -166,10 +147,7 @@ suite("Azure SQL client", function (): void {
 
     test("Should return resource groups successfully", async function (): Promise<void> {
         const testContext = createContext();
-        const azureSqlClient = new AzureResourceController(
-            undefined,
-            () => groupClient.object,
-        );
+        const azureSqlClient = new AzureResourceController(undefined, () => groupClient.object);
 
         let index = 0;
         let maxLength = testContext.groups.length;
@@ -204,17 +182,10 @@ suite("Azure SQL client", function (): void {
             new TokenCredentialWrapper(testContext.session.token),
             testContext.subscriptions[0].subscriptionId,
         );
-        groupClient
-            .setup((x) => x.resourceGroups)
-            .returns(() => resourceGroups);
+        groupClient.setup((x) => x.resourceGroups).returns(() => resourceGroups);
 
-        const result = await azureSqlClient.getResourceGroups(
-            testContext.session,
-        );
+        const result = await azureSqlClient.getResourceGroups(testContext.session);
         assert.deepStrictEqual(result.length, testContext.groups.length);
-        assert.deepStrictEqual(
-            result[0].location,
-            testContext.groups[0].location,
-        );
+        assert.deepStrictEqual(result[0].location, testContext.groups[0].location);
     });
 });

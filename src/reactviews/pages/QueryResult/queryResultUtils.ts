@@ -26,10 +26,7 @@ export const saveAsExcelIcon = (theme: ColorThemeKind) => {
 };
 
 export function hasResultsOrMessages(state: QueryResultWebviewState): boolean {
-    return (
-        Object.keys(state.resultSetSummaries).length > 0 ||
-        state.messages.length > 0
-    );
+    return Object.keys(state.resultSetSummaries).length > 0 || state.messages.length > 0;
 }
 
 /**

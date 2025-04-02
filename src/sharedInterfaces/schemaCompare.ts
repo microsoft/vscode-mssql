@@ -3,70 +3,133 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as mssql from "vscode-mssql";
+import {
+    ExtractTarget,
+    TaskExecutionMode,
+    SchemaCompareEndpointInfo,
+    DiffEntry,
+    DeploymentOptions,
+    ResultStatus,
+    SchemaCompareResult,
+    SchemaComparePublishProjectResult,
+    SchemaCompareOptionsResult,
+    SchemaCompareIncludeExcludeResult,
+    SchemaCompareObjectId,
+    SchemaCompareOpenScmpResult,
+} from "vscode-mssql";
 import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
 
+export const enum SchemaUpdateAction {
+    Delete = 0,
+    Change = 1,
+    Add = 2,
+}
+
 export interface SchemaCompareWebViewState {
-    defaultDeploymentOptionsResult: mssql.SchemaCompareOptionsResult;
-    sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
-    targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
-    schemaCompareResult: mssql.SchemaCompareResult;
-    generateScriptResultStatus: mssql.ResultStatus;
-    publishDatabaseChangesResultStatus: mssql.ResultStatus;
-    schemaComparePublishProjectResult: mssql.SchemaComparePublishProjectResult;
-    schemaCompareIncludeExcludeResult: mssql.SchemaCompareIncludeExcludeResult;
-    schemaCompareOpenScmpResult: mssql.SchemaCompareOpenScmpResult;
-    saveScmpResultStatus: mssql.ResultStatus;
-    cancelResultStatus: mssql.ResultStatus;
+    isSqlProjectExtensionInstalled: boolean;
+    isComparisonInProgress: boolean;
+    activeServers: { [connectionUri: string]: string };
+    databases: string[];
+    defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
+    auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
+    intermediaryOptionsResult: SchemaCompareOptionsResult;
+    endpointsSwitched: boolean;
+    sourceEndpointInfo: SchemaCompareEndpointInfo;
+    targetEndpointInfo: SchemaCompareEndpointInfo;
+    scmpSourceExcludes: SchemaCompareObjectId[];
+    scmpTargetExcludes: SchemaCompareObjectId[];
+    originalSourceExcludes: Map<string, DiffEntry>;
+    originalTargetExcludes: Map<string, DiffEntry>;
+    sourceTargetSwitched: boolean;
+    schemaCompareResult: SchemaCompareResult;
+    generateScriptResultStatus: ResultStatus;
+    publishDatabaseChangesResultStatus: ResultStatus;
+    schemaComparePublishProjectResult: SchemaComparePublishProjectResult;
+    schemaCompareIncludeExcludeResult: SchemaCompareIncludeExcludeResult;
+    schemaCompareOpenScmpResult: SchemaCompareOpenScmpResult;
+    saveScmpResultStatus: ResultStatus;
+    cancelResultStatus: ResultStatus;
 }
 
 export interface SchemaCompareReducers {
+    isSqlProjectExtensionInstalled: {};
+
+    listActiveServers: {};
+
+    listDatabasesForActiveServer: { connectionUri: string };
+
+    openAddNewConnectionDialog: {};
+
+    selectFile: {
+        endpoint: SchemaCompareEndpointInfo;
+        endpointType: "source" | "target";
+        fileType: "dacpac" | "sqlproj";
+    };
+
+    confirmSelectedSchema: {
+        endpointType: "source" | "target";
+        folderStructure: string;
+    };
+
+    confirmSelectedDatabase: {
+        endpointType: "source" | "target";
+        serverConnectionUri: string;
+        databaseName: string;
+    };
+
+    setIntermediarySchemaOptions: {};
+
+    intermediaryGeneralOptionsChanged: { key: string };
+
+    intermediaryIncludeObjectTypesOptionsChanged: { key: string };
+
+    resetSchemaOptions: {};
+
+    confirmSchemaOptions: { optionsChanged: boolean };
+
+    switchEndpoints: {
+        newSourceEndpointInfo: SchemaCompareEndpointInfo;
+        newTargetEndpointInfo: SchemaCompareEndpointInfo;
+    };
+
     compare: {
-        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
-        targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
-        taskExecutionMode: mssql.TaskExecutionMode;
-        deploymentOptions: mssql.DeploymentOptions;
+        sourceEndpointInfo: SchemaCompareEndpointInfo;
+        targetEndpointInfo: SchemaCompareEndpointInfo;
+        deploymentOptions: DeploymentOptions;
     };
 
     generateScript: {
         targetServerName: string;
         targetDatabaseName: string;
-        taskExecutionMode: mssql.TaskExecutionMode;
+    };
+
+    publishChanges: {
+        targetServerName: string;
+        targetDatabaseName: string;
     };
 
     publishDatabaseChanges: {
         targetServerName: string;
         targetDatabaseName: string;
-        taskExecutionMode: mssql.TaskExecutionMode;
     };
 
     publishProjectChanges: {
         targetProjectPath: string;
-        targetFolderStructure: mssql.ExtractTarget;
-        taskExecutionMode: mssql.TaskExecutionMode;
+        targetFolderStructure: ExtractTarget;
+        taskExecutionMode: TaskExecutionMode;
     };
 
-    getDefaultOptions: {};
+    resetOptions: {};
 
     includeExcludeNode: {
-        diffEntry: mssql.DiffEntry;
+        id: number;
+        diffEntry: DiffEntry;
         includeRequest: boolean;
-        taskExecutionMode: mssql.TaskExecutionMode;
     };
 
-    openScmp: {
-        filePath: string;
-    };
+    openScmp: {};
 
-    saveScmp: {
-        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo;
-        targetEndpointInfo: mssql.SchemaCompareEndpointInfo;
-        taskExecutionMode: mssql.TaskExecutionMode;
-        deploymentOptions: mssql.DeploymentOptions;
-        scmpFilePath: string;
-        excludedSourceObjects: mssql.SchemaCompareObjectId[];
-        excludedTargetObjects: mssql.SchemaCompareObjectId[];
-    };
+    saveScmp: {};
 
     cancel: {};
 }
@@ -75,50 +138,66 @@ export interface SchemaCompareContextProps {
     state: SchemaCompareWebViewState;
     themeKind: ColorThemeKind;
 
+    isSqlProjectExtensionInstalled: () => void;
+
+    listActiveServers: () => void;
+
+    listDatabasesForActiveServer: (connectionUri: string) => void;
+
+    openAddNewConnectionDialog: () => void;
+
+    selectFile: (
+        endpoint: SchemaCompareEndpointInfo,
+        endpointType: "source" | "target",
+        fileType: "dacpac" | "sqlproj",
+    ) => void;
+
+    confirmSelectedSchema: (endpointType: "source" | "target", folderStructure: string) => void;
+
+    confirmSelectedDatabase: (
+        endpointType: "source" | "target",
+        serverConnectionUri: string,
+        databaseName: string,
+    ) => void;
+
+    setIntermediarySchemaOptions: () => void;
+
+    intermediaryGeneralOptionsChanged: (key: string) => void;
+
+    intermediaryIncludeObjectTypesOptionsChanged: (key: string) => void;
+
+    confirmSchemaOptions: (optionsChanged: boolean) => void;
+
+    switchEndpoints: (
+        newSourceEndpointInfo: SchemaCompareEndpointInfo,
+        newTargetEndpointInfo: SchemaCompareEndpointInfo,
+    ) => void;
+
     compare: (
-        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        taskExecutionMode: mssql.TaskExecutionMode,
-        deploymentOptions: mssql.DeploymentOptions,
+        sourceEndpointInfo: SchemaCompareEndpointInfo,
+        targetEndpointInfo: SchemaCompareEndpointInfo,
+        deploymentOptions: DeploymentOptions,
     ) => void;
 
-    generateScript: (
-        targetServerName: string,
-        targetDatabaseName: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
-    ) => void;
+    generateScript: (targetServerName: string, targetDatabaseName: string) => void;
 
-    publishDatabaseChanges: (
-        targetServerName: string,
-        targetDatabaseName: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
-    ) => void;
+    publishChanges: (targetServerName: string, targetDatabaseName: string) => void;
+
+    publishDatabaseChanges: (targetServerName: string, targetDatabaseName: string) => void;
 
     publishProjectChanges: (
         targetProjectPath: string,
-        targetFolderStructure: mssql.ExtractTarget,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        targetFolderStructure: ExtractTarget,
+        taskExecutionMode: TaskExecutionMode,
     ) => void;
 
-    getDefaultOptions: () => void;
+    resetOptions: () => void;
 
-    includeExcludeNode: (
-        diffEntry: mssql.DiffEntry,
-        includeRequest: boolean,
-        taskExecutionMode: mssql.TaskExecutionMode,
-    ) => void;
+    includeExcludeNode: (id: number, diffEntry: DiffEntry, includeRequest: boolean) => void;
 
-    openScmp: (filePath: string) => void;
+    openScmp: () => void;
 
-    saveScmp: (
-        sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        taskExecutionMode: mssql.TaskExecutionMode,
-        deploymentOptions: mssql.DeploymentOptions,
-        scmpFilePath: string,
-        excludedSourceObjects: mssql.SchemaCompareObjectId[],
-        excludedTargetObjects: mssql.SchemaCompareObjectId[],
-    ) => void;
+    saveScmp: () => void;
 
     cancel: () => void;
 }

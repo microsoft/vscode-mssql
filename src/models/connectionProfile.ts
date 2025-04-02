@@ -7,12 +7,7 @@ import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
 import { IConnectionProfile, AuthenticationTypes } from "./interfaces";
 import { ConnectionCredentials } from "./connectionCredentials";
-import {
-    QuestionTypes,
-    IQuestion,
-    IPrompter,
-    INameValueChoice,
-} from "../prompts/question";
+import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from "../prompts/question";
 import * as utils from "./utils";
 import { ConnectionStore } from "./connectionStore";
 import { AzureController } from "../azure/azureController";
@@ -21,20 +16,14 @@ import providerSettings from "../azure/providerSettings";
 import { AzureAuthType, IAccount, ITenant } from "./contracts/azure";
 import { getEnableSqlAuthenticationProviderConfig } from "../azure/utils";
 import { sendActionEvent } from "../telemetry/telemetry";
-import {
-    TelemetryViews,
-    TelemetryActions,
-} from "../sharedInterfaces/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 // Concrete implementation of the IConnectionProfile interface
 
 /**
  * A concrete implementation of an IConnectionProfile with support for profile creation and validation
  */
-export class ConnectionProfile
-    extends ConnectionCredentials
-    implements IConnectionProfile
-{
+export class ConnectionProfile extends ConnectionCredentials implements IConnectionProfile {
     public profileName: string;
     public id: string;
     public groupId: string;
@@ -79,8 +68,7 @@ export class ConnectionProfile
     ): Promise<IConnectionProfile | undefined> {
         let profile: ConnectionProfile = new ConnectionProfile();
         // Ensure all core properties are entered
-        let authOptions: INameValueChoice[] =
-            ConnectionCredentials.getAuthenticationTypesChoice();
+        let authOptions: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
         if (authOptions.length === 1) {
             // Set default value as there is only 1 option
             profile.authenticationType = authOptions[0].value;
@@ -146,17 +134,14 @@ export class ConnectionProfile
                         }
                     } else {
                         try {
-                            profile =
-                                await azureController.populateAccountProperties(
-                                    profile,
-                                    accountStore,
-                                    providerSettings.resources.databaseResource,
-                                );
+                            profile = await azureController.populateAccountProperties(
+                                profile,
+                                accountStore,
+                                providerSettings.resources.databaseResource,
+                            );
                             if (profile) {
                                 vscode.window.showInformationMessage(
-                                    LocalizedConstants.accountAddedSuccessfully(
-                                        profile.email,
-                                    ),
+                                    LocalizedConstants.accountAddedSuccessfully(profile.email),
                                 );
                             }
                         } catch (e) {
@@ -171,9 +156,7 @@ export class ConnectionProfile
                 name: LocalizedConstants.tenant,
                 message: LocalizedConstants.azureChooseTenant,
                 choices: tenantChoices,
-                default: defaultProfileValues
-                    ? defaultProfileValues.tenantId
-                    : undefined,
+                default: defaultProfileValues ? defaultProfileValues.tenantId : undefined,
                 // Need not prompt for tenant question when 'Sql Authentication Provider' is enabled,
                 // since tenant information is received from Server with authority URI in the Login flow.
                 shouldPrompt: () =>
@@ -189,9 +172,7 @@ export class ConnectionProfile
                 name: LocalizedConstants.profileNamePrompt,
                 message: LocalizedConstants.profileNamePrompt,
                 placeHolder: LocalizedConstants.profileNamePlaceholder,
-                default: defaultProfileValues
-                    ? defaultProfileValues.profileName
-                    : undefined,
+                default: defaultProfileValues ? defaultProfileValues.profileName : undefined,
                 onAnswered: (value) => {
                     // Fall back to a default name if none specified
                     profile.profileName = value ? value : undefined;
@@ -237,26 +218,19 @@ export class ConnectionProfile
 
         if (this.authenticationType) {
             if (
-                this.authenticationType ===
-                    AuthenticationTypes[AuthenticationTypes.Integrated] ||
-                this.authenticationType ===
-                    AuthenticationTypes[AuthenticationTypes.AzureMFA]
+                this.authenticationType === AuthenticationTypes[AuthenticationTypes.Integrated] ||
+                this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA]
             ) {
                 return utils.isNotEmpty(this.server);
             } else {
-                return (
-                    utils.isNotEmpty(this.server) && utils.isNotEmpty(this.user)
-                );
+                return utils.isNotEmpty(this.server) && utils.isNotEmpty(this.user);
             }
         }
         return false;
     }
 
     public isAzureActiveDirectory(): boolean {
-        return (
-            this.authenticationType ===
-            AuthenticationTypes[AuthenticationTypes.AzureMFA]
-        );
+        return this.authenticationType === AuthenticationTypes[AuthenticationTypes.AzureMFA];
     }
 
     public static getAzureAuthChoices(): INameValueChoice[] {
@@ -274,9 +248,7 @@ export class ConnectionProfile
         return choices;
     }
 
-    public static getAccountChoices(
-        accountStore: AccountStore,
-    ): INameValueChoice[] {
+    public static getAccountChoices(accountStore: AccountStore): INameValueChoice[] {
         let accounts = accountStore.getAccounts();
         let choices: Array<INameValueChoice> = [];
 

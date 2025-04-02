@@ -42,15 +42,11 @@ export interface TaskInfo {
 }
 
 namespace TaskStatusChangedNotification {
-    export const type = new NotificationType<TaskProgressInfo, void>(
-        "tasks/statuschanged",
-    );
+    export const type = new NotificationType<TaskProgressInfo, void>("tasks/statuschanged");
 }
 
 namespace TaskCreatedNotification {
-    export const type = new NotificationType<TaskInfo, void>(
-        "tasks/newtaskcreated",
-    );
+    export const type = new NotificationType<TaskInfo, void>("tasks/newtaskcreated");
 }
 
 interface CancelTaskParams {
@@ -58,9 +54,7 @@ interface CancelTaskParams {
 }
 
 namespace CancelTaskRequest {
-    export const type = new RequestType<CancelTaskParams, boolean, void, void>(
-        "tasks/canceltask",
-    );
+    export const type = new RequestType<CancelTaskParams, boolean, void, void>("tasks/canceltask");
 }
 
 type ActiveTaskInfo = {
@@ -69,10 +63,7 @@ type ActiveTaskInfo = {
     completionPromise: Deferred<void>;
     lastMessage?: string;
 };
-type ProgressCallback = (value: {
-    message?: string;
-    increment?: number;
-}) => void;
+type ProgressCallback = (value: { message?: string; increment?: number }) => void;
 
 /**
  * A simple service that hooks into the SQL Task Service feature provided by SQL Tools Service. This handles detecting when
@@ -88,10 +79,8 @@ export class SqlTasksService {
         this._client.onNotification(TaskCreatedNotification.type, (taskInfo) =>
             this.handleTaskCreatedNotification(taskInfo),
         );
-        this._client.onNotification(
-            TaskStatusChangedNotification.type,
-            (taskProgressInfo) =>
-                this.handleTaskChangedNotification(taskProgressInfo),
+        this._client.onNotification(TaskStatusChangedNotification.type, (taskProgressInfo) =>
+            this.handleTaskChangedNotification(taskProgressInfo),
         );
     }
 
@@ -127,8 +116,7 @@ export class SqlTasksService {
                 cancellable: taskInfo.isCancelable,
             },
             async (progress, token): Promise<void> => {
-                newTaskInfo.progressCallback = (value) =>
-                    progress.report(value);
+                newTaskInfo.progressCallback = (value) => progress.report(value);
                 token.onCancellationRequested(() => {
                     this.cancelTask(taskInfo.taskId);
                 });
@@ -144,23 +132,16 @@ export class SqlTasksService {
      * informing the user that the task was completed.
      * @param taskProgressInfo The progress info for the task
      */
-    private async handleTaskChangedNotification(
-        taskProgressInfo: TaskProgressInfo,
-    ): Promise<void> {
+    private async handleTaskChangedNotification(taskProgressInfo: TaskProgressInfo): Promise<void> {
         const taskInfo = this._activeTasks.get(taskProgressInfo.taskId);
         if (!taskInfo) {
-            console.warn(
-                `Status update for unknown task ${taskProgressInfo.taskId}`!,
-            );
+            console.warn(`Status update for unknown task ${taskProgressInfo.taskId}`!);
             return;
         }
-        const taskStatusString = toTaskStatusDisplayString(
-            taskProgressInfo.status,
-        );
+        const taskStatusString = toTaskStatusDisplayString(taskProgressInfo.status);
         if (
             taskProgressInfo.message &&
-            taskProgressInfo.message.toLowerCase() !==
-                taskStatusString.toLowerCase()
+            taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
         ) {
             taskInfo.lastMessage = taskProgressInfo.message;
         }
@@ -178,8 +159,7 @@ export class SqlTasksService {
             // Get the message to display, if the last status doesn't have a valid message then get the last valid one
             const lastMessage =
                 (taskProgressInfo.message &&
-                    taskProgressInfo.message.toLowerCase() !==
-                        taskStatusString.toLowerCase()) ??
+                    taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()) ??
                 taskInfo.lastMessage;
             // Only include the message if it isn't the same as the task status string we already have - some (but not all) task status
             // notifications include this string as the message
@@ -189,19 +169,13 @@ export class SqlTasksService {
                       taskStatusString,
                       lastMessage.toString(),
                   )
-                : localizedConstants.taskStatusWithName(
-                      taskInfo.taskInfo.name,
-                      taskStatusString,
-                  );
+                : localizedConstants.taskStatusWithName(taskInfo.taskInfo.name, taskStatusString);
             showCompletionMessage(taskProgressInfo.status, taskMessage);
             if (
-                taskInfo.taskInfo.taskExecutionMode ===
-                    TaskExecutionMode.script &&
+                taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
                 taskProgressInfo.script
             ) {
-                await this._untitledSqlDocumentService.newQuery(
-                    taskProgressInfo.script,
-                );
+                await this._untitledSqlDocumentService.newQuery(taskProgressInfo.script);
             }
         } else {
             // Task is still ongoing so just update the progress notification with the latest status
@@ -211,8 +185,7 @@ export class SqlTasksService {
             // notifications include this string as the message
             const taskMessage =
                 taskProgressInfo.message &&
-                taskProgressInfo.message.toLowerCase() !==
-                    taskStatusString.toLowerCase()
+                taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
                     ? localizedConstants.taskStatusWithNameAndMessage(
                           taskInfo.taskInfo.name,
                           taskStatusString,
@@ -282,9 +255,7 @@ function toTaskStatusDisplayString(taskStatus: TaskStatus): string {
         case TaskStatus.NotStarted:
             return localizedConstants.notStarted;
         default:
-            console.warn(
-                `Don't have display string for task status ${taskStatus}`,
-            );
+            console.warn(`Don't have display string for task status ${taskStatus}`);
             return (<any>taskStatus).toString(); // Typescript warns that we can never get here because we've used all the enum values so cast to any
     }
 }

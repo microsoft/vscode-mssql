@@ -16,16 +16,9 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import {
-    AuthenticationTypes,
-    IConnectionProfile,
-} from "../../src/models/interfaces";
+import { AuthenticationTypes, IConnectionProfile } from "../../src/models/interfaces";
 import { Logger } from "../../src/models/logger";
-import {
-    INameValueChoice,
-    IPrompter,
-    IQuestion,
-} from "../../src/prompts/question";
+import { INameValueChoice, IPrompter, IQuestion } from "../../src/prompts/question";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { TestPrompter } from "./stubs";
 
@@ -93,24 +86,18 @@ suite("Connection Profile tests", () => {
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockPrompter = TypeMoq.Mock.ofType<IPrompter>();
         mockLogger = TypeMoq.Mock.ofType<Logger>();
-        mockContext
-            .setup((c) => c.globalState)
-            .returns(() => globalstate.object);
+        mockContext.setup((c) => c.globalState).returns(() => globalstate.object);
         mockAzureController = new MsalAzureController(
             mockContext.object,
             mockPrompter.object,
             undefined,
         );
-        mockAccountStore = new AccountStore(
-            mockContext.object,
-            mockLogger.object,
-        );
+        mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
     });
 
     test("CreateProfile should ask questions in correct order", async () => {
         // Given
-        let prompter: TypeMoq.IMock<IPrompter> =
-            TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: { [key: string]: string } = {};
         let profileQuestions: IQuestion[];
         let profileReturned: IConnectionProfile;
@@ -166,8 +153,7 @@ suite("Connection Profile tests", () => {
 
     test("CreateProfile - SqlPassword should be default auth type", async () => {
         // Given
-        let prompter: TypeMoq.IMock<IPrompter> =
-            TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: { [key: string]: string } = {};
         let profileQuestions: IQuestion[];
 
@@ -192,16 +178,13 @@ suite("Connection Profile tests", () => {
         );
 
         // Then expect SqlAuth to be the only default type
-        let authChoices = <INameValueChoice[]>(
-            profileQuestions[authTypeQuestionIndex].choices
-        );
+        let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
         assert.strictEqual(authChoices[0].name, LocalizedConstants.authTypeSql);
     });
 
     test("CreateProfile - Integrated auth support", async () => {
         // Given
-        let prompter: TypeMoq.IMock<IPrompter> =
-            TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         let answers: { [key: string]: string } = {};
         let profileQuestions: IQuestion[];
         prompter
@@ -231,10 +214,7 @@ suite("Connection Profile tests", () => {
         let authQuestion: IQuestion = profileQuestions[authTypeQuestionIndex];
         let authChoices = <INameValueChoice[]>authQuestion.choices;
         assert.strictEqual(authChoices.length, 3);
-        assert.strictEqual(
-            authChoices[1].name,
-            LocalizedConstants.authTypeIntegrated,
-        );
+        assert.strictEqual(authChoices[1].name, LocalizedConstants.authTypeIntegrated);
         assert.strictEqual(
             authChoices[1].value,
             AuthenticationTypes[AuthenticationTypes.Integrated],
@@ -261,128 +241,49 @@ suite("Connection Profile tests", () => {
         const creds = createTestCredentials();
         const details = ConnectionCredentials.createConnectionDetails(creds);
 
-        assert.notStrictEqual(
-            typeof details.options["applicationIntent"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["applicationName"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["attachDbFilename"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["authenticationType"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["connectRetryCount"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["connectRetryInterval"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["connectTimeout"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["commandTimeout"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["currentLanguage"],
-            "undefined",
-        );
+        assert.notStrictEqual(typeof details.options["applicationIntent"], "undefined");
+        assert.notStrictEqual(typeof details.options["applicationName"], "undefined");
+        assert.notStrictEqual(typeof details.options["attachDbFilename"], "undefined");
+        assert.notStrictEqual(typeof details.options["authenticationType"], "undefined");
+        assert.notStrictEqual(typeof details.options["connectRetryCount"], "undefined");
+        assert.notStrictEqual(typeof details.options["connectRetryInterval"], "undefined");
+        assert.notStrictEqual(typeof details.options["connectTimeout"], "undefined");
+        assert.notStrictEqual(typeof details.options["commandTimeout"], "undefined");
+        assert.notStrictEqual(typeof details.options["currentLanguage"], "undefined");
         assert.notStrictEqual(typeof details.options["database"], "undefined");
         assert.notStrictEqual(typeof details.options["encrypt"], "undefined");
-        assert.notStrictEqual(
-            typeof details.options["failoverPartner"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["loadBalanceTimeout"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["maxPoolSize"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["minPoolSize"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["multipleActiveResultSets"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["multiSubnetFailover"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["packetSize"],
-            "undefined",
-        );
+        assert.notStrictEqual(typeof details.options["failoverPartner"], "undefined");
+        assert.notStrictEqual(typeof details.options["loadBalanceTimeout"], "undefined");
+        assert.notStrictEqual(typeof details.options["maxPoolSize"], "undefined");
+        assert.notStrictEqual(typeof details.options["minPoolSize"], "undefined");
+        assert.notStrictEqual(typeof details.options["multipleActiveResultSets"], "undefined");
+        assert.notStrictEqual(typeof details.options["multiSubnetFailover"], "undefined");
+        assert.notStrictEqual(typeof details.options["packetSize"], "undefined");
         assert.notStrictEqual(typeof details.options["password"], "undefined");
-        assert.notStrictEqual(
-            typeof details.options["persistSecurityInfo"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["columnEncryptionSetting"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["attestationProtocol"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["enclaveAttestationUrl"],
-            "undefined",
-        );
+        assert.notStrictEqual(typeof details.options["persistSecurityInfo"], "undefined");
+        assert.notStrictEqual(typeof details.options["columnEncryptionSetting"], "undefined");
+        assert.notStrictEqual(typeof details.options["attestationProtocol"], "undefined");
+        assert.notStrictEqual(typeof details.options["enclaveAttestationUrl"], "undefined");
         assert.notStrictEqual(typeof details.options["pooling"], "undefined");
-        assert.notStrictEqual(
-            typeof details.options["replication"],
-            "undefined",
-        );
+        assert.notStrictEqual(typeof details.options["replication"], "undefined");
         assert.notStrictEqual(typeof details.options["server"], "undefined");
-        assert.notStrictEqual(
-            typeof details.options["trustServerCertificate"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["hostNameInCertificate"],
-            "undefined",
-        );
-        assert.notStrictEqual(
-            typeof details.options["typeSystemVersion"],
-            "undefined",
-        );
+        assert.notStrictEqual(typeof details.options["trustServerCertificate"], "undefined");
+        assert.notStrictEqual(typeof details.options["hostNameInCertificate"], "undefined");
+        assert.notStrictEqual(typeof details.options["typeSystemVersion"], "undefined");
         assert.notStrictEqual(typeof details.options["user"], "undefined");
-        assert.notStrictEqual(
-            typeof details.options["workstationId"],
-            "undefined",
-        );
+        assert.notStrictEqual(typeof details.options["workstationId"], "undefined");
     });
 
     test("Profile is connected to and validated prior to saving", async () => {
         let contextMock: TypeMoq.IMock<vscode.ExtensionContext> =
             TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> =
-            TypeMoq.Mock.ofType(
-                ConnectionManager,
-                TypeMoq.MockBehavior.Loose,
-                contextMock.object,
-            );
+        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(
+            ConnectionManager,
+            TypeMoq.MockBehavior.Loose,
+            contextMock.object,
+        );
         connectionManagerMock
-            .setup(
-                async (x) =>
-                    await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup(async (x) => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(true));
 
         let connectionStoreMock = TypeMoq.Mock.ofType(
@@ -394,8 +295,7 @@ suite("Connection Profile tests", () => {
             .setup(async (x) => await x.saveProfile(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
 
-        let prompter: TypeMoq.IMock<IPrompter> =
-            TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         prompter
             .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns((questions) => {
@@ -419,9 +319,7 @@ suite("Connection Profile tests", () => {
             });
 
         let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
-        vscodeWrapperMock
-            .setup((x) => x.activeTextEditorUri)
-            .returns(() => "test.sql");
+        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => "test.sql");
 
         let connectionUI = new ConnectionUI(
             connectionManagerMock.object,
@@ -437,8 +335,7 @@ suite("Connection Profile tests", () => {
 
         // connection is attempted
         connectionManagerMock.verify(
-            async (x) =>
-                await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            async (x) => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
 
@@ -465,30 +362,19 @@ suite("Connection Profile tests", () => {
 
         let contextMock: TypeMoq.IMock<vscode.ExtensionContext> =
             TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> =
-            TypeMoq.Mock.ofType(
-                ConnectionManager,
-                TypeMoq.MockBehavior.Loose,
-                contextMock.object,
-            );
-        connectionManagerMock
-            .setup(
-                async (x) =>
-                    await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
-            .returns(() => Promise.resolve(false));
-        connectionManagerMock
-            .setup((x) => x.failedUriToFirewallIpMap)
-            .returns(() => new Map());
-
-        let sslUriMockMap = new Map<string, string>();
-        sslUriMockMap.set(
-            uri,
-            "An error occurred while connecting to the server",
+        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(
+            ConnectionManager,
+            TypeMoq.MockBehavior.Loose,
+            contextMock.object,
         );
         connectionManagerMock
-            .setup((x) => x.failedUriToSSLMap)
-            .returns(() => sslUriMockMap);
+            .setup(async (x) => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve(false));
+        connectionManagerMock.setup((x) => x.failedUriToFirewallIpMap).returns(() => new Map());
+
+        let sslUriMockMap = new Map<string, string>();
+        sslUriMockMap.set(uri, "An error occurred while connecting to the server");
+        connectionManagerMock.setup((x) => x.failedUriToSSLMap).returns(() => sslUriMockMap);
         connectionManagerMock
             .setup((x) => x.handleSSLError(uri, TypeMoq.It.isAny()))
             .returns(
@@ -500,10 +386,7 @@ suite("Connection Profile tests", () => {
                         connectionManagerMock
                             .setup(
                                 async (x) =>
-                                    await x.connect(
-                                        TypeMoq.It.isAny(),
-                                        TypeMoq.It.isAny(),
-                                    ),
+                                    await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                             )
                             .returns(() => Promise.resolve(true));
                         return resolve(updatedProfile);
@@ -519,8 +402,7 @@ suite("Connection Profile tests", () => {
             .setup(async (x) => await x.saveProfile(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(updatedProfile));
 
-        let prompter: TypeMoq.IMock<IPrompter> =
-            TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         prompter
             .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns((questions) => {
@@ -542,9 +424,7 @@ suite("Connection Profile tests", () => {
             });
 
         let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
-        vscodeWrapperMock
-            .setup((x) => x.activeTextEditorUri)
-            .returns(() => uri);
+        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => uri);
 
         let connectionUI = new ConnectionUI(
             connectionManagerMock.object,
@@ -560,8 +440,7 @@ suite("Connection Profile tests", () => {
 
         // connection is attempted twice
         connectionManagerMock.verify(
-            async (x) =>
-                await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            async (x) => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.exactly(2),
         );
 
@@ -587,21 +466,15 @@ suite("Connection Profile tests", () => {
     test("Profile is not saved when connection validation fails", async () => {
         let contextMock: TypeMoq.IMock<vscode.ExtensionContext> =
             TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> =
-            TypeMoq.Mock.ofType(
-                ConnectionManager,
-                TypeMoq.MockBehavior.Loose,
-                contextMock.object,
-            );
+        let connectionManagerMock: TypeMoq.IMock<ConnectionManager> = TypeMoq.Mock.ofType(
+            ConnectionManager,
+            TypeMoq.MockBehavior.Loose,
+            contextMock.object,
+        );
         connectionManagerMock
-            .setup(
-                async (x) =>
-                    await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup(async (x) => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(false));
-        connectionManagerMock
-            .setup((x) => x.failedUriToFirewallIpMap)
-            .returns(() => new Map());
+        connectionManagerMock.setup((x) => x.failedUriToFirewallIpMap).returns(() => new Map());
 
         let connectionStoreMock = TypeMoq.Mock.ofType(
             ConnectionStore,
@@ -612,8 +485,7 @@ suite("Connection Profile tests", () => {
             .setup(async (x) => await x.saveProfile(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
 
-        let prompter: TypeMoq.IMock<IPrompter> =
-            TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         prompter
             .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns((questions) => {
@@ -637,14 +509,10 @@ suite("Connection Profile tests", () => {
             });
 
         let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
-        vscodeWrapperMock
-            .setup((x) => x.activeTextEditorUri)
-            .returns(() => "test.sql");
+        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => "test.sql");
         // user cancels out of retry prompt
         vscodeWrapperMock
-            .setup((x) =>
-                x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
+            .setup((x) => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
 
         let connectionUI = new ConnectionUI(
@@ -664,21 +532,13 @@ suite("Connection Profile tests", () => {
                 // connection is attempted
                 connectionManagerMock.verify(
                     async (x) =>
-                        await x.connect(
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                        ),
+                        await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                     TypeMoq.Times.once(),
                 );
 
                 // profile is not saved
                 connectionStoreMock.verify(
-                    async (x) =>
-                        await x.saveProfile(
-                            TypeMoq.It.isAny(),
-                            TypeMoq.It.isAny(),
-                        ),
+                    async (x) => await x.saveProfile(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                     TypeMoq.Times.never(),
                 );
             });
@@ -689,23 +549,18 @@ suite("Connection Profile tests", () => {
         answers[LocalizedConstants.serverPrompt] = "Server=my-server";
 
         // Set up the prompter to answer the server prompt with the connection string
-        let prompter: TypeMoq.IMock<IPrompter> =
-            TypeMoq.Mock.ofType(TestPrompter);
+        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
         prompter
             .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns((questions) => {
                 questions
-                    .filter(
-                        (question) =>
-                            question.name === LocalizedConstants.serverPrompt,
-                    )[0]
+                    .filter((question) => question.name === LocalizedConstants.serverPrompt)[0]
                     .onAnswered(answers[LocalizedConstants.serverPrompt]);
                 questions
                     .filter(
                         (question) =>
                             question.name !== LocalizedConstants.serverPrompt &&
-                            question.name !==
-                                LocalizedConstants.profileNamePrompt,
+                            question.name !== LocalizedConstants.profileNamePrompt,
                     )
                     .forEach((question) => {
                         // Verify that none of the other questions prompt once a connection string is given

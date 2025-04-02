@@ -11,12 +11,9 @@ import { ConnectionDetails } from "vscode-mssql";
  * Guaranteed to be unique if any property of the connection details differs (except password).
  */
 export namespace GetSessionIdRequest {
-    export const type = new RequestType<
-        ConnectionDetails,
-        GetSessionIdResponse,
-        void,
-        void
-    >("objectexplorer/getsessionid");
+    export const type = new RequestType<ConnectionDetails, GetSessionIdResponse, void, void>(
+        "objectexplorer/getsessionid",
+    );
 }
 
 /**

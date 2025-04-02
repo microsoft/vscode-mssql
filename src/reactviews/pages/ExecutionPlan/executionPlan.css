@@ -8,16 +8,12 @@
 }
 
 .vscode-light .graph-cell .graph-icon-badge-expand.collapsed,
-.vscode-high-contrast.vscode-high-contrast-light
-    .graph-cell
-    .graph-icon-badge-expand.collapsed {
+.vscode-high-contrast.vscode-high-contrast-light .graph-cell .graph-icon-badge-expand.collapsed {
     background-image: url("./icons/collapse_light.svg");
 }
 
 .vscode-light .graph-cell .graph-icon-badge-expand.expanded,
-.vscode-high-contrast.vscode-high-contrast-light
-    .graph-cell
-    .graph-icon-badge-expand.expanded {
+.vscode-high-contrast.vscode-high-contrast-light .graph-cell .graph-icon-badge-expand.expanded {
     background-image: url("./icons/expand_light.svg");
 }
 

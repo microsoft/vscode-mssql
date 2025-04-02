@@ -98,6 +98,18 @@
   "Close": "Close",
   "Apply": "Apply",
   "Clear Selection": "Clear Selection",
+  "Find": "Find",
+  "Find Next": "Find Next",
+  "Find Previous": "Find Previous",
+  "No results": "No results",
+  "{0} of {1}/{0} is the number of active elements{1} is the total number of elements": {
+    "message": "{0} of {1}",
+    "comment": [
+      "{0} is the number of active elements",
+      "{1} is the total number of elements"
+    ]
+  },
+  "Close Find": "Close Find",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -194,7 +206,7 @@
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
   "Test Connection": "Test Connection",
-  "Connect to SQL Server": "Connect to SQL Server",
+  "Connect to Database": "Connect to Database",
   "Parameters": "Parameters",
   "Connection String": "Connection String",
   "Browse Azure": "Browse Azure",
@@ -306,6 +318,224 @@
   "Search...": "Search...",
   "Maximize": "Maximize",
   "Restore": "Restore",
+  "Add new column": "Add new column",
+  "Table": "Table",
+  "Save": "Save",
+  "Add": "Add",
+  "Add new foreign key": "Add new foreign key",
+  "Foreign Key {0}/{0} is the index of the foreign key": {
+    "message": "Foreign Key {0}",
+    "comment": [
+      "{0} is the index of the foreign key"
+    ]
+  },
+  "Source Column": "Source Column",
+  "Target Table": "Target Table",
+  "Export": "Export",
+  "Add Table": "Add Table",
+  "Auto Arrange": "Auto Arrange",
+  "Filter": "Filter",
+  "Refresh": "Refresh",
+  "Publish Changes": "Publish Changes",
+  "View Code": "View Code",
+  "Edit Table": "Edit Table",
+  "Open in Editor": "Open in Editor",
+  "Changed Tables": "Changed Tables",
+  "Create As Script": "Create As Script",
+  "Details": "Details",
+  "Script": "Script",
+  "New column mapping": "New column mapping",
+  "Column Name": "Column Name",
+  "Dismiss": "Dismiss",
+  "Table '{0}' already exists/{0} is the table name": {
+    "message": "Table '{0}' already exists",
+    "comment": [
+      "{0} is the table name"
+    ]
+  },
+  "Table name cannot be empty": "Table name cannot be empty",
+  "Table '{0}' not found/{0} is the table name": {
+    "message": "Table '{0}' not found",
+    "comment": [
+      "{0} is the table name"
+    ]
+  },
+  "Referenced table '{0}' not found/{0} is the table name": {
+    "message": "Referenced table '{0}' not found",
+    "comment": [
+      "{0} is the table name"
+    ]
+  },
+  "Column '{0}' not found/{0} is the column name": {
+    "message": "Column '{0}' not found",
+    "comment": [
+      "{0} is the column name"
+    ]
+  },
+  "Referenced column '{0}' not found/{0} is the column name": {
+    "message": "Referenced column '{0}' not found",
+    "comment": [
+      "{0} is the column name"
+    ]
+  },
+  "Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'/{0} is source data type{1} is source column{2} is target data type{3} is target column": {
+    "message": "Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'",
+    "comment": [
+      "{0} is source data type",
+      "{1} is source column",
+      "{2} is target data type",
+      "{3} is target column"
+    ]
+  },
+  "Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})/{0} is source column{1} is source length{2} is target column{3} is target length": {
+    "message": "Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})",
+    "comment": [
+      "{0} is source column",
+      "{1} is source length",
+      "{2} is target column",
+      "{3} is target length"
+    ]
+  },
+  "Precision/scale mismatch between '{0}' and '{1}'/{0} is source column{1} is target column": {
+    "message": "Precision/scale mismatch between '{0}' and '{1}'",
+    "comment": [
+      "{0} is source column",
+      "{1} is target column"
+    ]
+  },
+  "Column '{0}' must be a primary key/{0} is the referenced column": {
+    "message": "Column '{0}' must be a primary key",
+    "comment": [
+      "{0} is the referenced column"
+    ]
+  },
+  "Circular reference detected: '{0}' → '{1}' creates a cycle/{0} is source table{1} is target table": {
+    "message": "Circular reference detected: '{0}' → '{1}' creates a cycle",
+    "comment": [
+      "{0} is source table",
+      "{1} is target table"
+    ]
+  },
+  "Cannot create foreign key": "Cannot create foreign key",
+  "Column '{0}' already has a foreign key/{0} is the column name": {
+    "message": "Column '{0}' already has a foreign key",
+    "comment": [
+      "{0} is the column name"
+    ]
+  },
+  "Foreign key name cannot be empty": "Foreign key name cannot be empty",
+  "Foreign key '{0}' already exists/{0} is the foreign key name": {
+    "message": "Foreign key '{0}' already exists",
+    "comment": [
+      "{0} is the foreign key name"
+    ]
+  },
+  "{0} column data/{0} is the number of columns": {
+    "message": "{0} column data",
+    "comment": [
+      "{0} is the number of columns"
+    ]
+  },
+  "Manage relationships": "Manage relationships",
+  "No changes detected": "No changes detected",
+  "Allow Null": "Allow Null",
+  "Max Length": "Max Length",
+  "Is Identity": "Is Identity",
+  "SVG": "SVG",
+  "PNG": "PNG",
+  "JPEG": "JPEG",
+  "Column '{0}' already exists/{0} is the column name": {
+    "message": "Column '{0}' already exists",
+    "comment": [
+      "{0} is the column name"
+    ]
+  },
+  "Column name cannot be empty": "Column name cannot be empty",
+  "Column '{0}' cannot be null because it is a primary key/{0} is the column name": {
+    "message": "Column '{0}' cannot be null because it is a primary key",
+    "comment": [
+      "{0} is the column name"
+    ]
+  },
+  "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
+  "No schema differences were found.": "No schema differences were found.",
+  "Initializing comparison, this might take a while...": "Initializing comparison, this might take a while...",
+  "default": "default",
+  "Folder Structure": "Folder Structure",
+  "File": "File",
+  "Flat": "Flat",
+  "Object Type": "Object Type",
+  "Schema/Object Type": "Schema/Object Type",
+  "Settings": "Settings",
+  "Compare": "Compare",
+  "Schema Compare Options": "Schema Compare Options",
+  "General Options": "General Options",
+  "Include Object Types": "Include Object Types",
+  "Option Description": "Option Description",
+  "Reset": "Reset",
+  "Stop": "Stop",
+  "Generate script to deploy changes to target": "Generate script to deploy changes to target",
+  "Apply changes to target": "Apply changes to target",
+  "Options": "Options",
+  "Switch Direction": "Switch Direction",
+  "Switch Source and Target": "Switch Source and Target",
+  "Open .scmp file": "Open .scmp file",
+  "Open": "Open",
+  "Load source, target, and options saved in an .scmp file": "Load source, target, and options saved in an .scmp file",
+  "Save .scmp file": "Save .scmp file",
+  "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
+  "Source Name": "Source Name",
+  "Include": "Include",
+  "Action": "Action",
+  "Target Name": "Target Name",
+  "Change": "Change",
+  "Select Source": "Select Source",
+  "Select Target": "Select Target",
+  "Data-tier Application File (.dacpac)": "Data-tier Application File (.dacpac)",
+  "Database Project": "Database Project",
+  "Source": "Source",
+  "Target": "Target",
+  "Are you sure you want to update the target?": "Are you sure you want to update the target?",
+  "Yes": "Yes",
+  "No": "No",
+  "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
+  "Schema Compare failed: '{0}'/{0} is the error message returned from the compare operation": {
+    "message": "Schema Compare failed: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the compare operation"
+    ]
+  },
+  "Cancel schema compare failed: '{0}'/{0} is the error message returned from the cancel operation": {
+    "message": "Cancel schema compare failed: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the cancel operation"
+    ]
+  },
+  "Generate script failed: '{0}'/{0} is the error message returned from the generate script operation": {
+    "message": "Generate script failed: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the generate script operation"
+    ]
+  },
+  "There was an error updating the project": "There was an error updating the project",
+  "Schema Compare Apply failed '{0}'/{0} is the error message returned from the publish changes operation": {
+    "message": "Schema Compare Apply failed '{0}'",
+    "comment": [
+      "{0} is the error message returned from the publish changes operation"
+    ]
+  },
+  "Open scmp failed '{0}'/{0} is the error message returned from the open scmp operation": {
+    "message": "Open scmp failed '{0}'",
+    "comment": [
+      "{0} is the error message returned from the open scmp operation"
+    ]
+  },
+  "Save scmp failed: '{0}'/{0} is the error message returned from the save scmp operation": {
+    "message": "Save scmp failed: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the save scmp operation"
+    ]
+  },
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
@@ -402,7 +632,6 @@
   "Azure Code Grant": "Azure Code Grant",
   "Azure Device Code": "Azure Device Code",
   "Azure Logs": "Azure Logs",
-  "Open": "Open",
   "Ignore Tenant": "Ignore Tenant",
   "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process./{0} is the tenant name{1} is the tenant id{2} is the resource": {
     "message": "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.",
@@ -479,8 +708,6 @@
   "Recent connections list cleared": "Recent connections list cleared",
   " is required.": " is required.",
   "Error: ": "Error: ",
-  "Yes": "Yes",
-  "No": "No",
   "<default>": "<default>",
   "Disconnected": "Disconnected",
   "Click to connect to a database": "Click to connect to a database",
@@ -730,7 +957,6 @@
   "Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.": "Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.",
   "Reload Visual Studio Code": "Reload Visual Studio Code",
   "Switch to MSAL": "Switch to MSAL",
-  "Dismiss": "Dismiss",
   "Query succeeded": "Query succeeded",
   "Query failed": "Query failed",
   "Loading": "Loading",
@@ -816,6 +1042,9 @@
   },
   "General": "General",
   "Schema Compare": "Schema Compare",
+  "Loading Schema Designer Model...": "Loading Schema Designer Model...",
+  "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
+  "Save As": "Save As",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

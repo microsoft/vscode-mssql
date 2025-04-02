@@ -5,6 +5,9 @@
 
 import * as fluentui from "@fluentui/react-components";
 
+/**
+ * This maps the Fluent UI theme variables to the VS Code theme variables.
+ */
 export const webviewTheme: fluentui.Theme = {
     ...fluentui.webLightTheme,
     colorNeutralBackground1: "var(--vscode-editor-background)",
@@ -12,26 +15,21 @@ export const webviewTheme: fluentui.Theme = {
     colorBrandBackground: "var(--vscode-button-background)",
     colorBrandBackgroundHover: "var(--vscode-button-hoverBackground)",
     colorNeutralForegroundOnBrand: "var(--vscode-button-foreground)",
-    colorNeutralBackground1Hover:
-        "var(--vscode-button-secondaryHoverBackground)",
+    colorNeutralBackground1Hover: "var(--vscode-button-secondaryHoverBackground)",
     colorNeutralForeground1Hover: "var(--vscode-editor-foreground)",
     /**
      * Background color for a pressed state of a secondary button.
      */
-    colorNeutralBackground1Pressed:
-        "var(--vscode-button-secondaryHoverBackground)",
+    colorNeutralBackground1Pressed: "var(--vscode-button-secondaryHoverBackground)",
     /**
      * Foreground color for a pressed state of a secondary button.
      */
     colorNeutralForeground1Pressed: "var(--vscode-editor-foreground)",
     colorNeutralForeground2: "var(--vscode-editor-foreground)",
-    colorNeutralForeground2Hover:
-        "var(--vscode-editorHoverWidget-highlightForeground)",
+    colorNeutralForeground2Hover: "var(--vscode-editorHoverWidget-highlightForeground)",
     colorSubtleBackgroundHover: "var(--vscode-list-hoverBackground)",
-    colorNeutralForeground2Pressed:
-        "var(--vscode-list-activeSelectionForeground)",
-    colorSubtleBackgroundPressed:
-        "var(--vscode-list-activeSelectionBackground)",
+    colorNeutralForeground2Pressed: "var(--vscode-list-activeSelectionForeground)",
+    colorSubtleBackgroundPressed: "var(--vscode-list-activeSelectionBackground)",
     colorBrandStroke1: "var(--vscode-button-foreground)",
     colorBrandStroke2Contrast: "var(--vscode-button-background)",
     /**
@@ -43,25 +41,18 @@ export const webviewTheme: fluentui.Theme = {
     colorNeutralForegroundInverted: "var(--vscode-button-foreground)",
     colorCompoundBrandBackgroundHover: "var(--vscode-button-hoverBackground)",
     colorCompoundBrandBackgroundPressed: "var(--vscode-button-hoverBackground)",
-    colorNeutralForeground2BrandHover:
-        "var(--vscode-editorHoverWidget-highlightForeground)",
-    colorNeutralForeground2BrandPressed:
-        "var(--vscode-button-secondaryForeground)",
+    colorNeutralForeground2BrandHover: "var(--vscode-editorHoverWidget-highlightForeground)",
+    colorNeutralForeground2BrandPressed: "var(--vscode-button-secondaryForeground)",
     colorNeutralForeground3: "var(--vscode-foreground)",
     colorCompoundBrandForeground1: "var(--vscode-button-background)",
     colorStrokeFocus1: "var(--vscode-focusBorder)",
     colorStrokeFocus2: "var(--vscode-focusBorder)",
     colorBrandForegroundLink: "var(--vscode-textLink-foreground)",
-    colorBrandForegroundLinkHover:
-        "var(--vscode-editorHoverWidget-highlightForeground)",
-    colorBrandForegroundLinkPressed:
-        "var(--vscode-editorHoverWidget-highlightForeground)",
-    colorCompoundBrandForeground1Hover:
-        "var(--vscode-editorHoverWidget-highlightForeground)",
-    colorCompoundBrandForeground1Pressed:
-        "var(--vscode-editorHoverWidget-highlightForeground)",
-    colorNeutralBackgroundDisabled:
-        "var(--vscode-list-inactiveSelectionBackground)",
+    colorBrandForegroundLinkHover: "var(--vscode-editorHoverWidget-highlightForeground)",
+    colorBrandForegroundLinkPressed: "var(--vscode-editorHoverWidget-highlightForeground)",
+    colorCompoundBrandForeground1Hover: "var(--vscode-editorHoverWidget-highlightForeground)",
+    colorCompoundBrandForeground1Pressed: "var(--vscode-editorHoverWidget-highlightForeground)",
+    colorNeutralBackgroundDisabled: "var(--vscode-list-inactiveSelectionBackground)",
     colorNeutralStroke2: "var(--vscode-editorWidget-border)",
     colorNeutralBackground2: "var(--vscode-keybindingTable-headerBackground)",
     colorNeutralStroke1: "var(--vscode-foreground)",
@@ -86,8 +77,7 @@ export const webviewTheme: fluentui.Theme = {
      */
     colorStatusDangerBorder1: "var(--vscode-errorForeground)",
     // This specifies the background color for an error message box
-    colorStatusDangerBackground1:
-        "var(--vscode-diffEditor-removedTextBackground)",
+    colorStatusDangerBackground1: "var(--vscode-diffEditor-removedTextBackground)",
     fontSizeBase300: "13px",
     fontFamilyBase: "var(--vscode-font-family)",
     fontFamilyNumeric: "var(--vscode-font-family)",
@@ -97,4 +87,24 @@ export const webviewTheme: fluentui.Theme = {
      * Specifies the background color for a selected div.
      */
     colorNeutralForeground2BrandSelected: "var(--vscode-button-background)",
+    /**
+     * Specified the shadow color for card components.
+     */
+    shadow4: "0 0 2px var(--vscode-widget-shadow), 0 2px 4px var(--vscode-widget-shadow)",
+    /**
+     * Specifies the shadow color for popover components.
+     */
+    colorNeutralShadowAmbient: "var(--vscode-widget-shadow)",
+    /**
+     * Specifies the shadow color for popover components.
+     */
+    colorNeutralShadowKey: "var(--vscode-widget-shadow)",
+    /**
+     * Color for the background of a selected item in a subtle button.
+     */
+    colorSubtleBackgroundSelected: "var(--vscode-menu-selectionBackground)",
+    /**
+     * Color for the foreground of a selected item in a subtle button.
+     */
+    colorNeutralForeground1Selected: "var(--vscode-menu-selectionForeground)",
 };
