@@ -499,6 +499,7 @@ export class LocConstants {
                     comment: ["{0} is the max length"],
                 }),
             loadingSchemaDesigner: l10n.t("Loading Schema Designer"),
+            generatingReport: l10n.t("Generating report"),
         };
     }
 
