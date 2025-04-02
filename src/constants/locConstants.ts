@@ -635,6 +635,45 @@ export class ConnectionDialog {
     };
 }
 
+export class ContainerDeployment {
+    public static stoppedContainerSucessfully = (name: string) =>
+        l10n.t({
+            message: "{0} stopped successfully.",
+            args: [name],
+            comment: ["{0} stopped succesfully."],
+        });
+    public static failStopContainer = (name: string) =>
+        l10n.t({
+            message: "Failed to stop {0}.",
+            args: [name],
+            comment: ["Failed to stop {0}."],
+        });
+    public static startedContainerSucessfully = (name: string) =>
+        l10n.t({
+            message: "{0} started successfully.",
+            args: [name],
+            comment: ["{0} started succesfully."],
+        });
+    public static failStartContainer = (name: string) =>
+        l10n.t({
+            message: "Failed to start {0}.",
+            args: [name],
+            comment: ["Failed to start {0}."],
+        });
+    public static deletedContainerSucessfully = (name: string) =>
+        l10n.t({
+            message: "{0} deleted successfully.",
+            args: [name],
+            comment: ["{0} deleted succesfully."],
+        });
+    public static failDeleteContainer = (name: string) =>
+        l10n.t({
+            message: "Failed to delete {0}.",
+            args: [name],
+            comment: ["Failed to delete {0}."],
+        });
+}
+
 export class UserSurvey {
     public static overallHowSatisfiedAreYouWithMSSQLExtension = l10n.t(
         "Overall, how satisfied are you with the MSSQL extension?",

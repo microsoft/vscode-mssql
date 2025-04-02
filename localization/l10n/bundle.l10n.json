@@ -1014,6 +1014,42 @@
       "{1} is the error message"
     ]
   },
+  "{0} stopped successfully./{0} stopped succesfully.": {
+    "message": "{0} stopped successfully.",
+    "comment": [
+      "{0} stopped succesfully."
+    ]
+  },
+  "Failed to stop {0}./Failed to stop {0}.": {
+    "message": "Failed to stop {0}.",
+    "comment": [
+      "Failed to stop {0}."
+    ]
+  },
+  "{0} started successfully./{0} started succesfully.": {
+    "message": "{0} started successfully.",
+    "comment": [
+      "{0} started succesfully."
+    ]
+  },
+  "Failed to start {0}./Failed to start {0}.": {
+    "message": "Failed to start {0}.",
+    "comment": [
+      "Failed to start {0}."
+    ]
+  },
+  "{0} deleted successfully./{0} deleted succesfully.": {
+    "message": "{0} deleted successfully.",
+    "comment": [
+      "{0} deleted succesfully."
+    ]
+  },
+  "Failed to delete {0}./Failed to delete {0}.": {
+    "message": "Failed to delete {0}.",
+    "comment": [
+      "Failed to delete {0}."
+    ]
+  },
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",

@@ -59,6 +59,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
             if (nodeType === Constants.disconnectedServerNodeType) {
                 this._nodeType = Constants.disconnectedDockerContainerNodeType;
             }
+            this.context = { ...context, subType: this._nodeType };
         }
         this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
     }

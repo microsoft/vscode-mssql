@@ -5,12 +5,7 @@
 
 import * as vscodeMssql from "vscode-mssql";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import {
-    FormContextProps,
-    FormEvent,
-    FormItemSpec,
-    FormState,
-} from "../../common/forms/form";
+import { FormContextProps, FormEvent, FormItemSpec, FormState } from "../../common/forms/form";
 
 export class ContainerDeploymentWebviewState
     implements
@@ -201,8 +196,8 @@ export const COMMANDS = {
     CHECK_LOGS: (name: string, platform: string) =>
         `docker logs --tail 15 ${name} | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
     CHECK_CONTAINER_READY: `Recovery is complete`,
-    DELETE_CONTAINER: (name: string) =>
-        `docker stop ${name} && docker rm ${name}`,
+    STOP_CONTAINER: (name: string) => `docker stop ${name}`,
+    DELETE_CONTAINER: (name: string) => `docker stop ${name} && docker rm ${name}`,
     GET_CONTAINER_ADDRESSES: {
         win32: `powershell -Command "docker ps -a --format '{{.ID}}' | ForEach-Object { docker inspect $_ | Select-String -Pattern '\"HostIp\":| \"HostPort\":' | Select-Object -First 1 | ForEach-Object { ($_ -split ':')[1].Trim() -replace '\"', '' }}"`,
         // still need to test

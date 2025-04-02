@@ -11,11 +11,7 @@ import { exec } from "child_process";
 import { platform } from "os";
 import { sqlAuthentication } from "../constants/constants";
 import { IConnectionProfile } from "../models/interfaces";
-import {
-    FormItemType,
-    FormItemOptions,
-    FormItemSpec,
-} from "../reactviews/common/forms/form";
+import { FormItemType, FormItemOptions, FormItemSpec } from "../reactviews/common/forms/form";
 import MainController from "./mainController";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "./vscodeWrapper";
@@ -79,9 +75,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             // These fields are validated by running docker commands
             if (payload.event.propertyName == "containerName") {
                 this.state.isValidContainerName =
-                    (await validateContainerName(
-                        payload.event.value.toString(),
-                    )) !== "";
+                    (await validateContainerName(payload.event.value.toString())) !== "";
             }
             if (payload.event.propertyName == "port") {
                 this.state.isValidPortNumber = await this.validatePort(
@@ -96,8 +90,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return state;
         });
         this.registerReducer("checkDockerInstallation", async (state, _) => {
-            if (state.dockerInstallStatus.loadState !== ApiStatus.Loading)
-                return state;
+            if (state.dockerInstallStatus.loadState !== ApiStatus.Loading) return state;
             const dockerInstallResult = await checkDockerInstallation();
             let newState = state;
             if (!dockerInstallResult) {
@@ -112,8 +105,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("startDocker", async (state, payload) => {
-            if (state.dockerStatus.loadState !== ApiStatus.Loading)
-                return state;
+            if (state.dockerStatus.loadState !== ApiStatus.Loading) return state;
             const startDockerResult = await startDocker();
             let newState = state;
             if (!startDockerResult.success) {
@@ -127,8 +119,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("checkEngine", async (state, payload) => {
-            if (state.dockerEngineStatus.loadState !== ApiStatus.Loading)
-                return state;
+            if (state.dockerEngineStatus.loadState !== ApiStatus.Loading) return state;
 
             if (state.platform === "linux") {
                 state.dockerEngineStatus.loadState = ApiStatus.Loaded;
@@ -139,8 +130,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
             let newState = state;
             if (!checkEngineResult.success) {
-                newState.dockerEngineStatus.errorMessage =
-                    checkEngineResult.error;
+                newState.dockerEngineStatus.errorMessage = checkEngineResult.error;
 
                 newState.dockerEngineStatus.loadState = ApiStatus.Error;
                 return newState;
@@ -151,23 +141,16 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("checkDockerProfile", async (state, _) => {
-            const errors = await this.validateDockerConnectionProfile(
-                state.formState,
-            );
+            const errors = await this.validateDockerConnectionProfile(state.formState);
             state.isDockerProfileValid = errors.length === 0;
             return state;
         });
         this.registerReducer("startContainer", async (state, payload) => {
-            if (
-                state.dockerContainerCreationStatus.loadState !==
-                ApiStatus.Loading
-            )
-                return state;
+            if (state.dockerContainerCreationStatus.loadState !== ApiStatus.Loading) return state;
             if (this.state.formState.containerName.trim() == "") {
-                this.state.formState.containerName =
-                    await validateContainerName(
-                        this.state.formState.containerName,
-                    );
+                this.state.formState.containerName = await validateContainerName(
+                    this.state.formState.containerName,
+                );
             }
             const startContainerResult = await startSqlServerDockerContainer(
                 this.state.formState.containerName,
@@ -178,10 +161,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             );
             let newState = state;
             if (!startContainerResult.success) {
-                newState.dockerContainerCreationStatus.errorMessage =
-                    "Failed to start container.";
-                newState.dockerContainerCreationStatus.loadState =
-                    ApiStatus.Error;
+                newState.dockerContainerCreationStatus.errorMessage = "Failed to start container.";
+                newState.dockerContainerCreationStatus.loadState = ApiStatus.Error;
                 newState.dockerContainerStatus.loadState = ApiStatus.Error;
                 newState.dockerConnectionStatus.loadState = ApiStatus.Error;
                 return newState;
@@ -192,12 +173,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("checkContainer", async (state, payload) => {
-            if (state.dockerContainerStatus.loadState !== ApiStatus.Loading)
-                return state;
-            const containerStatusResult =
-                await checkIfContainerIsReadyForConnections(
-                    this.state.formState.containerName,
-                );
+            if (state.dockerContainerStatus.loadState !== ApiStatus.Loading) return state;
+            const containerStatusResult = await checkIfContainerIsReadyForConnections(
+                this.state.formState.containerName,
+            );
             let newState = state;
             if (!containerStatusResult) {
                 newState.dockerContainerStatus.errorMessage =
@@ -210,19 +189,13 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("connectToContainer", async (state, payload) => {
-            if (state.dockerConnectionStatus.loadState !== ApiStatus.Loading)
-                return state;
-            const connectionProfile = await this.addContainerConnection(
-                state.formState,
-            );
+            if (state.dockerConnectionStatus.loadState !== ApiStatus.Loading) return state;
+            const connectionProfile = await this.addContainerConnection(state.formState);
             const connectionResult =
-                await this.mainController.createObjectExplorerSession(
-                    connectionProfile,
-                );
+                await this.mainController.createObjectExplorerSession(connectionProfile);
             let newState = state;
             if (!connectionResult) {
-                newState.dockerConnectionStatus.errorMessage =
-                    "Failed to connect to container.";
+                newState.dockerConnectionStatus.errorMessage = "Failed to connect to container.";
                 return newState;
             }
             newState.dockerConnectionStatus.loadState = ApiStatus.Loaded;
@@ -240,9 +213,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     protected getActiveFormComponents(
         state: cd.ContainerDeploymentWebviewState,
     ): (keyof cd.DockerConnectionProfile)[] {
-        return Object.keys(
-            state.formComponents,
-        ) as (keyof cd.DockerConnectionProfile)[];
+        return Object.keys(state.formComponents) as (keyof cd.DockerConnectionProfile)[];
     }
 
     async validatePort(port: string): Promise<boolean> {
@@ -285,8 +256,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     ): Promise<IConnectionProfile> {
         let connection: any = {
             ...dockerProfile,
-            profileName:
-                dockerProfile.profileName || dockerProfile.containerName,
+            profileName: dockerProfile.profileName || dockerProfile.containerName,
             savePassword: dockerProfile.savePassword,
             emptyPasswordInput: false,
             azureAuthType: undefined,
@@ -357,9 +327,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 isAdvancedOption: false,
                 tooltip: "SQL Server Container Password",
                 validate(_, value) {
-                    const testPassword = validateSqlServerPassword(
-                        value.toString(),
-                    );
+                    const testPassword = validateSqlServerPassword(value.toString());
                     if (testPassword === "") {
                         return { isValid: true, validationMessage: "" };
                     }
@@ -397,8 +365,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 tooltip: "Connection Name",
                 validate(_, value) {
                     const profileNameValid =
-                        value.toString() === "" ||
-                        validateConnectionName(value.toString());
+                        value.toString() === "" || validateConnectionName(value.toString());
                     return {
                         isValid: profileNameValid,
                         validationMessage: profileNameValid
@@ -428,8 +395,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                         ? { isValid: true, validationMessage: "" }
                         : {
                               isValid: false,
-                              validationMessage:
-                                  "Please use a unique container name",
+                              validationMessage: "Please use a unique container name",
                           };
                 },
             } as FormItemSpec<
@@ -453,8 +419,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                         ? { isValid: true, validationMessage: "" }
                         : {
                               isValid: false,
-                              validationMessage:
-                                  "Please choose an available port",
+                              validationMessage: "Please choose an available port",
                           };
                 },
             } as FormItemSpec<
@@ -498,8 +463,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                     }
                     return {
                         isValid: false,
-                        validationMessage:
-                            "Please accept the Terms and Conditions",
+                        validationMessage: "Please accept the Terms and Conditions",
                     };
                 },
             } as FormItemSpec<
@@ -524,12 +488,9 @@ export function validateSqlServerPassword(password: string): string {
     const hasSpecialChar = /[!@#$%^&*]/.test(password);
 
     // Count the number of required character categories met
-    const categoryCount = [
-        hasUpperCase,
-        hasLowerCase,
-        hasDigit,
-        hasSpecialChar,
-    ].filter(Boolean).length;
+    const categoryCount = [hasUpperCase, hasLowerCase, hasDigit, hasSpecialChar].filter(
+        Boolean,
+    ).length;
 
     if (categoryCount < 3) {
         return "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).";
@@ -539,14 +500,10 @@ export function validateSqlServerPassword(password: string): string {
 }
 
 export function validateConnectionName(connectionName: string): boolean {
-    const connections = vscode.workspace
-        .getConfiguration("mssql")
-        .get("connections", []);
+    const connections = vscode.workspace.getConfiguration("mssql").get("connections", []);
     console.log(connections);
     console.log(connections[0].profileName);
-    const isDuplicate = connections.some(
-        (profile) => profile.profileName === connectionName,
-    );
+    const isDuplicate = connections.some((profile) => profile.profileName === connectionName);
     return !isDuplicate;
 }
 
@@ -587,9 +544,7 @@ export async function checkEngine(): Promise<cd.DockerCommandParams> {
     });
 }
 
-export async function validateContainerName(
-    containerName: string,
-): Promise<string> {
+export async function validateContainerName(containerName: string): Promise<string> {
     return new Promise((resolve) => {
         exec(cd.COMMANDS.VALIDATE_CONTAINER_NAME, (error, stdout) => {
             let existingContainers: string[] = [];
@@ -631,26 +586,20 @@ export async function findAvailablePort(startPort: number): Promise<number> {
             const inspections = containerIds.map(
                 (containerId) =>
                     new Promise<void>((resolve) => {
-                        exec(
-                            `docker inspect ${containerId}`,
-                            (inspectError, inspectStdout) => {
-                                if (!inspectError) {
-                                    const hostPortMatches = inspectStdout.match(
-                                        /"HostPort":\s*"(\d+)"/g,
-                                    );
-                                    hostPortMatches?.forEach((match) =>
-                                        usedPorts.add(
-                                            Number(match.match(/\d+/)![0]),
-                                        ),
-                                    );
-                                } else {
-                                    console.error(
-                                        `Error inspecting container ${containerId}: ${inspectError.message}`,
-                                    );
-                                }
-                                resolve();
-                            },
-                        );
+                        exec(`docker inspect ${containerId}`, (inspectError, inspectStdout) => {
+                            if (!inspectError) {
+                                const hostPortMatches =
+                                    inspectStdout.match(/"HostPort":\s*"(\d+)"/g);
+                                hostPortMatches?.forEach((match) =>
+                                    usedPorts.add(Number(match.match(/\d+/)![0])),
+                                );
+                            } else {
+                                console.error(
+                                    `Error inspecting container ${containerId}: ${inspectError.message}`,
+                                );
+                            }
+                            resolve();
+                        });
                     }),
             );
 
@@ -755,19 +704,12 @@ export async function startDocker(): Promise<cd.DockerCommandParams> {
     });
 }
 
-export async function restartContainer(
-    containerName: string,
-): Promise<boolean> {
+export async function restartContainer(containerName: string): Promise<boolean> {
     const isDockerStarted = await startDocker();
     if (!isDockerStarted) return false;
     return new Promise((resolve) => {
         exec(cd.COMMANDS.START_CONTAINER(containerName), async (error) => {
-            resolve(
-                !error &&
-                    (await checkIfContainerIsReadyForConnections(
-                        containerName,
-                    )),
-            );
+            resolve(!error && (await checkIfContainerIsReadyForConnections(containerName)));
         });
     });
 }
@@ -777,18 +719,12 @@ export async function checkIfContainerIsReadyForConnections(
 ): Promise<boolean> {
     return new Promise((resolve) => {
         const interval = setInterval(() => {
-            exec(
-                cd.COMMANDS.CHECK_LOGS(containerName, platform()),
-                (error, stdout) => {
-                    if (
-                        !error &&
-                        stdout.includes(cd.COMMANDS.CHECK_CONTAINER_READY)
-                    ) {
-                        clearInterval(interval);
-                        resolve(true);
-                    }
-                },
-            );
+            exec(cd.COMMANDS.CHECK_LOGS(containerName, platform()), (error, stdout) => {
+                if (!error && stdout.includes(cd.COMMANDS.CHECK_CONTAINER_READY)) {
+                    clearInterval(interval);
+                    resolve(true);
+                }
+            });
         }, 1000);
     });
 }
@@ -805,12 +741,21 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
     });
 }
 
+export async function stopContainer(containerName: string): Promise<boolean> {
+    return new Promise((resolve) => {
+        exec(cd.COMMANDS.STOP_CONTAINER(containerName), (error) => {
+            if (error) {
+                resolve(false);
+                return;
+            }
+            resolve(true);
+        });
+    });
+}
+
 // Returns container name if container is a Docker connection
-export async function checkIfConnectionIsDockerContainer(
-    serverName: string,
-): Promise<string> {
-    if (!serverName.includes("localhost") && !serverName.includes("127.0.0.1"))
-        return "";
+export async function checkIfConnectionIsDockerContainer(serverName: string): Promise<string> {
+    if (!serverName.includes("localhost") && !serverName.includes("127.0.0.1")) return "";
 
     return new Promise((resolve) => {
         exec(cd.COMMANDS.GET_CONTAINERS, (error, stdout) => {
@@ -825,41 +770,29 @@ export async function checkIfConnectionIsDockerContainer(
             const inspections = containerIds.map(
                 (containerId) =>
                     new Promise<string>((resolve) => {
-                        exec(
-                            `docker inspect ${containerId}`,
-                            (inspectError, inspectStdout) => {
-                                if (inspectError) {
-                                    console.error(
-                                        `Error inspecting container ${containerId}: ${inspectError.message}`,
-                                    );
-                                    return resolve("");
-                                }
-
-                                const hostPortMatches = inspectStdout.match(
-                                    /"HostPort":\s*"(\d+)"/g,
+                        exec(`docker inspect ${containerId}`, (inspectError, inspectStdout) => {
+                            if (inspectError) {
+                                console.error(
+                                    `Error inspecting container ${containerId}: ${inspectError.message}`,
                                 );
-                                if (hostPortMatches) {
-                                    for (const match of hostPortMatches) {
-                                        const portMatch = match.match(/\d+/);
-                                        if (
-                                            portMatch &&
-                                            serverName.includes(portMatch[0])
-                                        ) {
-                                            const containerNameMatch =
-                                                inspectStdout.match(
-                                                    /"Name"\s*:\s*"\/([^"]+)"/,
-                                                );
-                                            if (containerNameMatch) {
-                                                return resolve(
-                                                    containerNameMatch[1],
-                                                ); // Extract container name
-                                            }
+                                return resolve("");
+                            }
+
+                            const hostPortMatches = inspectStdout.match(/"HostPort":\s*"(\d+)"/g);
+                            if (hostPortMatches) {
+                                for (const match of hostPortMatches) {
+                                    const portMatch = match.match(/\d+/);
+                                    if (portMatch && serverName.includes(portMatch[0])) {
+                                        const containerNameMatch =
+                                            inspectStdout.match(/"Name"\s*:\s*"\/([^"]+)"/);
+                                        if (containerNameMatch) {
+                                            return resolve(containerNameMatch[1]); // Extract container name
                                         }
                                     }
                                 }
-                                resolve("");
-                            },
-                        );
+                            }
+                            resolve("");
+                        });
                     }),
             );
 
