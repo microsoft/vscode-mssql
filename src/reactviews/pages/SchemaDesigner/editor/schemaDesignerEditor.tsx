@@ -66,31 +66,57 @@ export const SchemaDesignerEditor = () => {
             return key.includes(`${tab}_`) && context.errors[key];
         }).length;
 
+    const tabWarningCount = (tab: SchemaDesignerEditorTab) =>
+        Object.keys(context.warnings).filter((key) => {
+            return key.includes(`${tab}_`) && context.warnings[key];
+        }).length;
+
     if (!context.table) {
         return undefined;
     }
+
+    const createTab = (tab: SchemaDesignerEditorTab) => {
+        return (
+            <Tab value={tab}>
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "5px",
+                        alignItems: "center",
+                    }}>
+                    {locConstants.schemaDesigner[tab]}
+                    <CounterBadge
+                        size="small"
+                        count={tabErrorCount(tab)}
+                        style={{
+                            backgroundColor: "var(--vscode-inputValidation-errorBackground)",
+                            color: "var(--vscode-problemsErrorIcon-foreground)",
+                            border: "1px solid var(--vscode-inputValidation-errorBorder)",
+                        }}
+                        title={locConstants.schemaDesigner.nErrors(tabErrorCount(tab))}
+                    />
+                    <CounterBadge
+                        size="small"
+                        count={tabWarningCount(tab)}
+                        style={{
+                            backgroundColor: "var(--vscode-inputValidation-warningBackground)",
+                            color: "var(--vscode-problemsWarningIcon-foreground)",
+                            border: "1px solid var(--vscode-inputValidation-warningBorder)",
+                        }}
+                        title={locConstants.schemaDesigner.nWarnings(tabWarningCount(tab))}
+                    />
+                </div>
+            </Tab>
+        );
+    };
 
     return (
         <div className={classes.editor}>
             <TabList
                 selectedValue={context.selectedTabValue}
                 onTabSelect={(_e, data) => context.setSelectedTabValue(data.value)}>
-                <Tab value={SchemaDesignerEditorTab.Table}>
-                    {locConstants.schemaDesigner.table}
-                    <CounterBadge
-                        size="small"
-                        count={tabErrorCount(SchemaDesignerEditorTab.Table)}
-                        color="danger"
-                    />
-                </Tab>
-                <Tab value={SchemaDesignerEditorTab.ForeignKeys}>
-                    {locConstants.schemaDesigner.foreignKeys}
-                    <CounterBadge
-                        size="small"
-                        count={tabErrorCount(SchemaDesignerEditorTab.ForeignKeys)}
-                        color="danger"
-                    />
-                </Tab>
+                {createTab(SchemaDesignerEditorTab.Table)}
+                {createTab(SchemaDesignerEditorTab.ForeignKeys)}
             </TabList>
             <div className={classes.editorPanel}>
                 {context.selectedTabValue === SchemaDesignerEditorTab.Table && (
