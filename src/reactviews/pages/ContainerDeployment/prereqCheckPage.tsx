@@ -89,7 +89,7 @@ export const PrereqCheckPage: React.FC = () => {
                 containerDeploymentState?.dockerEngineStatus.loadState ===
                     ApiStatus.Loading
             ) {
-                await state?.checkLinuxEngine();
+                await state?.checkEngine();
             }
         };
         void checkAndStartDocker();
@@ -119,7 +119,7 @@ export const PrereqCheckPage: React.FC = () => {
                 </div>
                 <StepCard stepName="dockerInstallStatus" />
                 <StepCard stepName="dockerStatus" />
-                {containerDeploymentState?.platform === "win32" && (
+                {containerDeploymentState?.platform !== "linux" && (
                     <StepCard stepName="dockerEngineStatus" />
                 )}
                 {stepsLoaded ? (

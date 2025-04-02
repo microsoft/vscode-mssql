@@ -45,8 +45,8 @@ const ContainerDeploymentStateProvider: React.FC<
                 startDocker: function (): void {
                     webviewState?.extensionRpc.action("startDocker", {});
                 },
-                checkLinuxEngine: function (): void {
-                    webviewState?.extensionRpc.action("checkLinuxEngine", {});
+                checkEngine: function (): void {
+                    webviewState?.extensionRpc.action("checkEngine", {});
                 },
                 checkDockerProfile: function (): void {
                     webviewState?.extensionRpc.action("checkDockerProfile", {});

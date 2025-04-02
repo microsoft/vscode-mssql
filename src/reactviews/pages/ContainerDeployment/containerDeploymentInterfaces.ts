@@ -104,7 +104,7 @@ export interface ContainerDeploymentContextProps
     /**
      * Gets the execution plan graph from the provider
      */
-    checkLinuxEngine(): void;
+    checkEngine(): void;
     /**
      * Gets the execution plan graph from the provider
      */
@@ -141,7 +141,7 @@ export interface ContainerDeploymentReducers {
     /**
      * Gets the execution plan graph from the provider
      */
-    checkLinuxEngine: {};
+    checkEngine: {};
 
     /**
      * Gets the execution plan graph from the provider
@@ -179,7 +179,11 @@ export const COMMANDS = {
         // still need to test
         linux: "systemctl start docker",
     },
-    SWITCH_LINUX_ENGINE: `powershell -Command "& \\"C:\\Program Files\\Docker\\Docker\\DockerCli.exe\\" -SwitchLinuxEngine"`,
+    CHECK_ENGINE: {
+        win32: `powershell -Command "& \\"C:\\Program Files\\Docker\\Docker\\DockerCli.exe\\" -SwitchLinuxEngine"`,
+        darwin: `cat "${process.env.HOME}/Library/Group Containers/group.com.docker/settings-store.json" | grep '"UseVirtualizationFrameworkRosetta": true' || exit 1`,
+        linux: ``,
+    },
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
     FIND_PORTS: {

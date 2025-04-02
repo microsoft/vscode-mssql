@@ -126,25 +126,30 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             newState.dockerStatus.loadState = ApiStatus.Loaded;
             return newState;
         });
-        this.registerReducer("checkLinuxEngine", async (state, payload) => {
+        this.registerReducer("checkEngine", async (state, payload) => {
             if (state.dockerEngineStatus.loadState !== ApiStatus.Loading)
                 return state;
-            if (state.platform !== "win32") {
+
+            if (state.platform === "linux") {
                 state.dockerEngineStatus.loadState = ApiStatus.Loaded;
                 return state;
             }
 
-            const checkLinuxEngineResult = await checkLinuxEngine();
+            const checkEngineResult = await checkEngine();
+
             let newState = state;
-            if (!checkLinuxEngineResult) {
+            if (!checkEngineResult.success) {
                 newState.dockerEngineStatus.errorMessage =
-                    "Failed to prepare engine. Please switch to linux engine and try again.";
+                    checkEngineResult.error;
+
                 newState.dockerEngineStatus.loadState = ApiStatus.Error;
                 return newState;
             }
-            newState.dockerStatus.loadState = ApiStatus.Loaded;
+
+            newState.dockerEngineStatus.loadState = ApiStatus.Loaded;
             return newState;
         });
+
         this.registerReducer("checkDockerProfile", async (state, _) => {
             const errors = await this.validateDockerConnectionProfile(
                 state.formState,
@@ -553,10 +558,31 @@ export async function checkDockerInstallation(): Promise<boolean> {
     });
 }
 
-export async function checkLinuxEngine(): Promise<boolean> {
+export async function checkEngine(): Promise<cd.DockerCommandParams> {
     return new Promise((resolve) => {
-        exec(cd.COMMANDS.SWITCH_LINUX_ENGINE, (error) => {
-            resolve(!error);
+        const engineCommand = cd.COMMANDS.CHECK_ENGINE[platform()];
+
+        if (!engineCommand) {
+            return resolve({
+                success: false,
+                error: `Unsupported platform for Docker: ${platform()}`,
+            });
+        }
+
+        exec(engineCommand, (error) => {
+            if (error) {
+                return resolve({
+                    success: false,
+                    error:
+                        platform() == "darwin"
+                            ? "Please make sure Rosetta is turned on"
+                            : "Please switch docker engine to linux containers",
+                });
+            }
+
+            return resolve({
+                success: true,
+            });
         });
     });
 }
