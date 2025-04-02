@@ -910,6 +910,9 @@
     <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
       <source xml:lang="en">Loading Report</source>
     </trans-unit>
+    <trans-unit id="++CODE++fb77011a24ad32a2b166d3d74cf25aee9d67da4c5579e8740211e0738bd05a10">
+      <source xml:lang="en">Loading Schema Designer</source>
+    </trans-unit>
     <trans-unit id="++CODE++54de42320518e4ac2e773353f4d9f9a7be92f4afc008a3b33a3247b39a19aa68">
       <source xml:lang="en">Loading Schema Designer Model...</source>
     </trans-unit>
