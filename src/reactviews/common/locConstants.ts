@@ -491,6 +491,13 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the column name"],
                 }),
+            columnMaxLengthEmptyError: l10n.t("Column max length cannot be empty"),
+            columnMaxLengthInvalid: (maxLength: string) =>
+                l10n.t({
+                    message: "Invalid max length '{0}'",
+                    args: [maxLength],
+                    comment: ["{0} is the max length"],
+                }),
         };
     }
 

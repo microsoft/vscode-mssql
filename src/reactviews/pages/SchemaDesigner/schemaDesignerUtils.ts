@@ -138,6 +138,18 @@ export const columnUtils = {
         if (!column.name) return locConstants.schemaDesigner.columnNameEmptyError;
         if (column.isPrimaryKey && column.isNullable)
             return locConstants.schemaDesigner.columnPKCannotBeNull(column.name);
+        // Check if maxlength is a valid number or MAX
+        if (columnUtils.isLengthBasedType(column.dataType)) {
+            if (!column.maxLength) {
+                return locConstants.schemaDesigner.columnMaxLengthEmptyError;
+            }
+            if (column.maxLength && column.maxLength !== "MAX") {
+                const maxLength = parseInt(column.maxLength);
+                if (isNaN(maxLength) || maxLength <= 0) {
+                    return locConstants.schemaDesigner.columnMaxLengthInvalid(column.maxLength);
+                }
+            }
+        }
     },
     isLengthBasedType: (type: string): boolean => {
         return ["char", "varchar", "nchar", "nvarchar", "binary", "varbinary"].includes(type);
@@ -146,7 +158,12 @@ export const columnUtils = {
     isPrecisionBasedType: (type: string): boolean => {
         return ["decimal", "numeric"].includes(type);
     },
-
+    isIdentityBasedType: (type: string, scale: number): boolean => {
+        if (type === "decimal" || type === "numeric") {
+            return scale === 0;
+        }
+        return ["int", "bigint", "smallint", "tinyint"].includes(type);
+    },
     getDefaultLength: (type: string): string => {
         switch (type) {
             case "char":
@@ -214,19 +231,24 @@ export const columnUtils = {
             });
         }
 
-        // Push is identity option
-        options.push({
-            label: locConstants.schemaDesigner.isIdentity,
-            value: "isIdentity",
-            type: "checkbox",
-            columnProperty: "isIdentity",
-            columnModifier: (column, value) => {
-                column.isIdentity = value as boolean;
-                column.identitySeed = value ? 1 : 0;
-                column.identityIncrement = value ? 1 : 0;
-                return column;
-            },
-        });
+        if (
+            columnUtils.isIdentityBasedType(column.dataType, column.scale) &&
+            (!column.isNullable || column.isPrimaryKey)
+        ) {
+            // Push is identity option
+            options.push({
+                label: locConstants.schemaDesigner.isIdentity,
+                value: "isIdentity",
+                type: "checkbox",
+                columnProperty: "isIdentity",
+                columnModifier: (column, value) => {
+                    column.isIdentity = value as boolean;
+                    column.identitySeed = value ? 1 : 0;
+                    column.identityIncrement = value ? 1 : 0;
+                    return column;
+                },
+            });
+        }
 
         if (columnUtils.isLengthBasedType(column.dataType)) {
             options.push({
@@ -236,6 +258,9 @@ export const columnUtils = {
                 columnProperty: "maxLength",
                 columnModifier: (column, value) => {
                     column.maxLength = value as string;
+                    if (!column.maxLength) {
+                        column.maxLength = "0";
+                    }
                     return column;
                 },
             });
