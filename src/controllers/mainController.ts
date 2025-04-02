@@ -1154,7 +1154,10 @@ export default class MainController implements vscode.Disposable {
                     } else if (
                         node.context.type === Constants.serverLabel ||
                         node.context.type ===
-                            Constants.disconnectedServerNodeType
+                            Constants.disconnectedServerNodeType ||
+                        node.context.type === Constants.dockerContainerLabel ||
+                        node.context.type ===
+                            Constants.disconnectedDockerContainerNodeType
                     ) {
                         const label =
                             typeof node.label === "string"

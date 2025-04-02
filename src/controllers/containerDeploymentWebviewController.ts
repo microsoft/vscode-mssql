@@ -805,4 +805,70 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
     });
 }
 
+// Returns container name if container is a Docker connection
+export async function checkIfConnectionIsDockerContainer(
+    serverName: string,
+): Promise<string> {
+    if (!serverName.includes("localhost") && !serverName.includes("127.0.0.1"))
+        return "";
+
+    return new Promise((resolve) => {
+        exec(cd.COMMANDS.GET_CONTAINERS, (error, stdout) => {
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                return resolve("");
+            }
+
+            const containerIds = stdout.trim().split("\n").filter(Boolean);
+            if (containerIds.length === 0) return resolve("");
+
+            const inspections = containerIds.map(
+                (containerId) =>
+                    new Promise<string>((resolve) => {
+                        exec(
+                            `docker inspect ${containerId}`,
+                            (inspectError, inspectStdout) => {
+                                if (inspectError) {
+                                    console.error(
+                                        `Error inspecting container ${containerId}: ${inspectError.message}`,
+                                    );
+                                    return resolve("");
+                                }
+
+                                const hostPortMatches = inspectStdout.match(
+                                    /"HostPort":\s*"(\d+)"/g,
+                                );
+                                if (hostPortMatches) {
+                                    for (const match of hostPortMatches) {
+                                        const portMatch = match.match(/\d+/);
+                                        if (
+                                            portMatch &&
+                                            serverName.includes(portMatch[0])
+                                        ) {
+                                            const containerNameMatch =
+                                                inspectStdout.match(
+                                                    /"Name"\s*:\s*"\/([^"]+)"/,
+                                                );
+                                            if (containerNameMatch) {
+                                                return resolve(
+                                                    containerNameMatch[1],
+                                                ); // Extract container name
+                                            }
+                                        }
+                                    }
+                                }
+                                resolve("");
+                            },
+                        );
+                    }),
+            );
+
+            void Promise.all(inspections).then((results) => {
+                const foundContainer = results.find((name) => name !== ""); // Get first valid container name
+                resolve(foundContainer || ""); // Return container name or empty string if not found
+            });
+        });
+    });
+}
+
 //#endregion

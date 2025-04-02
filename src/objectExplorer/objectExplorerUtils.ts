@@ -76,7 +76,9 @@ export class ObjectExplorerUtils {
         // We're on a server node so just use the database directly from the connection string
         if (
             node.nodeType === Constants.serverLabel ||
-            node.nodeType === Constants.disconnectedServerNodeType
+            node.nodeType === Constants.disconnectedServerNodeType ||
+            node.context.type === Constants.dockerContainerLabel ||
+            node.context.type === Constants.disconnectedDockerContainerNodeType
         ) {
             return node.connectionInfo.database;
         }

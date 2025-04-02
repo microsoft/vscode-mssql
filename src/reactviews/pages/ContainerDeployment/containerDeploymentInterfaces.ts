@@ -186,13 +186,6 @@ export const COMMANDS = {
     },
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
-    FIND_PORTS: {
-        win32: `powershell -Command "docker ps -a --format '{{.ID}}' | ForEach-Object { docker inspect $_ | Select-String -Pattern '\"HostPort\":' | Select-Object -First 1 | ForEach-Object { ($_ -split ':')[1].Trim() -replace '\"', '' }}"`,
-        // still need to test
-        darwin: `docker ps -a --format "{{.ID}}" | xargs -I {} sh -c 'docker inspect {} | grep -m 1 -oP "\"HostPort\": \"\K\d+"'`,
-        // still need to test
-        linux: `docker ps -a --format "{{.ID}}" | xargs -I {} sh -c 'docker inspect {} | grep -m 1 -oP "\"HostPort\": \"\K\d+"'`,
-    },
     START_SQL_SERVER: (
         name: string,
         password: string,

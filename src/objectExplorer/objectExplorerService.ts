@@ -59,7 +59,7 @@ import {
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
-    deleteContainer,
+    checkIfConnectionIsDockerContainer,
     restartContainer,
 } from "../controllers/containerDeploymentWebviewController";
 
@@ -755,6 +755,20 @@ export class ObjectExplorerService {
             const connectionProfile =
                 connectionCredentials as IConnectionProfile;
 
+            /*
+            // Check if connection is a Docker container
+            const serverName = connectionCredentials.connectionString
+                ? connectionCredentials.connectionString.match(/^Server=([^;]+)/)?.[1]
+                : connectionCredentials.server;
+
+            if (serverName) {
+                const containerName =
+                    await checkIfConnectionIsDockerContainer(serverName);
+                if (containerName) {
+                    connectionCredentials.containerName = containerName;
+                }
+            } */
+
             if (!connectionProfile.id) {
                 connectionProfile.id = Utils.generateGuid();
             }
@@ -954,9 +968,6 @@ export class ObjectExplorerService {
         await this.closeSession(node);
         const nodeUri = this.getNodeIdentifier(node);
         await this._connectionManager.disconnect(nodeUri);
-        if (!isDisconnect && node.connectionInfo.containerName) {
-            void deleteContainer(node.connectionInfo.containerName);
-        }
         if (!isDisconnect) {
             const index = this._rootTreeNodeArray.indexOf(node, 0);
             if (index > -1) {
