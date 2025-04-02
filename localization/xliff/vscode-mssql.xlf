@@ -326,6 +326,9 @@
     <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
       <source xml:lang="en">Column Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++acc8a3fcd4b7b62165cfa6e4b832566d25a6c172b6c1ec229a59b4eb7eb655a5">
+      <source xml:lang="en">Column max length cannot be empty</source>
+    </trans-unit>
     <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
       <source xml:lang="en">Column name cannot be empty</source>
     </trans-unit>
@@ -851,6 +854,10 @@
     </trans-unit>
     <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
       <source xml:lang="en">Invalid column width</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b65d31b3dcfd9935b8fae6c977fe0f07a5d73a830edb2426c05d63464b299858">
+      <source xml:lang="en">Invalid max length &apos;{0}&apos;</source>
+      <note>{0} is the max length</note>
     </trans-unit>
     <trans-unit id="++CODE++6ddf8604e8d33286bd064640a453784b6142293230a717b9b1859fa3176573f6">
       <source xml:lang="en">Is Identity</source>
