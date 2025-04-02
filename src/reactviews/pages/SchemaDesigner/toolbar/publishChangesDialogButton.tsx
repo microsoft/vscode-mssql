@@ -171,7 +171,7 @@ export function PublishChangesDialogButton() {
                     maxWidth: "800px",
                 }}>
                 <DialogBody>
-                    <DialogTitle>Publish changes</DialogTitle>
+                    <DialogTitle>{locConstants.schemaDesigner.publishChanges}</DialogTitle>
                     <DialogContent>
                         {loading === ApiStatus.Loading && (
                             <Spinner
