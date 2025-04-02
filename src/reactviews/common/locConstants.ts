@@ -514,6 +514,7 @@ export class LocConstants {
             settings: l10n.t("Settings"),
             compare: l10n.t("Compare"),
             schemaCompareOptions: l10n.t("Schema Compare Options"),
+            searchOptions: l10n.t("Search options..."),
             generalOptions: l10n.t("General Options"),
             includeObjectTypes: l10n.t("Include Object Types"),
             optionDescription: l10n.t("Option Description"),
