@@ -25,6 +25,14 @@ export class ObjectExplorerUtils {
             } else if (label === Constants.serverLabel) {
                 // if connected
                 label += "_green";
+            } else if (
+                label === Constants.disconnectedDockerContainerNodeType
+            ) {
+                // if disconnected
+                label = `${Constants.dockerContainerLabel}_red`;
+            } else if (label === Constants.dockerContainerLabel) {
+                // if connected
+                label += "_green";
             }
             return path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
         }

@@ -20,6 +20,9 @@ export const connectionsArrayName = "connections";
 export const connectionGroupsArrayName = "connectionGroups";
 export const disconnectedServerNodeType = "disconnectedServer";
 export const serverLabel = "Server";
+export const disconnectedDockerContainerNodeType =
+    "disconnectedDockerContainer";
+export const dockerContainerLabel = "DockerContainer";
 export const folderLabel = "Folder";
 export const cmdRunQuery = "mssql.runQuery";
 export const cmdRunCurrentStatement = "mssql.runCurrentStatement";

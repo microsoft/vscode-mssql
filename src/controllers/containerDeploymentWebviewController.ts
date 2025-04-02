@@ -96,7 +96,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return state;
         });
         this.registerReducer("checkDockerInstallation", async (state, _) => {
-            if (state.dockerInstallStatus.loadState != ApiStatus.Loading)
+            if (state.dockerInstallStatus.loadState !== ApiStatus.Loading)
                 return state;
             const dockerInstallResult = await checkDockerInstallation();
             let newState = state;
@@ -112,7 +112,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("startDocker", async (state, payload) => {
-            if (state.dockerStatus.loadState != ApiStatus.Loading) return state;
+            if (state.dockerStatus.loadState !== ApiStatus.Loading)
+                return state;
             const startDockerResult = await startDocker();
             let newState = state;
             if (!startDockerResult.success) {
@@ -126,9 +127,9 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("checkLinuxEngine", async (state, payload) => {
-            if (state.dockerEngineStatus.loadState != ApiStatus.Loading)
+            if (state.dockerEngineStatus.loadState !== ApiStatus.Loading)
                 return state;
-            if (state.platform == "win32") {
+            if (state.platform !== "win32") {
                 state.dockerEngineStatus.loadState = ApiStatus.Loaded;
                 return state;
             }
@@ -153,7 +154,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
         this.registerReducer("startContainer", async (state, payload) => {
             if (
-                state.dockerContainerCreationStatus.loadState !=
+                state.dockerContainerCreationStatus.loadState !==
                 ApiStatus.Loading
             )
                 return state;
@@ -186,7 +187,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("checkContainer", async (state, payload) => {
-            if (state.dockerContainerStatus.loadState != ApiStatus.Loading)
+            if (state.dockerContainerStatus.loadState !== ApiStatus.Loading)
                 return state;
             const containerStatusResult =
                 await checkIfContainerIsReadyForConnections(
@@ -204,7 +205,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("connectToContainer", async (state, payload) => {
-            if (state.dockerConnectionStatus.loadState != ApiStatus.Loading)
+            if (state.dockerConnectionStatus.loadState !== ApiStatus.Loading)
                 return state;
             const connectionProfile = await this.addContainerConnection(
                 state.formState,
