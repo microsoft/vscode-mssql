@@ -13,7 +13,7 @@ export const analyzeQueryPerformancePrompt =
     "Provide a detailed analysis, including a summary of the execution plan, " +
     "potential bottlenecks, and suggestions for optimization. " +
     "Make sure to highlight any relevant statistics or metrics that can help in understanding the performance characteristics of the query. " +
-    "Run EXPLAIN and/or EXPLAIN ANALYZE on the query to get the execution plan and performance metrics. " +
+    // "Run EXPLAIN and/or EXPLAIN ANALYZE on the query to get the execution plan and performance metrics. " +
     "If the query is complex, break down the analysis into smaller parts for better clarity. " +
     "Provide a summary of the key findings and recommendations at the end of the analysis.";
 

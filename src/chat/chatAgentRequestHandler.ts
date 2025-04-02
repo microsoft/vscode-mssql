@@ -14,6 +14,7 @@ import {
     MessageRole,
     MessageType,
 } from "../models/contracts/copilot";
+import { ISelectionData } from "../models/interfaces";
 
 interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -46,6 +47,43 @@ export const createSqlAgentRequestHandler = (
         let conversationUri = getNextConversationUri();
         let connectionUri = vscodeWrapper.activeTextEditorUri;
         Utils.logDebug(`Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`);
+
+        let activeEditorUri: string | undefined;
+        let activeEditorSelection: ISelectionData | undefined;
+
+        const activeEditor = vscode.window.activeTextEditor;
+
+        if (activeEditor) {
+            if (activeEditor.selections?.length === 1) {
+                // Calculate the selection if we have a selection, otherwise we'll treat null as
+                // the entire document's selection
+                if (!activeEditor.selection.isEmpty) {
+                    let selection = activeEditor.selection;
+                    activeEditorSelection = {
+                        startLine: selection.start.line,
+                        startColumn: selection.start.character,
+                        endLine: selection.end.line,
+                        endColumn: selection.end.character,
+                    };
+                }
+
+                // Trim down the selection. If it is empty after selecting, then we don't execute
+                let selectionToTrim = activeEditor.selection;
+                if (
+                    activeEditor.document.getText(selectionToTrim).trim()
+                        .length === 0
+                ) {
+                    activeEditorSelection = undefined;
+                }
+            }
+        }
+
+        let referenceMessage: string | undefined;
+        if (activeEditorSelection) {
+            referenceMessage = `Selected document: ${activeEditor.document.getText(activeEditor.selection)}`;
+        } else {
+            referenceMessage = `Full document: ${activeEditor.document.getText()}`;
+        }
 
         const prompt = request.prompt.trim();
         const [model] = await vscode.lm.selectChatModels(MODEL_SELECTOR);
@@ -124,6 +162,7 @@ export const createSqlAgentRequestHandler = (
                                 stream,
                                 token,
                                 chatContext,
+                                referenceMessage,
                             );
 
                         replyText = text;
@@ -230,7 +269,8 @@ export const createSqlAgentRequestHandler = (
 
     function prepareRequestMessages(
         result: GetNextMessageResponse,
-        context: vscode.ChatContext
+        context: vscode.ChatContext,
+        referenceMessage: string | undefined,
     ): vscode.LanguageModelChatMessage[] {
         // Step 1: Separate system messages from the requestMessages
         const systemMessages = result.requestMessages
@@ -253,6 +293,12 @@ export const createSqlAgentRequestHandler = (
             }
         });
 
+        // Step 3: Include the reference messages
+        const referenceMessages = referenceMessage
+            ? [vscode.LanguageModelChatMessage.Assistant(referenceMessage)]
+            : [];
+
+
         // Step 3: Get the new user messages (non-system messages from requestMessages)
         const userMessages = result.requestMessages
             .filter((message: LanguageModelRequestMessage) => message.role !== MessageRole.System)
@@ -261,7 +307,7 @@ export const createSqlAgentRequestHandler = (
             );
 
         // Step 4: Combine them in order: system messages, history, then new user messages
-        return [...systemMessages, ...historyMessages, ...userMessages];
+        return [...systemMessages, ...historyMessages, ...referenceMessages, ...userMessages];
     }
 
     // function prepareRequestMessages(
@@ -399,6 +445,7 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         token: vscode.CancellationToken,
         context: vscode.ChatContext, // pass this context from above
+        referenceMessage: string | undefined,
     ): Promise<{
         text: string;
         tools: { tool: LanguageModelChatTool; parameters: string }[];
@@ -414,7 +461,7 @@ export const createSqlAgentRequestHandler = (
             options.tools = requestTools;
         }
 
-        const messages = prepareRequestMessages(result, context); // Correct call here
+        const messages = prepareRequestMessages(result, context, referenceMessage); // Correct call here
 
         const chatResponse = await model.sendRequest(messages, options, token);
         const { replyText, toolsCalled, printTextout } =
