@@ -120,7 +120,7 @@ const ColumnAdvancedOptions = ({
                                 }}>
                                 <Input
                                     size="small"
-                                    value={(column[option.columnProperty] as number).toString()}
+                                    value={(column[option.columnProperty] as string)?.toString()}
                                     onChange={(_e, data) => {
                                         updateColumn(
                                             index,
@@ -144,7 +144,7 @@ const ColumnAdvancedOptions = ({
                                 <Input
                                     size="small"
                                     type="number"
-                                    value={(column[option.columnProperty] as number).toString()}
+                                    value={(column[option.columnProperty] as number)?.toString()}
                                     onChange={(_e, data) => {
                                         updateColumn(
                                             index,
@@ -491,11 +491,9 @@ export const SchemaDesignerEditorTablePanel = () => {
             isPrimaryKey: newColumns.length === 0, // First column is primary key by default
             isIdentity: false,
             isNullable: true,
-            isUnique: false,
-            maxLength: 0,
+            maxLength: "",
             precision: 0,
             scale: 0,
-            collation: "",
             identitySeed: 1,
             identityIncrement: 1,
             defaultValue: "",

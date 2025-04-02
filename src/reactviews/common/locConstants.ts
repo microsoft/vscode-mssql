@@ -416,8 +416,8 @@ export class LocConstants {
             incompatibleLength: (
                 sourceColumn: string,
                 targetColumn: string,
-                sourceLength: number,
-                targetLength: number,
+                sourceLength: string,
+                targetLength: string,
             ) =>
                 l10n.t({
                     message: "Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})",

@@ -93,17 +93,15 @@ export const tableUtils = {
                 {
                     name: "Id",
                     dataType: "int",
-                    maxLength: 0,
+                    maxLength: "",
                     precision: 0,
                     scale: 0,
                     isNullable: false,
                     isPrimaryKey: true,
-                    isUnique: false,
                     id: uuidv4(),
                     isIdentity: true,
                     identitySeed: 1,
                     identityIncrement: 1,
-                    collation: "",
                     defaultValue: "",
                 },
             ],
@@ -149,18 +147,18 @@ export const columnUtils = {
         return ["decimal", "numeric"].includes(type);
     },
 
-    getDefaultLength: (type: string): number => {
+    getDefaultLength: (type: string): string => {
         switch (type) {
             case "char":
             case "nchar":
             case "binary":
-                return 1;
+                return "1";
             case "varchar":
             case "nvarchar":
             case "varbinary":
-                return 50;
+                return "50";
             default:
-                return 0;
+                return "0";
         }
     },
 
@@ -187,7 +185,7 @@ export const columnUtils = {
     fillColumnDefaults: (column: SchemaDesigner.Column): SchemaDesigner.Column => {
         if (columnUtils.isLengthBasedType(column.dataType))
             column.maxLength = columnUtils.getDefaultLength(column.dataType);
-        else column.maxLength = 0;
+        else column.maxLength = "";
 
         if (columnUtils.isPrecisionBasedType(column.dataType)) {
             column.precision = columnUtils.getDefaultPrecision(column.dataType);
@@ -234,10 +232,10 @@ export const columnUtils = {
             options.push({
                 label: locConstants.schemaDesigner.maxLength,
                 value: "",
-                type: "input-number",
+                type: "input",
                 columnProperty: "maxLength",
                 columnModifier: (column, value) => {
-                    column.maxLength = value as number;
+                    column.maxLength = value as string;
                     return column;
                 },
             });
@@ -304,11 +302,7 @@ export const foreignKeyUtils = {
             };
         }
 
-        if (
-            columnUtils.isLengthBasedType(col.dataType) &&
-            col.maxLength !== refCol.maxLength &&
-            refCol.maxLength !== -1
-        ) {
+        if (columnUtils.isLengthBasedType(col.dataType) && col.maxLength !== refCol.maxLength) {
             return {
                 isValid: false,
                 errorMessage: locConstants.schemaDesigner.incompatibleLength(
@@ -365,13 +359,6 @@ export const foreignKeyUtils = {
         table: SchemaDesigner.Table,
         fk: SchemaDesigner.ForeignKey,
     ): ForeignKeyValidationResult => {
-        // Check if foreign key name is empty
-        if (!fk.name)
-            return {
-                isValid: false,
-                errorMessage: locConstants.schemaDesigner.foreignKeyNameEmptyError,
-            };
-
         // Check if foreign table exists
         const refTable = tables.find(
             (t) => t.name === fk.referencedTableName && t.schema === fk.referencedSchemaName,
@@ -425,7 +412,7 @@ export const foreignKeyUtils = {
             if (!typeCheck.isValid) return typeCheck;
 
             // Check if referenced column is primary key or unique
-            if (!refCol.isPrimaryKey && !refCol.isUnique) {
+            if (!refCol.isPrimaryKey) {
                 return {
                     isValid: false,
                     errorMessage: locConstants.schemaDesigner.referencedColumnNotPK(refCol.name),

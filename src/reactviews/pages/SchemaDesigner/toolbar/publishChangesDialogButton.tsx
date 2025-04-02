@@ -43,8 +43,6 @@ export function PublishChangesDialogButton() {
 
     const [selectedReportId, setSelectedReportId] = useState<string>("");
 
-    const [isPublishChangesEnabled, setIsPublishChangesEnabled] = useState<boolean>(false);
-
     const [reportTab, setReportTab] = useState<string>("report");
 
     function getReportIcon(state: SchemaDesigner.SchemaDesignerReportTableState) {
@@ -57,19 +55,6 @@ export function PublishChangesDialogButton() {
                 return <FluentIcons.EditRegular />;
         }
     }
-
-    useEffect(() => {
-        context.extensionRpc.subscribe(
-            "schemaDesignerStateProvider",
-            "isModelReady",
-            (payload: unknown) => {
-                const typedPayload = payload as {
-                    isModelReady: boolean;
-                };
-                setIsPublishChangesEnabled(typedPayload.isModelReady);
-            },
-        );
-    }, []);
 
     useEffect(() => {
         if (!report) {
@@ -160,7 +145,6 @@ export function PublishChangesDialogButton() {
                     icon={<FluentIcons.DatabaseArrowUp16Filled />}
                     title={locConstants.schemaDesigner.publishChanges}
                     appearance="subtle"
-                    disabled={!isPublishChangesEnabled}
                     onClick={async () => {
                         setLoading(ApiStatus.Loading);
                         setReportTab("report");

@@ -16,7 +16,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     SchemaDesigner.SchemaDesignerReducers
 > {
     private _sessionId: string = "";
-    private _resolveModelReadyProgress: (value: void | PromiseLike<void>) => void;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -32,21 +31,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             vscodeWrapper,
             "schemaDesigner",
             "schemaDesigner",
-            {
-                schema: {
-                    tables: [],
-                },
-                isModelReady: false,
-                schemas: [],
-                datatypes: [],
-                script: {
-                    combinedScript: "",
-                    scripts: [],
-                },
-                report: {
-                    reports: [],
-                },
-            },
+            {},
             {
                 title: databaseName,
                 viewColumn: vscode.ViewColumn.One,
@@ -66,32 +51,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             },
         );
 
-        this.registerServiceEvents();
         this.registerReducers();
-    }
-
-    private registerServiceEvents() {
-        vscode.window.withProgress(
-            {
-                location: vscode.ProgressLocation.Notification,
-                title: LocConstants.SchemaDesigner.LoadingSchemaDesginerModel,
-                cancellable: false,
-            },
-            (_progress, _token) => {
-                const p = new Promise<void>((resolve) => {
-                    this._resolveModelReadyProgress = resolve;
-                });
-                return p;
-            },
-        );
-        this.schemaDesignerService.onSchemaReady((model) => {
-            if (model.sessionId === this._sessionId) {
-                this._resolveModelReadyProgress();
-                this.postNotification("isModelReady", {
-                    isModelReady: true,
-                });
-            }
-        });
     }
 
     private registerReducers() {
@@ -174,7 +134,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
     override dispose(): void {
         super.dispose();
-        this._resolveModelReadyProgress();
         this.schemaDesignerService.disposeSession({
             sessionId: this._sessionId,
         });
