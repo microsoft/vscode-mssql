@@ -1036,7 +1036,7 @@ export default class MainController implements vscode.Disposable {
                 );
                 if (stoppedSuccessfully) {
                     // Disconnect from the node
-                    void this._objectExplorerProvider.removeObjectExplorerNode(node, true);
+                    await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
                     return this._objectExplorerProvider.refresh(undefined);
                 }
             }),
@@ -1065,7 +1065,7 @@ export default class MainController implements vscode.Disposable {
                     );
                     if (deletedSuccessfully) {
                         // Delete node from tree
-                        void this._objectExplorerProvider.removeObjectExplorerNode(node);
+                        await this._objectExplorerProvider.removeObjectExplorerNode(node);
                         return this._objectExplorerProvider.refresh(undefined);
                     }
                 }
@@ -1085,7 +1085,7 @@ export default class MainController implements vscode.Disposable {
                         : LocalizedConstants.ContainerDeployment.failStartContainer(containerName),
                 );
                 if (startedSuccessfully) {
-                    void this.createObjectExplorerSession(node.connectionInfo);
+                    await this.createObjectExplorerSession(node.connectionInfo);
                     return this._objectExplorerProvider.refresh(undefined);
                 }
             }),

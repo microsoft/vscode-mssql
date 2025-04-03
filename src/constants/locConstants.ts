@@ -640,7 +640,7 @@ export class ContainerDeployment {
         l10n.t({
             message: "{0} stopped successfully.",
             args: [name],
-            comment: ["{0} stopped succesfully."],
+            comment: ["{0} stopped successfully."],
         });
     public static failStopContainer = (name: string) =>
         l10n.t({
@@ -652,7 +652,7 @@ export class ContainerDeployment {
         l10n.t({
             message: "{0} started successfully.",
             args: [name],
-            comment: ["{0} started succesfully."],
+            comment: ["{0} started successfully."],
         });
     public static failStartContainer = (name: string) =>
         l10n.t({
@@ -664,7 +664,7 @@ export class ContainerDeployment {
         l10n.t({
             message: "{0} deleted successfully.",
             args: [name],
-            comment: ["{0} deleted succesfully."],
+            comment: ["{0} deleted successfully."],
         });
     public static failDeleteContainer = (name: string) =>
         l10n.t({

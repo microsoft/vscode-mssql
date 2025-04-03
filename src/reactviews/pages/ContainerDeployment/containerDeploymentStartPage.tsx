@@ -8,7 +8,7 @@ import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { PrereqCheckPage } from "./prereqCheckPage";
+import { GetStartedPage } from "./getStartedPage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -46,14 +46,12 @@ export const ContainerDeploymentStartPage = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                return <PrereqCheckPage />;
+                return <GetStartedPage />;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>
-                            {containerDeploymentState?.errorMessage ?? ""}
-                        </Text>
+                        <Text size={400}>{containerDeploymentState?.errorMessage ?? ""}</Text>
                     </div>
                 );
         }
