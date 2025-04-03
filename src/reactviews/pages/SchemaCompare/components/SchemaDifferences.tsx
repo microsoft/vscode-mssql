@@ -38,7 +38,11 @@ interface ReactWindowRenderFnProps extends ListChildComponentProps {
     data: TableRowData[];
 }
 
-export const SchemaDifferences = () => {
+interface Props {
+    onDiffSelected: (id: number) => void;
+}
+
+export const SchemaDifferences = ({ onDiffSelected }: Props) => {
     const { targetDocument } = useFluent();
     const scrollbarWidth = useScrollbarWidth({ targetDocument });
     const context = React.useContext(schemaCompareContext);
@@ -173,7 +177,7 @@ export const SchemaDifferences = () => {
                 style={style}
                 key={item.position}
                 onKeyDown={onKeyDown}
-                onClick={onClick}
+                onClick={() => onDiffSelected(index)}
                 appearance={appearance}>
                 {/* <TableSelectionCell
                     checked={selected}
@@ -222,10 +226,10 @@ export const SchemaDifferences = () => {
             </TableHeader>
             <TableBody>
                 <List
-                    height={400}
+                    height={200}
                     itemCount={items.length}
                     itemSize={45}
-                    width="100%"
+                    width={"100%"}
                     itemData={rows}>
                     {RenderRow}
                 </List>
