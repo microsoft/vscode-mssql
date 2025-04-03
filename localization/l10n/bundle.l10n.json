@@ -1014,10 +1014,10 @@
       "{1} is the error message"
     ]
   },
-  "{0} stopped successfully./{0} stopped succesfully.": {
+  "{0} stopped successfully./{0} stopped successfully.": {
     "message": "{0} stopped successfully.",
     "comment": [
-      "{0} stopped succesfully."
+      "{0} stopped successfully."
     ]
   },
   "Failed to stop {0}./Failed to stop {0}.": {
@@ -1026,10 +1026,10 @@
       "Failed to stop {0}."
     ]
   },
-  "{0} started successfully./{0} started succesfully.": {
+  "{0} started successfully./{0} started successfully.": {
     "message": "{0} started successfully.",
     "comment": [
-      "{0} started succesfully."
+      "{0} started successfully."
     ]
   },
   "Failed to start {0}./Failed to start {0}.": {
@@ -1038,10 +1038,10 @@
       "Failed to start {0}."
     ]
   },
-  "{0} deleted successfully./{0} deleted succesfully.": {
+  "{0} deleted successfully./{0} deleted successfully.": {
     "message": "{0} deleted successfully.",
     "comment": [
-      "{0} deleted succesfully."
+      "{0} deleted successfully."
     ]
   },
   "Failed to delete {0}./Failed to delete {0}.": {
