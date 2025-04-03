@@ -14,7 +14,6 @@ import {
     Table,
     TableHeader,
     TableHeaderCell,
-    // TableSelectionCell,
     createTableColumn,
     useTableFeatures,
     useTableSelection,
@@ -47,6 +46,32 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
     const scrollbarWidth = useScrollbarWidth({ targetDocument });
     const context = React.useContext(schemaCompareContext);
     const compareResult = context.state.schemaCompareResult;
+    let [allDiffsIncluded, setAllDiffsIncluded] = React.useState(true);
+    let [someDiffsExcluded, setSomeDiffsExcluded] = React.useState(false);
+    let [allDiffsExcluded, setAllDiffsExcluded] = React.useState(false);
+
+    React.useEffect(() => {
+        let allIncluded = true;
+        let allExcluded = true;
+        let someExcluded = false;
+        for (const diffEntry of compareResult.differences) {
+            if (!diffEntry.included) {
+                allIncluded = false;
+            }
+
+            if (diffEntry.included) {
+                allExcluded = false;
+            }
+        }
+
+        if (!allIncluded && !allExcluded) {
+            someExcluded = true;
+        }
+
+        setAllDiffsIncluded(allIncluded);
+        setSomeDiffsExcluded(someExcluded);
+        setAllDiffsExcluded(allExcluded);
+    }, [context.state.schemaCompareResult]);
 
     const formatName = (nameParts: string[]): string => {
         if (!nameParts || nameParts.length === 0) {
@@ -57,7 +82,17 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
     };
 
     const handleIncludeExcludeNode = (diffEntry: DiffEntry, include: boolean) => {
-        context.includeExcludeNode(diffEntry!.position, diffEntry, include);
+        if (diffEntry.position) {
+            context.includeExcludeNode(diffEntry.position, diffEntry, include);
+        }
+    };
+
+    const handleIncludeExcludeAllNodes = () => {
+        if (allDiffsExcluded || someDiffsExcluded) {
+            // context.includeExcludeAllNodes(true);
+        } else {
+            // context.includeExcludeAllNodes(false);
+        }
     };
 
     const getLabelForAction = (action: SchemaUpdateAction): string => {
@@ -130,7 +165,7 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
 
     const {
         getRows,
-        selection: { allRowsSelected, someRowsSelected, toggleAllRows, toggleRow, isRowSelected },
+        selection: { toggleRow },
     } = useTableFeatures(
         {
             columns,
@@ -159,18 +194,18 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
         };
     });
 
-    const toggleAllKeydown = React.useCallback(
-        (e: React.KeyboardEvent<HTMLDivElement>) => {
-            if (e.key === " ") {
-                toggleAllRows(e);
-                e.preventDefault();
-            }
-        },
-        [toggleAllRows],
-    );
+    // const toggleAllKeydown = React.useCallback(
+    //     (e: React.KeyboardEvent<HTMLDivElement>) => {
+    //         if (e.key === " ") {
+    //             toggleAllRows(e);
+    //             e.preventDefault();
+    //         }
+    //     },
+    //     [toggleAllRows],
+    // );
 
     const RenderRow = ({ index, style, data }: ReactWindowRenderFnProps) => {
-        const { item, selected, appearance, onClick, onKeyDown } = data[index];
+        const { item, appearance, onKeyDown } = data[index];
         return (
             <TableRow
                 aria-rowindex={index + 2}
@@ -179,10 +214,6 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
                 onKeyDown={onKeyDown}
                 onClick={() => onDiffSelected(index)}
                 appearance={appearance}>
-                {/* <TableSelectionCell
-                    checked={selected}
-                    checkboxIndicator={{ "aria-label": "Select row" }}
-                /> */}
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{formatName(item.sourceValue)}</TableCell>
                 <TableCell>
@@ -205,17 +236,12 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
             style={{ minWidth: "650px" }}>
             <TableHeader>
                 <TableRow aria-rowindex={1}>
-                    {/* <TableSelectionCell
-                        checked={allRowsSelected ? true : someRowsSelected ? "mixed" : false}
-                        onClick={toggleAllRows}
-                        onKeyDown={toggleAllKeydown}
-                        checkboxIndicator={{ "aria-label": "Select all rows" }}
-                    /> */}
                     <TableHeaderCell>{loc.schemaCompare.type}</TableHeaderCell>
                     <TableHeaderCell>{loc.schemaCompare.sourceName}</TableHeaderCell>
                     <TableHeaderCell>
                         <Checkbox
-                            checked={allRowsSelected ? true : someRowsSelected ? "mixed" : false}
+                            checked={allDiffsIncluded ? true : someDiffsExcluded ? "mixed" : false}
+                            onClick={() => handleIncludeExcludeAllNodes()}
                         />
                     </TableHeaderCell>
                     <TableHeaderCell>{loc.schemaCompare.action}</TableHeaderCell>
