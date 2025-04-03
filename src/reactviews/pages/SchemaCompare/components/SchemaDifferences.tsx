@@ -3,34 +3,45 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
+import * as React from "react";
+import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import {
-    Checkbox,
-    createTableColumn,
-    Table,
+    useScrollbarWidth,
+    useFluent,
     TableBody,
     TableCell,
-    TableColumnDefinition,
+    TableRow,
+    Table,
     TableHeader,
     TableHeaderCell,
-    TableRow,
+    // TableSelectionCell,
+    createTableColumn,
+    useTableFeatures,
+    useTableSelection,
+    TableRowData as RowStateBase,
+    TableColumnDefinition,
+    Checkbox,
 } from "@fluentui/react-components";
-import { FixedSizeList as List } from "react-window";
-import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
 import { DiffEntry } from "vscode-mssql";
+import { schemaCompareContext } from "../SchemaCompareStateProvider";
 
-type DiffItem = DiffEntry & {
-    id: number;
-};
-
-interface Props {
-    onDiffSelected: (id: number) => void;
+interface TableRowData extends RowStateBase<DiffEntry> {
+    onClick: (e: React.MouseEvent) => void;
+    onKeyDown: (e: React.KeyboardEvent) => void;
+    selected: boolean;
+    appearance: "brand" | "none";
 }
 
-const SchemaDifferences = ({ onDiffSelected }: Props) => {
-    const context = useContext(schemaCompareContext);
+interface ReactWindowRenderFnProps extends ListChildComponentProps {
+    data: TableRowData[];
+}
+
+export const SchemaDifferences = () => {
+    const { targetDocument } = useFluent();
+    const scrollbarWidth = useScrollbarWidth({ targetDocument });
+    const context = React.useContext(schemaCompareContext);
     const compareResult = context.state.schemaCompareResult;
 
     const formatName = (nameParts: string[]): string => {
@@ -39,6 +50,10 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
         }
 
         return nameParts.join(".");
+    };
+
+    const handleIncludeExcludeNode = (diffEntry: DiffEntry, include: boolean) => {
+        context.includeExcludeNode(diffEntry!.position, diffEntry, include);
     };
 
     const getLabelForAction = (action: SchemaUpdateAction): string => {
@@ -58,39 +73,21 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
         return actionLabel;
     };
 
-    const handleIncludeExcludeNode = (diffEntry: DiffItem, include: boolean) => {
-        // context.includeExcludeNode(diffEntry.id, diffEntry, include);
-        context.includeExcludeAllNodes(diffEntry.id, include);
-    };
-
-    let items: DiffEntry[] = [];
-    if (compareResult?.success)
-        items = compareResult.differences.map(
-            (item, index) =>
-                ({
-                    id: index,
-                    ...item,
-                }) as DiffItem,
-        );
-
-    const columns: TableColumnDefinition<DiffItem>[] = [
-        createTableColumn<DiffItem>({
+    const columns: TableColumnDefinition<DiffEntry>[] = [
+        createTableColumn<DiffEntry>({
             columnId: "type",
-            renderHeaderCell: () => loc.schemaCompare.type,
             renderCell: (item) => {
                 return <TableCell>{item.name}</TableCell>;
             },
         }),
-        createTableColumn<DiffItem>({
+        createTableColumn<DiffEntry>({
             columnId: "sourceName",
-            renderHeaderCell: () => loc.schemaCompare.sourceName,
             renderCell: (item) => {
                 return <TableCell>{formatName(item.sourceValue)}</TableCell>;
             },
         }),
-        createTableColumn<DiffItem>({
+        createTableColumn<DiffEntry>({
             columnId: "include",
-            renderHeaderCell: () => loc.schemaCompare.include,
             renderCell: (item) => {
                 return (
                     <TableCell>
@@ -102,67 +99,138 @@ const SchemaDifferences = ({ onDiffSelected }: Props) => {
                 );
             },
         }),
-        createTableColumn<DiffItem>({
+        createTableColumn<DiffEntry>({
             columnId: "action",
-            renderHeaderCell: () => loc.schemaCompare.action,
             renderCell: (item) => {
                 return <TableCell>{getLabelForAction(item.updateAction as number)}</TableCell>;
             },
         }),
-        createTableColumn<DiffItem>({
+        createTableColumn<DiffEntry>({
             columnId: "targetName",
-            renderHeaderCell: () => loc.schemaCompare.targetName,
             renderCell: (item) => {
                 return <TableCell>{formatName(item.targetValue)}</TableCell>;
             },
         }),
     ];
 
-    const RenderRow = ({ index, style }: any) => {
-        const item = items[index];
+    let items: DiffEntry[] = [];
+    if (compareResult?.success) {
+        items = compareResult.differences.map(
+            (item, index) =>
+                ({
+                    position: index,
+                    ...item,
+                }) as DiffEntry,
+        );
+    }
 
+    const {
+        getRows,
+        selection: { allRowsSelected, someRowsSelected, toggleAllRows, toggleRow, isRowSelected },
+    } = useTableFeatures(
+        {
+            columns,
+            items,
+        },
+        [
+            useTableSelection({
+                selectionMode: "multiselect",
+            }),
+        ],
+    );
+
+    const rows: TableRowData[] = getRows((row) => {
+        const selected = row.item.included;
+        return {
+            ...row,
+            onClick: (e: React.MouseEvent) => toggleRow(e, row.rowId),
+            onKeyDown: (e: React.KeyboardEvent) => {
+                if (e.key === " ") {
+                    e.preventDefault();
+                    toggleRow(e, row.rowId);
+                }
+            },
+            selected,
+            appearance: selected ? ("brand" as const) : ("none" as const),
+        };
+    });
+
+    const toggleAllKeydown = React.useCallback(
+        (e: React.KeyboardEvent<HTMLDivElement>) => {
+            if (e.key === " ") {
+                toggleAllRows(e);
+                e.preventDefault();
+            }
+        },
+        [toggleAllRows],
+    );
+
+    const RenderRow = ({ index, style, data }: ReactWindowRenderFnProps) => {
+        const { item, selected, appearance, onClick, onKeyDown } = data[index];
         return (
             <TableRow
                 aria-rowindex={index + 2}
                 style={style}
-                key={index}
-                // onKeyDown={onKeyDown}
-                onClick={() => onDiffSelected(index)}
-                // appearance={appearance}
-            >
-                {columns.map((column) => column.renderCell(item as DiffItem))}
+                key={item.position}
+                onKeyDown={onKeyDown}
+                onClick={onClick}
+                appearance={appearance}>
+                {/* <TableSelectionCell
+                    checked={selected}
+                    checkboxIndicator={{ "aria-label": "Select row" }}
+                /> */}
+                <TableCell>{item.name}</TableCell>
+                <TableCell>{formatName(item.sourceValue)}</TableCell>
+                <TableCell>
+                    <Checkbox
+                        checked={item.included}
+                        onClick={() => handleIncludeExcludeNode(item, !item.included)}
+                    />
+                </TableCell>
+                <TableCell>{getLabelForAction(item.updateAction as number)}</TableCell>
+                <TableCell>{formatName(item.targetValue)}</TableCell>
             </TableRow>
         );
     };
 
     return (
-        <>
-            {compareResult?.success && (
-                <Table
-                    noNativeElements
-                    aria-label="Table with schema differences"
-                    aria-rowCount={compareResult.differences.length}
-                    style={{ minWidth: "550px" }}>
-                    <TableHeader>
-                        <TableRow aria-rowindex={1}>
-                            {columns.map((column) => (
-                                <TableHeaderCell>{column.renderHeaderCell()}</TableHeaderCell>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <List
-                            height={200}
-                            itemCount={items.length}
-                            itemSize={45}
-                            width={"100%"}
-                            itemData={items}>
-                            {RenderRow}
-                        </List>
-                    </TableBody>
-                </Table>
-            )}
-        </>
+        <Table
+            noNativeElements
+            aria-label="Table with selection"
+            aria-rowcount={rows.length}
+            style={{ minWidth: "650px" }}>
+            <TableHeader>
+                <TableRow aria-rowindex={1}>
+                    {/* <TableSelectionCell
+                        checked={allRowsSelected ? true : someRowsSelected ? "mixed" : false}
+                        onClick={toggleAllRows}
+                        onKeyDown={toggleAllKeydown}
+                        checkboxIndicator={{ "aria-label": "Select all rows" }}
+                    /> */}
+                    <TableHeaderCell>{loc.schemaCompare.type}</TableHeaderCell>
+                    <TableHeaderCell>{loc.schemaCompare.sourceName}</TableHeaderCell>
+                    <TableHeaderCell>
+                        <Checkbox
+                            checked={allRowsSelected ? true : someRowsSelected ? "mixed" : false}
+                        />
+                    </TableHeaderCell>
+                    <TableHeaderCell>{loc.schemaCompare.action}</TableHeaderCell>
+                    <TableHeaderCell>{loc.schemaCompare.targetName}</TableHeaderCell>
+                    {/** Scrollbar alignment for the header */}
+                    <div role="presentation" style={{ width: scrollbarWidth }} />
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                <List
+                    height={400}
+                    itemCount={items.length}
+                    itemSize={45}
+                    width="100%"
+                    itemData={rows}>
+                    {RenderRow}
+                </List>
+            </TableBody>
+        </Table>
     );
 };
 

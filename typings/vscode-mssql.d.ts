@@ -1391,6 +1391,7 @@ declare module "vscode-mssql" {
         sourceScript: string;
         targetScript: string;
         included: boolean;
+        position?: number;
     }
 
     export interface SchemaCompareParams {
