@@ -308,6 +308,7 @@ const ForeignKeyCard = ({
     const context = useContext(SchemaDesignerEditorContext);
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [errorMessage, setErrorMessage] = useState<string>("");
+    const [warningMessage, setWarningMessage] = useState<string>("");
 
     useEffect(() => {
         if (index === lastAddedForeignKeyIndex) {
@@ -344,6 +345,12 @@ const ForeignKeyCard = ({
         } else {
             setErrorMessage("");
         }
+        const warning = context.warnings[`${FOREIGN_KEY_ERROR_PREFIX}${foreignKey.id}`];
+        if (warning) {
+            setWarningMessage(warning);
+        } else {
+            setWarningMessage("");
+        }
     }, [context.errors]);
 
     return (
@@ -361,6 +368,9 @@ const ForeignKeyCard = ({
 
             {/* Error Message */}
             {errorMessage && <MessageBar intent="error">{errorMessage}</MessageBar>}
+
+            {/* Warning Message */}
+            {warningMessage && <MessageBar intent="warning">{warningMessage}</MessageBar>}
 
             {/* Foreign Key Name */}
             <div className={classes.row}>

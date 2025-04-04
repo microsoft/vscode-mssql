@@ -135,7 +135,7 @@
       </trans-unit>
       <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
         <source xml:lang="en">Apply changes to target</source>
-        <target state="new">Apply changes to target</target>
+        <target state="translated">Appliquer les changements à la cible</target>
       </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
@@ -143,7 +143,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
         <source xml:lang="en">Are you sure you want to update the target?</source>
-        <target state="new">Are you sure you want to update the target?</target>
+        <target state="translated">Voulez-vous vraiment mettre à jour la cible ?</target>
       </trans-unit>
       <trans-unit id="++CODE++7eef7067697ade3fc0f13737f97978c65df37d0c48ff8f50718f6062f6e6e246">
         <source xml:lang="en">Are you sure you want to {0}?</source>
@@ -246,7 +246,7 @@
       <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
         <source xml:lang="en">Cancel schema compare failed: '{0}'</source>
         <note>{0} is the error message returned from the cancel operation</note>
-        <target state="new">Cancel schema compare failed: '{0}'</target>
+        <target state="translated">L'annulation de Comparer les schémas a échoué : « {0} »</target>
       </trans-unit>
       <trans-unit id="++CODE++13ca2ee2499310d97a5515fb5fd80b75da66f4cf2775273658eb2b3fdcd3bd3d">
         <source xml:lang="en">Canceled</source>
@@ -428,6 +428,10 @@
         <source xml:lang="en">Column Name</source>
         <target state="new">Column Name</target>
       </trans-unit>
+      <trans-unit id="++CODE++acc8a3fcd4b7b62165cfa6e4b832566d25a6c172b6c1ec229a59b4eb7eb655a5">
+        <source xml:lang="en">Column max length cannot be empty</source>
+        <target state="new">Column max length cannot be empty</target>
+      </trans-unit>
       <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
         <source xml:lang="en">Column name cannot be empty</source>
         <target state="new">Column name cannot be empty</target>
@@ -592,7 +596,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
         <source xml:lang="en">Data-tier Application File (.dacpac)</source>
-        <target state="new">Data-tier Application File (.dacpac)</target>
+        <target state="translated">Fichier d'application de la couche Données (.dacpac)</target>
       </trans-unit>
       <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
         <source xml:lang="en">Database</source>
@@ -640,7 +644,7 @@
       </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
-        <target state="new">Details</target>
+        <target state="translated">Détails</target>
       </trans-unit>
       <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
@@ -856,7 +860,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3664895579f0a7e68c4aa09c91316e20239bc74499010e6423ece40cad7c28f7">
         <source xml:lang="en">Export</source>
-        <target state="new">Export</target>
+        <target state="translated">Exporter</target>
       </trans-unit>
       <trans-unit id="++CODE++c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d">
         <source xml:lang="en">Expression</source>
@@ -905,7 +909,7 @@
       </trans-unit>
       <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
         <source xml:lang="en">Filter</source>
-        <target state="new">Filter</target>
+        <target state="translated">Filtrer</target>
       </trans-unit>
       <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
         <source xml:lang="en">Filter Azure subscriptions</source>
@@ -1027,11 +1031,15 @@
       <trans-unit id="++CODE++3d3813ca1c7608ef69cb91a5f621e6c1507ffca56b18275740366df04e5cff6e">
         <source xml:lang="en">Generate script failed: '{0}'</source>
         <note>{0} is the error message returned from the generate script operation</note>
-        <target state="new">Generate script failed: '{0}'</target>
+        <target state="translated">La génération de script a échoué : '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
         <source xml:lang="en">Generate script to deploy changes to target</source>
-        <target state="new">Generate script to deploy changes to target</target>
+        <target state="translated">Générer un script pour déployer les changements sur la cible</target>
+      </trans-unit>
+      <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
+        <source xml:lang="en">Generating report, this might take a while...</source>
+        <target state="new">Generating report, this might take a while...</target>
       </trans-unit>
       <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
         <source xml:lang="en">Getting definition ...</source>
@@ -1118,6 +1126,11 @@
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">Largeur de colonne non valide</target>
       </trans-unit>
+      <trans-unit id="++CODE++b65d31b3dcfd9935b8fae6c977fe0f07a5d73a830edb2426c05d63464b299858">
+        <source xml:lang="en">Invalid max length '{0}'</source>
+        <note>{0} is the max length</note>
+        <target state="new">Invalid max length '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++6ddf8604e8d33286bd064640a453784b6142293230a717b9b1859fa3176573f6">
         <source xml:lang="en">Is Identity</source>
         <target state="new">Is Identity</target>
@@ -1174,7 +1187,7 @@
       </trans-unit>
       <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
         <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
-        <target state="new">Load source, target, and options saved in an .scmp file</target>
+        <target state="translated">Charger la source, la cible et les options enregistrées dans un fichier .scmp</target>
       </trans-unit>
       <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
         <source xml:lang="en">Loading</source>
@@ -1183,6 +1196,10 @@
       <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
         <source xml:lang="en">Loading Report</source>
         <target state="translated">Rapport sur le chargement</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fb77011a24ad32a2b166d3d74cf25aee9d67da4c5579e8740211e0738bd05a10">
+        <source xml:lang="en">Loading Schema Designer</source>
+        <target state="new">Loading Schema Designer</target>
       </trans-unit>
       <trans-unit id="++CODE++54de42320518e4ac2e773353f4d9f9a7be92f4afc008a3b33a3247b39a19aa68">
         <source xml:lang="en">Loading Schema Designer Model...</source>
@@ -1373,7 +1390,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
-        <target state="new">No schema differences were found.</target>
+        <target state="translated">Aucune différence de schéma.</target>
       </trans-unit>
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
@@ -1469,7 +1486,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f395ae5e32b4cc24f8030096918e6a2318d4be5fb9274dbeedc0002ce9840bb7">
         <source xml:lang="en">Open in Editor</source>
-        <target state="new">Open in Editor</target>
+        <target state="translated">Ouvrir dans l’Éditeur</target>
       </trans-unit>
       <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
         <source xml:lang="en">Open in New Tab</source>
@@ -1506,7 +1523,7 @@
       </trans-unit>
       <trans-unit id="++CODE++974ccf82fb956ae52dd736ed3f1046fe6da2fcb80bc6679104cbd37773665175">
         <source xml:lang="en">Options have changed. Recompare to see the comparison?</source>
-        <target state="new">Options have changed. Recompare to see the comparison?</target>
+        <target state="translated">Les options ont changé. Relancer la comparaison pour voir les différences ?</target>
       </trans-unit>
       <trans-unit id="++CODE++eabaa5ba70b7871bd005170e9a540a993456433cdaad54eacc4e4c07a13c71bb">
         <source xml:lang="en">Overall, how satisfied are you with the MSSQL extension?</source>
@@ -1670,7 +1687,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0e91610117029a62a478b7fa7df0b8598bebe3ab1e192d4b1882e310719c9671">
         <source xml:lang="en">Refresh</source>
-        <target state="new">Refresh</target>
+        <target state="translated">Actualiser</target>
       </trans-unit>
       <trans-unit id="++CODE++627fc5f9740b31ca7868476caa3694a842a494bf358329d1aaf28f3fd7a5a4f0">
         <source xml:lang="en">Refresh Credentials</source>
@@ -1792,11 +1809,11 @@
       <trans-unit id="++CODE++b9aac16eb8e26c69eda61b82e7f9833c80becf442d1664142ab784c7e5eb15f0">
         <source xml:lang="en">Save scmp failed: '{0}'</source>
         <note>{0} is the error message returned from the save scmp operation</note>
-        <target state="new">Save scmp failed: '{0}'</target>
+        <target state="translated">L'enregistrement de scmp a échoué : '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++0a12b3e51f64e705d6de90db7bcada67844d93e118f414b2fc703b2014efabc5">
         <source xml:lang="en">Save source and target, options, and excluded elements</source>
-        <target state="new">Save source and target, options, and excluded elements</target>
+        <target state="translated">Enregistrer la source et la cible, les options et les éléments exclus</target>
       </trans-unit>
       <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
         <source xml:lang="en">Saved Connections</source>
@@ -1817,7 +1834,7 @@
       <trans-unit id="++CODE++e43490715378a6a8dd51a85cfd3710df78a7e895658739053758638820a0b93b">
         <source xml:lang="en">Schema Compare Apply failed '{0}'</source>
         <note>{0} is the error message returned from the publish changes operation</note>
-        <target state="new">Schema Compare Apply failed '{0}'</target>
+        <target state="translated">Échec d'application de Comparer les schémas « {0} »</target>
       </trans-unit>
       <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
         <source xml:lang="en">Schema Compare Options</source>
@@ -1838,7 +1855,7 @@
       </trans-unit>
       <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
         <source xml:lang="en">Script</source>
-        <target state="new">Script</target>
+        <target state="translated">Script</target>
       </trans-unit>
       <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
         <source xml:lang="en">Script As Create</source>
@@ -1847,6 +1864,10 @@
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
         <target state="translated">Script copié dans le presse-papiers</target>
+      </trans-unit>
+      <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
+        <source xml:lang="en">Search options...</source>
+        <target state="new">Search options...</target>
       </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
@@ -1924,7 +1945,7 @@
       </trans-unit>
       <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
         <source xml:lang="en">Settings</source>
-        <target state="new">Settings</target>
+        <target state="translated">Paramètres</target>
       </trans-unit>
       <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
         <source xml:lang="en">Severity</source>
@@ -1968,7 +1989,7 @@
       </trans-unit>
       <trans-unit id="++CODE++0e570ca6fabe24f94e52c1833f3ffd25567022beb826fa16891f3322051bc221">
         <source xml:lang="en">Source</source>
-        <target state="new">Source</target>
+        <target state="translated">Source</target>
       </trans-unit>
       <trans-unit id="++CODE++2b25c7e56081a32eca68cf954d0dae7f5d558f2111699c5b4e39596584c40b39">
         <source xml:lang="en">Source Column</source>
@@ -2009,7 +2030,7 @@
       </trans-unit>
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
-        <target state="new">Stop</target>
+        <target state="translated">Arrêter</target>
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
@@ -2065,7 +2086,7 @@
       <trans-unit id="++CODE++e37d0b463100c4d709173a6502222535a4960da7c2ae4c1317ba1e20ece36b3e">
         <source xml:lang="en">Table '{0}' already exists</source>
         <note>{0} is the table name</note>
-        <target state="new">Table '{0}' already exists</target>
+        <target state="translated">La table « {0} » existe déjà</target>
       </trans-unit>
       <trans-unit id="++CODE++ab3e7e5387cdfbb5043748e63a21b5da7a9855b47821b6a4e1bc17391a118e17">
         <source xml:lang="en">Table '{0}' not found</source>
@@ -2078,7 +2099,7 @@
       </trans-unit>
       <trans-unit id="++CODE++45e1d4cb14359d2ad702451798500ccdf4e30f19c5fd15c378328cf83827d606">
         <source xml:lang="en">Table name cannot be empty</source>
-        <target state="new">Table name cannot be empty</target>
+        <target state="translated">Le nom de table ne peut pas être vide</target>
       </trans-unit>
       <trans-unit id="++CODE++9981cdae853624ee8dffbae9510a8f8b9d588788aab84587374f6dd6bc7eabdd">
         <source xml:lang="en">Take Survey</source>
@@ -2209,7 +2230,7 @@
       </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
-        <target state="new">There was an error updating the project</target>
+        <target state="translated">Une erreur s’est produite lors de la mise à jour du projet</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
@@ -2372,7 +2393,7 @@
       </trans-unit>
       <trans-unit id="++CODE++37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f">
         <source xml:lang="en">default</source>
-        <target state="new">default</target>
+        <target state="translated">défaut</target>
       </trans-unit>
       <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
         <source xml:lang="en">delete the saved connection: {0}?</source>
@@ -2442,6 +2463,11 @@
         <note>{0} is the number of columns</note>
         <target state="new">{0} column data</target>
       </trans-unit>
+      <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
+        <source xml:lang="en">{0} errors</source>
+        <note>{0} is the number of errors</note>
+        <target state="new">{0} errors</target>
+      </trans-unit>
       <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
         <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
         <note>{0} is the webview name</note>
@@ -2467,6 +2493,11 @@
         <source xml:lang="en">{0} properties</source>
         <note>{0} is the object type</note>
         <target state="translated">{0} propriétés</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4777dc358a4dd9d44e2865392ea9fb6b761d10b718279ab38df4f72f5645fa7">
+        <source xml:lang="en">{0} warnings</source>
+        <note>{0} is the number of warnings</note>
+        <target state="new">{0} warnings</target>
       </trans-unit>
       <trans-unit id="++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda">
         <source xml:lang="en">{0} {1} issue</source>

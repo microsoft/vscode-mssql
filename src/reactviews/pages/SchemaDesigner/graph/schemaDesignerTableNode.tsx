@@ -244,7 +244,7 @@ const TableColumn = ({ column }: { column: SchemaDesigner.Column }) => {
                 {column.name}
             </Text>
 
-            <Text className={styles.columnType}>{column.dataType.toUpperCase()}</Text>
+            <Text className={styles.columnType}>{column.dataType?.toUpperCase()}</Text>
 
             <Handle
                 type="source"

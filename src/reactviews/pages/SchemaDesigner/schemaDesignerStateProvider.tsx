@@ -42,6 +42,7 @@ export interface SchemaDesignerContextProps
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
     updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
+    isInitialized: boolean;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -68,6 +69,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [datatypes, setDatatypes] = useState<string[]>([]);
     const [schemaNames, setSchemaNames] = useState<string[]>([]);
     const reactFlow = useReactFlow();
+    const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
         const handleScript = () => {
@@ -126,6 +128,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
         setDatatypes(model.dataTypes);
         setSchemaNames(model.schemaNames);
+        setIsInitialized(true);
 
         setTimeout(() => {
             stateStack.setInitialState(
@@ -402,6 +405,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deleteSelectedNodes,
                 updateSelectedNodes,
                 setCenter,
+                isInitialized,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

@@ -416,8 +416,8 @@ export class LocConstants {
             incompatibleLength: (
                 sourceColumn: string,
                 targetColumn: string,
-                sourceLength: number,
-                targetLength: number,
+                sourceLength: string,
+                targetLength: string,
             ) =>
                 l10n.t({
                     message: "Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})",
@@ -491,6 +491,27 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the column name"],
                 }),
+            columnMaxLengthEmptyError: l10n.t("Column max length cannot be empty"),
+            columnMaxLengthInvalid: (maxLength: string) =>
+                l10n.t({
+                    message: "Invalid max length '{0}'",
+                    args: [maxLength],
+                    comment: ["{0} is the max length"],
+                }),
+            loadingSchemaDesigner: l10n.t("Loading Schema Designer"),
+            generatingReport: l10n.t("Generating report, this might take a while..."),
+            nWarnings: (warningCount: number) =>
+                l10n.t({
+                    message: "{0} warnings",
+                    args: [warningCount],
+                    comment: ["{0} is the number of warnings"],
+                }),
+            nErrors: (errorCount: number) =>
+                l10n.t({
+                    message: "{0} errors",
+                    args: [errorCount],
+                    comment: ["{0} is the number of errors"],
+                }),
         };
     }
 
@@ -514,6 +535,7 @@ export class LocConstants {
             settings: l10n.t("Settings"),
             compare: l10n.t("Compare"),
             schemaCompareOptions: l10n.t("Schema Compare Options"),
+            searchOptions: l10n.t("Search options..."),
             generalOptions: l10n.t("General Options"),
             includeObjectTypes: l10n.t("Include Object Types"),
             optionDescription: l10n.t("Option Description"),
