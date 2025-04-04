@@ -4,7 +4,7 @@ module.exports = {
     meta: {
         type: "suggestion",
         docs: {
-            description: "Prevent importing from webviews directory except from within webviews",
+            description: "Prevent importing from reactviews directory except from within reactviews",
             category: "Imports",
             recommended: false,
         },
@@ -17,17 +17,17 @@ module.exports = {
                 const importSource = node.source.value;
                 const currentFilePath = context.getFilename();
 
-                // Check if the import is from webviews directory
-                const isImportFromWebviews =
+                // Check if the import is from reactviews directory
+                const isImportFromReactviews =
                     importSource.includes("/reactviews/") ||
                     importSource.startsWith("reactviews/") ||
                     importSource === "reactviews";
 
-                // Check if the current file is in webviews directory
-                const isFileInWebviews = currentFilePath.includes("/src/reactviews/");
+                // Check if the current file is in reactviews directory
+                const isFileInReactviews = currentFilePath.includes("/src/reactviews/");
 
                 // If importing from webviews but not within webviews, report an error
-                if (isImportFromWebviews && !isFileInWebviews) {
+                if (isImportFromReactviews && !isFileInReactviews) {
                     context.report({
                         node,
                         message:
