@@ -578,50 +578,7 @@ export class LocConstants {
             areYouSureYouWantToUpdateTheTarget: l10n.t(
                 "Are you sure you want to update the target?",
             ),
-            yes: l10n.t("Yes"),
-            no: l10n.t("No"),
-            optionsChangedMessage: l10n.t("Options have changed. Recompare to see the comparison?"),
-            compareErrorMessage: (errorMessage: string) =>
-                l10n.t({
-                    message: "Schema Compare failed: '{0}'",
-                    args: [errorMessage ? errorMessage : "Unknown"],
-                    comment: ["{0} is the error message returned from the compare operation"],
-                }),
-            cancelErrorMessage: (errorMessage: string) =>
-                l10n.t({
-                    message: "Cancel schema compare failed: '{0}'",
-                    args: [errorMessage ? errorMessage : "Unknown"],
-                    comment: ["{0} is the error message returned from the cancel operation"],
-                }),
-            generateScriptErrorMessage: (errorMessage: string) =>
-                l10n.t({
-                    message: "Generate script failed: '{0}'",
-                    args: [errorMessage ? errorMessage : "Unknown"],
-                    comment: [
-                        "{0} is the error message returned from the generate script operation",
-                    ],
-                }),
             thereWasAnErrorUpdatingTheProject: l10n.t("There was an error updating the project"),
-            schemaCompareApplyFailed: (errorMessage: string) =>
-                l10n.t({
-                    message: "Schema Compare Apply failed '{0}'",
-                    args: [errorMessage ? errorMessage : "Unknown"],
-                    comment: [
-                        "{0} is the error message returned from the publish changes operation",
-                    ],
-                }),
-            openScmpErrorMessage: (errorMessage: string) =>
-                l10n.t({
-                    message: "Open scmp failed '{0}'",
-                    args: [errorMessage ? errorMessage : "Unknown"],
-                    comment: ["{0} is the error message returned from the open scmp operation"],
-                }),
-            saveScmpErrorMessage: (errorMessage: string) =>
-                l10n.t({
-                    message: "Save scmp failed: '{0}'",
-                    args: [errorMessage ? errorMessage : "Unknown"],
-                    comment: ["{0} is the error message returned from the save scmp operation"],
-                }),
         };
     }
 }

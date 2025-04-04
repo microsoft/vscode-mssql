@@ -17,7 +17,7 @@ import * as locConstants from "../constants/locConstants";
  * This command is used to trigger the publishing of project changes in the
  * schema compare feature of the SQL Database Projects extension.
  */
-export const sqlDatabaseProjectsPublishChanges: string =
+export const sqlDatabaseProjectsPublishChanges =
     "sqlDatabaseProjects.schemaComparePublishProjectChanges";
 
 /**
