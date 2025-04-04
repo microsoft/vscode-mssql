@@ -33,6 +33,14 @@ export async function activate(
     // 	LocalizedConstants.loadLocalizedConstants(vscode.env.language);
     // }
 
+    // Check if GitHub Copilot is installed
+    const copilotExtension = vscode.extensions.getExtension("GitHub.copilot");
+    vscode.commands.executeCommand(
+        "setContext",
+        "mssql.copilot.isGHCInstalled",
+        !!copilotExtension,
+    );
+
     // Exposed for testing purposes
     vscode.commands.registerCommand(
         "mssql.getControllerForTests",

@@ -47,6 +47,48 @@ export const createSqlAgentRequestHandler = (
         let connectionUri = vscodeWrapper.activeTextEditorUri;
         Utils.logDebug(`Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`);
 
+        let referenceTexts: string[] = [];
+        const activeEditor = vscode.window.activeTextEditor;
+
+        // Get references from request instead of the active editor to
+        // respect the file context visibility setting
+        if (request.references) {
+            for (const reference of request.references) {
+                const value = reference.value;
+                if (value instanceof vscode.Location) {
+                    // Could be a document / selection in the current editor
+                    if (
+                        value.uri.toString() ===
+                        activeEditor?.document.uri.toString()
+                    ) {
+                        referenceTexts.push(
+                            `${reference.modelDescription ?? "ChatResponseReference"}: ${activeEditor.document.getText(value.range)}`,
+                        );
+                    } else {
+                        const doc = await vscode.workspace.openTextDocument(
+                            value.uri,
+                        );
+                        referenceTexts.push(
+                            `${reference.modelDescription ?? "ChatResponseReference"}: ${doc.getText(value.range)}`,
+                        );
+                    }
+                } else if (value instanceof vscode.Uri) {
+                    // Could be a file/document
+                    const doc = await vscode.workspace.openTextDocument(
+                        value,
+                    );
+                    referenceTexts.push(
+                        `${reference.modelDescription ?? "ChatResponseReference"}: ${doc.getText()}`,
+                    );
+            } else if (typeof reference.value === "string") {
+                    // Could be a string
+                    referenceTexts.push(
+                        `${reference.modelDescription ?? "ChatResponseReference"}: ${reference.value}`,
+                    );
+                }
+            }
+        }
+
         const prompt = request.prompt.trim();
         const [model] = await vscode.lm.selectChatModels(MODEL_SELECTOR);
 
@@ -124,6 +166,7 @@ export const createSqlAgentRequestHandler = (
                                 stream,
                                 token,
                                 chatContext,
+                                referenceTexts,
                             );
 
                         replyText = text;
@@ -230,7 +273,8 @@ export const createSqlAgentRequestHandler = (
 
     function prepareRequestMessages(
         result: GetNextMessageResponse,
-        context: vscode.ChatContext
+        context: vscode.ChatContext,
+        referenceTexts: string[],
     ): vscode.LanguageModelChatMessage[] {
         // Step 1: Separate system messages from the requestMessages
         const systemMessages = result.requestMessages
@@ -253,15 +297,23 @@ export const createSqlAgentRequestHandler = (
             }
         });
 
-        // Step 3: Get the new user messages (non-system messages from requestMessages)
+        // Step 3: Include the reference messages
+        // TODO: should we cut off the reference message or send a warning if it is too long? (especially without selection)
+        const referenceMessages = referenceTexts
+            ? referenceTexts.map((text) =>
+                vscode.LanguageModelChatMessage.Assistant(text)
+            )
+            : [];
+
+        // Step 4: Get the new user messages (non-system messages from requestMessages)
         const userMessages = result.requestMessages
             .filter((message: LanguageModelRequestMessage) => message.role !== MessageRole.System)
             .map((message: LanguageModelRequestMessage) =>
                 vscode.LanguageModelChatMessage.User(message.text)
             );
 
-        // Step 4: Combine them in order: system messages, history, then new user messages
-        return [...systemMessages, ...historyMessages, ...userMessages];
+        // Step 5: Combine them in order: system messages, history, then new user messages
+        return [...systemMessages, ...historyMessages, ...referenceMessages, ...userMessages];
     }
 
     // function prepareRequestMessages(
@@ -399,6 +451,7 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         token: vscode.CancellationToken,
         context: vscode.ChatContext, // pass this context from above
+        referenceTexts: string[],
     ): Promise<{
         text: string;
         tools: { tool: LanguageModelChatTool; parameters: string }[];
@@ -414,7 +467,7 @@ export const createSqlAgentRequestHandler = (
             options.tools = requestTools;
         }
 
-        const messages = prepareRequestMessages(result, context); // Correct call here
+        const messages = prepareRequestMessages(result, context, referenceTexts); // Correct call here
 
         const chatResponse = await model.sendRequest(messages, options, token);
         const { replyText, toolsCalled, printTextout } =
