@@ -63,6 +63,7 @@ import { IAccount } from "../models/contracts/azure";
 import { generateConnectionComponents, groupAdvancedOptions } from "./formComponentHelpers";
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
+import { Deferred } from "../protocol";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -71,6 +72,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ConnectionDialogReducers
 > {
     //#region Properties
+
+    public readonly initialized: Deferred<void> = new Deferred<void>();
 
     public static mainOptions: readonly (keyof IConnectionDialogProfile)[] = [
         "server",
@@ -122,18 +125,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         this.registerRpcHandlers();
-        this.initializeDialog().catch((err) => {
-            void vscode.window.showErrorMessage(getErrorMessage(err));
+        this.initializeDialog()
+            .then(() => this.initialized.resolve())
+            .catch((err) => {
+                void vscode.window.showErrorMessage(getErrorMessage(err));
 
-            // The spots in initializeDialog() that handle potential PII have their own error catches that emit error telemetry with `includeErrorMessage` set to false.
-            // Everything else during initialization shouldn't have PII, so it's okay to include the error message here.
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.Initialize,
-                err,
-                true, // includeErrorMessage
-            );
-        });
+                // The spots in initializeDialog() that handle potential PII have their own error catches that emit error telemetry with `includeErrorMessage` set to false.
+                // Everything else during initialization shouldn't have PII, so it's okay to include the error message here.
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.Initialize,
+                    err,
+                    true, // includeErrorMessage
+                );
+                this.initialized.reject(getErrorMessage(err));
+            });
     }
 
     private async initializeDialog() {
