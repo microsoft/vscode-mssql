@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscodeMssql from "vscode-mssql";
-
-import { WebviewContextProps } from "../reactviews/common/vscodeWebviewProvider";
+import { WebviewContextProps } from "./webview";
 
 export interface ObjectExplorerFilterState {
     filterProperties: vscodeMssql.NodeFilterProperty[];

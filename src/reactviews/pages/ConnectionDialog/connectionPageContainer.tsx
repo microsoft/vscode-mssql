@@ -20,7 +20,6 @@ import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
 
 import { AzureBrowsePage } from "./azureBrowsePage";
-import { ColorThemeKind } from "../../common/vscodeWebviewProvider";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionHeader } from "./components/connectionHeader.component";
@@ -29,6 +28,7 @@ import { TrustServerCertificateDialog } from "./components/trustServerCertificat
 import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "./components/addFirewallRule.component";
+import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
