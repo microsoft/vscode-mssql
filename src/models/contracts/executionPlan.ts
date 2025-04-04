@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as ep from "../../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
+import * as ep from "../../sharedInterfaces/executionPlanInterfaces";
 import { RequestType } from "vscode-languageclient";
 
 export interface GetExecutionPlanParams {

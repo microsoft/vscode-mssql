@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    ColorThemeKind,
     LoggerLevel,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
-import { ColorThemeKind, VscodeWebviewContext } from "./vscodeWebviewProvider";
+import { VscodeWebviewContext } from "./vscodeWebviewProvider";
 
 /**
  * Format a string. Behaves like C#'s string.Format() function.

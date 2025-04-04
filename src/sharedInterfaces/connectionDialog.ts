@@ -4,12 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscodeMssql from "vscode-mssql";
-import {
-    FormItemSpec,
-    FormContextProps,
-    FormState,
-    FormReducers,
-} from "../reactviews/common/forms/form";
+import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form";
 import { ApiStatus } from "./webview";
 
 export class ConnectionDialogWebviewState

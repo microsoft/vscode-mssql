@@ -33,12 +33,12 @@ import {
     showSaveDialogForScmp,
     showOpenDialogForDacpacOrSqlProj,
 } from "./schemaCompareUtils";
-import { locConstants as loc } from "../reactviews/common/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { deepClone } from "../models/utils";
+import * as locConstants from "../constants/locConstants";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -188,7 +188,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         let ownerUri = await this.connectionMgr.getUriForConnection(connectionProfile);
         let user = connectionProfile.user;
         if (!user) {
-            user = loc.schemaCompare.defaultUserName;
+            user = locConstants.SchemaCompare.defaultUserName;
         }
 
         const source = {
@@ -401,7 +401,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             let user = connectionProfile.user;
             if (!user) {
-                user = loc.schemaCompare.defaultUserName;
+                user = locConstants.SchemaCompare.defaultUserName;
             }
 
             const endpointInfo = {
@@ -467,11 +467,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.updateState(state);
 
             const yesItem: vscode.MessageItem = {
-                title: loc.schemaCompare.yes,
+                title: locConstants.SchemaCompare.Yes,
             };
 
             const noItem: vscode.MessageItem = {
-                title: loc.schemaCompare.no,
+                title: locConstants.SchemaCompare.No,
                 isCloseAffordance: true,
             };
 
@@ -480,13 +480,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             if (payload.optionsChanged) {
                 vscode.window
                     .showInformationMessage(
-                        loc.schemaCompare.optionsChangedMessage,
+                        locConstants.SchemaCompare.optionsChangedMessage,
                         { modal: true },
                         yesItem,
                         noItem,
                     )
                     .then(async (result) => {
-                        if (result.title === loc.schemaCompare.yes) {
+                        if (result.title === locConstants.SchemaCompare.Yes) {
                             const payload = {
                                 sourceEndpointInfo: state.sourceEndpointInfo,
                                 targetEndpointInfo: state.targetEndpointInfo,
@@ -565,7 +565,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 });
 
                 vscode.window.showErrorMessage(
-                    loc.schemaCompare.generateScriptErrorMessage(result.errorMessage),
+                    locConstants.SchemaCompare.generateScriptErrorMessage(result.errorMessage),
                 );
             }
 
@@ -579,9 +579,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
-            const yes = loc.schemaCompare.yes;
+            const yes = locConstants.SchemaCompare.Yes;
             const result = await vscode.window.showWarningMessage(
-                loc.schemaCompare.areYouSureYouWantToUpdateTheTarget,
+                locConstants.SchemaCompare.areYouSureYouWantToUpdateTheTarget,
                 { modal: true },
                 yes,
             );
@@ -644,7 +644,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 });
 
                 vscode.window.showErrorMessage(
-                    loc.schemaCompare.schemaCompareApplyFailed(publishResult.errorMessage),
+                    locConstants.SchemaCompare.schemaCompareApplyFailed(publishResult.errorMessage),
                 );
 
                 return state;
@@ -759,7 +759,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 });
 
                 vscode.window.showErrorMessage(
-                    loc.schemaCompare.openScmpErrorMessage(result.errorMessage),
+                    locConstants.SchemaCompare.openScmpErrorMessage(result.errorMessage),
                 );
                 return state;
             }
@@ -837,7 +837,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 });
 
                 vscode.window.showErrorMessage(
-                    loc.schemaCompare.saveScmpErrorMessage(result.errorMessage),
+                    locConstants.SchemaCompare.saveScmpErrorMessage(result.errorMessage),
                 );
             }
 
@@ -871,7 +871,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 });
 
                 vscode.window.showErrorMessage(
-                    loc.schemaCompare.cancelErrorMessage(result.errorMessage),
+                    locConstants.SchemaCompare.cancelErrorMessage(result.errorMessage),
                 );
 
                 return state;
@@ -956,7 +956,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             });
 
             vscode.window.showErrorMessage(
-                loc.schemaCompare.compareErrorMessage(result.errorMessage),
+                locConstants.SchemaCompare.compareErrorMessage(result.errorMessage),
             );
 
             return state;
@@ -1002,7 +1002,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             if (isConnected && ownerUri && connectionProfile) {
                 endpointInfo = {
                     endpointType: mssql.SchemaCompareEndpointType.Database,
-                    serverDisplayName: `${connInfo.server} (${connectionProfile.user || loc.schemaCompare.defaultUserName})`,
+                    serverDisplayName: `${connInfo.server} (${connectionProfile.user || locConstants.SchemaCompare.defaultUserName})`,
                     serverName: connInfo.server,
                     databaseName: connInfo.database,
                     ownerUri: ownerUri,

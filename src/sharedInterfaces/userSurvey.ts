@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebviewContextProps } from "../reactviews/common/vscodeWebviewProvider";
+import { WebviewContextProps } from "./webview";
 
 export interface UserSurveyState {
     /**

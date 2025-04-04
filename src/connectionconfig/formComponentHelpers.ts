@@ -18,7 +18,7 @@ import {
     FormItemOptions,
     FormItemSpec,
     FormItemType,
-} from "../reactviews/common/forms/form";
+} from "../sharedInterfaces/form";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ConnectionDialog as Loc } from "../constants/locConstants";

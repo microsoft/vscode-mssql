@@ -9,7 +9,7 @@ import {
     ExecutionPlanGraphInfo,
     ExecutionPlanReducers,
     ExecutionPlanWebviewState,
-} from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
+} from "../sharedInterfaces/executionPlanInterfaces";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import * as vscode from "vscode";
