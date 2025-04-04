@@ -9,8 +9,7 @@ import * as os from "os";
 import { promises as fs } from "fs";
 import { SchemaCompareReducers } from "../sharedInterfaces/schemaCompare";
 import { generateGuid } from "../models/utils";
-import { locConstants as loc } from "../reactviews/common/locConstants";
-
+import * as locConstants from "../constants/locConstants";
 /**
  * A constant string representing the command to publish schema compare changes
  * for SQL database projects.
@@ -63,7 +62,7 @@ export async function showOpenDialog(
         canSelectFolders: false,
         canSelectMany: false,
         defaultUri: vscode.Uri.file(startingFilePath),
-        openLabel: loc.schemaCompare.open,
+        openLabel: locConstants.SchemaCompare.Open,
         filters: filters,
     });
 
@@ -109,7 +108,7 @@ export async function showSaveDialogForScmp(): Promise<string | undefined> {
 export async function showSaveDialog(startingFilePath: string): Promise<string | undefined> {
     const filePath = await vscode.window.showSaveDialog({
         defaultUri: vscode.Uri.file(startingFilePath),
-        saveLabel: loc.schemaCompare.save,
+        saveLabel: locConstants.SchemaCompare.Save,
         filters: {
             "scmp Files": ["scmp"],
         },
