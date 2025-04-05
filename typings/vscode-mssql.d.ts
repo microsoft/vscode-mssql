@@ -490,7 +490,7 @@ declare module "vscode-mssql" {
             operationId: string,
             includeRequest: boolean,
             taskExecutionMode: TaskExecutionMode,
-        ): Thenable<ResultStatus>;
+        ): Thenable<SchemaCompareIncludeExcludeAllResult>;
         openScmp(filePath: string): Thenable<SchemaCompareOpenScmpResult>;
         saveScmp(
             sourceEndpointInfo: SchemaCompareEndpointInfo,
@@ -1445,6 +1445,12 @@ declare module "vscode-mssql" {
         operationId: string;
         includeRequest: boolean;
         taskExecutionMode: TaskExecutionMode;
+    }
+
+    export interface SchemaCompareIncludeExcludeAllResult extends ResultStatus {
+        operationId: string;
+        areEqual: boolean;
+        allIncludedOrExcludedDifferences: DiffEntry[];
     }
 
     export interface SchemaCompareNodeParams {

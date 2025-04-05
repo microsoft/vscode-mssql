@@ -742,7 +742,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
 
             if (result.success) {
-                // exclude or include all schema differences here
+                state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
 
                 this.updateState(state);
             }

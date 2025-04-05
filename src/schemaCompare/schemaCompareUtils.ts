@@ -287,7 +287,7 @@ export async function includeExcludeAllNodes(
     taskExecutionMode: mssql.TaskExecutionMode,
     payload: SchemaCompareReducers["includeExcludeAllNodes"],
     schemaCompareService: mssql.ISchemaCompareService,
-): Promise<mssql.ResultStatus> {
+): Promise<mssql.SchemaCompareIncludeExcludeAllResult> {
     const result = await schemaCompareService.includeExcludeAllNodes(
         operationId,
         payload.includeRequest,

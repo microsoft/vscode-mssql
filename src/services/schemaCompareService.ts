@@ -117,7 +117,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         operationId: string,
         includeRequest: boolean,
         taskExecutionMode: mssql.TaskExecutionMode,
-    ): Thenable<mssql.ResultStatus> {
+    ): Thenable<mssql.SchemaCompareIncludeExcludeAllResult> {
         const params: mssql.SchemaCompareIncludeExcludeAllNodesParams = {
             operationId: operationId,
             includeRequest: includeRequest,
