@@ -20,11 +20,22 @@ import {
     TableRowData as RowStateBase,
     TableColumnDefinition,
     Checkbox,
+    makeStyles,
 } from "@fluentui/react-components";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
 import { DiffEntry } from "vscode-mssql";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+
+const useStyles = makeStyles({
+    HeaderCellPadding: {
+        padding: "0 8px",
+    },
+
+    PrimaryCheckboxPadding: {
+        paddingLeft: "16px",
+    },
+});
 
 interface TableRowData extends RowStateBase<DiffEntry> {
     onClick: (e: React.MouseEvent) => void;
@@ -42,6 +53,7 @@ interface Props {
 }
 
 export const SchemaDifferences = ({ onDiffSelected }: Props) => {
+    const classes = useStyles();
     const { targetDocument } = useFluent();
     const scrollbarWidth = useScrollbarWidth({ targetDocument });
     const context = React.useContext(schemaCompareContext);
@@ -82,16 +94,16 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
     };
 
     const handleIncludeExcludeNode = (diffEntry: DiffEntry, include: boolean) => {
-        if (diffEntry.position) {
+        if (diffEntry.position !== undefined) {
             context.includeExcludeNode(diffEntry.position, diffEntry, include);
         }
     };
 
     const handleIncludeExcludeAllNodes = () => {
         if (allDiffsExcluded || someDiffsExcluded) {
-            // context.includeExcludeAllNodes(true);
+            context.includeExcludeAllNodes(true);
         } else {
-            // context.includeExcludeAllNodes(false);
+            context.includeExcludeAllNodes(false);
         }
     };
 
@@ -236,16 +248,24 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
             style={{ minWidth: "650px" }}>
             <TableHeader>
                 <TableRow aria-rowindex={1}>
-                    <TableHeaderCell>{loc.schemaCompare.type}</TableHeaderCell>
-                    <TableHeaderCell>{loc.schemaCompare.sourceName}</TableHeaderCell>
-                    <TableHeaderCell>
+                    <TableHeaderCell className={classes.HeaderCellPadding}>
+                        {loc.schemaCompare.type}
+                    </TableHeaderCell>
+                    <TableHeaderCell className={classes.HeaderCellPadding}>
+                        {loc.schemaCompare.sourceName}
+                    </TableHeaderCell>
+                    <TableHeaderCell className={classes.PrimaryCheckboxPadding}>
                         <Checkbox
                             checked={allDiffsIncluded ? true : someDiffsExcluded ? "mixed" : false}
                             onClick={() => handleIncludeExcludeAllNodes()}
                         />
                     </TableHeaderCell>
-                    <TableHeaderCell>{loc.schemaCompare.action}</TableHeaderCell>
-                    <TableHeaderCell>{loc.schemaCompare.targetName}</TableHeaderCell>
+                    <TableHeaderCell className={classes.HeaderCellPadding}>
+                        {loc.schemaCompare.action}
+                    </TableHeaderCell>
+                    <TableHeaderCell className={classes.HeaderCellPadding}>
+                        {loc.schemaCompare.targetName}
+                    </TableHeaderCell>
                     {/** Scrollbar alignment for the header */}
                     <div role="presentation" style={{ width: scrollbarWidth }} />
                 </TableRow>
