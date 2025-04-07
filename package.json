@@ -377,11 +377,13 @@
       "editor/context": [
         {
           "command": "mssql.runQuery",
-          "when": "editorLangId == sql"
+          "when": "editorLangId == sql",
+          "group": "0_mssql"
         },
         {
           "submenu": "mssql.copilot.editorSubmenu",
-          "when": "editorLangId == sql && mssql.copilot.isGHCInstalled"
+          "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+          "group": "0_mssql"
         }
       ],
       "mssql.copilot.editorSubmenu": [
