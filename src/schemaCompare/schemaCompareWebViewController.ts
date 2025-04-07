@@ -40,6 +40,7 @@ import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { deepClone } from "../models/utils";
+import { isNullOrUndefined } from "util";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -728,6 +729,41 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 }
 
                 this.updateState(state);
+            } else {
+                if (result.blockingDependencies) {
+                    const diffEntry = payload.diffEntry;
+                    const diffEntryName = this.formatEntryName(
+                        diffEntry.sourceValue ? diffEntry.sourceValue : diffEntry.targetValue,
+                    );
+
+                    const firstBlockingDependencyEntry = result.blockingDependencies[0];
+                    const firstBlockingDependencyName = this.formatEntryName(
+                        firstBlockingDependencyEntry.sourceValue
+                            ? firstBlockingDependencyEntry.sourceValue
+                            : firstBlockingDependencyEntry.targetValue,
+                    );
+
+                    let message: string = "";
+                    if (firstBlockingDependencyName) {
+                        message = payload.includeRequest
+                            ? loc.schemaCompare.cannotIncludeEntryWithBlockingDependency(
+                                  diffEntryName,
+                                  firstBlockingDependencyName,
+                              )
+                            : loc.schemaCompare.cannotExcludeEntryWithBlockingDependency(
+                                  diffEntryName,
+                                  firstBlockingDependencyName,
+                              );
+                    } else {
+                        message = payload.includeRequest
+                            ? loc.schemaCompare.cannotIncludeEntry(diffEntryName)
+                            : loc.schemaCompare.cannotExcludeEntry(diffEntryName);
+                    }
+
+                    vscode.window.showWarningMessage(message);
+                } else {
+                    vscode.window.showWarningMessage(result.errorMessage);
+                }
             }
 
             return state;
@@ -903,6 +939,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             return state;
         });
+    }
+
+    private formatEntryName(nameParts: string[]): string {
+        if (isNullOrUndefined(nameParts) || nameParts.length === 0) {
+            return "";
+        }
+        return nameParts.join(".");
     }
 
     private mapExtractTargetEnum(folderStructure: string): mssql.ExtractTarget {
