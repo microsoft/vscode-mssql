@@ -537,6 +537,32 @@
       "{0} is the error message returned from the save scmp operation"
     ]
   },
+  "Cannot exclude {0}. Included dependents exist, such as {1}/{0} is the name of the entry{1} is the name of the blocking dependency preventing exclusion.": {
+    "message": "Cannot exclude {0}. Included dependents exist, such as {1}",
+    "comment": [
+      "{0} is the name of the entry",
+      "{1} is the name of the blocking dependency preventing exclusion."
+    ]
+  },
+  "Cannot include {0}. Excluded dependents exist, such as {1}/{0} is the name of the entry{1} is the name of the blocking dependency preventing inclusion.": {
+    "message": "Cannot include {0}. Excluded dependents exist, such as {1}",
+    "comment": [
+      "{0} is the name of the entry",
+      "{1} is the name of the blocking dependency preventing inclusion."
+    ]
+  },
+  "Cannot exclude {0}. Included dependents exist/{0} is the name of the entry": {
+    "message": "Cannot exclude {0}. Included dependents exist",
+    "comment": [
+      "{0} is the name of the entry"
+    ]
+  },
+  "Cannot include {0}. Excluded dependents exist/{0} is the name of the entry": {
+    "message": "Cannot include {0}. Excluded dependents exist",
+    "comment": [
+      "{0} is the name of the entry"
+    ]
+  },
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [

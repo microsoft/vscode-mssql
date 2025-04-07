@@ -209,6 +209,24 @@
     <trans-unit id="++CODE++7c2b8feda9e74131c46fcd8892b9661d32e0dcfc3d10d9f4d4d948540ea4bb87">
       <source xml:lang="en">Cannot create foreign key</source>
     </trans-unit>
+    <trans-unit id="++CODE++5bf30206188ff92ec48bba56b2bf99fcb46ba9c20a05460485cf684b81a9c54b">
+      <source xml:lang="en">Cannot exclude {0}. Included dependents exist</source>
+      <note>{0} is the name of the entry</note>
+    </trans-unit>
+    <trans-unit id="++CODE++14c454076816c0b275e2257bbf79446718f442983b537c0c96d0c69451924452">
+      <source xml:lang="en">Cannot exclude {0}. Included dependents exist, such as {1}</source>
+      <note>{0} is the name of the entry
+{1} is the name of the blocking dependency preventing exclusion.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++01adf8aae81a6ef23bd48a183bc221def8cebdf0dc5490668df49f07e3eb3615">
+      <source xml:lang="en">Cannot include {0}. Excluded dependents exist</source>
+      <note>{0} is the name of the entry</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9e3eef26ce324ceb6b5c6f2cb1d94e3961f1bc4915d314c3324c6cd5d6b12710">
+      <source xml:lang="en">Cannot include {0}. Excluded dependents exist, such as {1}</source>
+      <note>{0} is the name of the entry
+{1} is the name of the blocking dependency preventing inclusion.</note>
+    </trans-unit>
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
     </trans-unit>
