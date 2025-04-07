@@ -24,6 +24,10 @@ import {
     CredentialsQuickPickItemType,
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
+import { AzureAccountService } from "../../src/services/azureAccountService";
+import { IAccount, ServiceOption } from "vscode-mssql";
+import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import { CapabilitiesResult, GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
@@ -34,6 +38,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let connectionUi: TypeMoq.IMock<ConnectionUI>;
     let mockObjectExplorerProvider: TypeMoq.IMock<ObjectExplorerProvider>;
     let controller: ConnectionDialogWebviewController;
+    let azureAccountService: TypeMoq.IMock<AzureAccountService>;
+    let serviceClientMock: TypeMoq.IMock<SqlToolsServerClient>;
 
     setup(async () => {
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
@@ -64,8 +70,13 @@ suite("ConnectionDialogWebviewController Tests", () => {
             mockContext.object,
         );
 
+        azureAccountService = TypeMoq.Mock.ofType(AzureAccountService, TypeMoq.MockBehavior.Loose);
+
+        serviceClientMock = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Loose);
+
         connectionManager.setup((cm) => cm.connectionStore).returns(() => connectionStore.object);
         connectionManager.setup((cm) => cm.connectionUI).returns(() => connectionUi.object);
+        connectionManager.setup((cm) => cm.client).returns(() => serviceClientMock.object);
 
         connectionStore
             .setup((cs) => cs.readAllConnections(TypeMoq.It.isAny()))
@@ -77,11 +88,57 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 ]),
             );
 
+        azureAccountService
+            .setup((a) => a.getAccounts())
+            .returns(() =>
+                Promise.resolve([
+                    {
+                        displayInfo: {
+                            displayName: "Test Display Name",
+                            userId: "TestUserId",
+                        },
+                    } as IAccount,
+                ]),
+            );
+
+        serviceClientMock
+            .setup((s) =>
+                s.sendRequest(TypeMoq.It.isValue(GetCapabilitiesRequest.type), TypeMoq.It.isAny()),
+            )
+            .returns(() =>
+                Promise.resolve({
+                    capabilities: {
+                        connectionProvider: {
+                            groupDisplayNames: {
+                                group1: "Group 1",
+                                group2: "Group 2",
+                            },
+                            options: [
+                                {
+                                    name: "server",
+                                    displayName: "Server",
+                                    isRequired: true,
+                                    valueType: "string",
+                                },
+                                {
+                                    name: "user",
+                                    displayName: "User",
+                                    isRequired: false,
+                                    valueType: "string",
+                                },
+                            ] as ServiceOption[],
+                        },
+                    },
+                } as unknown as CapabilitiesResult),
+            );
+
         mainController = new MainController(
             mockContext.object,
             connectionManager.object,
             mockVscodeWrapper.object,
         );
+
+        mainController.azureAccountService = azureAccountService.object;
 
         controller = new ConnectionDialogWebviewController(
             mockContext.object,
