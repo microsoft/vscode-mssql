@@ -122,6 +122,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         mockInitialState = {
             isSqlProjectExtensionInstalled: false,
+            isIncludeExcludeAllOperationInProgress: false,
             isComparisonInProgress: false,
             activeServers: {},
             databases: [],
