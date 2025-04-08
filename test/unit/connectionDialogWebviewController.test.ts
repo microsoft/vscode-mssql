@@ -12,8 +12,10 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
 import { expect } from "chai";
 import {
+    AuthenticationType,
     AzureSqlServerInfo,
     ConnectionInputMode,
+    IConnectionDialogProfile,
 } from "../../src/sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import ConnectionManager from "../../src/controllers/connectionManager";
@@ -140,6 +142,59 @@ suite("ConnectionDialogWebviewController Tests", () => {
                                     displayName: "User",
                                     isRequired: false,
                                     valueType: "string",
+                                },
+                                {
+                                    name: "password",
+                                    displayName: "Password",
+                                    isRequired: false,
+                                    valueType: "password",
+                                },
+                                {
+                                    name: "trustServerCertificate",
+                                    displayName: "Trust Server Certificate",
+                                    isRequired: false,
+                                    valueType: "boolean",
+                                },
+                                {
+                                    name: "authenticationType",
+                                    displayName: "Authentication Type",
+                                    isRequired: false,
+                                    valueType: "category",
+                                    categoryValues: [
+                                        AuthenticationType.SqlLogin,
+                                        AuthenticationType.Integrated,
+                                        AuthenticationType.AzureMFA,
+                                    ],
+                                },
+                                {
+                                    name: "savePassword",
+                                    displayName: "Save Password",
+                                    isRequired: false,
+                                    valueType: "boolean",
+                                },
+                                {
+                                    name: "accountId",
+                                    displayName: "Account Id",
+                                    isRequired: false,
+                                    valueType: "string",
+                                },
+                                {
+                                    name: "tenantId",
+                                    displayName: "Tenant Id",
+                                    isRequired: false,
+                                    valueType: "string",
+                                },
+                                {
+                                    name: "database",
+                                    displayName: "Database",
+                                    isRequired: false,
+                                    valueType: "string",
+                                },
+                                {
+                                    name: "encrypt",
+                                    displayName: "Encrypt",
+                                    isRequired: false,
+                                    valueType: "boolean",
                                 },
                             ] as ServiceOption[],
                         },
@@ -325,5 +380,39 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 );
             });
         });
+    });
+
+    test("loadConnection", async () => {
+        controller.state.formError = "Sample error";
+
+        expect(
+            controller["_connectionBeingEdited"],
+            "should not be a connection being edited at first",
+        ).to.be.undefined;
+
+        const testConnection = {
+            profileName: "Test Server to Edit",
+            server: "SavedServer",
+            database: "SavedDatabase",
+            authenticationType: AuthenticationType.SqlLogin,
+        } as IConnectionDialogProfile;
+
+        await controller["_reducers"].loadConnection(controller.state, {
+            connection: testConnection,
+        });
+
+        expect(
+            controller["_connectionBeingEdited"],
+            "connection being edited should have the same properties as the one passed to the reducer",
+        ).to.deep.equal(testConnection);
+        expect(
+            controller["_connectionBeingEdited"],
+            "connection being edited should be a clone of the one passed to the reducer, not the original",
+        ).to.not.equal(testConnection);
+
+        expect(
+            controller.state.formError,
+            "Error should be cleared after loading the connection",
+        ).to.equal("");
     });
 });
