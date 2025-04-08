@@ -63,6 +63,7 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import * as Prompts from "../chat/prompts";
 
 /**
  * The main controller class that initializes the extension
@@ -308,86 +309,124 @@ export default class MainController implements vscode.Disposable {
                 await vscode.commands.executeCommand("workbench.action.reloadWindow");
             });
 
+            const launchEditorChatWithPrompt = async (
+                prompt: string,
+                selectionPrompt: string | undefined = undefined,
+            ) => {
+                const activeEditor = vscode.window.activeTextEditor;
+                const uri = activeEditor?.document.uri.toString();
+                const promptToUse =
+                    activeEditor?.selection.isEmpty || !selectionPrompt ? prompt : selectionPrompt;
+                if (!uri) {
+                    // No active editor, so don't open chat
+                    // TODO: Show a message to the user
+                    return;
+                }
+                // create new connection
+                if (!this.connectionManager.isConnected(uri)) {
+                    await this.onNewConnection();
+                    sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
+                }
+
+                // Open chat window
+                vscode.commands.executeCommand("workbench.action.chat.open", promptToUse);
+            };
+
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
-            this._event.on(
-                Constants.cmdChatWithDatabase,
-                async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = Object.assign(
-                        {},
-                        treeNodeInfo.connectionInfo,
-                    );
-                    const databaseName =
-                        ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
-                    if (
-                        databaseName !== connectionCredentials.database &&
-                        databaseName !== LocalizedConstants.defaultDatabaseLabel
-                    ) {
-                        connectionCredentials.database = databaseName;
-                    } else if (
-                        databaseName === LocalizedConstants.defaultDatabaseLabel
-                    ) {
-                        connectionCredentials.database = "";
-                    }
+            this._event.on(Constants.cmdChatWithDatabase, async (treeNodeInfo: TreeNodeInfo) => {
+                const connectionCredentials = Object.assign({}, treeNodeInfo.connectionInfo);
+                const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                if (
+                    databaseName !== connectionCredentials.database &&
+                    databaseName !== LocalizedConstants.defaultDatabaseLabel
+                ) {
+                    connectionCredentials.database = databaseName;
+                } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
+                    connectionCredentials.database = "";
+                }
 
-                    // Check if the active document already has this database as a connection.
-                    var alreadyActive = false;
-                    let activeEditor = vscode.window.activeTextEditor;
-                    if (activeEditor) {
-                        const uri = activeEditor.document.uri.toString();
-                        const connection =
-                            this._connectionMgr.getConnectionInfo(uri);
-                        if (connection) {
-                            if (
-                                connection.credentials.user ===
-                                    connectionCredentials.user &&
-                                connection.credentials.database ===
-                                    connectionCredentials.database
-                            ) {
-                                alreadyActive = true;
-                            }
+                // Check if the active document already has this database as a connection.
+                var alreadyActive = false;
+                let activeEditor = vscode.window.activeTextEditor;
+                if (activeEditor) {
+                    const uri = activeEditor.document.uri.toString();
+                    const connection = this._connectionMgr.getConnectionInfo(uri);
+                    if (connection) {
+                        if (
+                            connection.credentials.user === connectionCredentials.user &&
+                            connection.credentials.database === connectionCredentials.database
+                        ) {
+                            alreadyActive = true;
                         }
                     }
+                }
 
-                    if (!alreadyActive) {
-                        treeNodeInfo.connectionInfo = connectionCredentials;
-                        await this.onNewQuery(treeNodeInfo);
+                if (!alreadyActive) {
+                    treeNodeInfo.updateConnectionInfo(connectionCredentials);
+                    await this.onNewQuery(treeNodeInfo);
 
-                        // Check if the new editor was created
-                        activeEditor = vscode.window.activeTextEditor;
-                        if (activeEditor) {
-                            const documentText =
-                                activeEditor.document.getText();
-                            if (documentText.length === 0) {
-                                // The editor is empty; safe to insert text
-                                const server = connectionCredentials.server;
-                                await activeEditor.edit((editBuilder) => {
-                                    editBuilder.insert(
-                                        new vscode.Position(0, 0),
-                                        `-- @${Constants.mssqlChatParticipantName} Chat Query Editor (${server} : ${connectionCredentials.database} : ${connectionCredentials.user})\n`,
-                                    );
-                                });
-                            } else {
-                                // The editor already contains text
-                                console.warn(
-                                    "Chat with database: unable to open editor",
+                    // Check if the new editor was created
+                    activeEditor = vscode.window.activeTextEditor;
+                    if (activeEditor) {
+                        const documentText = activeEditor.document.getText();
+                        if (documentText.length === 0) {
+                            // The editor is empty; safe to insert text
+                            const server = connectionCredentials.server;
+                            await activeEditor.edit((editBuilder) => {
+                                editBuilder.insert(
+                                    new vscode.Position(0, 0),
+                                    `-- @${Constants.mssqlChatParticipantName} Chat Query Editor (${server}:${connectionCredentials.database}:${connectionCredentials.user})\n`,
                                 );
-                            }
+                            });
                         } else {
-                            // The editor was somehow not created
-                            this._vscodeWrapper.showErrorMessage(
-                                "Chat with database: unable to open editor",
-                            );
+                            // The editor already contains text
+                            console.warn("Chat with database: unable to open editor");
                         }
-                    }
-
-                    if (activeEditor) {
-                        // Open chat window
-                        vscode.commands.executeCommand(
-                            "workbench.action.chat.open",
-                            `@${Constants.mssqlChatParticipantName} Hello!`,
+                    } else {
+                        // The editor was somehow not created
+                        this._vscodeWrapper.showErrorMessage(
+                            "Chat with database: unable to open editor",
                         );
                     }
-                },
+                }
+
+                if (activeEditor) {
+                    // Open chat window
+                    vscode.commands.executeCommand(
+                        "workbench.action.chat.open",
+                        `@${Constants.mssqlChatParticipantName} Hello!`,
+                    );
+                }
+            });
+
+            // -- EXPLAIN QUERY --
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdExplainQuery, async () => {
+                    await launchEditorChatWithPrompt(
+                        Prompts.explainQueryPrompt,
+                        Prompts.explainQuerySelectionPrompt,
+                    );
+                    // TODO: Add telemetry
+                }),
+            );
+
+            // -- REWRITE QUERY --
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdRewriteQuery, async () => {
+                    await launchEditorChatWithPrompt(
+                        Prompts.rewriteQueryPrompt,
+                        Prompts.rewriteQuerySelectionPrompt,
+                    );
+                    // TODO: Add telemetry
+                }),
+            );
+
+            // -- ANALYZE QUERY PERFORMANCE --
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdAnalyzeQueryPerformance, async () => {
+                    await launchEditorChatWithPrompt(Prompts.analyzeQueryPerformancePrompt);
+                    // TODO: Add telemetry
+                }),
             );
 
             this.initializeQueryHistory();
@@ -411,9 +450,7 @@ export default class MainController implements vscode.Disposable {
             );
             this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
             this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
-	    this.copilotService = new CopilotService(
-                SqlToolsServerClient.instance,
-            );
+            this.copilotService = new CopilotService(SqlToolsServerClient.instance);
 
             this._queryResultWebviewController.setExecutionPlanService(this.executionPlanService);
             this._queryResultWebviewController.setUntitledDocumentService(

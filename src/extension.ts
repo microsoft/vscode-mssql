@@ -32,6 +32,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     // 	LocalizedConstants.loadLocalizedConstants(vscode.env.language);
     // }
 
+    // Check if GitHub Copilot is installed
+    const copilotExtension = vscode.extensions.getExtension("GitHub.copilot");
+    vscode.commands.executeCommand(
+        "setContext",
+        "mssql.copilot.isGHCInstalled",
+        !!copilotExtension,
+    );
+
     // Exposed for testing purposes
     vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
     await controller.activate();
