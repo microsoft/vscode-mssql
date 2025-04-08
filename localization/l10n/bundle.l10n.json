@@ -1079,24 +1079,6 @@
       "{0} is the error message returned from the generate script operation"
     ]
   },
-  "Schema Compare Apply failed '{0}'/{0} is the error message returned from the publish changes operation": {
-    "message": "Schema Compare Apply failed '{0}'",
-    "comment": [
-      "{0} is the error message returned from the publish changes operation"
-    ]
-  },
-  "Open scmp failed '{0}'/{0} is the error message returned from the open scmp operation": {
-    "message": "Open scmp failed '{0}'",
-    "comment": [
-      "{0} is the error message returned from the open scmp operation"
-    ]
-  },
-  "Save scmp failed: '{0}'/{0} is the error message returned from the save scmp operation": {
-    "message": "Save scmp failed: '{0}'",
-    "comment": [
-      "{0} is the error message returned from the save scmp operation"
-    ]
-  },
   "Cancel schema compare failed: '{0}'/{0} is the error message returned from the cancel operation": {
     "message": "Cancel schema compare failed: '{0}'",
     "comment": [
