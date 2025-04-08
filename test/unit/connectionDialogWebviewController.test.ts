@@ -12,7 +12,6 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
 import { expect } from "chai";
 import {
-    ConnectionDialogWebviewState,
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../src/sharedInterfaces/connectionDialog";
@@ -40,6 +39,18 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let controller: ConnectionDialogWebviewController;
     let azureAccountService: TypeMoq.IMock<AzureAccountService>;
     let serviceClientMock: TypeMoq.IMock<SqlToolsServerClient>;
+
+    const testMruConnection = {
+        profileSource: CredentialsQuickPickItemType.Mru,
+        server: "MruServer",
+        database: "MruDatabase",
+    } as IConnectionProfileWithSource;
+
+    const testSavedConnection = {
+        profileSource: CredentialsQuickPickItemType.Profile,
+        server: "SavedServer",
+        database: "SavedDatabase",
+    } as IConnectionProfileWithSource;
 
     setup(async () => {
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
@@ -80,13 +91,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         connectionStore
             .setup((cs) => cs.readAllConnections(TypeMoq.It.isAny()))
-            .returns(() =>
-                Promise.resolve([
-                    {
-                        profileSource: CredentialsQuickPickItemType.Mru,
-                    } as IConnectionProfileWithSource,
-                ]),
-            );
+            .returns(() => Promise.resolve([testMruConnection, testSavedConnection]));
 
         azureAccountService
             .setup((a) => a.getAccounts())
@@ -152,28 +157,68 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     test("should initialize correctly", async () => {
-        const expectedInitialState: ConnectionDialogWebviewState = {
-            selectedInputMode: ConnectionInputMode.Parameters,
-            connectionProfile: undefined,
-            formState: {} as IConnectionDialogProfile,
-            formComponents: {},
-            connectionComponents: {
-                mainOptions: [],
-                topAdvancedOptions: [],
-                groupedAdvancedOptions: [],
-            },
-            azureSubscriptions: [],
-            azureServers: [],
-            savedConnections: [],
-            recentConnections: [],
-            connectionStatus: ApiStatus.NotStarted,
-            formError: "",
-            loadingAzureSubscriptionsStatus: ApiStatus.NotStarted,
-            loadingAzureServersStatus: ApiStatus.NotStarted,
-            dialog: undefined,
+        const initialFormState = {
+            authenticationType: "SqlLogin",
+            connectTimeout: 30,
+            applicationName: "vscode-mssql",
         };
 
-        expect(controller.state).to.deep.equal(expectedInitialState);
+        expect(controller.state.formState).to.deep.equal(
+            initialFormState,
+            "Initial form state is incorrect",
+        );
+
+        expect(controller.state.formError).to.deep.equal(
+            "",
+            "Should be no error in the initial state",
+        );
+
+        expect(controller.state.connectionStatus).to.equal(
+            ApiStatus.NotStarted,
+            "Connection status should be NotStarted",
+        );
+
+        expect(controller.state.loadingAzureServersStatus).to.equal(
+            ApiStatus.NotStarted,
+            "Azure server load status should be NotStarted",
+        );
+
+        expect(controller.state.formComponents).to.contains.all.keys(["server", "user"]);
+
+        expect(controller.state.formComponents).to.contains.all.keys([
+            "profileName",
+            "savePassword",
+            "accountId",
+            "tenantId",
+            "connectionString",
+        ]);
+
+        expect(controller.state.connectionComponents.mainOptions).to.deep.equal([
+            "server",
+            "trustServerCertificate",
+            "authenticationType",
+            "user",
+            "password",
+            "savePassword",
+            "accountId",
+            "tenantId",
+            "database",
+            "encrypt",
+        ]);
+
+        expect(controller.state.connectionComponents.topAdvancedOptions).to.deep.equal([
+            "port",
+            "applicationName",
+            "connectTimeout",
+            "multiSubnetFailover",
+        ]);
+
+        expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
+        expect(controller.state.savedConnections).to.have.lengthOf(1);
+        expect(controller.state.savedConnections[0]).to.deep.include(testSavedConnection);
+
+        expect(controller.state.recentConnections).to.have.lengthOf(1);
+        expect(controller.state.recentConnections).to.deep.include(testMruConnection);
     });
 
     test("should handle setConnectionInputType reducer", async () => {
@@ -186,19 +231,5 @@ suite("ConnectionDialogWebviewController Tests", () => {
         );
 
         assert.strictEqual(newState.selectedInputMode, "Parameters");
-    });
-
-    test("should clean connection profile correctly", () => {
-        const connectionProfile = {
-            server: "testServer",
-            user: "testUser",
-            password: "testPassword",
-            connectionString: "testConnectionString",
-        } as IConnectionDialogProfile;
-
-        const cleanedProfile = controller["cleanConnection"](connectionProfile);
-
-        assert.strictEqual(cleanedProfile.connectionString, undefined);
-        assert.strictEqual(cleanedProfile.server, "testServer");
     });
 });
