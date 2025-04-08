@@ -107,15 +107,22 @@ export async function getQuickPickItems(
 const serverResourceType = "Microsoft.Sql/servers";
 const databaseResourceType = "Microsoft.Sql/servers/databases";
 
+export async function fetchResourcesForSubscription(
+    sub: AzureSubscription,
+): Promise<GenericResourceExpanded[]> {
+    const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
+    const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
+    return resources;
+}
+
 export async function fetchServersFromAzure(sub: AzureSubscription): Promise<AzureSqlServerInfo[]> {
     const result: AzureSqlServerInfo[] = [];
-    const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
+
+    const resources = await fetchResourcesForSubscription(sub);
 
     // for some subscriptions, supplying a `resourceType eq 'Microsoft.Sql/servers/databases'` filter to list() causes an error:
     // > invalid filter in query string 'resourceType eq "Microsoft.Sql/servers/databases'"
     // no idea why, so we're fetching all resources and filtering them ourselves
-
-    const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
 
     const servers = resources.filter((r) => r.type === serverResourceType);
     const databases = resources.filter((r) => r.type === databaseResourceType);

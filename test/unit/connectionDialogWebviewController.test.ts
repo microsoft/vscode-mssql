@@ -3,17 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
+import * as sinon from "sinon";
 import { ConnectionDialogWebviewController } from "../../src/connectionconfig/connectionDialogWebviewController";
 import MainController from "../../src/controllers/mainController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
 import { expect } from "chai";
 import {
+    AzureSqlServerInfo,
     ConnectionInputMode,
-    IConnectionDialogProfile,
 } from "../../src/sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import ConnectionManager from "../../src/controllers/connectionManager";
@@ -27,8 +27,16 @@ import { AzureAccountService } from "../../src/services/azureAccountService";
 import { IAccount, ServiceOption } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "../../src/models/contracts/connection";
+import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
+import {
+    AzureSubscription,
+    VSCodeAzureSubscriptionProvider,
+} from "@microsoft/vscode-azext-azureauth";
+import { stubTelemetry } from "./utils";
 
 suite("ConnectionDialogWebviewController Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let mainController: MainController;
@@ -53,6 +61,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
     } as IConnectionProfileWithSource;
 
     setup(async () => {
+        sandbox = sinon.createSandbox();
+
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
         // mockMainController = TypeMoq.Mock.ofType<MainController>();
@@ -156,6 +166,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
         await controller.initialized;
     });
 
+    teardown(() => {
+        sandbox.restore();
+    });
+
     test("should initialize correctly", async () => {
         const initialFormState = {
             authenticationType: "SqlLogin",
@@ -221,15 +235,95 @@ suite("ConnectionDialogWebviewController Tests", () => {
         expect(controller.state.recentConnections).to.deep.include(testMruConnection);
     });
 
-    test("should handle setConnectionInputType reducer", async () => {
-        const state = { selectedInputMode: undefined };
-        const payload = { inputMode: "Parameters" };
+    suite("Reducers", () => {
+        suite("setConnectionInputType", () => {
+            test("Should set connection input type correctly for Parameters and ConnectionString", async () => {
+                expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
 
-        const newState = await controller["registerRpcHandlers"]()["setConnectionInputType"](
-            state,
-            payload,
-        );
+                await controller["_reducers"].setConnectionInputType(controller.state, {
+                    inputMode: ConnectionInputMode.ConnectionString,
+                });
 
-        assert.strictEqual(newState.selectedInputMode, "Parameters");
+                expect(controller.state.selectedInputMode).to.equal(
+                    ConnectionInputMode.ConnectionString,
+                    "Should set connection input type to ConnectionString",
+                );
+
+                await controller["_reducers"].setConnectionInputType(controller.state, {
+                    inputMode: ConnectionInputMode.Parameters,
+                });
+
+                expect(controller.state.selectedInputMode).to.equal(
+                    ConnectionInputMode.Parameters,
+                    "Should set connection input type to Parameters",
+                );
+            });
+
+            test("should set connection input mode correctly and load server info for AzureBrowse", async () => {
+                const { sendErrorEvent } = stubTelemetry(sandbox);
+
+                const mockSubscriptions = [
+                    {
+                        name: "Ten0Sub1",
+                        subscriptionId: "00000000-0000-0000-0000-111111111111",
+                        tenantId: "00000000-0000-0000-0000-000000000000",
+                    },
+                    {
+                        name: "Ten1Sub1",
+                        subscriptionId: "11111111-0000-0000-0000-111111111111",
+                        tenantId: "11111111-1111-1111-1111-111111111111",
+                    },
+                ];
+
+                sandbox.stub(AzureHelpers, "confirmVscodeAzureSignin").resolves({
+                    getSubscriptions: () => Promise.resolve(mockSubscriptions),
+                } as unknown as VSCodeAzureSubscriptionProvider);
+
+                sandbox
+                    .stub(AzureHelpers, "fetchServersFromAzure")
+                    .callsFake(async (sub: AzureSubscription) => {
+                        return [
+                            {
+                                location: "TestRegion",
+                                resourceGroup: `testResourceGroup-${sub.name}`,
+                                server: `testServer-${sub.name}-1`,
+                                databases: ["testDatabase1", "testDatabase2"],
+                                subscription: `${sub.name} (${sub.subscriptionId})`,
+                            },
+                            {
+                                location: "TestRegion",
+                                resourceGroup: `testResourceGroup-${sub.name}`,
+                                server: `testServer-${sub.name}-2`,
+                                databases: ["testDatabase1", "testDatabase2"],
+                                subscription: `${sub.name} (${sub.subscriptionId})`,
+                            },
+                        ] as AzureSqlServerInfo[];
+                    });
+
+                await controller["_reducers"].setConnectionInputType(controller.state, {
+                    inputMode: ConnectionInputMode.AzureBrowse,
+                });
+
+                // validate that subscriptions and servers are loaded correctly
+
+                expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
+
+                expect(controller.state.azureSubscriptions).to.have.lengthOf(2);
+                expect(controller.state.azureSubscriptions).to.satisfy(
+                    (subs) => subs.some((s) => s.name === "Ten0Sub1"),
+                    "Subscription list should contain expected subscription",
+                );
+
+                expect(controller.state.azureServers).to.have.lengthOf(
+                    4,
+                    "Should have 4 servers; 2 for each subscription",
+                );
+                expect(controller.state.azureServers).to.satisfy(
+                    (servers: AzureSqlServerInfo[]) =>
+                        servers.some((server) => server.server === "testServer-Ten1Sub1-2"),
+                    "Server list should contain expected server",
+                );
+            });
+        });
     });
 });
