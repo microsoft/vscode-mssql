@@ -639,6 +639,9 @@ export class LocConstants {
                     args: [diffEntryName],
                     comment: ["{0} is the name of the entry"],
                 }),
+            includeExcludeAllOperationInProgress: l10n.t(
+                "Processing include or exclude all differences operation.",
+            ),
         };
     }
 }

@@ -65,6 +65,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             {
                 isSqlProjectExtensionInstalled: false,
                 isComparisonInProgress: false,
+                isIncludeExcludeAllOperationInProgress: false,
                 activeServers: {},
                 databases: [],
                 defaultDeploymentOptionsResult: schemaCompareOptionsResult,
@@ -770,6 +771,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("includeExcludeAllNodes", async (state, payload) => {
+            state.isIncludeExcludeAllOperationInProgress = true;
+            this.updateState(state);
+
             const result = await includeExcludeAllNodes(
                 this.operationId,
                 TaskExecutionMode.execute,
@@ -777,11 +781,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.schemaCompareService,
             );
 
+            this.state.isIncludeExcludeAllOperationInProgress = false;
+
             if (result.success) {
                 state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
-
-                this.updateState(state);
             }
+
+            this.updateState(state);
 
             return state;
         });

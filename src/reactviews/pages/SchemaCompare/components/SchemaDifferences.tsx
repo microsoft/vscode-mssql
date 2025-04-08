@@ -21,6 +21,7 @@ import {
     TableColumnDefinition,
     Checkbox,
     makeStyles,
+    Spinner,
 } from "@fluentui/react-components";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
@@ -255,10 +256,20 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
                         {loc.schemaCompare.sourceName}
                     </TableHeaderCell>
                     <TableHeaderCell className={classes.PrimaryCheckboxPadding}>
-                        <Checkbox
-                            checked={allDiffsIncluded ? true : someDiffsExcluded ? "mixed" : false}
-                            onClick={() => handleIncludeExcludeAllNodes()}
-                        />
+                        {!context.state.isIncludeExcludeAllOperationInProgress && (
+                            <Checkbox
+                                checked={
+                                    allDiffsIncluded ? true : someDiffsExcluded ? "mixed" : false
+                                }
+                                onClick={() => handleIncludeExcludeAllNodes()}
+                            />
+                        )}
+                        {context.state.isIncludeExcludeAllOperationInProgress && (
+                            <Spinner
+                                size="extra-tiny"
+                                aria-label={loc.schemaCompare.includeExcludeAllOperationInProgress}
+                            />
+                        )}
                     </TableHeaderCell>
                     <TableHeaderCell className={classes.HeaderCellPadding}>
                         {loc.schemaCompare.action}

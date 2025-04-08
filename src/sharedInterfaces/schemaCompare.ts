@@ -28,6 +28,7 @@ export const enum SchemaUpdateAction {
 export interface SchemaCompareWebViewState {
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
+    isIncludeExcludeAllOperationInProgress: boolean;
     activeServers: { [connectionUri: string]: string };
     databases: string[];
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
