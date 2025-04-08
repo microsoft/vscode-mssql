@@ -735,6 +735,42 @@ export class SchemaCompare {
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the compare operation"],
         });
+    public static cannotExcludeEntryWithBlockingDependency = (
+        diffEntryName: string,
+        firstDependentName: string,
+    ) =>
+        l10n.t({
+            message: "Cannot exclude {0}. Included dependents exist, such as {1}",
+            args: [diffEntryName, firstDependentName],
+            comment: [
+                "{0} is the name of the entry",
+                "{1} is the name of the blocking dependency preventing exclusion.",
+            ],
+        });
+    public static cannotIncludeEntryWithBlockingDependency = (
+        diffEntryName: string,
+        firstDependentName: string,
+    ) =>
+        l10n.t({
+            message: "Cannot include {0}. Excluded dependents exist, such as {1}",
+            args: [diffEntryName, firstDependentName],
+            comment: [
+                "{0} is the name of the entry",
+                "{1} is the name of the blocking dependency preventing inclusion.",
+            ],
+        });
+    public static cannotExcludeEntry = (diffEntryName: string) =>
+        l10n.t({
+            message: "Cannot exclude {0}. Included dependents exist",
+            args: [diffEntryName],
+            comment: ["{0} is the name of the entry"],
+        });
+    public static cannotIncludeEntry = (diffEntryName: string) =>
+        l10n.t({
+            message: "Cannot include {0}. Excluded dependents exist",
+            args: [diffEntryName],
+            comment: ["{0} is the name of the entry"],
+        });
 }
 
 export class SchemaDesigner {

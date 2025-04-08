@@ -40,6 +40,7 @@ import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
+import * as locConstants from "../constants/locConstants";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -746,18 +747,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     let message: string = "";
                     if (firstBlockingDependencyName) {
                         message = payload.includeRequest
-                            ? loc.schemaCompare.cannotIncludeEntryWithBlockingDependency(
+                            ? locConstants.SchemaCompare.cannotIncludeEntryWithBlockingDependency(
                                   diffEntryName,
                                   firstBlockingDependencyName,
                               )
-                            : loc.schemaCompare.cannotExcludeEntryWithBlockingDependency(
+                            : locConstants.SchemaCompare.cannotExcludeEntryWithBlockingDependency(
                                   diffEntryName,
                                   firstBlockingDependencyName,
                               );
                     } else {
                         message = payload.includeRequest
-                            ? loc.schemaCompare.cannotIncludeEntry(diffEntryName)
-                            : loc.schemaCompare.cannotExcludeEntry(diffEntryName);
+                            ? locConstants.SchemaCompare.cannotIncludeEntry(diffEntryName)
+                            : locConstants.SchemaCompare.cannotExcludeEntry(diffEntryName);
                     }
 
                     vscode.window.showWarningMessage(message);
