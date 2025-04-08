@@ -34,9 +34,9 @@ import { ObjectExplorerFilterContext } from "./ObjectExplorerFilterStateProvider
 import * as vscodeMssql from "vscode-mssql";
 import { EraserRegular } from "@fluentui/react-icons";
 import {
-    NodeFilterOperator,
     NodeFilterPropertyDataType,
     ObjectExplorerPageFilter,
+    ObjectExplorerFilterUtils,
 } from "../../../sharedInterfaces/objectExplorerFilter";
 import * as l10n from "@vscode/l10n";
 import { locConstants } from "../../common/locConstants";
@@ -82,137 +82,8 @@ export const ObjectExplorerFilterPage = () => {
     const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>([]);
 
     const AND = locConstants.objectExplorerFiltering.and;
-    const CONTAINS = locConstants.objectExplorerFiltering.contains;
-    const NOT_CONTAINS = locConstants.objectExplorerFiltering.notContains;
-    const STARTS_WITH = locConstants.objectExplorerFiltering.startsWith;
-    const NOT_STARTS_WITH = locConstants.objectExplorerFiltering.notStartsWith;
-    const ENDS_WITH = locConstants.objectExplorerFiltering.endsWith;
-    const NOT_ENDS_WITH = locConstants.objectExplorerFiltering.notEndsWith;
-    const EQUALS = locConstants.objectExplorerFiltering.equals;
-    const NOT_EQUALS = locConstants.objectExplorerFiltering.notEquals;
-    const LESS_THAN = locConstants.objectExplorerFiltering.lessThan;
-    const LESS_THAN_OR_EQUALS = locConstants.objectExplorerFiltering.lessThanOrEquals;
-    const GREATER_THAN = locConstants.objectExplorerFiltering.greaterThan;
-    const GREATER_THAN_OR_EQUALS = locConstants.objectExplorerFiltering.greaterThanOrEquals;
     const BETWEEN = locConstants.objectExplorerFiltering.between;
     const NOT_BETWEEN = locConstants.objectExplorerFiltering.notBetween;
-
-    function getFilterOperatorString(operator: NodeFilterOperator | undefined): string | undefined {
-        if (operator === undefined) {
-            return undefined;
-        }
-        switch (operator) {
-            case NodeFilterOperator.Contains:
-                return CONTAINS;
-            case NodeFilterOperator.NotContains:
-                return NOT_CONTAINS;
-            case NodeFilterOperator.StartsWith:
-                return STARTS_WITH;
-            case NodeFilterOperator.NotStartsWith:
-                return NOT_STARTS_WITH;
-            case NodeFilterOperator.EndsWith:
-                return ENDS_WITH;
-            case NodeFilterOperator.NotEndsWith:
-                return NOT_ENDS_WITH;
-            case NodeFilterOperator.Equals:
-                return EQUALS;
-            case NodeFilterOperator.NotEquals:
-                return NOT_EQUALS;
-            case NodeFilterOperator.LessThan:
-                return LESS_THAN;
-            case NodeFilterOperator.LessThanOrEquals:
-                return LESS_THAN_OR_EQUALS;
-            case NodeFilterOperator.GreaterThan:
-                return GREATER_THAN;
-            case NodeFilterOperator.GreaterThanOrEquals:
-                return GREATER_THAN_OR_EQUALS;
-            case NodeFilterOperator.Between:
-                return BETWEEN;
-            case NodeFilterOperator.NotBetween:
-                return NOT_BETWEEN;
-            default:
-                return "";
-        }
-    }
-
-    function getFilterOperatorEnum(operator: string): NodeFilterOperator {
-        switch (operator) {
-            case CONTAINS:
-                return NodeFilterOperator.Contains;
-            case NOT_CONTAINS:
-                return NodeFilterOperator.NotContains;
-            case STARTS_WITH:
-                return NodeFilterOperator.StartsWith;
-            case NOT_STARTS_WITH:
-                return NodeFilterOperator.NotStartsWith;
-            case ENDS_WITH:
-                return NodeFilterOperator.EndsWith;
-            case NOT_ENDS_WITH:
-                return NodeFilterOperator.NotEndsWith;
-            case EQUALS:
-                return NodeFilterOperator.Equals;
-            case NOT_EQUALS:
-                return NodeFilterOperator.NotEquals;
-            case LESS_THAN:
-                return NodeFilterOperator.LessThan;
-            case LESS_THAN_OR_EQUALS:
-                return NodeFilterOperator.LessThanOrEquals;
-            case GREATER_THAN:
-                return NodeFilterOperator.GreaterThan;
-            case GREATER_THAN_OR_EQUALS:
-                return NodeFilterOperator.GreaterThanOrEquals;
-            case BETWEEN:
-                return NodeFilterOperator.Between;
-            case NOT_BETWEEN:
-                return NodeFilterOperator.NotBetween;
-            default:
-                return NodeFilterOperator.Equals;
-        }
-    }
-
-    function getFilterOperators(property: vscodeMssql.NodeFilterProperty): string[] {
-        switch (property.type) {
-            case NodeFilterPropertyDataType.Boolean:
-                return [EQUALS, NOT_EQUALS];
-            case NodeFilterPropertyDataType.String:
-                return [
-                    CONTAINS,
-                    NOT_CONTAINS,
-                    STARTS_WITH,
-                    NOT_STARTS_WITH,
-                    ENDS_WITH,
-                    NOT_ENDS_WITH,
-                    EQUALS,
-                    NOT_EQUALS,
-                ];
-            case NodeFilterPropertyDataType.Number:
-                return [
-                    EQUALS,
-                    NOT_EQUALS,
-                    LESS_THAN,
-                    LESS_THAN_OR_EQUALS,
-                    GREATER_THAN,
-                    GREATER_THAN_OR_EQUALS,
-                    BETWEEN,
-                    NOT_BETWEEN,
-                ];
-            case NodeFilterPropertyDataType.Date:
-                return [
-                    EQUALS,
-                    NOT_EQUALS,
-                    LESS_THAN,
-                    LESS_THAN_OR_EQUALS,
-                    GREATER_THAN,
-                    GREATER_THAN_OR_EQUALS,
-                    BETWEEN,
-                    NOT_BETWEEN,
-                ];
-            case NodeFilterPropertyDataType.Choice:
-                return [EQUALS, NOT_EQUALS];
-            default:
-                return [];
-        }
-    }
 
     function getFilterChoices(
         property: vscodeMssql.NodeFilterChoiceProperty | vscodeMssql.NodeFilterProperty,
@@ -267,11 +138,13 @@ export const ObjectExplorerFilterPage = () => {
                         value: filter?.value ?? "",
                         type: value.type,
                         choices: getFilterChoices(value) ?? [],
-                        operatorOptions: getFilterOperators(value),
+                        operatorOptions: ObjectExplorerFilterUtils.getFilterOperators(value),
                         selectedOperator:
                             filter === undefined
-                                ? getFilterOperators(value)[0]
-                                : (getFilterOperatorString(filter?.operator) ?? ""),
+                                ? ObjectExplorerFilterUtils.getFilterOperators(value)[0]
+                                : (ObjectExplorerFilterUtils.getFilterOperatorString(
+                                      filter?.operator,
+                                  ) ?? ""),
                         description: value.description,
                     };
                 }) ?? [],
@@ -598,91 +471,10 @@ export const ObjectExplorerFilterPage = () => {
                 <Button
                     appearance="primary"
                     onClick={() => {
-                        const filters: vscodeMssql.NodeFilter[] = uiFilters
-                            .map((f) => {
-                                let value = undefined;
-                                switch (f.type) {
-                                    case NodeFilterPropertyDataType.Boolean:
-                                        if (f.value === "" || f.value === undefined) {
-                                            value = undefined;
-                                        } else {
-                                            value =
-                                                f.choices?.find((c) => c.displayName === f.value)
-                                                    ?.name ?? undefined;
-                                        }
-                                        break;
-                                    case NodeFilterPropertyDataType.Number:
-                                        if (
-                                            f.selectedOperator === BETWEEN ||
-                                            f.selectedOperator === NOT_BETWEEN
-                                        ) {
-                                            value = (f.value as string[]).map((v) => Number(v));
-                                        } else {
-                                            value = Number(f.value);
-                                        }
-                                        break;
-                                    case NodeFilterPropertyDataType.String:
-                                    case NodeFilterPropertyDataType.Date:
-                                        value = f.value;
-                                        break;
-                                    case NodeFilterPropertyDataType.Choice:
-                                        if (f.value === "" || f.value === undefined) {
-                                            value = undefined;
-                                        } else {
-                                            value =
-                                                f.choices?.find((c) => c.displayName === f.value)
-                                                    ?.name ?? undefined;
-                                        }
-                                        break;
-                                }
-                                return {
-                                    name: f.name,
-                                    value: value!,
-                                    operator: getFilterOperatorEnum(f.selectedOperator),
-                                };
-                            })
-                            .filter((f) => {
-                                if (
-                                    f.operator === NodeFilterOperator.Between ||
-                                    f.operator === NodeFilterOperator.NotBetween
-                                ) {
-                                    return (
-                                        (f.value as string[])[0] !== "" ||
-                                        (f.value as string[])[1] !== ""
-                                    );
-                                }
-                                return f.value !== "" && f.value !== undefined;
-                            });
-
-                        let errorText = "";
-                        for (let filter of filters) {
-                            if (
-                                filter.operator === NodeFilterOperator.Between ||
-                                filter.operator === NodeFilterOperator.NotBetween
-                            ) {
-                                let value1 = (filter.value as string[] | number[])[0];
-                                let value2 = (filter.value as string[] | number[])[1];
-                                if (!value1 && value2) {
-                                    errorText =
-                                        locConstants.objectExplorerFiltering.firstValueEmptyError(
-                                            getFilterOperatorString(filter.operator)!,
-                                            filter.name,
-                                        );
-                                } else if (!value2 && value1) {
-                                    errorText =
-                                        locConstants.objectExplorerFiltering.secondValueEmptyError(
-                                            getFilterOperatorString(filter.operator)!,
-                                            filter.name,
-                                        );
-                                } else if (value1 > value2) {
-                                    errorText =
-                                        locConstants.objectExplorerFiltering.firstValueLessThanSecondError(
-                                            getFilterOperatorString(filter.operator)!,
-                                            filter.name,
-                                        );
-                                }
-                            }
-                        }
+                        const filters: vscodeMssql.NodeFilter[] =
+                            ObjectExplorerFilterUtils.getFilters(uiFilters);
+                        const errorText =
+                            ObjectExplorerFilterUtils.getErrorTextFromFilters(filters);
                         if (errorText) {
                             setErrorMessage(errorText);
                             return;

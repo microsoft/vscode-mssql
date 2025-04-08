@@ -64,6 +64,63 @@ export async function addDatabaseConnection(
     }
 }
 
+export async function addDatabaseConnectionThroughWebview(
+    vsCodePage: Page,
+    serverName: string,
+    databaseName: string,
+    authType: string,
+    userName: string,
+    password: string,
+    savePassword: string,
+    profileName: string,
+): Promise<void> {
+    if (authType !== "SQL Login") return;
+
+    await vsCodePage.keyboard.press("Control+P");
+    await waitForCommandPaletteToBeVisible(vsCodePage);
+    await vsCodePage.keyboard.type(">MS SQL: Add Connection (Preview)");
+    await waitForCommandPaletteToBeVisible(vsCodePage);
+    await vsCodePage.keyboard.press("Enter");
+
+    const connectionWebview = await getWebviewByTitle(vsCodePage, "Connection Dialog (Preview)");
+
+    const inputElements = connectionWebview.locator('input[type="text"].fui-Input__input');
+    const profileNameElement = await inputElements.nth(0);
+    const serverNameElement = await inputElements.nth(1);
+    const userNameElement = await inputElements.nth(2);
+    const databaseNameElement = await inputElements.nth(3);
+
+    const checkBoxElements = connectionWebview.locator(
+        'input[type="checkbox"].fui-Checkbox__input',
+    );
+    const trustServerElement = await checkBoxElements.nth(0);
+    const savePasswordElement = await checkBoxElements.nth(1);
+
+    const passwordInputElement = connectionWebview.locator(
+        'input[type="password"].fui-Input__input',
+    );
+
+    await serverNameElement.fill(serverName);
+    await userNameElement.fill(userName);
+    await trustServerElement.click();
+    await passwordInputElement.fill(password);
+
+    if (databaseName) {
+        await databaseNameElement.fill(databaseName);
+    }
+
+    if (savePassword) {
+        await savePasswordElement.click();
+    }
+
+    if (profileName) {
+        await profileNameElement.fill(profileName);
+    }
+
+    const connectButton = connectionWebview.locator('button[type="submit"].fui-Button');
+    await connectButton.click();
+}
+
 export async function openNewQueryEditor(
     vsCodePage: Page,
     profileName: string,
