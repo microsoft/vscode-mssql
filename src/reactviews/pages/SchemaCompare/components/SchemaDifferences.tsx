@@ -207,31 +207,29 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
         };
     });
 
-    const toggleAllKeydown = React.useCallback(
-        (e: React.KeyboardEvent<HTMLDivElement>) => {
-            if (e.key === " ") {
-                handleIncludeExcludeAllNodes();
-                e.preventDefault();
-            }
-        },
-        [handleIncludeExcludeAllNodes],
-    );
+    const toggleAllKeydown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === " ") {
+            handleIncludeExcludeAllNodes();
+            e.preventDefault();
+        }
+    };
 
-    const toggleKeyDown = React.useCallback(
-        (e: React.KeyboardEvent<HTMLDivElement>, diffEntry: DiffEntry, include: boolean) => {
-            if (e.key === "Enter") {
-                if (diffEntry.position !== undefined) {
-                    onDiffSelected(diffEntry.position);
-                }
-                e.preventDefault();
+    const toggleKeyDown = (
+        e: React.KeyboardEvent<HTMLDivElement>,
+        diffEntry: DiffEntry,
+        include: boolean,
+    ) => {
+        if (e.key === "Enter") {
+            if (diffEntry.position !== undefined) {
+                onDiffSelected(diffEntry.position);
             }
-            if (e.key === " ") {
-                handleIncludeExcludeNode(diffEntry, include);
-                e.preventDefault();
-            }
-        },
-        [handleIncludeExcludeNode],
-    );
+            e.preventDefault();
+        }
+        if (e.key === " ") {
+            handleIncludeExcludeNode(diffEntry, include);
+            e.preventDefault();
+        }
+    };
 
     const RenderRow = ({ index, style, data }: ReactWindowRenderFnProps) => {
         const { item, appearance, onKeyDown } = data[index];
