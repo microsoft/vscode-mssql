@@ -93,17 +93,15 @@ export const tableUtils = {
                 {
                     name: "Id",
                     dataType: "int",
-                    maxLength: 0,
+                    maxLength: "",
                     precision: 0,
                     scale: 0,
                     isNullable: false,
                     isPrimaryKey: true,
-                    isUnique: false,
                     id: uuidv4(),
                     isIdentity: true,
                     identitySeed: 1,
                     identityIncrement: 1,
-                    collation: "",
                     defaultValue: "",
                 },
             ],
@@ -140,27 +138,47 @@ export const columnUtils = {
         if (!column.name) return locConstants.schemaDesigner.columnNameEmptyError;
         if (column.isPrimaryKey && column.isNullable)
             return locConstants.schemaDesigner.columnPKCannotBeNull(column.name);
+        // Check if maxlength is a valid number or MAX
+        if (columnUtils.isLengthBasedType(column.dataType)) {
+            if (!column.maxLength) {
+                return locConstants.schemaDesigner.columnMaxLengthEmptyError;
+            }
+            if (column.maxLength && column.maxLength !== "MAX") {
+                const maxLength = parseInt(column.maxLength);
+                if (isNaN(maxLength) || maxLength <= 0) {
+                    return locConstants.schemaDesigner.columnMaxLengthInvalid(column.maxLength);
+                }
+            }
+        }
     },
     isLengthBasedType: (type: string): boolean => {
-        return ["char", "varchar", "nchar", "nvarchar", "binary", "varbinary"].includes(type);
+        return ["char", "varchar", "nchar", "nvarchar", "binary", "varbinary", "vector"].includes(
+            type,
+        );
     },
 
     isPrecisionBasedType: (type: string): boolean => {
         return ["decimal", "numeric"].includes(type);
     },
-
-    getDefaultLength: (type: string): number => {
+    isIdentityBasedType: (type: string, scale: number): boolean => {
+        if (type === "decimal" || type === "numeric") {
+            return scale === 0;
+        }
+        return ["int", "bigint", "smallint", "tinyint"].includes(type);
+    },
+    getDefaultLength: (type: string): string => {
         switch (type) {
             case "char":
             case "nchar":
             case "binary":
-                return 1;
+            case "vector":
+                return "1";
             case "varchar":
             case "nvarchar":
             case "varbinary":
-                return 50;
+                return "50";
             default:
-                return 0;
+                return "0";
         }
     },
 
@@ -187,7 +205,7 @@ export const columnUtils = {
     fillColumnDefaults: (column: SchemaDesigner.Column): SchemaDesigner.Column => {
         if (columnUtils.isLengthBasedType(column.dataType))
             column.maxLength = columnUtils.getDefaultLength(column.dataType);
-        else column.maxLength = 0;
+        else column.maxLength = "";
 
         if (columnUtils.isPrecisionBasedType(column.dataType)) {
             column.precision = columnUtils.getDefaultPrecision(column.dataType);
@@ -216,28 +234,36 @@ export const columnUtils = {
             });
         }
 
-        // Push is identity option
-        options.push({
-            label: locConstants.schemaDesigner.isIdentity,
-            value: "isIdentity",
-            type: "checkbox",
-            columnProperty: "isIdentity",
-            columnModifier: (column, value) => {
-                column.isIdentity = value as boolean;
-                column.identitySeed = value ? 1 : 0;
-                column.identityIncrement = value ? 1 : 0;
-                return column;
-            },
-        });
+        if (
+            columnUtils.isIdentityBasedType(column.dataType, column.scale) &&
+            (!column.isNullable || column.isPrimaryKey)
+        ) {
+            // Push is identity option
+            options.push({
+                label: locConstants.schemaDesigner.isIdentity,
+                value: "isIdentity",
+                type: "checkbox",
+                columnProperty: "isIdentity",
+                columnModifier: (column, value) => {
+                    column.isIdentity = value as boolean;
+                    column.identitySeed = value ? 1 : 0;
+                    column.identityIncrement = value ? 1 : 0;
+                    return column;
+                },
+            });
+        }
 
         if (columnUtils.isLengthBasedType(column.dataType)) {
             options.push({
                 label: locConstants.schemaDesigner.maxLength,
                 value: "",
-                type: "input-number",
+                type: "input",
                 columnProperty: "maxLength",
                 columnModifier: (column, value) => {
-                    column.maxLength = value as number;
+                    column.maxLength = value as string;
+                    if (!column.maxLength) {
+                        column.maxLength = "0";
+                    }
                     return column;
                 },
             });
@@ -304,11 +330,7 @@ export const foreignKeyUtils = {
             };
         }
 
-        if (
-            columnUtils.isLengthBasedType(col.dataType) &&
-            col.maxLength !== refCol.maxLength &&
-            refCol.maxLength !== -1
-        ) {
+        if (columnUtils.isLengthBasedType(col.dataType) && col.maxLength !== refCol.maxLength) {
             return {
                 isValid: false,
                 errorMessage: locConstants.schemaDesigner.incompatibleLength(
@@ -365,13 +387,6 @@ export const foreignKeyUtils = {
         table: SchemaDesigner.Table,
         fk: SchemaDesigner.ForeignKey,
     ): ForeignKeyValidationResult => {
-        // Check if foreign key name is empty
-        if (!fk.name)
-            return {
-                isValid: false,
-                errorMessage: locConstants.schemaDesigner.foreignKeyNameEmptyError,
-            };
-
         // Check if foreign table exists
         const refTable = tables.find(
             (t) => t.name === fk.referencedTableName && t.schema === fk.referencedSchemaName,
@@ -425,26 +440,56 @@ export const foreignKeyUtils = {
             if (!typeCheck.isValid) return typeCheck;
 
             // Check if referenced column is primary key or unique
-            if (!refCol.isPrimaryKey && !refCol.isUnique) {
+            if (!refCol.isPrimaryKey) {
                 return {
                     isValid: false,
                     errorMessage: locConstants.schemaDesigner.referencedColumnNotPK(refCol.name),
                 };
             }
-
-            // Check if foreign key is not cyclic
-            if (foreignKeyUtils.isCyclicForeignKey(tables, refTable, table)) {
-                return {
-                    isValid: false,
-                    errorMessage: locConstants.schemaDesigner.cyclicForeignKeyDetected(
-                        table.name,
-                        refTable.name,
-                    ),
-                };
-            }
         }
 
         return { isValid: true };
+    },
+
+    getForeignKeyWarnings: (
+        tables: SchemaDesigner.Table[],
+        table: SchemaDesigner.Table,
+        fk: SchemaDesigner.ForeignKey,
+    ): ForeignKeyValidationResult => {
+        // Check if foreign key name is empty
+        let hasWarnings = false;
+        let warningMessages: string[] = [];
+
+        // Check if foreign table exists
+        const refTable = tables.find(
+            (t) => t.name === fk.referencedTableName && t.schema === fk.referencedSchemaName,
+        );
+
+        if (!refTable) {
+            return {
+                isValid: false,
+                errorMessage: locConstants.schemaDesigner.referencedTableNotFound(
+                    fk.referencedTableName,
+                ),
+            };
+        }
+
+        if (!fk.name) {
+            hasWarnings = true;
+            warningMessages.push(locConstants.schemaDesigner.foreignKeyNameEmptyError);
+        }
+
+        if (foreignKeyUtils.isCyclicForeignKey(tables, refTable, table)) {
+            hasWarnings = true;
+            warningMessages.push(
+                locConstants.schemaDesigner.cyclicForeignKeyDetected(table.name, refTable.name),
+            );
+        }
+
+        return {
+            isValid: !hasWarnings,
+            errorMessage: hasWarnings ? warningMessages.join(", ") : undefined,
+        };
     },
 
     extractForeignKeysFromEdges: (

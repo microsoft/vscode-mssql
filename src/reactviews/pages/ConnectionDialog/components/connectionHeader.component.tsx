@@ -5,10 +5,10 @@
 
 import { Image, Text } from "@fluentui/react-components";
 
-import { ColorThemeKind } from "../../../common/vscodeWebviewProvider";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
+import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
 
 const databaseIconLight = require("../../../../../media/database_light.svg");
 const databaseIconDark = require("../../../../../media/database_dark.svg");

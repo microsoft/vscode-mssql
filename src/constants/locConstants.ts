@@ -688,6 +688,53 @@ export class TableDesigner {
 
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");
+    public static Open = l10n.t("Open");
+    public static Save = l10n.t("Save");
+    public static defaultUserName = l10n.t("default");
+    public static Yes = l10n.t("Yes");
+    public static No = l10n.t("No");
+    public static optionsChangedMessage = l10n.t(
+        "Options have changed. Recompare to see the comparison?",
+    );
+    public static generateScriptErrorMessage = (errorMessage: string) =>
+        l10n.t({
+            message: "Generate script failed: '{0}'",
+            args: [errorMessage ? errorMessage : "Unknown"],
+            comment: ["{0} is the error message returned from the generate script operation"],
+        });
+    public static areYouSureYouWantToUpdateTheTarget = l10n.t(
+        "Are you sure you want to update the target?",
+    );
+    public static schemaCompareApplyFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Schema Compare Apply failed '{0}'",
+            args: [errorMessage ? errorMessage : "Unknown"],
+            comment: ["{0} is the error message returned from the publish changes operation"],
+        });
+    public static openScmpErrorMessage = (errorMessage: string) =>
+        l10n.t({
+            message: "Open scmp failed '{0}'",
+            args: [errorMessage ? errorMessage : "Unknown"],
+            comment: ["{0} is the error message returned from the open scmp operation"],
+        });
+    public static saveScmpErrorMessage = (errorMessage: string) =>
+        l10n.t({
+            message: "Save scmp failed: '{0}'",
+            args: [errorMessage ? errorMessage : "Unknown"],
+            comment: ["{0} is the error message returned from the save scmp operation"],
+        });
+    public static cancelErrorMessage = (errorMessage: string) =>
+        l10n.t({
+            message: "Cancel schema compare failed: '{0}'",
+            args: [errorMessage ? errorMessage : "Unknown"],
+            comment: ["{0} is the error message returned from the cancel operation"],
+        });
+    public static compareErrorMessage = (errorMessage: string) =>
+        l10n.t({
+            message: "Schema Compare failed: '{0}'",
+            args: [errorMessage ? errorMessage : "Unknown"],
+            comment: ["{0} is the error message returned from the compare operation"],
+        });
 }
 
 export class SchemaDesigner {

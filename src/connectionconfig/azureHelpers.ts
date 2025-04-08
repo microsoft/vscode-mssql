@@ -12,7 +12,7 @@ import {
 import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 
 import { IAccount, ITenant } from "../models/contracts/azure";
-import { FormItemOptions } from "../reactviews/common/forms/form";
+import { FormItemOptions } from "../sharedInterfaces/form";
 import { AzureAccountService } from "../services/azureAccountService";
 import {
     AzureSqlServerInfo,

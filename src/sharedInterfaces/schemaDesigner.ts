@@ -54,7 +54,7 @@ export namespace SchemaDesigner {
         /**
          * Max length of the column
          */
-        maxLength: number;
+        maxLength: string;
         /**
          * Precision of the column
          */
@@ -83,14 +83,6 @@ export namespace SchemaDesigner {
          * Is the column nullable
          */
         isNullable: boolean;
-        /**
-         * Unique constraint of the column
-         */
-        isUnique: boolean;
-        /**
-         * Collation of the column
-         */
-        collation: string;
         /**
          * Default value of the column
          */

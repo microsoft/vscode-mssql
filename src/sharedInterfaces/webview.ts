@@ -113,3 +113,28 @@ export type LogCallback = (message: string, level?: LoggerLevel) => void;
 
 // Names of the logging level methods (not the enums) in the Logger class
 export type LoggerLevel = "critical" | "error" | "warn" | "info" | "verbose" | "log";
+
+export enum ColorThemeKind {
+    Light = 1,
+    Dark = 2,
+    HighContrast = 3,
+    HighContrastLight = 4,
+}
+
+export interface WebviewContextProps<TState> {
+    /**
+     * Whether localized strings have been loaded for the webview
+     */
+    //isLocalizationLoaded: boolean; // TODO: this appears to be unused; confirm with Aasim if it can be removed
+    /**
+     * State of the webview.
+     */
+    state: TState;
+    /**
+     * Theme of the webview.
+     */
+    themeKind: ColorThemeKind;
+    log(message: string, level?: LoggerLevel): void;
+    sendActionEvent(event: WebviewTelemetryActionEvent): void;
+    sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
+}

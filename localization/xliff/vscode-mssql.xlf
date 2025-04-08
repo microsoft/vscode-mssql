@@ -344,6 +344,9 @@
     <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
       <source xml:lang="en">Column Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++acc8a3fcd4b7b62165cfa6e4b832566d25a6c172b6c1ec229a59b4eb7eb655a5">
+      <source xml:lang="en">Column max length cannot be empty</source>
+    </trans-unit>
     <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
       <source xml:lang="en">Column name cannot be empty</source>
     </trans-unit>
@@ -806,6 +809,9 @@
     <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
       <source xml:lang="en">Generate script to deploy changes to target</source>
     </trans-unit>
+    <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
+      <source xml:lang="en">Generating report, this might take a while...</source>
+    </trans-unit>
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
     </trans-unit>
@@ -870,6 +876,10 @@
     <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
       <source xml:lang="en">Invalid column width</source>
     </trans-unit>
+    <trans-unit id="++CODE++b65d31b3dcfd9935b8fae6c977fe0f07a5d73a830edb2426c05d63464b299858">
+      <source xml:lang="en">Invalid max length &apos;{0}&apos;</source>
+      <note>{0} is the max length</note>
+    </trans-unit>
     <trans-unit id="++CODE++6ddf8604e8d33286bd064640a453784b6142293230a717b9b1859fa3176573f6">
       <source xml:lang="en">Is Identity</source>
     </trans-unit>
@@ -920,6 +930,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
       <source xml:lang="en">Loading Report</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fb77011a24ad32a2b166d3d74cf25aee9d67da4c5579e8740211e0738bd05a10">
+      <source xml:lang="en">Loading Schema Designer</source>
     </trans-unit>
     <trans-unit id="++CODE++54de42320518e4ac2e773353f4d9f9a7be92f4afc008a3b33a3247b39a19aa68">
       <source xml:lang="en">Loading Schema Designer Model...</source>
@@ -1882,6 +1895,10 @@
       <source xml:lang="en">{0} column data</source>
       <note>{0} is the number of columns</note>
     </trans-unit>
+    <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
+      <source xml:lang="en">{0} errors</source>
+      <note>{0} is the number of errors</note>
+    </trans-unit>
     <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
       <note>{0} is the webview name</note>
@@ -1902,6 +1919,10 @@
     <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
       <source xml:lang="en">{0} properties</source>
       <note>{0} is the object type</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c4777dc358a4dd9d44e2865392ea9fb6b761d10b718279ab38df4f72f5645fa7">
+      <source xml:lang="en">{0} warnings</source>
+      <note>{0} is the number of warnings</note>
     </trans-unit>
     <trans-unit id="++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda">
       <source xml:lang="en">{0} {1} issue</source>

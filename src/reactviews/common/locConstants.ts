@@ -416,8 +416,8 @@ export class LocConstants {
             incompatibleLength: (
                 sourceColumn: string,
                 targetColumn: string,
-                sourceLength: number,
-                targetLength: number,
+                sourceLength: string,
+                targetLength: string,
             ) =>
                 l10n.t({
                     message: "Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})",
@@ -491,6 +491,27 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the column name"],
                 }),
+            columnMaxLengthEmptyError: l10n.t("Column max length cannot be empty"),
+            columnMaxLengthInvalid: (maxLength: string) =>
+                l10n.t({
+                    message: "Invalid max length '{0}'",
+                    args: [maxLength],
+                    comment: ["{0} is the max length"],
+                }),
+            loadingSchemaDesigner: l10n.t("Loading Schema Designer"),
+            generatingReport: l10n.t("Generating report, this might take a while..."),
+            nWarnings: (warningCount: number) =>
+                l10n.t({
+                    message: "{0} warnings",
+                    args: [warningCount],
+                    comment: ["{0} is the number of warnings"],
+                }),
+            nErrors: (errorCount: number) =>
+                l10n.t({
+                    message: "{0} errors",
+                    args: [errorCount],
+                    comment: ["{0} is the number of errors"],
+                }),
         };
     }
 
@@ -530,8 +551,6 @@ export class LocConstants {
             switchDirection: l10n.t("Switch Direction"),
             switchSourceAndTarget: l10n.t("Switch Source and Target"),
             openScmpFile: l10n.t("Open .scmp file"),
-            open: l10n.t("Open"),
-            save: l10n.t("Save"),
             loadSourceTargetAndOptionsSavedInAnScmpFile: l10n.t(
                 "Load source, target, and options saved in an .scmp file",
             ),
@@ -559,29 +578,6 @@ export class LocConstants {
             areYouSureYouWantToUpdateTheTarget: l10n.t(
                 "Are you sure you want to update the target?",
             ),
-            yes: l10n.t("Yes"),
-            no: l10n.t("No"),
-            optionsChangedMessage: l10n.t("Options have changed. Recompare to see the comparison?"),
-            compareErrorMessage: (errorMessage: string) =>
-                l10n.t({
-                    message: "Schema Compare failed: '{0}'",
-                    args: [errorMessage ? errorMessage : "Unknown"],
-                    comment: ["{0} is the error message returned from the compare operation"],
-                }),
-            cancelErrorMessage: (errorMessage: string) =>
-                l10n.t({
-                    message: "Cancel schema compare failed: '{0}'",
-                    args: [errorMessage ? errorMessage : "Unknown"],
-                    comment: ["{0} is the error message returned from the cancel operation"],
-                }),
-            generateScriptErrorMessage: (errorMessage: string) =>
-                l10n.t({
-                    message: "Generate script failed: '{0}'",
-                    args: [errorMessage ? errorMessage : "Unknown"],
-                    comment: [
-                        "{0} is the error message returned from the generate script operation",
-                    ],
-                }),
             thereWasAnErrorUpdatingTheProject: l10n.t("There was an error updating the project"),
             schemaCompareApplyFailed: (errorMessage: string) =>
                 l10n.t({

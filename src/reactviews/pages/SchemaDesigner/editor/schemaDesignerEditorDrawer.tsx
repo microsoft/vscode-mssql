@@ -30,7 +30,7 @@ export interface SchemaDesignerEditorContextProps {
     cancel(): void;
     isNewTable: boolean;
     errors: Record<string, string>;
-    setErrors: (errors: Record<string, string>) => void;
+    warnings: Record<string, string>;
     schemas: string[];
     dataTypes: string[];
     selectedTabValue: TabValue;
@@ -72,6 +72,7 @@ export const SchemaDesignerEditorDrawer = () => {
     const [isNewTable, setIsNewTable] = useState(false);
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [warnings, setWarnings] = useState<Record<string, string>>({});
 
     const [schemas, setSchemas] = useState<string[]>([]);
     const [dataTypes, setDataTypes] = useState<string[]>([]);
@@ -141,6 +142,7 @@ export const SchemaDesignerEditorDrawer = () => {
     useEffect(() => {
         const validateTable = () => {
             const errors: Record<string, string> = {};
+            const warnings: Record<string, string> = {};
             const nameErrors = tableUtils.tableNameValidationError(schema, table);
             errors[TABLE_NAME_ERROR_KEY] = nameErrors ?? "";
 
@@ -162,8 +164,20 @@ export const SchemaDesignerEditorDrawer = () => {
                     errors[`${FOREIGN_KEY_ERROR_PREFIX}${fk.id}`] =
                         foreignKeyErrors.errorMessage ?? "";
                 }
+
+                const foreignKeyWarnings = foreignKeyUtils.getForeignKeyWarnings(
+                    schema.tables,
+                    table,
+                    fk,
+                );
+
+                if (foreignKeyWarnings) {
+                    warnings[`${FOREIGN_KEY_ERROR_PREFIX}${fk.id}`] =
+                        foreignKeyWarnings.errorMessage ?? "";
+                }
             });
             setErrors(errors);
+            setWarnings(warnings);
         };
         validateTable();
     }, [table]);
@@ -193,7 +207,7 @@ export const SchemaDesignerEditorDrawer = () => {
                     cancel: () => setIsEditDrawerOpen(false),
                     isNewTable: isNewTable,
                     errors: errors,
-                    setErrors: setErrors,
+                    warnings: warnings,
                     selectedTabValue,
                     setSelectedTabValue,
                 }}>

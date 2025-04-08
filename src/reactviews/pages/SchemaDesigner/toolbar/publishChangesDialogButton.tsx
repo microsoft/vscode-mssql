@@ -30,6 +30,9 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { Editor } from "@monaco-editor/react";
 import { resolveVscodeThemeType } from "../../../common/utils";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { DiffAddedIcon } from "../../../common/icons/diffAdded";
+import { DiffRemovedIcon } from "../../../common/icons/diffRemoved";
+import { DiffModifiedIcon } from "../../../common/icons/diffModified";
 
 export function PublishChangesDialogButton() {
     const context = useContext(SchemaDesignerContext);
@@ -43,33 +46,18 @@ export function PublishChangesDialogButton() {
 
     const [selectedReportId, setSelectedReportId] = useState<string>("");
 
-    const [isPublishChangesEnabled, setIsPublishChangesEnabled] = useState<boolean>(false);
-
     const [reportTab, setReportTab] = useState<string>("report");
 
     function getReportIcon(state: SchemaDesigner.SchemaDesignerReportTableState) {
         switch (state) {
             case SchemaDesigner.SchemaDesignerReportTableState.Created:
-                return <FluentIcons.AddFilled />;
+                return <DiffAddedIcon />;
             case SchemaDesigner.SchemaDesignerReportTableState.Dropped:
-                return <FluentIcons.SubtractRegular />;
+                return <DiffRemovedIcon />;
             case SchemaDesigner.SchemaDesignerReportTableState.Updated:
-                return <FluentIcons.EditRegular />;
+                return <DiffModifiedIcon />;
         }
     }
-
-    useEffect(() => {
-        context.extensionRpc.subscribe(
-            "schemaDesignerStateProvider",
-            "isModelReady",
-            (payload: unknown) => {
-                const typedPayload = payload as {
-                    isModelReady: boolean;
-                };
-                setIsPublishChangesEnabled(typedPayload.isModelReady);
-            },
-        );
-    }, []);
 
     useEffect(() => {
         if (!report) {
@@ -160,7 +148,6 @@ export function PublishChangesDialogButton() {
                     icon={<FluentIcons.DatabaseArrowUp16Filled />}
                     title={locConstants.schemaDesigner.publishChanges}
                     appearance="subtle"
-                    disabled={!isPublishChangesEnabled}
                     onClick={async () => {
                         setLoading(ApiStatus.Loading);
                         setReportTab("report");
@@ -169,6 +156,7 @@ export function PublishChangesDialogButton() {
                             setReportError(report.error);
                             setReport(undefined);
                         } else {
+                            setReportError(undefined);
                             if (report.report) {
                                 setReport(report.report);
                             }
@@ -184,7 +172,7 @@ export function PublishChangesDialogButton() {
                     maxWidth: "800px",
                 }}>
                 <DialogBody>
-                    <DialogTitle>Publish changes</DialogTitle>
+                    <DialogTitle>{locConstants.schemaDesigner.publishChanges}</DialogTitle>
                     <DialogContent>
                         {loading === ApiStatus.Loading && (
                             <Spinner
@@ -193,6 +181,8 @@ export function PublishChangesDialogButton() {
                                     marginBottom: "10px",
                                     marginTop: "10px",
                                 }}
+                                label={locConstants.schemaDesigner.generatingReport}
+                                labelPosition="below"
                             />
                         )}
                         {loading === ApiStatus.Loaded && report?.reports?.length === 0 && (
