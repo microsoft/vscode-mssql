@@ -207,15 +207,31 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
         };
     });
 
-    // const toggleAllKeydown = React.useCallback(
-    //     (e: React.KeyboardEvent<HTMLDivElement>) => {
-    //         if (e.key === " ") {
-    //             toggleAllRows(e);
-    //             e.preventDefault();
-    //         }
-    //     },
-    //     [toggleAllRows],
-    // );
+    const toggleAllKeydown = React.useCallback(
+        (e: React.KeyboardEvent<HTMLDivElement>) => {
+            if (e.key === " ") {
+                handleIncludeExcludeAllNodes();
+                e.preventDefault();
+            }
+        },
+        [handleIncludeExcludeAllNodes],
+    );
+
+    const toggleKeyDown = React.useCallback(
+        (e: React.KeyboardEvent<HTMLDivElement>, diffEntry: DiffEntry, include: boolean) => {
+            if (e.key === "Enter") {
+                if (diffEntry.position !== undefined) {
+                    onDiffSelected(diffEntry.position);
+                }
+                e.preventDefault();
+            }
+            if (e.key === " ") {
+                handleIncludeExcludeNode(diffEntry, include);
+                e.preventDefault();
+            }
+        },
+        [handleIncludeExcludeNode],
+    );
 
     const RenderRow = ({ index, style, data }: ReactWindowRenderFnProps) => {
         const { item, appearance, onKeyDown } = data[index];
@@ -233,6 +249,7 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
                     <Checkbox
                         checked={item.included}
                         onClick={() => handleIncludeExcludeNode(item, !item.included)}
+                        onKeyDown={(e) => toggleKeyDown(e, item, !item.included)}
                     />
                 </TableCell>
                 <TableCell>{getLabelForAction(item.updateAction as number)}</TableCell>
@@ -262,6 +279,7 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
                                     allDiffsIncluded ? true : someDiffsExcluded ? "mixed" : false
                                 }
                                 onClick={() => handleIncludeExcludeAllNodes()}
+                                onKeyDown={toggleAllKeydown}
                             />
                         )}
                         {context.state.isIncludeExcludeAllOperationInProgress && (
