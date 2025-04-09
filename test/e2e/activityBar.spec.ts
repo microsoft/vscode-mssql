@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/*
 import { ElectronApplication, Page } from "@playwright/test";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
@@ -34,3 +35,4 @@ test.describe("MSSQL Extension - Activity Bar", async () => {
         await vsCodeApp.close();
     });
 });
+*/

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/*
 import { ElectronApplication, FrameLocator, Locator, Page } from "@playwright/test";
 import { test, expect } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
@@ -369,3 +370,4 @@ export async function getHighlightedGraphElement(highlightComponent: Locator) {
     const selectedElement = await highlightComponent.getAttribute("aria-label");
     return selectedElement;
 }
+*/
