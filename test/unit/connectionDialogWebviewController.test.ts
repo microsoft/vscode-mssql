@@ -327,22 +327,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("should set connection input mode correctly and load server info for AzureBrowse", async () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
-                const mockSubscriptions = [
-                    {
-                        name: "Ten0Sub1",
-                        subscriptionId: "00000000-0000-0000-0000-111111111111",
-                        tenantId: "00000000-0000-0000-0000-000000000000",
-                    },
-                    {
-                        name: "Ten1Sub1",
-                        subscriptionId: "11111111-0000-0000-0000-111111111111",
-                        tenantId: "11111111-1111-1111-1111-111111111111",
-                    },
-                ];
-
-                sandbox.stub(AzureHelpers, "confirmVscodeAzureSignin").resolves({
-                    getSubscriptions: () => Promise.resolve(mockSubscriptions),
-                } as unknown as VSCodeAzureSubscriptionProvider);
+                stubConfirmVscodeAzureSignin();
 
                 sandbox
                     .stub(AzureHelpers, "fetchServersFromAzure")
@@ -500,4 +485,35 @@ suite("ConnectionDialogWebviewController Tests", () => {
             );
         });
     });
+
+    test("addFirewallRule", async () => {
+        stubConfirmVscodeAzureSignin();
+
+        await controller["_reducers"].addFirewallRule(controller.state, {
+            //connection: testConnection,
+        });
+    });
+
+    //#region Helpers
+
+    const mockSubscriptions = [
+        {
+            name: "Ten0Sub1",
+            subscriptionId: "00000000-0000-0000-0000-111111111111",
+            tenantId: "00000000-0000-0000-0000-000000000000",
+        },
+        {
+            name: "Ten1Sub1",
+            subscriptionId: "11111111-0000-0000-0000-111111111111",
+            tenantId: "11111111-1111-1111-1111-111111111111",
+        },
+    ];
+
+    function stubConfirmVscodeAzureSignin() {
+        return sandbox.stub(AzureHelpers, "confirmVscodeAzureSignin").resolves({
+            getSubscriptions: () => Promise.resolve(mockSubscriptions),
+        } as unknown as VSCodeAzureSubscriptionProvider);
+    }
+
+    //#endregion
 });
