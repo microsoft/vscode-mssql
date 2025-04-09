@@ -45,11 +45,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     await controller.activate();
     const participant = vscode.chat.createChatParticipant(
         "mssql.agent",
-        createSqlAgentRequestHandler(
-            controller.copilotService,
-            vscodeWrapper,
-            context,
-        ),
+        createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context),
     );
     context.subscriptions.push(controller, participant);
 

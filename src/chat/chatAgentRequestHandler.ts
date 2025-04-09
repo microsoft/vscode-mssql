@@ -42,10 +42,11 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         token: vscode.CancellationToken,
     ): Promise<ISqlChatResult> => {
-
         let conversationUri = getNextConversationUri();
         let connectionUri = vscodeWrapper.activeTextEditorUri;
-        Utils.logDebug(`Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`);
+        Utils.logDebug(
+            `Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`,
+        );
 
         let referenceTexts: string[] = [];
         const activeEditor = vscode.window.activeTextEditor;
@@ -57,30 +58,23 @@ export const createSqlAgentRequestHandler = (
                 const value = reference.value;
                 if (value instanceof vscode.Location) {
                     // Could be a document / selection in the current editor
-                    if (
-                        value.uri.toString() ===
-                        activeEditor?.document.uri.toString()
-                    ) {
+                    if (value.uri.toString() === activeEditor?.document.uri.toString()) {
                         referenceTexts.push(
                             `${reference.modelDescription ?? "ChatResponseReference"}: ${activeEditor.document.getText(value.range)}`,
                         );
                     } else {
-                        const doc = await vscode.workspace.openTextDocument(
-                            value.uri,
-                        );
+                        const doc = await vscode.workspace.openTextDocument(value.uri);
                         referenceTexts.push(
                             `${reference.modelDescription ?? "ChatResponseReference"}: ${doc.getText(value.range)}`,
                         );
                     }
                 } else if (value instanceof vscode.Uri) {
                     // Could be a file/document
-                    const doc = await vscode.workspace.openTextDocument(
-                        value,
-                    );
+                    const doc = await vscode.workspace.openTextDocument(value);
                     referenceTexts.push(
                         `${reference.modelDescription ?? "ChatResponseReference"}: ${doc.getText()}`,
                     );
-            } else if (typeof reference.value === "string") {
+                } else if (typeof reference.value === "string") {
                     // Could be a string
                     referenceTexts.push(
                         `${reference.modelDescription ?? "ChatResponseReference"}: ${reference.value}`,
@@ -158,16 +152,15 @@ export const createSqlAgentRequestHandler = (
 
                     case MessageType.RequestLLM:
                     case MessageType.RequestDirectLLM:
-                        const { text, tools, print } =
-                            await handleRequestLLMMessage(
-                                conversationUri,
-                                result,
-                                model,
-                                stream,
-                                token,
-                                chatContext,
-                                referenceTexts,
-                            );
+                        const { text, tools, print } = await handleRequestLLMMessage(
+                            conversationUri,
+                            result,
+                            model,
+                            stream,
+                            token,
+                            chatContext,
+                            referenceTexts,
+                        );
 
                         replyText = text;
                         if (result.messageType === MessageType.RequestLLM) {
@@ -179,9 +172,7 @@ export const createSqlAgentRequestHandler = (
                         break;
 
                     default:
-                        console.warn(
-                            `Unhandled message type: ${result.messageType}`,
-                        );
+                        console.warn(`Unhandled message type: ${result.messageType}`);
                         continuePollingMessages = false;
                         break;
                 }
@@ -227,50 +218,6 @@ export const createSqlAgentRequestHandler = (
         return result!;
     }
 
-    // function prepareRequestMessages(
-    //     result: GetNextMessageResponse,
-    //     context: vscode.ChatContext
-    // ): vscode.LanguageModelChatMessage[] {
-    //     return result.requestMessages.map(
-    //         (message: LanguageModelRequestMessage) =>
-    //             message.role === MessageRole.System
-    //                 ? vscode.LanguageModelChatMessage.Assistant(message.text)
-    //                 : vscode.LanguageModelChatMessage.User(message.text),
-    //     );
-    // }
-
-    // function prepareRequestMessages(
-    //     result: GetNextMessageResponse,
-    //     context: vscode.ChatContext
-    // ): vscode.LanguageModelChatMessage[] {
-    //     // Step 1: Separate system messages from the requestMessages
-    //     const systemMessages = result.requestMessages
-    //         .filter((message: LanguageModelRequestMessage) => message.role === MessageRole.System)
-    //         .map((message: LanguageModelRequestMessage) =>
-    //             vscode.LanguageModelChatMessage.Assistant(message.text)
-    //         );
-
-    //     // Step 2: Convert chat history messages to LanguageModelChatMessage format
-    //     const historyMessages = context.history.map((historyItem) => {
-    //         // historyItem.role is either 'user' or 'assistant'
-    //         return historyItem.role === 'user'
-    //             ? vscode.LanguageModelChatMessage.User(historyItem.content)
-    //             : vscode.LanguageModelChatMessage.Assistant(historyItem.content);
-    //     });
-
-    //     // Step 3: Get the new user messages (non-system messages from requestMessages)
-    //     const userMessages = result.requestMessages
-    //         .filter((message: LanguageModelRequestMessage) => message.role !== MessageRole.System)
-    //         .map((message: LanguageModelRequestMessage) =>
-    //             vscode.LanguageModelChatMessage.User(message.text)
-    //         );
-
-    //     // Step 4: Combine them in order: system messages, history, then new user messages
-    //     return [...systemMessages, ...historyMessages, ...userMessages];
-    // }
-
-
-
     function prepareRequestMessages(
         result: GetNextMessageResponse,
         context: vscode.ChatContext,
@@ -280,129 +227,56 @@ export const createSqlAgentRequestHandler = (
         const systemMessages = result.requestMessages
             .filter((message: LanguageModelRequestMessage) => message.role === MessageRole.System)
             .map((message: LanguageModelRequestMessage) =>
-                vscode.LanguageModelChatMessage.Assistant(message.text)
+                vscode.LanguageModelChatMessage.Assistant(message.text),
             );
 
         // Step 2: Convert chat history messages to LanguageModelChatMessage format
-        const historyMessages = context.history.map((historyItem) => {
-            if ('prompt' in historyItem) {
-                // This is a ChatRequestTurn (user message)
-                return vscode.LanguageModelChatMessage.User(historyItem.prompt);
-            } else {
-                // This is a ChatResponseTurn (assistant message)
-                const responseContent = historyItem.response
-                    .map((part) => ('content' in part ? part.content : '')) // Handle ChatResponsePart
-                    .join(''); // Combine multiple parts if present
-                return vscode.LanguageModelChatMessage.Assistant(responseContent);
-            }
-        });
+        // const historyMessages = context.history.map((historyItem) => {
+        //     if ("prompt" in historyItem) {
+        //         // This is a ChatRequestTurn (user message)
+        //         return vscode.LanguageModelChatMessage.User(historyItem.prompt);
+        //     } else {
+        //         // This is a ChatResponseTurn (assistant message)
+        //         const responseContent = historyItem.response
+        //             .map((part) => ("content" in part ? part.content : "")) // Handle ChatResponsePart
+        //             .join(""); // Combine multiple parts if present
+        //         return vscode.LanguageModelChatMessage.Assistant(responseContent);
+        //     }
+        // });
+
+        const historyMessages = context.history
+            .map((historyItem) => {
+                if ("prompt" in historyItem) {
+                    return vscode.LanguageModelChatMessage.User(historyItem.prompt);
+                } else {
+                    const responseContent = historyItem.response
+                        .map((part) => ("content" in part ? part.content : ""))
+                        .join("");
+                    return responseContent.trim()
+                        ? vscode.LanguageModelChatMessage.Assistant(responseContent)
+                        : undefined;
+                }
+            })
+            .filter((msg): msg is vscode.LanguageModelChatMessage => msg !== undefined);
 
         // Step 3: Include the reference messages
         // TODO: should we cut off the reference message or send a warning if it is too long? (especially without selection)
         const referenceMessages = referenceTexts
-            ? referenceTexts.map((text) =>
-                vscode.LanguageModelChatMessage.Assistant(text)
-            )
+            ? referenceTexts.map((text) => vscode.LanguageModelChatMessage.Assistant(text))
             : [];
 
         // Step 4: Get the new user messages (non-system messages from requestMessages)
         const userMessages = result.requestMessages
             .filter((message: LanguageModelRequestMessage) => message.role !== MessageRole.System)
             .map((message: LanguageModelRequestMessage) =>
-                vscode.LanguageModelChatMessage.User(message.text)
+                vscode.LanguageModelChatMessage.User(message.text),
             );
 
         // Step 5: Combine them in order: system messages, history, then new user messages
         return [...systemMessages, ...historyMessages, ...referenceMessages, ...userMessages];
     }
 
-    // function prepareRequestMessages(
-    //     result: GetNextMessageResponse,
-    //     context: vscode.ChatContext
-    // ): vscode.LanguageModelChatMessage[] {
-    //     const historicalMessages = context.history.map(msg =>
-    //         msg.role === vscode.ChatMessageRole.User
-    //             ? vscode.LanguageModelChatMessage.User(msg.content)
-    //             : vscode.LanguageModelChatMessage.Assistant(msg.content)
-    //     );
-
-    //     const currentMessages = result.requestMessages.map(
-    //         (message: LanguageModelRequestMessage) =>
-    //             message.role === MessageRole.System
-    //                 ? vscode.LanguageModelChatMessage.Assistant(message.text)
-    //                 : vscode.LanguageModelChatMessage.User(message.text),
-    //     );
-
-    //     return [
-    //         currentMessages[0],      // System message
-    //         ...historicalMessages,   // Injected context
-    //         ...currentMessages.slice(1), // Remaining messages
-    //     ];
-    // }
-
-
-    // function prepareRequestMessages(
-    //     result: GetNextMessageResponse,
-    //     context: vscode.ChatContext
-    // ): vscode.LanguageModelChatMessage[] {
-    //     // const historicalMessages = context.history.flatMap(turn => {
-    //     //     if ('prompt' in turn) {
-    //     //         return [vscode.LanguageModelChatMessage.User(turn.prompt)];
-    //     //     } else if ('response' in turn) {
-    //     //         return [vscode.LanguageModelChatMessage.Assistant(turn.response)];
-    //     //     }
-    //     //     return [];
-    //     // });
-
-    //     const historicalMessages = context.history.map(msg =>
-    //         msg.role === vscode.ChatMessageRole.User
-    //             ? vscode.LanguageModelChatMessage.User(msg.content)
-    //             : vscode.LanguageModelChatMessage.Assistant(msg.content)
-    //     );
-
-
-    //     const currentMessages = result.requestMessages.map(
-    //         (message: LanguageModelRequestMessage) =>
-    //             message.role === MessageRole.System
-    //                 ? vscode.LanguageModelChatMessage.Assistant(message.text)
-    //                 : vscode.LanguageModelChatMessage.User(message.text),
-    //     );
-
-    //     return [
-    //         currentMessages[0],        // System message
-    //         ...historicalMessages,     // Injected history
-    //         ...currentMessages.slice(1), // Remaining current session messages
-    //     ];
-    // }
-
-    // function prepareRequestMessages(
-    //     result: GetNextMessageResponse,
-    //     context: vscode.ChatContext,
-    // ): vscode.LanguageModelChatMessage[] {
-    //     const historicalMessages = context.history.map((msg) =>
-    //         msg.role === MessageRole.User
-    //             ? vscode.LanguageModelChatMessage.User(msg.content)
-    //             : vscode.LanguageModelChatMessage.Assistant(msg.content),
-    //     );
-
-    //     const currentMessages = result.requestMessages.map(
-    //         (message: LanguageModelRequestMessage) =>
-    //             message.role === MessageRole.System
-    //                 ? vscode.LanguageModelChatMessage.Assistant(message.text)
-    //                 : vscode.LanguageModelChatMessage.User(message.text),
-    //     );
-
-    //     return [
-    //         currentMessages[0], // System message
-    //         ...historicalMessages, // Injected history
-    //         ...currentMessages.slice(1), // Remaining current session messages
-    //     ];
-    // }
-
-
-    function mapRequestTools(
-        tools: LanguageModelChatTool[],
-    ): vscode.LanguageModelChatTool[] {
+    function mapRequestTools(tools: LanguageModelChatTool[]): vscode.LanguageModelChatTool[] {
         return tools.map(
             (tool): vscode.LanguageModelChatTool => ({
                 name: tool.functionName,
@@ -433,8 +307,11 @@ export const createSqlAgentRequestHandler = (
                 replyText += part.value;
                 printTextout = true;
             } else if (part instanceof vscode.LanguageModelToolCallPart) {
-                const { sqlTool: tool, sqlToolParameters: parameters } =
-                    await processToolCall(tools, part, stream);
+                const { sqlTool: tool, sqlToolParameters: parameters } = await processToolCall(
+                    tools,
+                    part,
+                    stream,
+                );
                 if (tool) {
                     toolsCalled.push({ tool, parameters });
                 }
@@ -470,8 +347,11 @@ export const createSqlAgentRequestHandler = (
         const messages = prepareRequestMessages(result, context, referenceTexts); // Correct call here
 
         const chatResponse = await model.sendRequest(messages, options, token);
-        const { replyText, toolsCalled, printTextout } =
-            await processResponseParts(stream, chatResponse, result.tools);
+        const { replyText, toolsCalled, printTextout } = await processResponseParts(
+            stream,
+            chatResponse,
+            result.tools,
+        );
 
         return {
             text: replyText,
@@ -512,9 +392,7 @@ export const createSqlAgentRequestHandler = (
         }
 
         // Log tool call
-        stream.progress(
-            `Calling tool: ${tool.functionName} with ${sqlToolParameters}`,
-        );
+        stream.progress(`Calling tool: ${tool.functionName} with ${sqlToolParameters}`);
 
         return { sqlTool, sqlToolParameters };
     }
@@ -532,8 +410,7 @@ export const createSqlAgentRequestHandler = (
                 "Access denied. Please ensure you have the necessary permissions to use this tool or model.",
             quote_limit_exceeded:
                 "Usage limits exceeded. Try again later, or consider optimizing your requests.",
-            off_topic:
-                "I'm sorry, I can only assist with SQL-related questions.",
+            off_topic: "I'm sorry, I can only assist with SQL-related questions.",
         };
 
         const errorMessage =
@@ -552,20 +429,13 @@ export const createSqlAgentRequestHandler = (
         try {
             stream.progress(`Using ${model.name} to process your request...`);
 
-            const messages = [
-                vscode.LanguageModelChatMessage.User(prompt.trim()),
-            ];
+            const messages = [vscode.LanguageModelChatMessage.User(prompt.trim())];
             const options: vscode.LanguageModelChatRequestOptions = {
-                justification:
-                    "Fallback to default language model from MSSQL agent.",
+                justification: "Fallback to default language model from MSSQL agent.",
                 tools: [], // No tools involved for this fallback
             };
 
-            const chatResponse = await model.sendRequest(
-                messages,
-                options,
-                token,
-            );
+            const chatResponse = await model.sendRequest(messages, options, token);
 
             let replyText = "";
             for await (const part of chatResponse.stream) {
@@ -577,9 +447,7 @@ export const createSqlAgentRequestHandler = (
             if (replyText) {
                 stream.markdown(replyText);
             } else {
-                stream.markdown(
-                    "The language model did not return any output.",
-                );
+                stream.markdown("The language model did not return any output.");
             }
         } catch (err) {
             console.error("Error in fallback language model call:", err);
@@ -587,10 +455,7 @@ export const createSqlAgentRequestHandler = (
         }
     }
 
-    function handleError(
-        err: unknown,
-        stream: vscode.ChatResponseStream,
-    ): void {
+    function handleError(err: unknown, stream: vscode.ChatResponseStream): void {
         if (err instanceof vscode.LanguageModelError) {
             handleLanguageModelError(err, stream);
         } else if (err instanceof Error) {

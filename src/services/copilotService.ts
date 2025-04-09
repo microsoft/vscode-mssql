@@ -27,11 +27,10 @@ export class CopilotService {
                 connectionUri: connectionUri,
                 userText: userText,
             };
-            let response: StartConversationResponse =
-                await this.sqlToolsClient.sendRequest(
-                    StartConversationRequest.type,
-                    params,
-                );
+            let response: StartConversationResponse = await this.sqlToolsClient.sendRequest(
+                StartConversationRequest.type,
+                params,
+            );
             return response.success;
         } catch (e) {
             this.sqlToolsClient.logger.error(e);
@@ -51,11 +50,10 @@ export class CopilotService {
                 tool: tool,
                 toolParameters: toolParameters,
             };
-            let response: GetNextMessageResponse =
-                await this.sqlToolsClient.sendRequest(
-                    GetNextMessageRequest.type,
-                    params,
-                );
+            let response: GetNextMessageResponse = await this.sqlToolsClient.sendRequest(
+                GetNextMessageRequest.type,
+                params,
+            );
             return response;
         } catch (e) {
             this.sqlToolsClient.logger.error(e);
