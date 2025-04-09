@@ -180,11 +180,12 @@ export async function clearNotifications(vsCodePage: Page): Promise<void> {
             .isVisible()
             .catch(() => false)
     ) {
-        const toastLocator = vsCodePage
-            .locator('div.monaco-list-row.focused[role="dialog"]')
-            .first();
-        const toastText = await toastLocator.textContent().catch(() => "[No content]");
-        console.log("Clearing notification:", toastText?.trim());
+        const messageText = await vsCodePage
+            .locator(".notification-list-item-message span")
+            .first()
+            .textContent();
+
+        console.log("Notification Message:", messageText?.trim());
 
         await clearButtonLocator.first().click();
 
