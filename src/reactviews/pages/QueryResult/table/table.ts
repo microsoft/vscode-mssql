@@ -266,7 +266,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         slickEvent.subscribe((e: Slick.EventData) => {
             const originalEvent = (e as JQuery.TriggeredEvent).originalEvent;
             const cell = this._grid.getCellFromEvent(originalEvent!);
-            if (cell) {
+            // If event is left click
+            if (cell && originalEvent instanceof MouseEvent && originalEvent.button === 0) {
                 this.handleLinkClick(cell);
             }
         });
