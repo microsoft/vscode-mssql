@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ElectronApplication, FrameLocator, Locator, Page } from "@playwright/test";
+import { ElectronApplication, FrameLocator, Page } from "@playwright/test";
 import { test, expect, generateUUID } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
