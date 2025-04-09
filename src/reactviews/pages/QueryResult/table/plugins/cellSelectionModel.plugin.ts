@@ -8,11 +8,11 @@
 
 import { CellRangeSelector, ICellRangeSelector } from "./cellRangeSelector";
 import {
+    ISlickRange,
     QueryResultReducers,
     QueryResultWebviewState,
 } from "../../../../../sharedInterfaces/queryResult";
 
-import { ISlickRange } from "../utils";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 // import { convertJQueryKeyDownEvent } from 'sql/base/browser/dom';
 import { isUndefinedOrNull } from "../tableDataView";

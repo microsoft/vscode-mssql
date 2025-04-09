@@ -150,9 +150,37 @@ suite("ObjectExplorerFilterReactWebviewController", () => {
 
 suite("ObjectExplorerFilterUtils", () => {
     let sandbox: sinon.SinonSandbox;
+    let firstValueEmptyError: any;
+    let secondValueEmptyError: any;
+    let firstValueLessThanSecondError: any;
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        ObjectExplorerFilterUtils.initializeStrings({
+            CONTAINS: "Contains",
+            NOT_CONTAINS: "Not Contains",
+            STARTS_WITH: "Starts With",
+            NOT_STARTS_WITH: "Not Starts With",
+            ENDS_WITH: "Ends With",
+            NOT_ENDS_WITH: "Not Ends With",
+            EQUALS: "Equals",
+            NOT_EQUALS: "Not Equals",
+            LESS_THAN: "Less Than",
+            LESS_THAN_OR_EQUALS: "Less Than or Equals",
+            GREATER_THAN: "Greater Than",
+            GREATER_THAN_OR_EQUALS: "Greater Than or Equals",
+            BETWEEN: "Between",
+            NOT_BETWEEN: "Not Between",
+        });
+
+        firstValueEmptyError = (op: string, name: string) =>
+            `The first value must be set for the ${op} operator in the ${name} filter`;
+
+        secondValueEmptyError = (op: string, name: string) =>
+            `The second value must be set for the ${op} operator in the ${name} filter`;
+
+        firstValueLessThanSecondError = (op: string, name: string) =>
+            `The first value must be less than the second value for the ${op} operator in the ${name} filter`;
     });
 
     teardown(() => {
@@ -335,7 +363,12 @@ suite("ObjectExplorerFilterUtils", () => {
             },
         ] as any;
 
-        const err = ObjectExplorerFilterUtils.getErrorTextFromFilters(filters);
+        const err = ObjectExplorerFilterUtils.getErrorTextFromFilters(
+            filters,
+            firstValueEmptyError,
+            secondValueEmptyError,
+            firstValueLessThanSecondError,
+        );
         const opString = ObjectExplorerFilterUtils.getFilterOperatorString(filters.operator);
         assert.ok(err.includes("range") || err.includes(opString));
     });
@@ -349,7 +382,12 @@ suite("ObjectExplorerFilterUtils", () => {
             },
         ] as any;
 
-        const err = ObjectExplorerFilterUtils.getErrorTextFromFilters(filters);
+        const err = ObjectExplorerFilterUtils.getErrorTextFromFilters(
+            filters,
+            firstValueEmptyError,
+            secondValueEmptyError,
+            firstValueLessThanSecondError,
+        );
         const opString = ObjectExplorerFilterUtils.getFilterOperatorString(filters.operator);
         assert.ok(err.includes("range") || err.includes(opString));
     });
@@ -363,7 +401,12 @@ suite("ObjectExplorerFilterUtils", () => {
             },
         ] as any;
 
-        const err = ObjectExplorerFilterUtils.getErrorTextFromFilters(filters);
+        const err = ObjectExplorerFilterUtils.getErrorTextFromFilters(
+            filters,
+            firstValueEmptyError,
+            secondValueEmptyError,
+            firstValueLessThanSecondError,
+        );
         const opString = ObjectExplorerFilterUtils.getFilterOperatorString(filters.operator);
         assert.ok(err.includes("range") || err.includes(opString));
     });

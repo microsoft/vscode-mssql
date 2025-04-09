@@ -502,7 +502,6 @@
   "Switch Direction": "Switch Direction",
   "Switch Source and Target": "Switch Source and Target",
   "Open .scmp file": "Open .scmp file",
-  "Open": "Open",
   "Load source, target, and options saved in an .scmp file": "Load source, target, and options saved in an .scmp file",
   "Save .scmp file": "Save .scmp file",
   "Save source and target, options, and excluded elements": "Save source and target, options, and excluded elements",
@@ -518,46 +517,7 @@
   "Source": "Source",
   "Target": "Target",
   "Are you sure you want to update the target?": "Are you sure you want to update the target?",
-  "Yes": "Yes",
-  "No": "No",
-  "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
-  "Schema Compare failed: '{0}'/{0} is the error message returned from the compare operation": {
-    "message": "Schema Compare failed: '{0}'",
-    "comment": [
-      "{0} is the error message returned from the compare operation"
-    ]
-  },
-  "Cancel schema compare failed: '{0}'/{0} is the error message returned from the cancel operation": {
-    "message": "Cancel schema compare failed: '{0}'",
-    "comment": [
-      "{0} is the error message returned from the cancel operation"
-    ]
-  },
-  "Generate script failed: '{0}'/{0} is the error message returned from the generate script operation": {
-    "message": "Generate script failed: '{0}'",
-    "comment": [
-      "{0} is the error message returned from the generate script operation"
-    ]
-  },
   "There was an error updating the project": "There was an error updating the project",
-  "Schema Compare Apply failed '{0}'/{0} is the error message returned from the publish changes operation": {
-    "message": "Schema Compare Apply failed '{0}'",
-    "comment": [
-      "{0} is the error message returned from the publish changes operation"
-    ]
-  },
-  "Open scmp failed '{0}'/{0} is the error message returned from the open scmp operation": {
-    "message": "Open scmp failed '{0}'",
-    "comment": [
-      "{0} is the error message returned from the open scmp operation"
-    ]
-  },
-  "Save scmp failed: '{0}'/{0} is the error message returned from the save scmp operation": {
-    "message": "Save scmp failed: '{0}'",
-    "comment": [
-      "{0} is the error message returned from the save scmp operation"
-    ]
-  },
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
@@ -654,6 +614,7 @@
   "Azure Code Grant": "Azure Code Grant",
   "Azure Device Code": "Azure Device Code",
   "Azure Logs": "Azure Logs",
+  "Open": "Open",
   "Ignore Tenant": "Ignore Tenant",
   "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process./{0} is the tenant name{1} is the tenant id{2} is the resource": {
     "message": "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.",
@@ -730,6 +691,8 @@
   "Recent connections list cleared": "Recent connections list cleared",
   " is required.": " is required.",
   "Error: ": "Error: ",
+  "Yes": "Yes",
+  "No": "No",
   "<default>": "<default>",
   "Disconnected": "Disconnected",
   "Click to connect to a database": "Click to connect to a database",
@@ -1064,6 +1027,43 @@
   },
   "General": "General",
   "Schema Compare": "Schema Compare",
+  "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
+  "Generate script failed: '{0}'/{0} is the error message returned from the generate script operation": {
+    "message": "Generate script failed: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the generate script operation"
+    ]
+  },
+  "Schema Compare Apply failed '{0}'/{0} is the error message returned from the publish changes operation": {
+    "message": "Schema Compare Apply failed '{0}'",
+    "comment": [
+      "{0} is the error message returned from the publish changes operation"
+    ]
+  },
+  "Open scmp failed '{0}'/{0} is the error message returned from the open scmp operation": {
+    "message": "Open scmp failed '{0}'",
+    "comment": [
+      "{0} is the error message returned from the open scmp operation"
+    ]
+  },
+  "Save scmp failed: '{0}'/{0} is the error message returned from the save scmp operation": {
+    "message": "Save scmp failed: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the save scmp operation"
+    ]
+  },
+  "Cancel schema compare failed: '{0}'/{0} is the error message returned from the cancel operation": {
+    "message": "Cancel schema compare failed: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the cancel operation"
+    ]
+  },
+  "Schema Compare failed: '{0}'/{0} is the error message returned from the compare operation": {
+    "message": "Schema Compare failed: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the compare operation"
+    ]
+  },
   "Loading Schema Designer Model...": "Loading Schema Designer Model...",
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",

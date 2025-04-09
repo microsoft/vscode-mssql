@@ -5,9 +5,10 @@
 
 import * as qr from "../../../sharedInterfaces/queryResult";
 
-import { useVscodeWebview, WebviewContextProps } from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
+import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 
 export interface QueryResultContextProps
     extends WebviewContextProps<qr.QueryResultWebviewState>,

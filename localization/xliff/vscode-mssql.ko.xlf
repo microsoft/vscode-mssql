@@ -381,7 +381,7 @@
       </trans-unit>
       <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
         <source xml:lang="en">Close Find</source>
-        <target state="new">Close Find</target>
+        <target state="translated">찾기 닫기</target>
       </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
@@ -402,17 +402,17 @@
       <trans-unit id="++CODE++2a1e6a732f104ee56a84bfe7a04f48a47af3401ee2df16272b47af0195bae023">
         <source xml:lang="en">Column '{0}' already exists</source>
         <note>{0} is the column name</note>
-        <target state="new">Column '{0}' already exists</target>
+        <target state="translated">열 '{0}'이(가) 이미 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++b5f14952d79f90995588047df35fde3562e4851c778c9ee4853fed33252eceba">
         <source xml:lang="en">Column '{0}' already has a foreign key</source>
         <note>{0} is the column name</note>
-        <target state="new">Column '{0}' already has a foreign key</target>
+        <target state="translated">열 '{0}'에는 이미 외래 키가 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++0d1cea3ad10431de23b65a45a897f8a04520ae0353bb863064c38d0c6b7fa7aa">
         <source xml:lang="en">Column '{0}' cannot be null because it is a primary key</source>
         <note>{0} is the column name</note>
-        <target state="new">Column '{0}' cannot be null because it is a primary key</target>
+        <target state="translated">열 '{0}'은(는) 기본 키이므로 null일 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++c360b9bc22466a897cd5a6398646517f1bc0236d4bd579846b258d267dfd859c">
         <source xml:lang="en">Column '{0}' must be a primary key</source>
@@ -434,7 +434,7 @@
       </trans-unit>
       <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
         <source xml:lang="en">Column name cannot be empty</source>
-        <target state="new">Column name cannot be empty</target>
+        <target state="translated">열 이름은 비워 둘 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
         <source xml:lang="en">Columns</source>
@@ -925,11 +925,11 @@
       </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
-        <target state="new">Find</target>
+        <target state="translated">찾기</target>
       </trans-unit>
       <trans-unit id="++CODE++664d6cdf0494d6e50579257917eb2ad1b6aa7534db584c3368f24b47c08cdc22">
         <source xml:lang="en">Find Next</source>
-        <target state="new">Find Next</target>
+        <target state="translated">다음 찾기</target>
       </trans-unit>
       <trans-unit id="++CODE++051ab9f3bd7362945f1e2adc7c118c48d4286a3e181158b32e8e87f915103e73">
         <source xml:lang="en">Find Node</source>
@@ -941,7 +941,7 @@
       </trans-unit>
       <trans-unit id="++CODE++bf0e5179cb962af6329b97f24951139ae47f60ff00cdcd1ccbacd816608b6866">
         <source xml:lang="en">Find Previous</source>
-        <target state="new">Find Previous</target>
+        <target state="translated">이전 찾기</target>
       </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
@@ -1142,7 +1142,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f4dc1c96a30fbdeb2a15cb6d4229469fff36c0266dc0c346599093c24d4c0a01">
         <source xml:lang="en">JPEG</source>
-        <target state="new">JPEG</target>
+        <target state="translated">JPEG</target>
       </trans-unit>
       <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
         <source xml:lang="en">JSON</source>
@@ -1386,7 +1386,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
-        <target state="new">No results</target>
+        <target state="translated">결과 없음</target>
       </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
@@ -1536,7 +1536,7 @@
       </trans-unit>
       <trans-unit id="++CODE++796120837694d3f3f29259cfeb25091698c2a0aa87873658d840b4993ee889b3">
         <source xml:lang="en">PNG</source>
-        <target state="new">PNG</target>
+        <target state="translated">PNG</target>
       </trans-unit>
       <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
         <source xml:lang="en">Parameters</source>
@@ -1760,7 +1760,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
         <source xml:lang="en">SVG</source>
-        <target state="new">SVG</target>
+        <target state="translated">SVG</target>
       </trans-unit>
       <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
         <source xml:lang="en">Satisfied</source>
@@ -2487,7 +2487,7 @@
         <source xml:lang="en">{0} of {1}</source>
         <note>{0} is the number of active elements
 {1} is the total number of elements</note>
-        <target state="new">{0} of {1}</target>
+        <target state="translated">{0}/{1}</target>
       </trans-unit>
       <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
         <source xml:lang="en">{0} properties</source>

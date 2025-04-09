@@ -18,7 +18,12 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
-import { FormContextProps, FormItemSpec, FormItemType, FormState } from "./form";
+import {
+    FormContextProps,
+    FormItemSpec,
+    FormItemType,
+    FormState,
+} from "../../../sharedInterfaces/form";
 import { useEffect, useState } from "react";
 
 export const FormInput = <

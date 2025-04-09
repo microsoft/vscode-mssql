@@ -83,6 +83,7 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         await nameElement.fill("spt");
         // Log coverage now, because context is lost when webview is closed
         // upon pressing "OK"
+        await new Promise((resolve) => setTimeout(resolve, 150 * 1000));
         await refocusFilterTab(vsCodePage);
         await writeCoverage(iframe, `objectExplorerFilter-${generateUUID()}`);
         let okButton = iframe.getByText("OK");
@@ -174,11 +175,8 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
 });
 
 export async function refocusFilterTab(page: Page) {
-    const filterTab = page.locator(
-        'div[role="tab"][aria-label="Object Explorer Filter (Preview)"]',
-    );
-    await filterTab.focus();
-    await page.keyboard.press("Enter");
+    const filterTab = page.locator('[aria-label="Object Explorer Filter (Preview)"]');
+    await filterTab.click();
 }
 
 export async function clearFilter(page: Page) {

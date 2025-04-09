@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscodeMssql from "vscode-mssql";
-import { locConstants } from "../reactviews/common/locConstants";
-import { WebviewContextProps } from "../reactviews/common/vscodeWebviewProvider";
+import { WebviewContextProps } from "./webview";
 
 export interface ObjectExplorerFilterState {
     filterProperties: vscodeMssql.NodeFilterProperty[];
@@ -68,32 +67,52 @@ export interface ObjectExplorerPageFilter {
 }
 
 export class ObjectExplorerFilterUtils {
-    // The null check is required for ObjectExplorerFilterUtils methods to work properly during testing.
-    private static readonly CONTAINS = locConstants.objectExplorerFiltering.contains ?? "Contains";
-    private static readonly NOT_CONTAINS =
-        locConstants.objectExplorerFiltering.notContains ?? "Not Contains";
-    private static readonly STARTS_WITH =
-        locConstants.objectExplorerFiltering.startsWith ?? "Starts With";
-    private static readonly NOT_STARTS_WITH =
-        locConstants.objectExplorerFiltering.notStartsWith ?? "Not Starts With";
-    private static readonly ENDS_WITH =
-        locConstants.objectExplorerFiltering.endsWith ?? "Ends With";
-    private static readonly NOT_ENDS_WITH =
-        locConstants.objectExplorerFiltering.notEndsWith ?? "Not Ends With";
-    private static readonly EQUALS = locConstants.objectExplorerFiltering.equals ?? "Equals";
-    private static readonly NOT_EQUALS =
-        locConstants.objectExplorerFiltering.notEquals ?? "Not Equals";
-    private static readonly LESS_THAN =
-        locConstants.objectExplorerFiltering.lessThan ?? "Less Than";
-    private static readonly LESS_THAN_OR_EQUALS =
-        locConstants.objectExplorerFiltering.lessThanOrEquals ?? "Less Than or Equals";
-    private static readonly GREATER_THAN =
-        locConstants.objectExplorerFiltering.greaterThan ?? "Greater Than";
-    private static readonly GREATER_THAN_OR_EQUALS =
-        locConstants.objectExplorerFiltering.greaterThanOrEquals ?? "Greater Than or Equals";
-    private static readonly BETWEEN = locConstants.objectExplorerFiltering.between ?? "Between";
-    private static readonly NOT_BETWEEN =
-        locConstants.objectExplorerFiltering.notBetween ?? "Not Between";
+    private static CONTAINS: string;
+    private static NOT_CONTAINS: string;
+    private static STARTS_WITH: string;
+    private static NOT_STARTS_WITH: string;
+    private static ENDS_WITH: string;
+    private static NOT_ENDS_WITH: string;
+    private static EQUALS: string;
+    private static NOT_EQUALS: string;
+    private static LESS_THAN: string;
+    private static LESS_THAN_OR_EQUALS: string;
+    private static GREATER_THAN: string;
+    private static GREATER_THAN_OR_EQUALS: string;
+    private static BETWEEN: string;
+    private static NOT_BETWEEN: string;
+
+    public static initializeStrings(values: {
+        CONTAINS: string;
+        NOT_CONTAINS: string;
+        STARTS_WITH: string;
+        NOT_STARTS_WITH: string;
+        ENDS_WITH: string;
+        NOT_ENDS_WITH: string;
+        EQUALS: string;
+        NOT_EQUALS: string;
+        LESS_THAN: string;
+        LESS_THAN_OR_EQUALS: string;
+        GREATER_THAN: string;
+        GREATER_THAN_OR_EQUALS: string;
+        BETWEEN: string;
+        NOT_BETWEEN: string;
+    }) {
+        this.CONTAINS = values.CONTAINS;
+        this.NOT_CONTAINS = values.NOT_CONTAINS;
+        this.STARTS_WITH = values.STARTS_WITH;
+        this.NOT_STARTS_WITH = values.NOT_STARTS_WITH;
+        this.ENDS_WITH = values.ENDS_WITH;
+        this.NOT_ENDS_WITH = values.NOT_ENDS_WITH;
+        this.EQUALS = values.EQUALS;
+        this.NOT_EQUALS = values.NOT_EQUALS;
+        this.LESS_THAN = values.LESS_THAN;
+        this.LESS_THAN_OR_EQUALS = values.LESS_THAN_OR_EQUALS;
+        this.GREATER_THAN = values.GREATER_THAN;
+        this.GREATER_THAN_OR_EQUALS = values.GREATER_THAN_OR_EQUALS;
+        this.BETWEEN = values.BETWEEN;
+        this.NOT_BETWEEN = values.NOT_BETWEEN;
+    }
 
     static getFilters(uiFilters: ObjectExplorerPageFilter[]): vscodeMssql.NodeFilter[] {
         return uiFilters
@@ -141,7 +160,12 @@ export class ObjectExplorerFilterUtils {
             });
     }
 
-    static getErrorTextFromFilters(filters: vscodeMssql.NodeFilter[]): string {
+    static getErrorTextFromFilters(
+        filters: vscodeMssql.NodeFilter[],
+        firstValueEmptyError: (operator: string, name: string) => string,
+        secondValueEmptyError: (operator: string, name: string) => string,
+        firstValueLessThanSecondError: (operator: string, name: string) => string,
+    ): string {
         let errorText = "";
         for (let filter of filters) {
             if (
@@ -153,21 +177,21 @@ export class ObjectExplorerFilterUtils {
                 if (!value1 && value2) {
                     // Only undefined during testing
                     errorText =
-                        locConstants.objectExplorerFiltering.firstValueEmptyError(
+                        firstValueEmptyError(
                             this.getFilterOperatorString(filter.operator)!,
                             filter.name,
                         ) ??
                         `The first value must be set for the ${this.getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
                 } else if (!value2 && value1) {
                     errorText =
-                        locConstants.objectExplorerFiltering.secondValueEmptyError(
+                        secondValueEmptyError(
                             this.getFilterOperatorString(filter.operator)!,
                             filter.name,
                         ) ??
                         `The second value must be set for the ${this.getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
                 } else if (value1 > value2) {
                     errorText =
-                        locConstants.objectExplorerFiltering.firstValueLessThanSecondError(
+                        firstValueLessThanSecondError(
                             this.getFilterOperatorString(filter.operator)!,
                             filter.name,
                         ) ??

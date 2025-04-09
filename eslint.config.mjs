@@ -11,6 +11,7 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 import { includeIgnoreFile } from "@eslint/compat";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import customRules from "eslint-plugin-custom-eslint-rules";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,6 +51,7 @@ export default [
             react,
             ...eslintPluginPrettierRecommended.plugins,
             "@stylistic": stylistic,
+            "custom-eslint-rules": customRules,
         },
         settings: {
             react: {
@@ -148,6 +150,7 @@ export default [
                     bracketSameLine: true,
                 },
             ],
+            "custom-eslint-rules/ban-reactview-imports": "error",
         },
     },
 ];
