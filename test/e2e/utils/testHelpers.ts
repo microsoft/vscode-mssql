@@ -77,6 +77,8 @@ export async function addDatabaseConnectionThroughWebview(
 ): Promise<void> {
     if (authType !== "SQL Login") return;
 
+    console.log("Connection Profile: ", serverName, databaseName, authType, userName, profileName);
+
     await vsCodePage.keyboard.press("Control+P");
     await waitForCommandPaletteToBeVisible(vsCodePage);
     await vsCodePage.keyboard.type(">MS SQL: Add Connection (Preview)");

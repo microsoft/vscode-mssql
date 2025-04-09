@@ -49,7 +49,7 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
             vsCodePage,
             serverName,
             databaseName,
-            authType,
+            "SQL Login",
             userName,
             password,
             savePassword,
@@ -57,6 +57,8 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         );
 
         // click filter button
+        const rows = await vsCodePage.locator('[class*="monaco-list-row"][role="treeitem"]');
+        await expect(rows).toHaveValue("sfa");
         await vsCodePage
             .locator('[class*="monaco-list-row"][role="treeitem"][aria-label="Databases "]')
             .click();
