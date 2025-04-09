@@ -463,7 +463,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             );
 
             mockObjectExplorerTree
-                .setup((oep) => oep.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .setup((oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                 .returns(() => {
                     return Promise.resolve();
                 });
@@ -482,6 +482,22 @@ suite("ConnectionDialogWebviewController Tests", () => {
             await controller["_reducers"].connect(controller.state, {});
 
             expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
+            expect(
+                controller.isDisposed,
+                "controller should be disposed after a successful connection",
+            ).to.be.true;
+
+            // ObjectExplorerTree should have revealed to the new node
+            mockObjectExplorerTree.verify(
+                (oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
+            );
+
+            // ConnectionStore should have saved the profile
+            connectionStore.verify(
+                (cs) => cs.saveProfile(TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
+            );
         });
     });
 });
