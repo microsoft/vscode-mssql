@@ -12,9 +12,13 @@ import {
     ObjectExplorerFilterReactWebviewController,
 } from "../../src/objectExplorer/objectExplorerFilter";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { ObjectExplorerFilterState } from "../../src/sharedInterfaces/objectExplorerFilter";
+import {
+    NodeFilterOperator,
+    NodeFilterPropertyDataType,
+    ObjectExplorerFilterState,
+    ObjectExplorerFilterUtils,
+} from "../../src/sharedInterfaces/objectExplorerFilter";
 import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
-import * as telemetry from "../../src/telemetry/telemetry";
 
 suite("ObjectExplorerFilterReactWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -24,7 +28,6 @@ suite("ObjectExplorerFilterReactWebviewController", () => {
     let treeNode: TypeMoq.IMock<TreeNodeInfo>;
     let mockInitialState: ObjectExplorerFilterState;
     let expectedFilters: any;
-    let sendActionStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -62,7 +65,6 @@ suite("ObjectExplorerFilterReactWebviewController", () => {
         };
 
         expectedFilters = [{ name: "name", operator: 0, value: "Name" }] as any;
-        sendActionStub = sandbox.stub(telemetry, "sendActionEvent");
     });
 
     teardown(() => {
@@ -143,5 +145,226 @@ suite("ObjectExplorerFilterReactWebviewController", () => {
         const result = await filtersPromise;
 
         assert.strictEqual(result, undefined);
+    });
+});
+
+suite("ObjectExplorerFilterUtils", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("getFilterOperatorEnum should map correctly from string to enum", () => {
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Contains"),
+            NodeFilterOperator.Contains,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Not Contains"),
+            NodeFilterOperator.NotContains,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Ends With"),
+            NodeFilterOperator.EndsWith,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Equals"),
+            NodeFilterOperator.Equals,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Greater Than"),
+            NodeFilterOperator.GreaterThan,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Greater Than or Equals"),
+            NodeFilterOperator.GreaterThanOrEquals,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Less Than"),
+            NodeFilterOperator.LessThan,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Less Than or Equals"),
+            NodeFilterOperator.LessThanOrEquals,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Not Between"),
+            NodeFilterOperator.NotBetween,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Not Ends With"),
+            NodeFilterOperator.NotEndsWith,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Not Equals"),
+            NodeFilterOperator.NotEquals,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Not Starts With"),
+            NodeFilterOperator.NotStartsWith,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("Starts With"),
+            NodeFilterOperator.StartsWith,
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorEnum("nonexistent"),
+            NodeFilterOperator.Equals, // default case
+        );
+    });
+
+    test("getFilterOperatorString should map correctly from enum to string", () => {
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.Contains),
+            "Contains",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.NotContains),
+            "Not Contains",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.EndsWith),
+            "Ends With",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.Equals),
+            "Equals",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.GreaterThan),
+            "Greater Than",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(
+                NodeFilterOperator.GreaterThanOrEquals,
+            ),
+            "Greater Than or Equals",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.LessThan),
+            "Less Than",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.LessThanOrEquals),
+            "Less Than or Equals",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.NotBetween),
+            "Not Between",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.NotEndsWith),
+            "Not Ends With",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.NotEquals),
+            "Not Equals",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.NotStartsWith),
+            "Not Starts With",
+        );
+        assert.strictEqual(
+            ObjectExplorerFilterUtils.getFilterOperatorString(NodeFilterOperator.StartsWith),
+            "Starts With",
+        );
+        assert.strictEqual(ObjectExplorerFilterUtils.getFilterOperatorString(undefined), undefined);
+    });
+
+    test("getFilterOperators returns correct operators based on property type", () => {
+        let result = ObjectExplorerFilterUtils.getFilterOperators({
+            type: NodeFilterPropertyDataType.String,
+        } as any);
+        assert.ok(result.includes("Contains"));
+        result = ObjectExplorerFilterUtils.getFilterOperators({
+            type: NodeFilterPropertyDataType.Number,
+        } as any);
+        assert.ok(result.includes("Between"));
+        result = ObjectExplorerFilterUtils.getFilterOperators({
+            type: NodeFilterPropertyDataType.Date,
+        } as any);
+        assert.ok(result.includes("Between"));
+        result = ObjectExplorerFilterUtils.getFilterOperators({
+            type: NodeFilterPropertyDataType.Boolean,
+        } as any);
+        assert.ok(result.includes("Equals"));
+        result = ObjectExplorerFilterUtils.getFilterOperators({
+            type: NodeFilterPropertyDataType.Choice,
+        } as any);
+        assert.ok(result.includes("Equals"));
+    });
+
+    test("getFilters should convert string filters properly", () => {
+        const filters = ObjectExplorerFilterUtils.getFilters([
+            {
+                type: NodeFilterPropertyDataType.String,
+                name: "test",
+                selectedOperator: "Equals",
+                value: "abc",
+            },
+        ] as any);
+
+        assert.deepStrictEqual(filters[0].name, "test");
+        assert.deepStrictEqual(filters[0].value, "abc");
+        assert.deepStrictEqual(filters[0].operator, NodeFilterOperator.Equals);
+    });
+
+    test("getFilters should filter out empty BETWEEN values", () => {
+        const filters = ObjectExplorerFilterUtils.getFilters([
+            {
+                type: NodeFilterPropertyDataType.Number,
+                name: "range",
+                selectedOperator: "Between",
+                value: ["1", "2"],
+            },
+        ] as any);
+        assert.deepStrictEqual(filters, [{ ...filters[0], value: [1, 2] }]);
+    });
+
+    test("getErrorTextFromFilters returns correct error if first BETWEEN value is empty", () => {
+        const filters = [
+            {
+                name: "range",
+                operator: NodeFilterOperator.Between,
+                value: ["", 10],
+            },
+        ] as any;
+
+        const err = ObjectExplorerFilterUtils.getErrorTextFromFilters(filters);
+        const opString = ObjectExplorerFilterUtils.getFilterOperatorString(filters.operator);
+        assert.ok(err.includes("range") || err.includes(opString));
+    });
+
+    test("getErrorTextFromFilters returns correct error if second BETWEEN value is empty", () => {
+        const filters = [
+            {
+                name: "range",
+                operator: NodeFilterOperator.Between,
+                value: [10, ""],
+            },
+        ] as any;
+
+        const err = ObjectExplorerFilterUtils.getErrorTextFromFilters(filters);
+        const opString = ObjectExplorerFilterUtils.getFilterOperatorString(filters.operator);
+        assert.ok(err.includes("range") || err.includes(opString));
+    });
+
+    test("getErrorTextFromFilters returns correct error if first > second in BETWEEN", () => {
+        const filters = [
+            {
+                name: "range",
+                operator: NodeFilterOperator.Between,
+                value: [20, 10],
+            },
+        ] as any;
+
+        const err = ObjectExplorerFilterUtils.getErrorTextFromFilters(filters);
+        const opString = ObjectExplorerFilterUtils.getFilterOperatorString(filters.operator);
+        assert.ok(err.includes("range") || err.includes(opString));
     });
 });

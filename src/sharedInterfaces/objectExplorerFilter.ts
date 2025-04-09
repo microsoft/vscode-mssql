@@ -68,22 +68,32 @@ export interface ObjectExplorerPageFilter {
 }
 
 export class ObjectExplorerFilterUtils {
-    private static readonly CONTAINS = locConstants.objectExplorerFiltering.contains;
-    private static readonly NOT_CONTAINS = locConstants.objectExplorerFiltering.notContains;
-    private static readonly STARTS_WITH = locConstants.objectExplorerFiltering.startsWith;
-    private static readonly NOT_STARTS_WITH = locConstants.objectExplorerFiltering.notStartsWith;
-    private static readonly ENDS_WITH = locConstants.objectExplorerFiltering.endsWith;
-    private static readonly NOT_ENDS_WITH = locConstants.objectExplorerFiltering.notEndsWith;
-    private static readonly EQUALS = locConstants.objectExplorerFiltering.equals;
-    private static readonly NOT_EQUALS = locConstants.objectExplorerFiltering.notEquals;
-    private static readonly LESS_THAN = locConstants.objectExplorerFiltering.lessThan;
+    // The null check is required for ObjectExplorerFilterUtils methods to work properly during testing.
+    private static readonly CONTAINS = locConstants.objectExplorerFiltering.contains ?? "Contains";
+    private static readonly NOT_CONTAINS =
+        locConstants.objectExplorerFiltering.notContains ?? "Not Contains";
+    private static readonly STARTS_WITH =
+        locConstants.objectExplorerFiltering.startsWith ?? "Starts With";
+    private static readonly NOT_STARTS_WITH =
+        locConstants.objectExplorerFiltering.notStartsWith ?? "Not Starts With";
+    private static readonly ENDS_WITH =
+        locConstants.objectExplorerFiltering.endsWith ?? "Ends With";
+    private static readonly NOT_ENDS_WITH =
+        locConstants.objectExplorerFiltering.notEndsWith ?? "Not Ends With";
+    private static readonly EQUALS = locConstants.objectExplorerFiltering.equals ?? "Equals";
+    private static readonly NOT_EQUALS =
+        locConstants.objectExplorerFiltering.notEquals ?? "Not Equals";
+    private static readonly LESS_THAN =
+        locConstants.objectExplorerFiltering.lessThan ?? "Less Than";
     private static readonly LESS_THAN_OR_EQUALS =
-        locConstants.objectExplorerFiltering.lessThanOrEquals;
-    private static readonly GREATER_THAN = locConstants.objectExplorerFiltering.greaterThan;
+        locConstants.objectExplorerFiltering.lessThanOrEquals ?? "Less Than or Equals";
+    private static readonly GREATER_THAN =
+        locConstants.objectExplorerFiltering.greaterThan ?? "Greater Than";
     private static readonly GREATER_THAN_OR_EQUALS =
-        locConstants.objectExplorerFiltering.greaterThanOrEquals;
-    private static readonly BETWEEN = locConstants.objectExplorerFiltering.between;
-    private static readonly NOT_BETWEEN = locConstants.objectExplorerFiltering.notBetween;
+        locConstants.objectExplorerFiltering.greaterThanOrEquals ?? "Greater Than or Equals";
+    private static readonly BETWEEN = locConstants.objectExplorerFiltering.between ?? "Between";
+    private static readonly NOT_BETWEEN =
+        locConstants.objectExplorerFiltering.notBetween ?? "Not Between";
 
     static getFilters(uiFilters: ObjectExplorerPageFilter[]): vscodeMssql.NodeFilter[] {
         return uiFilters
@@ -141,20 +151,27 @@ export class ObjectExplorerFilterUtils {
                 let value1 = (filter.value as string[] | number[])[0];
                 let value2 = (filter.value as string[] | number[])[1];
                 if (!value1 && value2) {
-                    errorText = locConstants.objectExplorerFiltering.firstValueEmptyError(
-                        this.getFilterOperatorString(filter.operator)!,
-                        filter.name,
-                    );
+                    // Only undefined during testing
+                    errorText =
+                        locConstants.objectExplorerFiltering.firstValueEmptyError(
+                            this.getFilterOperatorString(filter.operator)!,
+                            filter.name,
+                        ) ??
+                        `The first value must be set for the ${this.getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
                 } else if (!value2 && value1) {
-                    errorText = locConstants.objectExplorerFiltering.secondValueEmptyError(
-                        this.getFilterOperatorString(filter.operator)!,
-                        filter.name,
-                    );
+                    errorText =
+                        locConstants.objectExplorerFiltering.secondValueEmptyError(
+                            this.getFilterOperatorString(filter.operator)!,
+                            filter.name,
+                        ) ??
+                        `The second value must be set for the ${this.getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
                 } else if (value1 > value2) {
-                    errorText = locConstants.objectExplorerFiltering.firstValueLessThanSecondError(
-                        this.getFilterOperatorString(filter.operator)!,
-                        filter.name,
-                    );
+                    errorText =
+                        locConstants.objectExplorerFiltering.firstValueLessThanSecondError(
+                            this.getFilterOperatorString(filter.operator)!,
+                            filter.name,
+                        ) ??
+                        `The first value must be less than the second value for the ${this.getFilterOperatorString(filter.operator)} operator in the ${filter.name} filter`;
                 }
             }
         }
