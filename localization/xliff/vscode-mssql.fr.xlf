@@ -38,7 +38,7 @@
       </trans-unit>
       <trans-unit id="++CODE++64cff1319d2fd2cbb7a1e84ccecf22c1cc07b24435cdb522f8c0aa525d6002a6">
         <source xml:lang="en">Action</source>
-        <target state="new">Action</target>
+        <target state="translated">Action</target>
       </trans-unit>
       <trans-unit id="++CODE++0fee17081211a1d4460499aa376fa2a12beb83c33a43e14f1832a72901f3ed1c">
         <source xml:lang="en">Actual Elapsed CPU Time</source>
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9fd728c66c9a256b121472dabf32a34317aed01d8427d70ec830289cf23a7cc8">
         <source xml:lang="en">Add</source>
-        <target state="new">Add</target>
+        <target state="translated">Ajouter</target>
       </trans-unit>
       <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
         <source xml:lang="en">Add Column</source>
@@ -70,7 +70,7 @@
       </trans-unit>
       <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
         <source xml:lang="en">Add Table</source>
-        <target state="new">Add Table</target>
+        <target state="translated">Ajouter une table</target>
       </trans-unit>
       <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
         <source xml:lang="en">Add a Microsoft Entra account...</source>
@@ -78,11 +78,11 @@
       </trans-unit>
       <trans-unit id="++CODE++cf502b3a94444bf574bf8c1ca17b7ba9f954543af389a62e0eeca0ec3faa08f3">
         <source xml:lang="en">Add new column</source>
-        <target state="new">Add new column</target>
+        <target state="translated">Ajouter une nouvelle colonne</target>
       </trans-unit>
       <trans-unit id="++CODE++18ef399051716731a65e9412dca68fc9d35b38850e7dff905d9771fe15bde438">
         <source xml:lang="en">Add new foreign key</source>
-        <target state="new">Add new foreign key</target>
+        <target state="translated">Ajouter une nouvelle clé étrangère</target>
       </trans-unit>
       <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
         <source xml:lang="en">Additional parameters</source>
@@ -102,7 +102,7 @@
       </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
-        <target state="new">Allow Null</target>
+        <target state="translated">Autoriser une valeur Null</target>
       </trans-unit>
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
@@ -172,7 +172,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
         <source xml:lang="en">Auto Arrange</source>
-        <target state="new">Auto Arrange</target>
+        <target state="translated">Réorganisation automatique</target>
       </trans-unit>
       <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
         <source xml:lang="en">Azure Account</source>
@@ -275,15 +275,15 @@
       </trans-unit>
       <trans-unit id="++CODE++7c2b8feda9e74131c46fcd8892b9661d32e0dcfc3d10d9f4d4d948540ea4bb87">
         <source xml:lang="en">Cannot create foreign key</source>
-        <target state="new">Cannot create foreign key</target>
+        <target state="translated">Impossible de créer la clé étrangère</target>
       </trans-unit>
       <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
         <source xml:lang="en">Change</source>
-        <target state="new">Change</target>
+        <target state="translated">Modifier</target>
       </trans-unit>
       <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
         <source xml:lang="en">Changed Tables</source>
-        <target state="new">Changed Tables</target>
+        <target state="translated">Tables modifiées</target>
       </trans-unit>
       <trans-unit id="++CODE++6ba2dfc2755e1d829986d3bf36cdea9fc88fa8c16d079b7d0f6a6309e8e67a6a">
         <source xml:lang="en">Changed database context to "{0}" for document "{1}"</source>
@@ -349,7 +349,7 @@
         <source xml:lang="en">Circular reference detected: '{0}' → '{1}' creates a cycle</source>
         <note>{0} is source table
 {1} is target table</note>
-        <target state="new">Circular reference detected: '{0}' → '{1}' creates a cycle</target>
+        <target state="translated">Référence circulaire détectée : « {0} » → « {1} » crée un cycle</target>
       </trans-unit>
       <trans-unit id="++CODE++83b12c2216efb4fdc924e1deb5182e905e4926ed0c1c324d467107f46d5a26a9">
         <source xml:lang="en">Clear</source>
@@ -381,7 +381,7 @@
       </trans-unit>
       <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
         <source xml:lang="en">Close Find</source>
-        <target state="new">Close Find</target>
+        <target state="translated">Fermer la recherche</target>
       </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
@@ -402,31 +402,31 @@
       <trans-unit id="++CODE++2a1e6a732f104ee56a84bfe7a04f48a47af3401ee2df16272b47af0195bae023">
         <source xml:lang="en">Column '{0}' already exists</source>
         <note>{0} is the column name</note>
-        <target state="new">Column '{0}' already exists</target>
+        <target state="translated">La colonne « {0} » existe déjà</target>
       </trans-unit>
       <trans-unit id="++CODE++b5f14952d79f90995588047df35fde3562e4851c778c9ee4853fed33252eceba">
         <source xml:lang="en">Column '{0}' already has a foreign key</source>
         <note>{0} is the column name</note>
-        <target state="new">Column '{0}' already has a foreign key</target>
+        <target state="translated">La colonne « {0} » a déjà une clé étrangère</target>
       </trans-unit>
       <trans-unit id="++CODE++0d1cea3ad10431de23b65a45a897f8a04520ae0353bb863064c38d0c6b7fa7aa">
         <source xml:lang="en">Column '{0}' cannot be null because it is a primary key</source>
         <note>{0} is the column name</note>
-        <target state="new">Column '{0}' cannot be null because it is a primary key</target>
+        <target state="translated">La colonne « {0} » ne peut pas être nulle, car c’est une clé primaire</target>
       </trans-unit>
       <trans-unit id="++CODE++c360b9bc22466a897cd5a6398646517f1bc0236d4bd579846b258d267dfd859c">
         <source xml:lang="en">Column '{0}' must be a primary key</source>
         <note>{0} is the referenced column</note>
-        <target state="new">Column '{0}' must be a primary key</target>
+        <target state="translated">La colonne « {0} » doit être une clé primaire</target>
       </trans-unit>
       <trans-unit id="++CODE++d93bc428789daab792bbefccefbef350850821d750aff6d09f87b4a77d9fe66a">
         <source xml:lang="en">Column '{0}' not found</source>
         <note>{0} is the column name</note>
-        <target state="new">Column '{0}' not found</target>
+        <target state="translated">Colonne « {0} » introuvable</target>
       </trans-unit>
       <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
         <source xml:lang="en">Column Name</source>
-        <target state="new">Column Name</target>
+        <target state="translated">Nom de la colonne</target>
       </trans-unit>
       <trans-unit id="++CODE++acc8a3fcd4b7b62165cfa6e4b832566d25a6c172b6c1ec229a59b4eb7eb655a5">
         <source xml:lang="en">Column max length cannot be empty</source>
@@ -434,7 +434,7 @@
       </trans-unit>
       <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
         <source xml:lang="en">Column name cannot be empty</source>
-        <target state="new">Column name cannot be empty</target>
+        <target state="translated">Le nom de colonne ne peut pas être vide</target>
       </trans-unit>
       <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
         <source xml:lang="en">Columns</source>
@@ -446,7 +446,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
         <source xml:lang="en">Compare</source>
-        <target state="new">Compare</target>
+        <target state="translated">Comparer</target>
       </trans-unit>
       <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
         <source xml:lang="en">Confirm to clear recent connections list</source>
@@ -560,7 +560,7 @@
       </trans-unit>
       <trans-unit id="++CODE++7aa0a3ede22306a6fe14f159fb12acfbb63bad17edf71486aa552c2cd757e5cd">
         <source xml:lang="en">Create As Script</source>
-        <target state="new">Create As Script</target>
+        <target state="translated">Créer en tant que script</target>
       </trans-unit>
       <trans-unit id="++CODE++71c1ec27a8c136ecdc781c1fd2364676155fbab7abf8837b9075eb3b9f9af7c0">
         <source xml:lang="en">Create Connection Profile</source>
@@ -592,7 +592,7 @@
 {1} is source column
 {2} is target data type
 {3} is target column</note>
-        <target state="new">Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'</target>
+        <target state="translated">Incompatibilité de type de données : « {0} » dans la colonne « {1} » incompatible avec « {2} » dans « {3} »</target>
       </trans-unit>
       <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
         <source xml:lang="en">Data-tier Application File (.dacpac)</source>
@@ -604,7 +604,7 @@
       </trans-unit>
       <trans-unit id="++CODE++667dd91d86c6b574073536489e39f0c5ab034846a63d946e8ef9f7bedeb1f4fb">
         <source xml:lang="en">Database Project</source>
-        <target state="new">Database Project</target>
+        <target state="translated">Projet de base de données</target>
       </trans-unit>
       <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
         <source xml:lang="en">Database name</source>
@@ -701,7 +701,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
-        <target state="new">Edit Table</target>
+        <target state="translated">Modifier la table</target>
       </trans-unit>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
@@ -905,7 +905,7 @@
       </trans-unit>
       <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
         <source xml:lang="en">File</source>
-        <target state="new">File</target>
+        <target state="translated">Fichier</target>
       </trans-unit>
       <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
         <source xml:lang="en">Filter</source>
@@ -925,11 +925,11 @@
       </trans-unit>
       <trans-unit id="++CODE++822b2ae4542bc74b8fccf9ec3e08408d33d35b919101760dc27e1ea7822f1818">
         <source xml:lang="en">Find</source>
-        <target state="new">Find</target>
+        <target state="translated">Rechercher</target>
       </trans-unit>
       <trans-unit id="++CODE++664d6cdf0494d6e50579257917eb2ad1b6aa7534db584c3368f24b47c08cdc22">
         <source xml:lang="en">Find Next</source>
-        <target state="new">Find Next</target>
+        <target state="translated">Rechercher suivant</target>
       </trans-unit>
       <trans-unit id="++CODE++051ab9f3bd7362945f1e2adc7c118c48d4286a3e181158b32e8e87f915103e73">
         <source xml:lang="en">Find Node</source>
@@ -941,7 +941,7 @@
       </trans-unit>
       <trans-unit id="++CODE++bf0e5179cb962af6329b97f24951139ae47f60ff00cdcd1ccbacd816608b6866">
         <source xml:lang="en">Find Previous</source>
-        <target state="new">Find Previous</target>
+        <target state="translated">Rechercher précédent</target>
       </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
@@ -962,11 +962,11 @@
       </trans-unit>
       <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
         <source xml:lang="en">Flat</source>
-        <target state="new">Flat</target>
+        <target state="translated">Plat</target>
       </trans-unit>
       <trans-unit id="++CODE++13fc8c5ffacfa92740bde97ad456803b31784d6451d83afd89f0a993d75c59e5">
         <source xml:lang="en">Folder Structure</source>
-        <target state="new">Folder Structure</target>
+        <target state="translated">Structure du dossier</target>
       </trans-unit>
       <trans-unit id="++CODE++52742c9dc235ecbc2154d3bef091d1e39dd0b8b542ebac8031331a146b83242d">
         <source xml:lang="en">For numeric data, the maximum number of decimal digits that can be stored in this database object to the right of decimal point.</source>
@@ -987,7 +987,7 @@
       <trans-unit id="++CODE++7243088a776ee64422264949fcd3e6bff4cab595d0f7fb6bf45d5765a2c2ef66">
         <source xml:lang="en">Foreign Key {0}</source>
         <note>{0} is the index of the foreign key</note>
-        <target state="new">Foreign Key {0}</target>
+        <target state="translated">Clé étrangère {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7d30023ced5527cc9061c41e18c832bba55267935cbfc5c45a68dbf5dcc5a310">
         <source xml:lang="en">Foreign Keys</source>
@@ -1000,11 +1000,11 @@
       <trans-unit id="++CODE++328923e4274282cae8dc3222c0281c6454f9625843394b33364bfb4213436f1a">
         <source xml:lang="en">Foreign key '{0}' already exists</source>
         <note>{0} is the foreign key name</note>
-        <target state="new">Foreign key '{0}' already exists</target>
+        <target state="translated">La clé étrangère « {0} » existe déjà</target>
       </trans-unit>
       <trans-unit id="++CODE++e6603b955a2b4bfe8e11ed330edfcdbfd8af1d94b683e2829ba11da61c8640c9">
         <source xml:lang="en">Foreign key name cannot be empty</source>
-        <target state="new">Foreign key name cannot be empty</target>
+        <target state="translated">Le nom de la clé étrangère doit être renseigné</target>
       </trans-unit>
       <trans-unit id="++CODE++936af734b4badd8602cb27237f8dea0fd3950e12b5bab278565babc15e854136">
         <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
@@ -1022,7 +1022,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e6fcb24896423f9739a20e841d3c3f2ab319f222be60b150ed664e611be89ed4">
         <source xml:lang="en">General Options</source>
-        <target state="new">General Options</target>
+        <target state="translated">Options générales</target>
       </trans-unit>
       <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
         <source xml:lang="en">Generate Script</source>
@@ -1092,11 +1092,11 @@
       </trans-unit>
       <trans-unit id="++CODE++7285576bdacf86fe37274d3d0d399c29b4be2959005f60ac0729615d8fca9186">
         <source xml:lang="en">Include</source>
-        <target state="new">Include</target>
+        <target state="translated">Inclure</target>
       </trans-unit>
       <trans-unit id="++CODE++e6918522718725ba7a74b087c48f889648bbfc7627b1d4ab826ac2cc1b30aa31">
         <source xml:lang="en">Include Object Types</source>
-        <target state="new">Include Object Types</target>
+        <target state="translated">Inclure les types d’objets</target>
       </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
@@ -1108,7 +1108,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9d044dc2d1fe411614adccd3125e540b1b0176ec4bf30509e693113050ef11b0">
         <source xml:lang="en">Initializing comparison, this might take a while...</source>
-        <target state="new">Initializing comparison, this might take a while...</target>
+        <target state="translated">Initialisation de la comparaison. Cette opération peut durer un certain temps...</target>
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
@@ -1133,7 +1133,7 @@
       </trans-unit>
       <trans-unit id="++CODE++6ddf8604e8d33286bd064640a453784b6142293230a717b9b1859fa3176573f6">
         <source xml:lang="en">Is Identity</source>
-        <target state="new">Is Identity</target>
+        <target state="translated">Est l’identité</target>
       </trans-unit>
       <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
         <source xml:lang="en">Issues ({0})</source>
@@ -1142,7 +1142,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f4dc1c96a30fbdeb2a15cb6d4229469fff36c0266dc0c346599093c24d4c0a01">
         <source xml:lang="en">JPEG</source>
-        <target state="new">JPEG</target>
+        <target state="translated">JPEG</target>
       </trans-unit>
       <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
         <source xml:lang="en">JSON</source>
@@ -1170,7 +1170,7 @@
 {1} is source length
 {2} is target column
 {3} is target length</note>
-        <target state="new">Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})</target>
+        <target state="translated">Incompatibilité de longueur : la colonne « {0} » ({1}) est incompatible avec « {2} » ({3})</target>
       </trans-unit>
       <trans-unit id="++CODE++ab7e3aa3d0d8c78763c986b6a831726ff623b195a38a8d4b1191976c0becf72e">
         <source xml:lang="en">Less Than</source>
@@ -1203,7 +1203,7 @@
       </trans-unit>
       <trans-unit id="++CODE++54de42320518e4ac2e773353f4d9f9a7be92f4afc008a3b33a3247b39a19aa68">
         <source xml:lang="en">Loading Schema Designer Model...</source>
-        <target state="new">Loading Schema Designer Model...</target>
+        <target state="translated">Chargement du modèle de concepteur de schéma...</target>
       </trans-unit>
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
@@ -1227,7 +1227,7 @@
       </trans-unit>
       <trans-unit id="++CODE++5ae5256284272a7585c1b275ef82e5d337ca3353c8e608120019177aad6a26c6">
         <source xml:lang="en">Manage relationships</source>
-        <target state="new">Manage relationships</target>
+        <target state="translated">Gérer les relations</target>
       </trans-unit>
       <trans-unit id="++CODE++f7fbe0b74789184e887d43fff291578ae0fe4d2b6b9fa4550271dc4a51ff980e">
         <source xml:lang="en">Mandatory (Recommended)</source>
@@ -1239,7 +1239,7 @@
       </trans-unit>
       <trans-unit id="++CODE++305fd6adb2295a939e62e4fed83349c610aa4e1840280503e6b64c8042dccd16">
         <source xml:lang="en">Max Length</source>
-        <target state="new">Max Length</target>
+        <target state="translated">Longueur maximale</target>
       </trans-unit>
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
@@ -1344,7 +1344,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
         <source xml:lang="en">New column mapping</source>
-        <target state="new">New column mapping</target>
+        <target state="translated">Nouveau mappage de colonnes</target>
       </trans-unit>
       <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
         <source xml:lang="en">Next</source>
@@ -1364,7 +1364,7 @@
       </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
-        <target state="new">No changes detected</target>
+        <target state="translated">Aucune modification détectée</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -1386,7 +1386,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
-        <target state="new">No results</target>
+        <target state="translated">Aucun résultat</target>
       </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
@@ -1450,7 +1450,7 @@
       </trans-unit>
       <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
         <source xml:lang="en">Object Type</source>
-        <target state="new">Object Type</target>
+        <target state="translated">Type d’objet</target>
       </trans-unit>
       <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
         <source xml:lang="en">Off</source>
@@ -1470,7 +1470,7 @@
       </trans-unit>
       <trans-unit id="++CODE++afe20ac8b79880f255ada45b4113ce2356e2e96da5a833a6262b495ef67c7c33">
         <source xml:lang="en">Open .scmp file</source>
-        <target state="new">Open .scmp file</target>
+        <target state="translated">Ouvrir le fichier .scmp</target>
       </trans-unit>
       <trans-unit id="++CODE++27d46ec89f6c8889936e3d885b71d612efdbf08d8514f16157875104d01fd5f5">
         <source xml:lang="en">Open Query</source>
@@ -1499,7 +1499,7 @@
       <trans-unit id="++CODE++fa609eef6a71158c74ec8b70843376b31d961185cb835dc3d9de4aba1877a667">
         <source xml:lang="en">Open scmp failed '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
-        <target state="new">Open scmp failed '{0}'</target>
+        <target state="translated">L’ouverture de scmp a échoué : « {0} »</target>
       </trans-unit>
       <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
@@ -1511,7 +1511,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e262d629c99156bd48e759790fae3387d08f1b1651ff7ec74a3ca9ad9202e0c9">
         <source xml:lang="en">Option Description</source>
-        <target state="new">Option Description</target>
+        <target state="translated">Description de l’option</target>
       </trans-unit>
       <trans-unit id="++CODE++da53ba1a285ffae9c6528e235b57336fa85b4f05e9fc00a51ee922069c3d9865">
         <source xml:lang="en">Optional (False)</source>
@@ -1519,7 +1519,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d0db8b5e364b6989e4b8f38a2b3846b87d99a51c1592ebf35d21cc66405a8e39">
         <source xml:lang="en">Options</source>
-        <target state="new">Options</target>
+        <target state="translated">Options</target>
       </trans-unit>
       <trans-unit id="++CODE++974ccf82fb956ae52dd736ed3f1046fe6da2fcb80bc6679104cbd37773665175">
         <source xml:lang="en">Options have changed. Recompare to see the comparison?</source>
@@ -1536,7 +1536,7 @@
       </trans-unit>
       <trans-unit id="++CODE++796120837694d3f3f29259cfeb25091698c2a0aa87873658d840b4993ee889b3">
         <source xml:lang="en">PNG</source>
-        <target state="new">PNG</target>
+        <target state="translated">PNG</target>
       </trans-unit>
       <trans-unit id="++CODE++e68b36b17cbd990802f57741cb75cf3a73fa66a61999b0cd70e3cf7d26cfb25f">
         <source xml:lang="en">Parameters</source>
@@ -1567,7 +1567,7 @@
         <source xml:lang="en">Precision/scale mismatch between '{0}' and '{1}'</source>
         <note>{0} is source column
 {1} is target column</note>
-        <target state="new">Precision/scale mismatch between '{0}' and '{1}'</target>
+        <target state="translated">Incompatibilité de précision/échelle entre « {0} » et « {1} »</target>
       </trans-unit>
       <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
         <source xml:lang="en">Preview Database Updates</source>
@@ -1635,7 +1635,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8">
         <source xml:lang="en">Publish Changes</source>
-        <target state="new">Publish Changes</target>
+        <target state="translated">Publier les modifications</target>
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
@@ -1678,12 +1678,12 @@
       <trans-unit id="++CODE++d49d10a2017dc4911588fbe91abdc783a6eb59caf6b52432ddae0399d838014d">
         <source xml:lang="en">Referenced column '{0}' not found</source>
         <note>{0} is the column name</note>
-        <target state="new">Referenced column '{0}' not found</target>
+        <target state="translated">Colonne référencée « {0} » introuvable</target>
       </trans-unit>
       <trans-unit id="++CODE++797ad1e737f00e56b04c2d4140e177a26977d3a90e9ea84cb65016e21c50113f">
         <source xml:lang="en">Referenced table '{0}' not found</source>
         <note>{0} is the table name</note>
-        <target state="new">Referenced table '{0}' not found</target>
+        <target state="translated">Table référencée « {0} » introuvable</target>
       </trans-unit>
       <trans-unit id="++CODE++0e91610117029a62a478b7fa7df0b8598bebe3ab1e192d4b1882e310719c9671">
         <source xml:lang="en">Refresh</source>
@@ -1716,7 +1716,7 @@
       </trans-unit>
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
-        <target state="new">Reset</target>
+        <target state="translated">Réinitialiser</target>
       </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
@@ -1760,7 +1760,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
         <source xml:lang="en">SVG</source>
-        <target state="new">SVG</target>
+        <target state="translated">SVG</target>
       </trans-unit>
       <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
         <source xml:lang="en">Satisfied</source>
@@ -1768,15 +1768,15 @@
       </trans-unit>
       <trans-unit id="++CODE++1509f561f2416598629b886ad7d3c05a7e221e4e0675c84bbff4ee6d9e03913d">
         <source xml:lang="en">Save</source>
-        <target state="new">Save</target>
+        <target state="translated">Enregistrer</target>
       </trans-unit>
       <trans-unit id="++CODE++dee3e3871faf828499426928ded1c3d2762c767a5c9f07e954d25a63aca26da2">
         <source xml:lang="en">Save .scmp file</source>
-        <target state="new">Save .scmp file</target>
+        <target state="translated">Enregistrer le fichier .scmp</target>
       </trans-unit>
       <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
         <source xml:lang="en">Save As</source>
-        <target state="new">Save As</target>
+        <target state="translated">Enregistrer sous</target>
       </trans-unit>
       <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
         <source xml:lang="en">Save Password</source>
@@ -1838,20 +1838,20 @@
       </trans-unit>
       <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
         <source xml:lang="en">Schema Compare Options</source>
-        <target state="new">Schema Compare Options</target>
+        <target state="translated">Options Comparer les schémas</target>
       </trans-unit>
       <trans-unit id="++CODE++8bd05764f179b5c53231ee8df7d8f52d5906689eb660f1bd0ff33d1e0817290c">
         <source xml:lang="en">Schema Compare failed: '{0}'</source>
         <note>{0} is the error message returned from the compare operation</note>
-        <target state="new">Schema Compare failed: '{0}'</target>
+        <target state="translated">Échec de Comparer les schémas : « {0} »</target>
       </trans-unit>
       <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
         <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
-        <target state="new">Schema Designer Model is ready. Changes can now be published.</target>
+        <target state="translated">Le modèle de Concepteur de schéma est prêt. Les modifications peuvent maintenant être publiées.</target>
       </trans-unit>
       <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
         <source xml:lang="en">Schema/Object Type</source>
-        <target state="new">Schema/Object Type</target>
+        <target state="translated">Schéma/Type d’objet</target>
       </trans-unit>
       <trans-unit id="++CODE++102acc10e67a297d79f7a0440d9fb96e2bfe8b1830676ae1d524cde6203212e0">
         <source xml:lang="en">Script</source>
@@ -1879,11 +1879,11 @@
       </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
-        <target state="new">Select Source</target>
+        <target state="translated">Sélectionner une source</target>
       </trans-unit>
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
-        <target state="new">Select Target</target>
+        <target state="translated">Sélectionner une cible</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -1993,11 +1993,11 @@
       </trans-unit>
       <trans-unit id="++CODE++2b25c7e56081a32eca68cf954d0dae7f5d558f2111699c5b4e39596584c40b39">
         <source xml:lang="en">Source Column</source>
-        <target state="new">Source Column</target>
+        <target state="translated">Colonne source</target>
       </trans-unit>
       <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
         <source xml:lang="en">Source Name</source>
-        <target state="new">Source Name</target>
+        <target state="translated">Nom de la source</target>
       </trans-unit>
       <trans-unit id="++CODE++1e49ea47266ab1130ffc9be417fa6eb62da7299641f30a76e728fe983c25f29d">
         <source xml:lang="en">Specifies whether the column is included in the primary key for the table.</source>
@@ -2069,11 +2069,11 @@
       </trans-unit>
       <trans-unit id="++CODE++175f5352107a324eb25f4342a9114e2685b64a1ef54a5ff6ba3a24d0ac215ea7">
         <source xml:lang="en">Switch Direction</source>
-        <target state="new">Switch Direction</target>
+        <target state="translated">Changer de sens</target>
       </trans-unit>
       <trans-unit id="++CODE++d7a3cd6cbe28889d5ba18259f276a78a6023030468a7b4013b74a45a2923b9d9">
         <source xml:lang="en">Switch Source and Target</source>
-        <target state="new">Switch Source and Target</target>
+        <target state="translated">Basculer entre la source et la cible</target>
       </trans-unit>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
@@ -2081,7 +2081,7 @@
       </trans-unit>
       <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
         <source xml:lang="en">Table</source>
-        <target state="new">Table</target>
+        <target state="translated">Table</target>
       </trans-unit>
       <trans-unit id="++CODE++e37d0b463100c4d709173a6502222535a4960da7c2ae4c1317ba1e20ece36b3e">
         <source xml:lang="en">Table '{0}' already exists</source>
@@ -2091,7 +2091,7 @@
       <trans-unit id="++CODE++ab3e7e5387cdfbb5043748e63a21b5da7a9855b47821b6a4e1bc17391a118e17">
         <source xml:lang="en">Table '{0}' not found</source>
         <note>{0} is the table name</note>
-        <target state="new">Table '{0}' not found</target>
+        <target state="translated">Table « {0} » introuvable</target>
       </trans-unit>
       <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
         <source xml:lang="en">Table name</source>
@@ -2107,15 +2107,15 @@
       </trans-unit>
       <trans-unit id="++CODE++978354db0c00fc78c3a5524f462a73bc425df3fb2767e51a5f46352ae26ae6f9">
         <source xml:lang="en">Target</source>
-        <target state="new">Target</target>
+        <target state="translated">Cible</target>
       </trans-unit>
       <trans-unit id="++CODE++9ba1ac70c4386df695c803041aec395325f7f6cb8151ca597c9715b3f99262fb">
         <source xml:lang="en">Target Name</source>
-        <target state="new">Target Name</target>
+        <target state="translated">Nom de la cible</target>
       </trans-unit>
       <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
         <source xml:lang="en">Target Table</source>
-        <target state="new">Target Table</target>
+        <target state="translated">Table cible</target>
       </trans-unit>
       <trans-unit id="++CODE++e23969d284c3424c8014c6e5b1b85ebc275bc5c74321e7677a21d023e6ea154c">
         <source xml:lang="en">Tenant</source>
@@ -2238,7 +2238,7 @@
       </trans-unit>
       <trans-unit id="++CODE++94843fe76f0c666e2bce801eb3dbfa672cd6517a14f968c8e41669c580b60cb3">
         <source xml:lang="en">To compare two schemas, first select a source schema and target schema, then press compare.</source>
-        <target state="new">To compare two schemas, first select a source schema and target schema, then press compare.</target>
+        <target state="translated">Pour comparer deux schémas, sélectionnez d’abord un schéma source et un schéma cible, puis appuyez sur comparer.</target>
       </trans-unit>
       <trans-unit id="++CODE++4c4d50191531a82f528c2802cf6b245d0c776a5d4b51d3b5da127aaf21728547">
         <source xml:lang="en">To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.</source>
@@ -2311,7 +2311,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d56bf62b4b9935c64d1da0afbf5f5c86b0301ca7bebad0086c8ce3085ae5ab06">
         <source xml:lang="en">View Code</source>
-        <target state="new">View Code</target>
+        <target state="translated">Afficher le code</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -2461,7 +2461,7 @@
       <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
         <source xml:lang="en">{0} column data</source>
         <note>{0} is the number of columns</note>
-        <target state="new">{0} column data</target>
+        <target state="translated">Données de {0} colonnes</target>
       </trans-unit>
       <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
         <source xml:lang="en">{0} errors</source>
@@ -2487,7 +2487,7 @@
         <source xml:lang="en">{0} of {1}</source>
         <note>{0} is the number of active elements
 {1} is the total number of elements</note>
-        <target state="new">{0} of {1}</target>
+        <target state="translated">{0} sur {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
         <source xml:lang="en">{0} properties</source>
@@ -2650,7 +2650,7 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       </trans-unit>
       <trans-unit id="mssql.designSchema">
         <source xml:lang="en">Design Schema (Preview)</source>
-        <target state="new">Design Schema (Preview)</target>
+        <target state="translated">Schéma de conception (Aperçu)</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>

@@ -11,7 +11,7 @@ import { append, $ } from "../dom";
 import { IDisposableDataProvider, instanceOfIDisposableDataProvider } from "../dataProvider";
 import "../../../../media/table.css";
 import { locConstants } from "../../../../common/locConstants";
-import { ColorThemeKind, VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
+import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { resolveVscodeThemeType } from "../../../../common/utils";
 import { VirtualizedList } from "../../../../common/virtualizedList";
 import { EventManager } from "../../../../common/eventManager";
@@ -21,6 +21,7 @@ import {
     QueryResultReducers,
     QueryResultWebviewState,
 } from "../../../../../sharedInterfaces/queryResult";
+import { ColorThemeKind } from "../../../../../sharedInterfaces/webview";
 
 export type SortDirection = "sort-asc" | "sort-desc" | "reset";
 

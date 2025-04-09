@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { ApiStatus } from "./webview";
 
 export interface ExecutionPlanWebviewState {
     executionPlanState: ExecutionPlanState;

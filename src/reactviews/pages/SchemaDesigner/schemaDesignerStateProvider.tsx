@@ -5,7 +5,7 @@
 
 import { createContext, useEffect, useState } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
-import { useVscodeWebview, WebviewContextProps } from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
@@ -13,6 +13,7 @@ import { Edge, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
 import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
 import { UndoRedoStack } from "../../common/undoRedoStack";
+import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {

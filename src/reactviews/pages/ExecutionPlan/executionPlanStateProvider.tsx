@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as ep from "./executionPlanInterfaces";
+import * as ep from "../../../sharedInterfaces/executionPlanInterfaces";
 
-import { useVscodeWebview, WebviewContextProps } from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
+import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 
 export interface ExecutionPlanContextProps
     extends WebviewContextProps<ep.ExecutionPlanWebviewState>,
