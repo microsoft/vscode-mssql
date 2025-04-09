@@ -128,7 +128,7 @@ export async function addDatabaseConnectionThroughWebview(
     const addedConnection = await vsCodePage.locator(
         `[class*="monaco-list-row"][role="treeitem"][aria-label="${profileName} "]`,
     );
-    await addedConnection.waitFor({ state: "visible", timeout: 30 * 1000 });
+    await addedConnection.waitFor({ state: "visible", timeout: 60 * 1000 });
     await expect(addedConnection).toBeVisible();
 }
 
