@@ -63,6 +63,13 @@ export async function addDatabaseConnection(
     if (isEnableTrustButtonVisible) {
         await enableTrustServerCertificateButton.click();
     }
+
+    // Ensure connection shows in OE
+    const addedConnection = await vsCodePage.locator(
+        `[class*="monaco-list-row"][role="treeitem"][aria-label="${profileName} "]`,
+    );
+    await addedConnection.waitFor({ state: "visible", timeout: 60 * 1000 });
+    await expect(addedConnection).toBeVisible();
 }
 
 export async function addDatabaseConnectionThroughWebview(
@@ -125,6 +132,7 @@ export async function addDatabaseConnectionThroughWebview(
     const connectButton = connectionWebview.locator('button[type="submit"].fui-Button');
     await connectButton.click();
 
+    // check connection is loaded in OE
     const addedConnection = await vsCodePage.locator(
         `[class*="monaco-list-row"][role="treeitem"][aria-label="${profileName} "]`,
     );
