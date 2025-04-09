@@ -49,7 +49,7 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
             vsCodePage,
             serverName,
             databaseName,
-            "SQL Login",
+            authType,
             userName,
             password,
             savePassword,
