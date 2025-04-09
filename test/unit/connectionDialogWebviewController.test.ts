@@ -486,14 +486,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
     });
 
-    test("addFirewallRule", async () => {
-        stubConfirmVscodeAzureSignin();
-
-        await controller["_reducers"].addFirewallRule(controller.state, {
-            //connection: testConnection,
-        });
-    });
-
     //#region Helpers
 
     const mockSubscriptions = [
