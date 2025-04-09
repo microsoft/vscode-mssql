@@ -1167,7 +1167,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.azureServers.push(...servers);
             stateSub.loaded = true;
             this.updateState();
-            console.log(
+            this.logger.log(
                 `Loaded ${servers.length} servers for subscription ${azSub.name} (${azSub.subscriptionId})`,
             );
         } catch (error) {

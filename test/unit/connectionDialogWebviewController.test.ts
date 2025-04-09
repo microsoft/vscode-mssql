@@ -214,6 +214,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
             mockVscodeWrapper.object,
         );
 
+        sandbox.stub(vscode.commands, "registerCommand");
+        sandbox.stub(vscode.window, "registerWebviewViewProvider");
+
         mainController.azureAccountService = azureAccountService.object;
         (mainController as any).initializeObjectExplorer(mockObjectExplorerProvider.object);
 
