@@ -172,7 +172,6 @@ jobs:
           PASSWORD=${{ env.PASSWORD }}
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
-          set -e
           cd pr
           DISPLAY=:10 yarn smoketest
           cd ../main
@@ -180,7 +179,7 @@ jobs:
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
-        if: failure()
+        if: success() || failure()
         with:
           name: smoke-test-failure-screenshots
           path: ./pr/test-results/**/
