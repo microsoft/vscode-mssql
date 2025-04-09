@@ -117,6 +117,8 @@ export async function addDatabaseConnectionThroughWebview(
         await profileNameElement.fill(profileName);
     }
 
+    await clearNotifications(vsCodePage);
+
     const connectButton = connectionWebview.locator('button[type="submit"].fui-Button');
     await connectButton.click();
 }
@@ -165,4 +167,28 @@ export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promis
 
 export async function getWebviewByTitle(vsCodePage: Page, title: string): Promise<FrameLocator> {
     return vsCodePage.frameLocator(".webview").frameLocator(`[title='${title}']`);
+}
+
+export async function clearNotifications(vsCodePage: Page): Promise<void> {
+    let clearButtonLocator = vsCodePage.locator(
+        'a.action-label.codicon.codicon-notifications-clear[role="button"][aria-label="Clear Notification (Delete)"]',
+    );
+
+    while (
+        await clearButtonLocator
+            .first()
+            .isVisible()
+            .catch(() => false)
+    ) {
+        const toastLocator = vsCodePage
+            .locator('div.monaco-list-row.focused[role="dialog"]')
+            .first();
+        const toastText = await toastLocator.textContent().catch(() => "[No content]");
+        console.log("Clearing notification:", toastText?.trim());
+
+        await clearButtonLocator.first().click();
+
+        // Give the UI a short time to update before checking again
+        await vsCodePage.waitForTimeout(100);
+    }
 }
