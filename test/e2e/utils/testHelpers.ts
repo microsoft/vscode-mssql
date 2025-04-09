@@ -130,6 +130,8 @@ export async function addDatabaseConnectionThroughWebview(
     );
     await addedConnection.waitFor({ state: "visible", timeout: 60 * 1000 });
     await expect(addedConnection).toBeVisible();
+
+    await clearNotifications(vsCodePage);
 }
 
 export async function openNewQueryEditor(
