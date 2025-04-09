@@ -49,15 +49,12 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
             vsCodePage,
             serverName,
             databaseName,
-            "SQL Login",
+            authType,
             userName,
             password,
             savePassword,
-            "testprofile",
+            profileName,
         );
-
-        const addedConnection = await vsCodePage.getByText("testprofile");
-        await addedConnection.waitFor({ state: "visible", timeout: 30 * 1000 });
 
         // click filter button
         await vsCodePage

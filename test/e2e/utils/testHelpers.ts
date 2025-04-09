@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { expect, FrameLocator, Page } from "@playwright/test";
+import { FrameLocator, Page } from "@playwright/test";
+import { expect } from "../baseFixtures";
 
 export async function addDatabaseConnection(
     vsCodePage: Page,
@@ -121,6 +122,10 @@ export async function addDatabaseConnectionThroughWebview(
 
     const connectButton = connectionWebview.locator('button[type="submit"].fui-Button');
     await connectButton.click();
+
+    const addedConnection = await vsCodePage.getByText(profileName);
+    await addedConnection.waitFor({ state: "visible", timeout: 30 * 1000 });
+    await expect(addedConnection).toBeVisible();
 }
 
 export async function openNewQueryEditor(

@@ -172,6 +172,7 @@ jobs:
           PASSWORD=${{ env.PASSWORD }}
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
+          set -e
           cd pr
           DISPLAY=:10 yarn smoketest
           cd ../main
