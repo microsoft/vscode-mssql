@@ -28,13 +28,19 @@ import {
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { IAccount, ServiceOption } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { CapabilitiesResult, GetCapabilitiesRequest } from "../../src/models/contracts/connection";
+import {
+    CapabilitiesResult,
+    ConnectionCompleteParams,
+    GetCapabilitiesRequest,
+} from "../../src/models/contracts/connection";
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import {
     AzureSubscription,
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
 import { stubTelemetry } from "./utils";
+import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
+import { Deferred } from "../../src/protocol";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -67,12 +73,12 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
-        // mockMainController = TypeMoq.Mock.ofType<MainController>();
         mockObjectExplorerProvider = TypeMoq.Mock.ofType<ObjectExplorerProvider>();
 
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockContext.setup((c) => c.extensionUri).returns(() => vscode.Uri.parse("file://fakePath"));
         mockContext.setup((c) => c.extensionPath).returns(() => "fakePath");
+        mockContext.setup((c) => c.subscriptions).returns(() => []);
 
         connectionManager = TypeMoq.Mock.ofType(
             ConnectionManager,
@@ -209,6 +215,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         );
 
         mainController.azureAccountService = azureAccountService.object;
+        (mainController as any).initializeObjectExplorer(mockObjectExplorerProvider.object);
 
         controller = new ConnectionDialogWebviewController(
             mockContext.object,
@@ -226,14 +233,14 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     test("should initialize correctly", async () => {
-        const initialFormState = {
+        const expectedInitialFormState = {
             authenticationType: "SqlLogin",
             connectTimeout: 30,
             applicationName: "vscode-mssql",
         };
 
         expect(controller.state.formState).to.deep.equal(
-            initialFormState,
+            expectedInitialFormState,
             "Initial form state is incorrect",
         );
 
@@ -414,5 +421,64 @@ suite("ConnectionDialogWebviewController Tests", () => {
             controller.state.formError,
             "Error should be cleared after loading the connection",
         ).to.equal("");
+    });
+
+    suite("connect", () => {
+        test("connect happy path", async () => {
+            // Set up mocks
+            const { sendErrorEvent } = stubTelemetry(sandbox);
+
+            mockObjectExplorerProvider
+                .setup((oep) =>
+                    oep.createSession(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                )
+                .returns((createSessionPromise: Deferred<TreeNodeInfo>) => {
+                    createSessionPromise.resolve(
+                        new TreeNodeInfo(
+                            "testNode",
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                        ),
+                    );
+                    return Promise.resolve("testSessionId");
+                });
+
+            connectionManager
+                .setup((cm) => cm.connectDialog(TypeMoq.It.isAny()))
+                .returns(() => Promise.resolve({} as ConnectionCompleteParams));
+
+            let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
+                undefined,
+                TypeMoq.MockBehavior.Loose,
+            );
+
+            mockObjectExplorerTree
+                .setup((oep) => oep.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve();
+                });
+
+            mainController.objectExplorerTree = mockObjectExplorerTree.object;
+
+            // Run test
+
+            controller.state.formState = {
+                server: "localhost",
+                user: "testUser",
+                password: "testPassword",
+                authenticationType: AuthenticationType.SqlLogin,
+            } as IConnectionDialogProfile;
+
+            await controller["_reducers"].connect(controller.state, {});
+
+            expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
+        });
     });
 });
