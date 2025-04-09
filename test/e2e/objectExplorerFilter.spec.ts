@@ -47,13 +47,13 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
 
         await addDatabaseConnectionThroughWebview(
             vsCodePage,
-            "localhost, 1433", // serverName,
-            undefined, // databaseName,
+            serverName,
+            databaseName,
             "SQL Login",
-            "sa", //userName,
-            "Password123!", //password,
-            "true", // savePassword,
-            "test_server", //profileName,
+            userName,
+            password,
+            savePassword,
+            profileName,
         );
 
         // click filter button
