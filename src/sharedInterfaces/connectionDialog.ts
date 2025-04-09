@@ -5,6 +5,7 @@
 
 import * as vscodeMssql from "vscode-mssql";
 import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form";
+import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 
 export class ConnectionDialogWebviewState
@@ -135,11 +136,7 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
-    addFirewallRule: (
-        name: string,
-        tenantId: string,
-        ip: string | { startIp: string; endIp: string },
-    ) => void;
+    addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
@@ -164,9 +161,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
         subscriptionId: string;
     };
     addFirewallRule: {
-        name: string;
-        tenantId: string;
-        ip: string | { startIp: string; endIp: string };
+        firewallRuleSpec: FirewallRuleSpec;
     };
     closeDialog: {};
     filterAzureSubscriptions: {};

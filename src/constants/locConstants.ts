@@ -613,7 +613,9 @@ export class ConnectionDialog {
             comment: ["{0} is the connection name"],
         });
     };
+}
 
+export class Azure {
     public static errorLoadingAzureAccountInfoForTenantId = (tenantId: string) => {
         return l10n.t({
             message: "Error loading Azure account information for tenant ID '{0}'",

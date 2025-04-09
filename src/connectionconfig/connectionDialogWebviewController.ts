@@ -27,6 +27,7 @@ import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form"
 import {
     ConnectionDialog as Loc,
     Common as LocCommon,
+    Azure as LocAzure,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
@@ -36,6 +37,7 @@ import {
     getAccounts,
     getTenants,
     promptForAzureSubscriptionFilter,
+    constructAzureAccountForTenant,
 } from "./azureHelpers";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
@@ -59,7 +61,6 @@ import {
     IConnectionProfile,
     IConnectionProfileWithSource,
 } from "../models/interfaces";
-import { IAccount } from "../models/contracts/azure";
 import { generateConnectionComponents, groupAdvancedOptions } from "./formComponentHelpers";
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
@@ -238,20 +239,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("addFirewallRule", async (state, payload) => {
             const [startIp, endIp] =
-                typeof payload.ip === "string"
-                    ? [payload.ip, payload.ip]
-                    : [payload.ip.startIp, payload.ip.endIp];
+                typeof payload.firewallRuleSpec.ip === "string"
+                    ? [payload.firewallRuleSpec.ip, payload.firewallRuleSpec.ip]
+                    : [payload.firewallRuleSpec.ip.startIp, payload.firewallRuleSpec.ip.endIp];
 
-            console.debug(`Setting firewall rule: "${payload.name}" (${startIp} - ${endIp})`);
+            console.debug(
+                `Setting firewall rule: "${payload.firewallRuleSpec.name}" (${startIp} - ${endIp})`,
+            );
             let account, tokenMappings;
 
             try {
-                ({ account, tokenMappings } = await this.constructAzureAccountForTenant(
-                    payload.tenantId,
+                ({ account, tokenMappings } = await constructAzureAccountForTenant(
+                    payload.firewallRuleSpec.tenantId,
                 ));
             } catch (err) {
-                state.formError = Loc.errorCreatingFirewallRule(
-                    `"${payload.name}" (${startIp} - ${endIp})`,
+                state.formError = LocAzure.errorCreatingFirewallRule(
+                    `"${payload.firewallRuleSpec.name}" (${startIp} - ${endIp})`,
                     getErrorMessage(err),
                 );
 
@@ -275,7 +278,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const result =
                 await this._mainController.connectionManager.firewallService.createFirewallRule({
                     account: account,
-                    firewallRuleName: payload.name,
+                    firewallRuleName: payload.firewallRuleSpec.name,
                     startIpAddress: startIp,
                     endIpAddress: endIp,
                     serverName: this.state.connectionProfile.server,
@@ -283,8 +286,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 });
 
             if (!result.result) {
-                state.formError = Loc.errorCreatingFirewallRule(
-                    `"${payload.name}" (${startIp} - ${endIp})`,
+                state.formError = LocAzure.errorCreatingFirewallRule(
+                    `"${payload.firewallRuleSpec.name}" (${startIp} - ${endIp})`,
                     result.errorMessage,
                 );
 
@@ -971,58 +974,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     break;
             }
         }
-    }
-
-    private async constructAzureAccountForTenant(
-        tenantId: string,
-    ): Promise<{ account: IAccount; tokenMappings: {} }> {
-        const auth = await confirmVscodeAzureSignin();
-        const subs = await auth.getSubscriptions(false /* filter */);
-        const sub = subs.filter((s) => s.tenantId === tenantId)[0];
-
-        if (!sub) {
-            throw new Error(Loc.errorLoadingAzureAccountInfoForTenantId(tenantId));
-        }
-
-        const token = await sub.credential.getToken(".default");
-
-        const session = await sub.authentication.getSession();
-
-        const account: IAccount = {
-            displayInfo: {
-                displayName: session.account.label,
-                userId: session.account.label,
-                name: session.account.label,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                accountType: (session.account as any).type as any,
-            },
-            key: {
-                providerId: "microsoft",
-                id: session.account.label,
-            },
-            isStale: false,
-            properties: {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                azureAuthType: 0 as any,
-                providerSettings: undefined,
-                isMsAccount: false,
-                owningTenant: undefined,
-                tenants: [
-                    {
-                        displayName: sub.tenantId,
-                        id: sub.tenantId,
-                        userId: token.token,
-                    },
-                ],
-            },
-        };
-
-        const tokenMappings = {};
-        tokenMappings[sub.tenantId] = {
-            Token: token.token,
-        };
-
-        return { account, tokenMappings };
     }
 
     private async loadAzureSubscriptions(

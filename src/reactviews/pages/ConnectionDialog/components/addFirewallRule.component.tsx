@@ -171,13 +171,14 @@ export const AddFirewallRuleDialog = ({
                             appearance="primary"
                             onClick={() => {
                                 setIsProcessing(true);
-                                context.addFirewallRule(
-                                    ruleName,
-                                    selectedTenantId,
-                                    ipSelectionMode === IpSelectionMode.SpecificIp
-                                        ? dialogProps.clientIp
-                                        : { startIp, endIp },
-                                );
+                                context.addFirewallRule({
+                                    name: ruleName,
+                                    tenantId: selectedTenantId,
+                                    ip:
+                                        ipSelectionMode === IpSelectionMode.SpecificIp
+                                            ? dialogProps.clientIp
+                                            : { startIp, endIp },
+                                });
                                 // if adding the firewall rule is successful, it will attempt to reconnect
                                 // otherwise, it will display an error at the top of the connection dialog
                             }}
