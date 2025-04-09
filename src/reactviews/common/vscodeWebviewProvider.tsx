@@ -12,11 +12,7 @@ import { LocConstants } from "./locConstants";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
 import { webviewTheme } from "./theme";
-import {
-    LoggerLevel,
-    WebviewTelemetryActionEvent,
-    WebviewTelemetryErrorEvent,
-} from "../../sharedInterfaces/webview";
+import { ColorThemeKind } from "../../sharedInterfaces/webview";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -45,24 +41,6 @@ export interface VscodeWebviewContext<State, Reducers> {
      * This is used to force a re-render of the component when the localization file content is received.
      */
     localization: boolean;
-}
-
-export interface WebviewContextProps<TState> {
-    /**
-     * Whether localized strings have been loaded for the webview
-     */
-    //isLocalizationLoaded: boolean; // TODO: this appears to be unused; confirm with Aasim if it can be removed
-    /**
-     * State of the webview.
-     */
-    state: TState;
-    /**
-     * Theme of the webview.
-     */
-    themeKind: ColorThemeKind;
-    log(message: string, level?: LoggerLevel): void;
-    sendActionEvent(event: WebviewTelemetryActionEvent): void;
-    sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
 }
 
 const vscodeApiInstance = acquireVsCodeApi<unknown>();
@@ -169,11 +147,4 @@ export function useVscodeWebview<State, Reducers>() {
         throw new Error("useVscodeWebview must be used within a VscodeWebviewProvider");
     }
     return context as VscodeWebviewContext<State, Reducers>;
-}
-
-export enum ColorThemeKind {
-    Light = 1,
-    Dark = 2,
-    HighContrast = 3,
-    HighContrastLight = 4,
 }

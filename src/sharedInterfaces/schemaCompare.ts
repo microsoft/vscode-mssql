@@ -17,7 +17,7 @@ import {
     SchemaCompareObjectId,
     SchemaCompareOpenScmpResult,
 } from "vscode-mssql";
-import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
+import { ColorThemeKind } from "./webview";
 
 export const enum SchemaUpdateAction {
     Delete = 0,

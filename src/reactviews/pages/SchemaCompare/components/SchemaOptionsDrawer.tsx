@@ -15,6 +15,7 @@ import {
     InfoLabel,
     Label,
     makeStyles,
+    SearchBox,
     SelectTabData,
     SelectTabEvent,
     Tab,
@@ -29,13 +30,18 @@ import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
 
 const useStyles = makeStyles({
     optionsContainer: {
-        height: "80vh",
+        height: "75vh",
         overflowY: "auto",
     },
 
     listItemContainer: {
         display: "flex",
         alignItems: "center",
+    },
+
+    searchContainer: {
+        margin: "10px 0",
+        width: "100%",
     },
 });
 
@@ -46,8 +52,10 @@ interface Props {
 
 const SchemaOptionsDrawer = (props: Props) => {
     const classes = useStyles();
-
     const context = useContext(schemaCompareContext);
+    const [optionsChanged, setOptionsChanged] = useState(false);
+    const [selectedValue, setSelectedValue] = useState<TabValue>("generalOptions");
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         context.setIntermediarySchemaOptions();
@@ -75,8 +83,16 @@ const SchemaOptionsDrawer = (props: Props) => {
         );
     }
 
-    const [optionsChanged, setOptionsChanged] = useState(false);
-    const [selectedValue, setSelectedValue] = useState<TabValue>("generalOptions");
+    const filteredGeneralOptions = generalOptionEntries.filter(
+        ([_, value]) =>
+            searchQuery === "" ||
+            value.displayName.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+
+    const filteredObjectTypes = includeObjectTypesEntries.filter(
+        ([_, value]) =>
+            searchQuery === "" || value.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
 
     const onTabSelect = (_: SelectTabEvent, data: SelectTabData) => {
         setSelectedValue(data.value);
@@ -123,6 +139,13 @@ const SchemaOptionsDrawer = (props: Props) => {
                 </DrawerHeaderTitle>
             </DrawerHeader>
             <DrawerBody>
+                <SearchBox
+                    className={classes.searchContainer}
+                    placeholder={loc.schemaCompare.searchOptions}
+                    value={searchQuery}
+                    onChange={(_, data) => setSearchQuery(data.value)}
+                />
+
                 <TabList selectedValue={selectedValue} onTabSelect={onTabSelect}>
                     <Tab id="GeneralOptions" value="generalOptions">
                         {loc.schemaCompare.generalOptions}
@@ -131,10 +154,11 @@ const SchemaOptionsDrawer = (props: Props) => {
                         {loc.schemaCompare.includeObjectTypes}
                     </Tab>
                 </TabList>
+
                 {selectedValue === "generalOptions" && (
                     <List className={classes.optionsContainer}>
                         {optionsToValueNameLookup &&
-                            generalOptionEntries.map(([key, value]) => {
+                            filteredGeneralOptions.map(([key, value]) => {
                                 return (
                                     <ListItem
                                         className={classes.listItemContainer}
@@ -144,22 +168,24 @@ const SchemaOptionsDrawer = (props: Props) => {
                                         <Checkbox
                                             checked={value.value}
                                             onChange={() => handleSettingChanged(key)}
+                                            label={
+                                                <InfoLabel
+                                                    aria-label={value.displayName}
+                                                    info={<>{value.description}</>}>
+                                                    {value.displayName}
+                                                </InfoLabel>
+                                            }
                                         />
-
-                                        <InfoLabel
-                                            aria-label={value.displayName}
-                                            info={<>{value.description}</>}>
-                                            {value.displayName}
-                                        </InfoLabel>
                                     </ListItem>
                                 );
                             })}
                     </List>
                 )}
+
                 {selectedValue === "includeObjectTypes" && (
                     <List className={classes.optionsContainer}>
                         {includeObjectTypesLookup &&
-                            includeObjectTypesEntries.map(([key, value]) => {
+                            filteredObjectTypes.map(([key, value]) => {
                                 return (
                                     <ListItem
                                         className={classes.listItemContainer}
@@ -169,8 +195,8 @@ const SchemaOptionsDrawer = (props: Props) => {
                                         <Checkbox
                                             checked={handleSetObjectTypesCheckedState(key)}
                                             onChange={() => handleObjectTypesOptionChanged(key)}
+                                            label={<Label aria-label={value}>{value}</Label>}
                                         />
-                                        <Label aria-label={value}>{value}</Label>
                                     </ListItem>
                                 );
                             })}

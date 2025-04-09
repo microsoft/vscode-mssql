@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
-import { FormItemSpec, FormReducers, FormState } from "../reactviews/common/forms/form";
+import { FormItemSpec, FormReducers, FormState } from "../sharedInterfaces/form";
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 
 export abstract class FormWebviewController<

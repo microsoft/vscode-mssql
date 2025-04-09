@@ -13,9 +13,13 @@
 .fui-Textarea,
 .fui-Input:hover,
 .fui-Textarea:hover {
-    background-color: var(--vscode-input-background) !important;
-    color: var(--vscode-input-foreground) !important;
-    border: 1px solid var(--vscode-input-border, transparent);
+    background-color: var(
+        --vscode-settings-textInputBackground,
+        var(--vscode-input-background)
+    ) !important;
+    color: var(--vscode-settings-textInputForeground, var(--vscode-input-foreground)) !important;
+    border: 1px solid
+        var(--vscode-settings-textInputBorder, var(--vscode-input-border, transparent)) !important;
     border-radius: 2px;
 }
 
@@ -24,9 +28,12 @@
     border: 1px solid var(--vscode-input-border, transparent);
 }
 button[role="combobox"] {
-    background-color: var(--vscode-dropdown-background) !important;
-    color: var(--vscode-dropdown-foreground) !important;
-    border: 1px solid var(--vscode-input-border, transparent);
+    background-color: var(
+        --vscode-settings-dropdownBackground,
+        var(--vscode-dropdown-background)
+    ) !important;
+    color: var(--vscode-settings-dropdownForeground, var(--vscode-dropdown-foreground)) !important;
+    border: 1px solid var(--vscode-settings-dropdownBorder, var(--vscode-input-border, transparent)) !important;
     border-radius: 2px;
     min-height: 26px !important;
     line-height: 19px !important;

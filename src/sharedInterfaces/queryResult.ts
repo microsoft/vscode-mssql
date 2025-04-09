@@ -8,8 +8,14 @@ import {
     ExecutionPlanReducers,
     ExecutionPlanState,
     ExecutionPlanWebviewState,
-} from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
-import { ISlickRange } from "../reactviews/pages/QueryResult/table/utils";
+} from "./executionPlanInterfaces";
+
+export interface ISlickRange {
+    fromCell: number;
+    fromRow: number;
+    toCell: number;
+    toRow: number;
+}
 
 export enum QueryResultLoadState {
     Loading = "Loading",
