@@ -159,7 +159,9 @@ export const columnUtils = {
             type,
         );
     },
-
+    isTimeBasedWithScale: (type: string): boolean => {
+        return ["datetime2", "datetimeoffset", "time"].includes(type);
+    },
     isPrecisionBasedType: (type: string): boolean => {
         return ["decimal", "numeric"].includes(type);
     },
@@ -215,6 +217,12 @@ export const columnUtils = {
             column.scale = columnUtils.getDefaultScale(column.dataType);
         } else {
             column.precision = 0;
+            column.scale = 0;
+        }
+
+        if (columnUtils.isTimeBasedWithScale(column.dataType)) {
+            column.scale = columnUtils.getDefaultScale(column.dataType);
+        } else {
             column.scale = 0;
         }
 
@@ -283,6 +291,12 @@ export const columnUtils = {
                         return column;
                     },
                 });
+            }
+
+            if (
+                columnUtils.isTimeBasedWithScale(column.dataType) ||
+                columnUtils.isPrecisionBasedType(column.dataType)
+            ) {
                 options.push({
                     label: locConstants.schemaDesigner.scale,
                     value: "",
@@ -398,6 +412,13 @@ export const foreignKeyUtils = {
                     col.name,
                     refCol.name,
                 ),
+            };
+        }
+
+        if (columnUtils.isTimeBasedWithScale(col.dataType) && col.scale !== refCol.scale) {
+            return {
+                isValid: false,
+                errorMessage: locConstants.schemaDesigner.incompatibleScale(col.name, refCol.name),
             };
         }
 

@@ -435,6 +435,12 @@ export class LocConstants {
                     args: [sourceColumn, targetColumn],
                     comment: ["{0} is source column", "{1} is target column"],
                 }),
+            incompatibleScale: (sourceColumn: string, targetColumn: string) =>
+                l10n.t({
+                    message: "Scale mismatch between '{0}' and '{1}'",
+                    args: [sourceColumn, targetColumn],
+                    comment: ["{0} is source column", "{1} is target column"],
+                }),
             referencedColumnNotPK: (targetColumn: string) =>
                 l10n.t({
                     message: "Column '{0}' must be a primary key",
