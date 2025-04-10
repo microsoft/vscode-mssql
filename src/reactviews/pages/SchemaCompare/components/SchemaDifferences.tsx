@@ -59,14 +59,14 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
     const scrollbarWidth = useScrollbarWidth({ targetDocument });
     const context = React.useContext(schemaCompareContext);
     const compareResult = context.state.schemaCompareResult;
-    let [allDiffsIncluded, setAllDiffsIncluded] = React.useState(true);
-    let [someDiffsExcluded, setSomeDiffsExcluded] = React.useState(false);
-    let [allDiffsExcluded, setAllDiffsExcluded] = React.useState(false);
+    const [diffInclusionLevel, setDiffInclusionLevel] = React.useState<
+        "allIncluded" | "allExcluded" | "mixed"
+    >("allIncluded");
 
     React.useEffect(() => {
         let allIncluded = true;
         let allExcluded = true;
-        let someExcluded = false;
+        let someIncluded = false;
         for (const diffEntry of compareResult.differences) {
             if (!diffEntry.included) {
                 allIncluded = false;
@@ -78,12 +78,16 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
         }
 
         if (!allIncluded && !allExcluded) {
-            someExcluded = true;
+            someIncluded = true;
         }
 
-        setAllDiffsIncluded(allIncluded);
-        setSomeDiffsExcluded(someExcluded);
-        setAllDiffsExcluded(allExcluded);
+        if (someIncluded) {
+            setDiffInclusionLevel("mixed");
+        } else if (allIncluded) {
+            setDiffInclusionLevel("allIncluded");
+        } else {
+            setDiffInclusionLevel("allExcluded");
+        }
     }, [context.state.schemaCompareResult]);
 
     const formatName = (nameParts: string[]): string => {
@@ -101,7 +105,7 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
     };
 
     const handleIncludeExcludeAllNodes = () => {
-        if (allDiffsExcluded || someDiffsExcluded) {
+        if (diffInclusionLevel === "allExcluded" || diffInclusionLevel === "mixed") {
             context.includeExcludeAllNodes(true /* include all */);
         } else {
             context.includeExcludeAllNodes(false /* exclude all */);
@@ -275,7 +279,11 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
                         {!context.state.isIncludeExcludeAllOperationInProgress && (
                             <Checkbox
                                 checked={
-                                    allDiffsIncluded ? true : someDiffsExcluded ? "mixed" : false
+                                    diffInclusionLevel === "allIncluded"
+                                        ? true
+                                        : diffInclusionLevel === "mixed"
+                                          ? "mixed"
+                                          : false
                                 }
                                 onClick={() => handleIncludeExcludeAllNodes()}
                                 onKeyDown={toggleAllKeydown}
