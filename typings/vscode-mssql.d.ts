@@ -1448,8 +1448,6 @@ declare module "vscode-mssql" {
     }
 
     export interface SchemaCompareIncludeExcludeAllResult extends ResultStatus {
-        operationId: string;
-        areEqual: boolean;
         allIncludedOrExcludedDifferences: DiffEntry[];
     }
 
