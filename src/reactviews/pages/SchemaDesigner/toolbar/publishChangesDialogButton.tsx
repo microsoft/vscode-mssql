@@ -305,7 +305,6 @@ export function PublishChangesDialogButton() {
     };
 
     const reportContainer = () => {
-        console.log("report", state.report);
         return (
             <>
                 <div
