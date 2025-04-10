@@ -707,10 +707,6 @@
     <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
       <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
     </trans-unit>
-    <trans-unit id="++CODE++6e664a883d2aba1d74234a8aa64d59b8ef18118d53d0923e4a0fc37cf439036e">
-      <source xml:lang="en">Failed to open scmp file &apos;{0}&apos;</source>
-      <note>{0} is the error message returned from the open scmp operation</note>
-    </trans-unit>
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
