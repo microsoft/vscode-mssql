@@ -31,6 +31,54 @@ suite("SchemaCompareWebViewController Tests", () => {
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
     let generateOperationIdStub: sinon.SinonStub<[], string>;
 
+    const differences = [
+        {
+            children: [],
+            differenceType: 0,
+            included: true,
+            name: "Table",
+            parent: null,
+            sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+            sourceScript:
+                "CREATE TABLE [dbo].[Customers] (\r\n [CustomerID] INT NOT NULL,\r\n [CustomerName] NVARCHAR (100) NOT NULL,\r\n [Email] NVARCHAR (100) NOT NULL,\r\n [Phone] NVARCHAR (20) NULL,\r\n PRIMARY KEY CLUSTERED ([CustomerID] ASC)\r\n);\r\nGO",
+            sourceValue: ["dbo", "CUstomers"],
+            targetObjectType: null,
+            targetScript: null,
+            targetValue: null,
+            updateAction: 2,
+        },
+        {
+            children: [],
+            differenceType: 0,
+            included: true,
+            name: "Table",
+            parent: null,
+            sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+            sourceScript:
+                "CREATE TABLE [dbo].[Orders] (\r\n [OrderID] INT NOT NULL,\r\n [CustomerID] INT NULL,\r\n [OrderDate] DATE NOT NULL,\r\n [TotalAmount] DECIMAL (10, 2) NOT NULL,\r\n PRIMARY KEY CLUSTERED ([OrderID] ASC),\r\n FOREIGN KEY ([CustomerID]) REFERENCES [dbo].[Customers] ([CustomerID])\r\n);\r\nGO",
+            sourceValue: ["dbo", "Customers"],
+            targetObjectType: null,
+            targetScript: null,
+            targetValue: null,
+            updateAction: 2,
+        },
+        {
+            children: [],
+            differenceType: 0,
+            included: true,
+            name: "Table",
+            parent: null,
+            sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+            sourceScript:
+                "CREATE TABLE [dbo].[Products] (\r\n [ProductID] INT NOT NULL,\r\n [ProductName] NVARCHAR (100) NOT NULL,\r\n [Price] DECIMAL (10, 2) NOT NULL,\r\n [StockQuantity] INT NOT NULL,\r\n PRIMARY KEY CLUSTERED ([ProductID] ASC)\r\n);\r\nGO",
+            sourceValue: ["dbo", "Products"],
+            targetObjectType: null,
+            targetScript: null,
+            targetValue: null,
+            updateAction: 2,
+        },
+    ];
+
     const deploymentOptions: mssql.DeploymentOptions = {
         excludeObjectTypes: {
             value: ["ServerTriggers", "Routes", "LinkedServerLogins", "Endpoints", "ErrorMessages"],
@@ -140,7 +188,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareResult: {
                 operationId: operationId,
                 areEqual: false,
-                differences: [],
+                differences: differences,
                 success: true,
                 errorMessage: "",
             },
