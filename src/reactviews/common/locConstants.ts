@@ -581,7 +581,7 @@ export class LocConstants {
             thereWasAnErrorUpdatingTheProject: l10n.t("There was an error updating the project"),
             schemaCompareApplyFailed: (errorMessage: string) =>
                 l10n.t({
-                    message: "Schema Compare Apply failed '{0}'",
+                    message: "Failed to apply changes: '{0}'",
                     args: [errorMessage ? errorMessage : "Unknown"],
                     comment: [
                         "{0} is the error message returned from the publish changes operation",
@@ -589,13 +589,13 @@ export class LocConstants {
                 }),
             openScmpErrorMessage: (errorMessage: string) =>
                 l10n.t({
-                    message: "Open scmp failed '{0}'",
+                    message: "Failed to open scmp file '{0}'",
                     args: [errorMessage ? errorMessage : "Unknown"],
                     comment: ["{0} is the error message returned from the open scmp operation"],
                 }),
             saveScmpErrorMessage: (errorMessage: string) =>
                 l10n.t({
-                    message: "Save scmp failed: '{0}'",
+                    message: "Failed to save scmp file: '{0}'",
                     args: [errorMessage ? errorMessage : "Unknown"],
                     comment: ["{0} is the error message returned from the save scmp operation"],
                 }),

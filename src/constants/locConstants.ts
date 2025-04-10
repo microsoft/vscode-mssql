@@ -698,7 +698,7 @@ export class SchemaCompare {
     );
     public static generateScriptErrorMessage = (errorMessage: string) =>
         l10n.t({
-            message: "Generate script failed: '{0}'",
+            message: "Failed to generate script: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
@@ -707,19 +707,19 @@ export class SchemaCompare {
     );
     public static schemaCompareApplyFailed = (errorMessage: string) =>
         l10n.t({
-            message: "Schema Compare Apply failed '{0}'",
+            message: "Failed to apply changes: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the publish changes operation"],
         });
     public static openScmpErrorMessage = (errorMessage: string) =>
         l10n.t({
-            message: "Open scmp failed '{0}'",
+            message: "Failed to open scmp file: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the open scmp operation"],
         });
     public static saveScmpErrorMessage = (errorMessage: string) =>
         l10n.t({
-            message: "Save scmp failed: '{0}'",
+            message: "Failed to save scmp file: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the save scmp operation"],
         });
