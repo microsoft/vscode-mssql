@@ -615,6 +615,60 @@ export const foreignKeyUtils = {
             foreignKey,
         );
     },
+
+    getOnActionOptions: (): {
+        label: string;
+        value: SchemaDesigner.OnAction;
+    }[] => {
+        return [
+            {
+                label: locConstants.schemaDesigner.cascade,
+                value: SchemaDesigner.OnAction.CASCADE,
+            },
+            {
+                label: locConstants.schemaDesigner.noAction,
+                value: SchemaDesigner.OnAction.NO_ACTION,
+            },
+            {
+                label: locConstants.schemaDesigner.setNull,
+                value: SchemaDesigner.OnAction.SET_NULL,
+            },
+            {
+                label: locConstants.schemaDesigner.setDefault,
+                value: SchemaDesigner.OnAction.SET_DEFAULT,
+            },
+        ];
+    },
+
+    convertStringToOnAction: (action: string): SchemaDesigner.OnAction => {
+        switch (action) {
+            case locConstants.schemaDesigner.cascade:
+                return SchemaDesigner.OnAction.CASCADE;
+            case locConstants.schemaDesigner.noAction:
+                return SchemaDesigner.OnAction.NO_ACTION;
+            case locConstants.schemaDesigner.setNull:
+                return SchemaDesigner.OnAction.SET_NULL;
+            case locConstants.schemaDesigner.setDefault:
+                return SchemaDesigner.OnAction.SET_DEFAULT;
+            default:
+                return SchemaDesigner.OnAction.NO_ACTION;
+        }
+    },
+
+    convertOnActionToString: (action: SchemaDesigner.OnAction): string => {
+        switch (action) {
+            case SchemaDesigner.OnAction.CASCADE:
+                return locConstants.schemaDesigner.cascade;
+            case SchemaDesigner.OnAction.NO_ACTION:
+                return locConstants.schemaDesigner.noAction;
+            case SchemaDesigner.OnAction.SET_NULL:
+                return locConstants.schemaDesigner.setNull;
+            case SchemaDesigner.OnAction.SET_DEFAULT:
+                return locConstants.schemaDesigner.setDefault;
+            default:
+                return locConstants.schemaDesigner.noAction;
+        }
+    },
 };
 
 // Constants for layout and dimensions

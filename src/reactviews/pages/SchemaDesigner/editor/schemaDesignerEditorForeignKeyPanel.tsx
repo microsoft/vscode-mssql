@@ -32,7 +32,7 @@ import {
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { namingUtils, tableUtils } from "../schemaDesignerUtils";
+import { foreignKeyUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
@@ -353,6 +353,8 @@ const ForeignKeyCard = ({
         }
     }, [context.errors]);
 
+    console.log("Foreign Key Card", foreignKey, errorMessage, warningMessage);
+
     return (
         <Card className={classes.cardStyle} key={`fk-card-${index}`}>
             <CardHeader
@@ -440,6 +442,57 @@ const ForeignKeyCard = ({
                     </Dropdown>
                 </Field>
             </div>
+
+            {/* On Delete and Update Action */}
+            <div className={classes.row}>
+                <Field style={{ flex: 1 }} size="small">
+                    <Label>{locConstants.schemaDesigner.onDelete}</Label>
+                    <Dropdown
+                        size="small"
+                        value={foreignKey.onDeleteAction}
+                        selectedOptions={[foreignKey.onDeleteAction]}
+                        multiselect={false}
+                        onOptionSelect={(_e, data) => {
+                            onUpdate(index, {
+                                ...foreignKey,
+                                onDeleteAction: data.optionText as SchemaDesigner.OnAction,
+                            });
+                        }}
+                        style={{ minWidth: "auto" }}>
+                        {foreignKeyUtils.getOnActionOptions().map((action) => (
+                            <Option
+                                key={`on-delete-option-${index}-${foreignKey.id}-${action}`}
+                                value={action.value}>
+                                {action.label}
+                            </Option>
+                        ))}
+                    </Dropdown>
+                </Field>
+                <Field style={{ flex: 1 }} size="small">
+                    <Label>{locConstants.schemaDesigner.onUpdate}</Label>
+                    <Dropdown
+                        size="small"
+                        value={foreignKey.onUpdateAction}
+                        selectedOptions={[foreignKey.onUpdateAction]}
+                        multiselect={false}
+                        onOptionSelect={(_e, data) => {
+                            onUpdate(index, {
+                                ...foreignKey,
+                                onUpdateAction: data.optionText as SchemaDesigner.OnAction,
+                            });
+                        }}
+                        style={{ minWidth: "auto" }}>
+                        {foreignKeyUtils.getOnActionOptions().map((action) => (
+                            <Option
+                                key={`on-update-option--${index}-${foreignKey.id}-${action}`}
+                                value={action.value}>
+                                {action.label}
+                            </Option>
+                        ))}
+                    </Dropdown>
+                </Field>
+            </div>
+
             <div className={classes.mappingTableContainer}>
                 {/* Add Column Mapping Button */}
                 <Button

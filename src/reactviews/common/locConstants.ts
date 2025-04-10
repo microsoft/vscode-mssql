@@ -518,6 +518,12 @@ export class LocConstants {
             publishingChanges: l10n.t("Publishing Changes"),
             changesPublishedSuccessfully: l10n.t("Changes published successfully"),
             continueEditing: l10n.t("Continue Editing"),
+            onUpdate: l10n.t("On Update"),
+            onDelete: l10n.t("On Delete"),
+            cascade: l10n.t("Cascade"),
+            setNull: l10n.t("Set Null"),
+            setDefault: l10n.t("Set Default"),
+            noAction: l10n.t("No Action"),
         };
     }
 
