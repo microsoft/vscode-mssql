@@ -87,6 +87,18 @@ export namespace SchemaDesigner {
          * Default value of the column
          */
         defaultValue: string;
+        /**
+         * Is column computed.
+         */
+        isComputed: boolean;
+        /**
+         * Computed column formula
+         */
+        computedFormula: string;
+        /**
+         * Is column persisted.
+         */
+        computedPersisted: boolean;
     }
 
     export type ForeignKey = {

@@ -316,10 +316,17 @@ const ColumnsTable = ({
                             displayName: datatype,
                             value: datatype,
                         }))}
-                        selectedOption={{
-                            text: column.dataType,
-                            value: column.dataType,
-                        }}
+                        selectedOption={
+                            column.isComputed
+                                ? {
+                                      text: "Computed",
+                                      value: "Computed",
+                                  }
+                                : {
+                                      text: column.dataType,
+                                      value: column.dataType,
+                                  }
+                        }
                         onSelect={(selected) => {
                             const updatedColumn = {
                                 ...column,
@@ -333,6 +340,7 @@ const ColumnsTable = ({
                             maxWidth: "150px",
                         }}
                         size="small"
+                        disabled={column.isComputed}
                     />
                 );
 
@@ -348,6 +356,7 @@ const ColumnsTable = ({
                                 isNullable: data.checked ? false : column.isNullable,
                             });
                         }}
+                        disabled={column.isComputed}
                     />
                 );
 
@@ -497,6 +506,9 @@ export const SchemaDesignerEditorTablePanel = () => {
             identitySeed: 1,
             identityIncrement: 1,
             defaultValue: "",
+            isComputed: false,
+            computedFormula: "",
+            computedPersisted: false,
         });
 
         context.setTable({
