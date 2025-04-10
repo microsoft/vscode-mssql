@@ -589,7 +589,7 @@ export class LocConstants {
                 }),
             openScmpErrorMessage: (errorMessage: string) =>
                 l10n.t({
-                    message: "Failed to open scmp file '{0}'",
+                    message: "Failed to open scmp file: '{0}'",
                     args: [errorMessage ? errorMessage : "Unknown"],
                     comment: ["{0} is the error message returned from the open scmp operation"],
                 }),
