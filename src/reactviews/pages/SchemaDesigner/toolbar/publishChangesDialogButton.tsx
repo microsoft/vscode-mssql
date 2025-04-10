@@ -24,9 +24,6 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext, useState } from "react";
 import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { DiffAddedIcon } from "../../../common/icons/diffAdded";
-import { DiffRemovedIcon } from "../../../common/icons/diffRemoved";
-import { DiffModifiedIcon } from "../../../common/icons/diffModified";
 
 enum PublishDialogStages {
     NotStarted = "notStarted",
@@ -77,16 +74,16 @@ export function PublishChangesDialogButton() {
         currentStage: PublishDialogStages.NotStarted,
     });
 
-    function getReportIcon(state: SchemaDesigner.SchemaDesignerReportTableState) {
-        switch (state) {
-            case SchemaDesigner.SchemaDesignerReportTableState.Created:
-                return <DiffAddedIcon />;
-            case SchemaDesigner.SchemaDesignerReportTableState.Dropped:
-                return <DiffRemovedIcon />;
-            case SchemaDesigner.SchemaDesignerReportTableState.Updated:
-                return <DiffModifiedIcon />;
-        }
-    }
+    // function getReportIcon(state: SchemaDesigner.SchemaDesignerReportTableState) {
+    //     switch (state) {
+    //         case SchemaDesigner.SchemaDesignerReportTableState.Created:
+    //             return <DiffAddedIcon />;
+    //         case SchemaDesigner.SchemaDesignerReportTableState.Dropped:
+    //             return <DiffRemovedIcon />;
+    //         case SchemaDesigner.SchemaDesignerReportTableState.Updated:
+    //             return <DiffModifiedIcon />;
+    //     }
+    // }
 
     // const renderTreeNode = (
     //     text: string,
@@ -386,7 +383,15 @@ export function PublishChangesDialogButton() {
                             <Markdown>{getSelectedReportMarkdown()}</Markdown>
                         </div>
                     </div> */}
-                    <Markdown>{state.report.dacReport.report}</Markdown>
+                    <div
+                        style={{
+                            width: "100%",
+                            height: "500px",
+                            maxHeight: "100%",
+                            overflow: "auto",
+                        }}>
+                        <Markdown>{state?.report?.dacReport?.report ?? ""}</Markdown>
+                    </div>
 
                     <Checkbox
                         label={locConstants.tableDesigner.designerPreviewConfirmation}
