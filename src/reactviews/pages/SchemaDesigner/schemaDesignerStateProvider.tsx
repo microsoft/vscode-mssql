@@ -42,6 +42,10 @@ export interface SchemaDesignerContextProps
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
     updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
+    publishSession: () => Promise<{
+        success: boolean;
+        error?: string;
+    }>;
     isInitialized: boolean;
 }
 
@@ -381,6 +385,11 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     };
 
+    const publishSession = async () => {
+        const response = await extensionRpc.call("publishSession");
+        return response;
+    };
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -405,6 +414,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deleteSelectedNodes,
                 updateSelectedNodes,
                 setCenter,
+                publishSession,
                 isInitialized,
             }}>
             {children}

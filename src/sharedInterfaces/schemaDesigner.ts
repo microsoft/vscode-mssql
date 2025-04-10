@@ -163,7 +163,12 @@ export namespace SchemaDesigner {
         /**
          * Connection URI which is used to connect to the database
          */
-        connectionUri: string;
+        connectionString: string;
+        /**
+         * Access token for the connection
+         * This is used to authenticate the connection to the database
+         */
+        accessToken?: string;
         /**
          * Database name to fetch the schema from
          */
@@ -250,6 +255,13 @@ export namespace SchemaDesigner {
         updateScript: string;
     }
 
+    export interface PublishSessionRequest {
+        /**
+         * Session id for the schema designer session
+         */
+        sessionId: string;
+    }
+
     export interface SchemaDesignerReport {
         tableId: string;
         tableName: string;
@@ -277,6 +289,11 @@ export namespace SchemaDesigner {
          * @param request - Request parameters for disposing a schema designer session
          */
         disposeSession(request: DisposeSessionRequest): Thenable<void>;
+
+        /**
+         * Publishes the schema designer session
+         */
+        publishSession(request: PublishSessionRequest): Thenable<void>;
 
         /**
          * Gets the create as script for the schema designer session

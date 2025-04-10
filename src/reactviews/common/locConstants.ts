@@ -512,6 +512,9 @@ export class LocConstants {
                     args: [errorCount],
                     comment: ["{0} is the number of errors"],
                 }),
+            openPublishScript: l10n.t("Open Publish Script"),
+            Close: l10n.t("Close"),
+            publish: l10n.t("Publish"),
         };
     }
 

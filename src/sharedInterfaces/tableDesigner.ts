@@ -81,6 +81,10 @@ export interface TableInfo {
      * Additional information for tooltip on hover displaying the full information of the connection.
      */
     additionalInfo?: string;
+    /**
+     * Access token to be used for Azure MFA authentication.
+     */
+    accessToken?: string;
 }
 
 /**

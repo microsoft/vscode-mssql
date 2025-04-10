@@ -5,6 +5,7 @@
 
 import {
     Button,
+    Checkbox,
     Dialog,
     DialogActions,
     DialogBody,
@@ -43,6 +44,7 @@ export function PublishChangesDialogButton() {
     const [report, setReport] = useState<SchemaDesigner.GetReportResponse | undefined>(undefined);
     const [reportError, setReportError] = useState<string | undefined>(undefined);
     const [loading, setLoading] = useState<ApiStatus>(ApiStatus.NotStarted);
+    const [isConfirmationChecked, setIsConfirmationChecked] = useState<boolean>(false);
 
     const [selectedReportId, setSelectedReportId] = useState<string>("");
 
@@ -58,6 +60,12 @@ export function PublishChangesDialogButton() {
                 return <DiffModifiedIcon />;
         }
     }
+
+    const enablePublishButtons = () => {
+        return (
+            loading !== ApiStatus.Loading && isConfirmationChecked && report?.reports?.length !== 0
+        );
+    };
 
     useEffect(() => {
         if (!report) {
@@ -151,6 +159,7 @@ export function PublishChangesDialogButton() {
                     onClick={async () => {
                         setLoading(ApiStatus.Loading);
                         setReportTab("report");
+                        setIsConfirmationChecked(false);
                         const report = await context.getReport();
                         if (report.error) {
                             setReportError(report.error);
@@ -242,7 +251,13 @@ export function PublishChangesDialogButton() {
                                     }}
                                 />
                                 {reportTab === "report" && (
-                                    <>
+                                    <div
+                                        style={{
+                                            width: "100%",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            overflow: "hidden",
+                                        }}>
                                         <div
                                             style={{
                                                 width: "100%",
@@ -298,7 +313,44 @@ export function PublishChangesDialogButton() {
                                                 <Markdown>{getSelectedReportMarkdown()}</Markdown>
                                             </div>
                                         </div>
-                                    </>
+                                        <Checkbox
+                                            label={
+                                                locConstants.tableDesigner
+                                                    .designerPreviewConfirmation
+                                            }
+                                            style={{
+                                                padding: "10px",
+                                            }}
+                                            required
+                                            checked={isConfirmationChecked}
+                                            onChange={(_event, data) => {
+                                                setIsConfirmationChecked(data.checked as boolean);
+                                            }}
+                                            // Setting initial focus on the checkbox when it is rendered.
+                                            autoFocus
+                                            /**
+                                             * The focus outline is not visible on the checkbox when it is focused programmatically.
+                                             * This is a workaround to make the focus outline visible on the checkbox when it is focused programmatically.
+                                             * This is most likely a bug in the browser.
+                                             */
+                                            onFocus={(event) => {
+                                                if (event.target.parentElement) {
+                                                    event.target.parentElement.style.outlineStyle =
+                                                        "solid";
+                                                    event.target.parentElement.style.outlineColor =
+                                                        "var(--vscode-focusBorder)";
+                                                }
+                                            }}
+                                            onBlur={(event) => {
+                                                if (event.target.parentElement) {
+                                                    event.target.parentElement.style.outline =
+                                                        "none";
+                                                    event.target.parentElement.style.outlineColor =
+                                                        "";
+                                                }
+                                            }}
+                                        />
+                                    </div>
                                 )}
                                 {reportTab === "publishScript" && (
                                     <Editor
@@ -317,17 +369,33 @@ export function PublishChangesDialogButton() {
                         )}
                     </DialogContent>
                     <DialogActions>
-                        {/* <Button appearance="primary">Publish</Button> */}
+                        <Button
+                            appearance="primary"
+                            disabled={!enablePublishButtons()}
+                            onClick={async () => {
+                                setLoading(ApiStatus.Loading);
+                                const reponse = await context.publishSession();
+                                if (reponse.error) {
+                                    setReportError(reponse.error);
+                                } else {
+                                    setReportError(undefined);
+                                }
+                                setLoading(ApiStatus.Loaded);
+                            }}>
+                            {locConstants.schemaDesigner.publish}
+                        </Button>
                         <Button
                             appearance="secondary"
                             onClick={() => {
                                 context.openInEditorWithConnection(report?.updateScript ?? "");
                             }}
-                            disabled={report?.updateScript === ""}>
-                            Open Publish Script
+                            disabled={!enablePublishButtons()}>
+                            {locConstants.schemaDesigner.openPublishScript}
                         </Button>
                         <DialogTrigger disableButtonEnhancement>
-                            <Button appearance="secondary">Close</Button>
+                            <Button appearance="secondary">
+                                {locConstants.schemaDesigner.Close}
+                            </Button>
                         </DialogTrigger>
                     </DialogActions>
                 </DialogBody>
