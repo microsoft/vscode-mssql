@@ -248,6 +248,7 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
                         checked={item.included}
                         onClick={() => handleIncludeExcludeNode(item, !item.included)}
                         onKeyDown={(e) => toggleKeyDown(e, item, !item.included)}
+                        disabled={context.state.isIncludeExcludeAllOperationInProgress}
                     />
                 </TableCell>
                 <TableCell>{getLabelForAction(item.updateAction as number)}</TableCell>
