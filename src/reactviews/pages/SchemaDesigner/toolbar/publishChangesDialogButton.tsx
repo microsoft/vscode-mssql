@@ -533,6 +533,22 @@ export function PublishChangesDialogButton() {
                         </Button>
                     </>
                 )}
+                {state.currentStage === PublishDialogStages.PublishSuccess && (
+                    <DialogTrigger disableButtonEnhancement>
+                        <Button
+                            appearance="secondary"
+                            onClick={() => {
+                                setState({
+                                    ...state,
+                                    currentStage: PublishDialogStages.NotStarted,
+                                });
+
+                                context.resetUndoRedoState();
+                            }}>
+                            {locConstants.schemaDesigner.continueEditing}
+                        </Button>
+                    </DialogTrigger>
+                )}
                 {state.currentStage !== PublishDialogStages.PublishLoading && (
                     <DialogTrigger disableButtonEnhancement>
                         <Button
@@ -548,22 +564,6 @@ export function PublishChangesDialogButton() {
                                 }
                             }}>
                             {locConstants.schemaDesigner.Close}
-                        </Button>
-                    </DialogTrigger>
-                )}
-                {state.currentStage === PublishDialogStages.PublishSuccess && (
-                    <DialogTrigger disableButtonEnhancement>
-                        <Button
-                            appearance="secondary"
-                            onClick={() => {
-                                setState({
-                                    ...state,
-                                    currentStage: PublishDialogStages.NotStarted,
-                                });
-
-                                context.resetUndoRedoState();
-                            }}>
-                            {locConstants.schemaDesigner.continueEditing}
                         </Button>
                     </DialogTrigger>
                 )}
