@@ -319,7 +319,7 @@ export const columnUtils = {
                 column.identitySeed = 0;
                 column.identityIncrement = 0;
                 column.isNullable = true;
-                column.computedFormula = "";
+                column.computedFormula = value ? "1" : "";
                 column.computedPersisted = false;
                 column.dataType = value ? "int" : column.dataType;
                 return column;

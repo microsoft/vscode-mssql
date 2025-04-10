@@ -534,6 +534,8 @@ export class LocConstants {
             setNull: l10n.t("Set Null"),
             setDefault: l10n.t("Set Default"),
             noAction: l10n.t("No Action"),
+            possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
+            hasWarnings: l10n.t("Warnings detected. Please review the changes."),
         };
     }
 

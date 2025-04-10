@@ -262,9 +262,25 @@ export namespace SchemaDesigner {
          */
         reports: SchemaDesignerReport[];
         /**
+         * DacFx report
+         * This is the DacFx report that indicates the changes made to the schema
+         */
+        dacReport: DacReport;
+        /**
          * Script to update the schema
          */
         updateScript: string;
+    }
+
+    /**
+     * DacFx report
+     * This is the DacFx report that indicates the changes made to the schema
+     */
+    export interface DacReport {
+        report: string;
+        requireTableRecreation: boolean;
+        possibleDataLoss: boolean;
+        hasWarnings: boolean;
     }
 
     export interface PublishSessionRequest {

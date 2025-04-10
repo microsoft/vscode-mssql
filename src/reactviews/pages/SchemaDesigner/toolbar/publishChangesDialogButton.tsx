@@ -13,13 +13,10 @@ import {
     DialogSurface,
     DialogTitle,
     DialogTrigger,
-    Divider,
     makeStyles,
+    MessageBar,
     Spinner,
     ToolbarButton,
-    Tree,
-    TreeItem,
-    TreeItemLayout,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
@@ -91,80 +88,80 @@ export function PublishChangesDialogButton() {
         }
     }
 
-    const renderTreeNode = (
-        text: string,
-        filterTableState: SchemaDesigner.SchemaDesignerReportTableState,
-    ) => {
-        if (!state.report) {
-            return undefined;
-        }
-        if (
-            state.report.reports?.filter((report) => report.tableState === filterTableState)
-                .length === 0
-        ) {
-            return undefined;
-        }
-        return (
-            <TreeItem value={text} itemType="branch">
-                <TreeItemLayout>{text}</TreeItemLayout>
-                <Tree
-                    size="small"
-                    aria-label="Small Size Tree"
-                    defaultOpenItems={["root"]}
-                    style={{
-                        minWidth: "180px",
-                        overflow: "hidden",
-                        overflowY: "auto",
-                    }}>
-                    {state.report.reports
-                        ?.filter((report) => report.tableState === filterTableState)
-                        .map((report) => {
-                            return (
-                                <TreeItem
-                                    key={report.tableId}
-                                    value={report.tableId}
-                                    itemType="leaf"
-                                    onClick={() => {
-                                        setState({
-                                            ...state,
-                                            selectedReportId: report.tableId,
-                                        });
-                                    }}
-                                    style={{
-                                        backgroundColor:
-                                            report.tableId === state.selectedReportId
-                                                ? "var(--vscode-list-activeSelectionBackground)"
-                                                : "",
-                                    }}>
-                                    <TreeItemLayout iconBefore={getReportIcon(filterTableState)}>
-                                        {report.tableName}
-                                    </TreeItemLayout>
-                                </TreeItem>
-                            );
-                        })}
-                </Tree>
-            </TreeItem>
-        );
-    };
+    // const renderTreeNode = (
+    //     text: string,
+    //     filterTableState: SchemaDesigner.SchemaDesignerReportTableState,
+    // ) => {
+    //     if (!state.report) {
+    //         return undefined;
+    //     }
+    //     if (
+    //         state.report.reports?.filter((report) => report.tableState === filterTableState)
+    //             .length === 0
+    //     ) {
+    //         return undefined;
+    //     }
+    //     return (
+    //         <TreeItem value={text} itemType="branch">
+    //             <TreeItemLayout>{text}</TreeItemLayout>
+    //             <Tree
+    //                 size="small"
+    //                 aria-label="Small Size Tree"
+    //                 defaultOpenItems={["root"]}
+    //                 style={{
+    //                     minWidth: "180px",
+    //                     overflow: "hidden",
+    //                     overflowY: "auto",
+    //                 }}>
+    //                 {state.report.reports
+    //                     ?.filter((report) => report.tableState === filterTableState)
+    //                     .map((report) => {
+    //                         return (
+    //                             <TreeItem
+    //                                 key={report.tableId}
+    //                                 value={report.tableId}
+    //                                 itemType="leaf"
+    //                                 onClick={() => {
+    //                                     setState({
+    //                                         ...state,
+    //                                         selectedReportId: report.tableId,
+    //                                     });
+    //                                 }}
+    //                                 style={{
+    //                                     backgroundColor:
+    //                                         report.tableId === state.selectedReportId
+    //                                             ? "var(--vscode-list-activeSelectionBackground)"
+    //                                             : "",
+    //                                 }}>
+    //                                 <TreeItemLayout iconBefore={getReportIcon(filterTableState)}>
+    //                                     {report.tableName}
+    //                                 </TreeItemLayout>
+    //                             </TreeItem>
+    //                         );
+    //                     })}
+    //             </Tree>
+    //         </TreeItem>
+    //     );
+    // };
 
-    const getSelectedReportMarkdown = () => {
-        if (!state?.report) {
-            return "";
-        }
-        const selectedReport = state?.report.reports?.find(
-            (report) => report.tableId === state.selectedReportId,
-        );
-        if (selectedReport) {
-            const reportMarkdown = `### ${selectedReport.tableName}\n\n`;
+    // const getSelectedReportMarkdown = () => {
+    //     if (!state?.report) {
+    //         return "";
+    //     }
+    //     const selectedReport = state?.report.reports?.find(
+    //         (report) => report.tableId === state.selectedReportId,
+    //     );
+    //     if (selectedReport) {
+    //         const reportMarkdown = `### ${selectedReport.tableName}\n\n`;
 
-            const actions = selectedReport.actionsPerformed?.map((item) => `- ${item}`).join("\n");
+    //         const actions = selectedReport.actionsPerformed?.map((item) => `- ${item}`).join("\n");
 
-            return (
-                reportMarkdown + "#### Actions performed\n\n" + (actions ? actions : "") + "\n\n"
-            );
-        }
-        return "";
-    };
+    //         return (
+    //             reportMarkdown + "#### Actions performed\n\n" + (actions ? actions : "") + "\n\n"
+    //         );
+    //     }
+    //     return "";
+    // };
 
     /**
      * Toolbar button to open the publish changes dialog.
@@ -311,6 +308,7 @@ export function PublishChangesDialogButton() {
     };
 
     const reportContainer = () => {
+        console.log("report", state.report);
         return (
             <>
                 <div
@@ -320,7 +318,27 @@ export function PublishChangesDialogButton() {
                         flexDirection: "column",
                         overflow: "hidden",
                     }}>
-                    <div
+                    {state.report?.dacReport?.possibleDataLoss && (
+                        <MessageBar
+                            intent="warning"
+                            style={{
+                                marginBottom: "10px",
+                                marginTop: "10px",
+                            }}>
+                            {locConstants.schemaDesigner.possibleDataLoss}
+                        </MessageBar>
+                    )}
+                    {state.report?.dacReport?.hasWarnings && (
+                        <MessageBar
+                            intent="warning"
+                            style={{
+                                marginBottom: "10px",
+                                marginTop: "10px",
+                            }}>
+                            {locConstants.schemaDesigner.hasWarnings}
+                        </MessageBar>
+                    )}
+                    {/* <div
                         style={{
                             width: "100%",
                             display: "flex",
@@ -329,7 +347,7 @@ export function PublishChangesDialogButton() {
                             maxHeight: "500px",
                             overflow: "hidden",
                         }}>
-                        <Tree
+                         <Tree
                             size="small"
                             aria-label="Small Size Tree"
                             defaultOpenItems={["Added Tables", "Modified Tables", "Dropped Tables"]}
@@ -367,7 +385,9 @@ export function PublishChangesDialogButton() {
                             }}>
                             <Markdown>{getSelectedReportMarkdown()}</Markdown>
                         </div>
-                    </div>
+                    </div> */}
+                    <Markdown>{state.report.dacReport.report}</Markdown>
+
                     <Checkbox
                         label={locConstants.tableDesigner.designerPreviewConfirmation}
                         style={{
