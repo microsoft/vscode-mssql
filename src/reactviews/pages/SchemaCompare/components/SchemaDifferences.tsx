@@ -32,10 +32,6 @@ const useStyles = makeStyles({
     HeaderCellPadding: {
         padding: "0 8px",
     },
-
-    PrimaryCheckboxPadding: {
-        paddingLeft: "16px",
-    },
 });
 
 interface TableRowData extends RowStateBase<DiffEntry> {
@@ -275,7 +271,7 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
                     <TableHeaderCell className={classes.HeaderCellPadding}>
                         {loc.schemaCompare.sourceName}
                     </TableHeaderCell>
-                    <TableHeaderCell className={classes.PrimaryCheckboxPadding}>
+                    <TableHeaderCell>
                         {!context.state.isIncludeExcludeAllOperationInProgress && (
                             <Checkbox
                                 checked={
