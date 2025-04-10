@@ -423,7 +423,7 @@
       "{0} is the column name"
     ]
   },
-  "Foreign key name cannot be empty": "Foreign key name cannot be empty",
+  "Consider adding a name for this foreign key": "Consider adding a name for this foreign key",
   "Foreign key '{0}' already exists/{0} is the foreign key name": {
     "message": "Foreign key '{0}' already exists",
     "comment": [
@@ -434,6 +434,12 @@
     "message": "{0} column data",
     "comment": [
       "{0} is the number of columns"
+    ]
+  },
+  "Column '{0}' is an identity column and cannot have a cascading foreign key/{0} is the column name": {
+    "message": "Column '{0}' is an identity column and cannot have a cascading foreign key",
+    "comment": [
+      "{0} is the column name"
     ]
   },
   "Manage relationships": "Manage relationships",

@@ -318,6 +318,10 @@
       <source xml:lang="en">Column &apos;{0}&apos; cannot be null because it is a primary key</source>
       <note>{0} is the column name</note>
     </trans-unit>
+    <trans-unit id="++CODE++8d00d9665207fcb4d435b78c5be1719cbc6d078437f523910b3e8bd9e95e67aa">
+      <source xml:lang="en">Column &apos;{0}&apos; is an identity column and cannot have a cascading foreign key</source>
+      <note>{0} is the column name</note>
+    </trans-unit>
     <trans-unit id="++CODE++c360b9bc22466a897cd5a6398646517f1bc0236d4bd579846b258d267dfd859c">
       <source xml:lang="en">Column &apos;{0}&apos; must be a primary key</source>
       <note>{0} is the referenced column</note>
@@ -397,6 +401,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
       <source xml:lang="en">Connection string is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
+      <source xml:lang="en">Consider adding a name for this foreign key</source>
     </trans-unit>
     <trans-unit id="++CODE++2eaecb3d0cf1282f01fc09568b63dc633753a0dbf337365d929d9c28df3d6ca4">
       <source xml:lang="en">Contains</source>
@@ -766,9 +773,6 @@
     <trans-unit id="++CODE++328923e4274282cae8dc3222c0281c6454f9625843394b33364bfb4213436f1a">
       <source xml:lang="en">Foreign key &apos;{0}&apos; already exists</source>
       <note>{0} is the foreign key name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++e6603b955a2b4bfe8e11ed330edfcdbfd8af1d94b683e2829ba11da61c8640c9">
-      <source xml:lang="en">Foreign key name cannot be empty</source>
     </trans-unit>
     <trans-unit id="++CODE++936af734b4badd8602cb27237f8dea0fd3950e12b5bab278565babc15e854136">
       <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
