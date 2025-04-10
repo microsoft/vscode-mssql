@@ -518,20 +518,20 @@
   "Target": "Target",
   "Are you sure you want to update the target?": "Are you sure you want to update the target?",
   "There was an error updating the project": "There was an error updating the project",
-  "Schema Compare Apply failed '{0}'/{0} is the error message returned from the publish changes operation": {
-    "message": "Schema Compare Apply failed '{0}'",
+  "Failed to apply changes: '{0}'/{0} is the error message returned from the publish changes operation": {
+    "message": "Failed to apply changes: '{0}'",
     "comment": [
       "{0} is the error message returned from the publish changes operation"
     ]
   },
-  "Open scmp failed '{0}'/{0} is the error message returned from the open scmp operation": {
-    "message": "Open scmp failed '{0}'",
+  "Failed to open scmp file '{0}'/{0} is the error message returned from the open scmp operation": {
+    "message": "Failed to open scmp file '{0}'",
     "comment": [
       "{0} is the error message returned from the open scmp operation"
     ]
   },
-  "Save scmp failed: '{0}'/{0} is the error message returned from the save scmp operation": {
-    "message": "Save scmp failed: '{0}'",
+  "Failed to save scmp file: '{0}'/{0} is the error message returned from the save scmp operation": {
+    "message": "Failed to save scmp file: '{0}'",
     "comment": [
       "{0} is the error message returned from the save scmp operation"
     ]
@@ -1073,10 +1073,16 @@
   "General": "General",
   "Schema Compare": "Schema Compare",
   "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
-  "Generate script failed: '{0}'/{0} is the error message returned from the generate script operation": {
-    "message": "Generate script failed: '{0}'",
+  "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
+    "message": "Failed to generate script: '{0}'",
     "comment": [
       "{0} is the error message returned from the generate script operation"
+    ]
+  },
+  "Failed to open scmp file: '{0}'/{0} is the error message returned from the open scmp operation": {
+    "message": "Failed to open scmp file: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the open scmp operation"
     ]
   },
   "Cancel schema compare failed: '{0}'/{0} is the error message returned from the cancel operation": {

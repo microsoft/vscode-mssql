@@ -684,6 +684,10 @@
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
     </trans-unit>
+    <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
+      <source xml:lang="en">Failed to apply changes: &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the publish changes operation</note>
+    </trans-unit>
     <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
       <source xml:lang="en">Failed to connect: {0}</source>
       <note>{0} is the error message</note>
@@ -696,8 +700,20 @@
     <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
       <source xml:lang="en">Failed to fetch user tokens.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cdf943bd7b320469af4343440384b361de46832547d9bc9c08b3bd9a90610364">
+      <source xml:lang="en">Failed to generate script: &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the generate script operation</note>
+    </trans-unit>
     <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
       <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6e664a883d2aba1d74234a8aa64d59b8ef18118d53d0923e4a0fc37cf439036e">
+      <source xml:lang="en">Failed to open scmp file &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the open scmp operation</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
+      <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the open scmp operation</note>
     </trans-unit>
     <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
       <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -706,6 +722,10 @@
     </trans-unit>
     <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
       <source xml:lang="en">Failed to save results. </source>
+    </trans-unit>
+    <trans-unit id="++CODE++d264deec475c02adeccd53122253873cb7011b90f23c7af978cbfff13f3f92a6">
+      <source xml:lang="en">Failed to save scmp file: &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the save scmp operation</note>
     </trans-unit>
     <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
       <source xml:lang="en">File</source>
@@ -801,10 +821,6 @@
     </trans-unit>
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3d3813ca1c7608ef69cb91a5f621e6c1507ffca56b18275740366df04e5cff6e">
-      <source xml:lang="en">Generate script failed: &apos;{0}&apos;</source>
-      <note>{0} is the error message returned from the generate script operation</note>
     </trans-unit>
     <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
       <source xml:lang="en">Generate script to deploy changes to target</source>
@@ -1156,10 +1172,6 @@
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
     </trans-unit>
-    <trans-unit id="++CODE++fa609eef6a71158c74ec8b70843376b31d961185cb835dc3d9de4aba1877a667">
-      <source xml:lang="en">Open scmp failed &apos;{0}&apos;</source>
-      <note>{0} is the error message returned from the open scmp operation</note>
-    </trans-unit>
     <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
       <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
     </trans-unit>
@@ -1395,10 +1407,6 @@
     <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
       <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
     </trans-unit>
-    <trans-unit id="++CODE++b9aac16eb8e26c69eda61b82e7f9833c80becf442d1664142ab784c7e5eb15f0">
-      <source xml:lang="en">Save scmp failed: &apos;{0}&apos;</source>
-      <note>{0} is the error message returned from the save scmp operation</note>
-    </trans-unit>
     <trans-unit id="++CODE++0a12b3e51f64e705d6de90db7bcada67844d93e118f414b2fc703b2014efabc5">
       <source xml:lang="en">Save source and target, options, and excluded elements</source>
     </trans-unit>
@@ -1413,10 +1421,6 @@
     </trans-unit>
     <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
       <source xml:lang="en">Schema Compare</source>
-    </trans-unit>
-    <trans-unit id="++CODE++e43490715378a6a8dd51a85cfd3710df78a7e895658739053758638820a0b93b">
-      <source xml:lang="en">Schema Compare Apply failed &apos;{0}&apos;</source>
-      <note>{0} is the error message returned from the publish changes operation</note>
     </trans-unit>
     <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
       <source xml:lang="en">Schema Compare Options</source>
