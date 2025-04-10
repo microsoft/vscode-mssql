@@ -102,9 +102,9 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
 
     const handleIncludeExcludeAllNodes = () => {
         if (allDiffsExcluded || someDiffsExcluded) {
-            context.includeExcludeAllNodes(true);
+            context.includeExcludeAllNodes(true /* include all */);
         } else {
-            context.includeExcludeAllNodes(false);
+            context.includeExcludeAllNodes(false /* exclude all */);
         }
     };
 
