@@ -403,6 +403,13 @@
       "{1} is target column"
     ]
   },
+  "Scale mismatch between '{0}' and '{1}'/{0} is source column{1} is target column": {
+    "message": "Scale mismatch between '{0}' and '{1}'",
+    "comment": [
+      "{0} is source column",
+      "{1} is target column"
+    ]
+  },
   "Column '{0}' must be a primary key/{0} is the referenced column": {
     "message": "Column '{0}' must be a primary key",
     "comment": [

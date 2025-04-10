@@ -1418,6 +1418,11 @@
     <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
       <source xml:lang="en">Scale</source>
     </trans-unit>
+    <trans-unit id="++CODE++b8c590be37f9806eacc2f43e047d943cb0b51e96d92efe6f1549fd0d13d03a25">
+      <source xml:lang="en">Scale mismatch between &apos;{0}&apos; and &apos;{1}&apos;</source>
+      <note>{0} is source column
+{1} is target column</note>
+    </trans-unit>
     <trans-unit id="++CODE++07b091a3fdc4e4c03cd047b5264e61241f20fe8dbc36a4c796d46cd8dc3e7d03">
       <source xml:lang="en">Schema</source>
     </trans-unit>
