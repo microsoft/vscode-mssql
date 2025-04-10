@@ -14,6 +14,7 @@ import {
     DialogTitle,
     DialogTrigger,
     Divider,
+    makeStyles,
     Spinner,
     ToolbarButton,
     Tree,
@@ -51,7 +52,19 @@ type PublishChangesDialogState = {
     currentStage: PublishDialogStages;
 };
 
+const useStyles = makeStyles({
+    errorSection: {
+        marginBottom: "15px",
+        lineHeight: 1.5,
+    },
+    sectionNumber: {
+        fontWeight: "bold",
+        marginRight: "5px",
+    },
+});
+
 export function PublishChangesDialogButton() {
+    const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
     if (!context) {
         return undefined;
@@ -217,9 +230,45 @@ export function PublishChangesDialogButton() {
         );
     };
 
-    const error = (errorMessage: string) => {
+    const error = (errorString: string) => {
+        // Split the error message into sections
+        const formatErrorMessage = (errorString: string) => {
+            // Split by numbered points (1., 2., 3., etc.)
+            const sections = errorString.split(/(\d+\.\s)/g);
+
+            // Create an array of formatted sections
+            const formattedSections = [];
+
+            for (let i = 0; i < sections.length; i++) {
+                if (sections[i].match(/^\d+\.\s$/)) {
+                    // This is a number prefix
+                    const sectionNumber = sections[i];
+                    const sectionContent = sections[i + 1] || "";
+
+                    formattedSections.push(
+                        <div key={i} className={classes.errorSection}>
+                            <strong className={classes.sectionNumber}>{sectionNumber}</strong>
+                            <span>{sectionContent}</span>
+                        </div>,
+                    );
+
+                    i++; // Skip the next section as we've already used it
+                } else if (sections[i].trim()) {
+                    // This is an unnumbered section
+                    formattedSections.push(
+                        <div key={i} className={classes.errorSection}>
+                            <span>{sections[i]}</span>
+                        </div>,
+                    );
+                }
+            }
+
+            return formattedSections;
+        };
+
         return (
             <div
+                className="error-container"
                 style={{
                     display: "flex",
                     flexDirection: "column",
@@ -234,7 +283,7 @@ export function PublishChangesDialogButton() {
                         height: "50px",
                     }}
                 />
-                {errorMessage}
+                <div className="error-body">{formatErrorMessage(errorString)}</div>
             </div>
         );
     };

@@ -353,8 +353,6 @@ const ForeignKeyCard = ({
         }
     }, [context.errors]);
 
-    console.log("Foreign Key Card", foreignKey, errorMessage, warningMessage);
-
     return (
         <Card className={classes.cardStyle} key={`fk-card-${index}`}>
             <CardHeader
@@ -449,20 +447,24 @@ const ForeignKeyCard = ({
                     <Label>{locConstants.schemaDesigner.onDelete}</Label>
                     <Dropdown
                         size="small"
-                        value={foreignKey.onDeleteAction}
-                        selectedOptions={[foreignKey.onDeleteAction]}
+                        value={foreignKeyUtils.convertOnActionToString(foreignKey.onDeleteAction)}
+                        selectedOptions={[
+                            foreignKeyUtils.convertOnActionToString(foreignKey.onDeleteAction),
+                        ]}
                         multiselect={false}
                         onOptionSelect={(_e, data) => {
                             onUpdate(index, {
                                 ...foreignKey,
-                                onDeleteAction: data.optionText as SchemaDesigner.OnAction,
+                                onDeleteAction: foreignKeyUtils.convertStringToOnAction(
+                                    data.optionValue as string,
+                                ),
                             });
                         }}
                         style={{ minWidth: "auto" }}>
-                        {foreignKeyUtils.getOnActionOptions().map((action) => (
+                        {foreignKeyUtils.getOnActionOptions().map((action, actionIndex) => (
                             <Option
-                                key={`on-delete-option-${index}-${foreignKey.id}-${action}`}
-                                value={action.value}>
+                                key={`on-delete-option-${actionIndex}-${foreignKey.id}`}
+                                value={action.label}>
                                 {action.label}
                             </Option>
                         ))}
@@ -472,20 +474,24 @@ const ForeignKeyCard = ({
                     <Label>{locConstants.schemaDesigner.onUpdate}</Label>
                     <Dropdown
                         size="small"
-                        value={foreignKey.onUpdateAction}
-                        selectedOptions={[foreignKey.onUpdateAction]}
+                        value={foreignKeyUtils.convertOnActionToString(foreignKey.onUpdateAction)}
+                        selectedOptions={[
+                            foreignKeyUtils.convertOnActionToString(foreignKey.onUpdateAction),
+                        ]}
                         multiselect={false}
                         onOptionSelect={(_e, data) => {
                             onUpdate(index, {
                                 ...foreignKey,
-                                onUpdateAction: data.optionText as SchemaDesigner.OnAction,
+                                onUpdateAction: foreignKeyUtils.convertStringToOnAction(
+                                    data.optionValue as string,
+                                ),
                             });
                         }}
                         style={{ minWidth: "auto" }}>
-                        {foreignKeyUtils.getOnActionOptions().map((action) => (
+                        {foreignKeyUtils.getOnActionOptions().map((action, actionIndex) => (
                             <Option
-                                key={`on-update-option--${index}-${foreignKey.id}-${action}`}
-                                value={action.value}>
+                                key={`on-update-option--${actionIndex}-${foreignKey.id}`}
+                                value={action.label}>
                                 {action.label}
                             </Option>
                         ))}

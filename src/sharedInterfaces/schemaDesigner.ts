@@ -125,10 +125,10 @@ export namespace SchemaDesigner {
     };
 
     export enum OnAction {
-        CASCADE = "0",
-        NO_ACTION = "1",
-        SET_NULL = "2",
-        SET_DEFAULT = "3",
+        CASCADE = 0,
+        NO_ACTION = 1,
+        SET_NULL = 2,
+        SET_DEFAULT = 3,
     }
 
     /**

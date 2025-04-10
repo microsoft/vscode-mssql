@@ -446,6 +446,28 @@ export const foreignKeyUtils = {
                     errorMessage: locConstants.schemaDesigner.referencedColumnNotPK(refCol.name),
                 };
             }
+
+            if (
+                col.isIdentity &&
+                (fk.onUpdateAction !== SchemaDesigner.OnAction.NO_ACTION ||
+                    fk.onDeleteAction !== SchemaDesigner.OnAction.NO_ACTION)
+            ) {
+                console.log(
+                    col.isIdentity,
+                    (fk.onUpdateAction as SchemaDesigner.OnAction) !==
+                        SchemaDesigner.OnAction.NO_ACTION,
+                    (fk.onDeleteAction as SchemaDesigner.OnAction) !==
+                        SchemaDesigner.OnAction.NO_ACTION,
+                    fk.onUpdateAction,
+                    SchemaDesigner.OnAction.NO_ACTION,
+                    fk.onDeleteAction,
+                    SchemaDesigner.OnAction.NO_ACTION,
+                );
+                return {
+                    isValid: false,
+                    errorMessage: locConstants.schemaDesigner.identityColumnFKConstraint(col.name),
+                };
+            }
         }
 
         return { isValid: true };
@@ -476,7 +498,7 @@ export const foreignKeyUtils = {
 
         if (!fk.name) {
             hasWarnings = true;
-            warningMessages.push(locConstants.schemaDesigner.foreignKeyNameEmptyError);
+            warningMessages.push(locConstants.schemaDesigner.foreignKeyNameEmptyWarning);
         }
 
         if (foreignKeyUtils.isCyclicForeignKey(tables, refTable, table)) {

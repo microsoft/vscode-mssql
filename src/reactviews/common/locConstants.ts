@@ -454,7 +454,7 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the column name"],
                 }),
-            foreignKeyNameEmptyError: l10n.t("Foreign key name cannot be empty"),
+            foreignKeyNameEmptyWarning: l10n.t("Consider adding a name for this foreign key"),
             foreignKeyNameRepeatedError: (foreignKeyName: string) =>
                 l10n.t({
                     message: "Foreign key '{0}' already exists",
@@ -466,6 +466,13 @@ export class LocConstants {
                     message: "{0} column data",
                     args: [colCount],
                     comment: ["{0} is the number of columns"],
+                }),
+            identityColumnFKConstraint: (columnName: string) =>
+                l10n.t({
+                    message:
+                        "Column '{0}' is an identity column and cannot have a cascading foreign key",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
                 }),
             manageRelationships: l10n.t("Manage relationships"),
             noChangesDetected: l10n.t("No changes detected"),
