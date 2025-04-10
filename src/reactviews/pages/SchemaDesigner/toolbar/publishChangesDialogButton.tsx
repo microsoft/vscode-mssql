@@ -15,8 +15,6 @@ import {
     DialogTrigger,
     Divider,
     Spinner,
-    Tab,
-    TabList,
     ToolbarButton,
     Tree,
     TreeItem,
@@ -25,15 +23,33 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { Editor } from "@monaco-editor/react";
-import { resolveVscodeThemeType } from "../../../common/utils";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DiffAddedIcon } from "../../../common/icons/diffAdded";
 import { DiffRemovedIcon } from "../../../common/icons/diffRemoved";
 import { DiffModifiedIcon } from "../../../common/icons/diffModified";
+
+enum PublishDialogStages {
+    NotStarted = "notStarted",
+    ReportLoading = "reportLoading",
+    ReportError = "reportError",
+    ReportSuccessNoChanges = "reportSuccessNoChanges",
+    ReportSuccessWithChanges = "reportSuccessWithChanges",
+    PublishLoading = "publishLoading",
+    PublishError = "publishError",
+    PublishSuccess = "publishSuccess",
+}
+
+type PublishChangesDialogState = {
+    report: SchemaDesigner.GetReportResponse | undefined;
+    reportError: string | undefined;
+    isConfirmationChecked: boolean;
+    selectedReportId: string;
+    reportTab: string;
+    publishError: string | undefined;
+    currentStage: PublishDialogStages;
+};
 
 export function PublishChangesDialogButton() {
     const context = useContext(SchemaDesignerContext);
@@ -41,14 +57,15 @@ export function PublishChangesDialogButton() {
         return undefined;
     }
 
-    const [report, setReport] = useState<SchemaDesigner.GetReportResponse | undefined>(undefined);
-    const [reportError, setReportError] = useState<string | undefined>(undefined);
-    const [loading, setLoading] = useState<ApiStatus>(ApiStatus.NotStarted);
-    const [isConfirmationChecked, setIsConfirmationChecked] = useState<boolean>(false);
-
-    const [selectedReportId, setSelectedReportId] = useState<string>("");
-
-    const [reportTab, setReportTab] = useState<string>("report");
+    const [state, setState] = useState<PublishChangesDialogState>({
+        report: undefined,
+        reportError: undefined,
+        isConfirmationChecked: false,
+        selectedReportId: "",
+        reportTab: "report",
+        publishError: undefined,
+        currentStage: PublishDialogStages.NotStarted,
+    });
 
     function getReportIcon(state: SchemaDesigner.SchemaDesignerReportTableState) {
         switch (state) {
@@ -61,32 +78,16 @@ export function PublishChangesDialogButton() {
         }
     }
 
-    const enablePublishButtons = () => {
-        return (
-            loading !== ApiStatus.Loading && isConfirmationChecked && report?.reports?.length !== 0
-        );
-    };
-
-    useEffect(() => {
-        if (!report) {
-            return;
-        }
-        if (report?.reports?.length > 0) {
-            setSelectedReportId(report.reports[0].tableId);
-        } else {
-            setSelectedReportId("");
-        }
-    }, [report]);
-
     const renderTreeNode = (
         text: string,
         filterTableState: SchemaDesigner.SchemaDesignerReportTableState,
     ) => {
-        if (!report) {
+        if (!state.report) {
             return undefined;
         }
         if (
-            report.reports?.filter((report) => report.tableState === filterTableState).length === 0
+            state.report.reports?.filter((report) => report.tableState === filterTableState)
+                .length === 0
         ) {
             return undefined;
         }
@@ -102,7 +103,7 @@ export function PublishChangesDialogButton() {
                         overflow: "hidden",
                         overflowY: "auto",
                     }}>
-                    {report.reports
+                    {state.report.reports
                         ?.filter((report) => report.tableState === filterTableState)
                         .map((report) => {
                             return (
@@ -111,11 +112,14 @@ export function PublishChangesDialogButton() {
                                     value={report.tableId}
                                     itemType="leaf"
                                     onClick={() => {
-                                        setSelectedReportId(report.tableId);
+                                        setState({
+                                            ...state,
+                                            selectedReportId: report.tableId,
+                                        });
                                     }}
                                     style={{
                                         backgroundColor:
-                                            report.tableId === selectedReportId
+                                            report.tableId === state.selectedReportId
                                                 ? "var(--vscode-list-activeSelectionBackground)"
                                                 : "",
                                     }}>
@@ -131,11 +135,11 @@ export function PublishChangesDialogButton() {
     };
 
     const getSelectedReportMarkdown = () => {
-        if (!report) {
+        if (!state?.report) {
             return "";
         }
-        const selectedReport = report.reports?.find(
-            (report) => report.tableId === selectedReportId,
+        const selectedReport = state?.report.reports?.find(
+            (report) => report.tableId === state.selectedReportId,
         );
         if (selectedReport) {
             const reportMarkdown = `### ${selectedReport.tableName}\n\n`;
@@ -149,32 +153,353 @@ export function PublishChangesDialogButton() {
         return "";
     };
 
+    /**
+     * Toolbar button to open the publish changes dialog.
+     */
+    const triggerButton = () => {
+        return (
+            <ToolbarButton
+                icon={<FluentIcons.DatabaseArrowUp16Filled />}
+                title={locConstants.schemaDesigner.publishChanges}
+                appearance="subtle"
+                onClick={async () => {
+                    setState({
+                        ...state,
+                        currentStage: PublishDialogStages.ReportLoading,
+                        reportError: undefined,
+                        isConfirmationChecked: false,
+                    });
+                    const getReportResponse = await context.getReport();
+                    if (getReportResponse.error) {
+                        setState({
+                            ...state,
+                            currentStage: PublishDialogStages.ReportError,
+                            reportError: getReportResponse.error,
+                        });
+                    } else {
+                        if (getReportResponse.report.reports.length === 0) {
+                            setState({
+                                ...state,
+                                currentStage: PublishDialogStages.ReportSuccessNoChanges,
+                                reportError: undefined,
+                                report: getReportResponse.report,
+                                selectedReportId: "",
+                            });
+                        } else {
+                            setState({
+                                ...state,
+                                currentStage: PublishDialogStages.ReportSuccessWithChanges,
+                                reportError: undefined,
+                                report: getReportResponse.report,
+                                selectedReportId:
+                                    getReportResponse.report?.reports[0]?.tableId ?? "",
+                                isConfirmationChecked: false,
+                            });
+                        }
+                    }
+                }}>
+                {locConstants.schemaDesigner.publishChanges}
+            </ToolbarButton>
+        );
+    };
+
+    const spinner = (label: string) => {
+        return (
+            <Spinner
+                size="large"
+                style={{
+                    marginBottom: "10px",
+                    marginTop: "10px",
+                }}
+                label={label}
+                labelPosition="below"
+            />
+        );
+    };
+
+    const error = (errorMessage: string) => {
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "200px",
+                }}>
+                <FluentIcons.ErrorCircleFilled
+                    style={{
+                        marginRight: "10px",
+                        width: "50px",
+                        height: "50px",
+                    }}
+                />
+                {errorMessage}
+            </div>
+        );
+    };
+
+    const success = () => {
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "200px",
+                }}>
+                <FluentIcons.CheckmarkCircleFilled
+                    style={{
+                        marginRight: "10px",
+                        width: "50px",
+                        height: "50px",
+                    }}
+                />
+                {locConstants.schemaDesigner.changesPublishedSuccessfully}
+            </div>
+        );
+    };
+
+    const reportContainer = () => {
+        return (
+            <>
+                <div
+                    style={{
+                        width: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        overflow: "hidden",
+                    }}>
+                    <div
+                        style={{
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "row",
+                            minHeight: "500px",
+                            maxHeight: "500px",
+                            overflow: "hidden",
+                        }}>
+                        <Tree
+                            size="small"
+                            aria-label="Small Size Tree"
+                            defaultOpenItems={["Added Tables", "Modified Tables", "Dropped Tables"]}
+                            style={{
+                                minWidth: "250px",
+                                overflow: "hidden",
+                                overflowY: "auto",
+                            }}>
+                            {renderTreeNode(
+                                "Added Tables",
+                                SchemaDesigner.SchemaDesignerReportTableState.Created,
+                            )}
+                            {renderTreeNode(
+                                "Modified Tables",
+                                SchemaDesigner.SchemaDesignerReportTableState.Updated,
+                            )}
+                            {renderTreeNode(
+                                "Dropped Tables",
+                                SchemaDesigner.SchemaDesignerReportTableState.Dropped,
+                            )}
+                        </Tree>
+                        <Divider
+                            vertical
+                            style={{
+                                marginLeft: "10px",
+                                marginRight: "10px",
+                            }}
+                        />
+                        <div
+                            style={{
+                                width: "100%",
+                                flexGrow: 1,
+                                height: "100%",
+                                overflow: "auto",
+                            }}>
+                            <Markdown>{getSelectedReportMarkdown()}</Markdown>
+                        </div>
+                    </div>
+                    <Checkbox
+                        label={locConstants.tableDesigner.designerPreviewConfirmation}
+                        style={{
+                            margin: "5px",
+                        }}
+                        required
+                        checked={state.isConfirmationChecked}
+                        onChange={(_event, data) => {
+                            setState({
+                                ...state,
+                                isConfirmationChecked: data.checked as boolean,
+                            });
+                        }}
+                        // Setting initial focus on the checkbox when it is rendered.
+                        autoFocus
+                        /**
+                         * The focus outline is not visible on the checkbox when it is focused programmatically.
+                         * This is a workaround to make the focus outline visible on the checkbox when it is focused programmatically.
+                         * This is most likely a bug in the browser.
+                         */
+                        onFocus={(event) => {
+                            if (event.target.parentElement) {
+                                event.target.parentElement.style.outlineStyle = "solid";
+                                event.target.parentElement.style.outlineColor =
+                                    "var(--vscode-focusBorder)";
+                            }
+                        }}
+                        onBlur={(event) => {
+                            if (event.target.parentElement) {
+                                event.target.parentElement.style.outline = "none";
+                                event.target.parentElement.style.outlineColor = "";
+                            }
+                        }}
+                    />
+                </div>
+            </>
+        );
+    };
+
+    const dialogContent = () => {
+        if (state.currentStage === PublishDialogStages.ReportLoading) {
+            return spinner(locConstants.schemaDesigner.generatingReport);
+        }
+
+        if (state.currentStage === PublishDialogStages.ReportError) {
+            return error(state.reportError ?? "");
+        }
+
+        if (state.currentStage === PublishDialogStages.ReportSuccessNoChanges) {
+            return (
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        minHeight: "200px",
+                    }}>
+                    <FluentIcons.BranchFilled
+                        style={{
+                            marginRight: "10px",
+                            width: "50px",
+                            height: "50px",
+                        }}
+                    />
+                    {locConstants.schemaDesigner.noChangesDetected}
+                </div>
+            );
+        }
+
+        if (state.currentStage === PublishDialogStages.ReportSuccessWithChanges) {
+            return reportContainer();
+        }
+
+        if (state.currentStage === PublishDialogStages.PublishLoading) {
+            return spinner(locConstants.schemaDesigner.publishingChanges);
+        }
+
+        if (state.currentStage === PublishDialogStages.PublishError) {
+            return error(state.publishError ?? "");
+        }
+
+        if (state.currentStage === PublishDialogStages.PublishSuccess) {
+            return success();
+        }
+    };
+
+    const isPublishButtonsVisible = () => {
+        return state.currentStage === PublishDialogStages.ReportSuccessWithChanges;
+    };
+
+    const isPublishButtonsEnabled = () => {
+        return (
+            state.currentStage === PublishDialogStages.ReportSuccessWithChanges &&
+            state.isConfirmationChecked
+        );
+    };
+
+    const footerButtons = () => {
+        return (
+            <>
+                {isPublishButtonsVisible() && (
+                    <>
+                        <Button
+                            appearance="primary"
+                            disabled={!isPublishButtonsEnabled()}
+                            onClick={async () => {
+                                setState({
+                                    ...state,
+                                    currentStage: PublishDialogStages.PublishLoading,
+                                    publishError: undefined,
+                                });
+                                const reponse = await context.publishSession();
+                                if (reponse.error) {
+                                    setState({
+                                        ...state,
+                                        currentStage: PublishDialogStages.PublishError,
+                                        publishError: reponse.error,
+                                    });
+                                } else {
+                                    setState({
+                                        ...state,
+                                        currentStage: PublishDialogStages.PublishSuccess,
+                                    });
+                                }
+                            }}>
+                            {locConstants.schemaDesigner.publish}
+                        </Button>
+                        <Button
+                            appearance="secondary"
+                            disabled={!isPublishButtonsEnabled()}
+                            onClick={() => {
+                                context.openInEditorWithConnection(
+                                    state?.report?.updateScript ?? "",
+                                );
+                            }}>
+                            {locConstants.schemaDesigner.openPublishScript}
+                        </Button>
+                    </>
+                )}
+                {state.currentStage !== PublishDialogStages.PublishLoading && (
+                    <DialogTrigger disableButtonEnhancement>
+                        <Button
+                            appearance="secondary"
+                            onClick={() => {
+                                setState({
+                                    ...state,
+                                    isConfirmationChecked: false,
+                                });
+
+                                if (state.currentStage === PublishDialogStages.PublishSuccess) {
+                                    context.closeDesigner();
+                                }
+                            }}>
+                            {locConstants.schemaDesigner.Close}
+                        </Button>
+                    </DialogTrigger>
+                )}
+                {state.currentStage === PublishDialogStages.PublishSuccess && (
+                    <DialogTrigger disableButtonEnhancement>
+                        <Button
+                            appearance="secondary"
+                            onClick={() => {
+                                setState({
+                                    ...state,
+                                    currentStage: PublishDialogStages.NotStarted,
+                                });
+
+                                context.resetUndoRedoState();
+                            }}>
+                            {locConstants.schemaDesigner.continueEditing}
+                        </Button>
+                    </DialogTrigger>
+                )}
+            </>
+        );
+    };
+
     return (
         <Dialog>
-            <DialogTrigger disableButtonEnhancement>
-                <ToolbarButton
-                    icon={<FluentIcons.DatabaseArrowUp16Filled />}
-                    title={locConstants.schemaDesigner.publishChanges}
-                    appearance="subtle"
-                    onClick={async () => {
-                        setLoading(ApiStatus.Loading);
-                        setReportTab("report");
-                        setIsConfirmationChecked(false);
-                        const report = await context.getReport();
-                        if (report.error) {
-                            setReportError(report.error);
-                            setReport(undefined);
-                        } else {
-                            setReportError(undefined);
-                            if (report.report) {
-                                setReport(report.report);
-                            }
-                        }
-                        setLoading(ApiStatus.Loaded);
-                    }}>
-                    {locConstants.schemaDesigner.publishChanges}
-                </ToolbarButton>
-            </DialogTrigger>
+            <DialogTrigger disableButtonEnhancement>{triggerButton()}</DialogTrigger>
             <DialogSurface
                 style={{
                     width: "100%",
@@ -182,222 +507,8 @@ export function PublishChangesDialogButton() {
                 }}>
                 <DialogBody>
                     <DialogTitle>{locConstants.schemaDesigner.publishChanges}</DialogTitle>
-                    <DialogContent>
-                        {loading === ApiStatus.Loading && (
-                            <Spinner
-                                size="large"
-                                style={{
-                                    marginBottom: "10px",
-                                    marginTop: "10px",
-                                }}
-                                label={locConstants.schemaDesigner.generatingReport}
-                                labelPosition="below"
-                            />
-                        )}
-                        {loading === ApiStatus.Loaded && report?.reports?.length === 0 && (
-                            <div
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    minHeight: "200px",
-                                }}>
-                                <FluentIcons.BranchFilled
-                                    style={{
-                                        marginRight: "10px",
-                                        width: "50px",
-                                        height: "50px",
-                                    }}
-                                />
-                                {locConstants.schemaDesigner.noChangesDetected}
-                            </div>
-                        )}
-                        {loading === ApiStatus.Loaded && reportError && reportError !== "" && (
-                            <div
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    minHeight: "200px",
-                                }}>
-                                <FluentIcons.ErrorCircleFilled
-                                    style={{
-                                        marginRight: "10px",
-                                        width: "50px",
-                                        height: "50px",
-                                    }}
-                                />
-                                {reportError}
-                            </div>
-                        )}
-                        {loading === ApiStatus.Loaded && report && report?.reports?.length > 0 && (
-                            <>
-                                <TabList
-                                    selectedValue={reportTab}
-                                    onTabSelect={(_e, data) => setReportTab(data.value as string)}>
-                                    <Tab value={"report"}>
-                                        {locConstants.schemaDesigner.details}
-                                    </Tab>
-                                    <Tab value={"publishScript"}>
-                                        {locConstants.schemaDesigner.script}
-                                    </Tab>
-                                </TabList>
-                                <Divider
-                                    style={{
-                                        marginTop: "10px",
-                                        marginBottom: "10px",
-                                    }}
-                                />
-                                {reportTab === "report" && (
-                                    <div
-                                        style={{
-                                            width: "100%",
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            overflow: "hidden",
-                                        }}>
-                                        <div
-                                            style={{
-                                                width: "100%",
-                                                display: "flex",
-                                                flexDirection: "row",
-                                                minHeight: "500px",
-                                                maxHeight: "500px",
-                                                overflow: "hidden",
-                                            }}>
-                                            <Tree
-                                                size="small"
-                                                aria-label="Small Size Tree"
-                                                defaultOpenItems={[
-                                                    "Added Tables",
-                                                    "Modified Tables",
-                                                    "Dropped Tables",
-                                                ]}
-                                                style={{
-                                                    minWidth: "250px",
-                                                    overflow: "hidden",
-                                                    overflowY: "auto",
-                                                }}>
-                                                {renderTreeNode(
-                                                    "Added Tables",
-                                                    SchemaDesigner.SchemaDesignerReportTableState
-                                                        .Created,
-                                                )}
-                                                {renderTreeNode(
-                                                    "Modified Tables",
-                                                    SchemaDesigner.SchemaDesignerReportTableState
-                                                        .Updated,
-                                                )}
-                                                {renderTreeNode(
-                                                    "Dropped Tables",
-                                                    SchemaDesigner.SchemaDesignerReportTableState
-                                                        .Dropped,
-                                                )}
-                                            </Tree>
-                                            <Divider
-                                                vertical
-                                                style={{
-                                                    marginLeft: "10px",
-                                                    marginRight: "10px",
-                                                }}
-                                            />
-                                            <div
-                                                style={{
-                                                    width: "100%",
-                                                    flexGrow: 1,
-                                                    height: "100%",
-                                                    overflow: "auto",
-                                                }}>
-                                                <Markdown>{getSelectedReportMarkdown()}</Markdown>
-                                            </div>
-                                        </div>
-                                        <Checkbox
-                                            label={
-                                                locConstants.tableDesigner
-                                                    .designerPreviewConfirmation
-                                            }
-                                            style={{
-                                                padding: "10px",
-                                            }}
-                                            required
-                                            checked={isConfirmationChecked}
-                                            onChange={(_event, data) => {
-                                                setIsConfirmationChecked(data.checked as boolean);
-                                            }}
-                                            // Setting initial focus on the checkbox when it is rendered.
-                                            autoFocus
-                                            /**
-                                             * The focus outline is not visible on the checkbox when it is focused programmatically.
-                                             * This is a workaround to make the focus outline visible on the checkbox when it is focused programmatically.
-                                             * This is most likely a bug in the browser.
-                                             */
-                                            onFocus={(event) => {
-                                                if (event.target.parentElement) {
-                                                    event.target.parentElement.style.outlineStyle =
-                                                        "solid";
-                                                    event.target.parentElement.style.outlineColor =
-                                                        "var(--vscode-focusBorder)";
-                                                }
-                                            }}
-                                            onBlur={(event) => {
-                                                if (event.target.parentElement) {
-                                                    event.target.parentElement.style.outline =
-                                                        "none";
-                                                    event.target.parentElement.style.outlineColor =
-                                                        "";
-                                                }
-                                            }}
-                                        />
-                                    </div>
-                                )}
-                                {reportTab === "publishScript" && (
-                                    <Editor
-                                        height="500px"
-                                        defaultLanguage="sql"
-                                        defaultValue={report?.updateScript}
-                                        theme={resolveVscodeThemeType(context?.themeKind)}
-                                        options={{
-                                            readOnly: true,
-                                            minimap: { enabled: false },
-                                            wordWrap: "on",
-                                        }}
-                                    />
-                                )}
-                            </>
-                        )}
-                    </DialogContent>
-                    <DialogActions>
-                        <Button
-                            appearance="primary"
-                            disabled={!enablePublishButtons()}
-                            onClick={async () => {
-                                setLoading(ApiStatus.Loading);
-                                const reponse = await context.publishSession();
-                                if (reponse.error) {
-                                    setReportError(reponse.error);
-                                } else {
-                                    setReportError(undefined);
-                                }
-                                setLoading(ApiStatus.Loaded);
-                            }}>
-                            {locConstants.schemaDesigner.publish}
-                        </Button>
-                        <Button
-                            appearance="secondary"
-                            onClick={() => {
-                                context.openInEditorWithConnection(report?.updateScript ?? "");
-                            }}
-                            disabled={!enablePublishButtons()}>
-                            {locConstants.schemaDesigner.openPublishScript}
-                        </Button>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button appearance="secondary">
-                                {locConstants.schemaDesigner.Close}
-                            </Button>
-                        </DialogTrigger>
-                    </DialogActions>
+                    <DialogContent>{dialogContent()}</DialogContent>
+                    <DialogActions>{footerButtons()}</DialogActions>
                 </DialogBody>
             </DialogSurface>
         </Dialog>

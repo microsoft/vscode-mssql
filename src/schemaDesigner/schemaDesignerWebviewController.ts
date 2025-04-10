@@ -140,6 +140,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.registerRequestHandler("openInEditorWithConnection", async (payload) => {
             void this.mainController.onNewQuery(this.treeNode, payload.text);
         });
+
+        this.registerRequestHandler("closeDesigner", async () => {
+            this.panel.dispose();
+        });
     }
 
     override dispose(): void {

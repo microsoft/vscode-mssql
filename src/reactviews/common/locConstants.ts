@@ -515,6 +515,9 @@ export class LocConstants {
             openPublishScript: l10n.t("Open Publish Script"),
             Close: l10n.t("Close"),
             publish: l10n.t("Publish"),
+            publishingChanges: l10n.t("Publishing Changes"),
+            changesPublishedSuccessfully: l10n.t("Changes published successfully"),
+            continueEditing: l10n.t("Continue Editing"),
         };
     }
 
