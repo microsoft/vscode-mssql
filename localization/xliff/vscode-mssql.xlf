@@ -1120,6 +1120,9 @@
     <trans-unit id="++CODE++afe20ac8b79880f255ada45b4113ce2356e2e96da5a833a6262b495ef67c7c33">
       <source xml:lang="en">Open .scmp file</source>
     </trans-unit>
+    <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
+      <source xml:lang="en">Open Publish Script</source>
+    </trans-unit>
     <trans-unit id="++CODE++27d46ec89f6c8889936e3d885b71d612efdbf08d8514f16157875104d01fd5f5">
       <source xml:lang="en">Open Query</source>
     </trans-unit>
