@@ -209,6 +209,9 @@
     <trans-unit id="++CODE++7c2b8feda9e74131c46fcd8892b9661d32e0dcfc3d10d9f4d4d948540ea4bb87">
       <source xml:lang="en">Cannot create foreign key</source>
     </trans-unit>
+    <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
+      <source xml:lang="en">Cascade</source>
+    </trans-unit>
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
     </trans-unit>
@@ -1031,6 +1034,9 @@
     <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
       <source xml:lang="en">No</source>
     </trans-unit>
+    <trans-unit id="++CODE++4e43f09881e3742e225d5e39243fa725d8dd7e9a9d64f05c7c814a12a0b32935">
+      <source xml:lang="en">No Action</source>
+    </trans-unit>
     <trans-unit id="++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908">
       <source xml:lang="en">No Microsoft Entra account can be found for removal.</source>
     </trans-unit>
@@ -1108,8 +1114,14 @@
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
     </trans-unit>
+    <trans-unit id="++CODE++3d371d39d42ed88021e2eb01088039bc934a712a3d74c7813debf543f8dba608">
+      <source xml:lang="en">On Delete</source>
+    </trans-unit>
     <trans-unit id="++CODE++08cc7dbe92d634292815733fbf6b34fba13792fc61a838f93bcaf5fc639b12ee">
       <source xml:lang="en">On Delete Action</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3260f8640105db3fc919165eac8ff32b659386c38af4e3fd1d2aa3875a7e3b19">
+      <source xml:lang="en">On Update</source>
     </trans-unit>
     <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
       <source xml:lang="en">On Update Action</source>
@@ -1480,6 +1492,12 @@
     </trans-unit>
     <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
       <source xml:lang="en">Server name or ADO.NET connection string</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
+      <source xml:lang="en">Set Default</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7dcc1c2a0bebbc604d5c15ae5e2a764048d5936bda66f0137af772be71d7a145">
+      <source xml:lang="en">Set Null</source>
     </trans-unit>
     <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
       <source xml:lang="en">Settings</source>
