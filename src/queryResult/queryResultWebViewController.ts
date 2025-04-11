@@ -36,6 +36,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         new Map<string, QueryResultWebviewPanelController>();
     private _sqlOutputContentProvider: SqlOutputContentProvider;
     private _correlationId: string = randomUUID();
+    private _selectionSummaryStatusBarItem: vscode.StatusBarItem =
+        vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
+    private readonly nonNumericStatsLength = 3;
+    private readonly averageIndex = 0;
+    private readonly countIndex = 1;
+    private readonly sumIndex = 6;
     public actualPlanStatuses: string[] = [];
 
     constructor(
@@ -373,5 +379,26 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             });
         });
         return total;
+    }
+
+    public updateSelectionSummaryStatusItem(updatedText: string) {
+        if (updatedText === "") {
+            this._selectionSummaryStatusBarItem.text = ``;
+            this._selectionSummaryStatusBarItem.hide();
+        } else {
+            const stats = updatedText.split("  ");
+            if (stats.length != this.nonNumericStatsLength) {
+                const shownStats = [
+                    stats[this.averageIndex],
+                    stats[this.countIndex],
+                    stats[this.sumIndex],
+                ];
+                this._selectionSummaryStatusBarItem.text = shownStats.join("  ");
+            } else {
+                this._selectionSummaryStatusBarItem.text = `${updatedText}`;
+            }
+            this._selectionSummaryStatusBarItem.tooltip = `${updatedText}`;
+            this._selectionSummaryStatusBarItem.show();
+        }
     }
 }

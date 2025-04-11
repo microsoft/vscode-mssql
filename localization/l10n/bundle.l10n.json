@@ -318,6 +318,18 @@
   "Search...": "Search...",
   "Maximize": "Maximize",
   "Restore": "Restore",
+  "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
+    "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
+    "comment": [
+      "{0} is the count, {1} is the distinct count, and {2} is the null count"
+    ]
+  },
+  "Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}/{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum": {
+    "message": "Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}",
+    "comment": [
+      "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum"
+    ]
+  },
   "Add new column": "Add new column",
   "Table": "Table",
   "Save": "Save",

@@ -208,6 +208,16 @@ export function registerCommonRequestHandlers(
         return true;
     });
 
+    webviewController.registerRequestHandler("setSelectionSummary", async (message) => {
+        console.log(message.summary);
+        const controller =
+            webviewController instanceof QueryResultWebviewPanelController
+                ? webviewController.getQueryResultWebviewViewController()
+                : webviewController;
+
+        controller.updateSelectionSummaryStatusItem(message.summary);
+    });
+
     webviewController.registerReducer("setResultTab", async (state, payload) => {
         state.tabStates.resultPaneTab = payload.tabId;
         return state;

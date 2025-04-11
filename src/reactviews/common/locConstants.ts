@@ -317,6 +317,31 @@ export class LocConstants {
             close: l10n.t("Close"),
             maximize: l10n.t("Maximize"),
             restore: l10n.t("Restore"),
+            nonNumericSelectionSummary: (count: number, distinctCount: number, nullCount: number) =>
+                l10n.t({
+                    message: "Count: {0}  Distinct Count: {1}  Null Count: {2}",
+                    args: [count, distinctCount, nullCount],
+                    comment: [
+                        "{0} is the count, {1} is the distinct count, and {2} is the null count",
+                    ],
+                }),
+            numericSelectionSummary: (
+                average: string,
+                count: number,
+                distinctCount: number,
+                max: number,
+                min: number,
+                nullCount: number,
+                sum: number,
+            ) =>
+                l10n.t({
+                    message:
+                        "Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}",
+                    args: [average, count, distinctCount, max, min, nullCount, sum],
+                    comment: [
+                        "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum",
+                    ],
+                }),
         };
     }
 

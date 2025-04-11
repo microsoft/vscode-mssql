@@ -19,6 +19,7 @@ import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
 import { Keys } from "../../keys";
+import { locConstants } from "../../../../common/locConstants";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -75,8 +76,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
         );
         this._handler.subscribe(
             this.grid.onClick,
-            (e: Slick.DOMEvent, args: Slick.OnClickEventArgs<T>) =>
-                this.handleCellClick(e as MouseEvent, args),
+            async (e: Slick.DOMEvent, args: Slick.OnClickEventArgs<T>) =>
+                await this.handleCellClick(e as MouseEvent, args),
         );
         this._handler.subscribe(
             this.grid.onHeaderClick,
@@ -84,12 +85,15 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 this.handleHeaderClick(e as MouseEvent, args),
         );
         this.grid.registerPlugin(this.selector);
-        this._handler.subscribe(this.selector.onCellRangeSelected, (e: Event, range: Slick.Range) =>
-            this.handleCellRangeSelected(e, range, false),
+        this._handler.subscribe(
+            this.selector.onCellRangeSelected,
+            async (e: Event, range: Slick.Range) =>
+                await this.handleCellRangeSelected(e, range, false),
         );
         this._handler.subscribe(
             this.selector.onAppendCellRangeSelected,
-            (e: Event, range: Slick.Range) => this.handleCellRangeSelected(e, range, true),
+            async (e: Event, range: Slick.Range) =>
+                await this.handleCellRangeSelected(e, range, true),
         );
 
         this._handler.subscribe(
@@ -143,7 +147,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         });
     }
 
-    public getSelectedRanges() {
+    public getSelectedRanges(): Slick.Range[] {
         return this.ranges;
     }
 
@@ -155,7 +159,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         return true;
     }
 
-    private handleCellRangeSelected(_e: Event, range: Slick.Range, append: boolean) {
+    private async handleCellRangeSelected(_e: Event, range: Slick.Range, append: boolean) {
         this.grid.setActiveCell(range.fromRow, range.fromCell, false, false, true);
 
         if (append) {
@@ -163,6 +167,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
         } else {
             this.setSelectedRanges([range]);
         }
+
+        await this.setSelectionSummaryText(true);
     }
 
     private isMultiSelection(_e: MouseEvent): boolean {
@@ -338,7 +344,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         return newRanges;
     }
 
-    private handleCellClick(e: MouseEvent, args: Slick.OnClickEventArgs<T>) {
+    private async handleCellClick(e: MouseEvent, args: Slick.OnClickEventArgs<T>) {
         const activeCell = this.grid.getActiveCell();
         const columns = this.grid.getColumns();
         const isRowSelectorClicked: boolean | undefined =
@@ -374,6 +380,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
             ? { cell: 1, row: args.row }
             : { cell: args.cell, row: args.row };
         this.grid.setActiveCell(newActiveCell.row, newActiveCell.cell);
+
+        await this.setSelectionSummaryText();
     }
 
     public async handleSelectAll() {
@@ -417,6 +425,70 @@ export class CellSelectionModel<T extends Slick.SlickData>
             e.preventDefault();
             e.stopPropagation();
         }
+    }
+
+    private async setSelectionSummaryText(isSelection?: boolean) {
+        let summary = "";
+
+        if (isSelection) {
+            const selectedRanges: Slick.Range[] = this.getSelectedRanges();
+            const firstRange = selectedRanges[0];
+            if (!firstRange) return;
+
+            const column = this.grid.getColumns()[firstRange.fromCell];
+            if (!column) return;
+
+            const values: any[] = [];
+            let isNumeric = false;
+            let nullCount = 0;
+            let sum = 0;
+            let min = Infinity;
+            let max = -Infinity;
+
+            for (let row = firstRange.fromRow; row <= firstRange.toRow; row++) {
+                for (let col = firstRange.fromCell; col <= firstRange.toCell; col++) {
+                    const cell = this.grid.getCellNode(row, col);
+                    if (!cell) continue;
+                    const value = cell.innerText;
+                    const numValue = Number(value);
+                    if (value === "NULL") {
+                        nullCount++;
+                    } else if (!isNaN(numValue)) {
+                        isNumeric = true;
+                        min = Math.min(min, numValue);
+                        max = Math.max(max, numValue);
+                        sum += numValue;
+                    }
+                    values.push(value);
+                }
+            }
+
+            const count = values.length;
+            const distinctCount = new Set(values).size;
+
+            if (isNumeric) {
+                // format average into decimal, up to three places, with no trailing zeros
+                const average = (sum / count).toFixed(3).replace(/\.?0+$/, "");
+                summary = locConstants.queryResult.numericSelectionSummary(
+                    average,
+                    count,
+                    distinctCount,
+                    max,
+                    min,
+                    nullCount,
+                    sum,
+                );
+            } else {
+                summary = locConstants.queryResult.nonNumericSelectionSummary(
+                    count,
+                    distinctCount,
+                    nullCount,
+                );
+            }
+        }
+        await this.webViewState.extensionRpc.call("setSelectionSummary", {
+            summary: summary,
+        });
     }
 
     // private handleKeyDown(e: StandardKeyboardEvent) {
