@@ -32,12 +32,14 @@ import {
     showOpenDialogForScmp,
     showSaveDialogForScmp,
     showOpenDialogForDacpacOrSqlProj,
+    includeExcludeAllNodes,
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { deepClone } from "../models/utils";
+import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
@@ -63,6 +65,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             {
                 isSqlProjectExtensionInstalled: false,
                 isComparisonInProgress: false,
+                isIncludeExcludeAllOperationInProgress: false,
                 activeServers: {},
                 databases: [],
                 defaultDeploymentOptionsResult: schemaCompareOptionsResult,
@@ -727,7 +730,67 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 }
 
                 this.updateState(state);
+            } else {
+                if (result.blockingDependencies) {
+                    const diffEntry = payload.diffEntry;
+                    const diffEntryName = this.formatEntryName(
+                        diffEntry.sourceValue ? diffEntry.sourceValue : diffEntry.targetValue,
+                    );
+
+                    const blockingDependencyNames = result.blockingDependencies
+                        .map((blockingEntry) => {
+                            return this.formatEntryName(
+                                blockingEntry.sourceValue
+                                    ? blockingEntry.sourceValue
+                                    : blockingEntry.targetValue,
+                            );
+                        })
+                        .filter((name) => name !== "");
+
+                    let message: string = "";
+                    if (blockingDependencyNames.length > 0) {
+                        message = payload.includeRequest
+                            ? locConstants.SchemaCompare.cannotIncludeEntryWithBlockingDependency(
+                                  diffEntryName,
+                                  blockingDependencyNames.join(", "),
+                              )
+                            : locConstants.SchemaCompare.cannotExcludeEntryWithBlockingDependency(
+                                  diffEntryName,
+                                  blockingDependencyNames.join(", "),
+                              );
+                    } else {
+                        message = payload.includeRequest
+                            ? locConstants.SchemaCompare.cannotIncludeEntry(diffEntryName)
+                            : locConstants.SchemaCompare.cannotExcludeEntry(diffEntryName);
+                    }
+
+                    vscode.window.showWarningMessage(message);
+                } else {
+                    vscode.window.showWarningMessage(result.errorMessage);
+                }
             }
+
+            return state;
+        });
+
+        this.registerReducer("includeExcludeAllNodes", async (state, payload) => {
+            state.isIncludeExcludeAllOperationInProgress = true;
+            this.updateState(state);
+
+            const result = await includeExcludeAllNodes(
+                this.operationId,
+                TaskExecutionMode.execute,
+                payload,
+                this.schemaCompareService,
+            );
+
+            this.state.isIncludeExcludeAllOperationInProgress = false;
+
+            if (result.success) {
+                state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
+            }
+
+            this.updateState(state);
 
             return state;
         });
@@ -885,6 +948,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             return state;
         });
+    }
+
+    private formatEntryName(nameParts: string[]): string {
+        if (isNullOrUndefined(nameParts) || nameParts.length === 0) {
+            return "";
+        }
+        return nameParts.join(".");
     }
 
     private mapExtractTargetEnum(folderStructure: string): mssql.ExtractTarget {

@@ -609,6 +609,65 @@ export class LocConstants {
                 "Are you sure you want to update the target?",
             ),
             thereWasAnErrorUpdatingTheProject: l10n.t("There was an error updating the project"),
+            schemaCompareApplyFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Failed to apply changes: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: [
+                        "{0} is the error message returned from the publish changes operation",
+                    ],
+                }),
+            openScmpErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Failed to open scmp file: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the open scmp operation"],
+                }),
+            saveScmpErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Failed to save scmp file: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the save scmp operation"],
+                }),
+            cannotExcludeEntryWithBlockingDependency: (
+                diffEntryName: string,
+                firstDependentName: string,
+            ) =>
+                l10n.t({
+                    message: "Cannot exclude {0}. Included dependents exist, such as {1}",
+                    args: [diffEntryName, firstDependentName],
+                    comment: [
+                        "{0} is the name of the entry",
+                        "{1} is the name of the blocking dependency preventing exclusion.",
+                    ],
+                }),
+            cannotIncludeEntryWithBlockingDependency: (
+                diffEntryName: string,
+                firstDependentName: string,
+            ) =>
+                l10n.t({
+                    message: "Cannot include {0}. Excluded dependents exist, such as {1}",
+                    args: [diffEntryName, firstDependentName],
+                    comment: [
+                        "{0} is the name of the entry",
+                        "{1} is the name of the blocking dependency preventing inclusion.",
+                    ],
+                }),
+            cannotExcludeEntry: (diffEntryName: string) =>
+                l10n.t({
+                    message: "Cannot exclude {0}. Included dependents exist",
+                    args: [diffEntryName],
+                    comment: ["{0} is the name of the entry"],
+                }),
+            cannotIncludeEntry: (diffEntryName: string) =>
+                l10n.t({
+                    message: "Cannot include {0}. Excluded dependents exist",
+                    args: [diffEntryName],
+                    comment: ["{0} is the name of the entry"],
+                }),
+            includeExcludeAllOperationInProgress: l10n.t(
+                "Processing include or exclude all differences operation.",
+            ),
         };
     }
 }
