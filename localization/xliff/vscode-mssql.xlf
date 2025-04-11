@@ -565,14 +565,8 @@
     <trans-unit id="++CODE++1a77d555bedbf97481907d505c8c8ba64d32d3525b77122e16178dd4054c3c93">
       <source xml:lang="en">Ends With</source>
     </trans-unit>
-    <trans-unit id="++CODE++b91ff659d3f004788e60b31855632f1f8d651417e04e4e57197b1ff98e370494">
-      <source xml:lang="en">Enter Connection String</source>
-    </trans-unit>
     <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
       <source xml:lang="en">Enter new column width</source>
-    </trans-unit>
-    <trans-unit id="++CODE++32bfff43cade29f3ed7c8e7037fb8a05d682f391d90cf127b1f1ce18dcc57d61">
-      <source xml:lang="en">Enter your SQL connection string</source>
     </trans-unit>
     <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
       <source xml:lang="en">Equals</source>
@@ -915,6 +909,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b">
+      <source xml:lang="en">Load from Connection String</source>
     </trans-unit>
     <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
       <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
