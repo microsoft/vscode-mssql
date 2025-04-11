@@ -737,23 +737,26 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         diffEntry.sourceValue ? diffEntry.sourceValue : diffEntry.targetValue,
                     );
 
-                    const firstBlockingDependencyEntry = result.blockingDependencies[0];
-                    const firstBlockingDependencyName = this.formatEntryName(
-                        firstBlockingDependencyEntry.sourceValue
-                            ? firstBlockingDependencyEntry.sourceValue
-                            : firstBlockingDependencyEntry.targetValue,
-                    );
+                    const blockingDependencyNames = result.blockingDependencies
+                        .map((blockingEntry) => {
+                            return this.formatEntryName(
+                                blockingEntry.sourceValue
+                                    ? blockingEntry.sourceValue
+                                    : blockingEntry.targetValue,
+                            );
+                        })
+                        .filter((name) => name !== "");
 
                     let message: string = "";
-                    if (firstBlockingDependencyName) {
+                    if (blockingDependencyNames.length > 0) {
                         message = payload.includeRequest
                             ? locConstants.SchemaCompare.cannotIncludeEntryWithBlockingDependency(
                                   diffEntryName,
-                                  firstBlockingDependencyName,
+                                  blockingDependencyNames.join(", "),
                               )
                             : locConstants.SchemaCompare.cannotExcludeEntryWithBlockingDependency(
                                   diffEntryName,
-                                  firstBlockingDependencyName,
+                                  blockingDependencyNames.join(", "),
                               );
                     } else {
                         message = payload.includeRequest
