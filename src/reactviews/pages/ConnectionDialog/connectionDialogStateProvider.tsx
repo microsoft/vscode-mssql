@@ -83,6 +83,12 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                         connection: connection,
                     });
                 },
+                loadFromConnectionString: function (): void {
+                    webviewState.extensionRpc.action("loadFromConnectionString");
+                },
+                openConnectionStringDialog: function (): void {
+                    webviewState.extensionRpc.action("openConnectionStringDialog");
+                },
             }}>
             {children}
         </ConnectionDialogContext.Provider>

@@ -110,6 +110,7 @@
     ]
   },
   "Close Find": "Close Find",
+  "Load": "Load",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -246,6 +247,11 @@
   "Default": "Default",
   "Delete saved connection": "Delete saved connection",
   "Remove recent connection": "Remove recent connection",
+  "Enter Connection String": "Enter Connection String",
+  "Enter your SQL connection string": "Enter your SQL connection string",
+  "Copy connection string to clipboard": "Copy connection string to clipboard",
+  "Paste connection string from clipboard": "Paste connection string from clipboard",
+  "Paste": "Paste",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [

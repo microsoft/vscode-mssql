@@ -413,6 +413,9 @@
     <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
       <source xml:lang="en">Copy code and open webpage</source>
     </trans-unit>
+    <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
+      <source xml:lang="en">Copy connection string to clipboard</source>
+    </trans-unit>
     <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
       <source xml:lang="en">Copy script</source>
     </trans-unit>
@@ -562,8 +565,14 @@
     <trans-unit id="++CODE++1a77d555bedbf97481907d505c8c8ba64d32d3525b77122e16178dd4054c3c93">
       <source xml:lang="en">Ends With</source>
     </trans-unit>
+    <trans-unit id="++CODE++b91ff659d3f004788e60b31855632f1f8d651417e04e4e57197b1ff98e370494">
+      <source xml:lang="en">Enter Connection String</source>
+    </trans-unit>
     <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
       <source xml:lang="en">Enter new column width</source>
+    </trans-unit>
+    <trans-unit id="++CODE++32bfff43cade29f3ed7c8e7037fb8a05d682f391d90cf127b1f1ce18dcc57d61">
+      <source xml:lang="en">Enter your SQL connection string</source>
     </trans-unit>
     <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
       <source xml:lang="en">Equals</source>
@@ -904,6 +913,9 @@
       <source xml:lang="en">Line {0}</source>
       <note>{0} is the line number</note>
     </trans-unit>
+    <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
+      <source xml:lang="en">Load</source>
+    </trans-unit>
     <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
       <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
     </trans-unit>
@@ -1181,6 +1193,12 @@
     </trans-unit>
     <trans-unit id="++CODE++b0f439de4ac489dfe75bf62e7fb55c9c993851f6f462fbbacae37851a6cad588">
       <source xml:lang="en">Password (SQL Login)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f3380f7b44bd70af2a369de6026bf2ca2a7b36fde9086935efcd62a0e379cc7a">
+      <source xml:lang="en">Paste</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aa7e02a360294359df9e77459e71e6f350056d94cf36d644cc2c910fff983359">
+      <source xml:lang="en">Paste connection string from clipboard</source>
     </trans-unit>
     <trans-unit id="++CODE++71f0edbc866bcd836e06eefc36556b0e6a3552f2d422dc8bc12bddd51e3b5a8e">
       <source xml:lang="en">Path: {0}</source>

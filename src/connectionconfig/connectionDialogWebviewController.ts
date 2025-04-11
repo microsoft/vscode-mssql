@@ -21,6 +21,7 @@ import {
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
     ConnectionDialogFormItemSpec,
+    ConnectionStringDialogProps,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
@@ -359,6 +360,51 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             );
 
             await this.updateLoadedConnections(state);
+
+            return state;
+        });
+
+        this.registerReducer("loadFromConnectionString", async (state) => {
+            //sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadFromConnectionString);
+
+            // Logic for loading from connection string goes here
+            // For now, this is a placeholder for the functionality
+
+            return state;
+        });
+
+        this.registerReducer("openConnectionStringDialog", async (state) => {
+            // sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.OpenConnectionStringDialog);
+
+            // Create a real connection string from the current connection details
+            try {
+                // Clean the current connection to remove any properties that aren't being used
+                const cleanedConnection = this.cleanConnection(state.connectionProfile);
+
+                // Create connection details from the current form state
+                const connectionDetails =
+                    this._mainController.connectionManager.createConnectionDetails(
+                        cleanedConnection,
+                    );
+
+                // Generate connection string from the connection details
+                const connectionString =
+                    await this._mainController.connectionManager.getConnectionString(
+                        connectionDetails,
+                    );
+
+                state.dialog = {
+                    type: "loadFromConnectionString",
+                    connectionString: connectionString,
+                } as ConnectionStringDialogProps;
+            } catch (error) {
+                // If there's an error generating the connection string, use an empty string
+                console.error("Error generating connection string: " + getErrorMessage(error));
+                state.dialog = {
+                    type: "loadFromConnectionString",
+                    connectionString: "",
+                } as ConnectionStringDialogProps;
+            }
 
             return state;
         });
