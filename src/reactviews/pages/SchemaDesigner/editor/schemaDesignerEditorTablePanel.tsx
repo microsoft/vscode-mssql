@@ -25,6 +25,7 @@ import {
     TableHeaderCell,
     TableRow,
     Text,
+    Textarea,
     useArrowNavigationGroup,
     useTableColumnSizing_unstable,
     useTableFeatures,
@@ -241,6 +242,29 @@ const ColumnsTable = ({
                                             updateColumn(
                                                 index,
                                                 option.columnModifier(column, parseInt(data.value)),
+                                            );
+                                        }}
+                                    />
+                                </Field>
+                            );
+                        case "textarea":
+                            return (
+                                <Field
+                                    key={option.label}
+                                    label={{
+                                        children: (
+                                            <InfoLabel size="small" info={option.hint}>
+                                                {option.label}
+                                            </InfoLabel>
+                                        ),
+                                    }}>
+                                    <Textarea
+                                        size="small"
+                                        value={column[option.columnProperty] as string}
+                                        onChange={(_e, data) => {
+                                            updateColumn(
+                                                index,
+                                                option.columnModifier(column, data.value),
                                             );
                                         }}
                                     />

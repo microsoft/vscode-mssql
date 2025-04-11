@@ -116,7 +116,7 @@ export const tableUtils = {
 
 export interface AdvancedColumnOption {
     label: string;
-    type: "input" | "input-number" | "checkbox";
+    type: "input" | "input-number" | "checkbox" | "textarea";
     value: string | number | boolean;
     hint?: string;
     columnProperty: keyof SchemaDesigner.Column;
@@ -312,7 +312,7 @@ export const columnUtils = {
             options.push({
                 label: locConstants.schemaDesigner.defaultValue,
                 value: "",
-                type: "input",
+                type: "textarea",
                 columnProperty: "defaultValue",
                 columnModifier: (column, value) => {
                     column.defaultValue = value as string;
@@ -344,7 +344,7 @@ export const columnUtils = {
             options.push({
                 label: locConstants.schemaDesigner.computedFormula,
                 value: "",
-                type: "input",
+                type: "textarea",
                 columnProperty: "computedFormula",
                 columnModifier: (column, value) => {
                     column.computedFormula = value as string;
