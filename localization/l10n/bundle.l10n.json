@@ -1096,7 +1096,7 @@
     ]
   },
   "General": "General",
-  "Schema Compare": "Schema Compare",
+  "Schema Compare (Preview)": "Schema Compare (Preview)",
   "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
   "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
     "message": "Failed to generate script: '{0}'",
