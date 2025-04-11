@@ -435,6 +435,12 @@ export class LocConstants {
                     args: [sourceColumn, targetColumn],
                     comment: ["{0} is source column", "{1} is target column"],
                 }),
+            incompatibleScale: (sourceColumn: string, targetColumn: string) =>
+                l10n.t({
+                    message: "Scale mismatch between '{0}' and '{1}'",
+                    args: [sourceColumn, targetColumn],
+                    comment: ["{0} is source column", "{1} is target column"],
+                }),
             referencedColumnNotPK: (targetColumn: string) =>
                 l10n.t({
                     message: "Column '{0}' must be a primary key",
@@ -454,7 +460,7 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the column name"],
                 }),
-            foreignKeyNameEmptyError: l10n.t("Foreign key name cannot be empty"),
+            foreignKeyNameEmptyWarning: l10n.t("Consider adding a name for this foreign key"),
             foreignKeyNameRepeatedError: (foreignKeyName: string) =>
                 l10n.t({
                     message: "Foreign key '{0}' already exists",
@@ -467,6 +473,13 @@ export class LocConstants {
                     args: [colCount],
                     comment: ["{0} is the number of columns"],
                 }),
+            identityColumnFKConstraint: (columnName: string) =>
+                l10n.t({
+                    message:
+                        "Column '{0}' is an identity column and cannot have a cascading foreign key",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
             manageRelationships: l10n.t("Manage relationships"),
             noChangesDetected: l10n.t("No changes detected"),
             allowNull: l10n.t("Allow Null"),
@@ -475,6 +488,9 @@ export class LocConstants {
             scale: l10n.t("Scale"),
             precision: l10n.t("Precision"),
             defaultValue: l10n.t("Default Value"),
+            isComputed: l10n.t("Is Computed"),
+            computedFormula: l10n.t("Formula"),
+            isPersisted: l10n.t("Is Persisted"),
             svg: l10n.t("SVG"),
             png: l10n.t("PNG"),
             jpeg: l10n.t("JPEG"),
@@ -512,6 +528,20 @@ export class LocConstants {
                     args: [errorCount],
                     comment: ["{0} is the number of errors"],
                 }),
+            openPublishScript: l10n.t("Open Publish Script"),
+            Close: l10n.t("Close"),
+            publish: l10n.t("Publish"),
+            publishingChanges: l10n.t("Publishing Changes"),
+            changesPublishedSuccessfully: l10n.t("Changes published successfully"),
+            continueEditing: l10n.t("Continue Editing"),
+            onUpdate: l10n.t("On Update"),
+            onDelete: l10n.t("On Delete"),
+            cascade: l10n.t("Cascade"),
+            setNull: l10n.t("Set Null"),
+            setDefault: l10n.t("Set Default"),
+            noAction: l10n.t("No Action"),
+            possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
+            hasWarnings: l10n.t("Warnings detected. Please review the changes."),
         };
     }
 
