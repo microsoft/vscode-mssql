@@ -45,6 +45,13 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         savePassword = getSavePassword();
         profileName = getProfileName();
 
+        serverName = "localhost,1433";
+        authType = "SQL Login";
+        userName = "sa";
+        password = "Password123!";
+        savePassword = "true";
+        profileName = "testserver";
+
         await addDatabaseConnectionThroughWebview(
             vsCodePage,
             serverName,
