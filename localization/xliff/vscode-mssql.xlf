@@ -209,6 +209,9 @@
     <trans-unit id="++CODE++7c2b8feda9e74131c46fcd8892b9661d32e0dcfc3d10d9f4d4d948540ea4bb87">
       <source xml:lang="en">Cannot create foreign key</source>
     </trans-unit>
+    <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
+      <source xml:lang="en">Cascade</source>
+    </trans-unit>
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
     </trans-unit>
@@ -315,6 +318,10 @@
       <source xml:lang="en">Column &apos;{0}&apos; cannot be null because it is a primary key</source>
       <note>{0} is the column name</note>
     </trans-unit>
+    <trans-unit id="++CODE++8d00d9665207fcb4d435b78c5be1719cbc6d078437f523910b3e8bd9e95e67aa">
+      <source xml:lang="en">Column &apos;{0}&apos; is an identity column and cannot have a cascading foreign key</source>
+      <note>{0} is the column name</note>
+    </trans-unit>
     <trans-unit id="++CODE++c360b9bc22466a897cd5a6398646517f1bc0236d4bd579846b258d267dfd859c">
       <source xml:lang="en">Column &apos;{0}&apos; must be a primary key</source>
       <note>{0} is the referenced column</note>
@@ -394,6 +401,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
       <source xml:lang="en">Connection string is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
+      <source xml:lang="en">Consider adding a name for this foreign key</source>
     </trans-unit>
     <trans-unit id="++CODE++2eaecb3d0cf1282f01fc09568b63dc633753a0dbf337365d929d9c28df3d6ca4">
       <source xml:lang="en">Contains</source>
@@ -764,8 +774,8 @@
       <source xml:lang="en">Foreign key &apos;{0}&apos; already exists</source>
       <note>{0} is the foreign key name</note>
     </trans-unit>
-    <trans-unit id="++CODE++e6603b955a2b4bfe8e11ed330edfcdbfd8af1d94b683e2829ba11da61c8640c9">
-      <source xml:lang="en">Foreign key name cannot be empty</source>
+    <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
+      <source xml:lang="en">Formula</source>
     </trans-unit>
     <trans-unit id="++CODE++936af734b4badd8602cb27237f8dea0fd3950e12b5bab278565babc15e854136">
       <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
@@ -862,8 +872,14 @@
       <source xml:lang="en">Invalid max length &apos;{0}&apos;</source>
       <note>{0} is the max length</note>
     </trans-unit>
+    <trans-unit id="++CODE++d1a326f448eac64b9ec46d31b9dce63a30f305179abc83e734c8d960bcaa9631">
+      <source xml:lang="en">Is Computed</source>
+    </trans-unit>
     <trans-unit id="++CODE++6ddf8604e8d33286bd064640a453784b6142293230a717b9b1859fa3176573f6">
       <source xml:lang="en">Is Identity</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5b3eef9bf6b0c6df6a0d614b57c2fcd589f9716a7e8b8040dde61be4d2f7e02e">
+      <source xml:lang="en">Is Persisted</source>
     </trans-unit>
     <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
       <source xml:lang="en">Issues ({0})</source>
@@ -1031,6 +1047,9 @@
     <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
       <source xml:lang="en">No</source>
     </trans-unit>
+    <trans-unit id="++CODE++4e43f09881e3742e225d5e39243fa725d8dd7e9a9d64f05c7c814a12a0b32935">
+      <source xml:lang="en">No Action</source>
+    </trans-unit>
     <trans-unit id="++CODE++dd1e244b4e319bb25477890a9327b3a2419908e042cd4063f9235a0afed6e908">
       <source xml:lang="en">No Microsoft Entra account can be found for removal.</source>
     </trans-unit>
@@ -1108,8 +1127,14 @@
     <trans-unit id="++CODE++ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1">
       <source xml:lang="en">Off</source>
     </trans-unit>
+    <trans-unit id="++CODE++3d371d39d42ed88021e2eb01088039bc934a712a3d74c7813debf543f8dba608">
+      <source xml:lang="en">On Delete</source>
+    </trans-unit>
     <trans-unit id="++CODE++08cc7dbe92d634292815733fbf6b34fba13792fc61a838f93bcaf5fc639b12ee">
       <source xml:lang="en">On Delete Action</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3260f8640105db3fc919165eac8ff32b659386c38af4e3fd1d2aa3875a7e3b19">
+      <source xml:lang="en">On Update</source>
     </trans-unit>
     <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
       <source xml:lang="en">On Update Action</source>
@@ -1119,6 +1144,9 @@
     </trans-unit>
     <trans-unit id="++CODE++afe20ac8b79880f255ada45b4113ce2356e2e96da5a833a6262b495ef67c7c33">
       <source xml:lang="en">Open .scmp file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
+      <source xml:lang="en">Open Publish Script</source>
     </trans-unit>
     <trans-unit id="++CODE++27d46ec89f6c8889936e3d885b71d612efdbf08d8514f16157875104d01fd5f5">
       <source xml:lang="en">Open Query</source>
@@ -1185,6 +1213,9 @@
     <trans-unit id="++CODE++71f0edbc866bcd836e06eefc36556b0e6a3552f2d422dc8bc12bddd51e3b5a8e">
       <source xml:lang="en">Path: {0}</source>
       <note>{0} is the path of the node in the object explorer</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
+      <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
     </trans-unit>
     <trans-unit id="++CODE++b5d65f0ae389b60297c51acb9d3f3ee1e5b846deeb84a90fd69ccdfadca7c331">
       <source xml:lang="en">Precision</source>
@@ -1387,6 +1418,11 @@
     <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
       <source xml:lang="en">Scale</source>
     </trans-unit>
+    <trans-unit id="++CODE++b8c590be37f9806eacc2f43e047d943cb0b51e96d92efe6f1549fd0d13d03a25">
+      <source xml:lang="en">Scale mismatch between &apos;{0}&apos; and &apos;{1}&apos;</source>
+      <note>{0} is source column
+{1} is target column</note>
+    </trans-unit>
     <trans-unit id="++CODE++07b091a3fdc4e4c03cd047b5264e61241f20fe8dbc36a4c796d46cd8dc3e7d03">
       <source xml:lang="en">Schema</source>
     </trans-unit>
@@ -1477,6 +1513,12 @@
     </trans-unit>
     <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
       <source xml:lang="en">Server name or ADO.NET connection string</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
+      <source xml:lang="en">Set Default</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7dcc1c2a0bebbc604d5c15ae5e2a764048d5936bda66f0137af772be71d7a145">
+      <source xml:lang="en">Set Null</source>
     </trans-unit>
     <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
       <source xml:lang="en">Settings</source>
@@ -1767,6 +1809,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
       <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
+      <source xml:lang="en">Warnings detected. Please review the changes.</source>
     </trans-unit>
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>

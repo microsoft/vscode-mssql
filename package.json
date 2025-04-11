@@ -531,7 +531,7 @@
                 },
                 {
                     "command": "mssql.designSchema",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && config.mssql.enableSchemaDesigner",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableSchemaDesigner",
                     "group": "MS_SQL@6"
                 },
                 {

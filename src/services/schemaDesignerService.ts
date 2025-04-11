@@ -61,6 +61,18 @@ export class SchemaDesignerService implements SchemaDesigner.ISchemaDesignerServ
         }
     }
 
+    async publishSession(request: SchemaDesigner.PublishSessionRequest): Promise<void> {
+        try {
+            await this._sqlToolsClient.sendRequest(
+                SchemaDesignerRequests.PublishSession.type,
+                request,
+            );
+        } catch (e) {
+            this._sqlToolsClient.logger.error(e);
+            throw e;
+        }
+    }
+
     async getReport(
         request: SchemaDesigner.GetReportRequest,
     ): Promise<SchemaDesigner.GetReportResponse> {
