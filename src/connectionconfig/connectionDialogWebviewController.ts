@@ -376,21 +376,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerReducer("openConnectionStringDialog", async (state) => {
             // sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.OpenConnectionStringDialog);
 
-            // Create a real connection string from the current connection details
             try {
-                // Clean the current connection to remove any properties that aren't being used
                 const cleanedConnection = this.cleanConnection(state.connectionProfile);
 
-                // Create connection details from the current form state
                 const connectionDetails =
                     this._mainController.connectionManager.createConnectionDetails(
                         cleanedConnection,
                     );
 
-                // Generate connection string from the connection details
                 const connectionString =
                     await this._mainController.connectionManager.getConnectionString(
                         connectionDetails,
+                        true /* includePassword */,
                     );
 
                 state.dialog = {

@@ -15,8 +15,8 @@ import {
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
 } from "../../../sharedInterfaces/connectionDialog";
-import { Button, Field, Image, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
-import { Form20Regular, SlideText20Regular } from "@fluentui/react-icons";
+import { Field, Image, Link, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
+import { Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
 
@@ -118,27 +118,14 @@ export const ConnectionInfoFormContainer = () => {
                                         }}>
                                         <Form20Regular style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.parameters}
-                                        <Button
-                                            appearance="primary"
-                                            style={{ marginTop: "10px" }}
+                                        <span style={{ margin: "0 8px" }} />
+                                        <Link
                                             onClick={() => {
                                                 context.openConnectionStringDialog();
-                                            }}>
-                                            Load from Connection String
-                                        </Button>
-                                    </div>
-                                }
-                            />
-                            <Radio
-                                value={ConnectionInputMode.ConnectionString}
-                                label={
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                        }}>
-                                        <SlideText20Regular style={{ marginRight: "8px" }} />
-                                        {locConstants.connectionDialog.connectionString}
+                                            }}
+                                            inline>
+                                            {locConstants.connectionDialog.loadFromConnectionString}
+                                        </Link>
                                     </div>
                                 }
                             />

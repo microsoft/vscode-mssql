@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import {
     Button,
@@ -28,6 +28,18 @@ export const ConnectionStringDialog = ({
 }) => {
     const context = useContext(ConnectionDialogContext)!;
     const [connectionString, setConnectionString] = useState(dialogProps.connectionString || "");
+    // eslint-disable-next-line no-restricted-syntax
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+    useEffect(() => {
+        // Focus the textarea when the dialog opens
+        if (textareaRef.current) {
+            // Small delay to ensure the dialog is fully rendered
+            setTimeout(() => {
+                textareaRef.current?.focus();
+            }, 50);
+        }
+    }, []);
 
     if (context.state.dialog?.type !== "loadFromConnectionString") {
         return undefined;
@@ -54,8 +66,29 @@ export const ConnectionStringDialog = ({
         <Dialog open={dialogProps.type === "loadFromConnectionString"}>
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>
-                        {locConstants.connectionDialog.connectionStringDialogTitle}
+                    <DialogTitle
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}>
+                        <span>{locConstants.connectionDialog.loadFromConnectionString}</span>
+                        <div style={{ display: "flex", gap: "5px" }}>
+                            <Button
+                                appearance="transparent"
+                                size="small"
+                                icon={<Copy24Regular />}
+                                onClick={handleCopyConnectionString}
+                                title={locConstants.connectionDialog.copyConnectionString}
+                            />
+                            <Button
+                                appearance="transparent"
+                                size="small"
+                                icon={<ClipboardPaste24Regular />}
+                                onClick={handlePasteConnectionString}
+                                title={locConstants.connectionDialog.pasteConnectionString}
+                            />
+                        </div>
                     </DialogTitle>
                     <DialogContent>
                         {dialogProps.connectionStringError && (
@@ -66,11 +99,15 @@ export const ConnectionStringDialog = ({
                                 <br />
                             </>
                         )}
-                        <div>{locConstants.connectionDialog.connectionStringDialogPrompt}</div>
                         <div
-                            style={{ display: "flex", flexDirection: "column", marginTop: "10px" }}>
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                marginTop: "10px",
+                            }}>
                             {" "}
                             <Textarea
+                                ref={textareaRef}
                                 value={connectionString}
                                 onChange={(_e, data) => setConnectionString(data.value)}
                                 resize="none"
@@ -78,26 +115,6 @@ export const ConnectionStringDialog = ({
                                     height: "200px",
                                 }}
                             />
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "flex-end",
-                                    marginTop: "5px",
-                                    gap: "5px",
-                                }}>
-                                <Button
-                                    icon={<Copy24Regular />}
-                                    onClick={handleCopyConnectionString}
-                                    title={locConstants.connectionDialog.copyConnectionString}>
-                                    {locConstants.connectionDialog.copy}
-                                </Button>
-                                <Button
-                                    icon={<ClipboardPaste24Regular />}
-                                    onClick={handlePasteConnectionString}
-                                    title={locConstants.connectionDialog.pasteConnectionString}>
-                                    {locConstants.connectionDialog.paste}
-                                </Button>
-                            </div>
                         </div>
                     </DialogContent>
                     <DialogActions>
