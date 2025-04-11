@@ -45,13 +45,6 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         savePassword = getSavePassword();
         profileName = getProfileName();
 
-        serverName = "localhost,1433";
-        authType = "SQL Login";
-        userName = "sa";
-        password = "Password123!";
-        savePassword = "true";
-        profileName = "testserver";
-
         await addDatabaseConnectionThroughWebview(
             vsCodePage,
             serverName,
@@ -90,7 +83,6 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         await nameElement.fill("spt");
         // Log coverage now, because context is lost when webview is closed
         // upon pressing "OK"
-        await new Promise((resolve) => setTimeout(resolve, 150 * 1000));
         await refocusFilterTab(vsCodePage);
         await writeCoverage(iframe, `objectExplorerFilter-${generateUUID()}`);
         let okButton = iframe.getByText("OK");

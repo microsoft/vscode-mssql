@@ -125,6 +125,8 @@ export async function addDatabaseConnectionThroughWebview(
     const connectButton = connectionWebview.locator('button[type="submit"].fui-Button');
     await connectButton.click();
 
+    const loadingIcon = connectionWebview.locator('[class*="fui-Spinner"][role="progressbar"]');
+    await loadingIcon.waitFor({ state: "hidden" });
     await connectionWebview.owner().waitFor({ state: "hidden", timeout: 30 * 1000 });
 
     // check connection is loaded in OE
