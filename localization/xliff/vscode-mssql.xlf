@@ -209,9 +209,6 @@
     <trans-unit id="++CODE++7c2b8feda9e74131c46fcd8892b9661d32e0dcfc3d10d9f4d4d948540ea4bb87">
       <source xml:lang="en">Cannot create foreign key</source>
     </trans-unit>
-    <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
-      <source xml:lang="en">Cascade</source>
-    </trans-unit>
     <trans-unit id="++CODE++5bf30206188ff92ec48bba56b2bf99fcb46ba9c20a05460485cf684b81a9c54b">
       <source xml:lang="en">Cannot exclude {0}. Included dependents exist</source>
       <note>{0} is the name of the entry</note>
@@ -229,6 +226,9 @@
       <source xml:lang="en">Cannot include {0}. Excluded dependents exist, such as {1}</source>
       <note>{0} is the name of the entry
 {1} is the name of the blocking dependency preventing inclusion.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
+      <source xml:lang="en">Cascade</source>
     </trans-unit>
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
