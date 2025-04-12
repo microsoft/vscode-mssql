@@ -10,6 +10,7 @@ import { TreeNodeInfo } from "./treeNodeInfo";
 import { Deferred } from "../protocol";
 import { IConnectionInfo } from "vscode-mssql";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { ObjectExplorerUtils } from "./objectExplorerUtils";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -49,9 +50,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const children = await this._objectExplorerService.getChildren(element);
-        if (children) {
-            return children;
+        if (!children || children.length === 0) {
+            return [ObjectExplorerUtils.createNoItemsTreeItem()];
         }
+        return children;
     }
 
     async createSession(
