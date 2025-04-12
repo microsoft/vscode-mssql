@@ -372,7 +372,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             try {
                 const connDetails =
-                    await this._mainController.connectionManager.buildConnectionDetails(
+                    await this._mainController.connectionManager.parseConnectionString(
                         payload.connectionString,
                     );
 
@@ -663,7 +663,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 if (this.state.selectedInputMode === ConnectionInputMode.ConnectionString) {
                     // convert connection string to an IConnectionProfile object
                     const connDetails =
-                        await this._mainController.connectionManager.buildConnectionDetails(
+                        await this._mainController.connectionManager.parseConnectionString(
                             this.state.connectionProfile.connectionString,
                         );
 

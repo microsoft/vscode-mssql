@@ -121,7 +121,6 @@ export const ConnectionStringDialog = ({
                         <Button
                             appearance="primary"
                             onClick={() => {
-                                context.closeDialog();
                                 context.loadFromConnectionString(connectionString);
                             }}>
                             {locConstants.common.load}

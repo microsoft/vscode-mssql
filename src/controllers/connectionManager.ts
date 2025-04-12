@@ -367,9 +367,9 @@ export default class ConnectionManager {
         );
     }
 
-    public async buildConnectionDetails(connectionString: string): Promise<ConnectionDetails> {
+    public async parseConnectionString(connectionString: string): Promise<ConnectionDetails> {
         return await this.client.sendRequest(
-            ConnectionContracts.BuildConnectionDetailsRequest.type,
+            ConnectionContracts.ParseConnectionStringRequest.type,
             connectionString,
         );
     }
