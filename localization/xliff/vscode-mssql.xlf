@@ -861,6 +861,9 @@
     <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
       <source xml:lang="en">Invalid column width</source>
     </trans-unit>
+    <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
+      <source xml:lang="en">Invalid connection string: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++b65d31b3dcfd9935b8fae6c977fe0f07a5d73a830edb2426c05d63464b299858">
       <source xml:lang="en">Invalid max length &apos;{0}&apos;</source>
       <note>{0} is the max length</note>
