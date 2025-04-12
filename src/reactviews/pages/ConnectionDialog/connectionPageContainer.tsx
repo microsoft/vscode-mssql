@@ -35,8 +35,6 @@ function renderContent(connectionDialogContext: ConnectionDialogContextProps): R
     switch (connectionDialogContext?.state.selectedInputMode) {
         case ConnectionInputMode.Parameters:
             return <ConnectionFormPage />;
-        // case ConnectionInputMode.ConnectionString:
-        //     return <ConnectionStringPage />;
         case ConnectionInputMode.AzureBrowse:
             return <AzureBrowsePage />;
     }

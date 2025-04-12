@@ -122,12 +122,7 @@ export const ConnectionStringDialog = ({
                             appearance="primary"
                             onClick={() => {
                                 context.closeDialog();
-                                context.formAction({
-                                    propertyName: "connectionString",
-                                    value: connectionString,
-                                    isAction: false,
-                                });
-                                context.loadFromConnectionString();
+                                context.loadFromConnectionString(connectionString);
                             }}>
                             {locConstants.common.load}
                         </Button>

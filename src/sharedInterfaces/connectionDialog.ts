@@ -127,7 +127,9 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     emptyPasswordInput?: boolean;
     azureAuthType?: vscodeMssql.AzureAuthType;
     /** display name for the MRU pane; should be set to the profileName if available, otherwise generated from connection details */
-    displayName?: string;
+    //displayName?: string;
+    id?: string;
+    groupId?: string;
 }
 
 export interface ConnectionDialogContextProps
@@ -136,6 +138,7 @@ export interface ConnectionDialogContextProps
         ConnectionDialogWebviewState,
         ConnectionDialogFormItemSpec
     > {
+    // Reducers
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
@@ -150,8 +153,11 @@ export interface ConnectionDialogContextProps
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
     removeRecentConnection(connection: IConnectionDialogProfile): void;
-    loadFromConnectionString: () => void;
+    loadFromConnectionString: (connectionString: string) => void;
     openConnectionStringDialog: () => void;
+
+    // Request handlers
+    getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
 }
 
 export enum AuthenticationType {
@@ -185,6 +191,6 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     removeRecentConnection: {
         connection: IConnectionDialogProfile;
     };
-    loadFromConnectionString: {};
+    loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
 }

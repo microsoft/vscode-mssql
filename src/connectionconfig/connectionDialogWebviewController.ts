@@ -43,7 +43,7 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { AzureController } from "../azure/azureController";
 import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
-import { IConnectionInfo } from "vscode-mssql";
+import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
@@ -333,7 +333,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 [LocCommon.delete, LocCommon.cancel],
                 {
                     title: LocCommon.areYouSureYouWantTo(
-                        Loc.deleteTheSavedConnection(payload.connection.displayName),
+                        Loc.deleteTheSavedConnection(getConnectionDisplayName(payload.connection)),
                     ),
                 },
             );
@@ -364,18 +364,58 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
-        this.registerReducer("loadFromConnectionString", async (state) => {
-            //sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadFromConnectionString);
+        this.registerReducer("loadFromConnectionString", async (state, payload) => {
+            sendActionEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadFromConnectionString,
+            );
 
-            // Logic for loading from connection string goes here
-            // For now, this is a placeholder for the functionality
+            try {
+                const connDetails =
+                    await this._mainController.connectionManager.buildConnectionDetails(
+                        payload.connectionString,
+                    );
 
-            return state;
+                state.connectionProfile = this.hydrateConnectionDetailsFromProfile(
+                    connDetails,
+                    state.connectionProfile,
+                );
+
+                state.dialog = undefined; // Close the dialog
+
+                await this.updateItemVisibility();
+
+                return state;
+            } catch (error) {
+                // If there's an error parsing the connection string, show an error and keep dialog open
+                this.logger.error("Error parsing connection string: " + getErrorMessage(error));
+
+                const errorMessage = l10n.t(
+                    "Invalid connection string: {0}",
+                    getErrorMessage(error),
+                );
+
+                if (state.dialog?.type === "loadFromConnectionString") {
+                    (state.dialog as ConnectionStringDialogProps).connectionStringError =
+                        errorMessage;
+                } else {
+                    state.formError = errorMessage;
+                }
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.LoadFromConnectionString,
+                    error,
+                    false, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                );
+
+                return state;
+            }
         });
 
         this.registerReducer("openConnectionStringDialog", async (state) => {
-            // sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.OpenConnectionStringDialog);
-
             try {
                 const cleanedConnection = this.cleanConnection(state.connectionProfile);
 
@@ -395,8 +435,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     connectionString: connectionString,
                 } as ConnectionStringDialogProps;
             } catch (error) {
-                // If there's an error generating the connection string, use an empty string
-                console.error("Error generating connection string: " + getErrorMessage(error));
+                this.logger.error("Error generating connection string: " + getErrorMessage(error));
                 state.dialog = {
                     type: "loadFromConnectionString",
                     connectionString: "",
@@ -404,6 +443,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             return state;
+        });
+
+        this.registerRequestHandler("getConnectionDisplayName", async (payload) => {
+            return payload.profileName ? payload.profileName : getConnectionDisplayName(payload);
         });
     }
 
@@ -891,9 +934,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         const dialogConnection = connection as IConnectionDialogProfile;
         // Set the display name
-        dialogConnection.displayName = dialogConnection.profileName
-            ? dialogConnection.profileName
-            : getConnectionDisplayName(connection);
+        // dialogConnection.displayName = dialogConnection.profileName
+        //     ? dialogConnection.profileName
+        //     : getConnectionDisplayName(connection);
         return dialogConnection;
     }
 
@@ -1244,6 +1287,34 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             rv.get(keyValue)!.push(x);
             return rv;
         }, new Map<K, V[]>());
+    }
+
+    private hydrateConnectionDetailsFromProfile(
+        connDetails: ConnectionDetails,
+        fromProfile: IConnectionDialogProfile,
+    ): IConnectionDialogProfile {
+        const connectionProfile: IConnectionDialogProfile =
+            ConnectionCredentials.createConnectionInfo(connDetails);
+
+        if (fromProfile.profileName) {
+            connectionProfile.profileName = fromProfile.profileName;
+        }
+
+        connectionProfile.applicationName = fromProfile.applicationName || "vscode-mssql";
+
+        connectionProfile.savePassword = !!connectionProfile.password; // Save password if it's included in the connection string
+
+        connectionProfile.profileName = fromProfile.profileName;
+        connectionProfile.id = fromProfile.id;
+        connectionProfile.groupId = fromProfile.groupId;
+
+        if (connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
+            connectionProfile.accountId = fromProfile.accountId;
+            connectionProfile.tenantId = fromProfile.tenantId;
+            connectionProfile.email = fromProfile.email;
+        }
+
+        return connectionProfile;
     }
 
     //#endregion

@@ -83,11 +83,22 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                         connection: connection,
                     });
                 },
-                loadFromConnectionString: function (): void {
-                    webviewState.extensionRpc.action("loadFromConnectionString");
+                loadFromConnectionString: function (connectionString: string): void {
+                    webviewState.extensionRpc.action("loadFromConnectionString", {
+                        connectionString: connectionString,
+                    });
                 },
                 openConnectionStringDialog: function (): void {
                     webviewState.extensionRpc.action("openConnectionStringDialog");
+                },
+                getConnectionDisplayName: async function (
+                    connectionProfile: IConnectionDialogProfile,
+                ): Promise<string> {
+                    const result = await webviewState.extensionRpc.call(
+                        "getConnectionDisplayName",
+                        connectionProfile,
+                    );
+                    return result as string;
                 },
             }}>
             {children}
