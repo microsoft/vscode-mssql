@@ -172,6 +172,30 @@ suite("Object Explorer Provider Tests", function () {
         done();
     });
 
+    test("Test Get Children from Object Explorer Provider with no children", async () => {
+        const parentTreeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
+
+        // Test with empty children array
+        objectExplorerService
+            .setup((s) => s.getChildren(TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve([]));
+        const children = await objectExplorerProvider.getChildren(parentTreeNode.object);
+        expect(children.length, "No items nodes should be returned").is.equal(1);
+        expect(children[0].label, "No items nodes should have the correct label").is.equal(
+            LocalizedConstants.ObjectExplorer.NoItems,
+        );
+
+        // Test with undefined children
+        objectExplorerService
+            .setup((s) => s.getChildren(TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve(undefined));
+        const children2 = await objectExplorerProvider.getChildren(parentTreeNode.object);
+        expect(children2.length, "No items nodes should be returned").is.equal(1);
+        expect(children2[0].label, "No items nodes should have the correct label").is.equal(
+            LocalizedConstants.ObjectExplorer.NoItems,
+        );
+    });
+
     test("Test server nodes sorting mechanism", (done) => {
         const testNode = new TreeNodeInfo(
             "testNode",
