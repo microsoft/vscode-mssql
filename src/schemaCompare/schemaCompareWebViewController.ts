@@ -1052,9 +1052,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         if (endpoint && endpoint.endpointType === mssql.SchemaCompareEndpointType.Database) {
             const connInfo = endpoint.connectionDetails.options as mssql.IConnectionInfo;
 
-            ownerUri = this.connectionMgr.getUriForConnection(connInfo);
+            ownerUri = this.connectionMgr.getUriForScmpConnection(connInfo);
 
-            let isConnected = false;
+            let isConnected = ownerUri ? true : false;
             if (!ownerUri) {
                 ownerUri = utils.generateQueryUri().toString();
 

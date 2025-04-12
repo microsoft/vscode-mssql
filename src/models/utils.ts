@@ -328,6 +328,41 @@ export function isSameConnectionInfo(
 }
 
 /**
+ * Compares 2 connections to see if they match. Logic for matching:
+ * match on properties like the (connectionString or server, auth type, user) being identical.
+ * Other properties are ignored for this purpose
+ *
+ * @param conn the connection to check
+ * @param expectedConn the connection to try to match
+ * @returns boolean that is true if the connections match
+ */
+export function isSameScmpConnection(
+    conn: IConnectionInfo,
+    expectedConn: IConnectionInfo,
+): boolean {
+    if (conn.connectionString) {
+        return conn.connectionString === expectedConn.connectionString;
+    } else if (
+        expectedConn.authenticationType === Constants.azureMfa &&
+        conn.authenticationType === Constants.azureMfa
+    ) {
+        return (
+            expectedConn.server === conn.server &&
+            isSameAccountKey(expectedConn.accountId, conn.accountId)
+        );
+    } else if (
+        expectedConn.server === conn.server &&
+        isSameAuthenticationType(expectedConn.authenticationType, conn.authenticationType)
+    ) {
+        if (conn.authenticationType === Constants.sqlAuthentication) {
+            return conn.user === expectedConn.user;
+        } else {
+            return isEmpty(conn.user) === isEmpty(expectedConn.user);
+        }
+    }
+}
+
+/**
  * Check if a file exists on disk
  */
 export function isFileExisting(filePath: string): boolean {
