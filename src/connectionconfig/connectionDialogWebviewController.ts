@@ -932,12 +932,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
         }
 
-        const dialogConnection = connection as IConnectionDialogProfile;
-        // Set the display name
-        // dialogConnection.displayName = dialogConnection.profileName
-        //     ? dialogConnection.profileName
-        //     : getConnectionDisplayName(connection);
-        return dialogConnection;
+        return connection;
     }
 
     //#endregion

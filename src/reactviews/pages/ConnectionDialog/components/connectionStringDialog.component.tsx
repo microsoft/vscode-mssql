@@ -28,11 +28,11 @@ export const ConnectionStringDialog = ({
 }) => {
     const context = useContext(ConnectionDialogContext)!;
     const [connectionString, setConnectionString] = useState(dialogProps.connectionString || "");
-    // eslint-disable-next-line no-restricted-syntax
+    // eslint-disable-next-line no-restricted-syntax -- Ref needs to be null, not undefined
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+    // Automatically focus the textarea when the dialog opens
     useEffect(() => {
-        // Focus the textarea when the dialog opens
         if (textareaRef.current) {
             // Small delay to ensure the dialog is fully rendered
             setTimeout(() => {
