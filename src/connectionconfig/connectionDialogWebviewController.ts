@@ -216,10 +216,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this._connectionToEditCopy = structuredClone(payload.connection);
             this.clearFormError();
             this.state.connectionProfile = payload.connection;
+            this.state.selectedInputMode = ConnectionInputMode.Parameters;
 
-            this.state.selectedInputMode = this._connectionToEditCopy.connectionString
-                ? ConnectionInputMode.ConnectionString
-                : ConnectionInputMode.Parameters;
             await this.updateItemVisibility();
             await this.handleAzureMFAEdits("azureAuthType");
             await this.handleAzureMFAEdits("accountId");
@@ -517,19 +515,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
         }
 
-        // Clear values for inputs that are not applicable due to the selected input mode
-        if (
-            this.state.selectedInputMode === ConnectionInputMode.Parameters ||
-            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
-        ) {
-            cleanedConnection.connectionString = undefined;
-        } else if (this.state.selectedInputMode === ConnectionInputMode.ConnectionString) {
-            Object.keys(cleanedConnection).forEach((key) => {
-                if (key !== "connectionString" && key !== "profileName") {
-                    cleanedConnection[key] = undefined;
-                }
-            });
-        }
+        cleanedConnection.connectionString = undefined;
 
         return cleanedConnection;
     }
@@ -660,24 +646,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         try {
             try {
-                if (this.state.selectedInputMode === ConnectionInputMode.ConnectionString) {
-                    // convert connection string to an IConnectionProfile object
-                    const connDetails =
-                        await this._mainController.connectionManager.parseConnectionString(
-                            this.state.connectionProfile.connectionString,
-                        );
-
-                    cleanedConnection = ConnectionCredentials.createConnectionInfo(connDetails);
-
-                    // re-add profileName and savePassword because they aren't part of the connection string
-                    cleanedConnection.profileName = this.state.connectionProfile.profileName;
-                    cleanedConnection.savePassword = !!cleanedConnection.password; // if the password is included in the connection string, saving it is implied
-
-                    // overwrite SQL Tools Service's default application name with the one the user provided (or MSSQL's default)
-                    cleanedConnection.applicationName =
-                        this.state.connectionProfile.applicationName;
-                }
-
                 const result = await this._mainController.connectionManager.connectDialog(
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     cleanedConnection as any,
@@ -868,11 +836,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this._connectionToEditCopy = structuredClone(this._connectionToEdit);
             const connection = await this.initializeConnectionForDialog(this._connectionToEdit);
             this.state.connectionProfile = connection;
+            this.state.selectedInputMode = ConnectionInputMode.Parameters;
 
-            this.state.selectedInputMode =
-                connection.connectionString && connection.server === undefined
-                    ? ConnectionInputMode.ConnectionString
-                    : ConnectionInputMode.Parameters;
             this.updateState();
         }
     }

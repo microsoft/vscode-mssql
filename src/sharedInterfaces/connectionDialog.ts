@@ -115,7 +115,6 @@ export interface ConnectionDialogFormItemSpec
 
 export enum ConnectionInputMode {
     Parameters = "parameters",
-    ConnectionString = "connectionString",
     AzureBrowse = "azureBrowse",
 }
 
