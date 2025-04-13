@@ -42,6 +42,20 @@ export class ObjectExplorerUtils {
         };
     }
 
+    public static createErrorTreeItem(errorMessage: string): vscode.TreeItem {
+        return {
+            label: LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
+            accessibilityInformation: {
+                label: errorMessage,
+            },
+            tooltip: errorMessage,
+            iconPath: {
+                light: ObjectExplorerUtils.iconPath("Error_light"),
+                dark: ObjectExplorerUtils.iconPath("Error_dark"),
+            },
+        };
+    }
+
     public static getNodeUri(node: TreeNodeType): string {
         let profile: IConnectionProfile;
         if (node instanceof TreeNodeInfo) {
