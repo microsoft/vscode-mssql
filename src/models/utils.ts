@@ -313,8 +313,8 @@ export function isSameConnectionInfo(
     expectedConn: IConnectionInfo,
 ): boolean {
     // If connection info has an id, use that to compare connections
-    const connId = (<IConnectionProfile>conn).id;
-    const expectedConnId = (<IConnectionProfile>expectedConn).id;
+    const connId = (conn as IConnectionProfile).id;
+    const expectedConnId = (expectedConn as IConnectionProfile).id;
     if (connId && expectedConnId) {
         return connId === expectedConnId;
     }
