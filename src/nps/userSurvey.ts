@@ -316,13 +316,6 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
             {
                 type: "divider",
             },
-            {
-                id: "comments",
-                label: locConstants.UserSurvey.whatCanWeDoToImprove,
-                type: "textarea",
-                required: false,
-                placeholder: locConstants.UserSurvey.privacyDisclaimer,
-            },
         ],
     };
 }
