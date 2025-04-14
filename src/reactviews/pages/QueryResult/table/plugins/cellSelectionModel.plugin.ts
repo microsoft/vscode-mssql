@@ -11,6 +11,7 @@ import {
     ISlickRange,
     QueryResultReducers,
     QueryResultWebviewState,
+    SelectionSummaryStats,
 } from "../../../../../sharedInterfaces/queryResult";
 
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
@@ -19,7 +20,6 @@ import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
 import { Keys } from "../../keys";
-import { locConstants } from "../../../../common/locConstants";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -428,7 +428,12 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private async setSelectionSummaryText(isSelection?: boolean) {
-        let summary = "";
+        let summary: SelectionSummaryStats = {
+            count: -1,
+            distinctCount: -1,
+            nullCount: -1,
+            removeSelectionStats: !isSelection,
+        };
 
         if (isSelection) {
             const selectedRanges: Slick.Range[] = this.getSelectedRanges();
@@ -439,8 +444,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
             if (!column) return;
 
             const values: any[] = [];
-            let isNumeric = false;
             let nullCount = 0;
+            let numCount = 0;
             let sum = 0;
             let min = Infinity;
             let max = -Infinity;
@@ -450,14 +455,13 @@ export class CellSelectionModel<T extends Slick.SlickData>
                     const cell = this.grid.getCellNode(row, col);
                     if (!cell) continue;
                     const value = cell.innerText;
-                    const numValue = Number(value);
                     if (value === "NULL") {
                         nullCount++;
-                    } else if (!isNaN(numValue)) {
-                        isNumeric = true;
-                        min = Math.min(min, numValue);
-                        max = Math.max(max, numValue);
-                        sum += numValue;
+                    } else if (!isNaN(Number(value))) {
+                        numCount++;
+                        min = Math.min(min, Number(value));
+                        max = Math.max(max, Number(value));
+                        sum += Number(value);
                     }
                     values.push(value);
                 }
@@ -466,24 +470,26 @@ export class CellSelectionModel<T extends Slick.SlickData>
             const count = values.length;
             const distinctCount = new Set(values).size;
 
-            if (isNumeric) {
+            if (numCount) {
                 // format average into decimal, up to three places, with no trailing zeros
-                const average = (sum / count).toFixed(3).replace(/\.?0+$/, "");
-                summary = locConstants.queryResult.numericSelectionSummary(
-                    average,
-                    count,
-                    distinctCount,
-                    max,
-                    min,
-                    nullCount,
-                    sum,
-                );
+                const average = (sum / numCount).toFixed(3).replace(/\.?0+$/, "");
+                summary = {
+                    average: average,
+                    count: count,
+                    distinctCount: distinctCount,
+                    max: max,
+                    min: min,
+                    nullCount: nullCount,
+                    sum: sum,
+                    removeSelectionStats: false,
+                };
             } else {
-                summary = locConstants.queryResult.nonNumericSelectionSummary(
-                    count,
-                    distinctCount,
-                    nullCount,
-                );
+                summary = {
+                    count: count,
+                    distinctCount: distinctCount,
+                    nullCount: nullCount,
+                    removeSelectionStats: false,
+                };
             }
         }
         await this.webViewState.extensionRpc.call("setSelectionSummary", {

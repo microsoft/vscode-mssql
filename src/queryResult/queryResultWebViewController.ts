@@ -23,6 +23,7 @@ import {
     recordLength,
     registerCommonRequestHandlers,
 } from "./utils";
+import { QueryResult } from "../constants/locConstants";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
     qr.QueryResultWebviewState,
@@ -38,10 +39,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     private _correlationId: string = randomUUID();
     private _selectionSummaryStatusBarItem: vscode.StatusBarItem =
         vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
-    private readonly nonNumericStatsLength = 3;
-    private readonly averageIndex = 0;
-    private readonly countIndex = 1;
-    private readonly sumIndex = 6;
     public actualPlanStatuses: string[] = [];
 
     constructor(
@@ -381,23 +378,37 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return total;
     }
 
-    public updateSelectionSummaryStatusItem(updatedText: string) {
-        if (updatedText === "") {
-            this._selectionSummaryStatusBarItem.text = ``;
+    public updateSelectionSummaryStatusItem(selectionSummary: qr.SelectionSummaryStats) {
+        if (selectionSummary.removeSelectionStats) {
+            this._selectionSummaryStatusBarItem.text = "";
             this._selectionSummaryStatusBarItem.hide();
         } else {
-            const stats = updatedText.split("  ");
-            if (stats.length != this.nonNumericStatsLength) {
-                const shownStats = [
-                    stats[this.averageIndex],
-                    stats[this.countIndex],
-                    stats[this.sumIndex],
-                ];
-                this._selectionSummaryStatusBarItem.text = shownStats.join("  ");
+            // the selection is numeric
+            if (selectionSummary.average) {
+                this._selectionSummaryStatusBarItem.text = QueryResult.numericSelectionSummary(
+                    selectionSummary.average,
+                    selectionSummary.count,
+                    selectionSummary.sum,
+                );
+                this._selectionSummaryStatusBarItem.tooltip =
+                    QueryResult.numericSelectionSummaryTooltip(
+                        selectionSummary.average,
+                        selectionSummary.count,
+                        selectionSummary.distinctCount,
+                        selectionSummary.max,
+                        selectionSummary.min,
+                        selectionSummary.nullCount,
+                        selectionSummary.sum,
+                    );
             } else {
-                this._selectionSummaryStatusBarItem.text = `${updatedText}`;
+                this._selectionSummaryStatusBarItem.text = QueryResult.nonNumericSelectionSummary(
+                    selectionSummary.count,
+                    selectionSummary.distinctCount,
+                    selectionSummary.nullCount,
+                );
+                this._selectionSummaryStatusBarItem.tooltip =
+                    this._selectionSummaryStatusBarItem.text;
             }
-            this._selectionSummaryStatusBarItem.tooltip = `${updatedText}`;
             this._selectionSummaryStatusBarItem.show();
         }
     }

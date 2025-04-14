@@ -135,6 +135,10 @@
       <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
       <note>{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum</note>
     </trans-unit>
+    <trans-unit id="++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca">
+      <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
+      <note>{0} is the average, {1} is the count, {2} is the sum</note>
+    </trans-unit>
     <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
       <source xml:lang="en">Azure Account</source>
     </trans-unit>

@@ -209,7 +209,6 @@ export function registerCommonRequestHandlers(
     });
 
     webviewController.registerRequestHandler("setSelectionSummary", async (message) => {
-        console.log(message.summary);
         const controller =
             webviewController instanceof QueryResultWebviewPanelController
                 ? webviewController.getQueryResultWebviewViewController()
