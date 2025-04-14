@@ -10,7 +10,6 @@ import {
     ConnectionComponentsInfo,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
-    ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../sharedInterfaces/connectionDialog";
 import {

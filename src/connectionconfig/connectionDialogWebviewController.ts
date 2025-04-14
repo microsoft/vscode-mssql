@@ -1260,7 +1260,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             connectionProfile.profileName = fromProfile.profileName;
         }
 
-        connectionProfile.applicationName = fromProfile.applicationName || "vscode-mssql";
+        connectionProfile.applicationName =
+            connDetails.options.applicationName === "sqltools"
+                ? fromProfile.applicationName || "vscode-mssql"
+                : connDetails.options.applicationName;
 
         connectionProfile.savePassword = !!connectionProfile.password; // Save password if it's included in the connection string
 
