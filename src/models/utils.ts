@@ -261,6 +261,10 @@ export function isSameProfile(
     currentProfile: IConnectionProfile,
     expectedProfile: IConnectionProfile,
 ): boolean {
+    if (currentProfile.id && expectedProfile.id) {
+        // If connection profile has an id, use that to compare connections
+        return currentProfile.id === expectedProfile.id;
+    }
     if (currentProfile === undefined) {
         return false;
     }
@@ -308,6 +312,13 @@ export function isSameConnectionInfo(
     conn: IConnectionInfo,
     expectedConn: IConnectionInfo,
 ): boolean {
+    // If connection info has an id, use that to compare connections
+    const connId = (<IConnectionProfile>conn).id;
+    const expectedConnId = (<IConnectionProfile>expectedConn).id;
+    if (connId && expectedConnId) {
+        return connId === expectedConnId;
+    }
+    // If no id, compare the connection string or other properties
     return conn.connectionString || expectedConn.connectionString
         ? conn.connectionString === expectedConn.connectionString
         : // Azure MFA connections
