@@ -578,6 +578,7 @@ export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
+    public static NoItems = l10n.t("No items");
 }
 
 export class ConnectionDialog {

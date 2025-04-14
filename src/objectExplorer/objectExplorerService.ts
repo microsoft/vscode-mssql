@@ -332,12 +332,7 @@ export class ObjectExplorerService {
                 };
                 const parentNode = self.getParentFromExpandParams(expandParams);
 
-                const errorNode = new vscode.TreeItem(
-                    LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
-                    TreeItemCollapsibleState.None,
-                );
-
-                errorNode.tooltip = result.errorMessage;
+                const errorNode = ObjectExplorerUtils.createErrorTreeItem(result.errorMessage);
 
                 self._treeNodeToChildrenMap.set(parentNode, [errorNode]);
 
@@ -552,6 +547,9 @@ export class ObjectExplorerService {
                     if (children) {
                         // clean expand session promise
                         this.cleanExpansionPromise(element);
+                        if (children.length === 0) {
+                            return [ObjectExplorerUtils.createNoItemsTreeItem()];
+                        }
                         return children;
                     } else {
                         return undefined;
