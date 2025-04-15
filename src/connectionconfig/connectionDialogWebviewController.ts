@@ -431,11 +431,28 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                             cleanedConnection,
                         );
 
+                    let tempUserId = false;
+
+                    if (
+                        connectionDetails.options.authenticationType ===
+                            AuthenticationType.AzureMFA &&
+                        connectionDetails.options.user === undefined
+                    ) {
+                        // STS call for getting connection string expects a user when AzureMFA is used; if user is not set, set it to empty string
+                        connectionDetails.options.user = "";
+                        tempUserId = true;
+                    }
+
                     connectionString =
                         await this._mainController.connectionManager.getConnectionString(
                             connectionDetails,
                             true /* includePassword */,
                         );
+
+                    if (tempUserId) {
+                        // remove temporary userId from connection string
+                        connectionString.replace("User Id=;", "");
+                    }
                 }
 
                 state.dialog = {
