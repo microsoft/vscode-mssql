@@ -403,6 +403,13 @@
       "{1} is target column"
     ]
   },
+  "Scale mismatch between '{0}' and '{1}'/{0} is source column{1} is target column": {
+    "message": "Scale mismatch between '{0}' and '{1}'",
+    "comment": [
+      "{0} is source column",
+      "{1} is target column"
+    ]
+  },
   "Column '{0}' must be a primary key/{0} is the referenced column": {
     "message": "Column '{0}' must be a primary key",
     "comment": [
@@ -423,7 +430,7 @@
       "{0} is the column name"
     ]
   },
-  "Foreign key name cannot be empty": "Foreign key name cannot be empty",
+  "Consider adding a name for this foreign key": "Consider adding a name for this foreign key",
   "Foreign key '{0}' already exists/{0} is the foreign key name": {
     "message": "Foreign key '{0}' already exists",
     "comment": [
@@ -436,11 +443,20 @@
       "{0} is the number of columns"
     ]
   },
+  "Column '{0}' is an identity column and cannot have a cascading foreign key/{0} is the column name": {
+    "message": "Column '{0}' is an identity column and cannot have a cascading foreign key",
+    "comment": [
+      "{0} is the column name"
+    ]
+  },
   "Manage relationships": "Manage relationships",
   "No changes detected": "No changes detected",
   "Allow Null": "Allow Null",
   "Max Length": "Max Length",
   "Is Identity": "Is Identity",
+  "Is Computed": "Is Computed",
+  "Formula": "Formula",
+  "Is Persisted": "Is Persisted",
   "SVG": "SVG",
   "PNG": "PNG",
   "JPEG": "JPEG",
@@ -478,6 +494,15 @@
       "{0} is the number of errors"
     ]
   },
+  "Open Publish Script": "Open Publish Script",
+  "On Update": "On Update",
+  "On Delete": "On Delete",
+  "Cascade": "Cascade",
+  "Set Null": "Set Null",
+  "Set Default": "Set Default",
+  "No Action": "No Action",
+  "Possible Data Loss detected. Please review the changes.": "Possible Data Loss detected. Please review the changes.",
+  "Warnings detected. Please review the changes.": "Warnings detected. Please review the changes.",
   "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
   "No schema differences were found.": "No schema differences were found.",
   "Initializing comparison, this might take a while...": "Initializing comparison, this might take a while...",
@@ -518,6 +543,51 @@
   "Target": "Target",
   "Are you sure you want to update the target?": "Are you sure you want to update the target?",
   "There was an error updating the project": "There was an error updating the project",
+  "Failed to apply changes: '{0}'/{0} is the error message returned from the publish changes operation": {
+    "message": "Failed to apply changes: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the publish changes operation"
+    ]
+  },
+  "Failed to open scmp file: '{0}'/{0} is the error message returned from the open scmp operation": {
+    "message": "Failed to open scmp file: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the open scmp operation"
+    ]
+  },
+  "Failed to save scmp file: '{0}'/{0} is the error message returned from the save scmp operation": {
+    "message": "Failed to save scmp file: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the save scmp operation"
+    ]
+  },
+  "Cannot exclude {0}. Included dependents exist, such as {1}/{0} is the name of the entry{1} is the name of the blocking dependency preventing exclusion.": {
+    "message": "Cannot exclude {0}. Included dependents exist, such as {1}",
+    "comment": [
+      "{0} is the name of the entry",
+      "{1} is the name of the blocking dependency preventing exclusion."
+    ]
+  },
+  "Cannot include {0}. Excluded dependents exist, such as {1}/{0} is the name of the entry{1} is the name of the blocking dependency preventing inclusion.": {
+    "message": "Cannot include {0}. Excluded dependents exist, such as {1}",
+    "comment": [
+      "{0} is the name of the entry",
+      "{1} is the name of the blocking dependency preventing inclusion."
+    ]
+  },
+  "Cannot exclude {0}. Included dependents exist/{0} is the name of the entry": {
+    "message": "Cannot exclude {0}. Included dependents exist",
+    "comment": [
+      "{0} is the name of the entry"
+    ]
+  },
+  "Cannot include {0}. Excluded dependents exist/{0} is the name of the entry": {
+    "message": "Cannot include {0}. Excluded dependents exist",
+    "comment": [
+      "{0} is the name of the entry"
+    ]
+  },
+  "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
   "{0} (Preview)/{0} is the editor title": {
     "message": "{0} (Preview)",
     "comment": [
@@ -960,6 +1030,7 @@
   },
   "Enable Experiences & Reload": "Enable Experiences & Reload",
   "Error loading; refresh to try again": "Error loading; refresh to try again",
+  "No items": "No items",
   "Connection Dialog (Preview)": "Connection Dialog (Preview)",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
@@ -1026,30 +1097,12 @@
     ]
   },
   "General": "General",
-  "Schema Compare": "Schema Compare",
+  "Schema Compare (Preview)": "Schema Compare (Preview)",
   "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
-  "Generate script failed: '{0}'/{0} is the error message returned from the generate script operation": {
-    "message": "Generate script failed: '{0}'",
+  "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
+    "message": "Failed to generate script: '{0}'",
     "comment": [
       "{0} is the error message returned from the generate script operation"
-    ]
-  },
-  "Schema Compare Apply failed '{0}'/{0} is the error message returned from the publish changes operation": {
-    "message": "Schema Compare Apply failed '{0}'",
-    "comment": [
-      "{0} is the error message returned from the publish changes operation"
-    ]
-  },
-  "Open scmp failed '{0}'/{0} is the error message returned from the open scmp operation": {
-    "message": "Open scmp failed '{0}'",
-    "comment": [
-      "{0} is the error message returned from the open scmp operation"
-    ]
-  },
-  "Save scmp failed: '{0}'/{0} is the error message returned from the save scmp operation": {
-    "message": "Save scmp failed: '{0}'",
-    "comment": [
-      "{0} is the error message returned from the save scmp operation"
     ]
   },
   "Cancel schema compare failed: '{0}'/{0} is the error message returned from the cancel operation": {

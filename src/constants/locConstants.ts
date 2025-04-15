@@ -578,6 +578,7 @@ export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
+    public static NoItems = l10n.t("No items");
 }
 
 export class ConnectionDialog {
@@ -687,7 +688,7 @@ export class TableDesigner {
 }
 
 export class SchemaCompare {
-    public static Title = l10n.t("Schema Compare");
+    public static Title = l10n.t("Schema Compare (Preview)");
     public static Open = l10n.t("Open");
     public static Save = l10n.t("Save");
     public static defaultUserName = l10n.t("default");
@@ -698,7 +699,7 @@ export class SchemaCompare {
     );
     public static generateScriptErrorMessage = (errorMessage: string) =>
         l10n.t({
-            message: "Generate script failed: '{0}'",
+            message: "Failed to generate script: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
@@ -707,19 +708,19 @@ export class SchemaCompare {
     );
     public static schemaCompareApplyFailed = (errorMessage: string) =>
         l10n.t({
-            message: "Schema Compare Apply failed '{0}'",
+            message: "Failed to apply changes: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the publish changes operation"],
         });
     public static openScmpErrorMessage = (errorMessage: string) =>
         l10n.t({
-            message: "Open scmp failed '{0}'",
+            message: "Failed to open scmp file: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the open scmp operation"],
         });
     public static saveScmpErrorMessage = (errorMessage: string) =>
         l10n.t({
-            message: "Save scmp failed: '{0}'",
+            message: "Failed to save scmp file: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the save scmp operation"],
         });
@@ -734,6 +735,42 @@ export class SchemaCompare {
             message: "Schema Compare failed: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the compare operation"],
+        });
+    public static cannotExcludeEntryWithBlockingDependency = (
+        diffEntryName: string,
+        firstDependentName: string,
+    ) =>
+        l10n.t({
+            message: "Cannot exclude {0}. Included dependents exist, such as {1}",
+            args: [diffEntryName, firstDependentName],
+            comment: [
+                "{0} is the name of the entry",
+                "{1} is the name of the blocking dependency preventing exclusion.",
+            ],
+        });
+    public static cannotIncludeEntryWithBlockingDependency = (
+        diffEntryName: string,
+        firstDependentName: string,
+    ) =>
+        l10n.t({
+            message: "Cannot include {0}. Excluded dependents exist, such as {1}",
+            args: [diffEntryName, firstDependentName],
+            comment: [
+                "{0} is the name of the entry",
+                "{1} is the name of the blocking dependency preventing inclusion.",
+            ],
+        });
+    public static cannotExcludeEntry = (diffEntryName: string) =>
+        l10n.t({
+            message: "Cannot exclude {0}. Included dependents exist",
+            args: [diffEntryName],
+            comment: ["{0} is the name of the entry"],
+        });
+    public static cannotIncludeEntry = (diffEntryName: string) =>
+        l10n.t({
+            message: "Cannot include {0}. Excluded dependents exist",
+            args: [diffEntryName],
+            comment: ["{0} is the name of the entry"],
         });
 }
 

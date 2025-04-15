@@ -42,6 +42,12 @@ export interface SchemaDesignerContextProps
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
     updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
+    publishSession: () => Promise<{
+        success: boolean;
+        error?: string;
+    }>;
+    closeDesigner: () => void;
+    resetUndoRedoState: () => void;
     isInitialized: boolean;
 }
 
@@ -381,6 +387,20 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     };
 
+    const publishSession = async () => {
+        const response = await extensionRpc.call("publishSession");
+        return response;
+    };
+
+    const closeDesigner = () => {
+        void extensionRpc.call("closeDesigner", {});
+    };
+
+    const resetUndoRedoState = () => {
+        stateStack.clearHistory();
+        eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
+    };
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -405,7 +425,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deleteSelectedNodes,
                 updateSelectedNodes,
                 setCenter,
+                publishSession,
                 isInitialized,
+                closeDesigner,
+                resetUndoRedoState,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

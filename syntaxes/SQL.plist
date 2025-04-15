@@ -566,6 +566,18 @@
 			</dict>
 		</dict>
 		<dict>
+			<key>match</key>
+			<string>(?i)\b(vector_distance|vector_norm|vector_normalize)\b\s*\(</string>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.function.vector.sql</string>
+				</dict>
+			</dict>
+		</dict>
+		<dict>
 			<key>captures</key>
 			<dict>
 				<key>1</key>

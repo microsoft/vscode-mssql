@@ -22,7 +22,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         vscodeWrapper: VscodeWrapper,
         private mainController: MainController,
         private schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
-        private connectionUri: string,
+        private connectionString: string,
+        private accessToken: string | undefined,
         private databaseName: string,
         private treeNode: TreeNodeInfo,
     ) {
@@ -75,7 +76,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.registerRequestHandler("initializeSchemaDesigner", async () => {
             const sessionResponse = await this.schemaDesignerService.createSession({
-                connectionUri: this.connectionUri,
+                connectionString: this.connectionString,
+                accessToken: this.accessToken,
                 databaseName: this.databaseName,
             });
             this._sessionId = sessionResponse.sessionId;
@@ -106,6 +108,22 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             }
         });
 
+        this.registerRequestHandler("publishSession", async (payload) => {
+            try {
+                await this.schemaDesignerService.publishSession({
+                    sessionId: this._sessionId,
+                });
+                return {
+                    success: true,
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.toString(),
+                };
+            }
+        });
+
         this.registerRequestHandler("copyToClipboard", async (payload) => {
             await vscode.env.clipboard.writeText(payload.text);
         });
@@ -121,6 +139,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.registerRequestHandler("openInEditorWithConnection", async (payload) => {
             void this.mainController.onNewQuery(this.treeNode, payload.text);
+        });
+
+        this.registerRequestHandler("closeDesigner", async () => {
+            this.panel.dispose();
         });
     }
 

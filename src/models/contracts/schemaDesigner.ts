@@ -45,4 +45,10 @@ export namespace SchemaDesignerRequests {
             void
         >("schemaDesigner/getReport");
     }
+
+    export namespace PublishSession {
+        export const type = new RequestType<SchemaDesigner.PublishSessionRequest, void, void, void>(
+            "schemaDesigner/publishSession",
+        );
+    }
 }

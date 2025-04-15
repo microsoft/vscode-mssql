@@ -31,6 +31,7 @@ suite("Object Explorer Provider Tests", function () {
     let client: TypeMoq.IMock<SqlToolsServiceClient>;
     let objectExplorerProvider: ObjectExplorerProvider;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let testObjectExplorerService: ObjectExplorerService;
 
     setup(() => {
         let mockContext: TypeMoq.IMock<vscode.ExtensionContext> =
@@ -69,6 +70,12 @@ suite("Object Explorer Provider Tests", function () {
         );
         objectExplorerService.setup((s) => s.currentNode).returns(() => undefined);
         objectExplorerProvider.objectExplorerService = objectExplorerService.object;
+
+        testObjectExplorerService = new ObjectExplorerService(
+            vscodeWrapper.object,
+            connectionManager.object,
+            objectExplorerProvider,
+        );
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
@@ -170,6 +177,32 @@ suite("Object Explorer Provider Tests", function () {
             );
         });
         done();
+    });
+
+    test("Test Get Children from Object Explorer Provider with no children", async () => {
+        const parentTreeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
+
+        const expandNodeSpy = TypeMoq.Mock.ofInstance((element, sessionId, promise) =>
+            testObjectExplorerService.expandNode(element, sessionId, promise),
+        );
+
+        expandNodeSpy
+            .setup((e) => e(TypeMoq.It.isAny(), TypeMoq.It.isAnyString(), TypeMoq.It.isAny()))
+            .callback((element, sessionId, promise) => {
+                promise.resolve([]);
+            })
+            .returns(() => undefined);
+
+        testObjectExplorerService.expandNode = expandNodeSpy.object;
+
+        parentTreeNode.setup((s) => s.sessionId).returns(() => "test_session");
+
+        const children = await testObjectExplorerService.getChildren(parentTreeNode.object);
+
+        expect(children.length, "No items nodes should be returned").is.equal(1);
+        expect(children[0].label, "No items nodes should have the correct label").is.equal(
+            LocalizedConstants.ObjectExplorer.NoItems,
+        );
     });
 
     test("Test server nodes sorting mechanism", (done) => {
