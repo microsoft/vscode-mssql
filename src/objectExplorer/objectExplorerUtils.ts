@@ -15,19 +15,20 @@ import * as vscode from "vscode";
 export class ObjectExplorerUtils {
     public static readonly rootPath: string = path.join(__dirname, "objectTypes");
 
-    public static iconPath(label: string): string {
+    public static iconPath(label: string): vscode.Uri | undefined {
         if (label) {
             if (label === Constants.disconnectedServerNodeType) {
-                // if disconnected
                 label = `${Constants.serverLabel}_red`;
             } else if (label === Constants.serverLabel) {
-                // if connected
                 label += "_green";
             }
-            return path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
-        }
-    }
 
+            const fullPath = path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
+            return vscode.Uri.file(fullPath);
+        }
+
+        return undefined;
+    }
     public static createNoItemsTreeItem(): vscode.TreeItem {
         return {
             label: LocalizedConstants.ObjectExplorer.NoItems,

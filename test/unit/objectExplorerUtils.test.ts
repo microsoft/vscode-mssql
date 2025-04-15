@@ -22,7 +22,7 @@ suite("Object Explorer Utils Tests", () => {
         ];
         for (let i = 0; i < testObjects.length; i++) {
             const iconPath = ObjectExplorerUtils.iconPath(testObjects[i]);
-            const fileName = path.basename(iconPath);
+            const fileName = path.basename(iconPath.fsPath);
             expect(fileName, "File name should be the same as expected file name").is.equal(
                 expectedPaths[i],
             );
