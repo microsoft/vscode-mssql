@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { shallowEqualObjects } from "shallow-equal";
 
 import {
     ActivityStatus,
@@ -374,12 +375,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         payload.connectionString,
                     );
 
-                state.connectionProfile = this.hydrateConnectionDetailsFromProfile(
+                state.connectionProfile = await this.hydrateConnectionDetailsFromProfile(
                     connDetails,
                     state.connectionProfile,
                 );
 
                 state.dialog = undefined; // Close the dialog
+
+                if (state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
+                    await this.handleAzureMFAEdits("accountId");
+                }
 
                 await this.updateItemVisibility();
 
@@ -415,18 +420,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("openConnectionStringDialog", async (state) => {
             try {
-                const cleanedConnection = this.cleanConnection(state.connectionProfile);
+                let connectionString = "";
 
-                const connectionDetails =
-                    this._mainController.connectionManager.createConnectionDetails(
-                        cleanedConnection,
-                    );
+                // if the current connection is the untouched default connection, connection string is left empty
+                if (!shallowEqualObjects(state.connectionProfile, this.getDefaultConnection())) {
+                    const cleanedConnection = this.cleanConnection(state.connectionProfile);
 
-                const connectionString =
-                    await this._mainController.connectionManager.getConnectionString(
-                        connectionDetails,
-                        true /* includePassword */,
-                    );
+                    const connectionDetails =
+                        this._mainController.connectionManager.createConnectionDetails(
+                            cleanedConnection,
+                        );
+
+                    connectionString =
+                        await this._mainController.connectionManager.getConnectionString(
+                            connectionDetails,
+                            true /* includePassword */,
+                        );
+                }
 
                 state.dialog = {
                     type: "loadFromConnectionString",
@@ -842,13 +852,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
-    private async loadEmptyConnection() {
-        const emptyConnection = {
+    private getDefaultConnection(): IConnectionDialogProfile {
+        return {
             authenticationType: AuthenticationType.SqlLogin,
             connectTimeout: 30, // seconds
             applicationName: "vscode-mssql",
         } as IConnectionDialogProfile;
-        this.state.connectionProfile = emptyConnection;
+    }
+
+    private loadEmptyConnection() {
+        this.state.connectionProfile = this.getDefaultConnection();
     }
 
     private async initializeConnectionForDialog(
@@ -1249,35 +1262,43 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }, new Map<K, V[]>());
     }
 
-    private hydrateConnectionDetailsFromProfile(
+    private async hydrateConnectionDetailsFromProfile(
         connDetails: ConnectionDetails,
         fromProfile: IConnectionDialogProfile,
-    ): IConnectionDialogProfile {
-        const connectionProfile: IConnectionDialogProfile =
+    ): Promise<IConnectionDialogProfile> {
+        const toProfile: IConnectionDialogProfile =
             ConnectionCredentials.createConnectionInfo(connDetails);
 
         if (fromProfile.profileName) {
-            connectionProfile.profileName = fromProfile.profileName;
+            toProfile.profileName = fromProfile.profileName;
         }
 
-        connectionProfile.applicationName =
+        toProfile.applicationName =
             connDetails.options.applicationName === "sqltools"
                 ? fromProfile.applicationName || "vscode-mssql"
                 : connDetails.options.applicationName;
 
-        connectionProfile.savePassword = !!connectionProfile.password; // Save password if it's included in the connection string
+        toProfile.savePassword = !!toProfile.password; // Save password if it's included in the connection string
 
-        connectionProfile.profileName = fromProfile.profileName;
-        connectionProfile.id = fromProfile.id;
-        connectionProfile.groupId = fromProfile.groupId;
+        toProfile.profileName = fromProfile.profileName;
+        toProfile.id = fromProfile.id;
+        toProfile.groupId = fromProfile.groupId;
 
-        if (connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
-            connectionProfile.accountId = fromProfile.accountId;
-            connectionProfile.tenantId = fromProfile.tenantId;
-            connectionProfile.email = fromProfile.email;
+        if (
+            toProfile.authenticationType === AuthenticationType.AzureMFA &&
+            toProfile.user !== undefined
+        ) {
+            const accounts = await this._mainController.azureAccountService.getAccounts();
+
+            const matchingAccount = accounts.find((a) => a.displayInfo.email === toProfile.user);
+
+            if (matchingAccount) {
+                toProfile.accountId = matchingAccount.displayInfo.userId;
+                toProfile.email = matchingAccount.displayInfo.email;
+            }
         }
 
-        return connectionProfile;
+        return toProfile;
     }
 
     //#endregion
