@@ -3,10 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { DiffEditor } from "@monaco-editor/react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { resolveVscodeThemeType } from "../../../common/utils";
+import { makeStyles } from "@fluentui/react-components";
+
+const useStyles = makeStyles({
+    editorContainer: {
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+    },
+});
 
 const formatScript = (script: string): string => {
     if (!script) {
@@ -22,17 +33,40 @@ interface Props {
 }
 
 const CompareDiffEditor = ({ selectedDiffId, renderSideBySide }: Props) => {
+    const classes = useStyles();
     const context = useContext(schemaCompareContext);
     const compareResult = context.state.schemaCompareResult;
     const diff = compareResult?.differences[selectedDiffId];
+    const editorRef = useRef<any>(null);
 
     const original = formatScript(diff?.sourceScript);
     const modified = formatScript(diff?.targetScript);
 
+    // Handle editor mount to store the reference
+    const handleEditorDidMount = (editor: any) => {
+        editorRef.current = editor;
+    };
+
+    // Update the editor layout when the container size changes
+    useEffect(() => {
+        const handleResize = () => {
+            if (editorRef.current) {
+                editorRef.current.layout();
+            }
+        };
+
+        window.addEventListener("resize", handleResize);
+
+        // Clean up event listener on component unmount
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, []);
+
     return (
-        <div style={{ height: "60vh" }}>
+        <div className={classes.editorContainer}>
             <DiffEditor
-                height="60vh"
+                height="100%"
                 language="sql"
                 original={modified}
                 modified={original}
@@ -43,6 +77,7 @@ const CompareDiffEditor = ({ selectedDiffId, renderSideBySide }: Props) => {
                     OverviewRulerLane: 0,
                     readOnly: true,
                 }}
+                onMount={handleEditorDidMount}
             />
         </div>
     );

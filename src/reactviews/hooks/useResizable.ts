@@ -55,12 +55,24 @@ export const useResizable = (options: ResizableOptions = {}) => {
             if (maxHeight) newHeight = Math.min(newHeight, maxHeight);
 
             setHeight(newHeight);
-            onResize?.(newHeight);
         },
-        [minHeight, maxHeight, onResize],
+        [minHeight, maxHeight],
     );
 
+    // Separate effect to handle onResize callback and dispatch resize event
+    useEffect(() => {
+        if (onResize) {
+            onResize(height);
+        }
+
+        // Dispatch a resize event to notify other components
+        const resizeEvent = new Event("resize");
+        window.dispatchEvent(resizeEvent);
+    }, [height, onResize]);
+
     const handleMouseUp = useCallback(() => {
+        if (!resizingRef.current) return;
+
         resizingRef.current = false;
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);

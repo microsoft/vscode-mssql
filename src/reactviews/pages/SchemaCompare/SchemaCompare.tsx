@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import SchemaDifferences from "./components/SchemaDifferences";
 import SelectSchemasPanel from "./components/SelectSchemasPanel";
 import CompareDiffEditor from "./components/CompareDiffEditor";
@@ -41,9 +41,30 @@ export const SchemaComparePage = () => {
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
     const [endpointType, setEndpointType] = useState<"source" | "target">("source");
+    const contentContainerRef = useRef<HTMLDivElement>(null);
+    const diffEditorContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         context.isSqlProjectExtensionInstalled();
+    }, []);
+
+    // Set up ResizeObserver to handle resizing between components
+    useEffect(() => {
+        if (!contentContainerRef.current) return;
+
+        // Create ResizeObserver to detect changes in content container size
+        const resizeObserver = new ResizeObserver(() => {
+            // Trigger any necessary layout updates in child components
+            const resizeEvent = new Event("resize");
+            window.dispatchEvent(resizeEvent);
+        });
+
+        // Start observing the content container
+        resizeObserver.observe(contentContainerRef.current);
+
+        return () => {
+            resizeObserver.disconnect();
+        };
     }, []);
 
     const handleSelectSchemaClicked = (endpointType: "source" | "target"): void => {
@@ -87,11 +108,11 @@ export const SchemaComparePage = () => {
             {showMessage() && <Message />}
 
             {!showMessage() && (
-                <div className={classes.contentContainer}>
+                <div className={classes.contentContainer} ref={contentContainerRef}>
                     <SchemaDifferences onDiffSelected={handleDiffSelected} />
 
                     {selectedDiffId !== -1 && (
-                        <div className={classes.diffEditorContainer}>
+                        <div className={classes.diffEditorContainer} ref={diffEditorContainerRef}>
                             <CompareDiffEditor selectedDiffId={selectedDiffId} />
                         </div>
                     )}
