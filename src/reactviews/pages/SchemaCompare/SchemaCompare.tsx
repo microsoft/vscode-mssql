@@ -12,8 +12,30 @@ import CompareActionBar from "./components/CompareActionBar";
 import SchemaOptionsDrawer from "./components/SchemaOptionsDrawer";
 import { schemaCompareContext } from "./SchemaCompareStateProvider";
 import Message from "./components/Message";
+import { makeStyles } from "@fluentui/react-components";
+
+const useStyles = makeStyles({
+    container: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflow: "hidden",
+    },
+    contentContainer: {
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        overflow: "hidden",
+    },
+    diffEditorContainer: {
+        flex: 1,
+        overflow: "hidden",
+        marginTop: "8px",
+    },
+});
 
 export const SchemaComparePage = () => {
+    const classes = useStyles();
     const context = useContext(schemaCompareContext);
     const [selectedDiffId, setSelectedDiffId] = useState(-1);
     const [showDrawer, setShowDrawer] = useState(false);
@@ -58,16 +80,22 @@ export const SchemaComparePage = () => {
     };
 
     return (
-        <div>
+        <div className={classes.container}>
             <CompareActionBar onOptionsClicked={openOptionsDialog} />
             <SelectSchemasPanel onSelectSchemaClicked={handleSelectSchemaClicked} />
 
             {showMessage() && <Message />}
 
-            {!showMessage() && <SchemaDifferences onDiffSelected={handleDiffSelected} />}
+            {!showMessage() && (
+                <div className={classes.contentContainer}>
+                    <SchemaDifferences onDiffSelected={handleDiffSelected} />
 
-            {!showMessage() && selectedDiffId !== -1 && (
-                <CompareDiffEditor selectedDiffId={selectedDiffId} />
+                    {selectedDiffId !== -1 && (
+                        <div className={classes.diffEditorContainer}>
+                            <CompareDiffEditor selectedDiffId={selectedDiffId} />
+                        </div>
+                    )}
+                </div>
             )}
 
             {showDrawer && (

@@ -27,10 +27,42 @@ import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
 import { DiffEntry } from "vscode-mssql";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { useResizable } from "../../../hooks/useResizable";
 
 const useStyles = makeStyles({
     HeaderCellPadding: {
         padding: "0 8px",
+    },
+    resizableContainer: {
+        position: "relative",
+        width: "100%",
+        overflow: "hidden",
+    },
+    resizer: {
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        width: "100%",
+        height: "6px",
+        cursor: "ns-resize",
+        backgroundColor: "transparent",
+        zIndex: 10,
+        "&:hover": {
+            backgroundColor: "var(--vscode-scrollbarSlider-hoverBackground)",
+            opacity: 0.5,
+        },
+        "&:active": {
+            backgroundColor: "var(--vscode-scrollbarSlider-activeBackground)",
+            opacity: 0.7,
+        },
+    },
+    resizerHandle: {
+        height: "3px",
+        width: "40px",
+        margin: "2px auto",
+        borderRadius: "1px",
+        backgroundColor: "var(--vscode-scrollbarSlider-background)",
+        opacity: 0.5,
     },
 });
 
@@ -58,6 +90,13 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
     const [diffInclusionLevel, setDiffInclusionLevel] = React.useState<
         "allIncluded" | "allExcluded" | "mixed"
     >("allIncluded");
+
+    // Use the resizable hook
+    const { ref, height, resizerProps } = useResizable({
+        initialHeight: 250,
+        minHeight: 150,
+        maxHeight: 500,
+    });
 
     React.useEffect(() => {
         let allIncluded = true;
@@ -258,61 +297,68 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
     };
 
     return (
-        <Table
-            noNativeElements
-            aria-label="Table with selection"
-            aria-rowcount={rows.length}
-            style={{ minWidth: "650px" }}>
-            <TableHeader>
-                <TableRow aria-rowindex={1}>
-                    <TableHeaderCell className={classes.HeaderCellPadding}>
-                        {loc.schemaCompare.type}
-                    </TableHeaderCell>
-                    <TableHeaderCell className={classes.HeaderCellPadding}>
-                        {loc.schemaCompare.sourceName}
-                    </TableHeaderCell>
-                    <TableHeaderCell>
-                        {!context.state.isIncludeExcludeAllOperationInProgress && (
-                            <Checkbox
-                                checked={
-                                    diffInclusionLevel === "allIncluded"
-                                        ? true
-                                        : diffInclusionLevel === "mixed"
-                                          ? "mixed"
-                                          : false
-                                }
-                                onClick={() => handleIncludeExcludeAllNodes()}
-                                onKeyDown={toggleAllKeydown}
-                            />
-                        )}
-                        {context.state.isIncludeExcludeAllOperationInProgress && (
-                            <Spinner
-                                size="extra-tiny"
-                                aria-label={loc.schemaCompare.includeExcludeAllOperationInProgress}
-                            />
-                        )}
-                    </TableHeaderCell>
-                    <TableHeaderCell className={classes.HeaderCellPadding}>
-                        {loc.schemaCompare.action}
-                    </TableHeaderCell>
-                    <TableHeaderCell className={classes.HeaderCellPadding}>
-                        {loc.schemaCompare.targetName}
-                    </TableHeaderCell>
-                    {/** Scrollbar alignment for the header */}
-                    <div role="presentation" style={{ width: scrollbarWidth }} />
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                <List
-                    height={200}
-                    itemCount={items.length}
-                    itemSize={45}
-                    width={"100%"}
-                    itemData={rows}>
-                    {RenderRow}
-                </List>
-            </TableBody>
-        </Table>
+        <div className={classes.resizableContainer} ref={ref} style={{ height: `${height}px` }}>
+            <Table
+                noNativeElements
+                aria-label="Table with selection"
+                aria-rowcount={rows.length}
+                style={{ minWidth: "650px" }}>
+                <TableHeader>
+                    <TableRow aria-rowindex={1}>
+                        <TableHeaderCell className={classes.HeaderCellPadding}>
+                            {loc.schemaCompare.type}
+                        </TableHeaderCell>
+                        <TableHeaderCell className={classes.HeaderCellPadding}>
+                            {loc.schemaCompare.sourceName}
+                        </TableHeaderCell>
+                        <TableHeaderCell>
+                            {!context.state.isIncludeExcludeAllOperationInProgress && (
+                                <Checkbox
+                                    checked={
+                                        diffInclusionLevel === "allIncluded"
+                                            ? true
+                                            : diffInclusionLevel === "mixed"
+                                              ? "mixed"
+                                              : false
+                                    }
+                                    onClick={() => handleIncludeExcludeAllNodes()}
+                                    onKeyDown={toggleAllKeydown}
+                                />
+                            )}
+                            {context.state.isIncludeExcludeAllOperationInProgress && (
+                                <Spinner
+                                    size="extra-tiny"
+                                    aria-label={
+                                        loc.schemaCompare.includeExcludeAllOperationInProgress
+                                    }
+                                />
+                            )}
+                        </TableHeaderCell>
+                        <TableHeaderCell className={classes.HeaderCellPadding}>
+                            {loc.schemaCompare.action}
+                        </TableHeaderCell>
+                        <TableHeaderCell className={classes.HeaderCellPadding}>
+                            {loc.schemaCompare.targetName}
+                        </TableHeaderCell>
+                        {/** Scrollbar alignment for the header */}
+                        <div role="presentation" style={{ width: scrollbarWidth }} />
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <List
+                        height={height - 40} // Subtract header height
+                        itemCount={items.length}
+                        itemSize={45}
+                        width={"100%"}
+                        itemData={rows}>
+                        {RenderRow}
+                    </List>
+                </TableBody>
+            </Table>
+            <div {...resizerProps} className={classes.resizer}>
+                <div className={classes.resizerHandle} />
+            </div>
+        </div>
     );
 };
 
