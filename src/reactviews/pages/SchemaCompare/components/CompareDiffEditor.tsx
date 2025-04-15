@@ -26,8 +26,8 @@ const CompareDiffEditor = ({ selectedDiffId, renderSideBySide }: Props) => {
     const compareResult = context.state.schemaCompareResult;
     const diff = compareResult?.differences[selectedDiffId];
 
-    const original = formatScript(diff?.sourceScript);
-    const modified = formatScript(diff?.targetScript);
+    const original = diff?.sourceScript ? formatScript(diff?.sourceScript) : "";
+    const modified = diff?.targetScript ? formatScript(diff?.targetScript) : "";
 
     return (
         <div style={{ height: "60vh" }}>
