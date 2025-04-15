@@ -541,6 +541,7 @@
   "Database Project": "Database Project",
   "Source": "Source",
   "Target": "Target",
+  "Compare Details": "Compare Details",
   "Are you sure you want to update the target?": "Are you sure you want to update the target?",
   "There was an error updating the project": "There was an error updating the project",
   "Failed to apply changes: '{0}'/{0} is the error message returned from the publish changes operation": {

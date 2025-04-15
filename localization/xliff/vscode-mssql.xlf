@@ -366,6 +366,9 @@
     <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
       <source xml:lang="en">Compare</source>
     </trans-unit>
+    <trans-unit id="++CODE++c4ae321845b8426b2c5b2dd0cc8ab747e08280d6b61c4d1bb778694c51bab904">
+      <source xml:lang="en">Compare Details</source>
+    </trans-unit>
     <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
       <source xml:lang="en">Confirm to clear recent connections list</source>
     </trans-unit>
