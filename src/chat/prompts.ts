@@ -8,12 +8,13 @@ import * as Constants from "../constants/constants";
 export const genericChatStart = `@${Constants.mssqlChatParticipantName} Hello!`;
 
 //TODO: figure out why EXPLAIN and EXPLAIN ANALYZE are not working
-export const analyzeQueryPerformancePrompt = `@${Constants.mssqlChatParticipantName} Analyze the performance of this query.
+export const analyzeQueryPerformancePrompt =
+    `@${Constants.mssqlChatParticipantName} Analyze the performance of this query.
 Provide a detailed analysis, including a summary of the execution plan,
 potential bottlenecks, and suggestions for optimization.
-Make sure to highlight any relevant statistics or metrics that can help in understanding the performance characteristics of the query.
-Run EXPLAIN and/or EXPLAIN ANALYZE on the query to get the execution plan and performance metrics.
-If the query is complex, break down the analysis into smaller parts for better clarity.
+Make sure to highlight any relevant statistics or metrics that can help in understanding the performance characteristics of the query.` +
+    // Run EXPLAIN and/or EXPLAIN ANALYZE on the query to get the execution plan and performance metrics.
+    `If the query is complex, break down the analysis into smaller parts for better clarity.
 Provide a summary of the key findings and recommendations at the end of the analysis.`;
 
 export const explainQueryPrompt = `@${Constants.mssqlChatParticipantName} Explain this query.
