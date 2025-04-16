@@ -63,6 +63,7 @@ import { IAccount } from "../models/contracts/azure";
 import { generateConnectionComponents, groupAdvancedOptions } from "./formComponentHelpers";
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
+import { Deferred } from "../protocol";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -71,6 +72,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ConnectionDialogReducers
 > {
     //#region Properties
+
+    public readonly initialized: Deferred<void> = new Deferred<void>();
 
     public static mainOptions: readonly (keyof IConnectionDialogProfile)[] = [
         "server",
@@ -85,7 +88,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         "encrypt",
     ];
 
-    private _connectionToEditCopy: IConnectionDialogProfile | undefined;
+    private _connectionBeingEdited: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
 
     //#endregion
@@ -95,7 +98,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         vscodeWrapper: VscodeWrapper,
         private _mainController: MainController,
         private _objectExplorerProvider: ObjectExplorerProvider,
-        private _connectionToEdit?: IConnectionInfo,
+        connectionToEdit?: IConnectionInfo,
     ) {
         super(
             context,
@@ -122,21 +125,24 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         this.registerRpcHandlers();
-        this.initializeDialog().catch((err) => {
-            void vscode.window.showErrorMessage(getErrorMessage(err));
+        this.initializeDialog(connectionToEdit)
+            .then(() => this.initialized.resolve())
+            .catch((err) => {
+                void vscode.window.showErrorMessage(getErrorMessage(err));
 
-            // The spots in initializeDialog() that handle potential PII have their own error catches that emit error telemetry with `includeErrorMessage` set to false.
-            // Everything else during initialization shouldn't have PII, so it's okay to include the error message here.
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.Initialize,
-                err,
-                true, // includeErrorMessage
-            );
-        });
+                // The spots in initializeDialog() that handle potential PII have their own error catches that emit error telemetry with `includeErrorMessage` set to false.
+                // Everything else during initialization shouldn't have PII, so it's okay to include the error message here.
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.Initialize,
+                    err,
+                    true, // includeErrorMessage
+                );
+                this.initialized.reject(getErrorMessage(err));
+            });
     }
 
-    private async initializeDialog() {
+    private async initializeDialog(connectionToEdit: IConnectionInfo) {
         try {
             await this.updateLoadedConnections(this.state);
             this.updateState();
@@ -151,8 +157,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         try {
-            if (this._connectionToEdit) {
-                await this.loadConnectionToEdit();
+            if (connectionToEdit) {
+                await this.loadConnectionToEdit(connectionToEdit);
             } else {
                 await this.loadEmptyConnection();
             }
@@ -212,11 +218,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerReducer("loadConnection", async (state, payload) => {
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.LoadConnection);
 
-            this._connectionToEditCopy = structuredClone(payload.connection);
+            this._connectionBeingEdited = structuredClone(payload.connection);
             this.clearFormError();
             this.state.connectionProfile = payload.connection;
 
-            this.state.selectedInputMode = this._connectionToEditCopy.connectionString
+            this.state.selectedInputMode = this._connectionBeingEdited.connectionString
                 ? ConnectionInputMode.ConnectionString
                 : ConnectionInputMode.Parameters;
             await this.updateItemVisibility();
@@ -622,22 +628,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
                 result: "success",
-                newOrEditedConnection: this._connectionToEditCopy ? "edited" : "new",
+                newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
                 connectionInputType: this.state.selectedInputMode,
                 authMode: this.state.connectionProfile.authenticationType,
             });
 
-            if (this._connectionToEditCopy) {
+            if (this._connectionBeingEdited) {
                 this._mainController.connectionManager.getUriForConnection(
-                    this._connectionToEditCopy,
+                    this._connectionBeingEdited,
                 );
                 await this._objectExplorerProvider.removeConnectionNodes([
-                    this._connectionToEditCopy,
+                    this._connectionBeingEdited,
                 ]);
 
                 await this._mainController.connectionManager.connectionStore.removeProfile(
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    this._connectionToEditCopy as any,
+                    this._connectionBeingEdited as any,
                 );
                 this._objectExplorerProvider.refresh(undefined);
             }
@@ -653,8 +659,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 cleanedConnection as any,
             );
-            const node =
-                await this._mainController.createObjectExplorerSessionFromDialog(cleanedConnection);
+            const node = await this._mainController.createObjectExplorerSession(cleanedConnection);
 
             this._objectExplorerProvider.refresh(undefined);
             await this.updateLoadedConnections(state);
@@ -667,6 +672,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 expand: true,
             });
             await this.panel.dispose();
+            this.dispose();
             UserSurvey.getInstance().promptUserForNPSFeedback();
         } catch (error) {
             this.state.connectionStatus = ApiStatus.Error;
@@ -769,7 +775,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
             result: "connectionError",
             errorNumber: String(result.errorNumber),
-            newOrEditedConnection: this._connectionToEditCopy ? "edited" : "new",
+            newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
             connectionInputType: this.state.selectedInputMode,
             authMode: this.state.connectionProfile.authenticationType,
         });
@@ -777,10 +783,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return state;
     }
 
-    private async loadConnectionToEdit() {
-        if (this._connectionToEdit) {
-            this._connectionToEditCopy = structuredClone(this._connectionToEdit);
-            const connection = await this.initializeConnectionForDialog(this._connectionToEdit);
+    private async loadConnectionToEdit(connectionToEdit: IConnectionInfo) {
+        if (connectionToEdit) {
+            this._connectionBeingEdited = structuredClone(connectionToEdit);
+            const connection = await this.initializeConnectionForDialog(connectionToEdit);
             this.state.connectionProfile = connection;
 
             this.state.selectedInputMode =
@@ -929,47 +935,50 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             "tenantId",
             "authenticationType",
         ];
-        if (mfaComponents.includes(propertyName)) {
-            if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
-                return;
-            }
-            const accountComponent = this.getFormComponent(this.state, "accountId");
-            const tenantComponent = this.getFormComponent(this.state, "tenantId");
-            let tenants: FormItemOptions[] = [];
-            switch (propertyName) {
-                case "accountId":
-                    tenants = await getTenants(
-                        this._mainController.azureAccountService,
-                        this.state.connectionProfile.accountId,
-                    );
-                    if (tenantComponent) {
-                        tenantComponent.options = tenants;
-                        if (tenants && tenants.length > 0) {
-                            this.state.connectionProfile.tenantId = tenants[0].value;
-                        }
+
+        if (
+            !mfaComponents.includes(propertyName) ||
+            this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA
+        ) {
+            return;
+        }
+
+        const accountComponent = this.getFormComponent(this.state, "accountId");
+        const tenantComponent = this.getFormComponent(this.state, "tenantId");
+        let tenants: FormItemOptions[] = [];
+        switch (propertyName) {
+            case "accountId":
+                tenants = await getTenants(
+                    this._mainController.azureAccountService,
+                    this.state.connectionProfile.accountId,
+                );
+                if (tenantComponent) {
+                    tenantComponent.options = tenants;
+                    if (tenants && tenants.length > 0) {
+                        this.state.connectionProfile.tenantId = tenants[0].value;
                     }
-                    accountComponent.actionButtons = await this.getAzureActionButtons();
-                    break;
-                case "tenantId":
-                    break;
-                case "authenticationType":
-                    const firstOption = accountComponent.options[0];
-                    if (firstOption) {
-                        this.state.connectionProfile.accountId = firstOption.value;
+                }
+                accountComponent.actionButtons = await this.getAzureActionButtons();
+                break;
+            case "tenantId":
+                break;
+            case "authenticationType":
+                const firstOption = accountComponent.options[0];
+                if (firstOption) {
+                    this.state.connectionProfile.accountId = firstOption.value;
+                }
+                tenants = await getTenants(
+                    this._mainController.azureAccountService,
+                    this.state.connectionProfile.accountId,
+                );
+                if (tenantComponent) {
+                    tenantComponent.options = tenants;
+                    if (tenants && tenants.length > 0) {
+                        this.state.connectionProfile.tenantId = tenants[0].value;
                     }
-                    tenants = await getTenants(
-                        this._mainController.azureAccountService,
-                        this.state.connectionProfile.accountId,
-                    );
-                    if (tenantComponent) {
-                        tenantComponent.options = tenants;
-                        if (tenants && tenants.length > 0) {
-                            this.state.connectionProfile.tenantId = tenants[0].value;
-                        }
-                    }
-                    accountComponent.actionButtons = await this.getAzureActionButtons();
-                    break;
-            }
+                }
+                accountComponent.actionButtons = await this.getAzureActionButtons();
+                break;
         }
     }
 
@@ -1159,7 +1168,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.azureServers.push(...servers);
             stateSub.loaded = true;
             this.updateState();
-            console.log(
+            this.logger.log(
                 `Loaded ${servers.length} servers for subscription ${azSub.name} (${azSub.subscriptionId})`,
             );
         } catch (error) {
