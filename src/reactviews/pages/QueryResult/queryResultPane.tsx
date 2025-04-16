@@ -21,7 +21,7 @@ import {
     DataGridCell,
     RowRenderer,
 } from "@fluentui-contrib/react-data-grid-react-window";
-import { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { OpenRegular } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
@@ -375,7 +375,11 @@ export const QueryResultPane = () => {
             const batchId = parseInt(batchIdStr);
             for (const resultIdStr in state?.resultSetSummaries[batchId] ?? {}) {
                 const resultId = parseInt(resultIdStr);
-                grids.push(renderGrid(batchId, resultId, count));
+                grids.push(
+                    <React.Fragment key={`grid-${batchId}-${resultId}`}>
+                        {renderGrid(batchId, resultId, count)}
+                    </React.Fragment>,
+                );
                 count++;
             }
         }
