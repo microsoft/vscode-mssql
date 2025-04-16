@@ -271,7 +271,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             if (
                 cell &&
                 originalEvent instanceof MouseEvent &&
-                originalEvent.button == MouseButton.LeftClick
+                originalEvent.button === MouseButton.LeftClick
             ) {
                 this.handleLinkClick(cell);
             }

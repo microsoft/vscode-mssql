@@ -33,8 +33,9 @@ suite("Query Result Selection Stats", () => {
         sandbox = sinon.createSandbox();
 
         mockData = [
-            ["1", "NULL"],
-            ["3", "Test"],
+            ["1", "NULL", "NULL"],
+            ["3", "Test", "Test"],
+            ["8.7", "Test", "Other"],
         ];
 
         mockGrid = {
@@ -50,15 +51,15 @@ suite("Query Result Selection Stats", () => {
     });
 
     test("Numeric Range: correct numeric stats are calculated", async () => {
-        const range = createRange(0, 1, 0, 0); // selects 1 and 3
+        const range = createRange(0, 2, 0, 0); // selects first column
         const expectedResult: SelectionSummaryStats = {
-            average: "2",
-            count: 2,
-            distinctCount: 2,
-            max: 3,
+            average: "4.233",
+            count: 3,
+            distinctCount: 3,
+            max: 8.7,
             min: 1,
             nullCount: 0,
-            sum: 4,
+            sum: 12.7,
             removeSelectionStats: false,
         };
 
@@ -67,11 +68,11 @@ suite("Query Result Selection Stats", () => {
     });
 
     test("Non-numeric Range: only count/distinct/null stats are calculated", async () => {
-        const range = createRange(0, 1, 1, 1); // selects NULL and Test
+        const range = createRange(0, 2, 1, 2); // rows 0-2, cols 1-2
         const expectedResult: SelectionSummaryStats = {
-            count: 2,
-            distinctCount: 2,
-            nullCount: 1,
+            count: 6,
+            distinctCount: 3, // NULL, Test, Other
+            nullCount: 2,
             removeSelectionStats: false,
         };
 
@@ -80,15 +81,15 @@ suite("Query Result Selection Stats", () => {
     });
 
     test("Mixed Range: numeric and non-numeric values handled correctly", async () => {
-        const range = createRange(0, 1, 0, 1); // selects 1, NULL, 3, Test
+        const range = createRange(0, 2, 0, 2); // full grid
         const expectedResult: SelectionSummaryStats = {
-            average: "2",
-            count: 4,
-            distinctCount: 4,
-            max: 3,
+            average: "4.233", // (1 + 3 + 8.7) / 3
+            count: 9,
+            distinctCount: 6,
+            max: 8.7,
             min: 1,
-            nullCount: 1,
-            sum: 4,
+            nullCount: 2,
+            sum: 12.7,
             removeSelectionStats: false,
         };
 
@@ -113,7 +114,7 @@ suite("Query Result Selection Stats", () => {
             getColumns: () => [],
         } as Slick.Grid<any>;
 
-        const range = createRange(0, 1, 0, 0);
+        const range = createRange(0, 2, 0, 2); // full grid
         const result = await selectionSummaryHelper([range], gridWithNoColumns, true);
         const expectedResult: SelectionSummaryStats = {
             count: -1,
@@ -125,7 +126,7 @@ suite("Query Result Selection Stats", () => {
     });
 
     test("Clear stats when isSelection is false", async () => {
-        const range = createRange(0, 1, 0, 1);
+        const range = createRange(0, 2, 0, 2); // full grid
         const result = await selectionSummaryHelper([range], mockGrid, false);
         const expectedResult: SelectionSummaryStats = {
             count: -1,
