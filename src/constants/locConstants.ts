@@ -579,6 +579,12 @@ export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
     public static NoItems = l10n.t("No items");
+    public static FailedOEConnectionError = l10n.t(
+        "We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
+    );
+    public static FailedOEConnectionErrorRetry = l10n.t("Retry");
+    public static FailedOEConnectionErrorUpdate = l10n.t("Edit Connection Profile");
+    public static Connecting = l10n.t("Connecting...");
 }
 
 export class ConnectionDialog {

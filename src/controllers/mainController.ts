@@ -782,6 +782,7 @@ export default class MainController implements vscode.Disposable {
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
             canSelectMany: false,
+            showCollapseAll: true,
             dragAndDropController: new ObjectExplorerDragAndDropController(),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
@@ -879,21 +880,39 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
+        const connectParentNode = async (node: AccountSignInTreeNode | ConnectTreeNode) => {
+            node.label = LocalizedConstants.ObjectExplorer.Connecting;
+            await this._objectExplorerProvider.refresh(node as unknown as TreeNodeInfo);
+            this._objectExplorerProvider.deleteChildrenCache(node.parentNode);
+            await this._objectExplorerProvider.refresh(node.parentNode);
+        };
+
         // Sign In into Object Explorer Node
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNodeSignIn,
                 async (node: AccountSignInTreeNode) => {
-                    let profile = <IConnectionProfile>node.parentNode.connectionInfo;
-                    profile =
-                        await self.connectionManager.connectionUI.promptForRetryCreateProfile(
-                            profile,
-                        );
-                    if (profile) {
-                        node.parentNode.updateConnectionInfo(profile);
-                        self._objectExplorerProvider.updateNode(node.parentNode);
-                        self._objectExplorerProvider.signInNodeServer(node.parentNode);
-                        return self._objectExplorerProvider.refresh(undefined);
+                    let choice = await this._vscodeWrapper.showErrorMessage(
+                        LocalizedConstants.ObjectExplorer.FailedOEConnectionError,
+                        LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorRetry,
+                        LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate,
+                    );
+                    switch (choice) {
+                        case LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorUpdate:
+                            const connDialog = new ConnectionDialogWebviewController(
+                                this._context,
+                                this._vscodeWrapper,
+                                this,
+                                this._objectExplorerProvider,
+                                node.parentNode.connectionInfo,
+                            );
+                            connDialog.revealToForeground();
+                            break;
+                        case LocalizedConstants.ObjectExplorer.FailedOEConnectionErrorRetry:
+                            await connectParentNode(node);
+                            break;
+                        default:
+                            break;
                     }
                 },
             ),
@@ -904,7 +923,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdConnectObjectExplorerNode,
                 async (node: ConnectTreeNode) => {
-                    await self.createObjectExplorerSession(node.parentNode.connectionInfo);
+                    await connectParentNode(node);
                 },
             ),
         );
