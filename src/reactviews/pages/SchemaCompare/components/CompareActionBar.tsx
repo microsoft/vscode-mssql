@@ -87,6 +87,35 @@ const CompareActionBar = (props: Props) => {
         );
     };
 
+    const disableGenerateScriptButton = (): boolean => {
+        if (
+            !(
+                (
+                    context.state.targetEndpointInfo &&
+                    Number(context.state.targetEndpointInfo.endpointType) === 0
+                ) /* Database */
+            )
+        ) {
+            return true;
+        } else if (context.state.isComparisonInProgress) {
+            return true;
+        } else if (
+            context.state.schemaCompareResult === undefined ||
+            context.state.schemaCompareResult.differences.length === 0
+        ) {
+            return true;
+        }
+
+        const includedDiffs = context.state.schemaCompareResult.differences.filter(
+            (diff) => diff.included,
+        );
+        if (includedDiffs.length === 0) {
+            return true;
+        }
+
+        return false;
+    };
+
     const disableApplyButton = (): boolean => {
         if (
             context.state.schemaCompareResult &&
@@ -127,12 +156,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.generateScriptToDeployChangesToTarget}
                 icon={<DocumentChevronDoubleRegular />}
                 onClick={handleGenerateScript}
-                disabled={
-                    context.state.targetEndpointInfo &&
-                    Number(context.state.targetEndpointInfo.endpointType) === 0 // Database lewissanchez todo: Get rid of this magic number too by figuring out how to ref it from vscode-mssql
-                        ? false
-                        : true
-                }>
+                disabled={disableGenerateScriptButton()}>
                 {loc.schemaCompare.generateScript}
             </ToolbarButton>
             <ToolbarButton
@@ -140,7 +164,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.applyChangesToTarget}
                 icon={<PlayFilled />}
                 onClick={handlePublishChanges}
-                disabled={disableApplyButton()}>
+                disabled={context.state.isComparisonInProgress || disableApplyButton()}>
                 {loc.schemaCompare.apply}
             </ToolbarButton>
             <ToolbarButton
@@ -149,6 +173,7 @@ const CompareActionBar = (props: Props) => {
                 icon={<SettingsRegular />}
                 onClick={handleOptionsClicked}
                 disabled={
+                    context.state.isComparisonInProgress ||
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo)
                 }>
@@ -161,6 +186,7 @@ const CompareActionBar = (props: Props) => {
                 icon={<ArrowSwapFilled />}
                 onClick={handleSwitchEndpoints}
                 disabled={
+                    context.state.isComparisonInProgress ||
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo)
                 }>
@@ -171,7 +197,8 @@ const CompareActionBar = (props: Props) => {
                 aria-label={loc.schemaCompare.openScmpFile}
                 title={loc.schemaCompare.loadSourceTargetAndOptionsSavedInAnScmpFile}
                 icon={<DocumentArrowUpRegular />}
-                onClick={handleOpenScmp}>
+                onClick={handleOpenScmp}
+                disabled={context.state.isComparisonInProgress}>
                 {loc.schemaCompare.openScmpFile}
             </ToolbarButton>
             <ToolbarButton

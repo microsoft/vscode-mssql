@@ -37,6 +37,7 @@ const useStyles = makeStyles({
 
 interface Props extends InputProps {
     label: string;
+    disableBrowseButton: boolean;
     selectFile: () => void;
 }
 
@@ -53,6 +54,7 @@ const SelectSchemaInput = (props: Props) => {
                 <Button
                     size="small"
                     className={classes.buttonLeftSmallMargin}
+                    disabled={props.disableBrowseButton}
                     onClick={props.selectFile}>
                     ...
                 </Button>
