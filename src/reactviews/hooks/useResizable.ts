@@ -17,13 +17,7 @@ interface ResizableOptions {
  * A custom hook that provides resizing functionality for components
  */
 export const useResizable = (options: ResizableOptions = {}) => {
-    const {
-        direction = "vertical",
-        minHeight = 100,
-        maxHeight,
-        initialHeight = 200,
-        onResize,
-    } = options;
+    const { minHeight = 100, maxHeight, initialHeight = 200, onResize } = options;
 
     const [height, setHeight] = useState(initialHeight);
     const elementRef = useRef<HTMLDivElement>(null);
