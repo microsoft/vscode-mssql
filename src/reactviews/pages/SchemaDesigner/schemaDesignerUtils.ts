@@ -103,6 +103,9 @@ export const tableUtils = {
                     identitySeed: 1,
                     identityIncrement: 1,
                     defaultValue: "",
+                    isComputed: false,
+                    computedFormula: "",
+                    computedPersisted: false,
                 },
             ],
             foreignKeys: [],
@@ -113,7 +116,7 @@ export const tableUtils = {
 
 export interface AdvancedColumnOption {
     label: string;
-    type: "input" | "input-number" | "checkbox";
+    type: "input" | "input-number" | "checkbox" | "textarea";
     value: string | number | boolean;
     hint?: string;
     columnProperty: keyof SchemaDesigner.Column;
@@ -156,7 +159,9 @@ export const columnUtils = {
             type,
         );
     },
-
+    isTimeBasedWithScale: (type: string): boolean => {
+        return ["datetime2", "datetimeoffset", "time"].includes(type);
+    },
     isPrecisionBasedType: (type: string): boolean => {
         return ["decimal", "numeric"].includes(type);
     },
@@ -215,6 +220,12 @@ export const columnUtils = {
             column.scale = 0;
         }
 
+        if (columnUtils.isTimeBasedWithScale(column.dataType)) {
+            column.scale = columnUtils.getDefaultScale(column.dataType);
+        } else {
+            column.scale = 0;
+        }
+
         return column;
     },
 
@@ -233,75 +244,124 @@ export const columnUtils = {
                 },
             });
         }
+        if (!column.isComputed) {
+            if (
+                columnUtils.isIdentityBasedType(column.dataType, column.scale) &&
+                (!column.isNullable || column.isPrimaryKey)
+            ) {
+                // Push is identity option
+                options.push({
+                    label: locConstants.schemaDesigner.isIdentity,
+                    value: "isIdentity",
+                    type: "checkbox",
+                    columnProperty: "isIdentity",
+                    columnModifier: (column, value) => {
+                        column.isIdentity = value as boolean;
+                        column.identitySeed = value ? 1 : 0;
+                        column.identityIncrement = value ? 1 : 0;
+                        return column;
+                    },
+                });
+            }
 
-        if (
-            columnUtils.isIdentityBasedType(column.dataType, column.scale) &&
-            (!column.isNullable || column.isPrimaryKey)
-        ) {
-            // Push is identity option
-            options.push({
-                label: locConstants.schemaDesigner.isIdentity,
-                value: "isIdentity",
-                type: "checkbox",
-                columnProperty: "isIdentity",
-                columnModifier: (column, value) => {
-                    column.isIdentity = value as boolean;
-                    column.identitySeed = value ? 1 : 0;
-                    column.identityIncrement = value ? 1 : 0;
-                    return column;
-                },
-            });
-        }
+            if (columnUtils.isLengthBasedType(column.dataType)) {
+                options.push({
+                    label: locConstants.schemaDesigner.maxLength,
+                    value: "",
+                    type: "input",
+                    columnProperty: "maxLength",
+                    columnModifier: (column, value) => {
+                        column.maxLength = value as string;
+                        if (!column.maxLength) {
+                            column.maxLength = "0";
+                        }
+                        return column;
+                    },
+                });
+            }
 
-        if (columnUtils.isLengthBasedType(column.dataType)) {
-            options.push({
-                label: locConstants.schemaDesigner.maxLength,
-                value: "",
-                type: "input",
-                columnProperty: "maxLength",
-                columnModifier: (column, value) => {
-                    column.maxLength = value as string;
-                    if (!column.maxLength) {
-                        column.maxLength = "0";
-                    }
-                    return column;
-                },
-            });
-        }
+            if (columnUtils.isPrecisionBasedType(column.dataType)) {
+                options.push({
+                    label: locConstants.schemaDesigner.precision,
+                    value: "",
+                    type: "input-number",
+                    columnProperty: "precision",
+                    columnModifier: (column, value) => {
+                        column.precision = value as number;
+                        return column;
+                    },
+                });
+            }
 
-        if (columnUtils.isPrecisionBasedType(column.dataType)) {
+            if (
+                columnUtils.isTimeBasedWithScale(column.dataType) ||
+                columnUtils.isPrecisionBasedType(column.dataType)
+            ) {
+                options.push({
+                    label: locConstants.schemaDesigner.scale,
+                    value: "",
+                    type: "input-number",
+                    columnProperty: "scale",
+                    columnModifier: (column, value) => {
+                        column.scale = value as number;
+                        return column;
+                    },
+                });
+            }
+
             options.push({
-                label: locConstants.schemaDesigner.precision,
+                label: locConstants.schemaDesigner.defaultValue,
                 value: "",
-                type: "input-number",
-                columnProperty: "precision",
+                type: "textarea",
+                columnProperty: "defaultValue",
                 columnModifier: (column, value) => {
-                    column.precision = value as number;
-                    return column;
-                },
-            });
-            options.push({
-                label: locConstants.schemaDesigner.scale,
-                value: "",
-                type: "input-number",
-                columnProperty: "scale",
-                columnModifier: (column, value) => {
-                    column.scale = value as number;
+                    column.defaultValue = value as string;
                     return column;
                 },
             });
         }
 
         options.push({
-            label: locConstants.schemaDesigner.defaultValue,
-            value: "",
-            type: "input",
-            columnProperty: "defaultValue",
+            label: locConstants.schemaDesigner.isComputed,
+            value: false,
+            type: "checkbox",
+            columnProperty: "isComputed",
             columnModifier: (column, value) => {
-                column.defaultValue = value as string;
+                column.isComputed = value as boolean;
+                column.isPrimaryKey = false;
+                column.isIdentity = false;
+                column.identitySeed = 0;
+                column.identityIncrement = 0;
+                column.isNullable = true;
+                column.computedFormula = value ? "1" : "";
+                column.computedPersisted = false;
+                column.dataType = value ? "int" : column.dataType;
                 return column;
             },
         });
+
+        if (column.isComputed) {
+            options.push({
+                label: locConstants.schemaDesigner.computedFormula,
+                value: "",
+                type: "textarea",
+                columnProperty: "computedFormula",
+                columnModifier: (column, value) => {
+                    column.computedFormula = value as string;
+                    return column;
+                },
+            });
+            options.push({
+                label: locConstants.schemaDesigner.isPersisted,
+                value: false,
+                type: "checkbox",
+                columnProperty: "computedPersisted",
+                columnModifier: (column, value) => {
+                    column.computedPersisted = value as boolean;
+                    return column;
+                },
+            });
+        }
 
         return options;
     },
@@ -352,6 +412,13 @@ export const foreignKeyUtils = {
                     col.name,
                     refCol.name,
                 ),
+            };
+        }
+
+        if (columnUtils.isTimeBasedWithScale(col.dataType) && col.scale !== refCol.scale) {
+            return {
+                isValid: false,
+                errorMessage: locConstants.schemaDesigner.incompatibleScale(col.name, refCol.name),
             };
         }
 
@@ -446,6 +513,17 @@ export const foreignKeyUtils = {
                     errorMessage: locConstants.schemaDesigner.referencedColumnNotPK(refCol.name),
                 };
             }
+
+            if (
+                col.isIdentity &&
+                (fk.onUpdateAction !== SchemaDesigner.OnAction.NO_ACTION ||
+                    fk.onDeleteAction !== SchemaDesigner.OnAction.NO_ACTION)
+            ) {
+                return {
+                    isValid: false,
+                    errorMessage: locConstants.schemaDesigner.identityColumnFKConstraint(col.name),
+                };
+            }
         }
 
         return { isValid: true };
@@ -476,7 +554,7 @@ export const foreignKeyUtils = {
 
         if (!fk.name) {
             hasWarnings = true;
-            warningMessages.push(locConstants.schemaDesigner.foreignKeyNameEmptyError);
+            warningMessages.push(locConstants.schemaDesigner.foreignKeyNameEmptyWarning);
         }
 
         if (foreignKeyUtils.isCyclicForeignKey(tables, refTable, table)) {
@@ -614,6 +692,60 @@ export const foreignKeyUtils = {
             sourceTable.data,
             foreignKey,
         );
+    },
+
+    getOnActionOptions: (): {
+        label: string;
+        value: SchemaDesigner.OnAction;
+    }[] => {
+        return [
+            {
+                label: locConstants.schemaDesigner.cascade,
+                value: SchemaDesigner.OnAction.CASCADE,
+            },
+            {
+                label: locConstants.schemaDesigner.noAction,
+                value: SchemaDesigner.OnAction.NO_ACTION,
+            },
+            {
+                label: locConstants.schemaDesigner.setNull,
+                value: SchemaDesigner.OnAction.SET_NULL,
+            },
+            {
+                label: locConstants.schemaDesigner.setDefault,
+                value: SchemaDesigner.OnAction.SET_DEFAULT,
+            },
+        ];
+    },
+
+    convertStringToOnAction: (action: string): SchemaDesigner.OnAction => {
+        switch (action) {
+            case locConstants.schemaDesigner.cascade:
+                return SchemaDesigner.OnAction.CASCADE;
+            case locConstants.schemaDesigner.noAction:
+                return SchemaDesigner.OnAction.NO_ACTION;
+            case locConstants.schemaDesigner.setNull:
+                return SchemaDesigner.OnAction.SET_NULL;
+            case locConstants.schemaDesigner.setDefault:
+                return SchemaDesigner.OnAction.SET_DEFAULT;
+            default:
+                return SchemaDesigner.OnAction.NO_ACTION;
+        }
+    },
+
+    convertOnActionToString: (action: SchemaDesigner.OnAction): string => {
+        switch (action) {
+            case SchemaDesigner.OnAction.CASCADE:
+                return locConstants.schemaDesigner.cascade;
+            case SchemaDesigner.OnAction.NO_ACTION:
+                return locConstants.schemaDesigner.noAction;
+            case SchemaDesigner.OnAction.SET_NULL:
+                return locConstants.schemaDesigner.setNull;
+            case SchemaDesigner.OnAction.SET_DEFAULT:
+                return locConstants.schemaDesigner.setDefault;
+            default:
+                return locConstants.schemaDesigner.noAction;
+        }
     },
 };
 

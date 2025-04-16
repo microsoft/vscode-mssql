@@ -441,6 +441,12 @@ export class LocConstants {
                     args: [sourceColumn, targetColumn],
                     comment: ["{0} is source column", "{1} is target column"],
                 }),
+            incompatibleScale: (sourceColumn: string, targetColumn: string) =>
+                l10n.t({
+                    message: "Scale mismatch between '{0}' and '{1}'",
+                    args: [sourceColumn, targetColumn],
+                    comment: ["{0} is source column", "{1} is target column"],
+                }),
             referencedColumnNotPK: (targetColumn: string) =>
                 l10n.t({
                     message: "Column '{0}' must be a primary key",
@@ -460,7 +466,7 @@ export class LocConstants {
                     args: [columnName],
                     comment: ["{0} is the column name"],
                 }),
-            foreignKeyNameEmptyError: l10n.t("Foreign key name cannot be empty"),
+            foreignKeyNameEmptyWarning: l10n.t("Consider adding a name for this foreign key"),
             foreignKeyNameRepeatedError: (foreignKeyName: string) =>
                 l10n.t({
                     message: "Foreign key '{0}' already exists",
@@ -473,6 +479,13 @@ export class LocConstants {
                     args: [colCount],
                     comment: ["{0} is the number of columns"],
                 }),
+            identityColumnFKConstraint: (columnName: string) =>
+                l10n.t({
+                    message:
+                        "Column '{0}' is an identity column and cannot have a cascading foreign key",
+                    args: [columnName],
+                    comment: ["{0} is the column name"],
+                }),
             manageRelationships: l10n.t("Manage relationships"),
             noChangesDetected: l10n.t("No changes detected"),
             allowNull: l10n.t("Allow Null"),
@@ -481,6 +494,9 @@ export class LocConstants {
             scale: l10n.t("Scale"),
             precision: l10n.t("Precision"),
             defaultValue: l10n.t("Default Value"),
+            isComputed: l10n.t("Is Computed"),
+            computedFormula: l10n.t("Formula"),
+            isPersisted: l10n.t("Is Persisted"),
             svg: l10n.t("SVG"),
             png: l10n.t("PNG"),
             jpeg: l10n.t("JPEG"),
@@ -518,6 +534,20 @@ export class LocConstants {
                     args: [errorCount],
                     comment: ["{0} is the number of errors"],
                 }),
+            openPublishScript: l10n.t("Open Publish Script"),
+            Close: l10n.t("Close"),
+            publish: l10n.t("Publish"),
+            publishingChanges: l10n.t("Publishing Changes"),
+            changesPublishedSuccessfully: l10n.t("Changes published successfully"),
+            continueEditing: l10n.t("Continue Editing"),
+            onUpdate: l10n.t("On Update"),
+            onDelete: l10n.t("On Delete"),
+            cascade: l10n.t("Cascade"),
+            setNull: l10n.t("Set Null"),
+            setDefault: l10n.t("Set Default"),
+            noAction: l10n.t("No Action"),
+            possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
+            hasWarnings: l10n.t("Warnings detected. Please review the changes."),
         };
     }
 
@@ -585,6 +615,65 @@ export class LocConstants {
                 "Are you sure you want to update the target?",
             ),
             thereWasAnErrorUpdatingTheProject: l10n.t("There was an error updating the project"),
+            schemaCompareApplyFailed: (errorMessage: string) =>
+                l10n.t({
+                    message: "Failed to apply changes: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: [
+                        "{0} is the error message returned from the publish changes operation",
+                    ],
+                }),
+            openScmpErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Failed to open scmp file: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the open scmp operation"],
+                }),
+            saveScmpErrorMessage: (errorMessage: string) =>
+                l10n.t({
+                    message: "Failed to save scmp file: '{0}'",
+                    args: [errorMessage ? errorMessage : "Unknown"],
+                    comment: ["{0} is the error message returned from the save scmp operation"],
+                }),
+            cannotExcludeEntryWithBlockingDependency: (
+                diffEntryName: string,
+                firstDependentName: string,
+            ) =>
+                l10n.t({
+                    message: "Cannot exclude {0}. Included dependents exist, such as {1}",
+                    args: [diffEntryName, firstDependentName],
+                    comment: [
+                        "{0} is the name of the entry",
+                        "{1} is the name of the blocking dependency preventing exclusion.",
+                    ],
+                }),
+            cannotIncludeEntryWithBlockingDependency: (
+                diffEntryName: string,
+                firstDependentName: string,
+            ) =>
+                l10n.t({
+                    message: "Cannot include {0}. Excluded dependents exist, such as {1}",
+                    args: [diffEntryName, firstDependentName],
+                    comment: [
+                        "{0} is the name of the entry",
+                        "{1} is the name of the blocking dependency preventing inclusion.",
+                    ],
+                }),
+            cannotExcludeEntry: (diffEntryName: string) =>
+                l10n.t({
+                    message: "Cannot exclude {0}. Included dependents exist",
+                    args: [diffEntryName],
+                    comment: ["{0} is the name of the entry"],
+                }),
+            cannotIncludeEntry: (diffEntryName: string) =>
+                l10n.t({
+                    message: "Cannot include {0}. Excluded dependents exist",
+                    args: [diffEntryName],
+                    comment: ["{0} is the name of the entry"],
+                }),
+            includeExcludeAllOperationInProgress: l10n.t(
+                "Processing include or exclude all differences operation.",
+            ),
         };
     }
 }

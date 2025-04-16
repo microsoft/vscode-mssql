@@ -578,6 +578,13 @@ export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
 
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
+    public static NoItems = l10n.t("No items");
+    public static FailedOEConnectionError = l10n.t(
+        "We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
+    );
+    public static FailedOEConnectionErrorRetry = l10n.t("Retry");
+    public static FailedOEConnectionErrorUpdate = l10n.t("Edit Connection Profile");
+    public static Connecting = l10n.t("Connecting...");
 }
 
 export class ConnectionDialog {
@@ -635,6 +642,42 @@ export class ConnectionDialog {
     };
 }
 
+export class QueryResult {
+    public static nonNumericSelectionSummary = (
+        count: number,
+        distinctCount: number,
+        nullCount: number,
+    ) =>
+        l10n.t({
+            message: "Count: {0}  Distinct Count: {1}  Null Count: {2}",
+            args: [count, distinctCount, nullCount],
+            comment: ["{0} is the count, {1} is the distinct count, and {2} is the null count"],
+        });
+    public static numericSelectionSummary = (average: string, count: number, sum: number) =>
+        l10n.t({
+            message: "Average: {0}  Count: {1}  Sum: {2}",
+            args: [average, count, sum],
+            comment: ["{0} is the average, {1} is the count, {2} is the sum"],
+        });
+    public static numericSelectionSummaryTooltip = (
+        average: string,
+        count: number,
+        distinctCount: number,
+        max: number,
+        min: number,
+        nullCount: number,
+        sum: number,
+    ) =>
+        l10n.t({
+            message:
+                "Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}",
+            args: [average, count, distinctCount, max, min, nullCount, sum],
+            comment: [
+                "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum",
+            ],
+        });
+}
+
 export class UserSurvey {
     public static overallHowSatisfiedAreYouWithMSSQLExtension = l10n.t(
         "Overall, how satisfied are you with the MSSQL extension?",
@@ -687,7 +730,7 @@ export class TableDesigner {
 }
 
 export class SchemaCompare {
-    public static Title = l10n.t("Schema Compare");
+    public static Title = l10n.t("Schema Compare (Preview)");
     public static Open = l10n.t("Open");
     public static Save = l10n.t("Save");
     public static defaultUserName = l10n.t("default");
@@ -698,7 +741,7 @@ export class SchemaCompare {
     );
     public static generateScriptErrorMessage = (errorMessage: string) =>
         l10n.t({
-            message: "Generate script failed: '{0}'",
+            message: "Failed to generate script: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
@@ -707,19 +750,19 @@ export class SchemaCompare {
     );
     public static schemaCompareApplyFailed = (errorMessage: string) =>
         l10n.t({
-            message: "Schema Compare Apply failed '{0}'",
+            message: "Failed to apply changes: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the publish changes operation"],
         });
     public static openScmpErrorMessage = (errorMessage: string) =>
         l10n.t({
-            message: "Open scmp failed '{0}'",
+            message: "Failed to open scmp file: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the open scmp operation"],
         });
     public static saveScmpErrorMessage = (errorMessage: string) =>
         l10n.t({
-            message: "Save scmp failed: '{0}'",
+            message: "Failed to save scmp file: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the save scmp operation"],
         });
@@ -734,6 +777,42 @@ export class SchemaCompare {
             message: "Schema Compare failed: '{0}'",
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the compare operation"],
+        });
+    public static cannotExcludeEntryWithBlockingDependency = (
+        diffEntryName: string,
+        firstDependentName: string,
+    ) =>
+        l10n.t({
+            message: "Cannot exclude {0}. Included dependents exist, such as {1}",
+            args: [diffEntryName, firstDependentName],
+            comment: [
+                "{0} is the name of the entry",
+                "{1} is the name of the blocking dependency preventing exclusion.",
+            ],
+        });
+    public static cannotIncludeEntryWithBlockingDependency = (
+        diffEntryName: string,
+        firstDependentName: string,
+    ) =>
+        l10n.t({
+            message: "Cannot include {0}. Excluded dependents exist, such as {1}",
+            args: [diffEntryName, firstDependentName],
+            comment: [
+                "{0} is the name of the entry",
+                "{1} is the name of the blocking dependency preventing inclusion.",
+            ],
+        });
+    public static cannotExcludeEntry = (diffEntryName: string) =>
+        l10n.t({
+            message: "Cannot exclude {0}. Included dependents exist",
+            args: [diffEntryName],
+            comment: ["{0} is the name of the entry"],
+        });
+    public static cannotIncludeEntry = (diffEntryName: string) =>
+        l10n.t({
+            message: "Cannot include {0}. Excluded dependents exist",
+            args: [diffEntryName],
+            comment: ["{0} is the name of the entry"],
         });
 }
 

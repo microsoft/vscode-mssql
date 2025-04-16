@@ -113,6 +113,23 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         );
     }
 
+    public includeExcludeAllNodes(
+        operationId: string,
+        includeRequest: boolean,
+        taskExecutionMode: mssql.TaskExecutionMode,
+    ): Thenable<mssql.SchemaCompareIncludeExcludeAllResult> {
+        const params: mssql.SchemaCompareIncludeExcludeAllNodesParams = {
+            operationId: operationId,
+            includeRequest: includeRequest,
+            taskExecutionMode: taskExecutionMode,
+        };
+
+        return this._client.sendRequest(
+            schemaCompareContracts.SchemaCompareIncludeExcludeAllNodesRequest.type,
+            params,
+        );
+    }
+
     public openScmp(filePath: string): Thenable<mssql.SchemaCompareOpenScmpResult> {
         const params: mssql.SchemaCompareOpenScmpParams = {
             filePath: filePath,

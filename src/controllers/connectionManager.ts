@@ -329,6 +329,15 @@ export default class ConnectionManager {
         return undefined;
     }
 
+    public getUriForScmpConnection(connection: IConnectionInfo): string {
+        for (let uri of Object.keys(this._connections)) {
+            if (Utils.isSameScmpConnection(this._connections[uri].credentials, connection)) {
+                return uri;
+            }
+        }
+        return undefined;
+    }
+
     public isConnected(fileUri: string): boolean {
         return (
             fileUri in this._connections &&
