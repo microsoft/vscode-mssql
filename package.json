@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
     "engines": {
-    "vscode": "^1.98.0"
+        "vscode": "^1.98.0"
     },
     "categories": [
         "Programming Languages",
@@ -38,11 +38,6 @@
     "activationEvents": [
         "onUri",
         "onCommand:mssql.loadCompletionExtension"
-  ],
-  "enabledApiProposals": [
-      "chatVariableResolver",
-      "chatParticipantAdditions",
-      "lmTools"
     ],
     "main": "./out/src/extension",
     "l10n": "./localization/l10n",
@@ -114,7 +109,7 @@
         "@types/tmp": "0.0.28",
         "@types/tunnel": "0.0.1",
         "@types/underscore": "1.8.3",
-    "@types/vscode": "1.98.0",
+        "@types/vscode": "1.98.0",
         "@types/vscode-webview": "^1.57.5",
         "@typescript-eslint/eslint-plugin": "^8.7.0",
         "@typescript-eslint/parser": "^8.7.0",
@@ -274,15 +269,15 @@
                 }
             ]
         },
-    "chatParticipants": [
-      {
-        "id": "mssql.agent",
-        "name": "mssql",
-        "description": "Azure SQL Copilot agent",
-        "commands": [],
-        "isSticky":true
-      }
-    ],
+        "chatParticipants": [
+            {
+                "id": "mssql.agent",
+                "name": "mssql",
+                "description": "Azure SQL Copilot agent",
+                "commands": [],
+                "isSticky": true
+            }
+        ],
         "customEditors": [
             {
                 "viewType": "mssql.executionPlanView",
@@ -330,13 +325,13 @@
                 "path": "./snippets/mssql.json"
             }
         ],
-    "submenus": [
-      {
-        "id": "mssql.copilot.editorSubmenu",
-        "title": "%mssql.copilot.editorSubmenu%",
-        "label": "%mssql.copilot.editorSubmenu%"
-      }
-    ],
+        "submenus": [
+            {
+                "id": "mssql.copilot.editorSubmenu",
+                "title": "%mssql.copilot.editorSubmenu%",
+                "label": "%mssql.copilot.editorSubmenu%"
+            }
+        ],
         "menus": {
             "editor/title": [
                 {
@@ -388,33 +383,33 @@
             "editor/context": [
                 {
                     "command": "mssql.runQuery",
-          "when": "editorLangId == sql",
-          "group": "0_mssql"
-        },
-        {
-          "submenu": "mssql.copilot.editorSubmenu",
-          "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
-          "group": "0_mssql"
-        }
-      ],
-      "mssql.copilot.editorSubmenu": [
-        {
-          "command": "mssql.copilot.explainQuery",
-          "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
-          "title": "%mssql.copilot.explainQuery%",
-          "group": "navigation@1"
-        },
-        {
-          "command": "mssql.copilot.rewriteQuery",
-          "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
-          "title": "%mssql.copilot.rewriteQuery%",
-          "group": "navigation@2"
-        },
-        {
-          "command": "mssql.copilot.analyzeQueryPerformance",
-          "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
-          "title": "%mssql.copilot.analyzeQueryPerformance%",
-          "group": "navigation@3"
+                    "when": "editorLangId == sql",
+                    "group": "0_mssql"
+                },
+                {
+                    "submenu": "mssql.copilot.editorSubmenu",
+                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+                    "group": "0_mssql"
+                }
+            ],
+            "mssql.copilot.editorSubmenu": [
+                {
+                    "command": "mssql.copilot.explainQuery",
+                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+                    "title": "%mssql.copilot.explainQuery%",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "mssql.copilot.rewriteQuery",
+                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+                    "title": "%mssql.copilot.rewriteQuery%",
+                    "group": "navigation@2"
+                },
+                {
+                    "command": "mssql.copilot.analyzeQueryPerformance",
+                    "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
+                    "title": "%mssql.copilot.analyzeQueryPerformance%",
+                    "group": "navigation@3"
                 }
             ],
             "view/title": [
@@ -468,11 +463,11 @@
                     "group": "MS_SQL@1"
                 },
                 {
-          "command": "mssql.objectExplorerChatWithDatabase",
-          "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-          "group": "MS_SQL@11"
-        },
-        {
+                    "command": "mssql.objectExplorerChatWithDatabase",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "group": "MS_SQL@11"
+                },
+                {
                     "command": "mssql.filterNode",
                     "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
                     "group": "inline@1"
@@ -608,10 +603,10 @@
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
                 },
                 {
-          "command": "mssql.objectExplorerChatWithDatabase",
-          "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Database)\\b/"
-        },
-        {
+                    "command": "mssql.objectExplorerChatWithDatabase",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Database)\\b/"
+                },
+                {
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
                 },
@@ -847,11 +842,11 @@
                 "category": "MS SQL"
             },
             {
-        "command": "mssql.objectExplorerChatWithDatabase",
-        "title": "%mssql.objectExplorerChatWithDatabase%",
-        "category": "MS SQL"
-      },
-      {
+                "command": "mssql.objectExplorerChatWithDatabase",
+                "title": "%mssql.objectExplorerChatWithDatabase%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.removeObjectExplorerNode",
                 "title": "%mssql.removeObjectExplorerNode%",
                 "category": "MS SQL"
@@ -1018,21 +1013,21 @@
                 "command": "mssql.enableRichExperiences",
                 "title": "%mssql.enableRichExperiences%",
                 "category": "MS SQL"
-      },
-      {
-        "command": "mssql.copilot.explainQuery",
-        "title": "%mssql.copilot.explainQuery%",
-        "category": "MSSQL"
-      },
-      {
-        "command": "mssql.copilot.analyzeQueryPerformance",
-        "title": "%mssql.copilot.analyzeQueryPerformance%",
-        "category": "MSSQL"
-      },
-      {
-        "command": "mssql.copilot.rewriteQuery",
-        "title": "%mssql.copilot.rewriteQuery%",
-        "category": "MSSQL"
+            },
+            {
+                "command": "mssql.copilot.explainQuery",
+                "title": "%mssql.copilot.explainQuery%",
+                "category": "MSSQL"
+            },
+            {
+                "command": "mssql.copilot.analyzeQueryPerformance",
+                "title": "%mssql.copilot.analyzeQueryPerformance%",
+                "category": "MSSQL"
+            },
+            {
+                "command": "mssql.copilot.rewriteQuery",
+                "title": "%mssql.copilot.rewriteQuery%",
+                "category": "MSSQL"
             }
         ],
         "keybindings": [
