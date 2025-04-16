@@ -516,6 +516,10 @@
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">Производится подключение к: </target>
       </trans-unit>
+      <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
+        <source xml:lang="en">Connecting...</source>
+        <target state="new">Connecting...</target>
+      </trans-unit>
       <trans-unit id="++CODE++f82e876fbb96757b5e0ff7d062baaaf01763104fc6bba89647cc06e4e327b648">
         <source xml:lang="en">Connection Dialog (Preview)</source>
         <target state="translated">Диалоговое окно подключения (предварительная версия)</target>
@@ -733,6 +737,10 @@
       <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
         <source xml:lang="en">Edit</source>
         <target state="translated">Изменить</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a43dafda7f271d0796fb53cc6c2d8f302b8c8892ea0fed0b1096e9c7769f91c1">
+        <source xml:lang="en">Edit Connection Profile</source>
+        <target state="new">Edit Connection Profile</target>
       </trans-unit>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
@@ -2413,6 +2421,10 @@
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">Обнаружены предупреждения. Проверьте изменения.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f01e36aaf60d2146e1cf906fce3e055116bd19954ad018908f8a7cd8bd2a8b0c">
+        <source xml:lang="en">We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
+        <target state="new">We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</target>
       </trans-unit>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
