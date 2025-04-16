@@ -23,7 +23,7 @@ import {
     ConnectionDialogFormItemSpec,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
-import { FormItemActionButton, FormItemOptions } from "../reactviews/common/forms/form";
+import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
 import {
     ConnectionDialog as Loc,
     Common as LocCommon,

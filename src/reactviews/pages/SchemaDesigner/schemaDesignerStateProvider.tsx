@@ -5,7 +5,7 @@
 
 import { createContext, useEffect, useState } from "react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
-import { useVscodeWebview, WebviewContextProps } from "../../common/vscodeWebviewProvider";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
@@ -13,6 +13,7 @@ import { Edge, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
 import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
 import { UndoRedoStack } from "../../common/undoRedoStack";
+import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 
 export interface SchemaDesignerContextProps
     extends WebviewContextProps<SchemaDesigner.SchemaDesignerWebviewState> {
@@ -41,6 +42,13 @@ export interface SchemaDesignerContextProps
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
     updateSelectedNodes: (nodesIds: string[]) => void;
     setCenter: (nodeId: string, shouldZoomIn?: boolean) => void;
+    publishSession: () => Promise<{
+        success: boolean;
+        error?: string;
+    }>;
+    closeDesigner: () => void;
+    resetUndoRedoState: () => void;
+    isInitialized: boolean;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -67,6 +75,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [datatypes, setDatatypes] = useState<string[]>([]);
     const [schemaNames, setSchemaNames] = useState<string[]>([]);
     const reactFlow = useReactFlow();
+    const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
         const handleScript = () => {
@@ -125,6 +134,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
         setDatatypes(model.dataTypes);
         setSchemaNames(model.schemaNames);
+        setIsInitialized(true);
 
         setTimeout(() => {
             stateStack.setInitialState(
@@ -377,6 +387,20 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
     };
 
+    const publishSession = async () => {
+        const response = await extensionRpc.call("publishSession");
+        return response;
+    };
+
+    const closeDesigner = () => {
+        void extensionRpc.call("closeDesigner", {});
+    };
+
+    const resetUndoRedoState = () => {
+        stateStack.clearHistory();
+        eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
+    };
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -401,6 +425,10 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 deleteSelectedNodes,
                 updateSelectedNodes,
                 setCenter,
+                publishSession,
+                isInitialized,
+                closeDesigner,
+                resetUndoRedoState,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

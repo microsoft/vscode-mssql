@@ -23,7 +23,7 @@ import {
     FormItemSpec,
     FormItemType,
     FormState,
-} from "./form";
+} from "../../../sharedInterfaces/form";
 import { useEffect, useState } from "react";
 
 export const FormInput = <
@@ -84,16 +84,9 @@ export const FormInput = <
                     contentAfter={
                         <Button
                             onClick={() => setShowPassword(!showPassword)}
-                            icon={
-                                showPassword ? (
-                                    <EyeRegular />
-                                ) : (
-                                    <EyeOffRegular />
-                                )
-                            }
+                            icon={showPassword ? <EyeRegular /> : <EyeOffRegular />}
                             appearance="transparent"
-                            size="small"
-                        ></Button>
+                            size="small"></Button>
                     }
                     {...props}
                 />
@@ -140,14 +133,8 @@ export const FormField = <
     return (
         <div className={formStyles.formComponentDiv} key={idx}>
             <Field
-                validationMessage={
-                    component.validation?.validationMessage ?? ""
-                }
-                orientation={
-                    component.type === FormItemType.Checkbox
-                        ? "horizontal"
-                        : "vertical"
-                }
+                validationMessage={component.validation?.validationMessage ?? ""}
+                orientation={component.type === FormItemType.Checkbox ? "horizontal" : "vertical"}
                 validationState={
                     component.validation
                         ? component.validation.isValid
@@ -163,10 +150,7 @@ export const FormField = <
                     component.tooltip ? (
                         {
                             children: (_: unknown, slotProps: LabelProps) => (
-                                <InfoLabel
-                                    {...slotProps}
-                                    info={component.tooltip}
-                                >
+                                <InfoLabel {...slotProps} info={component.tooltip}>
                                     <span
                                         dangerouslySetInnerHTML={{
                                             __html: component.label,
@@ -184,8 +168,7 @@ export const FormField = <
                     )
                 }
                 {...props}
-                style={{ color: tokens.colorNeutralForeground1 }}
-            >
+                style={{ color: tokens.colorNeutralForeground1 }}>
                 {generateFormComponent<TForm, TState, TFormItemSpec, TContext>(
                     context,
                     component,
@@ -208,8 +191,7 @@ export const FormField = <
                                         isAction: true,
                                         value: actionButton.id,
                                     })
-                                }
-                            >
+                                }>
                                 {actionButton.label}
                             </Button>
                         );
@@ -269,14 +251,10 @@ export function generateFormComponent<
                     placeholder={component.placeholder ?? ""}
                     value={
                         component.options.find(
-                            (option) =>
-                                option.value ===
-                                formState[component.propertyName],
+                            (option) => option.value === formState[component.propertyName],
                         )?.displayName ?? ""
                     }
-                    selectedOptions={[
-                        formState[component.propertyName] as string,
-                    ]}
+                    selectedOptions={[formState[component.propertyName] as string]}
                     onOptionSelect={(_event, data) => {
                         context?.formAction({
                             propertyName: component.propertyName,
@@ -284,14 +262,12 @@ export function generateFormComponent<
                             value: data.optionValue as string,
                         });
                     }}
-                    {...props}
-                >
+                    {...props}>
                     {component.options?.map((option, idx) => {
                         return (
                             <Option
                                 key={(component.propertyName as string) + idx}
-                                value={option.value}
-                            >
+                                value={option.value}>
                                 {option.displayName}
                             </Option>
                         );
@@ -302,9 +278,7 @@ export function generateFormComponent<
             return (
                 <Checkbox
                     size="medium"
-                    checked={
-                        (formState[component.propertyName] as boolean) ?? false
-                    }
+                    checked={(formState[component.propertyName] as boolean) ?? false}
                     onChange={(_value, data) =>
                         context?.formAction({
                             propertyName: component.propertyName,

@@ -10,12 +10,10 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as vscodeMssql from "vscode-mssql";
 import { TreeNodeType } from "./connectTreeNode";
+import * as vscode from "vscode";
 
 export class ObjectExplorerUtils {
-    public static readonly rootPath: string = path.join(
-        __dirname,
-        "objectTypes",
-    );
+    public static readonly rootPath: string = path.join(__dirname, "objectTypes");
 
     public static iconPath(label: string): string {
         if (label) {
@@ -25,9 +23,7 @@ export class ObjectExplorerUtils {
             } else if (label === Constants.serverLabel) {
                 // if connected
                 label += "_green";
-            } else if (
-                label === Constants.disconnectedDockerContainerNodeType
-            ) {
+            } else if (label === Constants.disconnectedDockerContainerNodeType) {
                 // if disconnected
                 label = `${Constants.dockerContainerLabel}_red`;
             } else if (label === Constants.dockerContainerLabel) {
@@ -36,6 +32,34 @@ export class ObjectExplorerUtils {
             }
             return path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
         }
+    }
+
+    public static createNoItemsTreeItem(): vscode.TreeItem {
+        return {
+            label: LocalizedConstants.ObjectExplorer.NoItems,
+            accessibilityInformation: {
+                label: LocalizedConstants.ObjectExplorer.NoItems,
+            },
+            tooltip: LocalizedConstants.ObjectExplorer.NoItems,
+            iconPath: {
+                light: ObjectExplorerUtils.iconPath("NoItems_light"),
+                dark: ObjectExplorerUtils.iconPath("NoItems_dark"),
+            },
+        };
+    }
+
+    public static createErrorTreeItem(errorMessage: string): vscode.TreeItem {
+        return {
+            label: LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
+            accessibilityInformation: {
+                label: errorMessage,
+            },
+            tooltip: errorMessage,
+            iconPath: {
+                light: ObjectExplorerUtils.iconPath("Error_light"),
+                dark: ObjectExplorerUtils.iconPath("Error_dark"),
+            },
+        };
     }
 
     public static getNodeUri(node: TreeNodeType): string {
@@ -87,9 +111,7 @@ export class ObjectExplorerUtils {
         // the database it's nested in)
         while (node) {
             if (node.metadata) {
-                if (
-                    node.metadata.metadataTypeName === Constants.databaseString
-                ) {
+                if (node.metadata.metadataTypeName === Constants.databaseString) {
                     return node.metadata.name;
                 }
             }

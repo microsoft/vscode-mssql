@@ -32,7 +32,7 @@ import {
 import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { namingUtils, tableUtils } from "../schemaDesignerUtils";
+import { foreignKeyUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
@@ -308,6 +308,7 @@ const ForeignKeyCard = ({
     const context = useContext(SchemaDesignerEditorContext);
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [errorMessage, setErrorMessage] = useState<string>("");
+    const [warningMessage, setWarningMessage] = useState<string>("");
 
     useEffect(() => {
         if (index === lastAddedForeignKeyIndex) {
@@ -344,6 +345,12 @@ const ForeignKeyCard = ({
         } else {
             setErrorMessage("");
         }
+        const warning = context.warnings[`${FOREIGN_KEY_ERROR_PREFIX}${foreignKey.id}`];
+        if (warning) {
+            setWarningMessage(warning);
+        } else {
+            setWarningMessage("");
+        }
     }, [context.errors]);
 
     return (
@@ -361,6 +368,9 @@ const ForeignKeyCard = ({
 
             {/* Error Message */}
             {errorMessage && <MessageBar intent="error">{errorMessage}</MessageBar>}
+
+            {/* Warning Message */}
+            {warningMessage && <MessageBar intent="warning">{warningMessage}</MessageBar>}
 
             {/* Foreign Key Name */}
             <div className={classes.row}>
@@ -430,6 +440,65 @@ const ForeignKeyCard = ({
                     </Dropdown>
                 </Field>
             </div>
+
+            {/* On Delete and Update Action */}
+            <div className={classes.row}>
+                <Field style={{ flex: 1 }} size="small">
+                    <Label>{locConstants.schemaDesigner.onDelete}</Label>
+                    <Dropdown
+                        size="small"
+                        value={foreignKeyUtils.convertOnActionToString(foreignKey.onDeleteAction)}
+                        selectedOptions={[
+                            foreignKeyUtils.convertOnActionToString(foreignKey.onDeleteAction),
+                        ]}
+                        multiselect={false}
+                        onOptionSelect={(_e, data) => {
+                            onUpdate(index, {
+                                ...foreignKey,
+                                onDeleteAction: foreignKeyUtils.convertStringToOnAction(
+                                    data.optionValue as string,
+                                ),
+                            });
+                        }}
+                        style={{ minWidth: "auto" }}>
+                        {foreignKeyUtils.getOnActionOptions().map((action, actionIndex) => (
+                            <Option
+                                key={`on-delete-option-${actionIndex}-${foreignKey.id}`}
+                                value={action.label}>
+                                {action.label}
+                            </Option>
+                        ))}
+                    </Dropdown>
+                </Field>
+                <Field style={{ flex: 1 }} size="small">
+                    <Label>{locConstants.schemaDesigner.onUpdate}</Label>
+                    <Dropdown
+                        size="small"
+                        value={foreignKeyUtils.convertOnActionToString(foreignKey.onUpdateAction)}
+                        selectedOptions={[
+                            foreignKeyUtils.convertOnActionToString(foreignKey.onUpdateAction),
+                        ]}
+                        multiselect={false}
+                        onOptionSelect={(_e, data) => {
+                            onUpdate(index, {
+                                ...foreignKey,
+                                onUpdateAction: foreignKeyUtils.convertStringToOnAction(
+                                    data.optionValue as string,
+                                ),
+                            });
+                        }}
+                        style={{ minWidth: "auto" }}>
+                        {foreignKeyUtils.getOnActionOptions().map((action, actionIndex) => (
+                            <Option
+                                key={`on-update-option--${actionIndex}-${foreignKey.id}`}
+                                value={action.label}>
+                                {action.label}
+                            </Option>
+                        ))}
+                    </Dropdown>
+                </Field>
+            </div>
+
             <div className={classes.mappingTableContainer}>
                 {/* Add Column Mapping Button */}
                 <Button

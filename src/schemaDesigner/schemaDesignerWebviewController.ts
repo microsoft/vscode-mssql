@@ -16,14 +16,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     SchemaDesigner.SchemaDesignerReducers
 > {
     private _sessionId: string = "";
-    private _resolveModelReadyProgress: (value: void | PromiseLike<void>) => void;
 
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         private mainController: MainController,
         private schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
-        private connectionUri: string,
+        private connectionString: string,
+        private accessToken: string | undefined,
         private databaseName: string,
         private treeNode: TreeNodeInfo,
     ) {
@@ -32,21 +32,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             vscodeWrapper,
             "schemaDesigner",
             "schemaDesigner",
-            {
-                schema: {
-                    tables: [],
-                },
-                isModelReady: false,
-                schemas: [],
-                datatypes: [],
-                script: {
-                    combinedScript: "",
-                    scripts: [],
-                },
-                report: {
-                    reports: [],
-                },
-            },
+            {},
             {
                 title: databaseName,
                 viewColumn: vscode.ViewColumn.One,
@@ -66,32 +52,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             },
         );
 
-        this.registerServiceEvents();
         this.registerReducers();
-    }
-
-    private registerServiceEvents() {
-        vscode.window.withProgress(
-            {
-                location: vscode.ProgressLocation.Notification,
-                title: LocConstants.SchemaDesigner.LoadingSchemaDesginerModel,
-                cancellable: false,
-            },
-            (_progress, _token) => {
-                const p = new Promise<void>((resolve) => {
-                    this._resolveModelReadyProgress = resolve;
-                });
-                return p;
-            },
-        );
-        this.schemaDesignerService.onSchemaReady((model) => {
-            if (model.sessionId === this._sessionId) {
-                this._resolveModelReadyProgress();
-                this.postNotification("isModelReady", {
-                    isModelReady: true,
-                });
-            }
-        });
     }
 
     private registerReducers() {
@@ -115,16 +76,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.registerRequestHandler("initializeSchemaDesigner", async () => {
             const sessionResponse = await this.schemaDesignerService.createSession({
-                connectionUri: this.connectionUri,
+                connectionString: this.connectionString,
+                accessToken: this.accessToken,
                 databaseName: this.databaseName,
-            });
-
-            const schemaSet = new Set<string>(sessionResponse.schemaNames);
-            sessionResponse.schema.tables.forEach((table) => {
-                schemaSet.add(table.schema);
-            });
-            sessionResponse.schemaNames = Array.from(schemaSet).sort((a, b) => {
-                return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
             });
             this._sessionId = sessionResponse.sessionId;
             return sessionResponse;
@@ -154,6 +108,22 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             }
         });
 
+        this.registerRequestHandler("publishSession", async (payload) => {
+            try {
+                await this.schemaDesignerService.publishSession({
+                    sessionId: this._sessionId,
+                });
+                return {
+                    success: true,
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.toString(),
+                };
+            }
+        });
+
         this.registerRequestHandler("copyToClipboard", async (payload) => {
             await vscode.env.clipboard.writeText(payload.text);
         });
@@ -170,11 +140,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this.registerRequestHandler("openInEditorWithConnection", async (payload) => {
             void this.mainController.onNewQuery(this.treeNode, payload.text);
         });
+
+        this.registerRequestHandler("closeDesigner", async () => {
+            this.panel.dispose();
+        });
     }
 
     override dispose(): void {
         super.dispose();
-        this._resolveModelReadyProgress();
         this.schemaDesignerService.disposeSession({
             sessionId: this._sessionId,
         });

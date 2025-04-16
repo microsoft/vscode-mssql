@@ -13,11 +13,8 @@ import {
     ContainerDeploymentFormItemSpec,
     ContainerDeploymentWebviewState,
     DockerConnectionProfile,
-} from "./containerDeploymentInterfaces";
-import {
-    ChevronDown20Regular,
-    ChevronRight20Regular,
-} from "@fluentui/react-icons";
+} from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -66,12 +63,7 @@ export const ContainerInputForm: React.FC = () => {
             .map((component, index) => (
                 <div
                     key={index}
-                    style={
-                        component.componentWidth
-                            ? { width: component.componentWidth }
-                            : {}
-                    }
-                >
+                    style={component.componentWidth ? { width: component.componentWidth } : {}}>
                     <FormField<
                         DockerConnectionProfile,
                         ContainerDeploymentWebviewState,
@@ -101,11 +93,7 @@ export const ContainerInputForm: React.FC = () => {
             <div>
                 <Button
                     icon={
-                        showAdvancedOptions ? (
-                            <ChevronDown20Regular />
-                        ) : (
-                            <ChevronRight20Regular />
-                        )
+                        showAdvancedOptions ? <ChevronDown20Regular /> : <ChevronRight20Regular />
                     }
                     appearance="subtle"
                     onClick={() => setShowAdvanced(!showAdvancedOptions)}
@@ -114,9 +102,7 @@ export const ContainerInputForm: React.FC = () => {
             </div>
 
             {showAdvancedOptions && (
-                <div className={classes.advancedOptionsDiv}>
-                    {renderFormFields(true)}
-                </div>
+                <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
             )}
 
             <div className={classes.bottomDiv}>
@@ -127,8 +113,7 @@ export const ContainerInputForm: React.FC = () => {
                             width: eulaComponent.componentWidth,
                         }),
                         marginTop: "10px",
-                    }}
-                >
+                    }}>
                     <FormField<
                         DockerConnectionProfile,
                         ContainerDeploymentWebviewState,
@@ -145,8 +130,7 @@ export const ContainerInputForm: React.FC = () => {
                     className={classes.button}
                     type="submit"
                     onClick={() => handleSubmit()}
-                    appearance={"primary"}
-                >
+                    appearance={"primary"}>
                     Create Container
                 </Button>
             </div>

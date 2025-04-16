@@ -3,12 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export interface ISlickRange {
-    fromCell: number;
-    fromRow: number;
-    toCell: number;
-    toRow: number;
-}
+import { ISlickRange } from "../../../../sharedInterfaces/queryResult";
 
 export interface RowRange {
     start: number;

@@ -83,9 +83,9 @@
         "@dagrejs/dagre": "^1.1.4",
         "@eslint/compat": "^1.1.0",
         "@eslint/js": "^9.5.0",
+        "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
         "@fluentui/react-components": "^9.55.1",
         "@fluentui/react-list-preview": "^0.3.6",
-        "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
         "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
         "@monaco-editor/react": "^4.6.0",
@@ -134,6 +134,7 @@
         "esbuild-plugin-copy": "^2.1.1",
         "eslint": "^9.11.1",
         "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-custom-eslint-rules": "file:eslint/custom-rules",
         "eslint-plugin-deprecation": "^3.0.0",
         "eslint-plugin-jsdoc": "^50.2.2",
         "eslint-plugin-jsx-a11y": "^6.10.0",
@@ -177,7 +178,7 @@
         "typescript": "^5.6.2",
         "typescript-eslint": "^8.7.0",
         "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
-        "vite": "^6.2.4",
+        "vite": "^6.2.6",
         "vite-plugin-istanbul": "^7.0.0",
         "vscode-nls-dev": "2.0.1",
         "xliff": "^6.2.1",
@@ -530,7 +531,7 @@
                 },
                 {
                     "command": "mssql.designSchema",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && config.mssql.enableSchemaDesigner",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableSchemaDesigner",
                     "group": "MS_SQL@6"
                 },
                 {

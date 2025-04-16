@@ -3,13 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Spinner,
-    Card,
-    Button,
-    makeStyles,
-    tokens,
-} from "@fluentui/react-components";
+import { Spinner, Card, Button, makeStyles, tokens } from "@fluentui/react-components";
 import {
     Checkmark20Regular,
     ChevronDown20Regular,
@@ -62,32 +56,29 @@ interface StepCardProps {
 export const StepCard: React.FC<StepCardProps> = ({ stepName }) => {
     const classes = useStyles();
     const state = useContext(ContainerDeploymentContext);
-    const containerDeploymentState = state?.state;
     const [expanded, setExpanded] = useState(false);
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!containerDeploymentState) {
+    if (!state) {
         return undefined;
     }
 
+    const containerDeploymentState = state.state;
     const getLoadStatus = (stepName: string): ApiStatus => {
         switch (stepName) {
             case "dockerInstallStatus":
-                return containerDeploymentState!.dockerInstallStatus.loadState;
+                return containerDeploymentState.dockerInstallStatus.loadState;
             case "dockerStatus":
-                return containerDeploymentState!.dockerStatus.loadState;
+                return containerDeploymentState.dockerStatus.loadState;
             case "dockerEngineStatus":
-                return containerDeploymentState!.dockerEngineStatus.loadState;
+                return containerDeploymentState.dockerEngineStatus.loadState;
             case "dockerContainerCreationStatus":
-                return containerDeploymentState!.dockerContainerCreationStatus
-                    .loadState;
+                return containerDeploymentState.dockerContainerCreationStatus.loadState;
             case "dockerContainerStatus":
-                return containerDeploymentState!.dockerContainerStatus
-                    .loadState;
+                return containerDeploymentState.dockerContainerStatus.loadState;
             case "dockerConnectionStatus":
-                return containerDeploymentState!.dockerConnectionStatus
-                    .loadState;
+                return containerDeploymentState.dockerConnectionStatus.loadState;
             default:
                 return ApiStatus.Error;
         }
@@ -152,20 +143,12 @@ export const StepCard: React.FC<StepCardProps> = ({ stepName }) => {
                     <span>{getHeaderText(stepName)}</span>
                 </div>
                 <Button
-                    icon={
-                        expanded ? (
-                            <ChevronDown20Regular />
-                        ) : (
-                            <ChevronUp20Regular />
-                        )
-                    }
+                    icon={expanded ? <ChevronDown20Regular /> : <ChevronUp20Regular />}
                     appearance="subtle"
                     onClick={() => setExpanded(!expanded)}
                 />
             </div>
-            {expanded && (
-                <div style={{ marginLeft: "32x" }}>{getBodyText(stepName)}</div>
-            )}
+            {expanded && <div style={{ marginLeft: "32x" }}>{getBodyText(stepName)}</div>}
         </Card>
     );
 };

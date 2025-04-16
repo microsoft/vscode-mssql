@@ -3,24 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as cd from "./containerDeploymentInterfaces";
+import * as cd from "../../../sharedInterfaces/containerDeploymentInterfaces";
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { createContext } from "react";
-import { ContainerDeploymentContextProps } from "./containerDeploymentInterfaces";
+import { ContainerDeploymentContextProps } from "../../../sharedInterfaces/containerDeploymentInterfaces";
 import { getCoreRPCs } from "../../common/utils";
 
-const ContainerDeploymentContext = createContext<
-    ContainerDeploymentContextProps | undefined
->(undefined);
+const ContainerDeploymentContext = createContext<ContainerDeploymentContextProps | undefined>(
+    undefined,
+);
 
 interface ContainerDeploymentProviderProps {
     children: React.ReactNode;
 }
 
-const ContainerDeploymentStateProvider: React.FC<
-    ContainerDeploymentProviderProps
-> = ({ children }) => {
+const ContainerDeploymentStateProvider: React.FC<ContainerDeploymentProviderProps> = ({
+    children,
+}) => {
     const webviewState = useVscodeWebview<
         cd.ContainerDeploymentWebviewState,
         cd.ContainerDeploymentReducers
@@ -37,10 +37,7 @@ const ContainerDeploymentStateProvider: React.FC<
                     });
                 },
                 checkDockerInstallation: function (): void {
-                    webviewState?.extensionRpc.action(
-                        "checkDockerInstallation",
-                        {},
-                    );
+                    webviewState?.extensionRpc.action("checkDockerInstallation", {});
                 },
                 startDocker: function (): void {
                     webviewState?.extensionRpc.action("startDocker", {});
@@ -63,8 +60,7 @@ const ContainerDeploymentStateProvider: React.FC<
                 dispose: function (): void {
                     webviewState?.extensionRpc.action("dispose", {});
                 },
-            }}
-        >
+            }}>
             {children}
         </ContainerDeploymentContext.Provider>
     );

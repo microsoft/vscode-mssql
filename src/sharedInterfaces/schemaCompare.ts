@@ -17,7 +17,7 @@ import {
     SchemaCompareObjectId,
     SchemaCompareOpenScmpResult,
 } from "vscode-mssql";
-import { ColorThemeKind } from "../reactviews/common/vscodeWebviewProvider";
+import { ColorThemeKind } from "./webview";
 
 export const enum SchemaUpdateAction {
     Delete = 0,
@@ -28,6 +28,7 @@ export const enum SchemaUpdateAction {
 export interface SchemaCompareWebViewState {
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
+    isIncludeExcludeAllOperationInProgress: boolean;
     activeServers: { [connectionUri: string]: string };
     databases: string[];
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
@@ -127,6 +128,10 @@ export interface SchemaCompareReducers {
         includeRequest: boolean;
     };
 
+    includeExcludeAllNodes: {
+        includeRequest: boolean;
+    };
+
     openScmp: {};
 
     saveScmp: {};
@@ -194,6 +199,8 @@ export interface SchemaCompareContextProps {
     resetOptions: () => void;
 
     includeExcludeNode: (id: number, diffEntry: DiffEntry, includeRequest: boolean) => void;
+
+    includeExcludeAllNodes: (includeRequest: boolean) => void;
 
     openScmp: () => void;
 

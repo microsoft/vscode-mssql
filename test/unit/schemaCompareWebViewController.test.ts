@@ -31,6 +31,54 @@ suite("SchemaCompareWebViewController Tests", () => {
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
     let generateOperationIdStub: sinon.SinonStub<[], string>;
 
+    const differences = [
+        {
+            children: [],
+            differenceType: 0,
+            included: true,
+            name: "Table",
+            parent: null,
+            sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+            sourceScript:
+                "CREATE TABLE [dbo].[Customers] (\r\n [CustomerID] INT NOT NULL,\r\n [CustomerName] NVARCHAR (100) NOT NULL,\r\n [Email] NVARCHAR (100) NOT NULL,\r\n [Phone] NVARCHAR (20) NULL,\r\n PRIMARY KEY CLUSTERED ([CustomerID] ASC)\r\n);\r\nGO",
+            sourceValue: ["dbo", "CUstomers"],
+            targetObjectType: null,
+            targetScript: null,
+            targetValue: null,
+            updateAction: 2,
+        },
+        {
+            children: [],
+            differenceType: 0,
+            included: true,
+            name: "Table",
+            parent: null,
+            sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+            sourceScript:
+                "CREATE TABLE [dbo].[Orders] (\r\n [OrderID] INT NOT NULL,\r\n [CustomerID] INT NULL,\r\n [OrderDate] DATE NOT NULL,\r\n [TotalAmount] DECIMAL (10, 2) NOT NULL,\r\n PRIMARY KEY CLUSTERED ([OrderID] ASC),\r\n FOREIGN KEY ([CustomerID]) REFERENCES [dbo].[Customers] ([CustomerID])\r\n);\r\nGO",
+            sourceValue: ["dbo", "Customers"],
+            targetObjectType: null,
+            targetScript: null,
+            targetValue: null,
+            updateAction: 2,
+        },
+        {
+            children: [],
+            differenceType: 0,
+            included: true,
+            name: "Table",
+            parent: null,
+            sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+            sourceScript:
+                "CREATE TABLE [dbo].[Products] (\r\n [ProductID] INT NOT NULL,\r\n [ProductName] NVARCHAR (100) NOT NULL,\r\n [Price] DECIMAL (10, 2) NOT NULL,\r\n [StockQuantity] INT NOT NULL,\r\n PRIMARY KEY CLUSTERED ([ProductID] ASC)\r\n);\r\nGO",
+            sourceValue: ["dbo", "Products"],
+            targetObjectType: null,
+            targetScript: null,
+            targetValue: null,
+            updateAction: 2,
+        },
+    ];
+
     const deploymentOptions: mssql.DeploymentOptions = {
         excludeObjectTypes: {
             value: ["ServerTriggers", "Routes", "LinkedServerLogins", "Endpoints", "ErrorMessages"],
@@ -122,6 +170,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         mockInitialState = {
             isSqlProjectExtensionInstalled: false,
+            isIncludeExcludeAllOperationInProgress: false,
             isComparisonInProgress: false,
             activeServers: {},
             databases: [],
@@ -136,7 +185,13 @@ suite("SchemaCompareWebViewController Tests", () => {
             originalSourceExcludes: new Map<string, mssql.DiffEntry>(),
             originalTargetExcludes: new Map<string, mssql.DiffEntry>(),
             sourceTargetSwitched: false,
-            schemaCompareResult: undefined,
+            schemaCompareResult: {
+                operationId: operationId,
+                areEqual: false,
+                differences: differences,
+                success: true,
+                errorMessage: "",
+            },
             generateScriptResultStatus: undefined,
             publishDatabaseChangesResultStatus: undefined,
             schemaComparePublishProjectResult: undefined,
@@ -791,5 +846,159 @@ suite("SchemaCompareWebViewController Tests", () => {
             expectedResult,
             "confirmSelectedSchema should make auxiliary endpoint info the target endpoint info",
         );
+    });
+
+    test("includeExcludeAllNodes reducer - when includeRequest is false - all nodes are excluded", async () => {
+        const payload = {
+            includeRequest: false,
+        };
+
+        const expectedResult = {
+            allIncludedOrExcludedDifferences: [
+                {
+                    children: [],
+                    differenceType: 0,
+                    included: false,
+                    name: "Table",
+                    parent: null,
+                    sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+                    sourceScript:
+                        "CREATE TABLE [dbo].[Customers] (\r\n [CustomerID] INT NOT NULL,\r\n [CustomerName] NVARCHAR (100) NOT NULL,\r\n [Email] NVARCHAR (100) NOT NULL,\r\n [Phone] NVARCHAR (20) NULL,\r\n PRIMARY KEY CLUSTERED ([CustomerID] ASC)\r\n);\r\nGO",
+                    sourceValue: ["dbo", "CUstomers"],
+                    targetObjectType: null,
+                    targetScript: null,
+                    targetValue: null,
+                    updateAction: 2,
+                },
+                {
+                    children: [],
+                    differenceType: 0,
+                    included: false,
+                    name: "Table",
+                    parent: null,
+                    sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+                    sourceScript:
+                        "CREATE TABLE [dbo].[Orders] (\r\n [OrderID] INT NOT NULL,\r\n [CustomerID] INT NULL,\r\n [OrderDate] DATE NOT NULL,\r\n [TotalAmount] DECIMAL (10, 2) NOT NULL,\r\n PRIMARY KEY CLUSTERED ([OrderID] ASC),\r\n FOREIGN KEY ([CustomerID]) REFERENCES [dbo].[Customers] ([CustomerID])\r\n);\r\nGO",
+                    sourceValue: ["dbo", "Customers"],
+                    targetObjectType: null,
+                    targetScript: null,
+                    targetValue: null,
+                    updateAction: 2,
+                },
+                {
+                    children: [],
+                    differenceType: 0,
+                    included: false,
+                    name: "Table",
+                    parent: null,
+                    sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+                    sourceScript:
+                        "CREATE TABLE [dbo].[Products] (\r\n [ProductID] INT NOT NULL,\r\n [ProductName] NVARCHAR (100) NOT NULL,\r\n [Price] DECIMAL (10, 2) NOT NULL,\r\n [StockQuantity] INT NOT NULL,\r\n PRIMARY KEY CLUSTERED ([ProductID] ASC)\r\n);\r\nGO",
+                    sourceValue: ["dbo", "Products"],
+                    targetObjectType: null,
+                    targetScript: null,
+                    targetValue: null,
+                    updateAction: 2,
+                },
+            ],
+            errorMessage: null,
+            success: true,
+        };
+
+        const includeExcludeAllStub = sandbox
+            .stub(scUtils, "includeExcludeAllNodes")
+            .resolves(expectedResult);
+
+        const actualResult = await controller["_reducers"]["includeExcludeAllNodes"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.ok(includeExcludeAllStub.calledOnce, "includeExcludeAllNodes should be called once");
+
+        assert.deepEqual(
+            actualResult.schemaCompareResult.differences,
+            expectedResult.allIncludedOrExcludedDifferences,
+            "includeExcludeAllNodes should return the expected result",
+        );
+
+        includeExcludeAllStub.restore();
+    });
+
+    test("includeExcludeAllNodes reducer - when includeRequest is true - all nodes are included", async () => {
+        const payload = {
+            includeRequest: true,
+        };
+
+        const expectedResult = {
+            allIncludedOrExcludedDifferences: [
+                {
+                    children: [],
+                    differenceType: 0,
+                    included: true,
+                    name: "Table",
+                    parent: null,
+                    sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+                    sourceScript:
+                        "CREATE TABLE [dbo].[Customers] (\r\n [CustomerID] INT NOT NULL,\r\n [CustomerName] NVARCHAR (100) NOT NULL,\r\n [Email] NVARCHAR (100) NOT NULL,\r\n [Phone] NVARCHAR (20) NULL,\r\n PRIMARY KEY CLUSTERED ([CustomerID] ASC)\r\n);\r\nGO",
+                    sourceValue: ["dbo", "CUstomers"],
+                    targetObjectType: null,
+                    targetScript: null,
+                    targetValue: null,
+                    updateAction: 2,
+                },
+                {
+                    children: [],
+                    differenceType: 0,
+                    included: true,
+                    name: "Table",
+                    parent: null,
+                    sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+                    sourceScript:
+                        "CREATE TABLE [dbo].[Orders] (\r\n [OrderID] INT NOT NULL,\r\n [CustomerID] INT NULL,\r\n [OrderDate] DATE NOT NULL,\r\n [TotalAmount] DECIMAL (10, 2) NOT NULL,\r\n PRIMARY KEY CLUSTERED ([OrderID] ASC),\r\n FOREIGN KEY ([CustomerID]) REFERENCES [dbo].[Customers] ([CustomerID])\r\n);\r\nGO",
+                    sourceValue: ["dbo", "Customers"],
+                    targetObjectType: null,
+                    targetScript: null,
+                    targetValue: null,
+                    updateAction: 2,
+                },
+                {
+                    children: [],
+                    differenceType: 0,
+                    included: true,
+                    name: "Table",
+                    parent: null,
+                    sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+                    sourceScript:
+                        "CREATE TABLE [dbo].[Products] (\r\n [ProductID] INT NOT NULL,\r\n [ProductName] NVARCHAR (100) NOT NULL,\r\n [Price] DECIMAL (10, 2) NOT NULL,\r\n [StockQuantity] INT NOT NULL,\r\n PRIMARY KEY CLUSTERED ([ProductID] ASC)\r\n);\r\nGO",
+                    sourceValue: ["dbo", "Products"],
+                    targetObjectType: null,
+                    targetScript: null,
+                    targetValue: null,
+                    updateAction: 2,
+                },
+            ],
+            errorMessage: null,
+            success: true,
+        };
+
+        const includeExcludeAllStub = sandbox
+            .stub(scUtils, "includeExcludeAllNodes")
+            .resolves(expectedResult);
+
+        const actualResult = await controller["_reducers"]["includeExcludeAllNodes"](
+            mockInitialState,
+            payload,
+        );
+
+        assert.ok(includeExcludeAllStub.calledOnce, "includeExcludeAllNodes should be called once");
+
+        assert.deepEqual(
+            actualResult.schemaCompareResult.differences,
+            expectedResult.allIncludedOrExcludedDifferences,
+            "includeExcludeAllNodes should return the expected result",
+        );
+
+        includeExcludeAllStub.restore();
     });
 });

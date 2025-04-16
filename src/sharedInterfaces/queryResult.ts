@@ -8,8 +8,14 @@ import {
     ExecutionPlanReducers,
     ExecutionPlanState,
     ExecutionPlanWebviewState,
-} from "../reactviews/pages/ExecutionPlan/executionPlanInterfaces";
-import { ISlickRange } from "../reactviews/pages/QueryResult/table/utils";
+} from "./executionPlanInterfaces";
+
+export interface ISlickRange {
+    fromCell: number;
+    fromRow: number;
+    toCell: number;
+    toRow: number;
+}
 
 export enum QueryResultLoadState {
     Loading = "Loading",
@@ -163,4 +169,15 @@ export interface DbCellValue {
 export interface ResultSetSubset {
     rowCount: number;
     rows: DbCellValue[][];
+}
+
+export interface SelectionSummaryStats {
+    average?: string;
+    count: number;
+    distinctCount: number;
+    max?: number;
+    min?: number;
+    nullCount: number;
+    sum?: number;
+    removeSelectionStats: boolean;
 }

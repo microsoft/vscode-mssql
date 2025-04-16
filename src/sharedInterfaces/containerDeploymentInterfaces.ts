@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscodeMssql from "vscode-mssql";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { FormContextProps, FormEvent, FormItemSpec, FormState } from "../../common/forms/form";
+import { ApiStatus } from "./webview";
+import { FormContextProps, FormEvent, FormItemSpec, FormState } from "./form";
 
 export class ContainerDeploymentWebviewState
     implements

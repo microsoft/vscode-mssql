@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as cd from "../reactviews/pages/ContainerDeployment/containerDeploymentInterfaces";
+import * as cd from "../sharedInterfaces/containerDeploymentInterfaces";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import ConnectionManager from "./connectionManager";
@@ -11,7 +11,7 @@ import { exec } from "child_process";
 import { platform } from "os";
 import { sqlAuthentication } from "../constants/constants";
 import { IConnectionProfile } from "../models/interfaces";
-import { FormItemType, FormItemOptions, FormItemSpec } from "../reactviews/common/forms/form";
+import { FormItemType, FormItemOptions, FormItemSpec } from "../sharedInterfaces/form";
 import MainController from "./mainController";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "./vscodeWrapper";
