@@ -302,16 +302,19 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
     suite("Reducers", () => {
         suite("setConnectionInputType", () => {
-            test("Should set connection input type correctly for Parameters and ConnectionString", async () => {
-                expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
+            test("Should set connection input type correctly for Parameters", async () => {
+                expect(controller.state.selectedInputMode).to.equal(
+                    ConnectionInputMode.Parameters,
+                    "Default input mode should be Parameters",
+                );
 
                 await controller["_reducers"].setConnectionInputType(controller.state, {
-                    inputMode: ConnectionInputMode.ConnectionString,
+                    inputMode: ConnectionInputMode.AzureBrowse,
                 });
 
                 expect(controller.state.selectedInputMode).to.equal(
-                    ConnectionInputMode.ConnectionString,
-                    "Should set connection input type to ConnectionString",
+                    ConnectionInputMode.AzureBrowse,
+                    "Should set connection input type to AzureBrowse",
                 );
 
                 await controller["_reducers"].setConnectionInputType(controller.state, {
@@ -328,27 +331,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
                 stubConfirmVscodeAzureSignin();
-
-                sandbox
-                    .stub(AzureHelpers, "fetchServersFromAzure")
-                    .callsFake(async (sub: AzureSubscription) => {
-                        return [
-                            {
-                                location: "TestRegion",
-                                resourceGroup: `testResourceGroup-${sub.name}`,
-                                server: `testServer-${sub.name}-1`,
-                                databases: ["testDatabase1", "testDatabase2"],
-                                subscription: `${sub.name} (${sub.subscriptionId})`,
-                            },
-                            {
-                                location: "TestRegion",
-                                resourceGroup: `testResourceGroup-${sub.name}`,
-                                server: `testServer-${sub.name}-2`,
-                                databases: ["testDatabase1", "testDatabase2"],
-                                subscription: `${sub.name} (${sub.subscriptionId})`,
-                            },
-                        ] as AzureSqlServerInfo[];
-                    });
+                stubFetchServersFromAzure();
 
                 await controller["_reducers"].setConnectionInputType(controller.state, {
                     inputMode: ConnectionInputMode.AzureBrowse,
@@ -505,6 +488,29 @@ suite("ConnectionDialogWebviewController Tests", () => {
         return sandbox.stub(AzureHelpers, "confirmVscodeAzureSignin").resolves({
             getSubscriptions: () => Promise.resolve(mockSubscriptions),
         } as unknown as VSCodeAzureSubscriptionProvider);
+    }
+
+    function stubFetchServersFromAzure() {
+        return sandbox
+            .stub(AzureHelpers, "fetchServersFromAzure")
+            .callsFake(async (sub: AzureSubscription) => {
+                return [
+                    {
+                        location: "TestRegion",
+                        resourceGroup: `testResourceGroup-${sub.name}`,
+                        server: `testServer-${sub.name}-1`,
+                        databases: ["testDatabase1", "testDatabase2"],
+                        subscription: `${sub.name} (${sub.subscriptionId})`,
+                    },
+                    {
+                        location: "TestRegion",
+                        resourceGroup: `testResourceGroup-${sub.name}`,
+                        server: `testServer-${sub.name}-2`,
+                        databases: ["testDatabase1", "testDatabase2"],
+                        subscription: `${sub.name} (${sub.subscriptionId})`,
+                    },
+                ] as AzureSqlServerInfo[];
+            });
     }
 
     //#endregion
