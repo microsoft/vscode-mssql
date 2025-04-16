@@ -174,6 +174,16 @@
         <source xml:lang="en">Auto Arrange</source>
         <target state="translated">自動排列</target>
       </trans-unit>
+      <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
+        <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
+        <note>{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum</note>
+        <target state="new">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca">
+        <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
+        <note>{0} is the average, {1} is the count, {2} is the sum</note>
+        <target state="new">Average: {0}  Count: {1}  Sum: {2}</target>
+      </trans-unit>
       <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
         <source xml:lang="en">Azure Account</source>
         <target state="translated">Azure 帳戶</target>
@@ -592,6 +602,11 @@
       <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
         <source xml:lang="en">Cost</source>
         <target state="translated">成本</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4a8d5a21d0db63fc6a204170919855b12207337b5357f2bb7eedcb7cafa77fce">
+        <source xml:lang="en">Count: {0}  Distinct Count: {1}  Null Count: {2}</source>
+        <note>{0} is the count, {1} is the distinct count, and {2} is the null count</note>
+        <target state="new">Count: {0}  Distinct Count: {1}  Null Count: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
         <source xml:lang="en">Create</source>
@@ -1446,7 +1461,7 @@
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
-        <target state="new">No items</target>
+        <target state="translated">無項目</target>
       </trans-unit>
       <trans-unit id="++CODE++c933cd0d45861a20699df513967542bc9b448f409d362d9bec4e7443dd96f403">
         <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
