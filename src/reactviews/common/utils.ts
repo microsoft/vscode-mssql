@@ -87,3 +87,9 @@ export function getCoreRPCs<TState, TReducers>(
         },
     };
 }
+
+export enum MouseButton {
+    LeftClick = 0,
+    Middle = 1,
+    RightClick = 2,
+}

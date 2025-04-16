@@ -170,3 +170,14 @@ export interface ResultSetSubset {
     rowCount: number;
     rows: DbCellValue[][];
 }
+
+export interface SelectionSummaryStats {
+    average?: string;
+    count: number;
+    distinctCount: number;
+    max?: number;
+    min?: number;
+    nullCount: number;
+    sum?: number;
+    removeSelectionStats: boolean;
+}
