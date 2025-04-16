@@ -207,6 +207,7 @@ const CompareActionBar = (props: Props) => {
                 icon={<SaveRegular />}
                 onClick={handleSaveScmp}
                 disabled={
+                    context.state.isComparisonInProgress ||
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo)
                 }>
