@@ -428,72 +428,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private async setSelectionSummaryText(isSelection?: boolean) {
-        let summary: SelectionSummaryStats = {
-            count: -1,
-            distinctCount: -1,
-            nullCount: -1,
-            removeSelectionStats: !isSelection,
-        };
-
-        if (isSelection) {
-            const selectedRanges: Slick.Range[] = this.getSelectedRanges();
-            const firstRange = selectedRanges[0];
-            if (!firstRange) return;
-
-            const column = this.grid.getColumns()[firstRange.fromCell];
-            if (!column) return;
-
-            const values: any[] = [];
-            let nullCount = 0;
-            let numCount = 0;
-            let sum = 0;
-            let min = Infinity;
-            let max = -Infinity;
-
-            for (let row = firstRange.fromRow; row <= firstRange.toRow; row++) {
-                for (let col = firstRange.fromCell; col <= firstRange.toCell; col++) {
-                    const cell = this.grid.getCellNode(row, col);
-                    if (!cell) continue;
-                    const value = cell.innerText;
-                    if (value === "NULL") {
-                        nullCount++;
-                    } else if (!isNaN(Number(value))) {
-                        numCount++;
-                        min = Math.min(min, Number(value));
-                        max = Math.max(max, Number(value));
-                        sum += Number(value);
-                    }
-                    values.push(value);
-                }
-            }
-
-            const count = values.length;
-            const distinctCount = new Set(values).size;
-
-            if (numCount) {
-                // format average into decimal, up to three places, with no trailing zeros
-                const average = (sum / numCount).toFixed(3).replace(/\.?0+$/, "");
-                summary = {
-                    average: average,
-                    count: count,
-                    distinctCount: distinctCount,
-                    max: max,
-                    min: min,
-                    nullCount: nullCount,
-                    sum: sum,
-                    removeSelectionStats: false,
-                };
-            } else {
-                summary = {
-                    count: count,
-                    distinctCount: distinctCount,
-                    nullCount: nullCount,
-                    removeSelectionStats: false,
-                };
-            }
-        }
         await this.webViewState.extensionRpc.call("setSelectionSummary", {
-            summary: summary,
+            summary: await selectionSummaryHelper(this.getSelectedRanges(), this.grid, isSelection),
         });
     }
 
@@ -559,4 +495,77 @@ export class CellSelectionModel<T extends Slick.SlickData>
             this.setSelectedRanges([new Slick.Range(activeCell.row, activeCell.cell)]);
         }
     }
+}
+
+// Public for testing
+export async function selectionSummaryHelper(
+    selectedRanges: Slick.Range[],
+    grid: Slick.Grid<any>,
+    isSelection?: boolean,
+): Promise<SelectionSummaryStats> {
+    let summary: SelectionSummaryStats = {
+        count: -1,
+        distinctCount: -1,
+        nullCount: -1,
+        removeSelectionStats: !isSelection,
+    };
+
+    if (isSelection) {
+        const firstRange = selectedRanges[0];
+        if (!firstRange) return summary;
+
+        const column = grid.getColumns()[firstRange.fromCell];
+        if (!column) return summary;
+
+        const values: any[] = [];
+        let nullCount = 0;
+        let numCount = 0;
+        let sum = 0;
+        let min = Infinity;
+        let max = -Infinity;
+
+        for (let row = firstRange.fromRow; row <= firstRange.toRow; row++) {
+            for (let col = firstRange.fromCell; col <= firstRange.toCell; col++) {
+                const cell = grid.getCellNode(row, col);
+                if (!cell) continue;
+                const value = cell.innerText;
+                if (value === "NULL") {
+                    nullCount++;
+                } else if (!isNaN(Number(value))) {
+                    numCount++;
+                    min = Math.min(min, Number(value));
+                    max = Math.max(max, Number(value));
+                    sum += Number(value);
+                }
+                values.push(value);
+            }
+        }
+
+        const count = values.length;
+        const distinctCount = new Set(values).size;
+
+        if (numCount) {
+            // format average into decimal, up to three places, with no trailing zeros
+            const average = (sum / numCount).toFixed(3).replace(/\.?0+$/, "");
+            summary = {
+                average: average,
+                count: count,
+                distinctCount: distinctCount,
+                max: max,
+                min: min,
+                nullCount: nullCount,
+                sum: sum,
+                removeSelectionStats: false,
+            };
+        } else {
+            summary = {
+                count: count,
+                distinctCount: distinctCount,
+                nullCount: nullCount,
+                removeSelectionStats: false,
+            };
+        }
+    }
+
+    return summary;
 }
