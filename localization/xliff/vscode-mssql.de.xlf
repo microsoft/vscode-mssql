@@ -489,6 +489,10 @@
         <source xml:lang="en">Compare</source>
         <target state="translated">Vergleichen</target>
       </trans-unit>
+      <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
+        <source xml:lang="en">Comparison Details</source>
+        <target state="new">Comparison Details</target>
+      </trans-unit>
       <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
         <source xml:lang="en">Confirm to clear recent connections list</source>
         <target state="translated">Bestätigen Sie das Löschen der Liste mit den zuletzt verwendeten Verbindungen.</target>
