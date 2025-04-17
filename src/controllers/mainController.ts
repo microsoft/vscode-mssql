@@ -805,6 +805,15 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
+                    Constants.cmdSchemaCompareOpenFromCommandPalette,
+                    async () => {
+                        await this.onSchemaCompare();
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
                     async (node: TreeNodeInfo) => {
                         const connDialog = new ConnectionDialogWebviewController(
@@ -1739,7 +1748,7 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
-    public async onSchemaCompare(node: any): Promise<void> {
+    public async onSchemaCompare(node?: any): Promise<void> {
         const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,

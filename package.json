@@ -747,6 +747,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.schemaCompareOpenFromCommandPalette",
+                "title": "%mssql.schemaCompare%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.rebuildIntelliSenseCache",
                 "title": "%mssql.rebuildIntelliSenseCache%",
                 "category": "MS SQL"
