@@ -489,6 +489,10 @@
         <source xml:lang="en">Compare</source>
         <target state="translated">비교</target>
       </trans-unit>
+      <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
+        <source xml:lang="en">Comparison Details</source>
+        <target state="new">Comparison Details</target>
+      </trans-unit>
       <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
         <source xml:lang="en">Confirm to clear recent connections list</source>
         <target state="translated">최근 연결 목록 삭제 확인</target>
@@ -590,6 +594,10 @@
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
         <target state="translated">코드 복사 및 웹 페이지 열기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
+        <source xml:lang="en">Copy connection string to clipboard</source>
+        <target state="new">Copy connection string to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
@@ -1199,6 +1207,10 @@
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">잘못된 열 너비</target>
       </trans-unit>
+      <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
+        <source xml:lang="en">Invalid connection string: {0}</source>
+        <target state="new">Invalid connection string: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++b65d31b3dcfd9935b8fae6c977fe0f07a5d73a830edb2426c05d63464b299858">
         <source xml:lang="en">Invalid max length '{0}'</source>
         <note>{0} is the max length</note>
@@ -1265,6 +1277,14 @@
         <source xml:lang="en">Line {0}</source>
         <note>{0} is the line number</note>
         <target state="translated">선 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
+        <source xml:lang="en">Load</source>
+        <target state="new">Load</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b">
+        <source xml:lang="en">Load from Connection String</source>
+        <target state="new">Load from Connection String</target>
       </trans-unit>
       <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
         <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
@@ -1649,6 +1669,14 @@
       <trans-unit id="++CODE++b0f439de4ac489dfe75bf62e7fb55c9c993851f6f462fbbacae37851a6cad588">
         <source xml:lang="en">Password (SQL Login)</source>
         <target state="translated">암호(SQL 로그인)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f3380f7b44bd70af2a369de6026bf2ca2a7b36fde9086935efcd62a0e379cc7a">
+        <source xml:lang="en">Paste</source>
+        <target state="new">Paste</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aa7e02a360294359df9e77459e71e6f350056d94cf36d644cc2c910fff983359">
+        <source xml:lang="en">Paste connection string from clipboard</source>
+        <target state="new">Paste connection string from clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++71f0edbc866bcd836e06eefc36556b0e6a3552f2d422dc8bc12bddd51e3b5a8e">
         <source xml:lang="en">Path: {0}</source>
