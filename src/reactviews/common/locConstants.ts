@@ -611,6 +611,7 @@ export class LocConstants {
             cancel: l10n.t("Cancel"),
             source: l10n.t("Source"),
             target: l10n.t("Target"),
+            compareDetails: l10n.t("Comparison Details"),
             areYouSureYouWantToUpdateTheTarget: l10n.t(
                 "Are you sure you want to update the target?",
             ),
