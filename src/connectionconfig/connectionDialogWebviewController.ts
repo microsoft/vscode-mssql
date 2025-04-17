@@ -64,6 +64,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
+import { generateGuid } from "../models/utils";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -654,6 +655,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 cleanedConnection as any,
             );
+
+            if (!cleanedConnection.id) {
+                cleanedConnection.id = generateGuid();
+            }
 
             await this._mainController.connectionManager.connectionStore.saveProfile(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
