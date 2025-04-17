@@ -32,6 +32,14 @@ const useStyles = makeStyles({
     HeaderCellPadding: {
         padding: "0 8px",
     },
+    selectedRow: {
+        backgroundColor: "var(--vscode-list-activeSelectionBackground)",
+        color: "var(--vscode-list-activeSelectionForeground)",
+        "& td": {
+            backgroundColor: "var(--vscode-list-activeSelectionBackground)",
+            color: "var(--vscode-list-activeSelectionForeground)",
+        },
+    },
 });
 
 interface TableRowData extends RowStateBase<DiffEntry> {
@@ -47,9 +55,10 @@ interface ReactWindowRenderFnProps extends ListChildComponentProps {
 
 interface Props {
     onDiffSelected: (id: number) => void;
+    selectedDiffId: number;
 }
 
-export const SchemaDifferences = ({ onDiffSelected }: Props) => {
+export const SchemaDifferences = ({ onDiffSelected, selectedDiffId }: Props) => {
     const classes = useStyles();
     const { targetDocument } = useFluent();
     const scrollbarWidth = useScrollbarWidth({ targetDocument });
@@ -240,7 +249,8 @@ export const SchemaDifferences = ({ onDiffSelected }: Props) => {
                 key={item.position}
                 onKeyDown={onKeyDown}
                 onClick={() => onDiffSelected(index)}
-                appearance={appearance}>
+                appearance={appearance}
+                className={index === selectedDiffId ? classes.selectedRow : undefined}>
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{formatName(item.sourceValue)}</TableCell>
                 <TableCell>
