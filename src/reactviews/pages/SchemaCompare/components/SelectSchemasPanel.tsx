@@ -92,6 +92,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 id={sourceId}
                 label={loc.schemaCompare.source}
                 value={sourceEndpointDisplay}
+                disableBrowseButton={context.state.isComparisonInProgress}
                 selectFile={() => onSelectSchemaClicked("source")}
                 className={classes.marginRight}
             />
@@ -100,6 +101,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
                 id={targetId}
                 label={loc.schemaCompare.target}
                 value={targetEndpointDisplay}
+                disableBrowseButton={context.state.isComparisonInProgress}
                 selectFile={() => onSelectSchemaClicked("target")}
             />
 
