@@ -20,6 +20,7 @@ import {
 import { locConstants as loc } from "../../../common/locConstants";
 import { useContext, useEffect } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { SchemaCompareEndpointType } from "../../../../sharedInterfaces/schemaCompare";
 
 interface Props {
     onOptionsClicked: () => void;
@@ -98,10 +99,9 @@ const CompareActionBar = (props: Props) => {
     const disableGenerateScriptButton = (): boolean => {
         if (
             !(
-                (
-                    context.state.targetEndpointInfo &&
-                    Number(context.state.targetEndpointInfo.endpointType) === 0
-                ) /* Database */
+                context.state.targetEndpointInfo &&
+                Number(context.state.targetEndpointInfo.endpointType) ===
+                    SchemaCompareEndpointType.Database
             )
         ) {
             return true;
@@ -127,7 +127,8 @@ const CompareActionBar = (props: Props) => {
             context.state.schemaCompareResult &&
             context.state.schemaCompareResult.differences &&
             context.state.schemaCompareResult.differences.length > 0 &&
-            Number(context.state.targetEndpointInfo.endpointType) !== 1 // Dacpac lewissanchez todo: Figure out how to move away from these magic numbers for enums
+            Number(context.state.targetEndpointInfo.endpointType) !==
+                SchemaCompareEndpointType.Dacpac
         ) {
             const isIncludingDiffs = hasIncludedDiffs();
             if (!isIncludingDiffs) {
