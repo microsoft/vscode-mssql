@@ -707,6 +707,10 @@ export async function startDocker(): Promise<cd.DockerCommandParams> {
 export async function restartContainer(containerName: string): Promise<boolean> {
     const isDockerStarted = await startDocker();
     if (!isDockerStarted) return false;
+    const containerRunning = await isDockerContainerRunning(containerName);
+    if (containerRunning) {
+        return true;
+    }
     return new Promise((resolve) => {
         exec(cd.COMMANDS.START_CONTAINER(containerName), async (error) => {
             resolve(!error && (await checkIfContainerIsReadyForConnections(containerName)));

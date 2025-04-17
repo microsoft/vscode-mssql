@@ -17,6 +17,7 @@ const useStyles = makeStyles({
         gap: "2px",
         alignItems: "center",
         justifyContent: "center",
+        height: "100vh",
     },
     stepsDiv: {
         display: "flex",
@@ -37,14 +38,15 @@ const useStyles = makeStyles({
         flexWrap: "wrap",
         lineHeight: "1.5",
         marginBottom: "5px",
+        fontWeight: "bold",
     },
     itemDiv: {
         position: "relative",
         overflow: "auto",
         display: "flex",
         flexDirection: "row",
-        alignItems: "center",
-        width: "250px",
+        height: "fit-content",
+        padding: "10px",
     },
     textDiv: {
         position: "relative",
@@ -53,6 +55,14 @@ const useStyles = makeStyles({
         flexDirection: "column",
         alignItems: "left",
         gap: "10px",
+        width: "500px",
+    },
+    titleDiv: {
+        fontWeight: "bold",
+    },
+    icon: {
+        width: "96px",
+        height: "96px",
     },
 });
 
@@ -78,31 +88,53 @@ export const GetStartedPage: React.FC = () => {
                     Seamless SQL Server on Docker, Right in VS Code!
                 </div>
                 <div className={classes.itemDiv}>
-                    <img src={oneClick(theme)} alt="One Click Server Creation" />
+                    <img
+                        className={classes.icon}
+                        src={oneClick(theme)}
+                        alt="One Click Server Creation"
+                    />
                     <div className={classes.textDiv}>
-                        <div>One Click Server Container Creation</div>
-                        <div>bibbly bloop</div>
+                        <div className={classes.titleDiv}>One Click Server Container Creation</div>
+                        <div>Spin up a SQL server container in seconds—no manual setup needed.</div>
                     </div>
                 </div>
                 <div className={classes.itemDiv}>
-                    <img src={easyManagement(theme)} alt="Easy Management" />
+                    <img
+                        className={classes.icon}
+                        src={easyManagement(theme)}
+                        alt="Easy Management"
+                    />
                     <div className={classes.textDiv}>
-                        <div>Easy Management</div>
-                        <div>bibbly bloop</div>
+                        <div className={classes.titleDiv}>Easy Management</div>
+                        <div>Start, stop, or remove your SQL server container anytime.</div>
                     </div>
                 </div>
                 <div className={classes.itemDiv}>
-                    <img src={rightFit(theme)} alt="Pick the Right Fit" />
+                    <img className={classes.icon} src={rightFit(theme)} alt="Pick the Right Fit" />
                     <div className={classes.textDiv}>
-                        <div>Pick the Right Fit</div>
-                        <div>bibbly bloop</div>
+                        <div className={classes.titleDiv}>Pick the Right Fit</div>
+                        <div>
+                            Not sure which SQL Server version to choose? We’ll guide you through the
+                            options with best-practice recommendations.
+                        </div>
+                        <a>SQL Server on Docker Best Practices</a>
+                        <a style={{ marginTop: "0px" }}>
+                            SQL Server editions and Feature comparison
+                        </a>
                     </div>
                 </div>
                 <div className={classes.itemDiv}>
-                    <img src={seamlessConnections(theme)} alt="Seamless Connections" />
+                    <img
+                        className={classes.icon}
+                        src={seamlessConnections(theme)}
+                        alt="Seamless Connections"
+                    />
                     <div className={classes.textDiv}>
-                        <div>Seamless Connections</div>
-                        <div>bibbly bloop</div>
+                        <div className={classes.titleDiv}>Seamless Connections</div>
+                        <div>
+                            Deploy, manage, and interact with SQL Server container — right from VS
+                            Code, no context switching.
+                        </div>
                     </div>
                 </div>
                 <Button
