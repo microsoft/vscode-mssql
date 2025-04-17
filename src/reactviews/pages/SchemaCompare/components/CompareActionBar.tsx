@@ -89,11 +89,7 @@ const CompareActionBar = (props: Props) => {
     };
 
     const hasIncludedDiffs = (): boolean => {
-        const includedDiffs = context.state.schemaCompareResult.differences.filter(
-            (diff) => diff.included,
-        );
-
-        return includedDiffs.length > 0;
+        return context.state.schemaCompareResult.differences.some((diff) => diff.included);
     };
 
     const disableGenerateScriptButton = (): boolean => {
@@ -114,8 +110,7 @@ const CompareActionBar = (props: Props) => {
             return true;
         }
 
-        const isIncludingDiffs = hasIncludedDiffs();
-        if (!isIncludingDiffs) {
+        if (!hasIncludedDiffs()) {
             return true;
         }
 
@@ -130,8 +125,7 @@ const CompareActionBar = (props: Props) => {
             Number(context.state.targetEndpointInfo.endpointType) !==
                 SchemaCompareEndpointType.Dacpac
         ) {
-            const isIncludingDiffs = hasIncludedDiffs();
-            if (!isIncludingDiffs) {
+            if (!hasIncludedDiffs()) {
                 return true;
             }
 
