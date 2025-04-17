@@ -110,6 +110,7 @@
     ]
   },
   "Close Find": "Close Find",
+  "Load": "Load",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -210,6 +211,7 @@
   "Parameters": "Parameters",
   "Connection String": "Connection String",
   "Browse Azure": "Browse Azure",
+  "Load from Connection String": "Load from Connection String",
   "Saved Connections": "Saved Connections",
   "Recent Connections": "Recent Connections",
   "Subscription": "Subscription",
@@ -246,6 +248,9 @@
   "Default": "Default",
   "Delete saved connection": "Delete saved connection",
   "Remove recent connection": "Remove recent connection",
+  "Copy connection string to clipboard": "Copy connection string to clipboard",
+  "Paste connection string from clipboard": "Paste connection string from clipboard",
+  "Paste": "Paste",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
@@ -1144,6 +1149,7 @@
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
+  "Invalid connection string: {0}": "Invalid connection string: {0}",
   "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
   "Error loading Azure databases.": "Error loading Azure databases."
 }

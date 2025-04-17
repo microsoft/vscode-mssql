@@ -74,6 +74,7 @@ export enum TelemetryActions {
     SubmitGithubIssue = "SubmitGithubIssue",
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
+    LoadFromConnectionString = "LoadFromConnectionString",
 }
 
 /**

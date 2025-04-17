@@ -46,6 +46,7 @@ export class LocConstants {
                     ],
                 }),
             closeFind: l10n.t("Close Find"),
+            load: l10n.t("Load"),
         };
     }
 
@@ -171,6 +172,7 @@ export class LocConstants {
             parameters: l10n.t("Parameters"),
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
+            loadFromConnectionString: l10n.t("Load from Connection String"),
             savedConnections: l10n.t("Saved Connections"),
             recentConnections: l10n.t("Recent Connections"),
             subscriptionLabel: l10n.t("Subscription"),
@@ -215,6 +217,10 @@ export class LocConstants {
             default: l10n.t("Default"),
             deleteSavedConnection: l10n.t("Delete saved connection"),
             removeRecentConnection: l10n.t("Remove recent connection"),
+            copyConnectionString: l10n.t("Copy connection string to clipboard"),
+            pasteConnectionString: l10n.t("Paste connection string from clipboard"),
+            copy: l10n.t("Copy"),
+            paste: l10n.t("Paste"),
         };
     }
 

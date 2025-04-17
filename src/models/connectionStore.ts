@@ -36,7 +36,7 @@ export class ConnectionStore {
         private _context: vscode.ExtensionContext,
         private _logger: Logger,
         private _credentialStore: ICredentialStore,
-        private _connectionConfig?: IConnectionConfig,
+        private _connectionConfig?: ConnectionConfig,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!this.vscodeWrapper) {
@@ -267,6 +267,8 @@ export class ConnectionStore {
         profile: IConnectionProfile,
         forceWritePlaintextPassword?: boolean,
     ): Promise<IConnectionProfile> {
+        this._connectionConfig.populateMissingIds(profile);
+
         // Add the profile to the saved list, taking care to clear out the password field if necessary
         let savedProfile: IConnectionProfile;
         if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
