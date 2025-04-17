@@ -145,6 +145,36 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async initializeDialog(connectionToEdit: IConnectionInfo) {
+        // Load connection form components
+        this.state.formComponents = await generateConnectionComponents(
+            this._mainController.connectionManager,
+            getAccounts(this._mainController.azureAccountService),
+            this.getAzureActionButtons(),
+        );
+
+        this.state.connectionComponents = {
+            mainOptions: [...ConnectionDialogWebviewController.mainOptions],
+            topAdvancedOptions: [
+                "port",
+                "applicationName",
+                "connectTimeout",
+                "multiSubnetFailover",
+            ],
+            groupedAdvancedOptions: [], // computed below
+        };
+
+        this.state.connectionComponents.groupedAdvancedOptions = groupAdvancedOptions(
+            this.state.formComponents as any,
+            this.state.connectionComponents,
+        );
+
+        // Display intitial UI since it may take a moment for the connection to load
+        // due to fetching Azure account and tenant info
+        this.loadEmptyConnection();
+        await this.updateItemVisibility();
+        this.updateState();
+
+        // Load saved/recent connections
         try {
             await this.updateLoadedConnections(this.state);
             this.updateState();
@@ -158,47 +188,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             );
         }
 
-        try {
-            if (connectionToEdit) {
+        // Load connection (if specified); happens after form is loaded so that the form can be updated
+        if (connectionToEdit) {
+            try {
                 await this.loadConnectionToEdit(connectionToEdit);
-            } else {
-                await this.loadEmptyConnection();
+            } catch (err) {
+                this.loadEmptyConnection();
+                void vscode.window.showErrorMessage(getErrorMessage(err));
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.Initialize,
+                    err,
+                    false, // includeErrorMessage
+                );
             }
-        } catch (err) {
-            await this.loadEmptyConnection();
-            void vscode.window.showErrorMessage(getErrorMessage(err));
-
-            sendErrorEvent(
-                TelemetryViews.ConnectionDialog,
-                TelemetryActions.Initialize,
-                err,
-                false, // includeErrorMessage
-            );
         }
-
-        this.state.formComponents = await generateConnectionComponents(
-            this._mainController.connectionManager,
-            getAccounts(this._mainController.azureAccountService),
-            this.getAzureActionButtons(),
-        );
-
-        this.state.connectionComponents = {
-            mainOptions: [...ConnectionDialogWebviewController.mainOptions],
-            topAdvancedOptions: [
-                "port",
-                "applicationName",
-                // TODO: 'autoDisconnect',
-                // TODO: 'sslConfiguration',
-                "connectTimeout",
-                "multiSubnetFailover",
-            ],
-            groupedAdvancedOptions: [], // computed below
-        };
-
-        this.state.connectionComponents.groupedAdvancedOptions = groupAdvancedOptions(
-            this.state.formComponents as any,
-            this.state.connectionComponents,
-        );
 
         await this.updateItemVisibility();
         this.updateState();
@@ -494,25 +499,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     async updateItemVisibility() {
         let hiddenProperties: (keyof IConnectionDialogProfile)[] = [];
 
-        if (
-            this.state.selectedInputMode === ConnectionInputMode.Parameters ||
-            this.state.selectedInputMode === ConnectionInputMode.AzureBrowse
-        ) {
-            if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
-                hiddenProperties.push("user", "password", "savePassword");
-            }
-            if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
-                hiddenProperties.push("accountId", "tenantId");
-            }
-            if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
-                // Hide tenantId if accountId has only one tenant
-                const tenants = await getTenants(
-                    this._mainController.azureAccountService,
-                    this.state.connectionProfile.accountId,
-                );
-                if (tenants.length === 1) {
-                    hiddenProperties.push("tenantId");
-                }
+        if (this.state.connectionProfile.authenticationType !== AuthenticationType.SqlLogin) {
+            hiddenProperties.push("user", "password", "savePassword");
+        }
+        if (this.state.connectionProfile.authenticationType !== AuthenticationType.AzureMFA) {
+            hiddenProperties.push("accountId", "tenantId");
+        }
+        if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
+            // Hide tenantId if accountId has only one tenant
+            const tenants = await getTenants(
+                this._mainController.azureAccountService,
+                this.state.connectionProfile.accountId,
+            );
+            if (tenants.length === 1) {
+                hiddenProperties.push("tenantId");
             }
         }
 
@@ -871,6 +871,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.connectionProfile = connection;
             this.state.selectedInputMode = ConnectionInputMode.Parameters;
 
+            if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
+                await this.handleAzureMFAEdits("accountId");
+            }
+
             this.updateState();
         }
     }
@@ -1030,8 +1034,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
                 if (tenantComponent) {
                     tenantComponent.options = tenants;
-                    if (tenants && tenants.length > 0) {
+                    if (
+                        tenants.length > 0 &&
+                        !tenants.find((t) => t.value === this.state.connectionProfile.tenantId)
+                    ) {
+                        // if expected tenantId is not in the list of tenants, set it to the first tenant
                         this.state.connectionProfile.tenantId = tenants[0].value;
+                        await this.validateForm(this.state.formState, "tenantId");
                     }
                 }
                 accountComponent.actionButtons = await this.getAzureActionButtons();
