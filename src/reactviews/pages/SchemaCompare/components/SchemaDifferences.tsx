@@ -27,6 +27,7 @@ import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
 import { DiffEntry } from "vscode-mssql";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import "./compareDiffEditor.css";
 
 const useStyles = makeStyles({
     HeaderCellPadding: {
