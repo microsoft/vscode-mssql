@@ -64,7 +64,12 @@ export const SchemaComparePage = () => {
 
             {showMessage() && <Message />}
 
-            {!showMessage() && <SchemaDifferences onDiffSelected={handleDiffSelected} />}
+            {!showMessage() && (
+                <SchemaDifferences
+                    selectedDiffId={selectedDiffId}
+                    onDiffSelected={handleDiffSelected}
+                />
+            )}
 
             {!showMessage() && <CompareDiffEditor selectedDiffId={selectedDiffId} />}
 
