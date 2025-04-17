@@ -87,6 +87,14 @@ const CompareActionBar = (props: Props) => {
         );
     };
 
+    const hasIncludedDiffs = (): boolean => {
+        const includedDiffs = context.state.schemaCompareResult.differences.filter(
+            (diff) => diff.included,
+        );
+
+        return includedDiffs.length > 0;
+    };
+
     const disableGenerateScriptButton = (): boolean => {
         if (
             !(
@@ -106,10 +114,8 @@ const CompareActionBar = (props: Props) => {
             return true;
         }
 
-        const includedDiffs = context.state.schemaCompareResult.differences.filter(
-            (diff) => diff.included,
-        );
-        if (includedDiffs.length === 0) {
+        const isIncludingDiffs = hasIncludedDiffs();
+        if (!isIncludingDiffs) {
             return true;
         }
 
@@ -123,6 +129,11 @@ const CompareActionBar = (props: Props) => {
             context.state.schemaCompareResult.differences.length > 0 &&
             Number(context.state.targetEndpointInfo.endpointType) !== 1 // Dacpac lewissanchez todo: Figure out how to move away from these magic numbers for enums
         ) {
+            const isIncludingDiffs = hasIncludedDiffs();
+            if (!isIncludingDiffs) {
+                return true;
+            }
+
             return false;
         }
 
