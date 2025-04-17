@@ -31,7 +31,7 @@ const useStyles = makeStyles({
     },
 
     buttonLeftSmallMargin: {
-        marginLeft: "2px",
+        marginLeft: "8px",
     },
 });
 
