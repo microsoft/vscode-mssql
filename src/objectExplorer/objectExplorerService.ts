@@ -12,7 +12,6 @@ import {
     CreateSessionRequest,
     CreateSessionResponse,
 } from "../models/contracts/objectExplorer/createSessionRequest";
-import { NotificationHandler } from "vscode-languageclient";
 import {
     ExpandRequest,
     ExpandParams,
@@ -75,6 +74,15 @@ export class ObjectExplorerService {
     private _sessionIdToConnectionProfileMap: Map<string, IConnectionProfile>;
     private _expandParamsToTreeNodeInfoMap: Map<ExpandParams, TreeNodeInfo>;
 
+    private _pendingSessionCreations: Map<string, Deferred<SessionCreatedParameters>> = new Map<
+        string,
+        Deferred<SessionCreatedParameters>
+    >();
+    private _pendingExpands: Map<string, Deferred<ExpandResponse>> = new Map<
+        string,
+        Deferred<ExpandResponse>
+    >();
+
     // Deferred promise maps
     private _sessionIdToPromiseMap: Map<string, Deferred<vscode.TreeItem>>;
     private _expandParamsToPromiseMap: Map<ExpandParams, Deferred<TreeNodeInfo[]>>;
@@ -100,135 +108,34 @@ export class ObjectExplorerService {
         this._expandParamsToPromiseMap = new Map<ExpandParams, Deferred<TreeNodeInfo[]>>();
         this._expandParamsToTreeNodeInfoMap = new Map<ExpandParams, TreeNodeInfo>();
 
-        this._client.onNotification(
-            CreateSessionCompleteNotification.type,
-            this.handleSessionCreatedNotification(),
+        this._client.onNotification(CreateSessionCompleteNotification.type, (e) =>
+            this.handleSessionCreatedNotification(e),
         );
-        this._client.onNotification(
-            ExpandCompleteNotification.type,
-            this.handleExpandSessionNotification(),
+        this._client.onNotification(ExpandCompleteNotification.type, (e) =>
+            this.handleExpandNodeNotification(e),
         );
     }
 
-    private handleSessionCreatedNotification(): NotificationHandler<SessionCreatedParameters> {
-        const self = this;
-        const handler = async (result: SessionCreatedParameters) => {
-            if (self._currentNode instanceof ConnectTreeNode) {
-                self.currentNode = getParentNode(self.currentNode);
-            }
-            if (result.success) {
-                let nodeLabel =
-                    this._sessionIdToNodeLabelMap.get(result.sessionId) ??
-                    ConnInfo.getConnectionDisplayName(self._currentNode.connectionInfo);
-                // if no node label, check if it has a name in saved profiles
-                // in case this call came from new query
-                // let savedConnections =
-                // this._connectionManager.connectionStore.readAllConnections();
-                let nodeConnection = this._sessionIdToConnectionProfileMap.get(result.sessionId);
+    private handleSessionCreatedNotification(result: SessionCreatedParameters): void {
+        const promise = this._pendingSessionCreations.get(result.sessionId);
+        if (promise) {
+            promise.resolve(result);
+        } else {
+            this._logger.logDebug(
+                `Session created notification received for sessionId ${result.sessionId} but no promise found.`,
+            );
+        }
+    }
 
-                // set connection and other things
-                let node: TreeNodeInfo;
-
-                if (self._currentNode && self._currentNode.sessionId === result.sessionId) {
-                    node = TreeNodeInfo.fromNodeInfo(
-                        result.rootNode,
-                        result.sessionId,
-                        undefined,
-                        self._currentNode.connectionInfo,
-                        nodeLabel,
-                        Constants.serverLabel,
-                    );
-                } else {
-                    node = TreeNodeInfo.fromNodeInfo(
-                        result.rootNode,
-                        result.sessionId,
-                        undefined,
-                        nodeConnection,
-                        nodeLabel,
-                        Constants.serverLabel,
-                    );
-                }
-                // make a connection if not connected already
-                const nodeUri = this.getNodeIdentifier(node);
-                if (
-                    !this._connectionManager.isConnected(nodeUri) &&
-                    !this._connectionManager.isConnecting(nodeUri)
-                ) {
-                    const profile = <IConnectionProfile>node.connectionInfo;
-                    await this._connectionManager.connect(nodeUri, profile);
-                }
-
-                self.updateNode(node);
-                self._objectExplorerProvider.objectExplorerExists = true;
-                const promise = self._sessionIdToPromiseMap.get(result.sessionId);
-                // remove the sign in node once the session is created
-                if (self._treeNodeToChildrenMap.has(node)) {
-                    self._treeNodeToChildrenMap.delete(node);
-                }
-                return promise?.resolve(node);
-            } else {
-                // create session failure
-                if (self._currentNode?.connectionInfo?.password) {
-                    const profile = this._currentNode.connectionInfo;
-                    profile.password = "";
-                    this._currentNode.updateConnectionInfo(profile);
-                }
-                let error = LocalizedConstants.connectErrorLabel;
-                let errorNumber: number;
-                if (result.errorNumber) {
-                    errorNumber = result.errorNumber;
-                }
-                if (result.errorMessage) {
-                    error += `: ${result.errorMessage}`;
-                }
-
-                if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
-                    void self._connectionManager.showInstructionTextAsWarning(
-                        self._currentNode.connectionInfo,
-                        async (updatedProfile) => {
-                            void self.reconnectProfile(self._currentNode, updatedProfile);
-                        },
-                    );
-                } else if (ObjectExplorerUtils.isFirewallError(result.errorNumber)) {
-                    // handle session failure because of firewall issue
-                    let handleFirewallResult =
-                        await self._connectionManager.firewallService.handleFirewallRule(
-                            Constants.errorFirewallRule,
-                            result.errorMessage,
-                        );
-                    if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
-                        const nodeUri = this.getNodeIdentifier(self.currentNode);
-                        const profile = <IConnectionProfile>self._currentNode.connectionInfo;
-                        self.updateNode(self._currentNode);
-                        void self._connectionManager.connectionUI.handleFirewallError(
-                            nodeUri,
-                            profile,
-                            handleFirewallResult.ipAddress,
-                        );
-                    }
-                } else if (
-                    self._currentNode.connectionInfo.authenticationType === Constants.azureMfa &&
-                    self.needsAccountRefresh(result, self._currentNode.connectionInfo.user)
-                ) {
-                    let profile = self._currentNode.connectionInfo;
-                    let account = this._connectionManager.accountStore.getAccount(
-                        profile.accountId,
-                    );
-                    await this.refreshAccount(account, profile);
-                    // Do not await when performing reconnect to allow
-                    // OE node to expand after connection is established.
-                    void this.reconnectProfile(self._currentNode, profile);
-                } else {
-                    self._connectionManager.vscodeWrapper.showErrorMessage(error);
-                }
-                const promise = self._sessionIdToPromiseMap.get(result.sessionId);
-
-                if (promise) {
-                    return promise.resolve(undefined);
-                }
-            }
-        };
-        return handler;
+    private handleExpandNodeNotification(result: ExpandResponse): void {
+        const promise = this._pendingExpands.get(`${result.sessionId}${result.nodePath}`);
+        if (promise) {
+            promise.resolve(result);
+        } else {
+            this._logger.logDebug(
+                `Expand node notification received for sessionId ${result.sessionId} but no promise found.`,
+            );
+        }
     }
 
     private async reconnectProfile(node: TreeNodeInfo, profile: IConnectionProfile): Promise<void> {
@@ -273,29 +180,42 @@ export class ObjectExplorerService {
         return undefined;
     }
 
-    /**
-     * Handler for async response from SQL Tools Service.
-     * Public only for testing
-     */
-    public handleExpandSessionNotification(): NotificationHandler<ExpandResponse> {
-        const self = this;
-        const handler = (result: ExpandResponse) => {
+    public async expandNode(
+        node: TreeNodeInfo,
+        sessionId: string,
+        promise: Deferred<TreeNodeInfo[]>,
+    ): Promise<boolean | undefined> {
+        const expandParams: ExpandParams = {
+            sessionId: sessionId,
+            nodePath: node.nodePath,
+            filters: node.filters,
+        };
+        const expandResponse = new Deferred<ExpandResponse>();
+        this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
+        this._expandParamsToPromiseMap.set(expandParams, promise);
+        this._expandParamsToTreeNodeInfoMap.set(expandParams, node);
+        const response: boolean = await this._connectionManager.client.sendRequest(
+            ExpandRequest.type,
+            expandParams,
+        );
+        if (response) {
+            const result = await expandResponse;
             if (!result) {
                 return undefined;
             }
 
             if (result.nodes && !result.errorMessage) {
                 // successfully received children from SQL Tools Service
-                const credentials = self._sessionIdToConnectionProfileMap.get(result.sessionId);
+                const credentials = this._sessionIdToConnectionProfileMap.get(result.sessionId);
                 const expandParams: ExpandParams = {
                     sessionId: result.sessionId,
                     nodePath: result.nodePath,
                 };
-                const parentNode = self.getParentFromExpandParams(expandParams);
+                const parentNode = this.getParentFromExpandParams(expandParams);
                 const children = result.nodes.map((node) =>
                     TreeNodeInfo.fromNodeInfo(node, result.sessionId, parentNode, credentials),
                 );
-                self._treeNodeToChildrenMap.set(parentNode, children);
+                this._treeNodeToChildrenMap.set(parentNode, children);
                 sendActionEvent(
                     TelemetryViews.ObjectExplorer,
                     TelemetryActions.ExpandNode,
@@ -307,15 +227,15 @@ export class ObjectExplorerService {
                         nodeCount: result?.nodes.length ?? 0,
                     },
                 );
-                for (let key of self._expandParamsToPromiseMap.keys()) {
+                for (let key of this._expandParamsToPromiseMap.keys()) {
                     if (
                         key.sessionId === expandParams.sessionId &&
                         key.nodePath === expandParams.nodePath
                     ) {
-                        let promise = self._expandParamsToPromiseMap.get(key);
+                        let promise = this._expandParamsToPromiseMap.get(key);
                         promise.resolve(children);
-                        self._expandParamsToPromiseMap.delete(key);
-                        self._expandParamsToTreeNodeInfoMap.delete(key);
+                        this._expandParamsToPromiseMap.delete(key);
+                        this._expandParamsToTreeNodeInfoMap.delete(key);
                         return;
                     }
                 }
@@ -323,53 +243,32 @@ export class ObjectExplorerService {
                 // failure to expand node; display error
 
                 if (result.errorMessage) {
-                    self._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
+                    this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
                 }
 
                 const expandParams: ExpandParams = {
                     sessionId: result.sessionId,
                     nodePath: result.nodePath,
                 };
-                const parentNode = self.getParentFromExpandParams(expandParams);
+                const parentNode = this.getParentFromExpandParams(expandParams);
 
                 const errorNode = ObjectExplorerUtils.createErrorTreeItem(result.errorMessage);
 
-                self._treeNodeToChildrenMap.set(parentNode, [errorNode]);
+                this._treeNodeToChildrenMap.set(parentNode, [errorNode]);
 
-                for (let key of self._expandParamsToPromiseMap.keys()) {
+                for (let key of this._expandParamsToPromiseMap.keys()) {
                     if (
                         key.sessionId === expandParams.sessionId &&
                         key.nodePath === expandParams.nodePath
                     ) {
-                        let promise = self._expandParamsToPromiseMap.get(key);
+                        let promise = this._expandParamsToPromiseMap.get(key);
                         promise.resolve([errorNode as TreeNodeInfo]);
-                        self._expandParamsToPromiseMap.delete(key);
-                        self._expandParamsToTreeNodeInfoMap.delete(key);
+                        this._expandParamsToPromiseMap.delete(key);
+                        this._expandParamsToTreeNodeInfoMap.delete(key);
                         return;
                     }
                 }
             }
-        };
-        return handler;
-    }
-
-    public async expandNode(
-        node: TreeNodeInfo,
-        sessionId: string,
-        promise: Deferred<TreeNodeInfo[]>,
-    ): Promise<boolean | undefined> {
-        const expandParams: ExpandParams = {
-            sessionId: sessionId,
-            nodePath: node.nodePath,
-            filters: node.filters,
-        };
-        this._expandParamsToPromiseMap.set(expandParams, promise);
-        this._expandParamsToTreeNodeInfoMap.set(expandParams, node);
-        const response: boolean = await this._connectionManager.client.sendRequest(
-            ExpandRequest.type,
-            expandParams,
-        );
-        if (response) {
             return response;
         } else {
             await this._connectionManager.vscodeWrapper.showErrorMessage(
@@ -567,7 +466,7 @@ export class ObjectExplorerService {
             return this.expandExistingNode(element);
         } else {
             // Otherwise create a new session
-            return this.createSessionAndExpandNode(element);
+            return this.createSessionAndExpandNode(element as ConnectionNode);
         }
     }
 
@@ -591,7 +490,7 @@ export class ObjectExplorerService {
     }
 
     // Create a session and expand a node
-    async createSessionAndExpandNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+    async createSessionAndExpandNode(element: ConnectionNode): Promise<vscode.TreeItem[]> {
         const sessionPromise = new Deferred<TreeNodeInfo>();
         const sessionId = await this.createSession(sessionPromise, element.connectionInfo);
 
@@ -607,7 +506,6 @@ export class ObjectExplorerService {
             return this.createSignInNode(element);
         } else {
             this._objectExplorerProvider.refresh(undefined);
-            // You may want to return something here or expand further
         }
     }
 
@@ -726,14 +624,141 @@ export class ObjectExplorerService {
 
             this._sessionIdToNodeLabelMap.set(sessionIdResponse.sessionId, nodeLabel);
 
+            const sessionCreatedResponse: Deferred<SessionCreatedParameters> =
+                new Deferred<SessionCreatedParameters>();
+
+            this._pendingSessionCreations.set(sessionIdResponse.sessionId, sessionCreatedResponse);
+
             const response: CreateSessionResponse =
                 await this._connectionManager.client.sendRequest(
                     CreateSessionRequest.type,
                     connectionDetails,
                 );
+
+            this._sessionIdToConnectionProfileMap.set(response.sessionId, connectionProfile);
+            this._sessionIdToPromiseMap.set(response.sessionId, promise);
+
             if (response) {
-                this._sessionIdToConnectionProfileMap.set(response.sessionId, connectionProfile);
-                this._sessionIdToPromiseMap.set(response.sessionId, promise);
+                const result = await sessionCreatedResponse;
+
+                if (this._currentNode instanceof ConnectTreeNode) {
+                    this.currentNode = getParentNode(this.currentNode);
+                }
+                if (result.success) {
+                    let nodeLabel =
+                        this._sessionIdToNodeLabelMap.get(result.sessionId) ??
+                        ConnInfo.getConnectionDisplayName(this._currentNode.connectionInfo);
+                    // if no node label, check if it has a name in saved profiles
+                    // in case this call came from new query
+                    // let savedConnections =
+                    // this._connectionManager.connectionStore.readAllConnections();
+                    let nodeConnection = this._sessionIdToConnectionProfileMap.get(
+                        result.sessionId,
+                    );
+
+                    // set connection and other things
+                    let node: TreeNodeInfo;
+
+                    if (this._currentNode && this._currentNode.sessionId === result.sessionId) {
+                        node = TreeNodeInfo.fromNodeInfo(
+                            result.rootNode,
+                            result.sessionId,
+                            undefined,
+                            this._currentNode.connectionInfo,
+                            nodeLabel,
+                            Constants.serverLabel,
+                        );
+                    } else {
+                        node = TreeNodeInfo.fromNodeInfo(
+                            result.rootNode,
+                            result.sessionId,
+                            undefined,
+                            nodeConnection,
+                            nodeLabel,
+                            Constants.serverLabel,
+                        );
+                    }
+                    // make a connection if not connected already
+                    const nodeUri = this.getNodeIdentifier(node);
+                    if (
+                        !this._connectionManager.isConnected(nodeUri) &&
+                        !this._connectionManager.isConnecting(nodeUri)
+                    ) {
+                        const profile = <IConnectionProfile>node.connectionInfo;
+                        await this._connectionManager.connect(nodeUri, profile);
+                    }
+
+                    this.updateNode(node);
+                    this._objectExplorerProvider.objectExplorerExists = true;
+                    const promise = this._sessionIdToPromiseMap.get(result.sessionId);
+                    // remove the sign in node once the session is created
+                    if (this._treeNodeToChildrenMap.has(node)) {
+                        this._treeNodeToChildrenMap.delete(node);
+                    }
+                    promise?.resolve(node);
+                } else {
+                    // create session failure
+                    if (this._currentNode?.connectionInfo?.password) {
+                        const profile = this._currentNode.connectionInfo;
+                        profile.password = "";
+                        this._currentNode.updateConnectionInfo(profile);
+                    }
+                    let error = LocalizedConstants.connectErrorLabel;
+                    let errorNumber: number;
+                    if (result.errorNumber) {
+                        errorNumber = result.errorNumber;
+                    }
+                    if (result.errorMessage) {
+                        error += `: ${result.errorMessage}`;
+                    }
+
+                    if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
+                        void this._connectionManager.showInstructionTextAsWarning(
+                            this._currentNode.connectionInfo,
+                            async (updatedProfile) => {
+                                void this.reconnectProfile(this._currentNode, updatedProfile);
+                            },
+                        );
+                    } else if (ObjectExplorerUtils.isFirewallError(result.errorNumber)) {
+                        // handle session failure because of firewall issue
+                        let handleFirewallResult =
+                            await this._connectionManager.firewallService.handleFirewallRule(
+                                Constants.errorFirewallRule,
+                                result.errorMessage,
+                            );
+                        if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
+                            const nodeUri = this.getNodeIdentifier(this.currentNode);
+                            const profile = <IConnectionProfile>this._currentNode.connectionInfo;
+                            this.updateNode(this._currentNode);
+                            void this._connectionManager.connectionUI.handleFirewallError(
+                                nodeUri,
+                                profile,
+                                handleFirewallResult.ipAddress,
+                            );
+                        }
+                    } else if (
+                        this._currentNode.connectionInfo.authenticationType ===
+                            Constants.azureMfa &&
+                        this.needsAccountRefresh(result, this._currentNode.connectionInfo.user)
+                    ) {
+                        let profile = this._currentNode.connectionInfo;
+                        let account = this._connectionManager.accountStore.getAccount(
+                            profile.accountId,
+                        );
+                        await this.refreshAccount(account, profile);
+                        // Do not await when performing reconnect to allow
+                        // OE node to expand after connection is established.
+                        void this.reconnectProfile(this._currentNode, profile);
+                    } else {
+                        this._connectionManager.vscodeWrapper.showErrorMessage(error);
+                    }
+                    const promise = this._sessionIdToPromiseMap.get(result.sessionId);
+
+                    if (promise) {
+                        promise.resolve(undefined);
+                    }
+                }
+
                 return response.sessionId;
             } else {
                 this._client.logger.error("No response received for session creation request");
@@ -876,6 +901,8 @@ export class ObjectExplorerService {
             nodePath: node.nodePath,
             filters: node.filters,
         };
+        const refreshResponse = new Deferred<ExpandResponse>();
+        this._pendingExpands.set(`${node.sessionId}${node.nodePath}`, refreshResponse);
         let response = await this._connectionManager.client.sendRequest(
             RefreshRequest.type,
             refreshParams,
