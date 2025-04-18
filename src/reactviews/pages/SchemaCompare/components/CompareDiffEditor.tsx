@@ -9,6 +9,8 @@ import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { resolveVscodeThemeType } from "../../../common/utils";
 import { Divider, makeStyles, tokens } from "@fluentui/react-components";
 import { locConstants as loc } from "../../../common/locConstants";
+import * as mssql from "vscode-mssql";
+import "./compareDiffEditor.css";
 
 const useStyles = makeStyles({
     dividerContainer: {
@@ -31,6 +33,25 @@ const useStyles = makeStyles({
     },
 });
 
+const getAggregatedScript = (diff: mssql.DiffEntry, getSourceScript: boolean): string => {
+    let script = "";
+    if (diff !== null) {
+        let diffScript = getSourceScript
+            ? formatScript(diff.sourceScript)
+            : formatScript(diff.targetScript);
+        if (diffScript) {
+            script += diffScript + "\n\n";
+        }
+
+        diff.children.forEach((child) => {
+            let childScript = getAggregatedScript(child, getSourceScript);
+            script += childScript;
+        });
+    }
+
+    return script;
+};
+
 const formatScript = (script: string): string => {
     if (!script) {
         return "";
@@ -52,8 +73,8 @@ const CompareDiffEditor = forwardRef<HTMLDivElement, Props>(
         const diff = compareResult?.differences[selectedDiffId];
         const editorRef = useRef<any>(null);
 
-        const original = diff?.sourceScript ? formatScript(diff?.sourceScript) : "";
-        const modified = diff?.targetScript ? formatScript(diff?.targetScript) : "";
+        const original = diff?.sourceScript ? getAggregatedScript(diff, true) : "";
+        const modified = diff?.targetScript ? getAggregatedScript(diff, false) : "";
 
         // Handle editor mount to store the reference
         const handleEditorDidMount = (editor: any) => {
