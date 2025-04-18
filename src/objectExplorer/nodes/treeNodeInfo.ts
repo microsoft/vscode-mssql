@@ -217,6 +217,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._connectionInfo = value;
     }
 
+    protected updateMetadata(value: ObjectMetadata): void {
+        this._metadata = value;
+    }
+
     private _updateContextValue() {
         const contextValue = this.context;
         contextValue.filterable = this.filterableProperties?.length > 0;
