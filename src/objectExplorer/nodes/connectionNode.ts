@@ -49,7 +49,13 @@ export class ConnectionNode extends TreeNodeInfo {
             this.iconPath = ObjectExplorerUtils.iconPath(
                 ObjectExplorerConstants.disconnectedDatabaseIcon,
             );
+        } else {
+            this.iconPath = ObjectExplorerUtils.iconPath("server_red");
         }
+    }
+
+    protected override generateId(): string {
+        return `${this.connectionInfo.id}`;
     }
 
     public onConnected(
@@ -81,7 +87,7 @@ export class ConnectionNode extends TreeNodeInfo {
                 ObjectExplorerConstants.connectedDatabaseIcon,
             );
         } else {
-            this.iconPath = ObjectExplorerUtils.iconPath(ObjectExplorerConstants.serverNodeType);
+            this.iconPath = ObjectExplorerUtils.iconPath("server_green");
         }
     }
 
@@ -105,7 +111,7 @@ export class ConnectionNode extends TreeNodeInfo {
                 ObjectExplorerConstants.connectedDatabaseIcon,
             );
         } else {
-            this.iconPath = ObjectExplorerUtils.iconPath(ObjectExplorerConstants.serverNodeType);
+            this.iconPath = ObjectExplorerUtils.iconPath("server_red");
         }
     }
 }

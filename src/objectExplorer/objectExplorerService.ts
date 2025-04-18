@@ -20,7 +20,6 @@ import {
     ExpandResponse,
 } from "../models/contracts/objectExplorer/expandNodeRequest";
 import { ObjectExplorerProvider } from "./objectExplorerProvider";
-import { TreeItemCollapsibleState } from "vscode";
 import {
     RefreshRequest,
     RefreshParams,
@@ -55,6 +54,7 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { ConnectionNode } from "./nodes/connectionNode";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
@@ -454,18 +454,8 @@ export class ObjectExplorerService {
                 );
 
             this._sessionIdToNodeLabelMap.set(response.sessionId, nodeLabel);
-            let node = new TreeNodeInfo(
-                nodeLabel,
-                ObjectExplorerService.disconnectedNodeContextValue,
-                TreeItemCollapsibleState.Collapsed,
-                undefined,
-                undefined,
-                Constants.disconnectedServerNodeType,
-                undefined,
-                conn,
-                undefined,
-                undefined,
-            );
+
+            let node = new ConnectionNode(conn);
             result.push(node);
         }
 
@@ -513,89 +503,111 @@ export class ObjectExplorerService {
         return [signInNode];
     }
 
+    // Main method that routes to the appropriate handler
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
-            this._logger.logDebug(`Getting children for node '${element.nodePath}'`);
-
-            // set current node for very first expansion of disconnected node
-            if (this._currentNode !== element) {
-                this._currentNode = element;
-            }
-            // get cached children
-            if (this._treeNodeToChildrenMap.has(element)) {
-                return this._treeNodeToChildrenMap.get(element);
-            } else {
-                // check if session exists
-                if (element.sessionId) {
-                    // clean created session promise
-                    this._sessionIdToPromiseMap.delete(element.sessionId);
-
-                    // node expansion
-                    let promise = new Deferred<TreeNodeInfo[]>();
-                    await this.expandNode(element, element.sessionId, promise);
-                    let children = await promise;
-                    if (children) {
-                        // clean expand session promise
-                        this.cleanExpansionPromise(element);
-                        if (children.length === 0) {
-                            return [ObjectExplorerUtils.createNoItemsTreeItem()];
-                        }
-                        return children;
-                    } else {
-                        return undefined;
-                    }
-                } else {
-                    const sessionPromise = new Deferred<TreeNodeInfo>();
-                    const sessionId = await this.createSession(
-                        sessionPromise,
-                        element.connectionInfo,
-                    );
-                    // if the session was not created, show the sign in node
-                    if (!sessionId) {
-                        return this.createSignInNode(element);
-                    }
-
-                    const node = await sessionPromise;
-
-                    // If the session was created but the connected node was not created, show sign in node
-                    if (!node) {
-                        return this.createSignInNode(element);
-                    } else {
-                        this._objectExplorerProvider.refresh(undefined);
-                    }
-                }
-            }
+            return this.getNodeChildren(element);
         } else {
-            this._logger.logDebug("Getting root OE nodes");
+            return this.getRootNodes();
+        }
+    }
 
-            // retrieve saved connections first when opening object explorer for the first time
-            let savedConnections =
-                await this._connectionManager.connectionStore.readAllConnections();
+    // Handle getting root nodes
+    async getRootNodes(): Promise<vscode.TreeItem[]> {
+        this._logger.logDebug("Getting root OE nodes");
 
-            // if there are no saved connections, show the add connection node
-            if (savedConnections.length === 0) {
-                this._logger.logDebug(
-                    "No saved connections found; displaying 'Add Connection' node",
-                );
-                return this.getAddConnectionNode();
+        // retrieve saved connections first when opening object explorer for the first time
+        let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
+
+        // if there are no saved connections, show the add connection node
+        if (savedConnections.length === 0) {
+            this._logger.logDebug("No saved connections found; displaying 'Add Connection' node");
+            return this.getAddConnectionNode();
+        }
+
+        // if OE doesn't exist the first time, then build the nodes off of saved connections
+        if (!this._objectExplorerProvider.objectExplorerExists) {
+            // if there are actually saved connections
+            this._rootTreeNodeArray = await this.getSavedConnectionNodes();
+            this._logger.logDebug(
+                `No current OE; created OE root with ${this._rootTreeNodeArray.length}`,
+            );
+            this._objectExplorerProvider.objectExplorerExists = true;
+            return this.sortByServerName(this._rootTreeNodeArray);
+        } else {
+            this._logger.logDebug(
+                `Returning cached OE root nodes (${this._rootTreeNodeArray.length})`,
+            );
+            // otherwise returned the cached nodes
+            return this.sortByServerName(this._rootTreeNodeArray);
+        }
+    }
+
+    // Handle getting children for a specific node
+    async getNodeChildren(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        this._logger.logDebug(`Getting children for node '${element.id}'`);
+
+        // set current node for very first expansion of disconnected node
+        if (this._currentNode !== element) {
+            this._currentNode = element;
+        }
+
+        // get cached children if available
+        if (this._treeNodeToChildrenMap.has(element)) {
+            return this._treeNodeToChildrenMap.get(element);
+        }
+
+        return this.getOrCreateNodeChildrenWithSession(element);
+    }
+
+    // Handle session management and node expansion
+    async getOrCreateNodeChildrenWithSession(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        // If we already have a session ID, use it for expansion
+        if (element.sessionId) {
+            return this.expandExistingNode(element);
+        } else {
+            // Otherwise create a new session
+            return this.createSessionAndExpandNode(element);
+        }
+    }
+
+    // Expand a node that already has a session
+    async expandExistingNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        // node expansion
+        const promise = new Deferred<TreeNodeInfo[]>();
+        await this.expandNode(element, element.sessionId, promise);
+        const children = await promise;
+
+        if (children) {
+            // clean expand session promise
+            this.cleanExpansionPromise(element);
+            if (children.length === 0) {
+                return [ObjectExplorerUtils.createNoItemsTreeItem()];
             }
+            return children;
+        } else {
+            return undefined;
+        }
+    }
 
-            // if OE doesn't exist the first time, then build the nodes off of saved connections
-            if (!this._objectExplorerProvider.objectExplorerExists) {
-                // if there are actually saved connections
-                this._rootTreeNodeArray = await this.getSavedConnectionNodes();
-                this._logger.logDebug(
-                    `No current OE; created OE root with ${this._rootTreeNodeArray.length}`,
-                );
-                this._objectExplorerProvider.objectExplorerExists = true;
-                return this.sortByServerName(this._rootTreeNodeArray);
-            } else {
-                this._logger.logDebug(
-                    `Returning cached OE root nodes (${this._rootTreeNodeArray.length})`,
-                );
-                // otherwise returned the cached nodes
-                return this.sortByServerName(this._rootTreeNodeArray);
-            }
+    // Create a session and expand a node
+    async createSessionAndExpandNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        const sessionPromise = new Deferred<TreeNodeInfo>();
+        const sessionId = await this.createSession(sessionPromise, element.connectionInfo);
+
+        // if the session was not created, show the sign in node
+        if (!sessionId) {
+            return this.createSignInNode(element);
+        }
+
+        const node = await sessionPromise;
+
+        // If the session was created but the connected node was not created, show sign in node
+        if (!node) {
+            return this.createSignInNode(element);
+        } else {
+            this._objectExplorerProvider.refresh(undefined);
+            // You may want to return something here or expand further
         }
     }
 
