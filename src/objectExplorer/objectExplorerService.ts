@@ -69,11 +69,11 @@ export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
     private _logger: Logger;
     private _currentNode: TreeNodeInfo;
-    private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
-    private _sessionIdToNodeLabelMap: Map<string, string>;
-    private _rootTreeNodeArray: Array<TreeNodeInfo>;
-    private _sessionIdToConnectionProfileMap: Map<string, IConnectionProfile>;
 
+    private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
+    private _rootTreeNodeArray: Array<TreeNodeInfo>;
+
+    // Deferred promise maps
     private _pendingSessionCreations: Map<string, Deferred<SessionCreatedParameters>> = new Map<
         string,
         Deferred<SessionCreatedParameters>
@@ -83,8 +83,8 @@ export class ObjectExplorerService {
         Deferred<ExpandResponse>
     >();
 
-    // Deferred promise maps
-    private _sessionIdToPromiseMap: Map<string, Deferred<vscode.TreeItem>>;
+    private _sessionIdToNodeLabelMap: Map<string, string>;
+    private _sessionIdToConnectionProfileMap: Map<string, IConnectionProfile>;
 
     constructor(
         private _vscodeWrapper: VscodeWrapper,
@@ -103,7 +103,6 @@ export class ObjectExplorerService {
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
         this._sessionIdToConnectionProfileMap = new Map<string, IConnectionProfile>();
         this._sessionIdToNodeLabelMap = new Map<string, string>();
-        this._sessionIdToPromiseMap = new Map<string, Deferred<vscode.TreeItem>>();
 
         this._client.onNotification(CreateSessionCompleteNotification.type, (e) =>
             this.handleSessionCreatedNotification(e),
@@ -583,7 +582,6 @@ export class ObjectExplorerService {
                 );
 
             this._sessionIdToConnectionProfileMap.set(response.sessionId, connectionProfile);
-            this._sessionIdToPromiseMap.set(response.sessionId, promise);
 
             if (response) {
                 const result = await sessionCreatedResponse;
@@ -637,7 +635,6 @@ export class ObjectExplorerService {
 
                     this.updateNode(node);
                     this._objectExplorerProvider.objectExplorerExists = true;
-                    const promise = this._sessionIdToPromiseMap.get(result.sessionId);
                     // remove the sign in node once the session is created
                     if (this._treeNodeToChildrenMap.has(node)) {
                         this._treeNodeToChildrenMap.delete(node);
@@ -699,8 +696,6 @@ export class ObjectExplorerService {
                     } else {
                         this._connectionManager.vscodeWrapper.showErrorMessage(error);
                     }
-                    const promise = this._sessionIdToPromiseMap.get(result.sessionId);
-
                     if (promise) {
                         promise.resolve(undefined);
                     }
@@ -951,8 +946,6 @@ export class ObjectExplorerService {
             }
 
             this._sessionIdToConnectionProfileMap.delete(node.sessionId);
-            this._sessionIdToPromiseMap.delete(node.sessionId);
-
             const nodeUri = this.getNodeIdentifier(node);
             await this._connectionManager.disconnect(nodeUri);
             this.cleanNodeChildren(node);
