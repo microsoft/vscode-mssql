@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ApiStatus, WebviewContextProps } from "./webview";
+import { AddFirewallRuleDialogProps } from "./connectionDialog";
+import { WebviewContextProps } from "./webview";
 
 /**
  * Interface representing an Azure tenant
@@ -17,11 +18,7 @@ export interface AzureTenant {
  * State for the Add Firewall Rule webview
  */
 export interface AddFirewallRuleState {
-    ipAddress?: string;
-    loadingStatus: ApiStatus;
-    errorMessage?: string;
-    tenants?: AzureTenant[];
-    serverName?: string;
+    addFirewallRuleProps: AddFirewallRuleDialogProps;
 }
 
 /**

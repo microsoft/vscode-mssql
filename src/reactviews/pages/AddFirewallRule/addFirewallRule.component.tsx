@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState } from "react";
-import { ConnectionDialogContext } from "../connectionDialogStateProvider";
+import { useState } from "react";
 import {
     Button,
     Dialog,
@@ -28,10 +27,11 @@ import {
     Spinner,
 } from "@fluentui/react-components";
 
-import { locConstants as Loc } from "../../../common/locConstants";
-import { addFirewallRuleReadMoreUrl } from "../connectionConstants";
-import { AddFirewallRuleDialogProps } from "../../../../sharedInterfaces/connectionDialog";
-import { useFormStyles } from "../../../common/forms/form.component";
+import { locConstants as Loc } from "../../common/locConstants";
+import { addFirewallRuleReadMoreUrl } from "../ConnectionDialog/connectionConstants";
+import { AddFirewallRuleDialogProps } from "../../../sharedInterfaces/connectionDialog";
+import { useFormStyles } from "../../common/forms/form.component";
+import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 
 enum IpSelectionMode {
     SpecificIp = "specificIp",
@@ -48,10 +48,13 @@ const useStyles = makeStyles({
 
 export const AddFirewallRuleDialog = ({
     dialogProps,
+    addFirewallRule,
+    closeDialog,
 }: {
     dialogProps: AddFirewallRuleDialogProps;
+    addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
+    closeDialog: () => void;
 }) => {
-    const context = useContext(ConnectionDialogContext)!;
     const styles = useStyles();
     const formStyles = useFormStyles();
 
@@ -171,7 +174,7 @@ export const AddFirewallRuleDialog = ({
                             appearance="primary"
                             onClick={() => {
                                 setIsProcessing(true);
-                                context.addFirewallRule({
+                                addFirewallRule({
                                     name: ruleName,
                                     tenantId: selectedTenantId,
                                     ip:
@@ -188,7 +191,7 @@ export const AddFirewallRuleDialog = ({
                         <Button
                             appearance="secondary"
                             onClick={() => {
-                                context.closeDialog();
+                                closeDialog();
                             }}>
                             {Loc.common.cancel}
                         </Button>

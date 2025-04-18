@@ -67,6 +67,7 @@ export interface TrustServerCertDialogProps extends IDialogProps {
 
 export interface AddFirewallRuleDialogProps extends IDialogProps {
     type: "addFirewallRule";
+    serverName?: string;
     message: string;
     clientIp: string;
     tenants: { name: string; id: string }[];
