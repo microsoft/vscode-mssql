@@ -73,7 +73,6 @@ export class ObjectExplorerService {
     private _sessionIdToNodeLabelMap: Map<string, string>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
     private _sessionIdToConnectionProfileMap: Map<string, IConnectionProfile>;
-    private _expandParamsToTreeNodeInfoMap: Map<ExpandParams, TreeNodeInfo>;
 
     private _pendingSessionCreations: Map<string, Deferred<SessionCreatedParameters>> = new Map<
         string,
@@ -86,7 +85,6 @@ export class ObjectExplorerService {
 
     // Deferred promise maps
     private _sessionIdToPromiseMap: Map<string, Deferred<vscode.TreeItem>>;
-    private _expandParamsToPromiseMap: Map<ExpandParams, Deferred<TreeNodeInfo[]>>;
 
     constructor(
         private _vscodeWrapper: VscodeWrapper,
@@ -106,8 +104,6 @@ export class ObjectExplorerService {
         this._sessionIdToConnectionProfileMap = new Map<string, IConnectionProfile>();
         this._sessionIdToNodeLabelMap = new Map<string, string>();
         this._sessionIdToPromiseMap = new Map<string, Deferred<vscode.TreeItem>>();
-        this._expandParamsToPromiseMap = new Map<ExpandParams, Deferred<TreeNodeInfo[]>>();
-        this._expandParamsToTreeNodeInfoMap = new Map<ExpandParams, TreeNodeInfo>();
 
         this._client.onNotification(CreateSessionCompleteNotification.type, (e) =>
             this.handleSessionCreatedNotification(e),
@@ -117,7 +113,7 @@ export class ObjectExplorerService {
         );
     }
 
-    private handleSessionCreatedNotification(result: SessionCreatedParameters): void {
+    public handleSessionCreatedNotification(result: SessionCreatedParameters): void {
         const promise = this._pendingSessionCreations.get(result.sessionId);
         if (promise) {
             promise.resolve(result);
@@ -128,7 +124,7 @@ export class ObjectExplorerService {
         }
     }
 
-    private handleExpandNodeNotification(result: ExpandResponse): void {
+    public handleExpandNodeNotification(result: ExpandResponse): void {
         const promise = this._pendingExpands.get(`${result.sessionId}${result.nodePath}`);
         if (promise) {
             promise.resolve(result);
@@ -336,19 +332,6 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Clean up expansion promises for a node
-     * @param node The selected node
-     */
-    private cleanExpansionPromise(node: TreeNodeInfo): void {
-        for (const key of this._expandParamsToPromiseMap.keys()) {
-            if (key.sessionId === node.sessionId && key.nodePath === node.nodePath) {
-                this._expandParamsToPromiseMap.delete(key);
-                this._expandParamsToTreeNodeInfoMap.delete(key);
-            }
-        }
-    }
-
-    /**
      * Helper to show the Add Connection node; only displayed when there are no saved connections
      */
     private getAddConnectionNode(): AddConnectionTreeNode[] {
@@ -444,7 +427,6 @@ export class ObjectExplorerService {
 
         if (children) {
             // clean expand session promise
-            this.cleanExpansionPromise(element);
             if (children.length === 0) {
                 return [new NoItemsNode(element)];
             }

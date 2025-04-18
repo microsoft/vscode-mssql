@@ -24,6 +24,7 @@ import {
 } from "../../src/models/contracts/objectExplorer/expandNodeRequest";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
+import { IConnectionProfile } from "../../src/models/interfaces";
 
 suite("Object Explorer Provider Tests", function () {
     let objectExplorerService: TypeMoq.IMock<ObjectExplorerService>;
@@ -348,7 +349,7 @@ suite("Object Explorer Provider Tests", function () {
             objectExplorerProvider,
         );
 
-        let notificationObject = testOeService.handleExpandSessionNotification();
+        let notificationObject = testOeService.handleExpandSessionNotification(undefined);
 
         const expandParams: ExpandParams = {
             sessionId: mockExpandResponse.sessionId,
@@ -390,7 +391,7 @@ suite("Object Explorer Provider Tests", function () {
             objectExplorerProvider,
         );
 
-        let notificationObject = testOeService.handleExpandSessionNotification();
+        let notificationObject = testOeService.handleExpandNodeNotification(undefined);
 
         const expandParams: ExpandParams = {
             sessionId: mockExpandResponse.sessionId,
@@ -424,27 +425,6 @@ suite("Object Explorer Provider Tests", function () {
             "Error node label",
         );
         assert.equal(childNodes[0].tooltip, mockExpandResponse.errorMessage, "Error node tooltip");
-    });
-
-    test("Test signInNode function", () => {
-        objectExplorerService.setup((s) => s.signInNodeServer(TypeMoq.It.isAny()));
-        let node: any = {
-            connectionCredentials: undefined,
-        };
-        objectExplorerProvider.signInNodeServer(node);
-        objectExplorerService.verify(
-            (s) => s.signInNodeServer(TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
-    });
-
-    test("Test updateNode function", () => {
-        objectExplorerService.setup((s) => s.updateNode(TypeMoq.It.isAny()));
-        let node: any = {
-            connectionCredentials: undefined,
-        };
-        objectExplorerProvider.updateNode(node);
-        objectExplorerService.verify((s) => s.updateNode(node), TypeMoq.Times.once());
     });
 
     test("Test removeConnectionNodes function", () => {
@@ -682,7 +662,7 @@ suite("Object Explorer Node Types Test", () => {
             nodeInfo,
             "test_session",
             undefined,
-            testConnnectionInfo,
+            testConnnectionInfo as IConnectionProfile,
             undefined,
         );
 

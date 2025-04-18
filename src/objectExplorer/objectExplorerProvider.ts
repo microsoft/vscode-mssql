@@ -89,14 +89,6 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.refreshNode(node);
     }
 
-    public signInNodeServer(node: TreeNodeInfo): void {
-        this._objectExplorerService.signInNodeServer(node);
-    }
-
-    public updateNode(node: TreeNodeInfo): void {
-        this._objectExplorerService.updateNode(node);
-    }
-
     public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
         await this._objectExplorerService.removeConnectionNodes(connections);
     }
