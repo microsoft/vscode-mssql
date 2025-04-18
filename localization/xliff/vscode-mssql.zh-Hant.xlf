@@ -177,12 +177,12 @@
       <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
         <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
         <note>{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum</note>
-        <target state="new">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</target>
+        <target state="translated">平均: {0}  計數: {1}  相異計數: {2}  最大值: {3}  最小值: {4}  Null 計數:  {5}  總和: {6}</target>
       </trans-unit>
       <trans-unit id="++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca">
         <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
         <note>{0} is the average, {1} is the count, {2} is the sum</note>
-        <target state="new">Average: {0}  Count: {1}  Sum: {2}</target>
+        <target state="translated">平均: {0} 計數: {1} 總和: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
         <source xml:lang="en">Azure Account</source>
@@ -614,7 +614,7 @@
       <trans-unit id="++CODE++4a8d5a21d0db63fc6a204170919855b12207337b5357f2bb7eedcb7cafa77fce">
         <source xml:lang="en">Count: {0}  Distinct Count: {1}  Null Count: {2}</source>
         <note>{0} is the count, {1} is the distinct count, and {2} is the null count</note>
-        <target state="new">Count: {0}  Distinct Count: {1}  Null Count: {2}</target>
+        <target state="translated">計數: {0}  相異計數: {1}  Null 計數: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
         <source xml:lang="en">Create</source>
