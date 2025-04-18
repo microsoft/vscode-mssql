@@ -15,7 +15,7 @@ import Message from "./components/Message";
 
 export const SchemaComparePage = () => {
     const context = useContext(schemaCompareContext);
-    const [selectedDiffId, setSelectedDiffId] = useState(-1);
+    const [selectedDiffId, setSelectedDiffId] = useState(0);
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
     const [endpointType, setEndpointType] = useState<"source" | "target">("source");
@@ -64,11 +64,14 @@ export const SchemaComparePage = () => {
 
             {showMessage() && <Message />}
 
-            {!showMessage() && <SchemaDifferences onDiffSelected={handleDiffSelected} />}
-
-            {!showMessage() && selectedDiffId !== -1 && (
-                <CompareDiffEditor selectedDiffId={selectedDiffId} />
+            {!showMessage() && (
+                <SchemaDifferences
+                    selectedDiffId={selectedDiffId}
+                    onDiffSelected={handleDiffSelected}
+                />
             )}
+
+            {!showMessage() && <CompareDiffEditor selectedDiffId={selectedDiffId} />}
 
             {showDrawer && (
                 <SchemaSelectorDrawer

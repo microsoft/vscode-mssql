@@ -20,6 +20,7 @@ import {
 import { locConstants as loc } from "../../../common/locConstants";
 import { useContext, useEffect } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
+import { SchemaCompareEndpointType } from "../../../../sharedInterfaces/schemaCompare";
 
 interface Props {
     onOptionsClicked: () => void;
@@ -87,13 +88,47 @@ const CompareActionBar = (props: Props) => {
         );
     };
 
+    const hasIncludedDiffs = (): boolean => {
+        return context.state.schemaCompareResult.differences.some((diff) => diff.included);
+    };
+
+    const disableGenerateScriptButton = (): boolean => {
+        if (
+            !(
+                context.state.targetEndpointInfo &&
+                Number(context.state.targetEndpointInfo.endpointType) ===
+                    SchemaCompareEndpointType.Database
+            )
+        ) {
+            return true;
+        } else if (context.state.isComparisonInProgress) {
+            return true;
+        } else if (
+            context.state.schemaCompareResult === undefined ||
+            context.state.schemaCompareResult.differences.length === 0
+        ) {
+            return true;
+        }
+
+        if (!hasIncludedDiffs()) {
+            return true;
+        }
+
+        return false;
+    };
+
     const disableApplyButton = (): boolean => {
         if (
             context.state.schemaCompareResult &&
             context.state.schemaCompareResult.differences &&
             context.state.schemaCompareResult.differences.length > 0 &&
-            Number(context.state.targetEndpointInfo.endpointType) !== 1 // Dacpac lewissanchez todo: Figure out how to move away from these magic numbers for enums
+            Number(context.state.targetEndpointInfo.endpointType) !==
+                SchemaCompareEndpointType.Dacpac
         ) {
+            if (!hasIncludedDiffs()) {
+                return true;
+            }
+
             return false;
         }
 
@@ -127,12 +162,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.generateScriptToDeployChangesToTarget}
                 icon={<DocumentChevronDoubleRegular />}
                 onClick={handleGenerateScript}
-                disabled={
-                    context.state.targetEndpointInfo &&
-                    Number(context.state.targetEndpointInfo.endpointType) === 0 // Database lewissanchez todo: Get rid of this magic number too by figuring out how to ref it from vscode-mssql
-                        ? false
-                        : true
-                }>
+                disabled={disableGenerateScriptButton()}>
                 {loc.schemaCompare.generateScript}
             </ToolbarButton>
             <ToolbarButton
@@ -140,7 +170,7 @@ const CompareActionBar = (props: Props) => {
                 title={loc.schemaCompare.applyChangesToTarget}
                 icon={<PlayFilled />}
                 onClick={handlePublishChanges}
-                disabled={disableApplyButton()}>
+                disabled={context.state.isComparisonInProgress || disableApplyButton()}>
                 {loc.schemaCompare.apply}
             </ToolbarButton>
             <ToolbarButton
@@ -149,6 +179,7 @@ const CompareActionBar = (props: Props) => {
                 icon={<SettingsRegular />}
                 onClick={handleOptionsClicked}
                 disabled={
+                    context.state.isComparisonInProgress ||
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo)
                 }>
@@ -161,6 +192,7 @@ const CompareActionBar = (props: Props) => {
                 icon={<ArrowSwapFilled />}
                 onClick={handleSwitchEndpoints}
                 disabled={
+                    context.state.isComparisonInProgress ||
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo)
                 }>
@@ -171,7 +203,8 @@ const CompareActionBar = (props: Props) => {
                 aria-label={loc.schemaCompare.openScmpFile}
                 title={loc.schemaCompare.loadSourceTargetAndOptionsSavedInAnScmpFile}
                 icon={<DocumentArrowUpRegular />}
-                onClick={handleOpenScmp}>
+                onClick={handleOpenScmp}
+                disabled={context.state.isComparisonInProgress}>
                 {loc.schemaCompare.openScmpFile}
             </ToolbarButton>
             <ToolbarButton
@@ -180,6 +213,7 @@ const CompareActionBar = (props: Props) => {
                 icon={<SaveRegular />}
                 onClick={handleSaveScmp}
                 disabled={
+                    context.state.isComparisonInProgress ||
                     isEndpointEmpty(context.state.sourceEndpointInfo) ||
                     isEndpointEmpty(context.state.targetEndpointInfo)
                 }>

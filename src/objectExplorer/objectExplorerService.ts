@@ -332,12 +332,7 @@ export class ObjectExplorerService {
                 };
                 const parentNode = self.getParentFromExpandParams(expandParams);
 
-                const errorNode = new vscode.TreeItem(
-                    LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
-                    TreeItemCollapsibleState.None,
-                );
-
-                errorNode.tooltip = result.errorMessage;
+                const errorNode = ObjectExplorerUtils.createErrorTreeItem(result.errorMessage);
 
                 self._treeNodeToChildrenMap.set(parentNode, [errorNode]);
 
@@ -518,16 +513,6 @@ export class ObjectExplorerService {
         return [signInNode];
     }
 
-    /**
-     * Handles a connection error after an OE session is
-     * sucessfully created by creating a connect node
-     */
-    private createConnectTreeNode(element: TreeNodeInfo): ConnectTreeNode[] {
-        const connectNode = new ConnectTreeNode(element);
-        this._treeNodeToChildrenMap.set(element, [connectNode]);
-        return [connectNode];
-    }
-
     async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
             this._logger.logDebug(`Getting children for node '${element.nodePath}'`);
@@ -552,36 +537,32 @@ export class ObjectExplorerService {
                     if (children) {
                         // clean expand session promise
                         this.cleanExpansionPromise(element);
+                        if (children.length === 0) {
+                            return [ObjectExplorerUtils.createNoItemsTreeItem()];
+                        }
                         return children;
                     } else {
                         return undefined;
                     }
                 } else {
-                    // start node session
-                    let promise = new Deferred<TreeNodeInfo>();
-                    const sessionId = await this.createSession(promise, element.connectionInfo);
-                    if (sessionId) {
-                        let node = await promise;
-                        // if the server was found but connection failed
-                        if (!node) {
-                            let profile = element.connectionInfo as IConnectionProfile;
-                            let password =
-                                await this._connectionManager.connectionStore.lookupPassword(
-                                    profile,
-                                );
-                            if (password) {
-                                return this.createSignInNode(element);
-                            } else {
-                                return this.createConnectTreeNode(element);
-                            }
-                        }
-                    } else {
-                        // If node create session failed (server wasn't found)
+                    const sessionPromise = new Deferred<TreeNodeInfo>();
+                    const sessionId = await this.createSession(
+                        sessionPromise,
+                        element.connectionInfo,
+                    );
+                    // if the session was not created, show the sign in node
+                    if (!sessionId) {
                         return this.createSignInNode(element);
                     }
-                    // otherwise expand the node by refreshing the root
-                    // to add connected context key
-                    this._objectExplorerProvider.refresh(undefined);
+
+                    const node = await sessionPromise;
+
+                    // If the session was created but the connected node was not created, show sign in node
+                    if (!node) {
+                        return this.createSignInNode(element);
+                    } else {
+                        this._objectExplorerProvider.refresh(undefined);
+                    }
                 }
             }
         } else {
@@ -969,6 +950,12 @@ export class ObjectExplorerService {
         } else {
             this._client.logger.error("Node does not have a session ID");
             return ObjectExplorerUtils.getNodeUri(node); // TODO: can this removed entirely?  ideally, every node has a session ID associated with it
+        }
+    }
+
+    public deleteChildren(node: TreeNodeInfo): void {
+        if (this._treeNodeToChildrenMap.has(node)) {
+            this._treeNodeToChildrenMap.delete(node);
         }
     }
 

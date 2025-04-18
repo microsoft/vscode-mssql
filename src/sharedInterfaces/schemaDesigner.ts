@@ -87,6 +87,18 @@ export namespace SchemaDesigner {
          * Default value of the column
          */
         defaultValue: string;
+        /**
+         * Is column computed.
+         */
+        isComputed: boolean;
+        /**
+         * Computed column formula
+         */
+        computedFormula: string;
+        /**
+         * Is column persisted.
+         */
+        computedPersisted: boolean;
     }
 
     export type ForeignKey = {
@@ -125,10 +137,10 @@ export namespace SchemaDesigner {
     };
 
     export enum OnAction {
-        CASCADE = "0",
-        NO_ACTION = "1",
-        SET_NULL = "2",
-        SET_DEFAULT = "3",
+        CASCADE = 0,
+        NO_ACTION = 1,
+        SET_NULL = 2,
+        SET_DEFAULT = 3,
     }
 
     /**
@@ -163,7 +175,12 @@ export namespace SchemaDesigner {
         /**
          * Connection URI which is used to connect to the database
          */
-        connectionUri: string;
+        connectionString: string;
+        /**
+         * Access token for the connection
+         * This is used to authenticate the connection to the database
+         */
+        accessToken?: string;
         /**
          * Database name to fetch the schema from
          */
@@ -245,9 +262,32 @@ export namespace SchemaDesigner {
          */
         reports: SchemaDesignerReport[];
         /**
+         * DacFx report
+         * This is the DacFx report that indicates the changes made to the schema
+         */
+        dacReport: DacReport;
+        /**
          * Script to update the schema
          */
         updateScript: string;
+    }
+
+    /**
+     * DacFx report
+     * This is the DacFx report that indicates the changes made to the schema
+     */
+    export interface DacReport {
+        report: string;
+        requireTableRecreation: boolean;
+        possibleDataLoss: boolean;
+        hasWarnings: boolean;
+    }
+
+    export interface PublishSessionRequest {
+        /**
+         * Session id for the schema designer session
+         */
+        sessionId: string;
     }
 
     export interface SchemaDesignerReport {
@@ -277,6 +317,11 @@ export namespace SchemaDesigner {
          * @param request - Request parameters for disposing a schema designer session
          */
         disposeSession(request: DisposeSessionRequest): Thenable<void>;
+
+        /**
+         * Publishes the schema designer session
+         */
+        publishSession(request: PublishSessionRequest): Thenable<void>;
 
         /**
          * Gets the create as script for the schema designer session

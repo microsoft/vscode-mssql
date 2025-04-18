@@ -239,13 +239,13 @@ export class GetConnectionStringParams {
 
 // ------------------------------- </ Get Connection String Request > --------------------------------------
 
-// ------------------------------- < Build Connection Details Request > ---------------------------------------
+// ------------------------------- < Parse Connection String Request > ---------------------------------------
 /**
- * Get Connection String request callback declaration
+ * Parse Connection String request callback declaration
  */
-export namespace BuildConnectionDetailsRequest {
+export namespace ParseConnectionStringRequest {
     export const type = new RequestType<string, ConnectionDetails, void, void>(
-        "connection/buildconnectioninfo",
+        "connection/parseConnectionString",
     );
 }
 

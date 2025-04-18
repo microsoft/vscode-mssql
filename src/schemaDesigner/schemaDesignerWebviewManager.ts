@@ -25,23 +25,37 @@ export class SchemaDesignerWebviewManager {
         // Private constructor to prevent instantiation
     }
 
-    public getSchemaDesigner(
+    public async getSchemaDesigner(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         mainController: MainController,
         schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
-        connectionUri: string,
         databaseName: string,
         treeNode: TreeNodeInfo,
-    ): SchemaDesignerWebviewController {
-        const key = `${connectionUri}-${databaseName}`;
+    ): Promise<SchemaDesignerWebviewController> {
+        const connectionInfo = treeNode.connectionInfo;
+        connectionInfo.database = databaseName;
+
+        const connectionDetails =
+            await mainController.connectionManager.createConnectionDetails(connectionInfo);
+
+        await mainController.connectionManager.confirmEntraTokenValidity(connectionInfo);
+
+        const connectionString = await mainController.connectionManager.getConnectionString(
+            connectionDetails,
+            true,
+            true,
+        );
+
+        const key = `${connectionString}-${databaseName}`;
         if (!this.schemaDesigners.has(key)) {
             const schemaDesigner = new SchemaDesignerWebviewController(
                 context,
                 vscodeWrapper,
                 mainController,
                 schemaDesignerService,
-                connectionUri,
+                connectionString,
+                connectionInfo.azureAccountToken,
                 databaseName,
                 treeNode,
             );

@@ -160,6 +160,11 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         includeRequest: includeRequest,
                     });
                 },
+                includeExcludeAllNodes: function (includeRequest: boolean): void {
+                    webViewState?.extensionRpc.action("includeExcludeAllNodes", {
+                        includeRequest: includeRequest,
+                    });
+                },
                 openScmp: function (): void {
                     webViewState?.extensionRpc.action("openScmp", {});
                 },
