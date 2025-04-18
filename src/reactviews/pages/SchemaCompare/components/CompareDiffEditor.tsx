@@ -10,6 +10,7 @@ import { resolveVscodeThemeType } from "../../../common/utils";
 import { Divider, makeStyles, tokens } from "@fluentui/react-components";
 import { locConstants as loc } from "../../../common/locConstants";
 import * as mssql from "vscode-mssql";
+import "./compareDiffEditor.css";
 
 const useStyles = makeStyles({
     dividerContainer: {
