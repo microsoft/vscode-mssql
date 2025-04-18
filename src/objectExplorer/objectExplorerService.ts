@@ -70,6 +70,9 @@ export class ObjectExplorerService {
     private _logger: Logger;
     private _currentNode: TreeNodeInfo;
 
+    // Flat map of tree nodes to their children
+    // This is used to cache the children of a node so that we don't have to re-query them every time
+    // we expand a node. The key is the node and the value is the array of children.
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
 
@@ -82,8 +85,6 @@ export class ObjectExplorerService {
         string,
         Deferred<ExpandResponse>
     >();
-
-    private _sessionIdToNodeLabelMap: Map<string, string>;
 
     constructor(
         private _vscodeWrapper: VscodeWrapper,
@@ -100,7 +101,6 @@ export class ObjectExplorerService {
 
         this._treeNodeToChildrenMap = new Map<vscode.TreeItem, vscode.TreeItem[]>();
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
-        this._sessionIdToNodeLabelMap = new Map<string, string>();
 
         this._client.onNotification(CreateSessionCompleteNotification.type, (e) =>
             this.handleSessionCreatedNotification(e),
@@ -290,16 +290,6 @@ export class ObjectExplorerService {
                 ConnInfo.getSimpleConnectionDisplayName(conn) === conn.server
                     ? ConnInfo.getConnectionDisplayName(conn)
                     : ConnInfo.getSimpleConnectionDisplayName(conn);
-
-            const connectionDetails = ConnectionCredentials.createConnectionDetails(conn);
-
-            const response: CreateSessionResponse =
-                await this._connectionManager.client.sendRequest(
-                    GetSessionIdRequest.type,
-                    connectionDetails,
-                );
-
-            this._sessionIdToNodeLabelMap.set(response.sessionId, nodeLabel);
 
             let node = new TreeNodeInfo(
                 nodeLabel,
@@ -566,8 +556,6 @@ export class ObjectExplorerService {
                 (connectionProfile as IConnectionProfile).profileName ??
                 ConnInfo.getConnectionDisplayName(connectionProfile);
 
-            this._sessionIdToNodeLabelMap.set(sessionIdResponse.sessionId, nodeLabel);
-
             const sessionCreatedResponse: Deferred<SessionCreatedParameters> =
                 new Deferred<SessionCreatedParameters>();
 
@@ -586,10 +574,6 @@ export class ObjectExplorerService {
                     this.currentNode = getParentNode(this.currentNode);
                 }
                 if (result.success) {
-                    let nodeLabel =
-                        this._sessionIdToNodeLabelMap.get(result.sessionId) ??
-                        ConnInfo.getConnectionDisplayName(this._currentNode.connectionInfo);
-
                     // set connection and other things
                     let node: TreeNodeInfo;
 
@@ -785,18 +769,6 @@ export class ObjectExplorerService {
                 new ConnectTreeNode(this._currentNode),
             ]);
         }
-
-        const connectionDetails = ConnectionCredentials.createConnectionDetails(
-            node.connectionInfo,
-        );
-
-        const sessionIdResponse: GetSessionIdResponse =
-            await this._connectionManager.client.sendRequest(
-                GetSessionIdRequest.type,
-                connectionDetails,
-            );
-
-        this._sessionIdToNodeLabelMap.delete(sessionIdResponse.sessionId);
         this.cleanNodeChildren(node);
         sendActionEvent(
             TelemetryViews.ObjectExplorer,
