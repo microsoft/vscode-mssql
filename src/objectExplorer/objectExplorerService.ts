@@ -196,13 +196,8 @@ export class ObjectExplorerService {
 
             if (result.nodes && !result.errorMessage) {
                 // successfully received children from SQL Tools Service
-                const credentials = this._sessionIdToConnectionProfileMap.get(result.sessionId);
-                const expandParams: ExpandParams = {
-                    sessionId: result.sessionId,
-                    nodePath: result.nodePath,
-                };
                 const children = result.nodes.map((n) =>
-                    TreeNodeInfo.fromNodeInfo(n, result.sessionId, node, credentials),
+                    TreeNodeInfo.fromNodeInfo(n, result.sessionId, node, node.connectionInfo),
                 );
                 this._treeNodeToChildrenMap.set(node, children);
                 sendActionEvent(
@@ -216,18 +211,8 @@ export class ObjectExplorerService {
                         nodeCount: result?.nodes.length ?? 0,
                     },
                 );
-                for (let key of this._expandParamsToPromiseMap.keys()) {
-                    if (
-                        key.sessionId === expandParams.sessionId &&
-                        key.nodePath === expandParams.nodePath
-                    ) {
-                        let promise = this._expandParamsToPromiseMap.get(key);
-                        promise.resolve(children);
-                        this._expandParamsToPromiseMap.delete(key);
-                        this._expandParamsToTreeNodeInfoMap.delete(key);
-                        return;
-                    }
-                }
+
+                promise.resolve(children);
             } else {
                 // failure to expand node; display error
 
@@ -888,25 +873,51 @@ export class ObjectExplorerService {
             refreshParams,
         );
 
-        const children = await refreshResponse;
-
-        this._treeNodeToChildrenMap.set(node, children.nodes);
-
-        this._expandParamsToTreeNodeInfoMap.set(refreshParams, node);
-        if (response) {
+        if (!response) {
             this._treeNodeToChildrenMap.delete(node);
+            await this._connectionManager.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.msgUnableToExpand,
+            );
+            this._client.logger.error("No response received for refresh request");
+            return;
         }
+
+        const result = await refreshResponse;
 
         sendActionEvent(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.Refresh,
             {
-                nodeType: node.nodeType,
+                nodeType: node?.context?.subType ?? "",
+                isErrored: (!!result.errorMessage).toString(),
             },
-            undefined,
-            node.connectionInfo as IConnectionProfile,
-            this._connectionManager.getServerInfo(node.connectionInfo),
+            {
+                nodeCount: result?.nodes.length ?? 0,
+            },
         );
+
+        if (!result) {
+            this._client.logger.error("No result received for refresh request");
+            return;
+        }
+
+        if (result.nodes && !result.errorMessage) {
+            // successfully received children from SQL Tools Service
+            const children = result.nodes.map((n) =>
+                TreeNodeInfo.fromNodeInfo(n, result.sessionId, node, node.connectionInfo),
+            );
+            this._treeNodeToChildrenMap.set(node, children);
+        } else {
+            // failure to expand node; display error
+
+            if (result.errorMessage) {
+                this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
+            }
+
+            const errorNode = new ExpandErrorNode(node, result.errorMessage);
+
+            this._treeNodeToChildrenMap.set(node, [errorNode]);
+        }
         return this._objectExplorerProvider.refresh(node);
     }
 
