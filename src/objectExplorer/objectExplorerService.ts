@@ -84,7 +84,6 @@ export class ObjectExplorerService {
     >();
 
     private _sessionIdToNodeLabelMap: Map<string, string>;
-    private _sessionIdToConnectionProfileMap: Map<string, IConnectionProfile>;
 
     constructor(
         private _vscodeWrapper: VscodeWrapper,
@@ -101,7 +100,6 @@ export class ObjectExplorerService {
 
         this._treeNodeToChildrenMap = new Map<vscode.TreeItem, vscode.TreeItem[]>();
         this._rootTreeNodeArray = new Array<TreeNodeInfo>();
-        this._sessionIdToConnectionProfileMap = new Map<string, IConnectionProfile>();
         this._sessionIdToNodeLabelMap = new Map<string, string>();
 
         this._client.onNotification(CreateSessionCompleteNotification.type, (e) =>
@@ -581,8 +579,6 @@ export class ObjectExplorerService {
                     connectionDetails,
                 );
 
-            this._sessionIdToConnectionProfileMap.set(response.sessionId, connectionProfile);
-
             if (response) {
                 const result = await sessionCreatedResponse;
 
@@ -593,13 +589,6 @@ export class ObjectExplorerService {
                     let nodeLabel =
                         this._sessionIdToNodeLabelMap.get(result.sessionId) ??
                         ConnInfo.getConnectionDisplayName(this._currentNode.connectionInfo);
-                    // if no node label, check if it has a name in saved profiles
-                    // in case this call came from new query
-                    // let savedConnections =
-                    // this._connectionManager.connectionStore.readAllConnections();
-                    let nodeConnection = this._sessionIdToConnectionProfileMap.get(
-                        result.sessionId,
-                    );
 
                     // set connection and other things
                     let node: TreeNodeInfo;
@@ -618,7 +607,7 @@ export class ObjectExplorerService {
                             result.rootNode,
                             result.sessionId,
                             undefined,
-                            nodeConnection,
+                            connectionCredentials as IConnectionProfile,
                             nodeLabel,
                             Constants.serverLabel,
                         );
@@ -752,12 +741,6 @@ export class ObjectExplorerService {
             connectionCredentials.azureAccountToken = azureAccountToken.token;
             connectionCredentials.expiresOn = azureAccountToken.expiresOn;
         }
-    }
-    public getConnectionCredentials(sessionId: string): IConnectionInfo {
-        if (this._sessionIdToConnectionProfileMap.has(sessionId)) {
-            return this._sessionIdToConnectionProfileMap.get(sessionId);
-        }
-        return undefined;
     }
 
     public async removeObjectExplorerNode(
@@ -945,7 +928,6 @@ export class ObjectExplorerService {
                 this._client.logger.error("Session ID mismatch in closeSession() response");
             }
 
-            this._sessionIdToConnectionProfileMap.delete(node.sessionId);
             const nodeUri = this.getNodeIdentifier(node);
             await this._connectionManager.disconnect(nodeUri);
             this.cleanNodeChildren(node);

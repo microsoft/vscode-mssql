@@ -71,13 +71,6 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.expandNode(node, sessionId, promise);
     }
 
-    public getConnectionCredentials(sessionId: string): IConnectionInfo {
-        if (sessionId) {
-            return this._objectExplorerService.getConnectionCredentials(sessionId);
-        }
-        return undefined;
-    }
-
     public async removeObjectExplorerNode(
         node: TreeNodeInfo,
         isDisconnect: boolean = false,

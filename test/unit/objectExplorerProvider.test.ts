@@ -139,18 +139,6 @@ suite("Object Explorer Provider Tests", function () {
         done();
     });
 
-    test("Test Connection Credentials", () => {
-        let connectionCredentials = TypeMoq.Mock.ofType(
-            ConnectionCredentials,
-            TypeMoq.MockBehavior.Loose,
-        );
-        objectExplorerService
-            .setup((s) => s.getConnectionCredentials(TypeMoq.It.isAnyString()))
-            .returns(() => connectionCredentials.object);
-        let credentials = objectExplorerProvider.getConnectionCredentials("test_session_id");
-        expect(credentials, "Connection Credentials should not be null").is.not.equal(undefined);
-    });
-
     test("Test remove Object Explorer node", async () => {
         let isNodeDeleted = false;
         objectExplorerService
