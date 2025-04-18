@@ -524,7 +524,7 @@
                 {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
-                    "group": "MS_SQL@1"
+                    "group": "MS_SQL@5"
                 },
                 {
                     "command": "mssql.copyObjectName",
