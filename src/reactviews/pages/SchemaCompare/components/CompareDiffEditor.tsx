@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
+import { useContext, useEffect, useRef, forwardRef } from "react";
 import { DiffEditor } from "@monaco-editor/react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { resolveVscodeThemeType } from "../../../common/utils";
@@ -16,13 +16,18 @@ const useStyles = makeStyles({
         flexDirection: "column",
         alignItems: "center",
         justifyItems: "center",
-        minHeight: "96px",
+        minHeight: "36px",
         backgroundColor: tokens.colorNeutralBackground1,
     },
-
     dividerFont: {
-        fontSize: "16px",
+        fontSize: "14px",
         fontWeight: "bold",
+    },
+    editorContainer: {
+        height: "100%",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
     },
 });
 
@@ -39,25 +44,47 @@ interface Props {
     renderSideBySide?: boolean;
 }
 
-const CompareDiffEditor = ({ selectedDiffId, renderSideBySide }: Props) => {
-    const classes = useStyles();
-    const context = useContext(schemaCompareContext);
-    const compareResult = context.state.schemaCompareResult;
-    const diff = compareResult?.differences[selectedDiffId];
+const CompareDiffEditor = forwardRef<HTMLDivElement, Props>(
+    ({ selectedDiffId, renderSideBySide }, ref) => {
+        const classes = useStyles();
+        const context = useContext(schemaCompareContext);
+        const compareResult = context.state.schemaCompareResult;
+        const diff = compareResult?.differences[selectedDiffId];
+        const editorRef = useRef<any>(null);
 
-    const original = diff?.sourceScript ? formatScript(diff?.sourceScript) : "";
-    const modified = diff?.targetScript ? formatScript(diff?.targetScript) : "";
+        const original = diff?.sourceScript ? formatScript(diff?.sourceScript) : "";
+        const modified = diff?.targetScript ? formatScript(diff?.targetScript) : "";
 
-    return (
-        <>
-            <div className={classes.dividerContainer}>
-                <Divider className={classes.dividerFont} alignContent="start">
-                    {loc.schemaCompare.compareDetails}
-                </Divider>
-            </div>
-            <div style={{ height: "60vh" }}>
+        // Handle editor mount to store the reference
+        const handleEditorDidMount = (editor: any) => {
+            editorRef.current = editor;
+        };
+
+        // Update the editor layout when the container size changes
+        useEffect(() => {
+            const handleResize = () => {
+                if (editorRef.current) {
+                    editorRef.current.layout();
+                }
+            };
+
+            window.addEventListener("resize", handleResize);
+
+            // Clean up event listener on component unmount
+            return () => {
+                window.removeEventListener("resize", handleResize);
+            };
+        }, []);
+
+        return (
+            <div ref={ref} className={classes.editorContainer}>
+                <div className={classes.dividerContainer}>
+                    <Divider className={classes.dividerFont} alignContent="start">
+                        {loc.schemaCompare.compareDetails}
+                    </Divider>
+                </div>
                 <DiffEditor
-                    height="60vh"
+                    height="100%"
                     language="sql"
                     original={modified}
                     modified={original}
@@ -68,10 +95,11 @@ const CompareDiffEditor = ({ selectedDiffId, renderSideBySide }: Props) => {
                         OverviewRulerLane: 0,
                         readOnly: true,
                     }}
+                    onMount={handleEditorDidMount}
                 />
             </div>
-        </>
-    );
-};
+        );
+    },
+);
 
 export default CompareDiffEditor;

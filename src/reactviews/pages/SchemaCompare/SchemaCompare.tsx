@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import SchemaDifferences from "./components/SchemaDifferences";
 import SelectSchemasPanel from "./components/SelectSchemasPanel";
 import CompareDiffEditor from "./components/CompareDiffEditor";
@@ -12,13 +12,42 @@ import CompareActionBar from "./components/CompareActionBar";
 import SchemaOptionsDrawer from "./components/SchemaOptionsDrawer";
 import { schemaCompareContext } from "./SchemaCompareStateProvider";
 import Message from "./components/Message";
+import { makeStyles } from "@fluentui/react-components";
+
+const useStyles = makeStyles({
+    container: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflow: "hidden",
+    },
+    contentContainer: {
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        overflow: "hidden",
+        position: "relative",
+    },
+    resizableContainer: {
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        overflow: "hidden",
+        position: "relative",
+    },
+});
 
 export const SchemaComparePage = () => {
+    const classes = useStyles();
     const context = useContext(schemaCompareContext);
     const [selectedDiffId, setSelectedDiffId] = useState(0);
     const [showDrawer, setShowDrawer] = useState(false);
     const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
     const [endpointType, setEndpointType] = useState<"source" | "target">("source");
+
+    // Create refs for the resizable components
+    const differencesRef = useRef<HTMLDivElement>(null);
+    const diffEditorRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         context.isSqlProjectExtensionInstalled();
@@ -58,20 +87,31 @@ export const SchemaComparePage = () => {
     };
 
     return (
-        <div>
+        <div className={classes.container}>
             <CompareActionBar onOptionsClicked={openOptionsDialog} />
             <SelectSchemasPanel onSelectSchemaClicked={handleSelectSchemaClicked} />
 
             {showMessage() && <Message />}
 
             {!showMessage() && (
-                <SchemaDifferences
-                    selectedDiffId={selectedDiffId}
-                    onDiffSelected={handleDiffSelected}
-                />
-            )}
+                <div className={classes.contentContainer}>
+                    <div className={classes.resizableContainer}>
+                        <SchemaDifferences
+                            ref={differencesRef}
+                            selectedDiffId={selectedDiffId}
+                            onDiffSelected={handleDiffSelected}
+                            siblingRef={diffEditorRef}
+                        />
 
-            {!showMessage() && <CompareDiffEditor selectedDiffId={selectedDiffId} />}
+                        {selectedDiffId !== -1 && (
+                            <CompareDiffEditor
+                                ref={diffEditorRef}
+                                selectedDiffId={selectedDiffId}
+                            />
+                        )}
+                    </div>
+                </div>
+            )}
 
             {showDrawer && (
                 <SchemaSelectorDrawer
