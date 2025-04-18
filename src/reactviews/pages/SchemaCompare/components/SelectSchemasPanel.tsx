@@ -52,7 +52,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     const sourceEndpointInfo = context.state.sourceEndpointInfo;
     let sourceEndpointDisplay =
         (sourceEndpointInfo?.serverName && sourceEndpointInfo?.databaseName
-            ? `${sourceEndpointInfo?.serverName}.${sourceEndpointInfo?.databaseName}`
+            ? `${sourceEndpointInfo?.connectionName || sourceEndpointInfo?.serverName}.${sourceEndpointInfo?.databaseName}`
             : "") ||
         sourceEndpointInfo?.packageFilePath ||
         sourceEndpointInfo?.projectFilePath ||
@@ -61,7 +61,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     const targetEndpointInfo = context.state.targetEndpointInfo;
     let targetEndpointDisplay =
         (targetEndpointInfo?.serverName && targetEndpointInfo?.databaseName
-            ? `${targetEndpointInfo?.serverName}.${targetEndpointInfo?.databaseName}`
+            ? `${targetEndpointInfo?.connectionName || targetEndpointInfo?.serverName}.${targetEndpointInfo?.databaseName}`
             : "") ||
         targetEndpointInfo?.packageFilePath ||
         targetEndpointInfo?.projectFilePath ||

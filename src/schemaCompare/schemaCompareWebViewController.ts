@@ -11,6 +11,7 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import {
+    ISchemaCompareConnectionProfile,
     SchemaCompareReducers,
     SchemaCompareWebViewState,
 } from "../sharedInterfaces/schemaCompare";
@@ -973,17 +974,24 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         }
     }
 
-    private getActiveServersList(): { [connectionUri: string]: string } {
-        const activeServers: { [connectionUri: string]: string } = {};
+    private getActiveServersList(): {
+        [connectionUri: string]: { profileName: string; server: string };
+    } {
+        const activeServers: { [connectionUri: string]: { profileName: string; server: string } } =
+            {};
         let seenServerNames = new Set<string>();
 
         const activeConnections = this.connectionMgr.activeConnections;
         Object.keys(activeConnections).forEach((connectionUri) => {
-            let serverName = activeConnections[connectionUri].credentials.server;
+            let credentials = activeConnections[connectionUri]
+                .credentials as ISchemaCompareConnectionProfile;
 
-            if (!seenServerNames.has(serverName)) {
-                activeServers[connectionUri] = serverName;
-                seenServerNames.add(serverName);
+            if (!seenServerNames.has(credentials.server)) {
+                activeServers[connectionUri] = {
+                    profileName: credentials.profileName,
+                    server: credentials.server,
+                };
+                seenServerNames.add(credentials.server);
             }
         });
 

@@ -227,7 +227,8 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 {Object.keys(context.state.activeServers).map((connUri) => {
                                     return (
                                         <Option key={connUri} value={connUri}>
-                                            {context.state.activeServers[connUri]}
+                                            {context.state.activeServers[connUri].profileName ||
+                                                context.state.activeServers[connUri].server}
                                         </Option>
                                     );
                                 })}
