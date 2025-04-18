@@ -28,34 +28,6 @@ export class ObjectExplorerUtils {
         }
     }
 
-    public static createNoItemsTreeItem(): vscode.TreeItem {
-        return {
-            label: LocalizedConstants.ObjectExplorer.NoItems,
-            accessibilityInformation: {
-                label: LocalizedConstants.ObjectExplorer.NoItems,
-            },
-            tooltip: LocalizedConstants.ObjectExplorer.NoItems,
-            iconPath: {
-                light: ObjectExplorerUtils.iconPath("NoItems_light"),
-                dark: ObjectExplorerUtils.iconPath("NoItems_dark"),
-            },
-        };
-    }
-
-    public static createErrorTreeItem(errorMessage: string): vscode.TreeItem {
-        return {
-            label: LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
-            accessibilityInformation: {
-                label: errorMessage,
-            },
-            tooltip: errorMessage,
-            iconPath: {
-                light: ObjectExplorerUtils.iconPath("Error_light"),
-                dark: ObjectExplorerUtils.iconPath("Error_dark"),
-            },
-        };
-    }
-
     public static getNodeUri(node: TreeNodeType): string {
         let profile: IConnectionProfile;
         if (node instanceof TreeNodeInfo) {

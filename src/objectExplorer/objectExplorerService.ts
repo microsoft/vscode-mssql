@@ -53,7 +53,8 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { ConnectionNode } from "./nodes/connectionNode";
+import { ExpandErrorNode } from "./nodes/expandErrorNode";
+import { NoItemsNode } from "./nodes/noItemNode";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
@@ -252,7 +253,7 @@ export class ObjectExplorerService {
                 };
                 const parentNode = this.getParentFromExpandParams(expandParams);
 
-                const errorNode = ObjectExplorerUtils.createErrorTreeItem(result.errorMessage);
+                const errorNode = new ExpandErrorNode(parentNode, result.errorMessage);
 
                 this._treeNodeToChildrenMap.set(parentNode, [errorNode]);
 
@@ -354,7 +355,18 @@ export class ObjectExplorerService {
 
             this._sessionIdToNodeLabelMap.set(response.sessionId, nodeLabel);
 
-            let node = new ConnectionNode(conn);
+            let node = new TreeNodeInfo(
+                nodeLabel,
+                ObjectExplorerService.disconnectedNodeContextValue,
+                vscode.TreeItemCollapsibleState.Collapsed,
+                undefined,
+                undefined,
+                Constants.disconnectedServerNodeType,
+                undefined,
+                conn,
+                undefined,
+                undefined,
+            );
             result.push(node);
         }
 
@@ -466,7 +478,7 @@ export class ObjectExplorerService {
             return this.expandExistingNode(element);
         } else {
             // Otherwise create a new session
-            return this.createSessionAndExpandNode(element as ConnectionNode);
+            return this.createSessionAndExpandNode(element);
         }
     }
 
@@ -481,7 +493,7 @@ export class ObjectExplorerService {
             // clean expand session promise
             this.cleanExpansionPromise(element);
             if (children.length === 0) {
-                return [ObjectExplorerUtils.createNoItemsTreeItem()];
+                return [new NoItemsNode(element)];
             }
             return children;
         } else {
@@ -490,7 +502,7 @@ export class ObjectExplorerService {
     }
 
     // Create a session and expand a node
-    async createSessionAndExpandNode(element: ConnectionNode): Promise<vscode.TreeItem[]> {
+    async createSessionAndExpandNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const sessionPromise = new Deferred<TreeNodeInfo>();
         const sessionId = await this.createSession(sessionPromise, element.connectionInfo);
 
