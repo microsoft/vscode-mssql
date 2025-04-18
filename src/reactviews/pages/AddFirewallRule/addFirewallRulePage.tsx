@@ -9,7 +9,6 @@ import {
     Input,
     Text,
     makeStyles,
-    Spinner,
     Combobox,
     Option,
 } from "@fluentui/react-components";
@@ -71,7 +70,7 @@ export const AddFirewallRulePage = () => {
 
     // If context isn't available yet, don't render
     if (!context?.state) {
-        return null;
+        return undefined;
     }
 
     // Placeholder for localized strings - will be replaced later
@@ -90,7 +89,7 @@ export const AddFirewallRulePage = () => {
         add: "Add",
     };
 
-    const tenants = context.state.tenants;
+    const tenants = context.state.tenants || [];
 
     return (
         <div className={classes.root}>
@@ -110,7 +109,7 @@ export const AddFirewallRulePage = () => {
                 <div className={classes.flexRow}>
                     <Input
                         value={ipAddress}
-                        onChange={(e, data) => setIpAddress(data.value)}
+                        onChange={(_e, data) => setIpAddress(data.value)}
                         placeholder={locStrings.enterIpAddress}
                     />
                     <Button
@@ -125,7 +124,7 @@ export const AddFirewallRulePage = () => {
             <Field className={classes.formField} label={locStrings.ruleName} required>
                 <Input
                     value={ruleName}
-                    onChange={(e, data) => setRuleName(data.value)}
+                    onChange={(_e, data) => setRuleName(data.value)}
                     placeholder={locStrings.enterRuleName}
                 />
             </Field>
@@ -134,6 +133,7 @@ export const AddFirewallRulePage = () => {
             {tenants.length > 0 && (
                 <Field className={classes.formField} label={locStrings.selectTenant} required>
                     <Combobox
+                        value={selectedTenant}
                         onOptionSelect={(_e, _data) => {
                             setSelectedTenant("Tenant");
                         }}>

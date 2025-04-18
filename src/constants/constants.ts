@@ -65,6 +65,7 @@ export const cmdObjectExplorerEnableGroupBySchemaCommand =
 export const cmdObjectExplorerDisableGroupBySchemaCommand =
     "mssql.objectExplorer.disableGroupBySchema";
 export const cmdEnableRichExperiencesCommand = "mssql.enableRichExperiences";
+export const cmdTestAddFirewallRule = "mssql.testAddFirewallRule";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";
 export const cmdScriptDelete = "mssql.scriptDelete";
