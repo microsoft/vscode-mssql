@@ -20,7 +20,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _errorMessage: string;
     private _sessionId: string;
     private _parentNode: TreeNodeInfo;
-    private _connectionInfo: IConnectionProfile;
+    private _connectionProfile: IConnectionProfile;
     private _metadata: ObjectMetadata;
     private _filterableProperties: vscodeMssql.NodeFilterProperty[];
     private _filters: vscodeMssql.NodeFilter[];
@@ -34,7 +34,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         nodeStatus: string,
         nodeType: string,
         sessionId: string,
-        connectionInfo: IConnectionProfile,
+        connectionProfile: IConnectionProfile,
         parentNode: TreeNodeInfo,
         filterProperties: vscodeMssql.NodeFilterProperty[],
         objectMetadata?: ObjectMetadata,
@@ -48,7 +48,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._nodeType = nodeType;
         this._sessionId = sessionId;
         this._parentNode = parentNode;
-        this._connectionInfo = connectionInfo;
+        this._connectionProfile = connectionProfile;
         this._filterableProperties = filterProperties;
         this._metadata = objectMetadata;
         this._filters = filters;
@@ -57,14 +57,14 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     }
 
     protected generateId(): string {
-        return `${this._connectionInfo.id}-${this._nodePath}`;
+        return `${this._connectionProfile.id}-${this._nodePath}`;
     }
 
     public static fromNodeInfo(
         nodeInfo: NodeInfo,
         sessionId: string,
         parentNode: TreeNodeInfo,
-        connectionInfo: IConnectionProfile,
+        connectionProfile: IConnectionProfile,
         label?: string,
         nodeType?: string,
     ): TreeNodeInfo {
@@ -87,7 +87,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
             nodeInfo.nodeStatus,
             type,
             sessionId,
-            connectionInfo,
+            connectionProfile,
             parentNode,
             nodeInfo.filterableProperties,
             nodeInfo.metadata,
@@ -132,14 +132,14 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
      * Returns a **copy** of the node's connection information.
      *
      * ⚠️ Note: This is a **shallow copy**—modifying the returned object will NOT affect the original connection info.
-     * If you want to update the actual connection info stored in the node, use the `updateConnectionInfo` method instead.
+     * If you want to update the actual connection info stored in the node, use the `updateConnectionProfile` method instead.
      */
-    public get connectionInfo(): IConnectionProfile {
-        if (!this._connectionInfo) {
+    public get connectionProfile(): IConnectionProfile {
+        if (!this._connectionProfile) {
             return undefined;
         }
         return {
-            ...this._connectionInfo,
+            ...this._connectionProfile,
         };
     }
 
@@ -211,8 +211,8 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this.contextValue = this._convertToContextValue(value);
     }
 
-    public updateConnectionInfo(value: IConnectionProfile): void {
-        this._connectionInfo = value;
+    public updateConnectionProfile(value: IConnectionProfile): void {
+        this._connectionProfile = value;
     }
 
     protected updateMetadata(value: ObjectMetadata): void {

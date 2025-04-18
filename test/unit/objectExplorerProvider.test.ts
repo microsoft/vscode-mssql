@@ -337,7 +337,7 @@ suite("Object Explorer Provider Tests", function () {
             objectExplorerProvider,
         );
 
-        let notificationObject = testOeService.handleExpandSessionNotification(undefined);
+        let notificationObject = testOeService.handleExpandNodeNotification(undefined);
 
         const expandParams: ExpandParams = {
             sessionId: mockExpandResponse.sessionId,
@@ -568,9 +568,9 @@ suite("Object Explorer Node Types Test", () => {
         expect(treeNode.parentNode, "Parent node should be equal to expected value").is.equal(
             undefined,
         );
-        treeNode.updateConnectionInfo(treeNode.connectionInfo);
+        treeNode.updateConnectionProfile(treeNode.connectionProfile);
         expect(
-            treeNode.connectionInfo,
+            treeNode.connectionProfile,
             "Connection credentials should be equal to expected value",
         ).is.equal(undefined);
     });
@@ -616,7 +616,7 @@ suite("Object Explorer Node Types Test", () => {
             undefined,
         );
         expect(
-            treeNodeInfo.connectionInfo,
+            treeNodeInfo.connectionProfile,
             "Connection credentials should be equal to expected value",
         ).is.equal(undefined);
         expect(
@@ -654,7 +654,7 @@ suite("Object Explorer Node Types Test", () => {
             undefined,
         );
 
-        const connectionInfo = treeNodeInfo.connectionInfo;
+        const connectionInfo = treeNodeInfo.connectionProfile;
         expect(
             connectionInfo,
             "Connection credentials should be equal to expected value",
@@ -663,13 +663,13 @@ suite("Object Explorer Node Types Test", () => {
         connectionInfo.server = "modified_server";
 
         expect(
-            treeNodeInfo.connectionInfo.server,
+            treeNodeInfo.connectionProfile.server,
             "Connection credentials should not be modified",
         ).is.equal("test_server");
 
-        treeNodeInfo.updateConnectionInfo(connectionInfo);
+        treeNodeInfo.updateConnectionProfile(connectionInfo);
 
-        expect(treeNodeInfo.connectionInfo.server, "connectionInfo should be updated").is.equal(
+        expect(treeNodeInfo.connectionProfile.server, "connectionInfo should be updated").is.equal(
             "modified_server",
         );
     });

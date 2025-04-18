@@ -30,9 +30,9 @@ export class ObjectExplorerUtils {
     public static getNodeUri(node: TreeNodeType): string {
         let profile: IConnectionProfile;
         if (node instanceof TreeNodeInfo) {
-            profile = <IConnectionProfile>node.connectionInfo;
+            profile = <IConnectionProfile>node.connectionProfile;
         } else {
-            profile = <IConnectionProfile>node.parentNode.connectionInfo;
+            profile = <IConnectionProfile>node.parentNode.connectionProfile;
         }
         return ObjectExplorerUtils.getNodeUriFromProfile(profile);
     }
@@ -67,7 +67,7 @@ export class ObjectExplorerUtils {
             node.nodeType === Constants.serverLabel ||
             node.nodeType === Constants.disconnectedServerNodeType
         ) {
-            return node.connectionInfo.database;
+            return node.connectionProfile.database;
         }
         // Otherwise find the name from the node metadata - going up through the parents of the node
         // until we find the database node (so anything under a database node will get the name of

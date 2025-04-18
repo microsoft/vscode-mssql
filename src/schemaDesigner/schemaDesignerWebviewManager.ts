@@ -33,7 +33,7 @@ export class SchemaDesignerWebviewManager {
         databaseName: string,
         treeNode: TreeNodeInfo,
     ): Promise<SchemaDesignerWebviewController> {
-        const connectionInfo = treeNode.connectionInfo;
+        const connectionInfo = treeNode.connectionProfile;
         connectionInfo.database = databaseName;
 
         const connectionDetails =

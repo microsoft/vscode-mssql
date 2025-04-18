@@ -69,7 +69,7 @@ export class ScriptingService {
         operation: ScriptOperation,
     ): IScriptingParams {
         const scriptingObject = this.getObjectFromNode(node);
-        let serverInfo = this._connectionManager.getServerInfo(node.connectionInfo);
+        let serverInfo = this._connectionManager.getServerInfo(node.connectionProfile);
         let scriptCreateDropOption: string;
         switch (operation) {
             case ScriptOperation.Select:

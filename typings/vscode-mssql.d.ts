@@ -1809,7 +1809,7 @@ declare module "vscode-mssql" {
     //#endregion
 
     export interface ITreeNodeInfo extends vscode.TreeItem {
-        readonly connectionInfo: IConnectionInfo;
+        readonly connectionProfile: IConnectionInfo;
         nodeType: string;
         metadata: ObjectMetadata;
         parentNode: ITreeNodeInfo;

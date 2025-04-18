@@ -384,7 +384,7 @@ export default class MainController implements vscode.Disposable {
         executeScript: boolean = false,
     ): Promise<void> {
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-        let connectionCreds = node.connectionInfo;
+        let connectionCreds = node.connectionProfile;
         const databaseName = ObjectExplorerUtils.getDatabaseName(node);
         // if not connected or different database
         if (
@@ -697,7 +697,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNewQuery,
                 async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = treeNodeInfo.connectionInfo;
+                    const connectionCredentials = treeNodeInfo.connectionProfile;
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
 
                     if (
@@ -708,7 +708,7 @@ export default class MainController implements vscode.Disposable {
                     } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
                         connectionCredentials.database = "";
                     }
-                    treeNodeInfo.updateConnectionInfo(connectionCredentials);
+                    treeNodeInfo.updateConnectionProfile(connectionCredentials);
                     await self.onNewQuery(treeNodeInfo);
                 },
             ),
@@ -720,7 +720,7 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdRemoveObjectExplorerNode,
                 async (treeNodeInfo: TreeNodeInfo) => {
                     await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo);
-                    let profile = <IConnectionProfile>treeNodeInfo.connectionInfo;
+                    let profile = <IConnectionProfile>treeNodeInfo.connectionProfile;
                     await this._connectionMgr.connectionStore.removeProfile(profile, false);
                     return this._objectExplorerProvider.refresh(undefined);
                 },
@@ -761,7 +761,7 @@ export default class MainController implements vscode.Disposable {
                                 this._vscodeWrapper,
                                 this,
                                 this._objectExplorerProvider,
-                                node.parentNode.connectionInfo,
+                                node.parentNode.connectionProfile,
                             );
                             connDialog.revealToForeground();
                             break;
@@ -821,7 +821,7 @@ export default class MainController implements vscode.Disposable {
                             this._vscodeWrapper,
                             this,
                             this._objectExplorerProvider,
-                            node.connectionInfo,
+                            node.connectionProfile,
                         );
                         connDialog.revealToForeground();
                     },
@@ -1690,11 +1690,11 @@ export default class MainController implements vscode.Disposable {
             const uri = editor.document.uri.toString(true);
             if (node) {
                 // connect to the node if the command came from the context
-                const connectionCreds = node.connectionInfo;
+                const connectionCreds = node.connectionProfile;
                 // if the node isn't connected
                 if (!node.sessionId) {
                     // connect it first
-                    await this.createObjectExplorerSession(node.connectionInfo);
+                    await this.createObjectExplorerSession(node.connectionProfile);
                 }
                 this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
                 // connection string based credential
@@ -1721,8 +1721,8 @@ export default class MainController implements vscode.Disposable {
                         nodeType: node.nodeType,
                     },
                     undefined,
-                    node.connectionInfo as IConnectionProfile,
-                    this._connectionMgr.getServerInfo(node.connectionInfo),
+                    node.connectionProfile as IConnectionProfile,
+                    this._connectionMgr.getServerInfo(node.connectionProfile),
                 );
                 return true;
             } else {
