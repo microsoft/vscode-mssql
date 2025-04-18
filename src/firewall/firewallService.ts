@@ -13,6 +13,11 @@ import {
 } from "../models/contracts/firewall/firewallRequest";
 import * as Constants from "../constants/constants";
 import { AccountService } from "../azure/accountService";
+import { FirewallRuleSpec } from "../sharedInterfaces/firewallRule";
+import { constructAzureAccountForTenant } from "../connectionconfig/azureHelpers";
+import { getErrorMessage } from "../utils/utils";
+import { Azure as LocAzure } from "../constants/locConstants";
+import { IAccount } from "../models/contracts/azure";
 
 export class FirewallService {
     constructor(private accountService: AccountService) {}
@@ -41,5 +46,58 @@ export class FirewallService {
             params,
         );
         return result;
+    }
+
+    public async createFirewallRuleWithVscodeAccount(
+        firewallRuleSpec: FirewallRuleSpec,
+        serverName: string,
+    ) {
+        const [startIp, endIp] =
+            typeof firewallRuleSpec.ip === "string"
+                ? [firewallRuleSpec.ip, firewallRuleSpec.ip]
+                : [firewallRuleSpec.ip.startIp, firewallRuleSpec.ip.endIp];
+
+        // this.logger.logDebug(
+        //     `Setting firewall rule: "${firewallRuleSpec.name}" (${startIp} - ${endIp})`,
+        // );
+
+        let account: IAccount, tokenMappings: {};
+
+        try {
+            ({ account, tokenMappings } = await constructAzureAccountForTenant(
+                firewallRuleSpec.tenantId,
+            ));
+        } catch (err) {
+            throw {
+                name: "constructAzureAccountForTenant",
+                message: LocAzure.errorCreatingFirewallRule(
+                    `"${firewallRuleSpec.name}" (${startIp} - ${endIp})`,
+                    getErrorMessage(err),
+                ),
+            } as Error;
+        }
+
+        try {
+            const result = await this.createFirewallRule({
+                account: account,
+                firewallRuleName: firewallRuleSpec.name,
+                startIpAddress: startIp,
+                endIpAddress: endIp,
+                serverName: serverName,
+                securityTokenMappings: tokenMappings,
+            });
+
+            if (!result) {
+                throw result.errorMessage;
+            }
+        } catch (err) {
+            throw {
+                name: "createFirewallRule",
+                message: LocAzure.errorCreatingFirewallRule(
+                    `"${firewallRuleSpec.name}" (${startIp} - ${endIp})`,
+                    getErrorMessage(err),
+                ),
+            } as Error;
+        }
     }
 }

@@ -7,6 +7,7 @@ import * as vscodeMssql from "vscode-mssql";
 import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form";
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
+import { AddFirewallRuleState } from "./addFirewallRule";
 
 export class ConnectionDialogWebviewState
     implements
@@ -67,10 +68,7 @@ export interface TrustServerCertDialogProps extends IDialogProps {
 
 export interface AddFirewallRuleDialogProps extends IDialogProps {
     type: "addFirewallRule";
-    serverName?: string;
-    message: string;
-    clientIp: string;
-    tenants: { name: string; id: string }[];
+    props: AddFirewallRuleState;
 }
 
 export interface ConnectionStringDialogProps extends IDialogProps {

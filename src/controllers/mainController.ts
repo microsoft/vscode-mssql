@@ -63,7 +63,6 @@ import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWe
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
-import { AddFirewallRuleDialogProps } from "../sharedInterfaces/connectionDialog";
 
 /**
  * The main controller class that initializes the extension
@@ -310,18 +309,15 @@ export default class MainController implements vscode.Disposable {
 
             this.registerCommand(Constants.cmdTestAddFirewallRule);
             this._event.on(Constants.cmdTestAddFirewallRule, () => {
-                const firewallDialogProps: AddFirewallRuleDialogProps = {
-                    type: "addFirewallRule",
-                    serverName: "MyTestServer",
-                    message: "Gotta add a firewall rule!",
-                    clientIp: "7.11.17.19",
-                    tenants: [{ id: "testTenantId", name: "Test Tenant Name" }],
-                };
-
                 const addFirewallRuleController = new AddFirewallRuleWebviewController(
                     this._context,
                     this._vscodeWrapper,
-                    firewallDialogProps,
+                    {
+                        serverName: "MyTestServer",
+                        errorMessage:
+                            "Gotta add a firewall rule for 7.11.17.19 in order to connect!",
+                    },
+                    this.connectionManager.firewallService,
                 );
                 addFirewallRuleController.panel.reveal(vscode.ViewColumn.One);
             });

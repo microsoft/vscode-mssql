@@ -37,13 +37,10 @@ export const AddFirewallRulePage = () => {
     return (
         <div className={classes.root}>
             <AddFirewallRuleDialog
-                dialogProps={context.state.addFirewallRuleProps}
-                addFirewallRule={() => {
-                    console.log("AddFirewallRuleDialog addFirewallRule called");
-                }}
-                closeDialog={() => {
-                    console.log("AddFirewallRuleDialog closeDialog called");
-                }}
+                state={context.state}
+                addFirewallRule={context.addFirewallRule}
+                closeDialog={context.closeDialog}
+                signIntoAzure={context.signIntoAzure}
             />
         </div>
     );

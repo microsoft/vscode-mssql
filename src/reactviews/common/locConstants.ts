@@ -162,6 +162,20 @@ export class LocConstants {
         };
     }
 
+    public get firewallRules() {
+        return {
+            createNewFirewallRuleFor: (serverName: string) =>
+                l10n.t({
+                    message: "Create new firewall rule for {0}",
+                    args: [serverName],
+                    comment: ["{0} is the server name that the firewall rule will be created for"],
+                }),
+            createNewFirewallRule: l10n.t("Create a new firewall rule"),
+            firewallRuleNeededMessage: l10n.t("A firewall rule is required to access this server."),
+            addFirewallRule: l10n.t("Add Firewall Rule"),
+        };
+    }
+
     public get connectionDialog() {
         return {
             connect: l10n.t("Connect"),
@@ -195,9 +209,6 @@ export class LocConstants {
             ),
             readMore: l10n.t("Read more"),
             enableTrustServerCertificateButton: l10n.t("Enable 'Trust Server Certificate'"),
-            createNewFirewallRule: l10n.t("Create a new firewall rule"),
-            firewallRuleNeededMessage: l10n.t("A firewall rule is required to access this server."),
-            addFirewallRule: l10n.t("Add Firewall Rule"),
             azureFilterPlaceholder: (dropdownContentType: string) =>
                 l10n.t({
                     message: "Select a {0} for filtering",

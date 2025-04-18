@@ -29,7 +29,6 @@ import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form"
 import {
     ConnectionDialog as Loc,
     Common as LocCommon,
-    Azure as LocAzure,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
@@ -39,7 +38,6 @@ import {
     getAccounts,
     getTenants,
     promptForAzureSubscriptionFilter,
-    constructAzureAccountForTenant,
 } from "./azureHelpers";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
@@ -51,10 +49,6 @@ import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import {
-    connectionCertValidationFailedErrorCode,
-    connectionFirewallErrorCode,
-} from "./connectionConstants";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
@@ -67,6 +61,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
+import { errorFirewallRule, errorSSLCertificateValidationFailed } from "../constants/constants";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -128,8 +123,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         this.registerRpcHandlers();
-        this.initializeDialog(connectionToEdit)
-            .then(() => this.initialized.resolve())
+        void this.initializeDialog(connectionToEdit)
+            .then(() => {
+                this.updateState();
+                this.initialized.resolve();
+            })
             .catch((err) => {
                 void vscode.window.showErrorMessage(getErrorMessage(err));
 
@@ -207,7 +205,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         await this.updateItemVisibility();
-        this.updateState();
     }
 
     private registerRpcHandlers() {
@@ -249,26 +246,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("addFirewallRule", async (state, payload) => {
-            const [startIp, endIp] =
-                typeof payload.firewallRuleSpec.ip === "string"
-                    ? [payload.firewallRuleSpec.ip, payload.firewallRuleSpec.ip]
-                    : [payload.firewallRuleSpec.ip.startIp, payload.firewallRuleSpec.ip.endIp];
-
-            console.debug(
-                `Setting firewall rule: "${payload.firewallRuleSpec.name}" (${startIp} - ${endIp})`,
-            );
-            let account, tokenMappings;
-
             try {
-                ({ account, tokenMappings } = await constructAzureAccountForTenant(
-                    payload.firewallRuleSpec.tenantId,
-                ));
-            } catch (err) {
-                state.formError = LocAzure.errorCreatingFirewallRule(
-                    `"${payload.firewallRuleSpec.name}" (${startIp} - ${endIp})`,
-                    getErrorMessage(err),
+                await this._mainController.connectionManager.firewallService.createFirewallRuleWithVscodeAccount(
+                    payload.firewallRuleSpec,
+                    this.state.connectionProfile.server,
                 );
-
+                state.dialog = undefined;
+            } catch (err) {
+                state.formError = getErrorMessage(err);
                 state.dialog = undefined;
 
                 sendErrorEvent(
@@ -279,38 +264,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     undefined, // errorCode
                     undefined, // errorType
                     {
-                        failure: "constructAzureAccountForTenant",
-                    },
-                );
-
-                return state;
-            }
-
-            const result =
-                await this._mainController.connectionManager.firewallService.createFirewallRule({
-                    account: account,
-                    firewallRuleName: payload.firewallRuleSpec.name,
-                    startIpAddress: startIp,
-                    endIpAddress: endIp,
-                    serverName: this.state.connectionProfile.server,
-                    securityTokenMappings: tokenMappings,
-                });
-
-            if (!result.result) {
-                state.formError = LocAzure.errorCreatingFirewallRule(
-                    `"${payload.firewallRuleSpec.name}" (${startIp} - ${endIp})`,
-                    result.errorMessage,
-                );
-
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.AddFirewallRule,
-                    new Error(result.errorMessage),
-                    false, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                    {
-                        failure: "firewallService.createFirewallRule",
+                        failure: err.Name,
                     },
                 );
             }
@@ -801,7 +755,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         result: ConnectionCompleteParams,
         state: ConnectionDialogWebviewState,
     ): Promise<ConnectionDialogWebviewState> {
-        if (result.errorNumber === connectionCertValidationFailedErrorCode) {
+        if (result.errorNumber === errorSSLCertificateValidationFailed) {
             this.state.connectionStatus = ApiStatus.Error;
             this.state.dialog = {
                 type: "trustServerCert",
@@ -812,7 +766,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             // just prompt the user to trust the cert
 
             return state;
-        } else if (result.errorNumber === connectionFirewallErrorCode) {
+        } else if (result.errorNumber === errorFirewallRule) {
             this.state.connectionStatus = ApiStatus.Error;
 
             const handleFirewallErrorResult =
@@ -840,14 +794,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             this.state.dialog = {
                 type: "addFirewallRule",
-                message: result.errorMessage,
-                clientIp: handleFirewallErrorResult.ipAddress,
-                tenants: tenants.map((t) => {
-                    return {
-                        name: t.displayName,
-                        id: t.tenantId,
-                    };
-                }),
+                props: {
+                    message: result.errorMessage,
+                    clientIp: handleFirewallErrorResult.ipAddress,
+                    // TODO: isSignedIn
+                    tenants: tenants.map((t) => {
+                        return {
+                            name: t.displayName,
+                            id: t.tenantId,
+                        };
+                    }),
+                },
             } as AddFirewallRuleDialogProps;
 
             return state;

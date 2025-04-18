@@ -11,6 +11,7 @@ import {
     AddFirewallRuleState,
 } from "../../../../src/sharedInterfaces/addFirewallRule";
 import { getCoreRPCs } from "../../common/utils";
+import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 
 // Create context with default undefined value
 const AddFirewallRuleContext = createContext<AddFirewallRuleContextProps | undefined>(undefined);
@@ -21,14 +22,25 @@ interface AddFirewallRuleProviderProps {
 
 // Simple scaffold of the state provider - will be enhanced later
 const AddFirewallRuleStateProvider: React.FC<AddFirewallRuleProviderProps> = ({ children }) => {
-    const vscodeWebviewProvider = useVscodeWebview<AddFirewallRuleState, AddFirewallRuleReducers>();
+    const webviewContext = useVscodeWebview<AddFirewallRuleState, AddFirewallRuleReducers>();
 
     return (
         <AddFirewallRuleContext.Provider
             value={{
-                state: vscodeWebviewProvider.state,
-                ...getCoreRPCs(vscodeWebviewProvider),
-                themeKind: vscodeWebviewProvider.themeKind,
+                state: webviewContext.state,
+                themeKind: webviewContext.themeKind,
+                ...getCoreRPCs(webviewContext),
+                addFirewallRule: function (firewallRuleSpec: FirewallRuleSpec): void {
+                    webviewContext?.extensionRpc.action("addFirewallRule", {
+                        firewallRuleSpec,
+                    });
+                },
+                closeDialog: function (): void {
+                    webviewContext?.extensionRpc.action("closeDialog");
+                },
+                signIntoAzure: function (): void {
+                    webviewContext?.extensionRpc.action("signIntoAzure");
+                },
             }}>
             {children}
         </AddFirewallRuleContext.Provider>
