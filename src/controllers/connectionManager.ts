@@ -353,8 +353,8 @@ export default class ConnectionManager {
     /**
      * Get the connection string for the provided connection Uri or ConnectionDetails.
      * @param connectionUriOrDetails Either the connection Uri for the connection or the connection details for the connection is required.
-     * @param includePassword (optional) if password should be included in connection string.
-     * @param includeApplicationName (optional) if application name should be included in connection string.
+     * @param includePassword (optional) if password should be included in connection string; default is false
+     * @param includeApplicationName (optional) if application name should be included in connection string; default is true
      * @returns connection string for the connection
      */
     public async getConnectionString(
@@ -376,9 +376,12 @@ export default class ConnectionManager {
         );
     }
 
-    public async buildConnectionDetails(connectionString: string): Promise<ConnectionDetails> {
+    /**
+     * Parses the connection string into a ConnectionDetails object
+     */
+    public async parseConnectionString(connectionString: string): Promise<ConnectionDetails> {
         return await this.client.sendRequest(
-            ConnectionContracts.BuildConnectionDetailsRequest.type,
+            ConnectionContracts.ParseConnectionStringRequest.type,
             connectionString,
         );
     }

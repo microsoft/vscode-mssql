@@ -56,7 +56,7 @@ export class ConnectionDialogWebviewState
 }
 
 export interface IDialogProps {
-    type: "trustServerCert" | "addFirewallRule";
+    type: "trustServerCert" | "addFirewallRule" | "loadFromConnectionString";
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {
@@ -69,6 +69,12 @@ export interface AddFirewallRuleDialogProps extends IDialogProps {
     message: string;
     clientIp: string;
     tenants: { name: string; id: string }[];
+}
+
+export interface ConnectionStringDialogProps extends IDialogProps {
+    type: "loadFromConnectionString";
+    connectionString: string;
+    connectionStringError?: string;
 }
 
 export interface AzureSubscriptionInfo {
@@ -109,7 +115,6 @@ export interface ConnectionDialogFormItemSpec
 
 export enum ConnectionInputMode {
     Parameters = "parameters",
-    ConnectionString = "connectionString",
     AzureBrowse = "azureBrowse",
 }
 
@@ -120,8 +125,8 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     savePassword?: boolean;
     emptyPasswordInput?: boolean;
     azureAuthType?: vscodeMssql.AzureAuthType;
-    /** display name for the MRU pane; should be set to the profileName if available, otherwise generated from connection details */
-    displayName?: string;
+    id?: string;
+    groupId?: string;
 }
 
 export interface ConnectionDialogContextProps
@@ -130,6 +135,7 @@ export interface ConnectionDialogContextProps
         ConnectionDialogWebviewState,
         ConnectionDialogFormItemSpec
     > {
+    // Reducers
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
@@ -144,6 +150,11 @@ export interface ConnectionDialogContextProps
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
     removeRecentConnection(connection: IConnectionDialogProfile): void;
+    loadFromConnectionString: (connectionString: string) => void;
+    openConnectionStringDialog: () => void;
+
+    // Request handlers
+    getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
 }
 
 export enum AuthenticationType {
@@ -177,4 +188,6 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     removeRecentConnection: {
         connection: IConnectionDialogProfile;
     };
+    loadFromConnectionString: { connectionString: string };
+    openConnectionStringDialog: {};
 }

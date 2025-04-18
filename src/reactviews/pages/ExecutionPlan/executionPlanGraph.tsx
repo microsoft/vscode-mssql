@@ -243,6 +243,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     className={classes.queryCostContainer}
                     style={{
                         background: tokens.colorNeutralBackground2,
+                        // 35px is the width of the side toolbar with some extra room for padding
+                        width: propertiesClicked
+                            ? `calc(100% - ${propertiesWidth}px - 35px)`
+                            : "calc(100% - 35px)",
                     }}
                     aria-live="polite"
                     aria-label={`${getQueryCostString()}, ${query}`}>

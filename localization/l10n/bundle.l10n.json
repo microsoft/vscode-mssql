@@ -110,6 +110,7 @@
     ]
   },
   "Close Find": "Close Find",
+  "Load": "Load",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -210,6 +211,7 @@
   "Parameters": "Parameters",
   "Connection String": "Connection String",
   "Browse Azure": "Browse Azure",
+  "Load from Connection String": "Load from Connection String",
   "Saved Connections": "Saved Connections",
   "Recent Connections": "Recent Connections",
   "Subscription": "Subscription",
@@ -246,6 +248,9 @@
   "Default": "Default",
   "Delete saved connection": "Delete saved connection",
   "Remove recent connection": "Remove recent connection",
+  "Copy connection string to clipboard": "Copy connection string to clipboard",
+  "Paste connection string from clipboard": "Paste connection string from clipboard",
+  "Paste": "Paste",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
@@ -541,6 +546,7 @@
   "Database Project": "Database Project",
   "Source": "Source",
   "Target": "Target",
+  "Comparison Details": "Comparison Details",
   "Are you sure you want to update the target?": "Are you sure you want to update the target?",
   "There was an error updating the project": "There was an error updating the project",
   "Failed to apply changes: '{0}'/{0} is the error message returned from the publish changes operation": {
@@ -1073,6 +1079,24 @@
       "{1} is the error message"
     ]
   },
+  "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
+    "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
+    "comment": [
+      "{0} is the count, {1} is the distinct count, and {2} is the null count"
+    ]
+  },
+  "Average: {0}  Count: {1}  Sum: {2}/{0} is the average, {1} is the count, {2} is the sum": {
+    "message": "Average: {0}  Count: {1}  Sum: {2}",
+    "comment": [
+      "{0} is the average, {1} is the count, {2} is the sum"
+    ]
+  },
+  "Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}/{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum": {
+    "message": "Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}",
+    "comment": [
+      "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum"
+    ]
+  },
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",
@@ -1126,6 +1150,7 @@
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
+  "Invalid connection string: {0}": "Invalid connection string: {0}",
   "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
   "Error loading Azure databases.": "Error loading Azure databases."
 }

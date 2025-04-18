@@ -33,6 +33,7 @@ import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 import { QueryResultContextProps } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
+import { MouseButton } from "../../../common/utils";
 // import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
@@ -266,7 +267,12 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         slickEvent.subscribe((e: Slick.EventData) => {
             const originalEvent = (e as JQuery.TriggeredEvent).originalEvent;
             const cell = this._grid.getCellFromEvent(originalEvent!);
-            if (cell) {
+            // If event is left click
+            if (
+                cell &&
+                originalEvent instanceof MouseEvent &&
+                originalEvent.button === MouseButton.LeftClick
+            ) {
                 this.handleLinkClick(cell);
             }
         });
