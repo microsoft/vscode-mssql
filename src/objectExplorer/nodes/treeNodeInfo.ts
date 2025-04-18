@@ -5,9 +5,9 @@
 
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
-import { NodeInfo } from "../models/contracts/objectExplorer/nodeInfo";
-import { ObjectExplorerUtils } from "./objectExplorerUtils";
-import * as Constants from "../constants/constants";
+import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
+import { ObjectExplorerUtils } from "../objectExplorerUtils";
+import * as Constants from "../../constants/constants";
 import { IConnectionInfo, ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {

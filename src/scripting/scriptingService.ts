@@ -12,7 +12,7 @@ import {
     IScriptingObject,
     IScriptOptions,
 } from "../models/contracts/scripting/scriptingRequest";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 
 export class ScriptingService {
     private _client: SqlToolsServiceClient;

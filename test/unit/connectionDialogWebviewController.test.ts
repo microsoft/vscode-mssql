@@ -39,7 +39,7 @@ import {
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
 import { stubTelemetry } from "./utils";
-import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { Deferred } from "../../src/protocol";
 
 suite("ConnectionDialogWebviewController Tests", () => {

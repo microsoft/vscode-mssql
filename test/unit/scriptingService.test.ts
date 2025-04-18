@@ -14,7 +14,7 @@ import {
     ScriptingRequest,
     ScriptOperation,
 } from "../../src/models/contracts/scripting/scriptingRequest";
-import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { ScriptingService } from "../../src/scripting/scriptingService";
 import { TestExtensionContext } from "./stubs";
 

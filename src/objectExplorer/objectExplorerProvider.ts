@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import { ObjectExplorerService } from "./objectExplorerService";
-import { TreeNodeInfo } from "./treeNodeInfo";
+import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { Deferred } from "../protocol";
 import { IConnectionInfo } from "vscode-mssql";
 import VscodeWrapper from "../controllers/vscodeWrapper";

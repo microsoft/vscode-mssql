@@ -10,7 +10,7 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import * as designer from "../sharedInterfaces/tableDesigner";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";

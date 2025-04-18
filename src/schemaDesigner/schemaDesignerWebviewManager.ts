@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerWebviewController } from "./schemaDesignerWebviewController";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
 
 export class SchemaDesignerWebviewManager {

@@ -4,17 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as LocalizedConstants from "../constants/locConstants";
-import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../../constants/locConstants";
+import * as Constants from "../../constants/constants";
 import { TreeNodeInfo } from "./treeNodeInfo";
 
-export class ConnectTreeNode extends vscode.TreeItem {
+export class AccountSignInTreeNode extends vscode.TreeItem {
     constructor(private _parentNode: TreeNodeInfo) {
         super(LocalizedConstants.msgConnect, vscode.TreeItemCollapsibleState.None);
 
         this.command = {
             title: LocalizedConstants.msgConnect,
-            command: Constants.cmdConnectObjectExplorerNode,
+            command: Constants.cmdObjectExplorerNodeSignIn,
             arguments: [this],
         };
     }
@@ -23,5 +23,3 @@ export class ConnectTreeNode extends vscode.TreeItem {
         return this._parentNode;
     }
 }
-
-export type TreeNodeType = TreeNodeInfo | ConnectTreeNode;

@@ -30,12 +30,12 @@ import {
     CloseSessionParams,
     CloseSessionResponse,
 } from "../models/contracts/objectExplorer/closeSessionRequest";
-import { TreeNodeInfo } from "./treeNodeInfo";
+import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { AuthenticationTypes, IConnectionProfile } from "../models/interfaces";
 import * as LocalizedConstants from "../constants/locConstants";
-import { AddConnectionTreeNode } from "./addConnectionTreeNode";
-import { AccountSignInTreeNode } from "./accountSignInTreeNode";
-import { ConnectTreeNode, TreeNodeType } from "./connectTreeNode";
+import { AddConnectionTreeNode } from "./nodes/addConnectionTreeNode";
+import { AccountSignInTreeNode } from "./nodes/accountSignInTreeNode";
+import { ConnectTreeNode, TreeNodeType } from "./nodes/connectTreeNode";
 import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";

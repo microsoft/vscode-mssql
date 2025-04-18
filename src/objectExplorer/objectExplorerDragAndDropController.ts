@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 
-import { TreeNodeInfo } from "./treeNodeInfo";
+import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 
 export class ObjectExplorerDragAndDropController
     implements vscode.TreeDragAndDropController<TreeNodeInfo>

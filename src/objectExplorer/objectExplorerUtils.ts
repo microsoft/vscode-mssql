@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
-import { TreeNodeInfo } from "./treeNodeInfo";
+import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as vscodeMssql from "vscode-mssql";
-import { TreeNodeType } from "./connectTreeNode";
+import { TreeNodeType } from "./nodes/connectTreeNode";
 import * as vscode from "vscode";
 
 export class ObjectExplorerUtils {

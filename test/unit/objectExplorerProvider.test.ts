@@ -10,12 +10,12 @@ import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerSe
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { expect, assert } from "chai";
-import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-import { AddConnectionTreeNode } from "../../src/objectExplorer/addConnectionTreeNode";
+import { AddConnectionTreeNode } from "../../src/objectExplorer/nodes/addConnectionTreeNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import { AccountSignInTreeNode } from "../../src/objectExplorer/accountSignInTreeNode";
-import { ConnectTreeNode } from "../../src/objectExplorer/connectTreeNode";
+import { AccountSignInTreeNode } from "../../src/objectExplorer/nodes/accountSignInTreeNode";
+import { ConnectTreeNode } from "../../src/objectExplorer/nodes/connectTreeNode";
 import { NodeInfo } from "../../src/models/contracts/objectExplorer/nodeInfo";
 import { Deferred } from "../../src/protocol";
 import {

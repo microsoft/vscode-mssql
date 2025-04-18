@@ -21,11 +21,11 @@ import {
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import * as Utils from "../models/utils";
-import { AccountSignInTreeNode } from "../objectExplorer/accountSignInTreeNode";
-import { ConnectTreeNode } from "../objectExplorer/connectTreeNode";
+import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
+import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
 import { IPrompter } from "../prompts/question";
 import { Deferred } from "../protocol";
