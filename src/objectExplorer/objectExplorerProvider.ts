@@ -6,10 +6,11 @@
 import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import { ObjectExplorerService } from "./objectExplorerService";
-import { TreeNodeInfo } from "./treeNodeInfo";
+import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { Deferred } from "../protocol";
 import { IConnectionInfo } from "vscode-mssql";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { IConnectionProfile } from "../models/interfaces";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -70,13 +71,6 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.expandNode(node, sessionId, promise);
     }
 
-    public getConnectionCredentials(sessionId: string): IConnectionInfo {
-        if (sessionId) {
-            return this._objectExplorerService.getConnectionCredentials(sessionId);
-        }
-        return undefined;
-    }
-
     public async removeObjectExplorerNode(
         node: TreeNodeInfo,
         isDisconnect: boolean = false,
@@ -88,19 +82,11 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.refreshNode(node);
     }
 
-    public signInNodeServer(node: TreeNodeInfo): void {
-        this._objectExplorerService.signInNodeServer(node);
-    }
-
-    public updateNode(node: TreeNodeInfo): void {
-        this._objectExplorerService.updateNode(node);
-    }
-
     public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
         await this._objectExplorerService.removeConnectionNodes(connections);
     }
 
-    public addDisconnectedNode(connectionCredentials: IConnectionInfo): void {
+    public addDisconnectedNode(connectionCredentials: IConnectionProfile): void {
         this._objectExplorerService.addDisconnectedNode(connectionCredentials);
     }
 

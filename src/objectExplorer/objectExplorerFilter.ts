@@ -13,7 +13,7 @@ import {
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
-import { TreeNodeInfo } from "./treeNodeInfo";
+import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
 import { sendActionEvent } from "../telemetry/telemetry";
 import VscodeWrapper from "../controllers/vscodeWrapper";

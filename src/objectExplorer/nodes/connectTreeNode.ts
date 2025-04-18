@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as LocalizedConstants from "../constants/locConstants";
-import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../../constants/locConstants";
+import * as Constants from "../../constants/constants";
 import { TreeNodeInfo } from "./treeNodeInfo";
 
 export class ConnectTreeNode extends vscode.TreeItem {

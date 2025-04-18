@@ -4,13 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
-import { TreeNodeInfo } from "./treeNodeInfo";
+import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as vscodeMssql from "vscode-mssql";
-import { TreeNodeType } from "./connectTreeNode";
-import * as vscode from "vscode";
+import { TreeNodeType } from "./nodes/connectTreeNode";
 
 export class ObjectExplorerUtils {
     public static readonly rootPath: string = path.join(__dirname, "objectTypes");
@@ -28,40 +27,12 @@ export class ObjectExplorerUtils {
         }
     }
 
-    public static createNoItemsTreeItem(): vscode.TreeItem {
-        return {
-            label: LocalizedConstants.ObjectExplorer.NoItems,
-            accessibilityInformation: {
-                label: LocalizedConstants.ObjectExplorer.NoItems,
-            },
-            tooltip: LocalizedConstants.ObjectExplorer.NoItems,
-            iconPath: {
-                light: ObjectExplorerUtils.iconPath("NoItems_light"),
-                dark: ObjectExplorerUtils.iconPath("NoItems_dark"),
-            },
-        };
-    }
-
-    public static createErrorTreeItem(errorMessage: string): vscode.TreeItem {
-        return {
-            label: LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
-            accessibilityInformation: {
-                label: errorMessage,
-            },
-            tooltip: errorMessage,
-            iconPath: {
-                light: ObjectExplorerUtils.iconPath("Error_light"),
-                dark: ObjectExplorerUtils.iconPath("Error_dark"),
-            },
-        };
-    }
-
     public static getNodeUri(node: TreeNodeType): string {
         let profile: IConnectionProfile;
         if (node instanceof TreeNodeInfo) {
-            profile = <IConnectionProfile>node.connectionInfo;
+            profile = <IConnectionProfile>node.connectionProfile;
         } else {
-            profile = <IConnectionProfile>node.parentNode.connectionInfo;
+            profile = <IConnectionProfile>node.parentNode.connectionProfile;
         }
         return ObjectExplorerUtils.getNodeUriFromProfile(profile);
     }
@@ -96,7 +67,7 @@ export class ObjectExplorerUtils {
             node.nodeType === Constants.serverLabel ||
             node.nodeType === Constants.disconnectedServerNodeType
         ) {
-            return node.connectionInfo.database;
+            return node.connectionProfile.database;
         }
         // Otherwise find the name from the node metadata - going up through the parents of the node
         // until we find the database node (so anything under a database node will get the name of

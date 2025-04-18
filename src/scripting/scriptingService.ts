@@ -12,7 +12,7 @@ import {
     IScriptingObject,
     IScriptOptions,
 } from "../models/contracts/scripting/scriptingRequest";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 
 export class ScriptingService {
     private _client: SqlToolsServiceClient;
@@ -69,7 +69,7 @@ export class ScriptingService {
         operation: ScriptOperation,
     ): IScriptingParams {
         const scriptingObject = this.getObjectFromNode(node);
-        let serverInfo = this._connectionManager.getServerInfo(node.connectionInfo);
+        let serverInfo = this._connectionManager.getServerInfo(node.connectionProfile);
         let scriptCreateDropOption: string;
         switch (operation) {
             case ScriptOperation.Select:

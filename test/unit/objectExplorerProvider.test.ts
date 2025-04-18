@@ -10,12 +10,12 @@ import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerSe
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { expect, assert } from "chai";
-import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-import { AddConnectionTreeNode } from "../../src/objectExplorer/addConnectionTreeNode";
+import { AddConnectionTreeNode } from "../../src/objectExplorer/nodes/addConnectionTreeNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import { AccountSignInTreeNode } from "../../src/objectExplorer/accountSignInTreeNode";
-import { ConnectTreeNode } from "../../src/objectExplorer/connectTreeNode";
+import { AccountSignInTreeNode } from "../../src/objectExplorer/nodes/accountSignInTreeNode";
+import { ConnectTreeNode } from "../../src/objectExplorer/nodes/connectTreeNode";
 import { NodeInfo } from "../../src/models/contracts/objectExplorer/nodeInfo";
 import { Deferred } from "../../src/protocol";
 import {
@@ -24,6 +24,7 @@ import {
 } from "../../src/models/contracts/objectExplorer/expandNodeRequest";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
+import { IConnectionProfile } from "../../src/models/interfaces";
 
 suite("Object Explorer Provider Tests", function () {
     let objectExplorerService: TypeMoq.IMock<ObjectExplorerService>;
@@ -136,18 +137,6 @@ suite("Object Explorer Provider Tests", function () {
             expect(node, "Refreshed node should not be undefined").is.not.equal(undefined);
         });
         done();
-    });
-
-    test("Test Connection Credentials", () => {
-        let connectionCredentials = TypeMoq.Mock.ofType(
-            ConnectionCredentials,
-            TypeMoq.MockBehavior.Loose,
-        );
-        objectExplorerService
-            .setup((s) => s.getConnectionCredentials(TypeMoq.It.isAnyString()))
-            .returns(() => connectionCredentials.object);
-        let credentials = objectExplorerProvider.getConnectionCredentials("test_session_id");
-        expect(credentials, "Connection Credentials should not be null").is.not.equal(undefined);
     });
 
     test("Test remove Object Explorer node", async () => {
@@ -348,7 +337,7 @@ suite("Object Explorer Provider Tests", function () {
             objectExplorerProvider,
         );
 
-        let notificationObject = testOeService.handleExpandSessionNotification();
+        let notificationObject = testOeService.handleExpandNodeNotification(undefined);
 
         const expandParams: ExpandParams = {
             sessionId: mockExpandResponse.sessionId,
@@ -390,7 +379,7 @@ suite("Object Explorer Provider Tests", function () {
             objectExplorerProvider,
         );
 
-        let notificationObject = testOeService.handleExpandSessionNotification();
+        let notificationObject = testOeService.handleExpandNodeNotification(undefined);
 
         const expandParams: ExpandParams = {
             sessionId: mockExpandResponse.sessionId,
@@ -424,27 +413,6 @@ suite("Object Explorer Provider Tests", function () {
             "Error node label",
         );
         assert.equal(childNodes[0].tooltip, mockExpandResponse.errorMessage, "Error node tooltip");
-    });
-
-    test("Test signInNode function", () => {
-        objectExplorerService.setup((s) => s.signInNodeServer(TypeMoq.It.isAny()));
-        let node: any = {
-            connectionCredentials: undefined,
-        };
-        objectExplorerProvider.signInNodeServer(node);
-        objectExplorerService.verify(
-            (s) => s.signInNodeServer(TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
-    });
-
-    test("Test updateNode function", () => {
-        objectExplorerService.setup((s) => s.updateNode(TypeMoq.It.isAny()));
-        let node: any = {
-            connectionCredentials: undefined,
-        };
-        objectExplorerProvider.updateNode(node);
-        objectExplorerService.verify((s) => s.updateNode(node), TypeMoq.Times.once());
     });
 
     test("Test removeConnectionNodes function", () => {
@@ -600,9 +568,9 @@ suite("Object Explorer Node Types Test", () => {
         expect(treeNode.parentNode, "Parent node should be equal to expected value").is.equal(
             undefined,
         );
-        treeNode.updateConnectionInfo(treeNode.connectionInfo);
+        treeNode.updateConnectionProfile(treeNode.connectionProfile);
         expect(
-            treeNode.connectionInfo,
+            treeNode.connectionProfile,
             "Connection credentials should be equal to expected value",
         ).is.equal(undefined);
     });
@@ -648,7 +616,7 @@ suite("Object Explorer Node Types Test", () => {
             undefined,
         );
         expect(
-            treeNodeInfo.connectionInfo,
+            treeNodeInfo.connectionProfile,
             "Connection credentials should be equal to expected value",
         ).is.equal(undefined);
         expect(
@@ -682,11 +650,11 @@ suite("Object Explorer Node Types Test", () => {
             nodeInfo,
             "test_session",
             undefined,
-            testConnnectionInfo,
+            testConnnectionInfo as IConnectionProfile,
             undefined,
         );
 
-        const connectionInfo = treeNodeInfo.connectionInfo;
+        const connectionInfo = treeNodeInfo.connectionProfile;
         expect(
             connectionInfo,
             "Connection credentials should be equal to expected value",
@@ -695,13 +663,13 @@ suite("Object Explorer Node Types Test", () => {
         connectionInfo.server = "modified_server";
 
         expect(
-            treeNodeInfo.connectionInfo.server,
+            treeNodeInfo.connectionProfile.server,
             "Connection credentials should not be modified",
         ).is.equal("test_server");
 
-        treeNodeInfo.updateConnectionInfo(connectionInfo);
+        treeNodeInfo.updateConnectionProfile(connectionInfo);
 
-        expect(treeNodeInfo.connectionInfo.server, "connectionInfo should be updated").is.equal(
+        expect(treeNodeInfo.connectionProfile.server, "connectionInfo should be updated").is.equal(
             "modified_server",
         );
     });
