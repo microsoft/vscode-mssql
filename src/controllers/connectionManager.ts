@@ -86,7 +86,7 @@ export class ConnectionInfo {
 }
 
 export interface IReconnectAction {
-    (profile: IConnectionInfo): Promise<void>;
+    (profile: IConnectionProfile): Promise<void>;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -750,7 +750,7 @@ export default class ConnectionManager {
     }
 
     public async showInstructionTextAsWarning(
-        profile: IConnectionInfo,
+        profile: IConnectionProfile,
         reconnectAction: IReconnectAction,
     ): Promise<void> {
         const selection = await this.vscodeWrapper.showWarningMessageAdvanced(

@@ -8,7 +8,8 @@ import * as vscodeMssql from "vscode-mssql";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as Constants from "../../constants/constants";
-import { IConnectionInfo, ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
+import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
+import { IConnectionProfile } from "../../models/interfaces";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -19,7 +20,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _errorMessage: string;
     private _sessionId: string;
     private _parentNode: TreeNodeInfo;
-    private _connectionInfo: IConnectionInfo;
+    private _connectionInfo: IConnectionProfile;
     private _metadata: ObjectMetadata;
     private _filterableProperties: vscodeMssql.NodeFilterProperty[];
     private _filters: vscodeMssql.NodeFilter[];
@@ -33,7 +34,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         nodeStatus: string,
         nodeType: string,
         sessionId: string,
-        connectionInfo: IConnectionInfo,
+        connectionInfo: IConnectionProfile,
         parentNode: TreeNodeInfo,
         filterProperties: vscodeMssql.NodeFilterProperty[],
         objectMetadata?: ObjectMetadata,
@@ -66,7 +67,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         nodeInfo: NodeInfo,
         sessionId: string,
         parentNode: TreeNodeInfo,
-        connectionInfo: IConnectionInfo,
+        connectionInfo: IConnectionProfile,
         label?: string,
         nodeType?: string,
     ): TreeNodeInfo {
@@ -136,7 +137,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
      * ⚠️ Note: This is a **shallow copy**—modifying the returned object will NOT affect the original connection info.
      * If you want to update the actual connection info stored in the node, use the `updateConnectionInfo` method instead.
      */
-    public get connectionInfo(): IConnectionInfo {
+    public get connectionInfo(): IConnectionProfile {
         if (!this._connectionInfo) {
             return undefined;
         }
@@ -213,7 +214,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this.contextValue = this._convertToContextValue(value);
     }
 
-    public updateConnectionInfo(value: IConnectionInfo): void {
+    public updateConnectionInfo(value: IConnectionProfile): void {
         this._connectionInfo = value;
     }
 

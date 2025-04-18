@@ -23,8 +23,11 @@ const getDisconnectedNodeContextValue = (
     };
 };
 
+/**
+ * Class representing a connection node in OE tree. Provided helper methods to handle connection/disconnection events.
+ */
 export class ConnectionNode extends TreeNodeInfo {
-    constructor(connectionInfo: vscodeMssql.IConnectionInfo) {
+    constructor(connectionInfo: IConnectionProfile) {
         const label =
             ConnInfo.getSimpleConnectionDisplayName(connectionInfo) === connectionInfo.server
                 ? ConnInfo.getConnectionDisplayName(connectionInfo)
@@ -53,7 +56,7 @@ export class ConnectionNode extends TreeNodeInfo {
         nodeInfo: NodeInfo,
         sessionId: string,
         parentNode: TreeNodeInfo,
-        connectionInfo: vscodeMssql.IConnectionInfo,
+        connectionInfo: IConnectionProfile,
         label: string,
     ) {
         this.label = label;

@@ -10,6 +10,7 @@ import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { Deferred } from "../protocol";
 import { IConnectionInfo } from "vscode-mssql";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { IConnectionProfile } from "../models/interfaces";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -100,7 +101,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         await this._objectExplorerService.removeConnectionNodes(connections);
     }
 
-    public addDisconnectedNode(connectionCredentials: IConnectionInfo): void {
+    public addDisconnectedNode(connectionCredentials: IConnectionProfile): void {
         this._objectExplorerService.addDisconnectedNode(connectionCredentials);
     }
 

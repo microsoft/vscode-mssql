@@ -231,7 +231,7 @@ export class ObjectExplorerService {
         return handler;
     }
 
-    private async reconnectProfile(node: TreeNodeInfo, profile: IConnectionInfo): Promise<void> {
+    private async reconnectProfile(node: TreeNodeInfo, profile: IConnectionProfile): Promise<void> {
         node.updateConnectionInfo(profile);
         this.updateNode(node);
         let fileUri = this.getNodeIdentifier(node);
@@ -892,7 +892,7 @@ export class ObjectExplorerService {
         }
     }
 
-    public addDisconnectedNode(connectionCredentials: IConnectionInfo): void {
+    public addDisconnectedNode(connectionCredentials: IConnectionProfile): void {
         const label = (connectionCredentials as IConnectionProfile).profileName
             ? (connectionCredentials as IConnectionProfile).profileName
             : ConnInfo.getConnectionDisplayName(connectionCredentials);
