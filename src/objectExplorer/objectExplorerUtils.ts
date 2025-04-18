@@ -10,7 +10,6 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as vscodeMssql from "vscode-mssql";
 import { TreeNodeType } from "./nodes/connectTreeNode";
-import * as vscode from "vscode";
 
 export class ObjectExplorerUtils {
     public static readonly rootPath: string = path.join(__dirname, "objectTypes");

@@ -172,19 +172,10 @@ export class ObjectExplorerService {
         );
     }
 
-    private getParentFromExpandParams(params: ExpandParams): TreeNodeInfo | undefined {
-        for (let key of this._expandParamsToTreeNodeInfoMap.keys()) {
-            if (key.sessionId === params.sessionId && key.nodePath === params.nodePath) {
-                return this._expandParamsToTreeNodeInfoMap.get(key);
-            }
-        }
-        return undefined;
-    }
-
     public async expandNode(
         node: TreeNodeInfo,
         sessionId: string,
-        promise: Deferred<TreeNodeInfo[]>,
+        promise: Deferred<vscode.TreeItem[]>,
     ): Promise<boolean | undefined> {
         const expandParams: ExpandParams = {
             sessionId: sessionId,
@@ -193,8 +184,6 @@ export class ObjectExplorerService {
         };
         const expandResponse = new Deferred<ExpandResponse>();
         this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
-        this._expandParamsToPromiseMap.set(expandParams, promise);
-        this._expandParamsToTreeNodeInfoMap.set(expandParams, node);
         const response: boolean = await this._connectionManager.client.sendRequest(
             ExpandRequest.type,
             expandParams,
@@ -212,16 +201,15 @@ export class ObjectExplorerService {
                     sessionId: result.sessionId,
                     nodePath: result.nodePath,
                 };
-                const parentNode = this.getParentFromExpandParams(expandParams);
-                const children = result.nodes.map((node) =>
-                    TreeNodeInfo.fromNodeInfo(node, result.sessionId, parentNode, credentials),
+                const children = result.nodes.map((n) =>
+                    TreeNodeInfo.fromNodeInfo(n, result.sessionId, node, credentials),
                 );
-                this._treeNodeToChildrenMap.set(parentNode, children);
+                this._treeNodeToChildrenMap.set(node, children);
                 sendActionEvent(
                     TelemetryViews.ObjectExplorer,
                     TelemetryActions.ExpandNode,
                     {
-                        nodeType: parentNode?.context?.subType ?? "",
+                        nodeType: node?.context?.subType ?? "",
                         isErrored: (!!result.errorMessage).toString(),
                     },
                     {
@@ -247,36 +235,16 @@ export class ObjectExplorerService {
                     this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
                 }
 
-                const expandParams: ExpandParams = {
-                    sessionId: result.sessionId,
-                    nodePath: result.nodePath,
-                };
-                const parentNode = this.getParentFromExpandParams(expandParams);
+                const errorNode = new ExpandErrorNode(node, result.errorMessage);
 
-                const errorNode = new ExpandErrorNode(parentNode, result.errorMessage);
-
-                this._treeNodeToChildrenMap.set(parentNode, [errorNode]);
-
-                for (let key of this._expandParamsToPromiseMap.keys()) {
-                    if (
-                        key.sessionId === expandParams.sessionId &&
-                        key.nodePath === expandParams.nodePath
-                    ) {
-                        let promise = this._expandParamsToPromiseMap.get(key);
-                        promise.resolve([errorNode as TreeNodeInfo]);
-                        this._expandParamsToPromiseMap.delete(key);
-                        this._expandParamsToTreeNodeInfoMap.delete(key);
-                        return;
-                    }
-                }
+                this._treeNodeToChildrenMap.set(node, [errorNode]);
+                promise.resolve([errorNode]);
             }
             return response;
         } else {
             await this._connectionManager.vscodeWrapper.showErrorMessage(
                 LocalizedConstants.msgUnableToExpand,
             );
-            this._expandParamsToPromiseMap.delete(expandParams);
-            this._expandParamsToTreeNodeInfoMap.delete(expandParams);
             promise.resolve(undefined);
             return undefined;
         }
@@ -919,6 +887,11 @@ export class ObjectExplorerService {
             RefreshRequest.type,
             refreshParams,
         );
+
+        const children = await refreshResponse;
+
+        this._treeNodeToChildrenMap.set(node, children.nodes);
+
         this._expandParamsToTreeNodeInfoMap.set(refreshParams, node);
         if (response) {
             this._treeNodeToChildrenMap.delete(node);
