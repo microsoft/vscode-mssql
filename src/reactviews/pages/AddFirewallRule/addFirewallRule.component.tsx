@@ -32,6 +32,7 @@ import { addFirewallRuleReadMoreUrl } from "../ConnectionDialog/connectionConsta
 import { useFormStyles } from "../../common/forms/form.component";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 import { AddFirewallRuleState } from "../../../sharedInterfaces/addFirewallRule";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 enum IpSelectionMode {
     SpecificIp = "specificIp",
@@ -60,8 +61,6 @@ export const AddFirewallRuleDialog = ({
     const styles = useStyles();
     const formStyles = useFormStyles();
 
-    const [isProcessing, setIsProcessing] = useState(false);
-
     const [selectedTenantId, setSelectedTenantId] = useState<string>(
         state.tenants.length > 0 ? state.tenants[0].id : "",
     );
@@ -78,16 +77,19 @@ export const AddFirewallRuleDialog = ({
         }
     }, [state.tenants]);
 
+    useEffect(() => {
+        if (state.clientIp) {
+            setStartIp(replaceLastOctet(state.clientIp, 0));
+            setEndIp(replaceLastOctet(state.clientIp, 255));
+        }
+    }, [state.clientIp]);
+
     const [ruleName, setRuleName] = useState("ClientIPAddress_" + formatDate(new Date()));
 
     const [ipSelectionMode, setIpSelectionMode] = useState(IpSelectionMode.SpecificIp);
 
-    const [startIp, setStartIp] = useState(
-        state.clientIp.replace(/\.[0-9]+$/g, ".0"), // replace last octet with 0
-    );
-    const [endIp, setEndIp] = useState(
-        state.clientIp.replace(/\.[0-9]+$/g, ".255"), // replace last octet with 255
-    );
+    const [startIp, setStartIp] = useState(replaceLastOctet(state.clientIp, 0));
+    const [endIp, setEndIp] = useState(replaceLastOctet(state.clientIp, 255));
 
     const onTenantOptionSelect = (_: SelectionEvents, data: OptionOnSelectData) => {
         setSelectedTenantId(data.selectedOptions.length > 0 ? data.selectedOptions[0] : "");
@@ -205,7 +207,6 @@ export const AddFirewallRuleDialog = ({
                         <Button
                             appearance="primary"
                             onClick={() => {
-                                setIsProcessing(true);
                                 addFirewallRule({
                                     name: ruleName,
                                     tenantId: selectedTenantId,
@@ -218,7 +219,11 @@ export const AddFirewallRuleDialog = ({
                                 // otherwise, it will display an error at the top of the connection dialog
                             }}
                             disabled={!state.isSignedIn}
-                            icon={isProcessing ? <Spinner size="tiny" /> : undefined}>
+                            icon={
+                                state.addFirewallRuleState === ApiStatus.Loading ? (
+                                    <Spinner size="tiny" />
+                                ) : undefined
+                            }>
                             {Loc.firewallRules.addFirewallRule}
                         </Button>
                         <Button
@@ -256,4 +261,8 @@ function formatDate(date: Date) {
 
 function formatTenant({ name, id }: { name: string; id: string }) {
     return `${name} (${id})`;
+}
+
+function replaceLastOctet(ip: string, newLastOctet: number) {
+    return ip.replace(/\.[0-9]+$/g, `.${newLastOctet}`);
 }

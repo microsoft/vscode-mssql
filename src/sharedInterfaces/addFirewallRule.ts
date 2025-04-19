@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FirewallRuleSpec } from "./firewallRule";
-import { WebviewContextProps } from "./webview";
+import { ApiStatus, WebviewContextProps } from "./webview";
 
 /**
  * State for the Add Firewall Rule webview
@@ -15,6 +15,7 @@ export interface AddFirewallRuleState {
     clientIp: string;
     isSignedIn: boolean;
     tenants: { name: string; id: string }[];
+    addFirewallRuleState: ApiStatus;
 }
 
 /**

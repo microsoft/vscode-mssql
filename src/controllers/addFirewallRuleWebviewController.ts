@@ -15,6 +15,7 @@ import { getErrorMessage } from "../utils/utils";
 import { errorFirewallRule } from "../constants/constants";
 import { Deferred } from "../protocol";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
+import { ApiStatus } from "../sharedInterfaces/webview";
 
 /**
  * Controller for the Add Firewall Rule dialog
@@ -46,6 +47,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
                 clientIp: "",
                 isSignedIn: false,
                 tenants: [],
+                addFirewallRuleState: ApiStatus.NotStarted,
             },
             {
                 title: `Add Firewall Rule${initialzationProps.serverName ? ` to ${initialzationProps.serverName}` : ""}`,
@@ -113,6 +115,9 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         });
 
         this.registerReducer("addFirewallRule", async (state, payload) => {
+            state.addFirewallRuleState = ApiStatus.Loading;
+            this.updateState(state);
+
             try {
                 await this.firewallService.createFirewallRuleWithVscodeAccount(
                     payload.firewallRuleSpec,
@@ -125,6 +130,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
                 await this.panel.dispose();
             } catch (err) {
                 state.message = getErrorMessage(err);
+                state.addFirewallRuleState = ApiStatus.Error;
 
                 sendErrorEvent(
                     TelemetryViews.AddFirewallRule,

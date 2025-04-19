@@ -68,13 +68,14 @@ export class FirewallService {
                 firewallRuleSpec.tenantId,
             ));
         } catch (err) {
-            throw {
-                name: "constructAzureAccountForTenant",
-                message: LocAzure.errorCreatingFirewallRule(
+            const error = new Error(
+                LocAzure.errorCreatingFirewallRule(
                     `"${firewallRuleSpec.name}" (${startIp} - ${endIp})`,
                     getErrorMessage(err),
                 ),
-            } as Error;
+            );
+            error.name = "constructAzureAccountForTenant";
+            throw error;
         }
 
         try {
@@ -91,13 +92,15 @@ export class FirewallService {
                 throw result.errorMessage;
             }
         } catch (err) {
-            throw {
-                name: "createFirewallRule",
-                message: LocAzure.errorCreatingFirewallRule(
+            const error = new Error(
+                LocAzure.errorCreatingFirewallRule(
                     `"${firewallRuleSpec.name}" (${startIp} - ${endIp})`,
                     getErrorMessage(err),
                 ),
-            } as Error;
+            );
+            error.name = "createFirewallRule";
+
+            throw error;
         }
     }
 }

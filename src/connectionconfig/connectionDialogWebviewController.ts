@@ -246,6 +246,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("addFirewallRule", async (state, payload) => {
+            (state.dialog as AddFirewallRuleDialogProps).props.addFirewallRuleState =
+                ApiStatus.Loading;
+            this.updateState(state);
+
             try {
                 await this._mainController.connectionManager.firewallService.createFirewallRuleWithVscodeAccount(
                     payload.firewallRuleSpec,

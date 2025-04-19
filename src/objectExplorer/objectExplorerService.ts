@@ -201,7 +201,7 @@ export class ObjectExplorerService {
                         self.updateNode(self._currentNode);
                         void self._connectionManager.connectionUI.handleFirewallError(
                             profile,
-                            handleFirewallResult.ipAddress,
+                            result,
                         );
                     }
                 } else if (

@@ -99,7 +99,7 @@ export default class ConnectionManager {
         string,
         Deferred<ConnectionContracts.ConnectionCompleteParams>
     >;
-    private _failedUriToFirewallIpMap: Map<string, string>;
+    private _failedUriToFirewallIpMap: Map<string, ConnectionContracts.ConnectionCompleteParams>;
     private _failedUriToSSLMap: Map<string, string>;
     private _accountService: AccountService;
     private _firewallService: FirewallService;
@@ -111,6 +111,7 @@ export default class ConnectionManager {
         context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
+        private isRichExperiencesEnabled: boolean = Constants.isRichExperiencesEnabledDefault,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
         private _connectionStore?: ConnectionStore,
@@ -156,6 +157,7 @@ export default class ConnectionManager {
                 this._connectionStore,
                 this._accountStore,
                 prompter,
+                isRichExperiencesEnabled,
                 this.vscodeWrapper,
             );
         }
@@ -177,7 +179,10 @@ export default class ConnectionManager {
             this.azureController,
         );
         this._firewallService = new FirewallService(this._accountService);
-        this._failedUriToFirewallIpMap = new Map<string, string>();
+        this._failedUriToFirewallIpMap = new Map<
+            string,
+            ConnectionContracts.ConnectionCompleteParams
+        >();
         this._failedUriToSSLMap = new Map<string, string>();
 
         if (this.client !== undefined) {
@@ -292,7 +297,10 @@ export default class ConnectionManager {
         return Object.keys(this._connections).length;
     }
 
-    public get failedUriToFirewallIpMap(): Map<string, string> {
+    public get failedUriToFirewallIpMap(): Map<
+        string,
+        ConnectionContracts.ConnectionCompleteParams
+    > {
         return this._failedUriToFirewallIpMap;
     }
 
@@ -669,20 +677,23 @@ export default class ConnectionManager {
                 // check if it's an SSL failed error
                 this._failedUriToSSLMap.set(fileUri, result.errorMessage);
             } else if (result.errorNumber === Constants.errorFirewallRule) {
-                // check whether it's a firewall rule error
-                let firewallResult = await this.firewallService.handleFirewallRule(
-                    result.errorNumber,
-                    result.errorMessage,
-                );
-                if (firewallResult.result && firewallResult.ipAddress) {
-                    this.failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
+                if (this.isRichExperiencesEnabled) {
+                    await this.connectionUI.handleFirewallError(connection.credentials, result);
                 } else {
-                    Utils.showErrorMsg(
-                        LocalizedConstants.msgConnectionError(
-                            result.errorNumber,
-                            result.errorMessage,
-                        ),
+                    let firewallResult = await this.firewallService.handleFirewallRule(
+                        result.errorNumber,
+                        result.errorMessage,
                     );
+                    if (firewallResult.result && firewallResult.ipAddress) {
+                        this.failedUriToFirewallIpMap.set(fileUri, result);
+                    } else {
+                        Utils.showErrorMsg(
+                            LocalizedConstants.msgConnectionError(
+                                result.errorNumber,
+                                result.errorMessage,
+                            ),
+                        );
+                    }
                 }
             } else {
                 Utils.showErrorMsg(

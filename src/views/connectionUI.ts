@@ -27,6 +27,7 @@ import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompt
 import { CancelError } from "../utils/utils";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { AddFirewallRuleWebviewController } from "../controllers/addFirewallRuleWebviewController";
+import { SessionCreatedParameters } from "../models/contracts/objectExplorer/createSessionRequest";
 
 /**
  * The different tasks for managing connection profiles.
@@ -51,6 +52,7 @@ export class ConnectionUI {
         private _connectionStore: ConnectionStore,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
+        private _isRichExperiencesEnabled: boolean = constants.isRichExperiencesEnabledDefault,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!this._vscodeWrapper) {
@@ -594,8 +596,8 @@ export class ConnectionUI {
     public async addFirewallRule(uri: string, profile: IConnectionProfile): Promise<boolean> {
         if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
             // Firewall rule error
-            const clientIp = this.connectionManager.failedUriToFirewallIpMap.get(uri);
-            let success = await this.handleFirewallError(profile, clientIp);
+            const firewallResponse = this.connectionManager.failedUriToFirewallIpMap.get(uri);
+            let success = await this.handleFirewallError(profile, firewallResponse);
             if (success) {
                 // Retry creating the profile if firewall rule
                 // was successful
@@ -611,51 +613,59 @@ export class ConnectionUI {
      * false otherwise
      */
     public async handleFirewallError(
-        profile: IConnectionProfile,
-        ipAddress: string,
+        profile: IConnectionInfo,
+        connectionResponse: ConnectionCompleteParams | SessionCreatedParameters,
     ): Promise<boolean> {
-        const addFirewallRuleController = new AddFirewallRuleWebviewController(
-            this._context,
-            this._vscodeWrapper,
-            {
-                serverName: profile.server,
-                errorMessage: `Gotta add a firewall rule for ${ipAddress} in order to connect!`,
-            },
-            this.connectionManager.firewallService,
-        );
-        addFirewallRuleController.panel.reveal(vscode.ViewColumn.One);
-
-        const wasCreated = await addFirewallRuleController.completed;
-        console.log(`wasCreated: ${wasCreated}`);
-
-        return wasCreated === true; // dialog closed is undefined
-
-        // TODO: remove below
-
-        // TODO: Access account which firewall error needs to be added from:
-        // Try to match accountId to an account in account storage
-        if (profile.accountId) {
-            let account = this._accountStore.getAccount(profile.accountId);
-            this.connectionManager.accountService.setAccount(account);
-            // take that account from account storage and refresh tokens and create firewall rule
-        } else {
-            // If no match or no accountId present, need to add an azure account
-            let selection = await this._vscodeWrapper.showInformationMessage(
-                LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
-                LocalizedConstants.azureAddAccount,
-            );
-            if (selection === LocalizedConstants.azureAddAccount) {
-                profile = await this.connectionManager.azureController.populateAccountProperties(
-                    profile,
-                    this._accountStore,
-                    providerSettings.resources.azureManagementResource,
+        if (this._isRichExperiencesEnabled) {
+            if (connectionResponse.errorNumber !== constants.errorFirewallRule) {
+                Utils.logDebug(
+                    `handleFirewallError called with non-firewall-error response; error number: '${connectionResponse.errorNumber}'`,
                 );
             }
-            let account = this._accountStore.getAccount(profile.accountId);
-            this.connectionManager.accountService.setAccount(account!);
+
+            const addFirewallRuleController = new AddFirewallRuleWebviewController(
+                this._context,
+                this._vscodeWrapper,
+                {
+                    serverName: profile.server,
+                    errorMessage: connectionResponse.errorMessage,
+                },
+                this.connectionManager.firewallService,
+            );
+            addFirewallRuleController.panel.reveal(vscode.ViewColumn.One);
+
+            const wasCreated = await addFirewallRuleController.completed;
+            console.log(`wasCreated: ${wasCreated}`);
+
+            return wasCreated === true; // dialog closed is undefined
+        } else {
+            // TODO: Access account which firewall error needs to be added from:
+            // Try to match accountId to an account in account storage
+            if (profile.accountId) {
+                let account = this._accountStore.getAccount(profile.accountId);
+                this.connectionManager.accountService.setAccount(account);
+                // take that account from account storage and refresh tokens and create firewall rule
+            } else {
+                // If no match or no accountId present, need to add an azure account
+                let selection = await this._vscodeWrapper.showInformationMessage(
+                    LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
+                    LocalizedConstants.azureAddAccount,
+                );
+                if (selection === LocalizedConstants.azureAddAccount) {
+                    profile =
+                        await this.connectionManager.azureController.populateAccountProperties(
+                            profile as IConnectionProfile,
+                            this._accountStore,
+                            providerSettings.resources.azureManagementResource,
+                        );
+                }
+                let account = this._accountStore.getAccount(profile.accountId);
+                this.connectionManager.accountService.setAccount(account!);
+            }
+            throw new Error("Code marked for deletion reached.");
+            let success = await this.createFirewallRule(profile.server, "0.0.0.0");
+            return success;
         }
-        let success = await this.createFirewallRule(profile.server, ipAddress);
-        return success;
     }
 
     /**
