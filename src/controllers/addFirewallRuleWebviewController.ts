@@ -21,7 +21,8 @@ import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureau
  */
 export class AddFirewallRuleWebviewController extends ReactWebviewPanelController<
     AddFirewallRuleState,
-    AddFirewallRuleReducers
+    AddFirewallRuleReducers,
+    boolean
 > {
     public readonly initialized: Deferred<void> = new Deferred<void>();
 
@@ -105,7 +106,9 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
      */
     private registerRpcHandlers(): void {
         this.registerReducer("closeDialog", async (state) => {
+            this.completed.resolve(false);
             this.panel.dispose();
+            // this.disposeWithResult(false);
             return state;
         });
 
@@ -118,8 +121,8 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
 
                 sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule);
 
+                this.completed.resolve(true);
                 await this.panel.dispose();
-                this.dispose();
             } catch (err) {
                 state.message = getErrorMessage(err);
 

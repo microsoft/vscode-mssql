@@ -308,7 +308,7 @@ export default class MainController implements vscode.Disposable {
             });
 
             this.registerCommand(Constants.cmdTestAddFirewallRule);
-            this._event.on(Constants.cmdTestAddFirewallRule, () => {
+            this._event.on(Constants.cmdTestAddFirewallRule, async () => {
                 const addFirewallRuleController = new AddFirewallRuleWebviewController(
                     this._context,
                     this._vscodeWrapper,
@@ -319,7 +319,10 @@ export default class MainController implements vscode.Disposable {
                     },
                     this.connectionManager.firewallService,
                 );
-                addFirewallRuleController.panel.reveal(vscode.ViewColumn.One);
+                addFirewallRuleController.panel.reveal();
+
+                const wasCreated = await addFirewallRuleController.completed;
+                console.log(`wasCreated: ${wasCreated}`);
             });
 
             this.initializeQueryHistory();
