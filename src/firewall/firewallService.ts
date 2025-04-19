@@ -87,7 +87,7 @@ export class FirewallService {
                 securityTokenMappings: tokenMappings,
             });
 
-            if (!result) {
+            if (!result.result) {
                 throw result.errorMessage;
             }
         } catch (err) {

@@ -26,6 +26,7 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { CancelError } from "../utils/utils";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
+import { AddFirewallRuleWebviewController } from "../controllers/addFirewallRuleWebviewController";
 
 /**
  * The different tasks for managing connection profiles.
@@ -594,7 +595,7 @@ export class ConnectionUI {
         if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
             // Firewall rule error
             const clientIp = this.connectionManager.failedUriToFirewallIpMap.get(uri);
-            let success = await this.handleFirewallError(uri, profile, clientIp);
+            let success = await this.handleFirewallError(profile, clientIp);
             if (success) {
                 // Retry creating the profile if firewall rule
                 // was successful
@@ -610,10 +611,27 @@ export class ConnectionUI {
      * false otherwise
      */
     public async handleFirewallError(
-        _uri: string,
         profile: IConnectionProfile,
         ipAddress: string,
     ): Promise<boolean> {
+        const addFirewallRuleController = new AddFirewallRuleWebviewController(
+            this._context,
+            this._vscodeWrapper,
+            {
+                serverName: profile.server,
+                errorMessage: `Gotta add a firewall rule for ${ipAddress} in order to connect!`,
+            },
+            this.connectionManager.firewallService,
+        );
+        addFirewallRuleController.panel.reveal(vscode.ViewColumn.One);
+
+        const wasCreated = await addFirewallRuleController.completed;
+        console.log(`wasCreated: ${wasCreated}`);
+
+        return wasCreated === true; // dialog closed is undefined
+
+        // TODO: remove below
+
         // TODO: Access account which firewall error needs to be added from:
         // Try to match accountId to an account in account storage
         if (profile.accountId) {
