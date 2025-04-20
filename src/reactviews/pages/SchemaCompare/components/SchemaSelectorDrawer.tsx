@@ -27,6 +27,8 @@ import {
 import { Dismiss24Regular, FolderFilled, PlugDisconnectedRegular } from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { locConstants as loc } from "../../../common/locConstants";
+import { SchemaCompareEndpointType } from "../../../../sharedInterfaces/schemaCompare";
+// import * as mssql from "vscode-mssql";
 
 const useStyles = makeStyles({
     drawerWidth: {
@@ -52,6 +54,43 @@ const useStyles = makeStyles({
     },
 });
 
+const endpointTypeToString = (endpointType: number | undefined) => {
+    if (endpointType === undefined) {
+        return "";
+    }
+
+    switch (endpointType) {
+        case SchemaCompareEndpointType.Database:
+            return "database";
+        case SchemaCompareEndpointType.Dacpac:
+            return "dacpac";
+        case SchemaCompareEndpointType.Project:
+            return "sqlproj";
+        default:
+            return "";
+    }
+};
+
+// const extractTargetTypeToString = (extractTarget: number | undefined) => {
+//     if (extractTarget === undefined) {
+//         return "Schema/Object Type";
+//     }
+
+//     switch (extractTarget) {
+//         case mssql.ExtractTarget.file:
+//             return "File";
+//         case mssql.ExtractTarget.flat:
+//             return "Flat";
+//         case mssql.ExtractTarget.objectType:
+//             return "Object Type";
+//         case mssql.ExtractTarget.schema:
+//             return "Schema";
+//         case mssql.ExtractTarget.schemaObjectType:
+//         default:
+//             return "Schema/Object Type";
+//     }
+// };
+
 interface Props extends InputProps {
     show: boolean;
     endpointType: "source" | "target";
@@ -62,7 +101,17 @@ const SchemaSelectorDrawer = (props: Props) => {
     const classes = useStyles();
 
     const context = useContext(schemaCompareContext);
-    const [schemaType, setSchemaType] = useState("database");
+
+    const currentEndpoint =
+        props.endpointType === "source"
+            ? context.state.sourceEndpointInfo
+            : context.state.targetEndpointInfo;
+
+    const [schemaType, setSchemaType] = useState(
+        endpointTypeToString(context.state.auxiliaryEndpointInfo?.endpointType) ||
+            endpointTypeToString(currentEndpoint?.endpointType) ||
+            "database",
+    );
     const [disableOkButton, setDisableOkButton] = useState(true);
     const [serverConnectionUri, setServerConnectionUri] = useState("");
     const [databaseName, setDatabaseName] = useState("");
@@ -94,11 +143,6 @@ const SchemaSelectorDrawer = (props: Props) => {
         props.endpointType === "source"
             ? loc.schemaCompare.selectSource
             : loc.schemaCompare.selectTarget;
-
-    const currentEndpoint =
-        props.endpointType === "source"
-            ? context.state.sourceEndpointInfo
-            : context.state.targetEndpointInfo;
 
     const updateOkButtonState = (type: string) => {
         if (type === "database" && serverConnectionUri && databaseName) {
