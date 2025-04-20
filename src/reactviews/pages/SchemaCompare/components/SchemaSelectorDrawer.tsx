@@ -27,8 +27,10 @@ import {
 import { Dismiss24Regular, FolderFilled, PlugDisconnectedRegular } from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { locConstants as loc } from "../../../common/locConstants";
-import { SchemaCompareEndpointType } from "../../../../sharedInterfaces/schemaCompare";
-// import * as mssql from "vscode-mssql";
+import {
+    SchemaCompareEndpointType,
+    SharedExtractTarget,
+} from "../../../../sharedInterfaces/schemaCompare";
 
 const useStyles = makeStyles({
     drawerWidth: {
@@ -71,25 +73,25 @@ const endpointTypeToString = (endpointType: number | undefined) => {
     }
 };
 
-// const extractTargetTypeToString = (extractTarget: number | undefined) => {
-//     if (extractTarget === undefined) {
-//         return "Schema/Object Type";
-//     }
+const extractTargetTypeToString = (extractTarget: number | undefined) => {
+    if (extractTarget === undefined) {
+        return "";
+    }
 
-//     switch (extractTarget) {
-//         case mssql.ExtractTarget.file:
-//             return "File";
-//         case mssql.ExtractTarget.flat:
-//             return "Flat";
-//         case mssql.ExtractTarget.objectType:
-//             return "Object Type";
-//         case mssql.ExtractTarget.schema:
-//             return "Schema";
-//         case mssql.ExtractTarget.schemaObjectType:
-//         default:
-//             return "Schema/Object Type";
-//     }
-// };
+    switch (extractTarget) {
+        case SharedExtractTarget.file:
+            return "File";
+        case SharedExtractTarget.flat:
+            return "Flat";
+        case SharedExtractTarget.objectType:
+            return "Object Type";
+        case SharedExtractTarget.schema:
+            return "Schema";
+        case SharedExtractTarget.schemaObjectType:
+        default:
+            return "Schema/Object Type";
+    }
+};
 
 interface Props extends InputProps {
     show: boolean;
@@ -115,7 +117,9 @@ const SchemaSelectorDrawer = (props: Props) => {
     const [disableOkButton, setDisableOkButton] = useState(true);
     const [serverConnectionUri, setServerConnectionUri] = useState("");
     const [databaseName, setDatabaseName] = useState("");
-    const [folderStructure, setFolderStructure] = useState("Schema/Object Type");
+    const [folderStructure, setFolderStructure] = useState(
+        extractTargetTypeToString(currentEndpoint?.extractTarget) || "Schema/Object Type",
+    );
 
     const fileId = useId("file");
     const folderStructureId: string = useId("folderStructure");
@@ -335,7 +339,8 @@ const SchemaSelectorDrawer = (props: Props) => {
                                     <Dropdown
                                         id={folderStructureId}
                                         className={classes.fileInputWidth}
-                                        defaultValue={options[4].display}
+                                        value={folderStructure}
+                                        selectedOptions={[folderStructure]}
                                         onOptionSelect={(event, data) =>
                                             handleFolderStructureSelected(event, data)
                                         }>

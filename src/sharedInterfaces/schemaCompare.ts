@@ -34,6 +34,15 @@ export const enum SchemaCompareEndpointType {
     // located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
 }
 
+export const enum SharedExtractTarget {
+    dacpac = 0,
+    file = 1,
+    flat = 2,
+    objectType = 3,
+    schema = 4,
+    schemaObjectType = 5,
+}
+
 export interface ISchemaCompareConnectionProfile extends IConnectionInfo {
     profileName?: string;
 }
