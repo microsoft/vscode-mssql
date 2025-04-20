@@ -47,7 +47,7 @@ const useStyles = makeStyles({
     },
 
     buttonLeftMargin: {
-        marginLeft: "2px",
+        marginLeft: "8px",
     },
 
     footer: {
@@ -110,9 +110,7 @@ const SchemaSelectorDrawer = (props: Props) => {
             : context.state.targetEndpointInfo;
 
     const [schemaType, setSchemaType] = useState(
-        endpointTypeToString(context.state.auxiliaryEndpointInfo?.endpointType) ||
-            endpointTypeToString(currentEndpoint?.endpointType) ||
-            "database",
+        endpointTypeToString(currentEndpoint?.endpointType) || "database",
     );
     const [disableOkButton, setDisableOkButton] = useState(true);
     const [serverConnectionUri, setServerConnectionUri] = useState("");
