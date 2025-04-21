@@ -212,6 +212,16 @@
   "Create a new firewall rule": "Create a new firewall rule",
   "A firewall rule is required to access this server.": "A firewall rule is required to access this server.",
   "Add Firewall Rule": "Add Firewall Rule",
+  "Sign into Azure in order to add a firewall rule.": "Sign into Azure in order to add a firewall rule.",
+  "Sign into Azure": "Sign into Azure",
+  "Tenant": "Tenant",
+  "Rule name": "Rule name",
+  "Add my client IP ({0})/{0} is the IP address of the client": {
+    "message": "Add my client IP ({0})",
+    "comment": [
+      "{0} is the IP address of the client"
+    ]
+  },
   "Connect": "Connect",
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
@@ -752,7 +762,6 @@
   "Cannot connect due to expired tokens. Please re-authenticate and try again.": "Cannot connect due to expired tokens. Please re-authenticate and try again.",
   "Microsoft Entra Id": "Microsoft Entra Id",
   "Choose a Microsoft Entra tenant": "Choose a Microsoft Entra tenant",
-  "Tenant": "Tenant",
   "User name": "User name",
   "User name (SQL Login)": "User name (SQL Login)",
   "Password": "Password",
@@ -1072,6 +1081,13 @@
       "{0} is the connection name"
     ]
   },
+  "Add Firewall Rule to {0}/{0} is the server name": {
+    "message": "Add Firewall Rule to {0}",
+    "comment": [
+      "{0} is the server name"
+    ]
+  },
+  "Azure sign-in failed or was cancelled.": "Azure sign-in failed or was cancelled.",
   "Error loading Azure account information for tenant ID '{0}'/{0} is the tenant ID": {
     "message": "Error loading Azure account information for tenant ID '{0}'",
     "comment": [
