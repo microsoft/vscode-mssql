@@ -17,7 +17,8 @@ const useStyles = makeStyles({
         gap: "2px",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh",
+        height: "100%",
+        overflow: "scroll",
     },
     stepsDiv: {
         display: "flex",

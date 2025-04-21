@@ -63,7 +63,17 @@ export const ContainerInputForm: React.FC = () => {
             .map((component, index) => (
                 <div
                     key={index}
-                    style={component.componentWidth ? { width: component.componentWidth } : {}}>
+                    style={
+                        component.componentWidth
+                            ? {
+                                  width: component.componentWidth,
+                                  maxWidth: component.componentWidth,
+                                  whiteSpace: "normal", // allows wrapping
+                                  overflowWrap: "break-word", // breaks long words if needed
+                                  wordBreak: "break-word",
+                              }
+                            : {}
+                    }>
                     <FormField<
                         DockerConnectionProfile,
                         ContainerDeploymentWebviewState,

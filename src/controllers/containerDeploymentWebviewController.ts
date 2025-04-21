@@ -326,6 +326,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 required: true,
                 isAdvancedOption: false,
                 tooltip: "SQL Server Container Password",
+                componentWidth: "500px",
                 validate(_, value) {
                     const testPassword = validateSqlServerPassword(value.toString());
                     if (testPassword === "") {
