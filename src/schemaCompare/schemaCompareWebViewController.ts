@@ -383,7 +383,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             } else {
                 if (state.auxiliaryEndpointInfo) {
                     state.targetEndpointInfo = state.auxiliaryEndpointInfo;
-                    state.auxiliaryEndpointInfo = undefined;
                 }
 
                 if (
@@ -396,6 +395,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 }
             }
 
+            state.auxiliaryEndpointInfo = undefined;
             this.updateState(state);
 
             return state;
