@@ -1202,9 +1202,29 @@ export default class MainController implements vscode.Disposable {
     private async onChooseDatabase(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             const success = await this._connectionMgr.onChooseDatabase();
+            //TODO: change label to the new database name
             return success;
         }
         return false;
+    }
+
+    private async updateActiveTabLabel(connectionInfo: {
+        serverName: string;
+        databaseName: string;
+    }) {
+        const activeEditor = vscode.window.activeTextEditor;
+
+        if (activeEditor) {
+            const tab = vscode.window.tabGroups.activeTabGroup.tabs.find(
+                (tab) =>
+                    tab.input instanceof vscode.TabInputText &&
+                    tab.input.uri.toString() === activeEditor.document.uri.toString(),
+            );
+
+            if (tab) {
+                tab.label = `${activeEditor.document.fileName} [${connectionInfo.serverName}/${connectionInfo.databaseName}]`;
+            }
+        }
     }
 
     /**
@@ -1687,6 +1707,7 @@ export default class MainController implements vscode.Disposable {
         if (this.canRunCommand()) {
             // from the object explorer context menu
             const editor = await this._untitledSqlDocumentService.newQuery(content);
+            //TODO: update label here
             const uri = editor.document.uri.toString(true);
             if (node) {
                 // connect to the node if the command came from the context
