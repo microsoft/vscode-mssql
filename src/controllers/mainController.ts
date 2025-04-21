@@ -62,12 +62,12 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
 import {
-    ContainerDeploymentWebviewController,
     deleteContainer,
     restartContainer,
     stopContainer,
-} from "./containerDeploymentWebviewController";
+} from "../containerDeployment/dockerUtils";
 
 /**
  * The main controller class that initializes the extension

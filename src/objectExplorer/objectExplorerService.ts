@@ -58,7 +58,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
     checkIfConnectionIsDockerContainer,
     restartContainer,
-} from "../controllers/containerDeploymentWebviewController";
+} from "../containerDeployment/dockerUtils";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
