@@ -20,7 +20,7 @@ suite("AddFirewallRuleWebviewController Tests", () => {
     const serverName = "TestServerName";
     const errorMessage = "Gotta have a firewall rule for 1.2.3.4 in order to access this server!";
 
-    setup(() => {
+    setup(async () => {
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
 
@@ -33,6 +33,8 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             },
             mockFirewallService.object,
         );
+
+        await controller.initialized;
     });
 
     test("Should initialize correctly", () => {
