@@ -354,114 +354,118 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 );
             });
         });
-    });
 
-    test("loadConnection", async () => {
-        controller.state.formError = "Sample error";
+        test("loadConnection", async () => {
+            controller.state.formError = "Sample error";
 
-        expect(
-            controller["_connectionBeingEdited"],
-            "should not be a connection being edited at first",
-        ).to.be.undefined;
+            expect(
+                controller["_connectionBeingEdited"],
+                "should not be a connection being edited at first",
+            ).to.be.undefined;
 
-        const testConnection = {
-            profileName: "Test Server to Edit",
-            server: "SavedServer",
-            database: "SavedDatabase",
-            authenticationType: AuthenticationType.SqlLogin,
-        } as IConnectionDialogProfile;
-
-        await controller["_reducers"].loadConnection(controller.state, {
-            connection: testConnection,
-        });
-
-        expect(
-            controller["_connectionBeingEdited"],
-            "connection being edited should have the same properties as the one passed to the reducer",
-        ).to.deep.equal(testConnection);
-        expect(
-            controller["_connectionBeingEdited"],
-            "connection being edited should be a clone of the one passed to the reducer, not the original",
-        ).to.not.equal(testConnection);
-
-        expect(
-            controller.state.formError,
-            "Error should be cleared after loading the connection",
-        ).to.equal("");
-    });
-
-    suite("connect", () => {
-        test("connect happy path", async () => {
-            // Set up mocks
-            const { sendErrorEvent } = stubTelemetry(sandbox);
-
-            mockObjectExplorerProvider
-                .setup((oep) =>
-                    oep.createSession(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                )
-                .returns((createSessionPromise: Deferred<TreeNodeInfo>) => {
-                    createSessionPromise.resolve(
-                        new TreeNodeInfo(
-                            "testNode",
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                        ),
-                    );
-                    return Promise.resolve("testSessionId");
-                });
-
-            connectionManager
-                .setup((cm) => cm.connectDialog(TypeMoq.It.isAny()))
-                .returns(() => Promise.resolve({} as ConnectionCompleteParams));
-
-            let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
-                undefined,
-                TypeMoq.MockBehavior.Loose,
-            );
-
-            mockObjectExplorerTree
-                .setup((oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns(() => {
-                    return Promise.resolve();
-                });
-
-            mainController.objectExplorerTree = mockObjectExplorerTree.object;
-
-            // Run test
-
-            controller.state.formState = {
-                server: "localhost",
-                user: "testUser",
-                password: "testPassword",
+            const testConnection = {
+                profileName: "Test Server to Edit",
+                server: "SavedServer",
+                database: "SavedDatabase",
                 authenticationType: AuthenticationType.SqlLogin,
             } as IConnectionDialogProfile;
 
-            await controller["_reducers"].connect(controller.state, {});
+            await controller["_reducers"].loadConnection(controller.state, {
+                connection: testConnection,
+            });
 
-            expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
             expect(
-                controller.isDisposed,
-                "controller should be disposed after a successful connection",
-            ).to.be.true;
+                controller["_connectionBeingEdited"],
+                "connection being edited should have the same properties as the one passed to the reducer",
+            ).to.deep.equal(testConnection);
+            expect(
+                controller["_connectionBeingEdited"],
+                "connection being edited should be a clone of the one passed to the reducer, not the original",
+            ).to.not.equal(testConnection);
 
-            // ObjectExplorerTree should have revealed to the new node
-            mockObjectExplorerTree.verify(
-                (oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+            expect(
+                controller.state.formError,
+                "Error should be cleared after loading the connection",
+            ).to.equal("");
+        });
 
-            // ConnectionStore should have saved the profile
-            connectionStore.verify(
-                (cs) => cs.saveProfile(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+        suite("connect", () => {
+            test("connect happy path", async () => {
+                // Set up mocks
+                const { sendErrorEvent } = stubTelemetry(sandbox);
+
+                mockObjectExplorerProvider
+                    .setup((oep) =>
+                        oep.createSession(
+                            TypeMoq.It.isAny(),
+                            TypeMoq.It.isAny(),
+                            TypeMoq.It.isAny(),
+                        ),
+                    )
+                    .returns((createSessionPromise: Deferred<TreeNodeInfo>) => {
+                        createSessionPromise.resolve(
+                            new TreeNodeInfo(
+                                "testNode",
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                            ),
+                        );
+                        return Promise.resolve("testSessionId");
+                    });
+
+                connectionManager
+                    .setup((cm) => cm.connectDialog(TypeMoq.It.isAny()))
+                    .returns(() => Promise.resolve({} as ConnectionCompleteParams));
+
+                let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
+                    undefined,
+                    TypeMoq.MockBehavior.Loose,
+                );
+
+                mockObjectExplorerTree
+                    .setup((oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return Promise.resolve();
+                    });
+
+                mainController.objectExplorerTree = mockObjectExplorerTree.object;
+
+                // Run test
+
+                controller.state.formState = {
+                    server: "localhost",
+                    user: "testUser",
+                    password: "testPassword",
+                    authenticationType: AuthenticationType.SqlLogin,
+                } as IConnectionDialogProfile;
+
+                await controller["_reducers"].connect(controller.state, {});
+
+                expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
+                expect(
+                    controller.isDisposed,
+                    "controller should be disposed after a successful connection",
+                ).to.be.true;
+
+                // ObjectExplorerTree should have revealed to the new node
+                mockObjectExplorerTree.verify(
+                    (oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                    TypeMoq.Times.once(),
+                );
+
+                // ConnectionStore should have saved the profile
+                connectionStore.verify(
+                    (cs) => cs.saveProfile(TypeMoq.It.isAny()),
+                    TypeMoq.Times.once(),
+                );
+            });
         });
     });
 });

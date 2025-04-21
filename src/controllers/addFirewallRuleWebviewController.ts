@@ -110,7 +110,6 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         this.registerReducer("closeDialog", async (state) => {
             this.completed.resolve(false);
             this.panel.dispose();
-            // this.disposeWithResult(false);
             return state;
         });
 

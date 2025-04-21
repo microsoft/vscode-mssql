@@ -89,6 +89,17 @@ suite("AddFirewallRuleWebviewController Tests", () => {
         });
     });
 
+    suite("Reducer tests", () => {
+        test("closeDialog", async () => {
+            await finishSetup();
+
+            await controller["_reducers"].closeDialog(controller.state, {});
+
+            expect(controller.isDisposed).to.be.true;
+            expect(await controller.completed).to.be.false;
+        });
+    });
+
     async function finishSetup(isSignedIn: boolean = true): Promise<void> {
         azureHelperStubs.stubIsSignedIn(sandbox, isSignedIn);
 

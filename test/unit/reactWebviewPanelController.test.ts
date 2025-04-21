@@ -73,7 +73,7 @@ suite("ReactWebviewPanelController", () => {
         sandbox.restore();
     });
 
-    function createController(options: Partial<MssqlWebviewPanelOptions> = {}) {
+    function createController<TResult = void>(options: Partial<MssqlWebviewPanelOptions> = {}) {
         const defaultOptions: MssqlWebviewPanelOptions = {
             title: "Test Panel",
             viewColumn: vscode.ViewColumn.One,
@@ -82,7 +82,7 @@ suite("ReactWebviewPanelController", () => {
             showRestorePromptAfterClose: true,
         };
 
-        const controller = new TestReactWebviewPanelController(mockContext, {
+        const controller = new TestReactWebviewPanelController<TResult>(mockContext, {
             ...defaultOptions,
             ...options,
         });
@@ -276,6 +276,76 @@ suite("ReactWebviewPanelController", () => {
             "HTML should include the correct base href",
         );
     });
+
+    suite("DialogResult", () => {
+        function delay(ms) {
+            return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+
+        setup(() => {
+            const onDidReceiveMessageStub = mockWebview.onDidReceiveMessage as sinon.SinonStub;
+            onDidReceiveMessageStub.returns({
+                dispose: sinon.stub().returns(true),
+            });
+
+            const onDidDispose = mockPanel.onDidDispose as sinon.SinonStub;
+            onDidDispose.returns({
+                dispose: sinon.stub().returns(true),
+            });
+        });
+
+        test("dialogResult should be undefined when disposed without setting dialogResult", async () => {
+            const controller = createController<string>();
+            let isCompleted = false;
+            controller.completed.then(() => {
+                isCompleted = true;
+            });
+
+            assert.equal(isCompleted, false, "dialogResult should be an uncompleted promise");
+
+            controller.dispose();
+
+            await delay(50); // Give a moment for the promise completion check to occur
+            assert.equal(isCompleted, true, "dialogResult should a resolved promise");
+            assert.equal(await controller.completed, undefined, "dialogResult should be undefined");
+        });
+
+        test("Should have dialogResult set when disposed after setting dialogResult", async () => {
+            const controller = createController<string>();
+            let isCompleted = false;
+            controller.completed.resolve("testResult");
+            controller.completed.then(() => {
+                isCompleted = true;
+            });
+
+            assert.equal(isCompleted, false, "dialogResult should be an uncompleted promise");
+
+            controller.dispose();
+
+            await delay(50); // Give a moment for the promise completion check to occur
+            assert.equal(isCompleted, true, "dialogResult should a resolved promise");
+            assert.equal(
+                await controller.completed,
+                "testResult",
+                "dialogResult should be set to the correct value",
+            );
+        });
+
+        test("dialogResult should be completed when the controller is disposed", async () => {
+            const controller = createController();
+            let isCompleted = false;
+            controller.completed.then(() => {
+                isCompleted = true;
+            });
+
+            assert.equal(isCompleted, false, "dialogResult should be an uncompleted promise");
+
+            controller.dispose();
+
+            await delay(50); // Give a moment for the promise completion check to occur
+            assert.equal(isCompleted, true, "dialogResult should a resolved promise");
+        });
+    });
 });
 
 interface TestState {
@@ -289,7 +359,11 @@ interface TestReducers {
 
 const vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
 
-class TestReactWebviewPanelController extends ReactWebviewPanelController<TestState, TestReducers> {
+class TestReactWebviewPanelController<TResult> extends ReactWebviewPanelController<
+    TestState,
+    TestReducers,
+    TResult
+> {
     constructor(context: vscode.ExtensionContext, options: MssqlWebviewPanelOptions) {
         super(context, vscodeWrapper.object, "testSource", "testSource", { count: 0 }, options);
     }
