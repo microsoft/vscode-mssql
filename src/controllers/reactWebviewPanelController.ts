@@ -12,6 +12,7 @@ import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 import { ReactWebviewBaseController } from "./reactWebviewBaseController";
 import { sendActionEvent } from "../telemetry/telemetry";
 import VscodeWrapper from "./vscodeWrapper";
+import { Deferred } from "../protocol";
 
 /**
  * ReactWebviewPanelController is a class that manages a vscode.WebviewPanel and provides
@@ -20,11 +21,13 @@ import VscodeWrapper from "./vscodeWrapper";
  * @template State The type of the state object that the webview will use
  * @template Reducers The type of the reducers that the webview will use
  */
-export class ReactWebviewPanelController<State, Reducers> extends ReactWebviewBaseController<
+export class ReactWebviewPanelController<
     State,
-    Reducers
-> {
+    Reducers,
+    Result = void,
+> extends ReactWebviewBaseController<State, Reducers> {
     private _panel: vscode.WebviewPanel;
+    public readonly dialogResult: Deferred<Result | undefined> = new Deferred<Result | undefined>();
 
     /**
      * Creates a new ReactWebviewPanelController
@@ -130,5 +133,12 @@ export class ReactWebviewPanelController<State, Reducers> extends ReactWebviewBa
 
     public set showRestorePromptAfterClose(value: boolean) {
         this._options.showRestorePromptAfterClose = value;
+    }
+
+    public override dispose(): void {
+        // Ensure that the promise is resolved, regardless of how the panel is disposed.
+        // If it has already been resolved/rejected, this won't change that.
+        this.dialogResult.resolve(undefined);
+        super.dispose();
     }
 }
