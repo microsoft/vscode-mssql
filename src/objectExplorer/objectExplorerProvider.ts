@@ -11,6 +11,7 @@ import { Deferred } from "../protocol";
 import { IConnectionInfo } from "vscode-mssql";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionProfile } from "../models/interfaces";
+import { ConnectionNode } from "./nodes/connectionNode";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -75,11 +76,15 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         node: TreeNodeInfo,
         isDisconnect: boolean = false,
     ): Promise<void> {
-        return this._objectExplorerService.removeObjectExplorerNode(node, isDisconnect);
+        return this._objectExplorerService.removeObjectExplorerNode(
+            node as ConnectionNode,
+            isDisconnect,
+        );
     }
 
     public async refreshNode(node: TreeNodeInfo): Promise<void> {
-        return this._objectExplorerService.refreshNode(node);
+        node.shouldRefresh = true;
+        this._onDidChangeTreeData.fire(node);
     }
 
     public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {

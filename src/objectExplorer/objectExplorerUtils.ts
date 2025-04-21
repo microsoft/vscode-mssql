@@ -14,17 +14,13 @@ import { TreeNodeType } from "./nodes/connectTreeNode";
 export class ObjectExplorerUtils {
     public static readonly rootPath: string = path.join(__dirname, "objectTypes");
 
-    public static iconPath(label: string): string {
-        if (label) {
-            if (label === Constants.disconnectedServerNodeType) {
-                // if disconnected
-                label = `${Constants.serverLabel}_red`;
-            } else if (label === Constants.serverLabel) {
-                // if connected
-                label += "_green";
-            }
-            return path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
-        }
+    /**
+     * Gets the path to the icon for a given node type.
+     * @param nodeType The type of node to get the icon for
+     * @returns The path to the icon for the node type
+     */
+    public static iconPath(nodeType: string): string {
+        return path.join(ObjectExplorerUtils.rootPath, `${nodeType}.svg`);
     }
 
     public static getNodeUri(node: TreeNodeType): string {

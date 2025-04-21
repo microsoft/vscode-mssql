@@ -19,10 +19,7 @@ import {
     ExpandResponse,
 } from "../models/contracts/objectExplorer/expandNodeRequest";
 import { ObjectExplorerProvider } from "./objectExplorerProvider";
-import {
-    RefreshRequest,
-    RefreshParams,
-} from "../models/contracts/objectExplorer/refreshSessionRequest";
+import { RefreshRequest } from "../models/contracts/objectExplorer/refreshSessionRequest";
 import {
     CloseSessionRequest,
     CloseSessionParams,
@@ -41,11 +38,10 @@ import * as Utils from "../models/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
 import providerSettings from "../azure/providerSettings";
-import { IConnectionInfo, TreeNodeContextValue } from "vscode-mssql";
+import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { IAccount } from "../models/contracts/azure";
 import * as AzureConstants from "../azure/constants";
-import * as ConnInfo from "../models/connectionInfo";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import {
     GetSessionIdRequest,
@@ -55,6 +51,7 @@ import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
+import { ConnectionNode } from "./nodes/connectionNode";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
@@ -134,20 +131,8 @@ export class ObjectExplorerService {
 
     private async reconnectProfile(node: TreeNodeInfo, profile: IConnectionProfile): Promise<void> {
         node.updateConnectionProfile(profile);
-        this.updateNode(node);
-        let fileUri = this.getNodeIdentifier(node);
-        if (
-            await this._connectionManager.connectionStore.saveProfile(profile as IConnectionProfile)
-        ) {
-            const res = await this._connectionManager.connect(fileUri, profile);
-            if (await this._connectionManager.handleConnectionResult(res, fileUri, profile)) {
-                void this.refreshNode(node);
-            }
-        } else {
-            this._connectionManager.vscodeWrapper.showErrorMessage(
-                LocalizedConstants.msgPromptProfileUpdateFailed,
-            );
-        }
+        this._treeNodeToChildrenMap.delete(node);
+        this._objectExplorerProvider.refresh(node);
     }
 
     private needsAccountRefresh(result: SessionCreatedParameters, username: string): boolean {
@@ -170,61 +155,80 @@ export class ObjectExplorerService {
         sessionId: string,
         promise: Deferred<vscode.TreeItem[]>,
     ): Promise<boolean | undefined> {
-        const expandParams: ExpandParams = {
-            sessionId: sessionId,
-            nodePath: node.nodePath,
-            filters: node.filters,
-        };
-        const expandResponse = new Deferred<ExpandResponse>();
-        this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
-        const response: boolean = await this._connectionManager.client.sendRequest(
-            ExpandRequest.type,
-            expandParams,
-        );
-        if (response) {
-            const result = await expandResponse;
-            if (!result) {
-                return undefined;
+        try {
+            const expandParams: ExpandParams = {
+                sessionId: sessionId,
+                nodePath: node.nodePath,
+                filters: node.filters,
+            };
+            const expandResponse = new Deferred<ExpandResponse>();
+            this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
+
+            let response: boolean;
+            if (node.shouldRefresh) {
+                response = await this._connectionManager.client.sendRequest(
+                    RefreshRequest.type,
+                    expandParams,
+                );
+            } else {
+                response = await this._connectionManager.client.sendRequest(
+                    ExpandRequest.type,
+                    expandParams,
+                );
             }
 
-            if (result.nodes && !result.errorMessage) {
-                // successfully received children from SQL Tools Service
-                const children = result.nodes.map((n) =>
-                    TreeNodeInfo.fromNodeInfo(n, result.sessionId, node, node.connectionProfile),
-                );
-                this._treeNodeToChildrenMap.set(node, children);
-                sendActionEvent(
-                    TelemetryViews.ObjectExplorer,
-                    TelemetryActions.ExpandNode,
-                    {
-                        nodeType: node?.context?.subType ?? "",
-                        isErrored: (!!result.errorMessage).toString(),
-                    },
-                    {
-                        nodeCount: result?.nodes.length ?? 0,
-                    },
-                );
-
-                promise.resolve(children);
-            } else {
-                // failure to expand node; display error
-
-                if (result.errorMessage) {
-                    this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
+            if (response) {
+                const result = await expandResponse;
+                if (!result) {
+                    return undefined;
                 }
 
-                const errorNode = new ExpandErrorNode(node, result.errorMessage);
+                if (result.nodes && !result.errorMessage) {
+                    // successfully received children from SQL Tools Service
+                    const children = result.nodes.map((n) =>
+                        TreeNodeInfo.fromNodeInfo(
+                            n,
+                            result.sessionId,
+                            node,
+                            node.connectionProfile,
+                        ),
+                    );
+                    this._treeNodeToChildrenMap.set(node, children);
+                    sendActionEvent(
+                        TelemetryViews.ObjectExplorer,
+                        TelemetryActions.ExpandNode,
+                        {
+                            nodeType: node?.context?.subType ?? "",
+                            isErrored: (!!result.errorMessage).toString(),
+                        },
+                        {
+                            nodeCount: result?.nodes.length ?? 0,
+                        },
+                    );
 
-                this._treeNodeToChildrenMap.set(node, [errorNode]);
-                promise.resolve([errorNode]);
+                    promise.resolve(children);
+                } else {
+                    // failure to expand node; display error
+
+                    if (result.errorMessage) {
+                        this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
+                    }
+
+                    const errorNode = new ExpandErrorNode(node, result.errorMessage);
+
+                    this._treeNodeToChildrenMap.set(node, [errorNode]);
+                    promise.resolve([errorNode]);
+                }
+                return response;
+            } else {
+                await this._connectionManager.vscodeWrapper.showErrorMessage(
+                    LocalizedConstants.msgUnableToExpand,
+                );
+                promise.resolve(undefined);
+                return undefined;
             }
-            return response;
-        } else {
-            await this._connectionManager.vscodeWrapper.showErrorMessage(
-                LocalizedConstants.msgUnableToExpand,
-            );
-            promise.resolve(undefined);
-            return undefined;
+        } finally {
+            node.shouldRefresh = false;
         }
     }
 
@@ -240,9 +244,17 @@ export class ObjectExplorerService {
                 ) &&
                 rootTreeNode.label === node.label
             ) {
-                const index = this._rootTreeNodeArray.indexOf(rootTreeNode);
-                delete this._rootTreeNodeArray[index];
-                this._rootTreeNodeArray[index] = node;
+                rootTreeNode.sessionId = node.sessionId;
+                rootTreeNode.nodePath = node.nodePath;
+                rootTreeNode.nodeStatus = node.nodeStatus;
+                rootTreeNode.collapsibleState = node.collapsibleState;
+                rootTreeNode.context = node.context;
+                rootTreeNode.nodeType = node.nodeType;
+                rootTreeNode.iconPath = node.iconPath;
+                rootTreeNode.updateConnectionProfile(node.connectionProfile);
+
+                // delete this._rootTreeNodeArray[index];
+                // this._rootTreeNodeArray[index] = node;
                 return;
             }
         }
@@ -289,36 +301,11 @@ export class ObjectExplorerService {
 
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
         for (const conn of savedConnections) {
-            let nodeLabel =
-                ConnInfo.getSimpleConnectionDisplayName(conn) === conn.server
-                    ? ConnInfo.getConnectionDisplayName(conn)
-                    : ConnInfo.getSimpleConnectionDisplayName(conn);
-
-            let node = new TreeNodeInfo(
-                nodeLabel,
-                ObjectExplorerService.disconnectedNodeContextValue,
-                vscode.TreeItemCollapsibleState.Collapsed,
-                undefined,
-                undefined,
-                Constants.disconnectedServerNodeType,
-                undefined,
-                conn,
-                undefined,
-                undefined,
-            );
-            result.push(node);
+            const connectionNode = new ConnectionNode(conn);
+            result.push(connectionNode);
         }
 
         return result;
-    }
-
-    private static get disconnectedNodeContextValue(): TreeNodeContextValue {
-        return {
-            type: Constants.disconnectedServerNodeType,
-            filterable: false,
-            hasFilters: false,
-            subType: "",
-        };
     }
 
     /**
@@ -389,9 +376,14 @@ export class ObjectExplorerService {
             this._currentNode = element;
         }
 
-        // get cached children if available
-        if (this._treeNodeToChildrenMap.has(element)) {
-            return this._treeNodeToChildrenMap.get(element);
+        // Clean up children if the node is marked for refresh
+        if (element.shouldRefresh) {
+            this.cleanNodeChildren(element);
+        } else {
+            // If the node has cached children already, return them
+            if (this._treeNodeToChildrenMap.has(element)) {
+                return this._treeNodeToChildrenMap.get(element);
+            }
         }
 
         return this.getOrCreateNodeChildrenWithSession(element);
@@ -442,7 +434,9 @@ export class ObjectExplorerService {
         if (!node) {
             return this.createSignInNode(element);
         } else {
-            this._objectExplorerProvider.refresh(undefined);
+            const children = this.expandExistingNode(element);
+            setTimeout(() => this._objectExplorerProvider.refresh(element), 0);
+            return children;
         }
     }
 
@@ -555,9 +549,9 @@ export class ObjectExplorerService {
                     connectionDetails,
                 );
 
-            const nodeLabel =
-                (connectionProfile as IConnectionProfile).profileName ??
-                ConnInfo.getConnectionDisplayName(connectionProfile);
+            // const nodeLabel =
+            //     (connectionProfile as IConnectionProfile).profileName ??
+            //     ConnInfo.getConnectionDisplayName(connectionProfile);
 
             const sessionCreatedResponse: Deferred<SessionCreatedParameters> =
                 new Deferred<SessionCreatedParameters>();
@@ -577,45 +571,43 @@ export class ObjectExplorerService {
                     this.currentNode = getParentNode(this.currentNode);
                 }
                 if (result.success) {
-                    // set connection and other things
-                    let node: TreeNodeInfo;
-
-                    if (this._currentNode && this._currentNode.sessionId === result.sessionId) {
-                        node = TreeNodeInfo.fromNodeInfo(
-                            result.rootNode,
-                            result.sessionId,
-                            undefined,
-                            this._currentNode.connectionProfile,
-                            nodeLabel,
-                            Constants.serverLabel,
-                        );
-                    } else {
-                        node = TreeNodeInfo.fromNodeInfo(
-                            result.rootNode,
-                            result.sessionId,
-                            undefined,
-                            connectionCredentials as IConnectionProfile,
-                            nodeLabel,
-                            Constants.serverLabel,
-                        );
+                    let connectionNode = this._rootTreeNodeArray.find((node) =>
+                        Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
+                    ) as ConnectionNode;
+                    let isNewConnection = false;
+                    if (!connectionNode) {
+                        isNewConnection = true;
+                        connectionNode = new ConnectionNode(connectionProfile);
+                        this._rootTreeNodeArray.push(connectionNode);
                     }
+
+                    connectionNode.updateToConnectedState({
+                        nodeInfo: result.rootNode,
+                        sessionId: result.sessionId,
+                        parentNode: undefined,
+                        connectionProfile: connectionProfile,
+                    });
+
                     // make a connection if not connected already
-                    const nodeUri = this.getNodeIdentifier(node);
+                    const nodeUri = this.getNodeIdentifier(connectionNode);
                     if (
                         !this._connectionManager.isConnected(nodeUri) &&
                         !this._connectionManager.isConnecting(nodeUri)
                     ) {
-                        const profile = <IConnectionProfile>node.connectionProfile;
-                        await this._connectionManager.connect(nodeUri, profile);
+                        await this._connectionManager.connect(
+                            nodeUri,
+                            connectionNode.connectionProfile,
+                        );
                     }
-
-                    this.updateNode(node);
+                    if (isNewConnection) {
+                        this.addConnectionNodeAtRightPosition(connectionNode);
+                    }
                     this._objectExplorerProvider.objectExplorerExists = true;
                     // remove the sign in node once the session is created
-                    if (this._treeNodeToChildrenMap.has(node)) {
-                        this._treeNodeToChildrenMap.delete(node);
+                    if (this._treeNodeToChildrenMap.has(connectionNode)) {
+                        this._treeNodeToChildrenMap.delete(connectionNode);
                     }
-                    promise?.resolve(node);
+                    promise?.resolve(connectionNode);
                 } else {
                     // create session failure
                     if (this._currentNode?.connectionProfile?.password) {
@@ -649,7 +641,7 @@ export class ObjectExplorerService {
                         if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
                             const nodeUri = this.getNodeIdentifier(this.currentNode);
                             const profile = <IConnectionProfile>this._currentNode.connectionProfile;
-                            this.updateNode(this._currentNode);
+                            //this.updateNode(this._currentNode);
                             void this._connectionManager.connectionUI.handleFirewallError(
                                 nodeUri,
                                 profile,
@@ -731,48 +723,23 @@ export class ObjectExplorerService {
     }
 
     public async removeObjectExplorerNode(
-        node: TreeNodeInfo,
+        node: ConnectionNode,
         isDisconnect: boolean = false,
     ): Promise<void> {
         await this.closeSession(node);
         const nodeUri = this.getNodeIdentifier(node);
         await this._connectionManager.disconnect(nodeUri);
+        this.cleanNodeChildren(node);
         if (!isDisconnect) {
             const index = this._rootTreeNodeArray.indexOf(node, 0);
             if (index > -1) {
                 this._rootTreeNodeArray.splice(index, 1);
             }
         } else {
-            node.nodeType = Constants.disconnectedServerNodeType;
-            node.context = ObjectExplorerService.disconnectedNodeContextValue;
-            node.sessionId = undefined;
-            if (!(node.connectionProfile as IConnectionProfile).savePassword) {
-                const profile = node.connectionProfile;
-                profile.password = "";
-                node.updateConnectionProfile(profile);
-            }
-            const label = typeof node.label === "string" ? node.label : node.label.label;
-            // make a new node to show disconnected behavior
-            let disconnectedNode = new TreeNodeInfo(
-                label,
-                ObjectExplorerService.disconnectedNodeContextValue,
-                node.collapsibleState,
-                node.nodePath,
-                node.nodeStatus,
-                Constants.disconnectedServerNodeType,
-                undefined,
-                node.connectionProfile,
-                node.parentNode,
-                undefined,
-            );
-
-            this.updateNode(disconnectedNode);
-            this._currentNode = disconnectedNode;
-            this._treeNodeToChildrenMap.set(this._currentNode, [
-                new ConnectTreeNode(this._currentNode),
-            ]);
+            node.updateToDisconnectedState();
+            this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);
+            this._objectExplorerProvider.refresh(node);
         }
-        this.cleanNodeChildren(node);
         sendActionEvent(
             TelemetryViews.ObjectExplorer,
             isDisconnect ? TelemetryActions.RemoveConnection : TelemetryActions.Disconnect,
@@ -789,71 +756,10 @@ export class ObjectExplorerService {
         for (let conn of connections) {
             for (let node of this._rootTreeNodeArray) {
                 if (Utils.isSameConnectionInfo(node.connectionProfile, conn)) {
-                    await this.removeObjectExplorerNode(node);
+                    await this.removeObjectExplorerNode(node as ConnectionNode);
                 }
             }
         }
-    }
-
-    public async refreshNode(node: TreeNodeInfo): Promise<void> {
-        const refreshParams: RefreshParams = {
-            sessionId: node.sessionId,
-            nodePath: node.nodePath,
-            filters: node.filters,
-        };
-        const refreshResponse = new Deferred<ExpandResponse>();
-        this._pendingExpands.set(`${node.sessionId}${node.nodePath}`, refreshResponse);
-        let response = await this._connectionManager.client.sendRequest(
-            RefreshRequest.type,
-            refreshParams,
-        );
-
-        if (!response) {
-            this._treeNodeToChildrenMap.delete(node);
-            await this._connectionManager.vscodeWrapper.showErrorMessage(
-                LocalizedConstants.msgUnableToExpand,
-            );
-            this._client.logger.error("No response received for refresh request");
-            return;
-        }
-
-        const result = await refreshResponse;
-
-        sendActionEvent(
-            TelemetryViews.ObjectExplorer,
-            TelemetryActions.Refresh,
-            {
-                nodeType: node?.context?.subType ?? "",
-                isErrored: (!!result.errorMessage).toString(),
-            },
-            {
-                nodeCount: result?.nodes.length ?? 0,
-            },
-        );
-
-        if (!result) {
-            this._client.logger.error("No result received for refresh request");
-            return;
-        }
-
-        if (result.nodes && !result.errorMessage) {
-            // successfully received children from SQL Tools Service
-            const children = result.nodes.map((n) =>
-                TreeNodeInfo.fromNodeInfo(n, result.sessionId, node, node.connectionProfile),
-            );
-            this._treeNodeToChildrenMap.set(node, children);
-        } else {
-            // failure to expand node; display error
-
-            if (result.errorMessage) {
-                this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
-            }
-
-            const errorNode = new ExpandErrorNode(node, result.errorMessage);
-
-            this._treeNodeToChildrenMap.set(node, [errorNode]);
-        }
-        return this._objectExplorerProvider.refresh(node);
     }
 
     public signInNodeServer(node: TreeNodeInfo): void {
@@ -863,22 +769,20 @@ export class ObjectExplorerService {
     }
 
     public addDisconnectedNode(connectionCredentials: IConnectionProfile): void {
-        const label = (connectionCredentials as IConnectionProfile).profileName
-            ? (connectionCredentials as IConnectionProfile).profileName
-            : ConnInfo.getConnectionDisplayName(connectionCredentials);
-        const node = new TreeNodeInfo(
-            label,
-            ObjectExplorerService.disconnectedNodeContextValue,
-            vscode.TreeItemCollapsibleState.Collapsed,
-            undefined,
-            undefined,
-            Constants.disconnectedServerNodeType,
-            undefined,
-            connectionCredentials,
-            undefined,
-            undefined,
+        const connectionNode = new ConnectionNode(connectionCredentials);
+        this.addConnectionNodeAtRightPosition(connectionNode);
+    }
+
+    public addConnectionNodeAtRightPosition(connectionNode: ConnectionNode): void {
+        // Find the right position to insert the node
+        const index = this._rootTreeNodeArray.findIndex(
+            (node) => (node.label as string).localeCompare(connectionNode.label as string) > 0,
         );
-        this.updateNode(node);
+        if (index === -1) {
+            this._rootTreeNodeArray.push(connectionNode);
+        } else {
+            this._rootTreeNodeArray.splice(index, 0, connectionNode);
+        }
     }
 
     /**
