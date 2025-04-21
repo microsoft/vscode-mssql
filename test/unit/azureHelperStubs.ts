@@ -5,6 +5,7 @@
 
 import {
     AzureSubscription,
+    AzureTenant,
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
 
@@ -23,7 +24,18 @@ export const mockSubscriptions = [
         subscriptionId: "11111111-0000-0000-0000-111111111111",
         tenantId: "11111111-1111-1111-1111-111111111111",
     },
-];
+] as AzureSubscription[];
+
+export const mockTenants = [
+    {
+        displayName: "Tenant Zero",
+        id: "00000000-0000-0000-0000-000000000000",
+    },
+    {
+        displayName: "Tenant One",
+        id: "11111111-1111-1111-1111-111111111111",
+    },
+] as unknown as AzureTenant[];
 
 export function stubIsSignedIn(sandbox: Sinon.SinonSandbox, result: boolean) {
     return sandbox.stub(AzureHelpers, "isSignedIn").resolves(result);
@@ -32,6 +44,7 @@ export function stubIsSignedIn(sandbox: Sinon.SinonSandbox, result: boolean) {
 export function stubConfirmVscodeAzureSignin(sandbox: sinon.SinonSandbox) {
     return sandbox.stub(AzureHelpers, "confirmVscodeAzureSignin").resolves({
         getSubscriptions: () => Promise.resolve(mockSubscriptions),
+        getTenants: () => Promise.resolve(mockTenants),
     } as unknown as VSCodeAzureSubscriptionProvider);
 }
 

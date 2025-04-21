@@ -13,7 +13,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import { stubIsSignedIn } from "./azureHelperStubs";
+import * as azureHelperStubs from "./azureHelperStubs";
 
 suite("AddFirewallRuleWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -46,22 +46,56 @@ suite("AddFirewallRuleWebviewController Tests", () => {
         sandbox.restore();
     });
 
-    test("Should initialize correctly for not signed into Azure", async () => {
-        await finishSetup(false);
-        const expectedInitialState: AddFirewallRuleState = {
-            serverName: serverName,
-            isSignedIn: false,
-            tenants: [],
-            clientIp: "1.2.3.4",
-            message: errorMessage,
-            addFirewallRuleState: ApiStatus.NotStarted,
-        };
+    suite("Initialization Tests", () => {
+        test("Should initialize correctly for not signed into Azure", async () => {
+            await finishSetup(false);
 
-        expect(controller.state).to.deep.equal(expectedInitialState, "Initial state is incorrect");
+            const expectedInitialState: AddFirewallRuleState = {
+                serverName: serverName,
+                isSignedIn: false,
+                tenants: [],
+                clientIp: "1.2.3.4",
+                message: errorMessage,
+                addFirewallRuleState: ApiStatus.NotStarted,
+            };
+
+            expect(controller.state).to.deep.equal(
+                expectedInitialState,
+                "Initial state is incorrect",
+            );
+        });
+
+        test("Should initialize correctly for signed into Azure", async () => {
+            await finishSetup(true);
+
+            const expectedInitialState: AddFirewallRuleState = {
+                serverName: serverName,
+                isSignedIn: true,
+                tenants: azureHelperStubs.mockTenants.map((t) => {
+                    return {
+                        name: t.displayName,
+                        id: t.tenantId,
+                    };
+                }),
+                clientIp: "1.2.3.4",
+                message: errorMessage,
+                addFirewallRuleState: ApiStatus.NotStarted,
+            };
+
+            expect(controller.state).to.deep.equal(
+                expectedInitialState,
+                "Initial state is incorrect",
+            );
+        });
     });
 
     async function finishSetup(isSignedIn: boolean = true): Promise<void> {
-        stubIsSignedIn(sandbox, isSignedIn);
+        azureHelperStubs.stubIsSignedIn(sandbox, isSignedIn);
+
+        if (isSignedIn) {
+            azureHelperStubs.stubConfirmVscodeAzureSignin(sandbox);
+        }
+
         controller = new AddFirewallRuleWebviewController(
             mockContext.object,
             mockVscodeWrapper.object,
