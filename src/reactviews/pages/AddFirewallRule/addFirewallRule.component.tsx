@@ -154,7 +154,7 @@ export const AddFirewallRuleDialog = ({
                                     </Field>
                                 )}
                                 <Field
-                                    label={Loc.firewallRules.tenant}
+                                    label={Loc.firewallRules.ruleName}
                                     className={formStyles.formComponentDiv}>
                                     <Input
                                         value={ruleName}
