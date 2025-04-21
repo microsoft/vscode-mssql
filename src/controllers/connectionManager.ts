@@ -36,6 +36,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import * as events from "events";
+import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -108,7 +109,7 @@ export default class ConnectionManager {
     private _event: events.EventEmitter = new events.EventEmitter();
 
     constructor(
-        context: vscode.ExtensionContext,
+        private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
         private isRichExperiencesEnabled: boolean = Constants.isRichExperiencesEnabledDefault,
@@ -677,23 +678,19 @@ export default class ConnectionManager {
                 // check if it's an SSL failed error
                 this._failedUriToSSLMap.set(fileUri, result.errorMessage);
             } else if (result.errorNumber === Constants.errorFirewallRule) {
-                if (this.isRichExperiencesEnabled) {
-                    await this.connectionUI.handleFirewallError(connection.credentials, result);
+                let firewallResult = await this.firewallService.handleFirewallRule(
+                    result.errorNumber,
+                    result.errorMessage,
+                );
+                if (firewallResult.result && firewallResult.ipAddress) {
+                    this.failedUriToFirewallIpMap.set(fileUri, result);
                 } else {
-                    let firewallResult = await this.firewallService.handleFirewallRule(
-                        result.errorNumber,
-                        result.errorMessage,
+                    Utils.showErrorMsg(
+                        LocalizedConstants.msgConnectionError(
+                            result.errorNumber,
+                            result.errorMessage,
+                        ),
                     );
-                    if (firewallResult.result && firewallResult.ipAddress) {
-                        this.failedUriToFirewallIpMap.set(fileUri, result);
-                    } else {
-                        Utils.showErrorMsg(
-                            LocalizedConstants.msgConnectionError(
-                                result.errorNumber,
-                                result.errorMessage,
-                            ),
-                        );
-                    }
                 }
             } else {
                 Utils.showErrorMsg(
@@ -1060,23 +1057,47 @@ export default class ConnectionManager {
         connectionCreds: IConnectionInfo,
     ): Promise<boolean> {
         let connection = this._connections[fileUri];
-        if (!result && connection && connection.loginFailed) {
-            const newConnection =
-                await this.connectionUI.createProfileWithDifferentCredentials(connectionCreds);
-            if (newConnection) {
-                const newResult = await this.connect(fileUri, newConnection);
-                connection = this._connections[fileUri];
-                if (!newResult && connection && connection.loginFailed) {
-                    Utils.showErrorMsg(
-                        LocalizedConstants.msgConnectionError(
-                            connection.errorNumber,
-                            connection.errorMessage,
-                        ),
-                    );
+        if (!result && connection) {
+            if (connection.loginFailed) {
+                const newConnection =
+                    await this.connectionUI.createProfileWithDifferentCredentials(connectionCreds);
+                if (newConnection) {
+                    const newResult = await this.connect(fileUri, newConnection);
+                    connection = this._connections[fileUri];
+                    if (!newResult && connection && connection.loginFailed) {
+                        Utils.showErrorMsg(
+                            LocalizedConstants.msgConnectionError(
+                                connection.errorNumber,
+                                connection.errorMessage,
+                            ),
+                        );
+                    }
+                    return newResult;
+                } else {
+                    return true;
                 }
-                return newResult;
-            } else {
-                return true;
+            } else if (
+                connection.errorNumber === Constants.errorFirewallRule &&
+                this.isRichExperiencesEnabled
+            ) {
+                const addFirewallRuleController = new AddFirewallRuleWebviewController(
+                    this.context,
+                    this._vscodeWrapper,
+                    {
+                        serverName: connectionCreds.server,
+                        errorMessage: connection.errorMessage,
+                    },
+                    this.firewallService,
+                );
+                addFirewallRuleController.panel.reveal();
+
+                const wasCreated = await addFirewallRuleController.completed;
+
+                if (wasCreated === true /** dialog closed is undefined */) {
+                    await this.connect(fileUri, connection.credentials);
+                } else {
+                    return false;
+                }
             }
         } else {
             return true;

@@ -631,9 +631,6 @@
                 {
                     "command": "mssql.editConnection",
                     "when": "config.mssql.enableRichExperiences"
-                },
-                {
-                    "command": "mssql.testAddFirewallRule"
                 }
             ],
             "webview/context": [
@@ -965,11 +962,6 @@
             {
                 "command": "mssql.enableRichExperiences",
                 "title": "%mssql.enableRichExperiences%",
-                "category": "MS SQL"
-            },
-            {
-                "command": "mssql.testAddFirewallRule",
-                "title": "Test: Add Firewall Rule Dialog",
                 "category": "MS SQL"
             }
         ],

@@ -96,6 +96,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     );
                     return result as string;
                 },
+                signIntoAzureForFirewallRule: function (): void {
+                    webviewState.extensionRpc.action("signIntoAzureForFirewallRule");
+                },
             }}>
             {children}
         </ConnectionDialogContext.Provider>

@@ -79,9 +79,7 @@ export const ConnectionInfoFormContainer = () => {
                         state={(context.state.dialog as AddFirewallRuleDialogProps).props}
                         addFirewallRule={context.addFirewallRule}
                         closeDialog={context.closeDialog}
-                        signIntoAzure={() => {
-                            /* TODO */
-                        }}
+                        signIntoAzure={context.signIntoAzureForFirewallRule}
                     />
                 )}
                 {context.state.dialog?.type === "loadFromConnectionString" && (

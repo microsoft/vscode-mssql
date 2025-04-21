@@ -120,20 +120,22 @@ export const AddFirewallRuleDialog = ({
 
                         {!state.isSignedIn && (
                             <>
-                                {"Sign into Azure in order to add a firewall rule."}
+                                {Loc.firewallRules.signIntoAzureToAddFirewallRule}
                                 {" " /* extra space before the 'Sign in' link*/}
                                 <Link
                                     onClick={() => {
                                         signIntoAzure();
                                     }}>
-                                    {"Sign into Azure"}
+                                    {Loc.firewallRules.signIntoAzure}
                                 </Link>
                             </>
                         )}
                         {state.isSignedIn && (
                             <>
                                 {state.tenants.length > 0 && (
-                                    <Field label="Tenant" className={formStyles.formComponentDiv}>
+                                    <Field
+                                        label={Loc.firewallRules.tenant}
+                                        className={formStyles.formComponentDiv}>
                                         <Dropdown
                                             value={tenantDisplayText}
                                             selectedOptions={[selectedTenantId]}
@@ -151,7 +153,9 @@ export const AddFirewallRuleDialog = ({
                                         </Dropdown>
                                     </Field>
                                 )}
-                                <Field label="Rule name" className={formStyles.formComponentDiv}>
+                                <Field
+                                    label={Loc.firewallRules.tenant}
+                                    className={formStyles.formComponentDiv}>
                                     <Input
                                         value={ruleName}
                                         onChange={(_ev, data) => {
@@ -167,11 +171,11 @@ export const AddFirewallRuleDialog = ({
                                             setIpSelectionMode(data.value as IpSelectionMode)
                                         }>
                                         <Radio
-                                            label={`Add my client IP (${state.clientIp})`}
+                                            label={Loc.firewallRules.addMyClientIp(state.clientIp)}
                                             value={IpSelectionMode.SpecificIp}
                                         />
                                         <Radio
-                                            label="Add my subnet IP range"
+                                            label={Loc.firewallRules.addMySubnetRange}
                                             value={IpSelectionMode.IpRange}
                                         />
                                     </RadioGroup>
@@ -215,8 +219,6 @@ export const AddFirewallRuleDialog = ({
                                             ? state.clientIp
                                             : { startIp, endIp },
                                 });
-                                // if adding the firewall rule is successful, it will attempt to reconnect
-                                // otherwise, it will display an error at the top of the connection dialog
                             }}
                             disabled={!state.isSignedIn}
                             icon={

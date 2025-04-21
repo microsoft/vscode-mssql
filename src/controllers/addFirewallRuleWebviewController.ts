@@ -16,6 +16,7 @@ import { errorFirewallRule } from "../constants/constants";
 import { Deferred } from "../protocol";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import * as Loc from "../constants/locConstants";
 
 /**
  * Controller for the Add Firewall Rule dialog
@@ -30,7 +31,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        initialzationProps: {
+        initializationProps: {
             serverName: string;
             errorMessage: string;
         },
@@ -42,15 +43,17 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
             "AddFirewallRule",
             "addFirewallRule",
             {
-                serverName: initialzationProps.serverName,
-                message: initialzationProps.errorMessage,
+                serverName: initializationProps.serverName,
+                message: initializationProps.errorMessage,
                 clientIp: "",
                 isSignedIn: false,
                 tenants: [],
                 addFirewallRuleState: ApiStatus.NotStarted,
             },
             {
-                title: `Add Firewall Rule${initialzationProps.serverName ? ` to ${initialzationProps.serverName}` : ""}`,
+                title: initializationProps.serverName
+                    ? Loc.FirewallRule.addFirewallRuleToServer(initializationProps.serverName)
+                    : Loc.FirewallRule.addFirewallRule,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
@@ -61,7 +64,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         this.registerRpcHandlers();
         this.updateState();
 
-        void this.initializeDialog(initialzationProps.errorMessage).then(() => {
+        void this.initializeDialog(initializationProps.errorMessage).then(() => {
             this.updateState();
             this.initialized.resolve();
         });
@@ -159,7 +162,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         const auth = await confirmVscodeAzureSignin();
 
         if (!auth) {
-            const errorMessage = "Azure sign-in failed or was cancelled.";
+            const errorMessage = Loc.Azure.azureSignInFailedOrWasCancelled;
 
             this.logger.error(errorMessage);
             this.vscodeWrapper.showErrorMessage(errorMessage);

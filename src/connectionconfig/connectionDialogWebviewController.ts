@@ -29,6 +29,7 @@ import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form"
 import {
     ConnectionDialog as Loc,
     Common as LocCommon,
+    Azure as LocAzure,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
@@ -62,6 +63,7 @@ import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
 import { errorFirewallRule, errorSSLCertificateValidationFailed } from "../constants/constants";
+import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -445,6 +447,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerRequestHandler("getConnectionDisplayName", async (payload) => {
             return payload.profileName ? payload.profileName : getConnectionDisplayName(payload);
         });
+
+        this.registerReducer("signIntoAzureForFirewallRule", async (state) => {
+            if (state.dialog?.type !== "addFirewallRule") {
+                return state;
+            }
+
+            await this.populateTentants((state.dialog as AddFirewallRuleDialogProps).props);
+
+            return state;
+        });
     }
 
     //#region Helpers
@@ -801,13 +813,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 props: {
                     message: result.errorMessage,
                     clientIp: handleFirewallErrorResult.ipAddress,
-                    // TODO: isSignedIn
                     tenants: tenants.map((t) => {
                         return {
                             name: t.displayName,
                             id: t.tenantId,
                         };
                     }),
+                    isSignedIn: true,
+                    serverName: this.state.connectionProfile.server,
                 },
             } as AddFirewallRuleDialogProps;
 
@@ -907,6 +920,29 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#endregion
 
     //#region Azure helpers
+
+    public async populateTentants(state: AddFirewallRuleState): Promise<void> {
+        const auth = await confirmVscodeAzureSignin();
+
+        if (!auth) {
+            const errorMessage = LocAzure.azureSignInFailedOrWasCancelled;
+
+            this.logger.error(errorMessage);
+            this.vscodeWrapper.showErrorMessage(errorMessage);
+
+            return;
+        }
+
+        const tenants = await auth.getTenants();
+
+        state.isSignedIn = true;
+        state.tenants = tenants.map((t) => {
+            return {
+                name: t.displayName,
+                id: t.tenantId,
+            };
+        });
+    }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
         const actionButtons: FormItemActionButton[] = [];

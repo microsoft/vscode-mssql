@@ -57,10 +57,6 @@ export class FirewallService {
                 ? [firewallRuleSpec.ip, firewallRuleSpec.ip]
                 : [firewallRuleSpec.ip.startIp, firewallRuleSpec.ip.endIp];
 
-        // this.logger.logDebug(
-        //     `Setting firewall rule: "${firewallRuleSpec.name}" (${startIp} - ${endIp})`,
-        // );
-
         let account: IAccount, tokenMappings: {};
 
         try {

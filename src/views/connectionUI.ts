@@ -632,10 +632,9 @@ export class ConnectionUI {
                 },
                 this.connectionManager.firewallService,
             );
-            addFirewallRuleController.panel.reveal(vscode.ViewColumn.One);
+            addFirewallRuleController.panel.reveal();
 
             const wasCreated = await addFirewallRuleController.completed;
-            console.log(`wasCreated: ${wasCreated}`);
 
             return wasCreated === true; // dialog closed is undefined
         } else {
@@ -662,8 +661,15 @@ export class ConnectionUI {
                 let account = this._accountStore.getAccount(profile.accountId);
                 this.connectionManager.accountService.setAccount(account!);
             }
-            throw new Error("Code marked for deletion reached.");
-            let success = await this.createFirewallRule(profile.server, "0.0.0.0");
+
+            const handleResponse = await this.connectionManager.firewallService.handleFirewallRule(connectionResponse.errorNumber, connectionResponse.errorMessage);
+
+            let success = handleResponse.result;
+
+            if (success) {
+                success = await this.createFirewallRule(profile.server, handleResponse.ipAddress);
+            }
+
             return success;
         }
     }

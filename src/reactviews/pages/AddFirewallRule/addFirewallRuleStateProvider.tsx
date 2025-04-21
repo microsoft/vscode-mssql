@@ -13,14 +13,12 @@ import {
 import { getCoreRPCs } from "../../common/utils";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 
-// Create context with default undefined value
 const AddFirewallRuleContext = createContext<AddFirewallRuleContextProps | undefined>(undefined);
 
 interface AddFirewallRuleProviderProps {
     children: React.ReactNode;
 }
 
-// Simple scaffold of the state provider - will be enhanced later
 const AddFirewallRuleStateProvider: React.FC<AddFirewallRuleProviderProps> = ({ children }) => {
     const webviewContext = useVscodeWebview<AddFirewallRuleState, AddFirewallRuleReducers>();
 

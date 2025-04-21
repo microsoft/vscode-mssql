@@ -173,6 +173,19 @@ export class LocConstants {
             createNewFirewallRule: l10n.t("Create a new firewall rule"),
             firewallRuleNeededMessage: l10n.t("A firewall rule is required to access this server."),
             addFirewallRule: l10n.t("Add Firewall Rule"),
+            signIntoAzureToAddFirewallRule: l10n.t(
+                "Sign into Azure in order to add a firewall rule.",
+            ),
+            signIntoAzure: l10n.t("Sign into Azure"),
+            tenant: l10n.t("Tenant"),
+            ruleName: l10n.t("Rule name"),
+            addMyClientIp: (ipAddress: string) =>
+                l10n.t({
+                    message: "Add my client IP ({0})",
+                    args: [ipAddress],
+                    comment: ["{0} is the IP address of the client"],
+                }),
+            addMySubnetRange: "Add my subnet IP range",
         };
     }
 

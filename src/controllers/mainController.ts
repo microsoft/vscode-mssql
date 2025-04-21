@@ -62,7 +62,6 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
-import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -305,24 +304,6 @@ export default class MainController implements vscode.Disposable {
 
                 // reload immediately so that the changes take effect
                 await vscode.commands.executeCommand("workbench.action.reloadWindow");
-            });
-
-            this.registerCommand(Constants.cmdTestAddFirewallRule);
-            this._event.on(Constants.cmdTestAddFirewallRule, async () => {
-                const addFirewallRuleController = new AddFirewallRuleWebviewController(
-                    this._context,
-                    this._vscodeWrapper,
-                    {
-                        serverName: "MyTestServer",
-                        errorMessage:
-                            "Gotta add a firewall rule for 7.11.17.19 in order to connect!",
-                    },
-                    this.connectionManager.firewallService,
-                );
-                addFirewallRuleController.panel.reveal();
-
-                const wasCreated = await addFirewallRuleController.completed;
-                console.log(`wasCreated: ${wasCreated}`);
             });
 
             this.initializeQueryHistory();

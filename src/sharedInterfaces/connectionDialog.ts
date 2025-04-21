@@ -148,6 +148,7 @@ export interface ConnectionDialogContextProps
     removeRecentConnection(connection: IConnectionDialogProfile): void;
     loadFromConnectionString: (connectionString: string) => void;
     openConnectionStringDialog: () => void;
+    signIntoAzureForFirewallRule: () => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
@@ -184,4 +185,5 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     };
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
+    signIntoAzureForFirewallRule: {};
 }
