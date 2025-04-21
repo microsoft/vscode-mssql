@@ -8,7 +8,7 @@ import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { PrereqCheckPage } from "./prereqCheckPage";
 import { themeType } from "../../common/utils";
-import { ColorThemeKind } from "../../common/vscodeWebviewProvider";
+import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     outerDiv: {

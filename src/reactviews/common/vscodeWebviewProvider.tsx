@@ -148,5 +148,3 @@ export function useVscodeWebview<State, Reducers>() {
     }
     return context as VscodeWebviewContext<State, Reducers>;
 }
-
-export { ColorThemeKind };

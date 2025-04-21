@@ -442,11 +442,6 @@ declare module "vscode-mssql" {
          * connection is not hosted by a container
          */
         containerName: string | undefined;
-
-        /**
-         * Gets or sets the connection string to use for this connection.
-         */
-        connectionString: string | undefined;
     }
 
     export const enum ExtractTarget {

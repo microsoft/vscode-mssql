@@ -679,6 +679,7 @@ export class QueryResult {
 }
 
 export class ContainerDeployment {
+    public static webviewTitle = l10n.t("Deploy a local SQL Server Docker container");
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({
             message: "{0} stopped successfully.",

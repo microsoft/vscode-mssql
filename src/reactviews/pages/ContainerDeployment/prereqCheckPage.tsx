@@ -65,29 +65,21 @@ export const PrereqCheckPage: React.FC = () => {
 
     useEffect(() => {
         const checkAndStartDocker = async () => {
-            if (
-                containerDeploymentState!.dockerInstallStatus.loadState ===
-                ApiStatus.Loading
-            ) {
+            if (containerDeploymentState!.dockerInstallStatus.loadState === ApiStatus.Loading) {
                 await state.checkDockerInstallation();
             }
 
             if (
-                containerDeploymentState!.dockerInstallStatus.loadState ===
-                    ApiStatus.Loaded &&
-                containerDeploymentState!.dockerStatus.loadState ===
-                    ApiStatus.Loading
+                containerDeploymentState!.dockerInstallStatus.loadState === ApiStatus.Loaded &&
+                containerDeploymentState!.dockerStatus.loadState === ApiStatus.Loading
             ) {
                 await state.startDocker();
             }
 
             if (
-                containerDeploymentState?.dockerInstallStatus.loadState ===
-                    ApiStatus.Loaded &&
-                containerDeploymentState?.dockerStatus.loadState ===
-                    ApiStatus.Loaded &&
-                containerDeploymentState?.dockerEngineStatus.loadState ===
-                    ApiStatus.Loading
+                containerDeploymentState?.dockerInstallStatus.loadState === ApiStatus.Loaded &&
+                containerDeploymentState?.dockerStatus.loadState === ApiStatus.Loaded &&
+                containerDeploymentState?.dockerEngineStatus.loadState === ApiStatus.Loading
             ) {
                 await state?.checkEngine();
             }
@@ -97,12 +89,9 @@ export const PrereqCheckPage: React.FC = () => {
 
     useEffect(() => {
         setStepsLoaded(
-            containerDeploymentState!.dockerInstallStatus.loadState ===
-                ApiStatus.Loaded &&
-                containerDeploymentState!.dockerStatus.loadState ===
-                    ApiStatus.Loaded &&
-                containerDeploymentState!.dockerEngineStatus.loadState ===
-                    ApiStatus.Loaded,
+            containerDeploymentState!.dockerInstallStatus.loadState === ApiStatus.Loaded &&
+                containerDeploymentState!.dockerStatus.loadState === ApiStatus.Loaded &&
+                containerDeploymentState!.dockerEngineStatus.loadState === ApiStatus.Loaded,
         );
     }, [containerDeploymentState]);
 
@@ -111,12 +100,8 @@ export const PrereqCheckPage: React.FC = () => {
     ) : (
         <div className={classes.outerDiv}>
             <div className={classes.stepsDiv}>
-                <div className={classes.stepsHeader}>
-                    Getting Docker Ready...
-                </div>
-                <div className={classes.stepsSubheader}>
-                    Checking pre-requisites
-                </div>
+                <div className={classes.stepsHeader}>Getting Docker Ready...</div>
+                <div className={classes.stepsSubheader}>Checking pre-requisites</div>
                 <StepCard stepName="dockerInstallStatus" />
                 <StepCard stepName="dockerStatus" />
                 {containerDeploymentState?.platform !== "linux" && (
@@ -126,8 +111,7 @@ export const PrereqCheckPage: React.FC = () => {
                     <Button
                         className={classes.button}
                         onClick={() => setShowNext(true)}
-                        appearance="primary"
-                    >
+                        appearance="primary">
                         Next
                     </Button>
                 ) : (
@@ -135,8 +119,7 @@ export const PrereqCheckPage: React.FC = () => {
                         className={classes.button}
                         onClick={() => {
                             state.dispose();
-                        }}
-                    >
+                        }}>
                         Cancel
                     </Button>
                 )}

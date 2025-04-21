@@ -14,17 +14,8 @@ import { FormItemType, FormItemOptions, FormItemSpec } from "../sharedInterfaces
 import MainController from "../controllers/mainController";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import {
-    validateContainerName,
-    checkDockerInstallation,
-    startDocker,
-    checkEngine,
-    startSqlServerDockerContainer,
-    checkIfContainerIsReadyForConnections,
-    findAvailablePort,
-    validateSqlServerPassword,
-    validateConnectionName,
-} from "./dockerUtils";
+import * as dockerUtils from "./dockerUtils";
+import { ContainerDeployment } from "../constants/locConstants";
 
 export class ContainerDeploymentWebviewController extends FormWebviewController<
     cd.DockerConnectionProfile,
@@ -47,7 +38,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             "containerDeployment",
             new cd.ContainerDeploymentWebviewState(),
             {
-                title: `Deploy a local SQL Server Docker container`,
+                title: ContainerDeployment.webviewTitle,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -82,41 +73,31 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 payload.event.propertyName
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ] as any) = payload.event.value;
-            // These fields are validated by running docker commands
-            if (payload.event.propertyName === "containerName") {
-                this.state.isValidContainerName =
-                    (await validateContainerName(payload.event.value.toString())) !== "";
-            }
-            if (payload.event.propertyName === "port") {
-                this.state.isValidPortNumber = await this.validatePort(
-                    payload.event.value.toString(),
-                );
-            }
-            await this.validateDockerConnectionProfile(
+
+            return await this.validateDockerConnectionProfile(
+                state,
                 this.state.formState,
                 payload.event.propertyName,
             );
-
-            return state;
         });
         this.registerReducer("checkDockerInstallation", async (state, _payload) => {
             if (state.dockerInstallStatus.loadState !== ApiStatus.Loading) return state;
-            const dockerInstallResult = await checkDockerInstallation();
-            let newState = state;
+            const dockerInstallResult = await dockerUtils.checkDockerInstallation();
+            // If docker is not installed, then set all the following step's statuses to error
             if (!dockerInstallResult) {
-                newState.dockerInstallStatus.errorMessage =
+                state.dockerInstallStatus.errorMessage =
                     "Docker not installed, please install and retry";
-                newState.dockerInstallStatus.loadState = ApiStatus.Error;
-                newState.dockerStatus.loadState = ApiStatus.Error;
-                newState.dockerEngineStatus.loadState = ApiStatus.Error;
-                return newState;
+                state.dockerInstallStatus.loadState = ApiStatus.Error;
+                state.dockerStatus.loadState = ApiStatus.Error;
+                state.dockerEngineStatus.loadState = ApiStatus.Error;
+                return state;
             }
-            newState.dockerInstallStatus.loadState = ApiStatus.Loaded;
-            return newState;
+            state.dockerInstallStatus.loadState = ApiStatus.Loaded;
+            return state;
         });
         this.registerReducer("startDocker", async (state, _payload) => {
             if (state.dockerStatus.loadState !== ApiStatus.Loading) return state;
-            const startDockerResult = await startDocker();
+            const startDockerResult = await dockerUtils.startDocker();
             let newState = state;
             if (!startDockerResult.success) {
                 newState.dockerStatus.errorMessage =
@@ -136,7 +117,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 return state;
             }
 
-            const checkEngineResult = await checkEngine();
+            const checkEngineResult = await dockerUtils.checkEngine();
 
             let newState = state;
             if (!checkEngineResult.success) {
@@ -151,18 +132,19 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
-            const errors = await this.validateDockerConnectionProfile(state.formState);
-            state.isDockerProfileValid = errors.length === 0;
+            state = await this.validateDockerConnectionProfile(state, state.formState);
+            state.isDockerProfileValid = state.formErrors.length === 0;
             return state;
         });
+
         this.registerReducer("startContainer", async (state, _payload) => {
             if (state.dockerContainerCreationStatus.loadState !== ApiStatus.Loading) return state;
             if (this.state.formState.containerName.trim() === "") {
-                this.state.formState.containerName = await validateContainerName(
+                this.state.formState.containerName = await dockerUtils.validateContainerName(
                     this.state.formState.containerName,
                 );
             }
-            const startContainerResult = await startSqlServerDockerContainer(
+            const startContainerResult = await dockerUtils.startSqlServerDockerContainer(
                 this.state.formState.containerName,
                 this.state.formState.password,
                 this.state.formState.version,
@@ -184,7 +166,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
         this.registerReducer("checkContainer", async (state, _payload) => {
             if (state.dockerContainerStatus.loadState !== ApiStatus.Loading) return state;
-            const containerStatusResult = await checkIfContainerIsReadyForConnections(
+            const containerStatusResult = await dockerUtils.checkIfContainerIsReadyForConnections(
                 this.state.formState.containerName,
             );
             let newState = state;
@@ -226,7 +208,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         return Object.keys(state.formComponents) as (keyof cd.DockerConnectionProfile)[];
     }
 
-    async validatePort(port: string): Promise<boolean> {
+    private async validatePort(port: string): Promise<boolean> {
         // No port chosen
         if (!port) return true;
 
@@ -235,49 +217,59 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         // Check if portNumber is a valid number
         if (isNaN(portNumber) || portNumber <= 0) return false;
 
-        const newPort = await findAvailablePort(portNumber);
+        const newPort = await dockerUtils.findAvailablePort(portNumber);
         return newPort === portNumber;
     }
 
-    async validateDockerConnectionProfile(
+    private async validateDockerConnectionProfile(
+        state: cd.ContainerDeploymentWebviewState,
         dockerConnectionProfile: cd.DockerConnectionProfile,
         propertyName?: keyof cd.DockerConnectionProfile,
-    ): Promise<string[]> {
+    ): Promise<cd.ContainerDeploymentWebviewState> {
         const erroredInputs: string[] = [];
         const components = propertyName
             ? [this.state.formComponents[propertyName]]
             : Object.values(this.state.formComponents);
+
         for (const component of components) {
-            if (component && component.validate) {
-                component.validation = component.validate(
-                    this.state,
-                    dockerConnectionProfile[component.propertyName],
+            if (!component) continue;
+
+            const prop = component.propertyName;
+
+            // Special validation for containerName, because docker commands
+            // are called for validation
+            if (prop === "containerName") {
+                const validationResult = await dockerUtils.validateContainerName(
+                    dockerConnectionProfile[prop],
                 );
-                if (!component.validation.isValid) {
-                    erroredInputs.push(component.propertyName);
+                state.isValidContainerName = validationResult !== "";
+                if (!state.isValidContainerName) {
+                    erroredInputs.push(prop);
+                }
+            }
+            // Special validation for port, because docker commands
+            // are called for validation
+            else if (prop === "port") {
+                const isValidPort = await this.validatePort(
+                    dockerConnectionProfile[prop]?.toString(),
+                );
+                state.isValidPortNumber = isValidPort;
+                if (!isValidPort) {
+                    erroredInputs.push(prop);
+                }
+            }
+            // Default validation logic
+            else if (component.validate) {
+                const result = component.validate(this.state, dockerConnectionProfile[prop]);
+                component.validation = result;
+
+                if (!result.isValid) {
+                    erroredInputs.push(prop);
                 }
             }
         }
-        return erroredInputs;
-    }
-
-    async addContainerConnection(
-        dockerProfile: cd.DockerConnectionProfile,
-    ): Promise<IConnectionProfile> {
-        let connection: unknown = {
-            ...dockerProfile,
-            profileName: dockerProfile.profileName || dockerProfile.containerName,
-            savePassword: dockerProfile.savePassword,
-            emptyPasswordInput: false,
-            azureAuthType: undefined,
-            accountStore: undefined,
-            isValidProfile: () => true,
-            isAzureActiveDirectory: () => false,
-        };
-
-        return await this.connectionManager.connectionUI.saveProfile(
-            connection as IConnectionProfile,
-        );
+        state.formErrors = erroredInputs;
+        return state;
     }
 
     private getDefaultConnectionProfile(): cd.DockerConnectionProfile {
@@ -300,6 +292,25 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         };
 
         return connection as cd.DockerConnectionProfile;
+    }
+
+    private async addContainerConnection(
+        dockerProfile: cd.DockerConnectionProfile,
+    ): Promise<IConnectionProfile> {
+        let connection: unknown = {
+            ...dockerProfile,
+            profileName: dockerProfile.profileName || dockerProfile.containerName,
+            savePassword: dockerProfile.savePassword,
+            emptyPasswordInput: false,
+            azureAuthType: undefined,
+            accountStore: undefined,
+            isValidProfile: () => true,
+            isAzureActiveDirectory: () => false,
+        };
+
+        return await this.connectionManager.connectionUI.saveProfile(
+            connection as IConnectionProfile,
+        );
     }
 
     private setFormComponents(): Record<
@@ -338,7 +349,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 tooltip: "SQL Server Container Password",
                 componentWidth: "500px",
                 validate(_state, value) {
-                    const testPassword = validateSqlServerPassword(value.toString());
+                    const testPassword = dockerUtils.validateSqlServerPassword(value.toString());
                     if (testPassword === "") {
                         return { isValid: true, validationMessage: "" };
                     }
@@ -376,7 +387,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 tooltip: "Connection Name",
                 validate(_state, value) {
                     const profileNameValid =
-                        value.toString() === "" || validateConnectionName(value.toString());
+                        value.toString() === "" ||
+                        dockerUtils.validateConnectionName(value.toString());
                     return {
                         isValid: profileNameValid,
                         validationMessage: profileNameValid

@@ -40,6 +40,7 @@ export class ContainerDeploymentWebviewState
     formComponents: Partial<
         Record<keyof DockerConnectionProfile, ContainerDeploymentFormItemSpec>
     > = {};
+    formErrors: string[] = [];
     platform: string = "";
     // Used for container name validation within the form
     isValidContainerName: boolean = false;
@@ -82,6 +83,16 @@ export interface ContainerDeploymentFormItemSpec
     isAdvancedOption: boolean;
 }
 
+export interface ContainerDeploymentFormItemSpec
+    extends FormItemSpec<
+        DockerConnectionProfile,
+        ContainerDeploymentWebviewState,
+        ContainerDeploymentFormItemSpec
+    > {
+    componentWidth: string;
+    isAdvancedOption: boolean;
+}
+
 export interface ContainerDeploymentContextProps
     extends FormContextProps<
         DockerConnectionProfile,
@@ -89,78 +100,91 @@ export interface ContainerDeploymentContextProps
         ContainerDeploymentFormItemSpec
     > {
     /**
-     * Gets the execution plan graph from the provider
+     * Checks if Docker is installed on the system.
      */
     checkDockerInstallation(): void;
+
     /**
-     * Gets the execution plan graph from the provider
+     * Starts the Docker daemon if it's not already running.
      */
     startDocker(): void;
+
     /**
-     * Gets the execution plan graph from the provider
+     * Verifies the Docker engine's status and configuration.
      */
     checkEngine(): void;
+
     /**
-     * Gets the execution plan graph from the provider
+     * Checks the selected Docker profile's availability and configuration.
      */
     checkDockerProfile(): void;
+
     /**
-     * Gets the execution plan graph from the provider
+     * Starts the specified container using the current configuration.
      */
     startContainer(): void;
+
     /**
-     * Gets the execution plan graph from the provider
+     * Checks the running status and health of the deployed container.
      */
     checkContainer(): void;
+
     /**
-     * Gets the execution plan graph from the provider
+     * Connects to the running container for interaction or inspection.
      */
     connectToContainer(): void;
+
     /**
-     * Gets the execution plan graph from the provider
+     * Cleans up and disposes of resources used by the deployment context.
      */
     dispose(): void;
 }
 
 export interface ContainerDeploymentReducers {
     /**
-     * Gets the execution plan graph from the provider
+     * Reducer for Docker installation check results.
      */
     checkDockerInstallation: {};
 
     /**
-     * Gets the execution plan graph from the provider
+     * Reducer for Docker daemon start operation.
      */
     startDocker: {};
 
     /**
-     * Gets the execution plan graph from the provider
+     * Reducer for engine verification process.
      */
     checkEngine: {};
 
     /**
-     * Gets the execution plan graph from the provider
+     * Reducer for Docker profile validation.
      */
     checkDockerProfile: {};
 
+    /**
+     * Handles form-related actions and state updates.
+     */
     formAction: {
         event: FormEvent<DockerConnectionProfile>;
     };
 
     /**
-     * Gets the execution plan graph from the provider
+     * Reducer for container start operation.
      */
     startContainer: {};
+
     /**
-     * Gets the execution plan graph from the provider
+     * Reducer for container status check.
      */
     checkContainer: {};
+
     /**
-     * Gets the execution plan graph from the provider
+     * Reducer for container connection logic.
      */
     connectToContainer: {};
+
     /**
-     * Gets the execution plan graph from the provider
+     * Reducer for cleanup and disposal logic.
      */
     dispose: {};
 }
