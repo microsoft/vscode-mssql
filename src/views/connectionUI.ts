@@ -634,7 +634,7 @@ export class ConnectionUI {
             );
             addFirewallRuleController.panel.reveal();
 
-            const wasCreated = await addFirewallRuleController.completed;
+            const wasCreated = await addFirewallRuleController.dialogResult;
 
             return wasCreated === true; // dialog closed is undefined
         } else {

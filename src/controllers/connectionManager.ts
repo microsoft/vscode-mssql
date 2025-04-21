@@ -1091,7 +1091,7 @@ export default class ConnectionManager {
                 );
                 addFirewallRuleController.panel.reveal();
 
-                const wasCreated = await addFirewallRuleController.completed;
+                const wasCreated = await addFirewallRuleController.dialogResult;
 
                 if (wasCreated === true /** dialog closed is undefined */) {
                     await this.connect(fileUri, connection.credentials);

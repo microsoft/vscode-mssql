@@ -27,7 +27,7 @@ export class ReactWebviewPanelController<
     Result = void,
 > extends ReactWebviewBaseController<State, Reducers> {
     private _panel: vscode.WebviewPanel;
-    public readonly completed: Deferred<Result | undefined> = new Deferred<Result | undefined>();
+    public readonly dialogResult: Deferred<Result | undefined> = new Deferred<Result | undefined>();
 
     /**
      * Creates a new ReactWebviewPanelController
@@ -138,7 +138,7 @@ export class ReactWebviewPanelController<
     public override dispose(): void {
         // Ensure that the promise is resolved, regardless of how the panel is disposed.
         // If it has already been resolved/rejected, this won't change that.
-        this.completed.resolve(undefined);
+        this.dialogResult.resolve(undefined);
         super.dispose();
     }
 }
