@@ -16,6 +16,7 @@ import {
     SchemaCompareIncludeExcludeResult,
     SchemaCompareObjectId,
     SchemaCompareOpenScmpResult,
+    IConnectionInfo,
 } from "vscode-mssql";
 import { ColorThemeKind } from "./webview";
 
@@ -31,6 +32,10 @@ export const enum SchemaCompareEndpointType {
     Project = 2,
     // must be kept in-sync with SchemaCompareEndpointType in SQL Tools Service
     // located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
+}
+
+export interface ISchemaCompareConnectionProfile extends IConnectionInfo {
+    profileName?: string;
 }
 
 export interface SchemaCompareWebViewState {
