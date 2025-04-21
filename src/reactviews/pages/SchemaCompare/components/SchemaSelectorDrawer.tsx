@@ -113,8 +113,11 @@ const SchemaSelectorDrawer = (props: Props) => {
         endpointTypeToString(currentEndpoint?.endpointType) || "database",
     );
     const [disableOkButton, setDisableOkButton] = useState(true);
-    const [serverConnectionUri, setServerConnectionUri] = useState("");
-    const [databaseName, setDatabaseName] = useState("");
+    const [serverConnectionUri, setServerConnectionUri] = useState(currentEndpoint?.ownerUri || "");
+    const [serverName, setServerName] = useState(
+        currentEndpoint?.connectionName || currentEndpoint?.serverName || "",
+    );
+    const [databaseName, setDatabaseName] = useState(currentEndpoint?.databaseName || "");
     const [folderStructure, setFolderStructure] = useState(
         extractTargetTypeToString(currentEndpoint?.extractTarget) || "Schema/Object Type",
     );
@@ -135,6 +138,10 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     useEffect(() => {
         context.listActiveServers();
+
+        if (currentEndpoint?.ownerUri) {
+            context.listDatabasesForActiveServer(currentEndpoint?.ownerUri);
+        }
     }, []);
 
     useEffect(() => {
@@ -191,6 +198,8 @@ const SchemaSelectorDrawer = (props: Props) => {
     const handleDatabaseServerSelected = (_: SelectionEvents, data: OptionOnSelectData) => {
         if (data.optionValue) {
             setServerConnectionUri(data.optionValue);
+            setServerName(data.optionText);
+            setDatabaseName("");
             context.listDatabasesForActiveServer(data.optionValue);
         }
     };
@@ -267,6 +276,8 @@ const SchemaSelectorDrawer = (props: Props) => {
                         <div className={classes.positionItemsHorizontally}>
                             <Dropdown
                                 className={classes.fileInputWidth}
+                                value={serverName}
+                                selectedOptions={[serverConnectionUri]}
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseServerSelected(event, data)
                                 }>
@@ -292,6 +303,8 @@ const SchemaSelectorDrawer = (props: Props) => {
                         <div>
                             <Dropdown
                                 className={classes.fileInputWidth}
+                                value={databaseName}
+                                selectedOptions={[databaseName]}
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseSelected(event, data)
                                 }>
