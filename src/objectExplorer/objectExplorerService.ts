@@ -197,13 +197,11 @@ export class ObjectExplorerService {
                             result.errorMessage,
                         );
                     if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
-                        const nodeUri = this.getNodeIdentifier(self.currentNode);
                         const profile = <IConnectionProfile>self._currentNode.connectionInfo;
                         self.updateNode(self._currentNode);
                         void self._connectionManager.connectionUI.handleFirewallError(
-                            nodeUri,
                             profile,
-                            handleFirewallResult.ipAddress,
+                            result,
                         );
                     }
                 } else if (
