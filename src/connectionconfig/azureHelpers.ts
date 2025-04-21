@@ -28,6 +28,19 @@ export const azureSubscriptionFilterConfigKey = "azureResourceGroups.selectedSub
 
 //#region VS Code integration
 
+/**
+ * Checks to see if the user is signed into VS Code with an Azure account
+ * @returns true if the user is signed in, false otherwise
+ */
+export async function isSignedIn(): Promise<boolean> {
+    const auth: VSCodeAzureSubscriptionProvider = new VSCodeAzureSubscriptionProvider();
+    return await auth.isSignedIn();
+}
+
+/**
+ * Prompts the user to sign in to Azure if they are not already signed in
+ * @returns auth object if the user signs in or is already signed in, undefined if the user cancels sign-in.
+ */
 export async function confirmVscodeAzureSignin(): Promise<
     VSCodeAzureSubscriptionProvider | undefined
 > {

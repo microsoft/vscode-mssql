@@ -3,16 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
+import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
 import { expect } from "chai";
+
 import { AddFirewallRuleWebviewController } from "../../src/controllers/addFirewallRuleWebviewController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
+import { stubIsSignedIn } from "./azureHelperStubs";
 
 suite("AddFirewallRuleWebviewController Tests", () => {
+    let sandbox: sinon.SinonSandbox;
     let controller: AddFirewallRuleWebviewController;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
@@ -21,9 +25,43 @@ suite("AddFirewallRuleWebviewController Tests", () => {
     const errorMessage = "Gotta have a firewall rule for 1.2.3.4 in order to access this server!";
 
     setup(async () => {
+        sandbox = sinon.createSandbox();
+
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
+        mockFirewallService = TypeMoq.Mock.ofType(FirewallService, TypeMoq.MockBehavior.Loose);
 
+        mockContext.setup((c) => c.extensionUri).returns(() => vscode.Uri.parse("file://fakePath"));
+        mockContext.setup((c) => c.extensionPath).returns(() => "fakePath");
+        mockContext.setup((c) => c.subscriptions).returns(() => []);
+
+        mockFirewallService
+            .setup((f) => f.handleFirewallRule(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns(() => {
+                return Promise.resolve({ ipAddress: "1.2.3.4", result: true });
+            });
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("Should initialize correctly for not signed into Azure", async () => {
+        await finishSetup(false);
+        const expectedInitialState: AddFirewallRuleState = {
+            serverName: serverName,
+            isSignedIn: false,
+            tenants: [],
+            clientIp: "1.2.3.4",
+            message: errorMessage,
+            addFirewallRuleState: ApiStatus.NotStarted,
+        };
+
+        expect(controller.state).to.deep.equal(expectedInitialState, "Initial state is incorrect");
+    });
+
+    async function finishSetup(isSignedIn: boolean = true): Promise<void> {
+        stubIsSignedIn(sandbox, isSignedIn);
         controller = new AddFirewallRuleWebviewController(
             mockContext.object,
             mockVscodeWrapper.object,
@@ -34,19 +72,6 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             mockFirewallService.object,
         );
 
-        await controller.initialized;
-    });
-
-    test("Should initialize correctly", () => {
-        const expectedInitialState: AddFirewallRuleState = {
-            serverName: serverName,
-            isSignedIn: false,
-            tenants: [],
-            clientIp: "1.2.3.4",
-            message: "",
-            addFirewallRuleState: ApiStatus.NotStarted,
-        };
-
-        expect(controller.state).to.deep.equal(expectedInitialState, "Initial state is incorrect");
-    });
+        return await controller.initialized;
+    }
 });

@@ -33,14 +33,10 @@ import {
     ConnectionCompleteParams,
     GetCapabilitiesRequest,
 } from "../../src/models/contracts/connection";
-import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
-import {
-    AzureSubscription,
-    VSCodeAzureSubscriptionProvider,
-} from "@microsoft/vscode-azext-azureauth";
 import { stubTelemetry } from "./utils";
 import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
 import { Deferred } from "../../src/protocol";
+import { stubConfirmVscodeAzureSignin, stubFetchServersFromAzure } from "./azureHelperStubs";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -330,8 +326,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("should set connection input mode correctly and load server info for AzureBrowse", async () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
-                stubConfirmVscodeAzureSignin();
-                stubFetchServersFromAzure();
+                stubConfirmVscodeAzureSignin(sandbox);
+                stubFetchServersFromAzure(sandbox);
 
                 await controller["_reducers"].setConnectionInputType(controller.state, {
                     inputMode: ConnectionInputMode.AzureBrowse,
@@ -468,50 +464,4 @@ suite("ConnectionDialogWebviewController Tests", () => {
             );
         });
     });
-
-    //#region Helpers
-
-    const mockSubscriptions = [
-        {
-            name: "Ten0Sub1",
-            subscriptionId: "00000000-0000-0000-0000-111111111111",
-            tenantId: "00000000-0000-0000-0000-000000000000",
-        },
-        {
-            name: "Ten1Sub1",
-            subscriptionId: "11111111-0000-0000-0000-111111111111",
-            tenantId: "11111111-1111-1111-1111-111111111111",
-        },
-    ];
-
-    function stubConfirmVscodeAzureSignin() {
-        return sandbox.stub(AzureHelpers, "confirmVscodeAzureSignin").resolves({
-            getSubscriptions: () => Promise.resolve(mockSubscriptions),
-        } as unknown as VSCodeAzureSubscriptionProvider);
-    }
-
-    function stubFetchServersFromAzure() {
-        return sandbox
-            .stub(AzureHelpers, "fetchServersFromAzure")
-            .callsFake(async (sub: AzureSubscription) => {
-                return [
-                    {
-                        location: "TestRegion",
-                        resourceGroup: `testResourceGroup-${sub.name}`,
-                        server: `testServer-${sub.name}-1`,
-                        databases: ["testDatabase1", "testDatabase2"],
-                        subscription: `${sub.name} (${sub.subscriptionId})`,
-                    },
-                    {
-                        location: "TestRegion",
-                        resourceGroup: `testResourceGroup-${sub.name}`,
-                        server: `testServer-${sub.name}-2`,
-                        databases: ["testDatabase1", "testDatabase2"],
-                        subscription: `${sub.name} (${sub.subscriptionId})`,
-                    },
-                ] as AzureSqlServerInfo[];
-            });
-    }
-
-    //#endregion
 });

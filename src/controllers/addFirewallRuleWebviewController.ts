@@ -7,14 +7,13 @@ import * as vscode from "vscode";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import { AddFirewallRuleState, AddFirewallRuleReducers } from "../sharedInterfaces/addFirewallRule";
-import { confirmVscodeAzureSignin } from "../connectionconfig/azureHelpers";
+import * as azureHelpers from "../connectionconfig/azureHelpers";
 import { FirewallService } from "../firewall/firewallService";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
 import { errorFirewallRule } from "../constants/constants";
 import { Deferred } from "../protocol";
-import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as Loc from "../constants/locConstants";
 
@@ -75,9 +74,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
      */
     private async initializeDialog(errorMessage: string): Promise<void> {
         // Check if user is signed into Azure, and populate the dialog if they are
-        const auth: VSCodeAzureSubscriptionProvider = new VSCodeAzureSubscriptionProvider();
-
-        this.state.isSignedIn = await auth.isSignedIn();
+        this.state.isSignedIn = await azureHelpers.isSignedIn();
 
         if (this.state.isSignedIn) {
             await this.populateTentants(this.state);
@@ -159,7 +156,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
     }
 
     public async populateTentants(state: AddFirewallRuleState): Promise<void> {
-        const auth = await confirmVscodeAzureSignin();
+        const auth = await azureHelpers.confirmVscodeAzureSignin();
 
         if (!auth) {
             const errorMessage = Loc.Azure.azureSignInFailedOrWasCancelled;
