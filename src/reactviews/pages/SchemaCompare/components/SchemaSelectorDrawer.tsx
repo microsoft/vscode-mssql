@@ -110,7 +110,7 @@ const SchemaSelectorDrawer = (props: Props) => {
             : context.state.targetEndpointInfo;
 
     const [schemaType, setSchemaType] = useState(
-        endpointTypeToString(currentEndpoint?.endpointType) || "database",
+        endpointTypeToString(currentEndpoint?.endpointType || SchemaCompareEndpointType.Database),
     );
     const [disableOkButton, setDisableOkButton] = useState(true);
     const [serverConnectionUri, setServerConnectionUri] = useState(currentEndpoint?.ownerUri || "");
@@ -119,7 +119,9 @@ const SchemaSelectorDrawer = (props: Props) => {
     );
     const [databaseName, setDatabaseName] = useState(currentEndpoint?.databaseName || "");
     const [folderStructure, setFolderStructure] = useState(
-        extractTargetTypeToString(currentEndpoint?.extractTarget) || "Schema/Object Type",
+        extractTargetTypeToString(
+            currentEndpoint?.extractTarget || SharedExtractTarget.schemaObjectType,
+        ),
     );
 
     const fileId = useId("file");

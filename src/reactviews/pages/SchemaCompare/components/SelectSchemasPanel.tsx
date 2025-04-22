@@ -39,6 +39,18 @@ const useStyles = makeStyles({
     },
 });
 
+function getEndpointDisplayName(endpoint: mssql.SchemaCompareEndpointInfo): string {
+    let displayName =
+        (endpoint?.serverName && endpoint?.databaseName
+            ? `${endpoint?.connectionName || endpoint?.serverName}.${endpoint?.databaseName}`
+            : "") ||
+        endpoint?.packageFilePath ||
+        endpoint?.projectFilePath ||
+        "";
+
+    return displayName;
+}
+
 interface Props {
     onSelectSchemaClicked: (endpointType: "source" | "target") => void;
 }
@@ -50,22 +62,10 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     const context = useContext(schemaCompareContext);
 
     const sourceEndpointInfo = context.state.sourceEndpointInfo;
-    let sourceEndpointDisplay =
-        (sourceEndpointInfo?.serverName && sourceEndpointInfo?.databaseName
-            ? `${sourceEndpointInfo?.connectionName || sourceEndpointInfo?.serverName}.${sourceEndpointInfo?.databaseName}`
-            : "") ||
-        sourceEndpointInfo?.packageFilePath ||
-        sourceEndpointInfo?.projectFilePath ||
-        "";
+    let sourceEndpointDisplay = getEndpointDisplayName(sourceEndpointInfo);
 
     const targetEndpointInfo = context.state.targetEndpointInfo;
-    let targetEndpointDisplay =
-        (targetEndpointInfo?.serverName && targetEndpointInfo?.databaseName
-            ? `${targetEndpointInfo?.connectionName || targetEndpointInfo?.serverName}.${targetEndpointInfo?.databaseName}`
-            : "") ||
-        targetEndpointInfo?.packageFilePath ||
-        targetEndpointInfo?.projectFilePath ||
-        "";
+    let targetEndpointDisplay = getEndpointDisplayName(targetEndpointInfo);
 
     const handleCompare = () => {
         context.compare(

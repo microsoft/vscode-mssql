@@ -33,6 +33,7 @@ export const enum SchemaCompareEndpointType {
     // located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
 }
 
+// If this enum changes, then please update the ExtractTarget enum in vscode-mssql.d.ts.
 export const enum SharedExtractTarget {
     dacpac = 0,
     file = 1,
