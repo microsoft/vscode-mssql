@@ -3,11 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    QueryResultWebviewState,
-    QueryResultReducers,
-} from "../../../../../sharedInterfaces/queryResult";
-import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { mixin } from "../objects";
 
 const defaultOptions: ICellRangeSelectorOptions = {
@@ -48,25 +43,22 @@ export class CellRangeSelector<T extends Slick.SlickData> implements ICellRangeS
     private decorator!: ICellRangeDecorator;
     private canvas!: HTMLCanvasElement;
     private currentlySelectedRange?: { start: Slick.Cell; end?: Slick.Cell };
-    private platform: string | undefined;
+    private isMac: boolean | undefined;
 
     public onBeforeCellRangeSelected = new Slick.Event<Slick.Cell>();
     public onCellRangeSelected = new Slick.Event<Slick.Range>();
     public onAppendCellRangeSelected = new Slick.Event<Slick.Range>();
 
-    constructor(
-        private options: ICellRangeSelectorOptions,
-        private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
-    ) {
+    constructor(private options: ICellRangeSelectorOptions) {
         this.options = mixin(this.options, defaultOptions, false);
     }
 
-    public async init(grid: Slick.Grid<T>) {
+    public init(grid: Slick.Grid<T>) {
         this.decorator =
             this.options.cellDecorator || new (<any>Slick).CellRangeDecorator(grid, this.options);
         this.grid = grid;
         this.canvas = this.grid.getCanvasNode();
-        this.platform = (await this.webViewState.extensionRpc.call("getPlatform")) as string;
+        this.isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
         this.handler
             .subscribe(this.grid.onDragInit, (e) => this.handleDragInit(e))
             .subscribe(this.grid.onDragStart, (e: Slick.DOMEvent, dd) =>
@@ -166,7 +158,7 @@ export class CellRangeSelector<T extends Slick.SlickData> implements ICellRangeS
             dd.range.end.row,
             dd.range.end.cell,
         );
-        if (this.platform === "darwin") {
+        if (this.isMac) {
             // MacOS uses metaKey instead of ctrlKey
             if (e.metaKey) {
                 this.onAppendCellRangeSelected.notify(newRange);

@@ -45,7 +45,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
     private ranges: Array<Slick.Range> = [];
     private _handler = new Slick.EventHandler();
     private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>;
-    private platform: string | undefined;
+    private isMac: boolean | undefined;
 
     public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
@@ -59,20 +59,17 @@ export class CellSelectionModel<T extends Slick.SlickData>
             this.selector = this.options.cellRangeSelector;
         } else {
             // this is added by the node requires above
-            this.selector = new CellRangeSelector(
-                {
-                    selectionCss: {
-                        border: `3px dashed ${tokens.colorStrokeFocus1}`,
-                    },
+            this.selector = new CellRangeSelector({
+                selectionCss: {
+                    border: `3px dashed ${tokens.colorStrokeFocus1}`,
                 },
-                this.webViewState,
-            );
+            });
         }
     }
 
-    public async init(grid: Slick.Grid<T>) {
+    public init(grid: Slick.Grid<T>) {
         this.grid = grid;
-        this.platform = (await this.webViewState.extensionRpc.call("getPlatform")) as string;
+        this.isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
         this._handler.subscribe(this.grid.onKeyDown, (e: Slick.DOMEvent) =>
             this.handleKeyDown(e as unknown as KeyboardEvent),
         );
@@ -177,7 +174,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private isMultiSelection(_e: MouseEvent): boolean {
-        return this.platform === "darwin" ? _e.metaKey : _e.ctrlKey;
+        return this.isMac ? _e.metaKey : _e.ctrlKey;
     }
 
     private handleHeaderClick(e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>) {
@@ -412,7 +409,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         let handled = false;
-        if (this.platform === "darwin") {
+        if (this.isMac) {
             // Cmd + A
             if (e.metaKey && e.key === Keys.a) {
                 handled = true;
