@@ -162,6 +162,33 @@ export class LocConstants {
         };
     }
 
+    public get firewallRules() {
+        return {
+            createNewFirewallRuleFor: (serverName: string) =>
+                l10n.t({
+                    message: "Create new firewall rule for {0}",
+                    args: [serverName],
+                    comment: ["{0} is the server name that the firewall rule will be created for"],
+                }),
+            createNewFirewallRule: l10n.t("Create a new firewall rule"),
+            firewallRuleNeededMessage: l10n.t("A firewall rule is required to access this server."),
+            addFirewallRule: l10n.t("Add Firewall Rule"),
+            signIntoAzureToAddFirewallRule: l10n.t(
+                "Sign into Azure in order to add a firewall rule.",
+            ),
+            signIntoAzure: l10n.t("Sign into Azure"),
+            tenant: l10n.t("Tenant"),
+            ruleName: l10n.t("Rule name"),
+            addMyClientIp: (ipAddress: string) =>
+                l10n.t({
+                    message: "Add my client IP ({0})",
+                    args: [ipAddress],
+                    comment: ["{0} is the IP address of the client"],
+                }),
+            addMySubnetRange: "Add my subnet IP range",
+        };
+    }
+
     public get connectionDialog() {
         return {
             connect: l10n.t("Connect"),
@@ -195,9 +222,6 @@ export class LocConstants {
             ),
             readMore: l10n.t("Read more"),
             enableTrustServerCertificateButton: l10n.t("Enable 'Trust Server Certificate'"),
-            createNewFirewallRule: l10n.t("Create a new firewall rule"),
-            firewallRuleNeededMessage: l10n.t("A firewall rule is required to access this server."),
-            addFirewallRule: l10n.t("Add Firewall Rule"),
             azureFilterPlaceholder: (dropdownContentType: string) =>
                 l10n.t({
                     message: "Select a {0} for filtering",

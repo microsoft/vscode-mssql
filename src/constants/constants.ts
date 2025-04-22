@@ -229,3 +229,4 @@ export enum Platform {
     Mac = "darwin",
     Linux = "linux",
 }
+export const isRichExperiencesEnabledDefault = true;

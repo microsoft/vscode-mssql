@@ -5,7 +5,9 @@
 
 import * as vscodeMssql from "vscode-mssql";
 import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form";
+import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
+import { AddFirewallRuleState } from "./addFirewallRule";
 
 export class ConnectionDialogWebviewState
     implements
@@ -66,9 +68,7 @@ export interface TrustServerCertDialogProps extends IDialogProps {
 
 export interface AddFirewallRuleDialogProps extends IDialogProps {
     type: "addFirewallRule";
-    message: string;
-    clientIp: string;
-    tenants: { name: string; id: string }[];
+    props: AddFirewallRuleState;
 }
 
 export interface ConnectionStringDialogProps extends IDialogProps {
@@ -141,17 +141,14 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
-    addFirewallRule: (
-        name: string,
-        tenantId: string,
-        ip: string | { startIp: string; endIp: string },
-    ) => void;
+    addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
     removeRecentConnection(connection: IConnectionDialogProfile): void;
     loadFromConnectionString: (connectionString: string) => void;
     openConnectionStringDialog: () => void;
+    signIntoAzureForFirewallRule: () => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
@@ -175,9 +172,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
         subscriptionId: string;
     };
     addFirewallRule: {
-        name: string;
-        tenantId: string;
-        ip: string | { startIp: string; endIp: string };
+        firewallRuleSpec: FirewallRuleSpec;
     };
     closeDialog: {};
     filterAzureSubscriptions: {};
@@ -190,4 +185,5 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     };
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
+    signIntoAzureForFirewallRule: {};
 }
