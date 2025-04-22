@@ -982,20 +982,15 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     } {
         const activeServers: { [connectionUri: string]: { profileName: string; server: string } } =
             {};
-        let seenServerNames = new Set<string>();
-
         const activeConnections = this.connectionMgr.activeConnections;
         Object.keys(activeConnections).forEach((connectionUri) => {
             let credentials = activeConnections[connectionUri]
                 .credentials as IConnectionDialogProfile;
 
-            if (!seenServerNames.has(credentials.server)) {
-                activeServers[connectionUri] = {
-                    profileName: credentials.profileName,
-                    server: credentials.server,
-                };
-                seenServerNames.add(credentials.server);
-            }
+            activeServers[connectionUri] = {
+                profileName: credentials.profileName ?? "",
+                server: credentials.server,
+            };
         });
 
         return activeServers;
