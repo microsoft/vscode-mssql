@@ -19,6 +19,7 @@ export class Common {
             args: [action],
             comment: ["{0} is the action being confirmed"],
         });
+    public static accept = l10n.t("Accept");
 }
 
 export let viewMore = l10n.t("View More");
@@ -716,6 +717,82 @@ export class ContainerDeployment {
             args: [name],
             comment: ["Failed to delete {0}."],
         });
+    public static selectImage = l10n.t("Select image");
+    public static selectImageTooltip = l10n.t("Select the SQL Server Container Image");
+    public static sqlServer2022Image = l10n.t("SQL Server 2022 - latest");
+    public static sqlServer2019Image = l10n.t("SQL Server 2019 - latest");
+    public static sqlServer2017Image = l10n.t("SQL Server 2017 - latest");
+    public static sqlServerPasswordTooltip = l10n.t("SQL Server Container SA Password");
+    public static pleaseChooseUniqueProfileName = l10n.t(
+        "Please choose a unique name for the profile",
+    );
+    public static containerName = l10n.t("Container Name");
+    public static containerNameTooltip = l10n.t(
+        "Choose a name for the SQL Server Docker Container",
+    );
+    public static pleaseChooseUniqueContainerName = l10n.t(
+        "Please choose a unique name for the container",
+    );
+    public static port = l10n.t("Port");
+    public static portTooltip = l10n.t("Choose a port to host the SQL Server Docker Container");
+    public static pleaseChooseUnusedPort = l10n.t("Please choose a port that is not in use");
+    public static hostname = l10n.t("Hostname");
+    public static hostnameTooltip = l10n.t("Choose a hostname for the container");
+    public static termsAndConditions = l10n.t("Terms & Conditions");
+    public static acceptDockerEulaTooltip = l10n.t(
+        "Accept the Docker EULA to deploy a SQL Server Docker container",
+    );
+    public static acceptDockerEula = l10n.t("Please Accept the Docker EULA");
+    public static dockerInstallHeader = l10n.t("Checking if Docker is installed");
+    public static dockerInstallBody = l10n.t("Checking if Docker is installed on your machine");
+    public static dockerInstallError = l10n.t(
+        "Docker is not installed or not in PATH. Please install Docker Desktop and try again.",
+    );
+    public static startDockerHeader = l10n.t("Starting Docker");
+    public static startDockerBody = l10n.t(
+        "Checking if Docker is running on your machine. If not, we'll start it for you.",
+    );
+    public static dockerError = l10n.t(
+        "Error running Docker commands. Please make sure Docker is running.",
+    );
+    public static startDockerEngineHeader = l10n.t("Starting Docker Engine");
+    public static startDockerEngineBody = l10n.t(
+        "Checking if the Docker Engine is running on your machine. If not, we'll start it for you.",
+    );
+    public static creatingContainerHeader = l10n.t("Creating Container");
+    public static creatingContainerBody = l10n.t(
+        "Creating and starting your SQL Server Docker container",
+    );
+    public static settingUpContainerHeader = l10n.t("Setting up container");
+    public static settingUpContainerBody = l10n.t("Readying container for connections.");
+    public static connectingToContainerHeader = l10n.t("Connecting to Container");
+    public static connectingToContainerBody = l10n.t(
+        "Connecting to your SQL Server Docker container",
+    );
+    public static passwordLengthError = l10n.t(
+        "Please make your password at least 8 characters long.",
+    );
+    public static passwordComplexityError = l10n.t(
+        "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
+    );
+    public static unsupportedDockerPlatformError = (platform: string) =>
+        l10n.t({
+            message: "Unsupported platform for Docker: {0}",
+            args: [platform],
+            comment: ["{0} is the platform name of the machine"],
+        });
+    public static rosettaError = l10n.t(
+        "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
+    );
+    public static windowsContainersError = l10n.t(
+        "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
+    );
+    public static dockerFailedToStartWithinTimeout = l10n.t(
+        "Docker failed to start within the timeout period. Please manually start Docker and try again.",
+    );
+    public static containerFailedToStartWithinTimeout = l10n.t(
+        "Container failed to start within the timeout period. Please wait a few minutes and try again.",
+    );
 }
 
 export class UserSurvey {

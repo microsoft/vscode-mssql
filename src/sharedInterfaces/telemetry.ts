@@ -13,6 +13,7 @@ export enum TelemetryViews {
     ConnectionPrompt = "ConnectionPrompt",
     WebviewController = "WebviewController",
     ObjectExplorerFilter = "ObjectExplorerFilter",
+    ContainerDeployment = "ContainerDeployment",
     TableDesigner = "TableDesigner",
     SchemaCompare = "SchemaCompare",
     UserSurvey = "UserSurvey",
@@ -74,6 +75,11 @@ export enum TelemetryActions {
     SubmitGithubIssue = "SubmitGithubIssue",
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
+    CreateSQLContainer = "CreateSQLContainer",
+    ConnectToContainer = "ConnectToContainer",
+    StartContainer = "StartContainer",
+    StopContainer = "StopContainer",
+    DeleteContainer = "DeleteContainer",
 }
 
 /**

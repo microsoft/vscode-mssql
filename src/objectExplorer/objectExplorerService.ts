@@ -648,6 +648,11 @@ export class ObjectExplorerService {
 
             // Local container, ensure it is started
             if (connectionCredentials.containerName) {
+                sendActionEvent(
+                    TelemetryViews.ContainerDeployment,
+                    TelemetryActions.ConnectToContainer,
+                );
+
                 // start docker and docker container
                 await restartContainer(connectionCredentials.containerName);
             }

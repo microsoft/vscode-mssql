@@ -183,7 +183,6 @@ async function generateReactWebviewsBundle() {
 		 * for each entry point, to be used by the webview's HTML content.
 		 */
 		entryPoints: {
-			'addFirewallRule': 'src/reactviews/pages/AddFirewallRule/index.tsx',
 			'connectionDialog': 'src/reactviews/pages/ConnectionDialog/index.tsx',
 			'containerDeployment': 'src/reactviews/pages/ContainerDeployment/index.tsx',
 			'executionPlan': 'src/reactviews/pages/ExecutionPlan/index.tsx',
