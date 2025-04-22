@@ -706,9 +706,7 @@ export class ObjectExplorerService {
                     connectionDetails,
                 );
 
-            const nodeLabel =
-                (connectionProfile as IConnectionProfile).profileName ??
-                ConnInfo.getConnectionDisplayName(connectionProfile);
+            const nodeLabel = ConnInfo.getConnectionDisplayName(connectionProfile);
 
             this._sessionIdToNodeLabelMap.set(sessionIdResponse.sessionId, nodeLabel);
 
@@ -891,9 +889,7 @@ export class ObjectExplorerService {
     }
 
     public addDisconnectedNode(connectionCredentials: IConnectionInfo): void {
-        const label = (connectionCredentials as IConnectionProfile).profileName
-            ? (connectionCredentials as IConnectionProfile).profileName
-            : ConnInfo.getConnectionDisplayName(connectionCredentials);
+        const label = ConnInfo.getConnectionDisplayName(connectionCredentials);
         const node = new TreeNodeInfo(
             label,
             ObjectExplorerService.disconnectedNodeContextValue,

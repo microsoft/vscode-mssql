@@ -445,7 +445,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerRequestHandler("getConnectionDisplayName", async (payload) => {
-            return payload.profileName ? payload.profileName : getConnectionDisplayName(payload);
+            return getConnectionDisplayName(payload);
         });
 
         this.registerReducer("signIntoAzureForFirewallRule", async (state) => {
