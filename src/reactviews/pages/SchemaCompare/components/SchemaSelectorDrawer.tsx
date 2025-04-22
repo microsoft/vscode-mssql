@@ -56,7 +56,7 @@ const useStyles = makeStyles({
     },
 });
 
-const endpointTypeToString = (endpointType: number | undefined) => {
+function endpointTypeToString(endpointType: number | undefined): string {
     if (endpointType === undefined) {
         return "";
     }
@@ -71,9 +71,9 @@ const endpointTypeToString = (endpointType: number | undefined) => {
         default:
             return "";
     }
-};
+}
 
-const extractTargetTypeToString = (extractTarget: number | undefined) => {
+function extractTargetTypeToString(extractTarget: number | undefined): string {
     if (extractTarget === undefined) {
         return "";
     }
@@ -91,7 +91,7 @@ const extractTargetTypeToString = (extractTarget: number | undefined) => {
         default:
             return "Schema/Object Type";
     }
-};
+}
 
 interface Props extends InputProps {
     show: boolean;
