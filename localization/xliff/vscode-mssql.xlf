@@ -1749,6 +1749,10 @@
     <trans-unit id="++CODE++89caff358dd06b198287328333de1a16f7a3563652cbb6df6b38b901d5d4b263">
       <source xml:lang="en">Starting Docker Engine</source>
     </trans-unit>
+    <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
+      <source xml:lang="en">Starting {0}...</source>
+      <note>{0} is the container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
       <source xml:lang="en">Starts With</source>
     </trans-unit>

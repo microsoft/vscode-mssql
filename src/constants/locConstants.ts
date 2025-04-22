@@ -699,6 +699,12 @@ export class ContainerDeployment {
             args: [name],
             comment: ["{0} started successfully."],
         });
+    public static startingContainer = (name: string) =>
+        l10n.t({
+            message: "Starting {0}...",
+            args: [name],
+            comment: ["{0} is the container name"],
+        });
     public static failStartContainer = (name: string) =>
         l10n.t({
             message: "Failed to start {0}.",

@@ -1111,6 +1111,12 @@
       "{0} started successfully."
     ]
   },
+  "Starting {0}.../{0} is the container name": {
+    "message": "Starting {0}...",
+    "comment": [
+      "{0} is the container name"
+    ]
+  },
   "Failed to start {0}./Failed to start {0}.": {
     "message": "Failed to start {0}.",
     "comment": [
