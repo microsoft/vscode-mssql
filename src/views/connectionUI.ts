@@ -634,7 +634,7 @@ export class ConnectionUI {
             );
             addFirewallRuleController.panel.reveal();
 
-            const wasCreated = await addFirewallRuleController.completed;
+            const wasCreated = await addFirewallRuleController.dialogResult;
 
             return wasCreated === true; // dialog closed is undefined
         } else {
@@ -662,7 +662,10 @@ export class ConnectionUI {
                 this.connectionManager.accountService.setAccount(account!);
             }
 
-            const handleResponse = await this.connectionManager.firewallService.handleFirewallRule(connectionResponse.errorNumber, connectionResponse.errorMessage);
+            const handleResponse = await this.connectionManager.firewallService.handleFirewallRule(
+                connectionResponse.errorNumber,
+                connectionResponse.errorMessage,
+            );
 
             let success = handleResponse.result;
 

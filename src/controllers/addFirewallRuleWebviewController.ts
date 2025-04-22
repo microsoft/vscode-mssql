@@ -108,7 +108,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
      */
     private registerRpcHandlers(): void {
         this.registerReducer("closeDialog", async (state) => {
-            this.completed.resolve(false);
+            this.dialogResult.resolve(false);
             this.panel.dispose();
             return state;
         });
@@ -125,7 +125,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
 
                 sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule);
 
-                this.completed.resolve(true);
+                this.dialogResult.resolve(true);
                 await this.panel.dispose();
             } catch (err) {
                 state.message = getErrorMessage(err);
