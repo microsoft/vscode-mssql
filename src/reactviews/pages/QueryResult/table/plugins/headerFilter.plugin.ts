@@ -235,7 +235,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         const offset = jQuery(filterButton).offset();
         const $popup = jQuery(
             '<div id="popup-menu" class="slick-header-menu">' +
-                `<div style="display: flex; align-items: center; margin-bottom: 8px;">` +
+                `<div class="input-menu"">` +
                 `<input type="checkbox" id="select-all-checkbox" style="margin-right: 8px;" />` +
                 `<input type="text" id="search-input" class="searchbox" placeholder=${locConstants.queryResult.search}  />` +
                 `</div>` +

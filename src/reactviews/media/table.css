@@ -319,9 +319,18 @@
     background-color: var(--vscode-list-hoverBackground);
 }
 
+.input-menu {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 4px;
+}
+
 .checkbox-list {
     min-height: 200px;
     max-height: 250px;
+    border: 1px solid;
+    margin: 2px;
 }
 
 #popup-menu .checkbox-list label {
@@ -368,7 +377,7 @@
     border: 1px solid;
     font-size: 13px;
     color: var(--vscode-dropdown-foreground);
-    background-color: var(--vscode-dropdown-background);
+    background-color: var(--vscode-list-hoverBackground);
     border-color: var(--vscode-dropdown-border);
     font-family: var(--vscode-font-family);
 }
