@@ -45,6 +45,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
     private ranges: Array<Slick.Range> = [];
     private _handler = new Slick.EventHandler();
     private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>;
+    private isMac: boolean | undefined;
 
     public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
@@ -68,6 +69,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     public init(grid: Slick.Grid<T>) {
         this.grid = grid;
+        this.isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
         this._handler.subscribe(this.grid.onKeyDown, (e: Slick.DOMEvent) =>
             this.handleKeyDown(e as unknown as KeyboardEvent),
         );
@@ -172,7 +174,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private isMultiSelection(_e: MouseEvent): boolean {
-        return false; //process.platform === 'darwin' ? e.metaKey : e.ctrlKey;
+        return this.isMac ? _e.metaKey : _e.ctrlKey;
     }
 
     private handleHeaderClick(e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>) {
@@ -407,8 +409,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         let handled = false;
-        let platform = await this.webViewState.extensionRpc.call("getPlatform");
-        if (platform === "darwin") {
+        if (this.isMac) {
             // Cmd + A
             if (e.metaKey && e.key === Keys.a) {
                 handled = true;
