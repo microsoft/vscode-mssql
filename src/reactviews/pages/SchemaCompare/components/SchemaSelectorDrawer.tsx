@@ -198,7 +198,7 @@ const SchemaSelectorDrawer = (props: Props) => {
     const handleDatabaseServerSelected = (_: SelectionEvents, data: OptionOnSelectData) => {
         if (data.optionValue) {
             setServerConnectionUri(data.optionValue);
-            setServerName(data.optionText);
+            setServerName(data.optionText ?? "");
             setDatabaseName("");
             context.listDatabasesForActiveServer(data.optionValue);
         }
