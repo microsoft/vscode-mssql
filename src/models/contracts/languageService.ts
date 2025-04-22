@@ -83,9 +83,10 @@ export class NonTSqlParams {
      */
     public ownerUri: string;
     /**
-     * Keywords the file was flagged on
+     * Indicates whether the file was flagged due to containing
+     * non-TSQL keywords or hitting the error limit.
      */
-    public nonTSqlKeywords: string;
+    public containsNonTSqlKeywords: boolean;
 }
 
 /**
