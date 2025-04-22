@@ -1081,17 +1081,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(Constants.cmdStartContainer, async () => {
                 let node = this._objectExplorerProvider.currentNode;
                 const containerName = node.connectionInfo.containerName;
-                vscode.window.showInformationMessage(
-                    LocalizedConstants.ContainerDeployment.startingContainer(containerName),
-                );
                 const startedSuccessfully = await restartContainer(containerName);
-                vscode.window.showInformationMessage(
-                    startedSuccessfully
-                        ? LocalizedConstants.ContainerDeployment.startedContainerSucessfully(
-                              containerName,
-                          )
-                        : LocalizedConstants.ContainerDeployment.failStartContainer(containerName),
-                );
                 if (startedSuccessfully) {
                     await this.createObjectExplorerSession(node.connectionInfo);
                     return this._objectExplorerProvider.refresh(undefined);
