@@ -381,18 +381,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             if (payload.endpointType === "source") {
                 state.sourceEndpointInfo = state.auxiliaryEndpointInfo;
             } else {
+                if (state.auxiliaryEndpointInfo) {
+                    state.targetEndpointInfo = state.auxiliaryEndpointInfo;
+                }
+
                 if (
-                    state.auxiliaryEndpointInfo.endpointType ===
+                    state.targetEndpointInfo?.endpointType ===
                     mssql.SchemaCompareEndpointType.Project
                 ) {
-                    state.auxiliaryEndpointInfo.extractTarget = this.mapExtractTargetEnum(
+                    state.targetEndpointInfo.extractTarget = this.mapExtractTargetEnum(
                         payload.folderStructure,
                     );
                 }
-                state.targetEndpointInfo = state.auxiliaryEndpointInfo;
             }
-            state.auxiliaryEndpointInfo = undefined;
 
+            state.auxiliaryEndpointInfo = undefined;
             this.updateState(state);
 
             return state;

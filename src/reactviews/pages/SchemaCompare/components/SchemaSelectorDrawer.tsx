@@ -27,6 +27,10 @@ import {
 import { Dismiss24Regular, FolderFilled, PlugDisconnectedRegular } from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { locConstants as loc } from "../../../common/locConstants";
+import {
+    SchemaCompareEndpointType,
+    SharedExtractTarget,
+} from "../../../../sharedInterfaces/schemaCompare";
 
 const useStyles = makeStyles({
     drawerWidth: {
@@ -43,7 +47,7 @@ const useStyles = makeStyles({
     },
 
     buttonLeftMargin: {
-        marginLeft: "2px",
+        marginLeft: "8px",
     },
 
     footer: {
@@ -51,6 +55,43 @@ const useStyles = makeStyles({
         justifyContent: "flex-end",
     },
 });
+
+const endpointTypeToString = (endpointType: number | undefined) => {
+    if (endpointType === undefined) {
+        return "";
+    }
+
+    switch (endpointType) {
+        case SchemaCompareEndpointType.Database:
+            return "database";
+        case SchemaCompareEndpointType.Dacpac:
+            return "dacpac";
+        case SchemaCompareEndpointType.Project:
+            return "sqlproj";
+        default:
+            return "";
+    }
+};
+
+const extractTargetTypeToString = (extractTarget: number | undefined) => {
+    if (extractTarget === undefined) {
+        return "";
+    }
+
+    switch (extractTarget) {
+        case SharedExtractTarget.file:
+            return "File";
+        case SharedExtractTarget.flat:
+            return "Flat";
+        case SharedExtractTarget.objectType:
+            return "Object Type";
+        case SharedExtractTarget.schema:
+            return "Schema";
+        case SharedExtractTarget.schemaObjectType:
+        default:
+            return "Schema/Object Type";
+    }
+};
 
 interface Props extends InputProps {
     show: boolean;
@@ -62,11 +103,24 @@ const SchemaSelectorDrawer = (props: Props) => {
     const classes = useStyles();
 
     const context = useContext(schemaCompareContext);
-    const [schemaType, setSchemaType] = useState("database");
+
+    const currentEndpoint =
+        props.endpointType === "source"
+            ? context.state.sourceEndpointInfo
+            : context.state.targetEndpointInfo;
+
+    const [schemaType, setSchemaType] = useState(
+        endpointTypeToString(currentEndpoint?.endpointType) || "database",
+    );
     const [disableOkButton, setDisableOkButton] = useState(true);
-    const [serverConnectionUri, setServerConnectionUri] = useState("");
-    const [databaseName, setDatabaseName] = useState("");
-    const [folderStructure, setFolderStructure] = useState("Schema/Object Type");
+    const [serverConnectionUri, setServerConnectionUri] = useState(currentEndpoint?.ownerUri || "");
+    const [serverName, setServerName] = useState(
+        currentEndpoint?.connectionName || currentEndpoint?.serverName || "",
+    );
+    const [databaseName, setDatabaseName] = useState(currentEndpoint?.databaseName || "");
+    const [folderStructure, setFolderStructure] = useState(
+        extractTargetTypeToString(currentEndpoint?.extractTarget) || "Schema/Object Type",
+    );
 
     const fileId = useId("file");
     const folderStructureId: string = useId("folderStructure");
@@ -84,6 +138,10 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     useEffect(() => {
         context.listActiveServers();
+
+        if (currentEndpoint?.ownerUri) {
+            context.listDatabasesForActiveServer(currentEndpoint?.ownerUri);
+        }
     }, []);
 
     useEffect(() => {
@@ -94,11 +152,6 @@ const SchemaSelectorDrawer = (props: Props) => {
         props.endpointType === "source"
             ? loc.schemaCompare.selectSource
             : loc.schemaCompare.selectTarget;
-
-    const currentEndpoint =
-        props.endpointType === "source"
-            ? context.state.sourceEndpointInfo
-            : context.state.targetEndpointInfo;
 
     const updateOkButtonState = (type: string) => {
         if (type === "database" && serverConnectionUri && databaseName) {
@@ -145,6 +198,8 @@ const SchemaSelectorDrawer = (props: Props) => {
     const handleDatabaseServerSelected = (_: SelectionEvents, data: OptionOnSelectData) => {
         if (data.optionValue) {
             setServerConnectionUri(data.optionValue);
+            setServerName(data.optionText ?? "");
+            setDatabaseName("");
             context.listDatabasesForActiveServer(data.optionValue);
         }
     };
@@ -221,6 +276,8 @@ const SchemaSelectorDrawer = (props: Props) => {
                         <div className={classes.positionItemsHorizontally}>
                             <Dropdown
                                 className={classes.fileInputWidth}
+                                value={serverName}
+                                selectedOptions={[serverConnectionUri]}
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseServerSelected(event, data)
                                 }>
@@ -246,6 +303,8 @@ const SchemaSelectorDrawer = (props: Props) => {
                         <div>
                             <Dropdown
                                 className={classes.fileInputWidth}
+                                value={databaseName}
+                                selectedOptions={[databaseName]}
                                 onOptionSelect={(event, data) =>
                                     handleDatabaseSelected(event, data)
                                 }>
@@ -291,7 +350,8 @@ const SchemaSelectorDrawer = (props: Props) => {
                                     <Dropdown
                                         id={folderStructureId}
                                         className={classes.fileInputWidth}
-                                        defaultValue={options[4].display}
+                                        value={folderStructure}
+                                        selectedOptions={[folderStructure]}
                                         onOptionSelect={(event, data) =>
                                             handleFolderStructureSelected(event, data)
                                         }>
