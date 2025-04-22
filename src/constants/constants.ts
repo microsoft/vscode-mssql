@@ -47,6 +47,7 @@ export const cmdPauseQueryHistory = "mssql.pauseQueryHistoryCapture";
 export const cmdCommandPaletteQueryHistory = "mssql.commandPaletteQueryHistory";
 export const cmdNewQuery = "mssql.newQuery";
 export const cmdSchemaCompare = "mssql.schemaCompare";
+export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
@@ -238,3 +239,4 @@ export enum Platform {
     Mac = "darwin",
     Linux = "linux",
 }
+export const isRichExperiencesEnabledDefault = true;

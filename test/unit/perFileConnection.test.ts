@@ -123,6 +123,7 @@ function createTestConnectionManager(
         TestExtensionContext.object,
         statusView,
         prompterMock.object,
+        false,
         serviceClient,
         wrapper,
         connectionStore,

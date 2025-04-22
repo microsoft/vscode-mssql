@@ -12,7 +12,8 @@ export abstract class FormWebviewController<
     TState extends FormState<TForm, TState, TFormItemSpec>,
     TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
     TReducers extends FormReducers<TForm>,
-> extends ReactWebviewPanelController<TState, TReducers> {
+    TResult = void,
+> extends ReactWebviewPanelController<TState, TReducers, TResult> {
     constructor(
         context,
         vscodeWrapper,

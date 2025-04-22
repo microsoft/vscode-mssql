@@ -11,11 +11,12 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
+    ConnectionStringDialogProps,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
 } from "../../../sharedInterfaces/connectionDialog";
-import { Field, Image, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
-import { Form20Regular, SlideText20Regular } from "@fluentui/react-icons";
+import { Field, Image, Link, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
+import { Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
 
@@ -23,19 +24,17 @@ import { AzureBrowsePage } from "./azureBrowsePage";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectionFormPage } from "./connectionFormPage";
 import { ConnectionHeader } from "./components/connectionHeader.component";
-import { ConnectionStringPage } from "./connectionStringPage";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
+import { ConnectionStringDialog } from "./components/connectionStringDialog.component";
 import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
-import { AddFirewallRuleDialog } from "./components/addFirewallRule.component";
+import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
         case ConnectionInputMode.Parameters:
             return <ConnectionFormPage />;
-        case ConnectionInputMode.ConnectionString:
-            return <ConnectionStringPage />;
         case ConnectionInputMode.AzureBrowse:
             return <AzureBrowsePage />;
     }
@@ -77,7 +76,15 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {context.state.dialog?.type === "addFirewallRule" && (
                     <AddFirewallRuleDialog
-                        dialogProps={context.state.dialog as AddFirewallRuleDialogProps}
+                        state={(context.state.dialog as AddFirewallRuleDialogProps).props}
+                        addFirewallRule={context.addFirewallRule}
+                        closeDialog={context.closeDialog}
+                        signIntoAzure={context.signIntoAzureForFirewallRule}
+                    />
+                )}
+                {context.state.dialog?.type === "loadFromConnectionString" && (
+                    <ConnectionStringDialog
+                        dialogProps={context.state.dialog as ConnectionStringDialogProps}
                     />
                 )}
 
@@ -112,19 +119,14 @@ export const ConnectionInfoFormContainer = () => {
                                         }}>
                                         <Form20Regular style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.parameters}
-                                    </div>
-                                }
-                            />
-                            <Radio
-                                value={ConnectionInputMode.ConnectionString}
-                                label={
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                        }}>
-                                        <SlideText20Regular style={{ marginRight: "8px" }} />
-                                        {locConstants.connectionDialog.connectionString}
+                                        <span style={{ margin: "0 8px" }} />
+                                        <Link
+                                            onClick={() => {
+                                                context.openConnectionStringDialog();
+                                            }}
+                                            inline>
+                                            {locConstants.connectionDialog.loadFromConnectionString}
+                                        </Link>
                                     </div>
                                 }
                             />

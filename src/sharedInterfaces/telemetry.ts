@@ -20,6 +20,7 @@ export enum TelemetryViews {
     General = "General",
     ConnectionDialog = "ConnectionDialog",
     ExecutionPlan = "ExecutionPlan",
+    AddFirewallRule = "AddFirewallRule",
 }
 
 export enum TelemetryActions {
@@ -75,6 +76,7 @@ export enum TelemetryActions {
     SubmitGithubIssue = "SubmitGithubIssue",
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
+    LoadFromConnectionString = "LoadFromConnectionString",
     CreateSQLContainer = "CreateSQLContainer",
     ConnectToContainer = "ConnectToContainer",
     StartContainer = "StartContainer",

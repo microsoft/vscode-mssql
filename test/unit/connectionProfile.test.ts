@@ -327,6 +327,7 @@ suite("Connection Profile tests", () => {
             connectionStoreMock.object,
             mockAccountStore,
             prompter.object,
+            false,
             vscodeWrapperMock.object,
         );
 
@@ -432,6 +433,7 @@ suite("Connection Profile tests", () => {
             connectionStoreMock.object,
             mockAccountStore,
             prompter.object,
+            false,
             vscodeWrapperMock.object,
         );
 
@@ -521,6 +523,7 @@ suite("Connection Profile tests", () => {
             connectionStoreMock.object,
             mockAccountStore,
             prompter.object,
+            false,
             vscodeWrapperMock.object,
         );
 

@@ -506,6 +506,7 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._statusview,
             this._prompter,
+            this.isRichExperiencesEnabled,
         );
 
         void this.showOnLaunchPrompts();
@@ -599,29 +600,9 @@ export default class MainController implements vscode.Disposable {
     /**
      * Creates a new Object Explorer session
      * @param connectionCredentials Connection credentials to use for the session
-     * @returns True if the session was created successfully, false otherwise
+     * @returns OE node if the session was created successfully, undefined otherwise
      */
     public async createObjectExplorerSession(
-        connectionCredentials?: IConnectionInfo,
-    ): Promise<boolean> {
-        let createSessionPromise = new Deferred<TreeNodeInfo>();
-        const sessionId = await this._objectExplorerProvider.createSession(
-            createSessionPromise,
-            connectionCredentials,
-            this._context,
-        );
-        if (sessionId) {
-            const newNode = await createSessionPromise;
-            if (newNode) {
-                console.log(newNode);
-                this._objectExplorerProvider.refresh(undefined);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public async createObjectExplorerSessionFromDialog(
         connectionCredentials?: IConnectionInfo,
     ): Promise<TreeNodeInfo> {
         let createSessionPromise = new Deferred<TreeNodeInfo>();
@@ -643,14 +624,15 @@ export default class MainController implements vscode.Disposable {
 
     /**
      * Initializes the Object Explorer commands
+     * @param objectExplorerProvider provider settable for testing purposes
      */
-    private initializeObjectExplorer(): void {
+    private initializeObjectExplorer(objectExplorerProvider?: ObjectExplorerProvider): void {
         const self = this;
         // Register the object explorer tree provider
-        this._objectExplorerProvider = new ObjectExplorerProvider(
-            this._vscodeWrapper,
-            this._connectionMgr,
-        );
+        this._objectExplorerProvider =
+            objectExplorerProvider ??
+            new ObjectExplorerProvider(this._vscodeWrapper, this._connectionMgr);
+
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
             canSelectMany: false,
@@ -815,6 +797,15 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdSchemaCompare, async (node: any) =>
                     this.onSchemaCompare(node),
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdSchemaCompareOpenFromCommandPalette,
+                    async () => {
+                        await this.onSchemaCompare();
+                    },
                 ),
             );
 
@@ -1853,7 +1844,7 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
-    public async onSchemaCompare(node: any): Promise<void> {
+    public async onSchemaCompare(node?: any): Promise<void> {
         const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,

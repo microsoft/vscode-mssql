@@ -621,6 +621,23 @@ export class ConnectionDialog {
             comment: ["{0} is the connection name"],
         });
     };
+}
+
+export class FirewallRule {
+    public static addFirewallRule = l10n.t("Add Firewall Rule");
+    public static addFirewallRuleToServer = (serverName: string) => {
+        return l10n.t({
+            message: "Add Firewall Rule to {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+}
+
+export class Azure {
+    public static azureSignInFailedOrWasCancelled = l10n.t(
+        "Azure sign-in failed or was cancelled.",
+    );
 
     public static errorLoadingAzureAccountInfoForTenantId = (tenantId: string) => {
         return l10n.t({

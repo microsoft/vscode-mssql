@@ -5,6 +5,8 @@
 
 import * as vscode from "vscode";
 import { l10n } from "vscode";
+import { Azure as Loc } from "../constants/locConstants";
+
 import {
     AzureSubscription,
     VSCodeAzureSubscriptionProvider,
@@ -107,15 +109,22 @@ export async function getQuickPickItems(
 const serverResourceType = "Microsoft.Sql/servers";
 const databaseResourceType = "Microsoft.Sql/servers/databases";
 
+export async function fetchResourcesForSubscription(
+    sub: AzureSubscription,
+): Promise<GenericResourceExpanded[]> {
+    const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
+    const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
+    return resources;
+}
+
 export async function fetchServersFromAzure(sub: AzureSubscription): Promise<AzureSqlServerInfo[]> {
     const result: AzureSqlServerInfo[] = [];
-    const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
+
+    const resources = await fetchResourcesForSubscription(sub);
 
     // for some subscriptions, supplying a `resourceType eq 'Microsoft.Sql/servers/databases'` filter to list() causes an error:
     // > invalid filter in query string 'resourceType eq "Microsoft.Sql/servers/databases'"
     // no idea why, so we're fetching all resources and filtering them ourselves
-
-    const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
 
     const servers = resources.filter((r) => r.type === serverResourceType);
     const databases = resources.filter((r) => r.type === databaseResourceType);
@@ -222,6 +231,58 @@ export async function getTenants(
 
         return [];
     }
+}
+
+export async function constructAzureAccountForTenant(
+    tenantId: string,
+): Promise<{ account: IAccount; tokenMappings: {} }> {
+    const auth = await confirmVscodeAzureSignin();
+    const subs = await auth.getSubscriptions(false /* filter */);
+    const sub = subs.filter((s) => s.tenantId === tenantId)[0];
+
+    if (!sub) {
+        throw new Error(Loc.errorLoadingAzureAccountInfoForTenantId(tenantId));
+    }
+
+    const token = await sub.credential.getToken(".default");
+
+    const session = await sub.authentication.getSession();
+
+    const account: IAccount = {
+        displayInfo: {
+            displayName: session.account.label,
+            userId: session.account.label,
+            name: session.account.label,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            accountType: (session.account as any).type as any,
+        },
+        key: {
+            providerId: "microsoft",
+            id: session.account.label,
+        },
+        isStale: false,
+        properties: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            azureAuthType: 0 as any,
+            providerSettings: undefined,
+            isMsAccount: false,
+            owningTenant: undefined,
+            tenants: [
+                {
+                    displayName: sub.tenantId,
+                    id: sub.tenantId,
+                    userId: token.token,
+                },
+            ],
+        },
+    };
+
+    const tokenMappings = {};
+    tokenMappings[sub.tenantId] = {
+        Token: token.token,
+    };
+
+    return { account, tokenMappings };
 }
 
 //#endregion

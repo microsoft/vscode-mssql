@@ -7,7 +7,12 @@ import * as cd from "../sharedInterfaces/containerDeploymentInterfaces";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { platform } from "os";
-import { defaultContainerPort, sqlAuthentication } from "../constants/constants";
+import {
+    connectionApplicationName,
+    defaultContainerPort,
+    localhost,
+    sqlAuthentication,
+} from "../constants/constants";
 import { FormItemType, FormItemSpec } from "../sharedInterfaces/form";
 import MainController from "../controllers/mainController";
 import { FormWebviewController } from "../forms/formWebviewController";
@@ -223,7 +228,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             database: "",
             user: "SA",
             password: "",
-            applicationName: "vscode-mssql",
+            applicationName: connectionApplicationName,
             authenticationType: sqlAuthentication,
             savePassword: false,
             containerName: "",
@@ -240,7 +245,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     ): Promise<boolean> {
         let connection: unknown = {
             ...dockerProfile,
-            server: `localhost,${dockerProfile.port}`,
+            server: `${localhost},${dockerProfile.port}`,
             profileName: dockerProfile.profileName || dockerProfile.containerName,
             savePassword: dockerProfile.savePassword,
             emptyPasswordInput: false,
@@ -254,9 +259,17 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             version: dockerProfile.version,
         });
 
-        return await this.mainController.createObjectExplorerSession(
+        // Make object explorer session
+        const session = await this.mainController.createObjectExplorerSession(
             connection as IConnectionProfile,
         );
+
+        // Save profile for future use
+        const profile = await this.mainController.connectionManager.connectionUI.saveProfile(
+            connection as IConnectionProfile,
+        );
+
+        return session !== undefined && profile !== undefined;
     }
 
     private setFormComponents(): Record<
@@ -307,7 +320,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 propertyName: "savePassword",
                 label: ConnectionDialog.savePassword,
                 tooltip: msgSavePassword,
-                componentWidth: "350px",
+                componentWidth: "375px",
             }),
 
             profileName: createFormItem({
