@@ -1374,7 +1374,6 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._vscodeWrapper,
             this,
-            this._connectionMgr,
         );
         reactPanel.revealToForeground();
         return true;

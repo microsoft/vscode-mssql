@@ -6,8 +6,13 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
 import { platform } from "os";
+import {
+    DockerCommandParams,
+    DockerStep,
+    DockerStepOrder,
+} from "../sharedInterfaces/containerDeploymentInterfaces";
+import { ApiStatus } from "../sharedInterfaces/webview";
 
-// #region Docker interfaces
 // TODO: test linux containers
 export const COMMANDS = {
     CHECK_DOCKER: "docker --version",
@@ -49,12 +54,52 @@ export const COMMANDS = {
     },
 };
 
-export type DockerCommandParams = {
-    success: boolean;
-    error?: string;
-    port?: number;
-};
-// #endregion
+export function initializeDockerSteps(): DockerStep[] {
+    return [
+        {
+            loadState: ApiStatus.Loading,
+            argNames: [],
+            headerText: "Checking if Docker is installed",
+            bodyText: "Checking if Docker is installed and running.",
+            stepAction: checkDockerInstallation,
+        },
+        {
+            loadState: ApiStatus.Loading,
+            argNames: [],
+            headerText: "Starting Docker",
+            bodyText: "Starting Docker Desktop.",
+            stepAction: startDocker,
+        },
+        {
+            loadState: ApiStatus.Loading,
+            argNames: [],
+            headerText: "Starting Docker Engine",
+            bodyText: "Starting Docker Engine.",
+            stepAction: checkEngine,
+        },
+        {
+            loadState: ApiStatus.Loading,
+            argNames: ["containerName", "password", "version", "hostname", "port"],
+            headerText: "Creating container",
+            bodyText: "Starting container.",
+            stepAction: startSqlServerDockerContainer,
+        },
+        {
+            loadState: ApiStatus.Loading,
+            argNames: ["containerName"],
+            headerText: "Readying container for connections",
+            bodyText: "Readying container for connections.",
+            stepAction: checkIfContainerIsReadyForConnections,
+        },
+        {
+            loadState: ApiStatus.Loading,
+            argNames: [],
+            headerText: "Connecting to container",
+            bodyText: "Connecting to container.",
+            stepAction: undefined,
+        },
+    ];
+}
 
 export function validateSqlServerPassword(password: string): string {
     if (password.length < 8) {
@@ -84,10 +129,19 @@ export function validateConnectionName(connectionName: string): boolean {
     return !isDuplicate;
 }
 
-export async function checkDockerInstallation(): Promise<boolean> {
+export async function checkDockerInstallation(): Promise<DockerCommandParams> {
     return new Promise((resolve) => {
         exec(COMMANDS.CHECK_DOCKER, (error) => {
-            resolve(!error);
+            if (error) {
+                resolve({
+                    success: false,
+                    error: "Docker is not installed or not in PATH",
+                });
+            } else {
+                resolve({
+                    success: true,
+                });
+            }
         });
     });
 }
@@ -100,6 +154,11 @@ export async function checkEngine(): Promise<DockerCommandParams> {
             return resolve({
                 success: false,
                 error: `Unsupported platform for Docker: ${platform()}`,
+            });
+        }
+        if (platform() === "linux") {
+            return resolve({
+                success: true,
             });
         }
 
@@ -195,27 +254,14 @@ export async function startSqlServerDockerContainer(
     password: string,
     version: string,
     hostname: string,
-    port?: number,
+    port: number,
 ): Promise<DockerCommandParams> {
-    const validatedPort = port ? port : await findAvailablePort(1433);
     console.log(
-        COMMANDS.START_SQL_SERVER(
-            containerName,
-            password,
-            validatedPort,
-            Number(version),
-            hostname,
-        ),
+        COMMANDS.START_SQL_SERVER(containerName, password, port, Number(version), hostname),
     );
     return new Promise((resolve) => {
         exec(
-            COMMANDS.START_SQL_SERVER(
-                containerName,
-                password,
-                validatedPort,
-                Number(version),
-                hostname,
-            ),
+            COMMANDS.START_SQL_SERVER(containerName, password, port, Number(version), hostname),
             async (error) => {
                 if (error) {
                     console.log(error);
@@ -225,10 +271,10 @@ export async function startSqlServerDockerContainer(
                         port: undefined,
                     });
                 }
-                console.log(`SQL Server container started on port ${port}.`);
+                console.log(`SQL Server container ${containerName} started on port ${port}.`);
                 return resolve({
                     success: true,
-                    port: validatedPort,
+                    port: port,
                 });
             },
         );
@@ -290,26 +336,35 @@ export async function restartContainer(containerName: string): Promise<boolean> 
     }
     return new Promise((resolve) => {
         exec(COMMANDS.START_CONTAINER(containerName), async (error) => {
-            resolve(!error && (await checkIfContainerIsReadyForConnections(containerName)));
+            resolve(!error && (await checkIfContainerIsReadyForConnections(containerName)).success);
         });
     });
 }
 
 export async function checkIfContainerIsReadyForConnections(
     containerName: string,
-): Promise<boolean> {
+): Promise<DockerCommandParams> {
     return new Promise((resolve) => {
+        const timeoutMs = 30_000;
+        const intervalMs = 1000;
+        const start = Date.now();
+
         const interval = setInterval(() => {
             exec(COMMANDS.CHECK_LOGS(containerName, platform()), (error, stdout) => {
-                if (!error && stdout.includes(COMMANDS.CHECK_CONTAINER_READY)) {
+                if (stdout?.includes(COMMANDS.CHECK_CONTAINER_READY)) {
                     clearInterval(interval);
-                    resolve(true);
+                    resolve({ success: true });
+                } else if (Date.now() - start > timeoutMs) {
+                    clearInterval(interval);
+                    resolve({
+                        success: false,
+                        error: "Timeout: Container did not become ready in time.",
+                    });
                 }
             });
-        }, 1000);
+        }, intervalMs);
     });
 }
-
 export async function deleteContainer(containerName: string): Promise<boolean> {
     return new Promise((resolve) => {
         exec(COMMANDS.DELETE_CONTAINER(containerName), (error) => {
@@ -383,4 +438,21 @@ export async function checkIfConnectionIsDockerContainer(serverName: string): Pr
             });
         });
     });
+}
+
+export function setStepStatusesFromResult(
+    result: DockerCommandParams,
+    currentStep: DockerStepOrder,
+    steps: DockerStep[],
+): DockerStep[] {
+    if (result.success) {
+        steps[currentStep].loadState = ApiStatus.Loaded;
+    } else {
+        steps[currentStep].loadState = ApiStatus.Error;
+        steps[currentStep].errorMessage = result.error;
+        for (let i = currentStep + 1; i < steps.length; i++) {
+            steps[i].loadState = ApiStatus.Error;
+        }
+    }
+    return steps;
 }

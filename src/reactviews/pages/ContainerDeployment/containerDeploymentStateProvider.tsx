@@ -36,26 +36,13 @@ const ContainerDeploymentStateProvider: React.FC<ContainerDeploymentProviderProp
                         event: event,
                     });
                 },
-                checkDockerInstallation: function (): void {
-                    webviewState?.extensionRpc.action("checkDockerInstallation", {});
-                },
-                startDocker: function (): void {
-                    webviewState?.extensionRpc.action("startDocker", {});
-                },
-                checkEngine: function (): void {
-                    webviewState?.extensionRpc.action("checkEngine", {});
+                completeDockerStep: function (dockerStepNumber): void {
+                    webviewState?.extensionRpc.action("completeDockerStep", {
+                        dockerStepNumber: dockerStepNumber,
+                    });
                 },
                 checkDockerProfile: function (): void {
                     webviewState?.extensionRpc.action("checkDockerProfile", {});
-                },
-                startContainer: function (): void {
-                    webviewState?.extensionRpc.action("startContainer", {});
-                },
-                checkContainer: function (): void {
-                    webviewState?.extensionRpc.action("checkContainer", {});
-                },
-                connectToContainer: function (): void {
-                    webviewState?.extensionRpc.action("connectToContainer", {});
                 },
                 dispose: function (): void {
                     webviewState?.extensionRpc.action("dispose", {});

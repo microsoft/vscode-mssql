@@ -9,13 +9,13 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import ConnectionManager from "../controllers/connectionManager";
 import { platform } from "os";
 import { sqlAuthentication } from "../constants/constants";
-import { IConnectionProfile } from "../models/interfaces";
 import { FormItemType, FormItemOptions, FormItemSpec } from "../sharedInterfaces/form";
 import MainController from "../controllers/mainController";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as dockerUtils from "./dockerUtils";
 import { ContainerDeployment } from "../constants/locConstants";
+import { IConnectionProfile } from "../models/interfaces";
 
 export class ContainerDeploymentWebviewController extends FormWebviewController<
     cd.DockerConnectionProfile,
@@ -29,7 +29,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         vscodeWrapper: VscodeWrapper,
         // Main controller is used to connect to the container after creation
         public mainController: MainController,
-        public connectionManager: ConnectionManager,
     ) {
         super(
             context,
@@ -62,6 +61,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         this.state.formState = this.getDefaultConnectionProfile();
         this.state.platform = platform();
         this.state.formComponents = this.setFormComponents();
+        this.state.dockerSteps = dockerUtils.initializeDockerSteps();
         this.updateState();
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
@@ -80,119 +80,51 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 payload.event.propertyName,
             );
         });
-        this.registerReducer("checkDockerInstallation", async (state, _payload) => {
-            if (state.dockerInstallStatus.loadState !== ApiStatus.Loading) return state;
-            const dockerInstallResult = await dockerUtils.checkDockerInstallation();
-            // If docker is not installed, then set all the following step's statuses to error
-            if (!dockerInstallResult) {
-                state.dockerInstallStatus.errorMessage =
-                    "Docker not installed, please install and retry";
-                state.dockerInstallStatus.loadState = ApiStatus.Error;
-                state.dockerStatus.loadState = ApiStatus.Error;
-                state.dockerEngineStatus.loadState = ApiStatus.Error;
-                return state;
+        this.registerReducer("completeDockerStep", async (state, payload) => {
+            const currentStepNumber = payload.dockerStepNumber;
+            const currentStep = state.dockerSteps[currentStepNumber];
+            if (currentStep.loadState !== ApiStatus.Loading) return state;
+
+            let dockerResult: cd.DockerCommandParams;
+            if (currentStepNumber === cd.DockerStepOrder.connectToContainer) {
+                const connectionResult = await this.addContainerConnection(state.formState);
+
+                state.dockerSteps[currentStepNumber].loadState = connectionResult
+                    ? ApiStatus.Loaded
+                    : ApiStatus.Error;
+
+                if (!connectionResult) {
+                    state.dockerSteps[currentStepNumber].errorMessage =
+                        "Failed to connect to container.";
+                }
+            } else {
+                const args = currentStep.argNames.map((argName) => state.formState[argName]);
+                dockerResult = await currentStep.stepAction(...args);
+                state.dockerSteps = dockerUtils.setStepStatusesFromResult(
+                    dockerResult,
+                    currentStepNumber,
+                    state.dockerSteps,
+                );
             }
-            state.dockerInstallStatus.loadState = ApiStatus.Loaded;
             return state;
-        });
-        this.registerReducer("startDocker", async (state, _payload) => {
-            if (state.dockerStatus.loadState !== ApiStatus.Loading) return state;
-            const startDockerResult = await dockerUtils.startDocker();
-            let newState = state;
-            if (!startDockerResult.success) {
-                newState.dockerStatus.errorMessage =
-                    "Failed to start Docker. Please manually start it, and then try again.";
-                newState.dockerStatus.loadState = ApiStatus.Error;
-                newState.dockerEngineStatus.loadState = ApiStatus.Error;
-                return newState;
-            }
-            newState.dockerStatus.loadState = ApiStatus.Loaded;
-            return newState;
-        });
-        this.registerReducer("checkEngine", async (state, _payload) => {
-            if (state.dockerEngineStatus.loadState !== ApiStatus.Loading) return state;
-
-            if (state.platform === "linux") {
-                state.dockerEngineStatus.loadState = ApiStatus.Loaded;
-                return state;
-            }
-
-            const checkEngineResult = await dockerUtils.checkEngine();
-
-            let newState = state;
-            if (!checkEngineResult.success) {
-                newState.dockerEngineStatus.errorMessage = checkEngineResult.error;
-
-                newState.dockerEngineStatus.loadState = ApiStatus.Error;
-                return newState;
-            }
-
-            newState.dockerEngineStatus.loadState = ApiStatus.Loaded;
-            return newState;
         });
 
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
             state = await this.validateDockerConnectionProfile(state, state.formState);
+            if (!state.formState.containerName) {
+                state.formState.containerName = await dockerUtils.validateContainerName(
+                    state.formState.containerName,
+                );
+            }
+
+            if (!state.formState.port) {
+                state.formState.port = await dockerUtils.findAvailablePort(1433);
+            }
+
             state.isDockerProfileValid = state.formErrors.length === 0;
             return state;
         });
 
-        this.registerReducer("startContainer", async (state, _payload) => {
-            if (state.dockerContainerCreationStatus.loadState !== ApiStatus.Loading) return state;
-            if (this.state.formState.containerName.trim() === "") {
-                this.state.formState.containerName = await dockerUtils.validateContainerName(
-                    this.state.formState.containerName,
-                );
-            }
-            const startContainerResult = await dockerUtils.startSqlServerDockerContainer(
-                this.state.formState.containerName,
-                this.state.formState.password,
-                this.state.formState.version,
-                this.state.formState.hostname,
-                this.state.formState.port,
-            );
-            let newState = state;
-            if (!startContainerResult.success) {
-                newState.dockerContainerCreationStatus.errorMessage = "Failed to start container.";
-                newState.dockerContainerCreationStatus.loadState = ApiStatus.Error;
-                newState.dockerContainerStatus.loadState = ApiStatus.Error;
-                newState.dockerConnectionStatus.loadState = ApiStatus.Error;
-                return newState;
-            }
-            newState.formState.port = startContainerResult.port;
-            newState.formState.server = `localhost, ${startContainerResult.port}`;
-            newState.dockerContainerCreationStatus.loadState = ApiStatus.Loaded;
-            return newState;
-        });
-        this.registerReducer("checkContainer", async (state, _payload) => {
-            if (state.dockerContainerStatus.loadState !== ApiStatus.Loading) return state;
-            const containerStatusResult = await dockerUtils.checkIfContainerIsReadyForConnections(
-                this.state.formState.containerName,
-            );
-            let newState = state;
-            if (!containerStatusResult) {
-                newState.dockerContainerStatus.errorMessage =
-                    "Failed to ready container for connections.";
-                newState.dockerContainerStatus.loadState = ApiStatus.Error;
-                newState.dockerConnectionStatus.loadState = ApiStatus.Error;
-                return newState;
-            }
-            newState.dockerContainerStatus.loadState = ApiStatus.Loaded;
-            return newState;
-        });
-        this.registerReducer("connectToContainer", async (state, _payload) => {
-            if (state.dockerConnectionStatus.loadState !== ApiStatus.Loading) return state;
-            const connectionProfile = await this.addContainerConnection(state.formState);
-            const connectionResult =
-                await this.mainController.createObjectExplorerSession(connectionProfile);
-            let newState = state;
-            if (!connectionResult) {
-                newState.dockerConnectionStatus.errorMessage = "Failed to connect to container.";
-                return newState;
-            }
-            newState.dockerConnectionStatus.loadState = ApiStatus.Loaded;
-            return newState;
-        });
         this.registerReducer("dispose", async (state, _payload) => {
             this.panel.dispose();
             this.dispose();
@@ -296,9 +228,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
     private async addContainerConnection(
         dockerProfile: cd.DockerConnectionProfile,
-    ): Promise<IConnectionProfile> {
+    ): Promise<boolean> {
         let connection: unknown = {
             ...dockerProfile,
+            server: `localhost,${dockerProfile.port}`,
             profileName: dockerProfile.profileName || dockerProfile.containerName,
             savePassword: dockerProfile.savePassword,
             emptyPasswordInput: false,
@@ -308,7 +241,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             isAzureActiveDirectory: () => false,
         };
 
-        return await this.connectionManager.connectionUI.saveProfile(
+        return await this.mainController.createObjectExplorerSession(
             connection as IConnectionProfile,
         );
     }

@@ -6,8 +6,9 @@
 import { useContext, useEffect, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { StepCard } from "./stepCard";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { Button, makeStyles } from "@fluentui/react-components";
+import { checkStepsLoaded, runDockerSteps } from "./deploymentUtils";
+import { DockerStepOrder } from "../../../sharedInterfaces/containerDeploymentInterfaces";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -62,65 +63,45 @@ export const ContainerSetupStepsPage: React.FC = () => {
     }
 
     useEffect(() => {
-        const setupContainer = async () => {
-            if (
-                containerDeploymentState!.dockerContainerCreationStatus
-                    .loadState === ApiStatus.Loading
-            ) {
-                await state.startContainer();
-            }
-
-            if (
-                containerDeploymentState!.dockerContainerCreationStatus
-                    .loadState === ApiStatus.Loaded &&
-                containerDeploymentState!.dockerContainerStatus.loadState ===
-                    ApiStatus.Loading
-            ) {
-                await state.checkContainer();
-            }
-
-            if (
-                containerDeploymentState!.dockerContainerCreationStatus
-                    .loadState === ApiStatus.Loaded &&
-                containerDeploymentState!.dockerContainerStatus.loadState ===
-                    ApiStatus.Loaded &&
-                containerDeploymentState!.dockerConnectionStatus.loadState ===
-                    ApiStatus.Loading
-            ) {
-                await state?.connectToContainer();
-            }
+        const runDockerSetupSteps = async () => {
+            await runDockerSteps(
+                state,
+                DockerStepOrder.startContainer,
+                DockerStepOrder.connectToContainer,
+            );
         };
-        void setupContainer();
+        void runDockerSetupSteps();
     }, [containerDeploymentState]);
 
     useEffect(() => {
         setStepsLoaded(
-            containerDeploymentState!.dockerContainerCreationStatus
-                .loadState === ApiStatus.Loaded &&
-                containerDeploymentState!.dockerContainerStatus.loadState ===
-                    ApiStatus.Loaded &&
-                containerDeploymentState!.dockerConnectionStatus.loadState ===
-                    ApiStatus.Loaded,
+            checkStepsLoaded(
+                containerDeploymentState.dockerSteps,
+                DockerStepOrder.connectToContainer,
+            ),
         );
     }, [containerDeploymentState]);
 
     return (
         <div className={classes.outerDiv}>
             <div className={classes.stepsDiv}>
-                <div className={classes.stepsHeader}>
-                    Setting up container...
-                </div>
+                <div className={classes.stepsHeader}>Setting up container...</div>
                 <div className={classes.stepsSubheader}>
                     Getting container ready for connections
                 </div>
-                <StepCard stepName="dockerContainerCreationStatus" />
-                <StepCard stepName="dockerContainerStatus" />
-                <StepCard stepName="dockerConnectionStatus" />
+                <StepCard
+                    step={containerDeploymentState.dockerSteps[DockerStepOrder.startContainer]}
+                />
+                <StepCard
+                    step={containerDeploymentState.dockerSteps[DockerStepOrder.checkContainer]}
+                />
+                <StepCard
+                    step={containerDeploymentState.dockerSteps[DockerStepOrder.connectToContainer]}
+                />
                 <Button
                     className={classes.button}
                     onClick={() => (stepsLoaded ? state.dispose() : undefined)}
-                    appearance={stepsLoaded ? "primary" : "secondary"}
-                >
+                    appearance={stepsLoaded ? "primary" : "secondary"}>
                     Finish
                 </Button>
             </div>

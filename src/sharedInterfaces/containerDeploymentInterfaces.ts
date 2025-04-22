@@ -17,24 +17,7 @@ export class ContainerDeploymentWebviewState
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
-    public dockerInstallStatus: DockerStep = {
-        loadState: ApiStatus.Loading,
-    };
-    public dockerStatus: DockerStep = {
-        loadState: ApiStatus.Loading,
-    };
-    public dockerEngineStatus: DockerStep = {
-        loadState: ApiStatus.Loading,
-    };
-    public dockerContainerCreationStatus: DockerStep = {
-        loadState: ApiStatus.Loading,
-    };
-    public dockerContainerStatus: DockerStep = {
-        loadState: ApiStatus.Loading,
-    };
-    public dockerConnectionStatus: DockerStep = {
-        loadState: ApiStatus.Loading,
-    };
+    public dockerSteps: DockerStep[] = [];
     // @ts-ignore
     formState: DockerConnectionProfile = undefined;
     formComponents: Partial<
@@ -68,11 +51,6 @@ export interface DockerConnectionProfile extends vscodeMssql.IConnectionInfo {
     acceptEula: boolean;
 }
 
-export interface DockerStep {
-    loadState: ApiStatus;
-    errorMessage?: string;
-}
-
 export interface ContainerDeploymentFormItemSpec
     extends FormItemSpec<
         DockerConnectionProfile,
@@ -100,39 +78,14 @@ export interface ContainerDeploymentContextProps
         ContainerDeploymentFormItemSpec
     > {
     /**
-     * Checks if Docker is installed on the system.
-     */
-    checkDockerInstallation(): void;
-
-    /**
-     * Starts the Docker daemon if it's not already running.
-     */
-    startDocker(): void;
-
-    /**
-     * Verifies the Docker engine's status and configuration.
-     */
-    checkEngine(): void;
-
-    /**
      * Checks the selected Docker profile's availability and configuration.
      */
     checkDockerProfile(): void;
 
     /**
-     * Starts the specified container using the current configuration.
+     * Runs a docker step
      */
-    startContainer(): void;
-
-    /**
-     * Checks the running status and health of the deployed container.
-     */
-    checkContainer(): void;
-
-    /**
-     * Connects to the running container for interaction or inspection.
-     */
-    connectToContainer(): void;
+    completeDockerStep(dockerStepNumber: DockerStepOrder): void;
 
     /**
      * Cleans up and disposes of resources used by the deployment context.
@@ -144,17 +97,9 @@ export interface ContainerDeploymentReducers {
     /**
      * Reducer for Docker installation check results.
      */
-    checkDockerInstallation: {};
-
-    /**
-     * Reducer for Docker daemon start operation.
-     */
-    startDocker: {};
-
-    /**
-     * Reducer for engine verification process.
-     */
-    checkEngine: {};
+    completeDockerStep: {
+        dockerStepNumber: DockerStepOrder;
+    };
 
     /**
      * Reducer for Docker profile validation.
@@ -169,22 +114,32 @@ export interface ContainerDeploymentReducers {
     };
 
     /**
-     * Reducer for container start operation.
-     */
-    startContainer: {};
-
-    /**
-     * Reducer for container status check.
-     */
-    checkContainer: {};
-
-    /**
-     * Reducer for container connection logic.
-     */
-    connectToContainer: {};
-
-    /**
      * Reducer for cleanup and disposal logic.
      */
     dispose: {};
+}
+
+export interface DockerStep {
+    loadState: ApiStatus;
+    errorMessage?: string;
+    argNames: string[];
+    headerText: string;
+    bodyText: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    stepAction: (...args: any[]) => Promise<DockerCommandParams>;
+}
+
+export type DockerCommandParams = {
+    success: boolean;
+    error?: string;
+    port?: number;
+};
+
+export enum DockerStepOrder {
+    dockerInstallation = 0,
+    startDockerDesktop = 1,
+    checkDockerEngine = 2,
+    startContainer = 3,
+    checkContainer = 4,
+    connectToContainer = 5,
 }
