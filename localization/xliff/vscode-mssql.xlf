@@ -526,6 +526,9 @@
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
     </trans-unit>
+    <trans-unit id="++CODE++7b5d652644014b86b5e56f51de1015a8f01f76d5504cf9d4c8fd52ab522c36c1">
+      <source xml:lang="en">Deploy a local SQL Server Docker container</source>
+    </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
     </trans-unit>

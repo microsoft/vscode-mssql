@@ -1091,6 +1091,7 @@
       "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum"
     ]
   },
+  "Deploy a local SQL Server Docker container": "Deploy a local SQL Server Docker container",
   "{0} stopped successfully./{0} stopped successfully.": {
     "message": "{0} stopped successfully.",
     "comment": [

@@ -6,10 +6,9 @@
 import * as cd from "../sharedInterfaces/containerDeploymentInterfaces";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import ConnectionManager from "../controllers/connectionManager";
 import { platform } from "os";
 import { sqlAuthentication } from "../constants/constants";
-import { FormItemType, FormItemOptions, FormItemSpec } from "../sharedInterfaces/form";
+import { FormItemType, FormItemSpec } from "../sharedInterfaces/form";
 import MainController from "../controllers/mainController";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -254,179 +253,133 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             cd.ContainerDeploymentFormItemSpec
         >
     > {
+        const createFormItem = (
+            spec: Partial<cd.ContainerDeploymentFormItemSpec>,
+        ): cd.ContainerDeploymentFormItemSpec =>
+            ({
+                required: false,
+                isAdvancedOption: false,
+                ...spec,
+            }) as cd.ContainerDeploymentFormItemSpec;
+
         return {
-            version: {
+            version: createFormItem({
                 type: FormItemType.Dropdown,
                 propertyName: "version",
                 label: "Select Image",
                 required: true,
-                isAdvancedOption: false,
                 tooltip: "SQL Server Container Image Version",
                 options: [
                     { displayName: "2022", value: "2022" },
                     { displayName: "2019", value: "2019" },
                     { displayName: "2017", value: "2017" },
-                ] as FormItemOptions[],
-            } as FormItemSpec<
-                cd.DockerConnectionProfile,
-                cd.ContainerDeploymentWebviewState,
-                cd.ContainerDeploymentFormItemSpec
-            >,
+                ],
+            }),
 
-            password: {
+            password: createFormItem({
                 type: FormItemType.Password,
                 propertyName: "password",
                 label: "Password",
                 required: true,
-                isAdvancedOption: false,
                 tooltip: "SQL Server Container Password",
                 componentWidth: "500px",
                 validate(_state, value) {
-                    const testPassword = dockerUtils.validateSqlServerPassword(value.toString());
-                    if (testPassword === "") {
-                        return { isValid: true, validationMessage: "" };
-                    }
+                    const result = dockerUtils.validateSqlServerPassword(value.toString());
                     return {
-                        isValid: false,
-                        validationMessage: testPassword,
+                        isValid: result === "",
+                        validationMessage: result,
                     };
                 },
-            } as FormItemSpec<
-                cd.DockerConnectionProfile,
-                cd.ContainerDeploymentWebviewState,
-                cd.ContainerDeploymentFormItemSpec
-            >,
+            }),
 
-            savePassword: {
+            savePassword: createFormItem({
                 type: FormItemType.Checkbox,
                 propertyName: "savePassword",
                 label: "Save Password",
-                required: false,
-                isAdvancedOption: false,
                 tooltip: "Save Password",
                 componentWidth: "350px",
-            } as FormItemSpec<
-                cd.DockerConnectionProfile,
-                cd.ContainerDeploymentWebviewState,
-                cd.ContainerDeploymentFormItemSpec
-            >,
+            }),
 
-            profileName: {
+            profileName: createFormItem({
                 type: FormItemType.Input,
                 propertyName: "profileName",
                 label: "Connection Name",
-                required: false,
-                isAdvancedOption: false,
                 tooltip: "Connection Name",
                 validate(_state, value) {
-                    const profileNameValid =
+                    const isValid =
                         value.toString() === "" ||
                         dockerUtils.validateConnectionName(value.toString());
                     return {
-                        isValid: profileNameValid,
-                        validationMessage: profileNameValid
-                            ? ""
-                            : "Please choose a unique connection name",
+                        isValid,
+                        validationMessage: isValid ? "" : "Please choose a unique connection name",
                     };
                 },
-            } as FormItemSpec<
-                cd.DockerConnectionProfile,
-                cd.ContainerDeploymentWebviewState,
-                cd.ContainerDeploymentFormItemSpec
-            >,
+            }),
 
-            containerName: {
+            containerName: createFormItem({
                 type: FormItemType.Input,
                 propertyName: "containerName",
                 label: "Container Name",
-                required: false,
                 isAdvancedOption: true,
                 tooltip: "Container Name",
-                validate(containerDeploymentState, value) {
-                    if (!value || value.toString() === "") {
-                        return { isValid: true, validationMessage: "" };
-                    }
-
-                    return containerDeploymentState.isValidContainerName
+                validate(state, value) {
+                    return !value || value.toString() === "" || state.isValidContainerName
                         ? { isValid: true, validationMessage: "" }
                         : {
                               isValid: false,
                               validationMessage: "Please use a unique container name",
                           };
                 },
-            } as FormItemSpec<
-                cd.DockerConnectionProfile,
-                cd.ContainerDeploymentWebviewState,
-                cd.ContainerDeploymentFormItemSpec
-            >,
+            }),
 
-            port: {
+            port: createFormItem({
                 type: FormItemType.Input,
                 propertyName: "port",
                 label: "Port",
-                required: false,
                 isAdvancedOption: true,
                 tooltip: "Port",
-                validate(containerDeploymentState, value) {
-                    if (!value || value.toString() === "") {
-                        return { isValid: true, validationMessage: "" };
-                    }
-                    return containerDeploymentState.isValidPortNumber
+                validate(state, value) {
+                    return !value || value.toString() === "" || state.isValidPortNumber
                         ? { isValid: true, validationMessage: "" }
                         : {
                               isValid: false,
                               validationMessage: "Please choose an available port",
                           };
                 },
-            } as FormItemSpec<
-                cd.DockerConnectionProfile,
-                cd.ContainerDeploymentWebviewState,
-                cd.ContainerDeploymentFormItemSpec
-            >,
+            }),
 
-            hostname: {
+            hostname: createFormItem({
                 type: FormItemType.Input,
                 propertyName: "hostname",
                 label: "Hostname",
-                required: false,
                 isAdvancedOption: true,
                 tooltip: "Hostname",
-            } as FormItemSpec<
-                cd.DockerConnectionProfile,
-                cd.ContainerDeploymentWebviewState,
-                cd.ContainerDeploymentFormItemSpec
-            >,
+            }),
 
-            acceptEula: {
+            acceptEula: createFormItem({
                 type: FormItemType.Checkbox,
                 propertyName: "acceptEula",
                 label: `<span>
-                            Accept
-                            <a
-                                href="https://www.docker.com/legal/docker-subscription-service-agreement/"
-                                target="_blank"
-                            >
-                                Terms & Conditions
-                            </a>
-                        </span>`,
+                        Accept
+                        <a
+                            href="https://www.docker.com/legal/docker-subscription-service-agreement/"
+                            target="_blank"
+                        >
+                            Terms & Conditions
+                        </a>
+                    </span>`,
                 required: true,
-                isAdvancedOption: false,
                 tooltip: "Accept Terms and Conditions",
                 componentWidth: "600px",
                 validate(_, value) {
-                    if (value) {
-                        return { isValid: true, validationMessage: "" };
-                    }
-                    return {
-                        isValid: false,
-                        validationMessage: "Please accept the Terms and Conditions",
-                    };
+                    return value
+                        ? { isValid: true, validationMessage: "" }
+                        : {
+                              isValid: false,
+                              validationMessage: "Please accept the Terms and Conditions",
+                          };
                 },
-            } as FormItemSpec<
-                cd.DockerConnectionProfile,
-                cd.ContainerDeploymentWebviewState,
-                cd.ContainerDeploymentFormItemSpec
-            >,
+            }),
         };
     }
 }

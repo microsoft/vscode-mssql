@@ -46,12 +46,6 @@ export const COMMANDS = {
     CHECK_CONTAINER_READY: `Recovery is complete`,
     STOP_CONTAINER: (name: string) => `docker stop ${name}`,
     DELETE_CONTAINER: (name: string) => `docker stop ${name} && docker rm ${name}`,
-    GET_CONTAINER_ADDRESSES: {
-        win32: `powershell -Command "docker ps -a --format '{{.ID}}' | ForEach-Object { docker inspect $_ | Select-String -Pattern '\"HostIp\":| \"HostPort\":' | Select-Object -First 1 | ForEach-Object { ($_ -split ':')[1].Trim() -replace '\"', '' }}"`,
-        darwin: `docker ps -a --format "{{.ID}}" | xargs -I {} sh -c 'docker inspect {} | grep -m 1 -oP "\"HostPort\": \"\K\d+"'`,
-        // still need to test
-        linux: `docker ps -a --format "{{.ID}}" | xargs -I {} sh -c 'docker inspect {} | grep -m 1 -oP "\"HostPort\": \"\K\d+"'`,
-    },
 };
 
 export function initializeDockerSteps(): DockerStep[] {
