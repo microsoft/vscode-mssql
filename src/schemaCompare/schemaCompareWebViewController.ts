@@ -11,7 +11,6 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import {
-    ISchemaCompareConnectionProfile,
     SchemaCompareReducers,
     SchemaCompareWebViewState,
 } from "../sharedInterfaces/schemaCompare";
@@ -42,6 +41,7 @@ import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInter
 import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
+import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -987,7 +987,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         const activeConnections = this.connectionMgr.activeConnections;
         Object.keys(activeConnections).forEach((connectionUri) => {
             let credentials = activeConnections[connectionUri]
-                .credentials as ISchemaCompareConnectionProfile;
+                .credentials as IConnectionDialogProfile;
 
             if (!seenServerNames.has(credentials.server)) {
                 activeServers[connectionUri] = {

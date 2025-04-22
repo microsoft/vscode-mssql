@@ -16,7 +16,6 @@ import {
     SchemaCompareIncludeExcludeResult,
     SchemaCompareObjectId,
     SchemaCompareOpenScmpResult,
-    IConnectionInfo,
 } from "vscode-mssql";
 import { ColorThemeKind } from "./webview";
 
@@ -41,10 +40,6 @@ export const enum SharedExtractTarget {
     objectType = 3,
     schema = 4,
     schemaObjectType = 5,
-}
-
-export interface ISchemaCompareConnectionProfile extends IConnectionInfo {
-    profileName?: string;
 }
 
 export interface SchemaCompareWebViewState {
