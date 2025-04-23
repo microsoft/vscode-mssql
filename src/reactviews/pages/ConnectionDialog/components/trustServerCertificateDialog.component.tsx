@@ -73,6 +73,7 @@ export const TrustServerCertificateDialog = ({
                         <Button
                             ref={trustCertButtonRef}
                             appearance="primary"
+                            style={{ width: "auto", whiteSpace: "nowrap" }}
                             onClick={() => {
                                 context.closeDialog();
                                 context.formAction({
