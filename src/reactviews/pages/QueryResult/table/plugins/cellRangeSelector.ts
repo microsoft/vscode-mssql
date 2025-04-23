@@ -43,6 +43,7 @@ export class CellRangeSelector<T extends Slick.SlickData> implements ICellRangeS
     private decorator!: ICellRangeDecorator;
     private canvas!: HTMLCanvasElement;
     private currentlySelectedRange?: { start: Slick.Cell; end?: Slick.Cell };
+    private isMac: boolean | undefined;
 
     public onBeforeCellRangeSelected = new Slick.Event<Slick.Cell>();
     public onCellRangeSelected = new Slick.Event<Slick.Range>();
@@ -57,6 +58,7 @@ export class CellRangeSelector<T extends Slick.SlickData> implements ICellRangeS
             this.options.cellDecorator || new (<any>Slick).CellRangeDecorator(grid, this.options);
         this.grid = grid;
         this.canvas = this.grid.getCanvasNode();
+        this.isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
         this.handler
             .subscribe(this.grid.onDragInit, (e) => this.handleDragInit(e))
             .subscribe(this.grid.onDragStart, (e: Slick.DOMEvent, dd) =>
@@ -156,11 +158,19 @@ export class CellRangeSelector<T extends Slick.SlickData> implements ICellRangeS
             dd.range.end.row,
             dd.range.end.cell,
         );
-
-        if (e.ctrlKey) {
-            this.onAppendCellRangeSelected.notify(newRange);
+        if (this.isMac) {
+            // MacOS uses metaKey instead of ctrlKey
+            if (e.metaKey) {
+                this.onAppendCellRangeSelected.notify(newRange);
+            } else {
+                this.onCellRangeSelected.notify(newRange);
+            }
         } else {
-            this.onCellRangeSelected.notify(newRange);
+            if (e.ctrlKey) {
+                this.onAppendCellRangeSelected.notify(newRange);
+            } else {
+                this.onCellRangeSelected.notify(newRange);
+            }
         }
     }
 }
