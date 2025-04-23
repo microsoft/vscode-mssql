@@ -41,6 +41,7 @@ import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInter
 import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
+import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -380,18 +381,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             if (payload.endpointType === "source") {
                 state.sourceEndpointInfo = state.auxiliaryEndpointInfo;
             } else {
+                if (state.auxiliaryEndpointInfo) {
+                    state.targetEndpointInfo = state.auxiliaryEndpointInfo;
+                }
+
                 if (
-                    state.auxiliaryEndpointInfo.endpointType ===
+                    state.targetEndpointInfo?.endpointType ===
                     mssql.SchemaCompareEndpointType.Project
                 ) {
-                    state.auxiliaryEndpointInfo.extractTarget = this.mapExtractTargetEnum(
+                    state.targetEndpointInfo.extractTarget = this.mapExtractTargetEnum(
                         payload.folderStructure,
                     );
                 }
-                state.targetEndpointInfo = state.auxiliaryEndpointInfo;
             }
-            state.auxiliaryEndpointInfo = undefined;
 
+            state.auxiliaryEndpointInfo = undefined;
             this.updateState(state);
 
             return state;
@@ -973,18 +977,20 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         }
     }
 
-    private getActiveServersList(): { [connectionUri: string]: string } {
-        const activeServers: { [connectionUri: string]: string } = {};
-        let seenServerNames = new Set<string>();
-
+    private getActiveServersList(): {
+        [connectionUri: string]: { profileName: string; server: string };
+    } {
+        const activeServers: { [connectionUri: string]: { profileName: string; server: string } } =
+            {};
         const activeConnections = this.connectionMgr.activeConnections;
         Object.keys(activeConnections).forEach((connectionUri) => {
-            let serverName = activeConnections[connectionUri].credentials.server;
+            let credentials = activeConnections[connectionUri]
+                .credentials as IConnectionDialogProfile;
 
-            if (!seenServerNames.has(serverName)) {
-                activeServers[connectionUri] = serverName;
-                seenServerNames.add(serverName);
-            }
+            activeServers[connectionUri] = {
+                profileName: credentials.profileName ?? "",
+                server: credentials.server,
+            };
         });
 
         return activeServers;

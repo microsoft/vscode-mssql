@@ -119,7 +119,8 @@ export class ObjectExplorerService {
             if (result.success) {
                 let nodeLabel =
                     this._sessionIdToNodeLabelMap.get(result.sessionId) ??
-                    ConnInfo.getConnectionDisplayName(self._currentNode.connectionInfo);
+                    this.getConnectionLabel(self._currentNode.connectionInfo);
+
                 // if no node label, check if it has a name in saved profiles
                 // in case this call came from new query
                 // let savedConnections =
@@ -385,10 +386,7 @@ export class ObjectExplorerService {
             node = getParentNode(node);
         }
         for (let rootTreeNode of this._rootTreeNodeArray) {
-            if (
-                Utils.isSameConnectionInfo(node.connectionInfo, rootTreeNode.connectionInfo) &&
-                rootTreeNode.label === node.label
-            ) {
+            if (Utils.isSameConnectionInfo(node.connectionInfo, rootTreeNode.connectionInfo)) {
                 const index = this._rootTreeNodeArray.indexOf(rootTreeNode);
                 delete this._rootTreeNodeArray[index];
                 this._rootTreeNodeArray[index] = node;
@@ -438,10 +436,7 @@ export class ObjectExplorerService {
 
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
         for (const conn of savedConnections) {
-            let nodeLabel =
-                ConnInfo.getSimpleConnectionDisplayName(conn) === conn.server
-                    ? ConnInfo.getConnectionDisplayName(conn)
-                    : ConnInfo.getSimpleConnectionDisplayName(conn);
+            let nodeLabel = this.getConnectionLabel(conn);
 
             const connectionDetails = ConnectionCredentials.createConnectionDetails(conn);
 
@@ -706,9 +701,7 @@ export class ObjectExplorerService {
                     connectionDetails,
                 );
 
-            const nodeLabel =
-                (connectionProfile as IConnectionProfile).profileName ??
-                ConnInfo.getConnectionDisplayName(connectionProfile);
+            const nodeLabel = ConnInfo.getConnectionDisplayName(connectionProfile);
 
             this._sessionIdToNodeLabelMap.set(sessionIdResponse.sessionId, nodeLabel);
 
@@ -891,9 +884,7 @@ export class ObjectExplorerService {
     }
 
     public addDisconnectedNode(connectionCredentials: IConnectionInfo): void {
-        const label = (connectionCredentials as IConnectionProfile).profileName
-            ? (connectionCredentials as IConnectionProfile).profileName
-            : ConnInfo.getConnectionDisplayName(connectionCredentials);
+        const label = this.getConnectionLabel(connectionCredentials);
         const node = new TreeNodeInfo(
             label,
             ObjectExplorerService.disconnectedNodeContextValue,
@@ -955,6 +946,13 @@ export class ObjectExplorerService {
         if (this._treeNodeToChildrenMap.has(node)) {
             this._treeNodeToChildrenMap.delete(node);
         }
+    }
+
+    private getConnectionLabel(nodeConnectionInfo: IConnectionInfo): string {
+        return ConnInfo.getSimpleConnectionDisplayName(nodeConnectionInfo) ===
+            nodeConnectionInfo.server
+            ? ConnInfo.getConnectionDisplayName(nodeConnectionInfo)
+            : ConnInfo.getSimpleConnectionDisplayName(nodeConnectionInfo);
     }
 
     //#region Getters and Setters
