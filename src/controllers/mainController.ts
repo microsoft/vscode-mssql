@@ -999,32 +999,37 @@ export default class MainController implements vscode.Disposable {
 
         // Copy object name command
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdCopyObjectName, async () => {
-                let node = this._objectExplorerProvider.currentNode;
-                // Folder node
-                if (node.context.type === Constants.folderLabel) {
-                    return;
-                } else if (
-                    node.context.type === Constants.serverLabel ||
-                    node.context.type === Constants.disconnectedServerNodeType
-                ) {
-                    const label = typeof node.label === "string" ? node.label : node.label.label;
-                    await this._vscodeWrapper.clipboardWriteText(label);
-                } else {
-                    let scriptingObject = this._scriptingService.getObjectFromNode(node);
-                    const escapedName = Utils.escapeClosingBrackets(scriptingObject.name);
-                    if (scriptingObject.schema) {
-                        let database = ObjectExplorerUtils.getDatabaseName(node);
-                        const databaseName = Utils.escapeClosingBrackets(database);
-                        const escapedSchema = Utils.escapeClosingBrackets(scriptingObject.schema);
-                        await this._vscodeWrapper.clipboardWriteText(
-                            `[${databaseName}].${escapedSchema}.[${escapedName}]`,
-                        );
+            vscode.commands.registerCommand(
+                Constants.cmdCopyObjectName,
+                async (node: TreeNodeInfo) => {
+                    // Folder node
+                    if (node.context.type === Constants.folderLabel) {
+                        return;
+                    } else if (
+                        node.context.type === Constants.serverLabel ||
+                        node.context.type === Constants.disconnectedServerNodeType
+                    ) {
+                        const label =
+                            typeof node.label === "string" ? node.label : node.label.label;
+                        await this._vscodeWrapper.clipboardWriteText(label);
                     } else {
-                        await this._vscodeWrapper.clipboardWriteText(`[${escapedName}]`);
+                        let scriptingObject = this._scriptingService.getObjectFromNode(node);
+                        const escapedName = Utils.escapeClosingBrackets(scriptingObject.name);
+                        if (scriptingObject.schema) {
+                            let database = ObjectExplorerUtils.getDatabaseName(node);
+                            const databaseName = Utils.escapeClosingBrackets(database);
+                            const escapedSchema = Utils.escapeClosingBrackets(
+                                scriptingObject.schema,
+                            );
+                            await this._vscodeWrapper.clipboardWriteText(
+                                `[${databaseName}].${escapedSchema}.[${escapedName}]`,
+                            );
+                        } else {
+                            await this._vscodeWrapper.clipboardWriteText(`[${escapedName}]`);
+                        }
                     }
-                }
-            }),
+                },
+            ),
         );
 
         // Reveal Query Results command
