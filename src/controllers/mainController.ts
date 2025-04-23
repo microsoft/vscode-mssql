@@ -1085,10 +1085,17 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdStartContainer,
                 async (node: TreeNodeInfo) => {
-                    const nodeConnected = await this.createObjectExplorerSession(
-                        node.connectionInfo,
-                    );
-                    if (!nodeConnected) {
+                    try {
+                        // doing it this way instead of directly calling startContainer
+                        // allows for the object explorer item loading UI to show
+                        this._objectExplorerProvider.deleteChildrenCache(node);
+                        await this._objectExplorerProvider.refresh(node);
+                        await this.objectExplorerTree.reveal(node, {
+                            select: true,
+                            focus: true,
+                            expand: true,
+                        });
+                    } catch {
                         vscode.window.showErrorMessage(
                             LocalizedConstants.ContainerDeployment.failStartContainer(
                                 node.connectionInfo.containerName,
