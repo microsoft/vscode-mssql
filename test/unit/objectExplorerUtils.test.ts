@@ -49,6 +49,7 @@ suite("Object Explorer Utils Tests", () => {
             disconnectedProfile,
             undefined,
             undefined,
+            undefined,
         );
         const serverTestNode = new TreeNodeInfo(
             "serverTest",
@@ -59,6 +60,7 @@ suite("Object Explorer Utils Tests", () => {
             "Server",
             undefined,
             testProfile,
+            undefined,
             undefined,
             undefined,
         );
@@ -73,6 +75,7 @@ suite("Object Explorer Utils Tests", () => {
             testProfile,
             serverTestNode,
             undefined,
+            undefined,
         );
         const tableTestNode = new TreeNodeInfo(
             "tableTest",
@@ -84,6 +87,7 @@ suite("Object Explorer Utils Tests", () => {
             undefined,
             testProfile,
             databaseTestNode,
+            undefined,
             undefined,
         );
         const testNodes = [disconnectedTestNode, serverTestNode, tableTestNode];
@@ -143,6 +147,7 @@ suite("Object Explorer Utils Tests", () => {
             testProfile,
             undefined,
             undefined,
+            undefined,
         );
         let databaseMetatadata: ObjectMetadata = {
             metadataType: undefined,
@@ -162,6 +167,7 @@ suite("Object Explorer Utils Tests", () => {
             undefined,
             serverTestNode,
             undefined,
+            undefined,
             databaseMetatadata,
         );
         const databaseTestNode2 = new TreeNodeInfo(
@@ -175,6 +181,7 @@ suite("Object Explorer Utils Tests", () => {
             undefined,
             serverTestNode,
             undefined,
+            undefined,
         );
         const tableTestNode = new TreeNodeInfo(
             "tableTest",
@@ -186,6 +193,7 @@ suite("Object Explorer Utils Tests", () => {
             undefined,
             undefined,
             databaseTestNode,
+            undefined,
             undefined,
         );
         const testNodes = [serverTestNode, databaseTestNode, databaseTestNode2, tableTestNode];

@@ -18,10 +18,6 @@ import { AccountSignInTreeNode } from "../../src/objectExplorer/nodes/accountSig
 import { ConnectTreeNode } from "../../src/objectExplorer/nodes/connectTreeNode";
 import { NodeInfo } from "../../src/models/contracts/objectExplorer/nodeInfo";
 import { Deferred } from "../../src/protocol";
-import {
-    ExpandParams,
-    ExpandResponse,
-} from "../../src/models/contracts/objectExplorer/expandNodeRequest";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { IConnectionProfile } from "../../src/models/interfaces";
@@ -110,6 +106,7 @@ suite("Object Explorer Provider Tests", function () {
                             undefined,
                             undefined,
                             undefined,
+                            undefined,
                         ),
                     );
                 });
@@ -126,17 +123,6 @@ suite("Object Explorer Provider Tests", function () {
             let node = await promise;
             expect(node, "Created session node not be undefined").is.not.equal(undefined);
         });
-    });
-
-    test("Test Refresh Node", (done) => {
-        let treeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
-        objectExplorerService
-            .setup((s) => s.refreshNode(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(TypeMoq.It.isAny()));
-        void objectExplorerProvider.refreshNode(treeNode.object).then((node) => {
-            expect(node, "Refreshed node should not be undefined").is.not.equal(undefined);
-        });
-        done();
     });
 
     test("Test remove Object Explorer node", async () => {
@@ -206,9 +192,11 @@ suite("Object Explorer Provider Tests", function () {
             undefined,
             undefined,
             undefined,
+            undefined,
         );
         const serverTestNode = new TreeNodeInfo(
             "serverTestNode",
+            undefined,
             undefined,
             undefined,
             undefined,
@@ -230,6 +218,7 @@ suite("Object Explorer Provider Tests", function () {
             undefined,
             undefined,
             undefined,
+            undefined,
         );
         const testNode3 = new TreeNodeInfo(
             "",
@@ -242,9 +231,11 @@ suite("Object Explorer Provider Tests", function () {
             undefined,
             undefined,
             undefined,
+            undefined,
         );
         const testNode4 = new TreeNodeInfo(
             "1234",
+            undefined,
             undefined,
             undefined,
             undefined,
@@ -297,122 +288,6 @@ suite("Object Explorer Provider Tests", function () {
         );
         let treeItem = objectExplorerProvider.getTreeItem(node);
         assert.equal(treeItem, node);
-    });
-
-    const mockParentTreeNode = new TreeNodeInfo(
-        "Parent Node",
-        undefined,
-        undefined,
-        "parentNodePath",
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-    );
-
-    test("Test handleExpandSessionNotification returns child nodes upon success", async function () {
-        const childNodeInfo: NodeInfo = {
-            nodePath: `${mockParentTreeNode.nodePath}/childNodePath`,
-            nodeStatus: undefined,
-            nodeSubType: undefined,
-            nodeType: undefined,
-            label: "Child Node",
-            isLeaf: true,
-            errorMessage: undefined,
-            metadata: undefined,
-        };
-
-        const mockExpandResponse: ExpandResponse = {
-            sessionId: "test_session",
-            nodePath: mockParentTreeNode.nodePath,
-            nodes: [childNodeInfo],
-            errorMessage: undefined,
-        };
-
-        const testOeService = new ObjectExplorerService(
-            vscodeWrapper.object,
-            connectionManager.object,
-            objectExplorerProvider,
-        );
-
-        let notificationObject = testOeService.handleExpandNodeNotification(undefined);
-
-        const expandParams: ExpandParams = {
-            sessionId: mockExpandResponse.sessionId,
-            nodePath: mockExpandResponse.nodePath,
-        };
-
-        testOeService["_expandParamsToTreeNodeInfoMap"].set(expandParams, mockParentTreeNode);
-
-        testOeService["_sessionIdToConnectionProfileMap"].set(
-            mockExpandResponse.sessionId,
-            undefined,
-        );
-
-        const outputPromise = new Deferred<TreeNodeInfo[]>();
-
-        testOeService["_expandParamsToPromiseMap"].set(expandParams, outputPromise);
-
-        notificationObject.call(testOeService, mockExpandResponse);
-
-        const childNodes = await outputPromise;
-        assert.equal(childNodes.length, 1, "Child nodes length");
-        assert.equal(childNodes[0].label, childNodeInfo.label, "Child node label");
-        assert.equal(childNodes[0].nodePath, childNodeInfo.nodePath, "Child node path");
-    });
-
-    test("Test handleExpandSessionNotification returns message node upon failure", async function () {
-        this.timeout(0);
-
-        const mockExpandResponse: ExpandResponse = {
-            sessionId: "test_session",
-            nodePath: mockParentTreeNode.nodePath,
-            nodes: [],
-            errorMessage: "Error occurred when expanding node",
-        };
-
-        const testOeService = new ObjectExplorerService(
-            vscodeWrapper.object,
-            connectionManager.object,
-            objectExplorerProvider,
-        );
-
-        let notificationObject = testOeService.handleExpandNodeNotification(undefined);
-
-        const expandParams: ExpandParams = {
-            sessionId: mockExpandResponse.sessionId,
-            nodePath: mockExpandResponse.nodePath,
-        };
-
-        testOeService["_expandParamsToTreeNodeInfoMap"].set(expandParams, mockParentTreeNode);
-
-        testOeService["_sessionIdToConnectionProfileMap"].set(
-            mockExpandResponse.sessionId,
-            undefined,
-        );
-
-        const outputPromise = new Deferred<TreeNodeInfo[]>();
-
-        testOeService["_expandParamsToPromiseMap"].set(expandParams, outputPromise);
-
-        notificationObject.call(testOeService, mockExpandResponse);
-
-        const childNodes = await outputPromise;
-
-        vscodeWrapper.verify(
-            (x) => x.showErrorMessage(mockExpandResponse.errorMessage),
-            TypeMoq.Times.once(),
-        );
-
-        assert.equal(childNodes.length, 1, "Child nodes length");
-        assert.equal(
-            childNodes[0].label,
-            "Error loading; refresh to try again",
-            "Error node label",
-        );
-        assert.equal(childNodes[0].tooltip, mockExpandResponse.errorMessage, "Error node tooltip");
     });
 
     test("Test removeConnectionNodes function", () => {
@@ -481,6 +356,7 @@ suite("Object Explorer Node Types Test", () => {
             undefined,
             undefined,
             undefined,
+            undefined,
         );
         const accountSignInNode = new AccountSignInTreeNode(parentTreeNode);
         expect(accountSignInNode.label, "Label should be the same as constant").is.equal(
@@ -503,6 +379,7 @@ suite("Object Explorer Node Types Test", () => {
     test("Test Connect Tree Node", () => {
         const parentTreeNode = new TreeNodeInfo(
             "parent",
+            undefined,
             undefined,
             undefined,
             undefined,

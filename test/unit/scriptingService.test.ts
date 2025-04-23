@@ -77,6 +77,7 @@ suite("Scripting Service Tests", () => {
             undefined,
             undefined,
             undefined,
+            undefined,
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
@@ -106,6 +107,7 @@ suite("Scripting Service Tests", () => {
             undefined,
             undefined,
             "Table",
+            undefined,
             undefined,
             undefined,
             undefined,
@@ -146,6 +148,7 @@ suite("Scripting Service Tests", () => {
             undefined,
             undefined,
             undefined,
+            undefined,
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
@@ -168,6 +171,7 @@ suite("Scripting Service Tests", () => {
             undefined,
             undefined,
             "Table",
+            undefined,
             undefined,
             undefined,
             undefined,
@@ -198,6 +202,7 @@ suite("Scripting Service Tests", () => {
             undefined,
             undefined,
             undefined,
+            undefined,
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
@@ -224,6 +229,7 @@ suite("Scripting Service Tests", () => {
             undefined,
             undefined,
             undefined,
+            undefined,
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
@@ -246,6 +252,7 @@ suite("Scripting Service Tests", () => {
             undefined,
             undefined,
             "StoredProcedure",
+            undefined,
             undefined,
             undefined,
             undefined,

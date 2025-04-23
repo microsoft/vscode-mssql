@@ -416,6 +416,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                             undefined,
                             undefined,
                             undefined,
+                            undefined,
                         ),
                     );
                     return Promise.resolve("testSessionId");

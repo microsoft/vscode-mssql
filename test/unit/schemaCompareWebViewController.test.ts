@@ -15,6 +15,8 @@ import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connect
 import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { IConnectionProfile } from "../../src/models/interfaces";
+import { AzureAuthType } from "../../src/models/contracts/azure";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;
@@ -213,7 +215,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             hasFilters: false,
         };
 
-        let connInfo: mssql.IConnectionInfo = {
+        let connInfo: IConnectionProfile = {
             applicationName: "vscode-msssql",
             authenticationType: "SqlLogin",
             azureAccountToken: undefined,
@@ -253,6 +255,19 @@ suite("SchemaCompareWebViewController Tests", () => {
             packetSize: undefined,
             typeSystemVersion: undefined,
             connectionString: "",
+            profileName: "",
+            id: "",
+            groupId: "",
+            savePassword: false,
+            emptyPasswordInput: false,
+            azureAuthType: AzureAuthType.AuthCodeGrant,
+            accountStore: undefined,
+            isValidProfile: function (): boolean {
+                throw new Error("Function not implemented.");
+            },
+            isAzureActiveDirectory: function (): boolean {
+                throw new Error("Function not implemented.");
+            },
         };
 
         treeNode = new TreeNodeInfo(
@@ -266,6 +281,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             connInfo,
             undefined,
             null,
+            undefined,
         );
 
         mockSchemaCompareService = TypeMoq.Mock.ofType<mssql.ISchemaCompareService>();
