@@ -352,18 +352,9 @@ export async function restartContainer(containerName: string): Promise<boolean> 
     const containerRunning = await isDockerContainerRunning(containerName);
     if (containerRunning) return true;
 
-    vscode.window.showInformationMessage(ContainerDeployment.startingContainer(containerName));
-
     try {
         await execCommand(COMMANDS.START_CONTAINER(containerName));
-        const startedSuccessfully = (await checkIfContainerIsReadyForConnections(containerName))
-            .success;
-        await vscode.window.showInformationMessage(
-            startedSuccessfully
-                ? ContainerDeployment.startedContainerSucessfully(containerName)
-                : ContainerDeployment.failStartContainer(containerName),
-        );
-        return startedSuccessfully;
+        return (await checkIfContainerIsReadyForConnections(containerName)).success;
     } catch {
         return false;
     }

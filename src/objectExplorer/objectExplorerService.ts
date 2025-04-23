@@ -650,7 +650,6 @@ export class ObjectExplorerService {
                     TelemetryViews.ContainerDeployment,
                     TelemetryActions.ConnectToContainer,
                 );
-
                 // start docker and docker container
                 await restartContainer(connectionCredentials.containerName);
             }

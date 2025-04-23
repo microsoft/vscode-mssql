@@ -63,11 +63,7 @@ import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWe
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
-import {
-    deleteContainer,
-    restartContainer,
-    stopContainer,
-} from "../containerDeployment/dockerUtils";
+import { deleteContainer, stopContainer } from "../containerDeployment/dockerUtils";
 
 /**
  * The main controller class that initializes the extension
@@ -1028,65 +1024,79 @@ export default class MainController implements vscode.Disposable {
 
         // Stop container command
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdStopContainer, async () => {
-                let node = this._objectExplorerProvider.currentNode;
-                const containerName = node.connectionInfo.containerName;
-                const stoppedSuccessfully = await stopContainer(node.connectionInfo.containerName);
-                vscode.window.showInformationMessage(
-                    stoppedSuccessfully
-                        ? LocalizedConstants.ContainerDeployment.stoppedContainerSucessfully(
-                              containerName,
-                          )
-                        : LocalizedConstants.ContainerDeployment.failStopContainer(containerName),
-                );
-                if (stoppedSuccessfully) {
-                    // Disconnect from the node
-                    await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
-                    return this._objectExplorerProvider.refresh(undefined);
-                }
-            }),
-        );
-        // Delete container command
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdDeleteContainer, async () => {
-                let node = this._objectExplorerProvider.currentNode;
-                const confirmation = await vscode.window.showInformationMessage(
-                    LocalizedConstants.Common.areYouSureYouWantTo("delete the container"),
-                    LocalizedConstants.Common.delete,
-                    LocalizedConstants.Common.cancel,
-                );
-
-                if (confirmation === LocalizedConstants.Common.delete) {
+            vscode.commands.registerCommand(
+                Constants.cmdStopContainer,
+                async (node: TreeNodeInfo) => {
                     const containerName = node.connectionInfo.containerName;
-                    const deletedSuccessfully = await deleteContainer(containerName);
+                    const stoppedSuccessfully = await stopContainer(
+                        node.connectionInfo.containerName,
+                    );
                     vscode.window.showInformationMessage(
-                        deletedSuccessfully
-                            ? LocalizedConstants.ContainerDeployment.deletedContainerSucessfully(
+                        stoppedSuccessfully
+                            ? LocalizedConstants.ContainerDeployment.stoppedContainerSucessfully(
                                   containerName,
                               )
-                            : LocalizedConstants.ContainerDeployment.failDeleteContainer(
+                            : LocalizedConstants.ContainerDeployment.failStopContainer(
                                   containerName,
                               ),
                     );
-                    if (deletedSuccessfully) {
-                        // Delete node from tree
-                        await this._objectExplorerProvider.removeObjectExplorerNode(node);
+                    if (stoppedSuccessfully) {
+                        // Disconnect from the node
+                        await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
                         return this._objectExplorerProvider.refresh(undefined);
                     }
-                }
-            }),
+                },
+            ),
+        );
+        // Delete container command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDeleteContainer,
+                async (node: TreeNodeInfo) => {
+                    const confirmation = await vscode.window.showInformationMessage(
+                        LocalizedConstants.Common.areYouSureYouWantTo("delete the container"),
+                        LocalizedConstants.Common.delete,
+                        LocalizedConstants.Common.cancel,
+                    );
+
+                    if (confirmation === LocalizedConstants.Common.delete) {
+                        const containerName = node.connectionInfo.containerName;
+                        const deletedSuccessfully = await deleteContainer(containerName);
+                        vscode.window.showInformationMessage(
+                            deletedSuccessfully
+                                ? LocalizedConstants.ContainerDeployment.deletedContainerSucessfully(
+                                      containerName,
+                                  )
+                                : LocalizedConstants.ContainerDeployment.failDeleteContainer(
+                                      containerName,
+                                  ),
+                        );
+                        if (deletedSuccessfully) {
+                            // Delete node from tree
+                            await this._objectExplorerProvider.removeObjectExplorerNode(node);
+                            return this._objectExplorerProvider.refresh(undefined);
+                        }
+                    }
+                },
+            ),
         );
         // Start container command
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdStartContainer, async () => {
-                let node = this._objectExplorerProvider.currentNode;
-                const containerName = node.connectionInfo.containerName;
-                const startedSuccessfully = await restartContainer(containerName);
-                if (startedSuccessfully) {
-                    await this.createObjectExplorerSession(node.connectionInfo);
-                    return this._objectExplorerProvider.refresh(undefined);
-                }
-            }),
+            vscode.commands.registerCommand(
+                Constants.cmdStartContainer,
+                async (node: TreeNodeInfo) => {
+                    const nodeConnected = await this.createObjectExplorerSession(
+                        node.connectionInfo,
+                    );
+                    if (!nodeConnected) {
+                        vscode.window.showErrorMessage(
+                            LocalizedConstants.ContainerDeployment.failStartContainer(
+                                node.connectionInfo.containerName,
+                            ),
+                        );
+                    }
+                },
+            ),
         );
 
         this.registerCommand(Constants.cmdEnableRichExperiencesCommand);
