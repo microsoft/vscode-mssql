@@ -53,6 +53,12 @@ export const FormInput = <
 
     const handleChange = (data: string) => {
         setFormInputValue(data);
+        context?.formAction({
+            propertyName: target,
+            isAction: false,
+            value: data,
+            updateValidation: false,
+        });
     };
 
     const handleBlur = () => {
@@ -60,6 +66,7 @@ export const FormInput = <
             propertyName: target,
             isAction: false,
             value: formInputValue,
+            updateValidation: true,
         });
     };
 
