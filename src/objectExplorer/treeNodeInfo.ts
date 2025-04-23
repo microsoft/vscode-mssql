@@ -52,7 +52,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._metadata = objectMetadata;
         this._filters = filters;
         // Connection is a docker container
-        if (connectionInfo.containerName) {
+        if (connectionInfo && connectionInfo.containerName) {
             if (nodeType === Constants.serverLabel) {
                 this._nodeType = Constants.dockerContainerLabel;
             }
