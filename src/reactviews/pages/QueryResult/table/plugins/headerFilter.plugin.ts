@@ -172,6 +172,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
                         }
                         $sortButton.removeClass("slick-header-sort-button");
                         $sortButton.addClass("slick-header-sortasc-button");
+                        $sortButton.attr("aria-label", locConstants.queryResult.sortDescending); // setting ASC, so next is DESC
+                        $sortButton.attr("title", locConstants.queryResult.sortDescending);
                         await this.handleMenuItemClick("sort-asc", column);
                         this.columnSortStateMapping.set(column.id!, SortProperties.ASC);
                         columnFilterState.sorted = SortProperties.ASC;
@@ -181,6 +183,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     case SortProperties.ASC:
                         $sortButton.removeClass("slick-header-sortasc-button");
                         $sortButton.addClass("slick-header-sortdesc-button");
+                        $sortButton.attr("aria-label", locConstants.queryResult.clearSort); // setting ASC, so next is cleared
+                        $sortButton.attr("title", locConstants.queryResult.clearSort);
                         await this.handleMenuItemClick("sort-desc", column);
                         this.columnSortStateMapping.set(column.id!, SortProperties.DESC);
                         columnFilterState.sorted = SortProperties.DESC;
@@ -188,6 +192,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     case SortProperties.DESC:
                         $sortButton.removeClass("slick-header-sortdesc-button");
                         $sortButton.addClass("slick-header-sort-button");
+                        $sortButton.attr("aria-label", locConstants.queryResult.sortAscending); // setting cleared, so next is ASC
+                        $sortButton.attr("title", locConstants.queryResult.sortAscending);
                         this.columnSortStateMapping.set(column.id!, SortProperties.NONE);
                         await this.handleMenuItemClick("reset", column);
                         columnFilterState.sorted = SortProperties.NONE;
