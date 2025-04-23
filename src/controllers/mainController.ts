@@ -200,7 +200,8 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdDeployLocalDockerContainer);
             this._event.on(Constants.cmdDeployLocalDockerContainer, async () => {
-                await this.onDeployContainer();
+                // Commenting out the container deployment view while react code get finished
+                // await this.onDeployContainer();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
