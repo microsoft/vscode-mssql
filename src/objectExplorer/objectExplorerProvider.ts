@@ -100,10 +100,6 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     /** Getters */
-    public get currentNode(): TreeNodeInfo {
-        return this._objectExplorerService.currentNode;
-    }
-
     public get objectExplorerExists(): boolean {
         return this._objectExplorerExists;
     }
@@ -120,9 +116,5 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     /* Only for testing purposes */
     public set objectExplorerService(value: ObjectExplorerService) {
         this._objectExplorerService = value;
-    }
-
-    public set currentNode(node: TreeNodeInfo) {
-        this._objectExplorerService.currentNode = node;
     }
 }

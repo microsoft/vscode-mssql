@@ -568,7 +568,7 @@ export class ObjectExplorerService {
                 const result = await sessionCreatedResponse;
 
                 if (this._currentNode instanceof ConnectTreeNode) {
-                    this.currentNode = getParentNode(this.currentNode);
+                    this._currentNode = getParentNode(this._currentNode);
                 }
                 if (result.success) {
                     let connectionNode = this._rootTreeNodeArray.find((node) =>
@@ -639,7 +639,7 @@ export class ObjectExplorerService {
                                 result.errorMessage,
                             );
                         if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
-                            const nodeUri = this.getNodeIdentifier(this.currentNode);
+                            const nodeUri = this.getNodeIdentifier(this._currentNode);
                             const profile = <IConnectionProfile>this._currentNode.connectionProfile;
                             //this.updateNode(this._currentNode);
                             void this._connectionManager.connectionUI.handleFirewallError(
@@ -832,10 +832,6 @@ export class ObjectExplorerService {
 
     //#region Getters and Setters
 
-    public get currentNode(): TreeNodeInfo {
-        return this._currentNode;
-    }
-
     public get rootTreeNodeArray(): TreeNodeInfo[] {
         return this._rootTreeNodeArray;
     }
@@ -843,10 +839,6 @@ export class ObjectExplorerService {
     public get rootNodeConnections(): IConnectionInfo[] {
         const connections = this._rootTreeNodeArray.map((node) => node.connectionProfile);
         return connections;
-    }
-
-    public set currentNode(node: TreeNodeInfo) {
-        this._currentNode = node;
     }
 
     //#endregion

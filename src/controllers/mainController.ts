@@ -644,17 +644,6 @@ export default class MainController implements vscode.Disposable {
         });
         this._context.subscriptions.push(this.objectExplorerTree);
 
-        // Sets the correct current node on any node selection
-        this._context.subscriptions.push(
-            this.objectExplorerTree.onDidChangeSelection(
-                (e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
-                    if (e.selection?.length > 0) {
-                        self._objectExplorerProvider.currentNode = e.selection[0];
-                    }
-                },
-            ),
-        );
-
         // Old style Add connection when experimental features are not enabled
 
         // Add Object Explorer Node
