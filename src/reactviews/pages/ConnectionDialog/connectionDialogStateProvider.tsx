@@ -11,6 +11,8 @@ import {
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 
+import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
+
 import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
@@ -53,15 +55,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                         subscriptionId: subscriptionId,
                     });
                 },
-                addFirewallRule: function (
-                    name: string,
-                    tenantId: string,
-                    ip: string | { startIp: string; endIp: string },
-                ): void {
+                addFirewallRule: function (firewallRuleSpec: FirewallRuleSpec): void {
                     webviewState?.extensionRpc.action("addFirewallRule", {
-                        name: name,
-                        tenantId: tenantId,
-                        ip: ip,
+                        firewallRuleSpec,
                     });
                 },
                 closeDialog: function (): void {
@@ -82,6 +78,26 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     webviewState.extensionRpc.action("removeRecentConnection", {
                         connection: connection,
                     });
+                },
+                loadFromConnectionString: function (connectionString: string): void {
+                    webviewState.extensionRpc.action("loadFromConnectionString", {
+                        connectionString: connectionString,
+                    });
+                },
+                openConnectionStringDialog: function (): void {
+                    webviewState.extensionRpc.action("openConnectionStringDialog");
+                },
+                getConnectionDisplayName: async function (
+                    connectionProfile: IConnectionDialogProfile,
+                ): Promise<string> {
+                    const result = await webviewState.extensionRpc.call(
+                        "getConnectionDisplayName",
+                        connectionProfile,
+                    );
+                    return result as string;
+                },
+                signIntoAzureForFirewallRule: function (): void {
+                    webviewState.extensionRpc.action("signIntoAzureForFirewallRule");
                 },
             }}>
             {children}

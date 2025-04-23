@@ -21,6 +21,8 @@ export const connectionGroupsArrayName = "connectionGroups";
 export const disconnectedServerNodeType = "disconnectedServer";
 export const serverLabel = "Server";
 export const folderLabel = "Folder";
+export const database_green = "Database_green";
+export const database_red = "Database_red";
 export const cmdRunQuery = "mssql.runQuery";
 export const cmdRunCurrentStatement = "mssql.runCurrentStatement";
 export const cmdCancelQuery = "mssql.cancelQuery";
@@ -43,6 +45,7 @@ export const cmdPauseQueryHistory = "mssql.pauseQueryHistoryCapture";
 export const cmdCommandPaletteQueryHistory = "mssql.commandPaletteQueryHistory";
 export const cmdNewQuery = "mssql.newQuery";
 export const cmdSchemaCompare = "mssql.schemaCompare";
+export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
@@ -226,3 +229,4 @@ export enum Platform {
     Mac = "darwin",
     Linux = "linux",
 }
+export const isRichExperiencesEnabledDefault = true;

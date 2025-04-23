@@ -5,7 +5,9 @@
 
 import * as vscodeMssql from "vscode-mssql";
 import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form";
+import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
+import { AddFirewallRuleState } from "./addFirewallRule";
 
 export class ConnectionDialogWebviewState
     implements
@@ -39,6 +41,7 @@ export class ConnectionDialogWebviewState
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
+    public readyToConnect: boolean = false;
     public formError: string = "";
     public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
     public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
@@ -56,7 +59,7 @@ export class ConnectionDialogWebviewState
 }
 
 export interface IDialogProps {
-    type: "trustServerCert" | "addFirewallRule";
+    type: "trustServerCert" | "addFirewallRule" | "loadFromConnectionString";
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {
@@ -66,9 +69,13 @@ export interface TrustServerCertDialogProps extends IDialogProps {
 
 export interface AddFirewallRuleDialogProps extends IDialogProps {
     type: "addFirewallRule";
-    message: string;
-    clientIp: string;
-    tenants: { name: string; id: string }[];
+    props: AddFirewallRuleState;
+}
+
+export interface ConnectionStringDialogProps extends IDialogProps {
+    type: "loadFromConnectionString";
+    connectionString: string;
+    connectionStringError?: string;
 }
 
 export interface AzureSubscriptionInfo {
@@ -109,7 +116,6 @@ export interface ConnectionDialogFormItemSpec
 
 export enum ConnectionInputMode {
     Parameters = "parameters",
-    ConnectionString = "connectionString",
     AzureBrowse = "azureBrowse",
 }
 
@@ -120,8 +126,8 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     savePassword?: boolean;
     emptyPasswordInput?: boolean;
     azureAuthType?: vscodeMssql.AzureAuthType;
-    /** display name for the MRU pane; should be set to the profileName if available, otherwise generated from connection details */
-    displayName?: string;
+    id?: string;
+    groupId?: string;
 }
 
 export interface ConnectionDialogContextProps
@@ -130,20 +136,23 @@ export interface ConnectionDialogContextProps
         ConnectionDialogWebviewState,
         ConnectionDialogFormItemSpec
     > {
+    // Reducers
     loadConnection: (connection: IConnectionDialogProfile) => void;
     setConnectionInputType: (inputType: ConnectionInputMode) => void;
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
-    addFirewallRule: (
-        name: string,
-        tenantId: string,
-        ip: string | { startIp: string; endIp: string },
-    ) => void;
+    addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
     removeRecentConnection(connection: IConnectionDialogProfile): void;
+    loadFromConnectionString: (connectionString: string) => void;
+    openConnectionStringDialog: () => void;
+    signIntoAzureForFirewallRule: () => void;
+
+    // Request handlers
+    getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
 }
 
 export enum AuthenticationType {
@@ -164,9 +173,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
         subscriptionId: string;
     };
     addFirewallRule: {
-        name: string;
-        tenantId: string;
-        ip: string | { startIp: string; endIp: string };
+        firewallRuleSpec: FirewallRuleSpec;
     };
     closeDialog: {};
     filterAzureSubscriptions: {};
@@ -177,4 +184,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     removeRecentConnection: {
         connection: IConnectionDialogProfile;
     };
+    loadFromConnectionString: { connectionString: string };
+    openConnectionStringDialog: {};
+    signIntoAzureForFirewallRule: {};
 }

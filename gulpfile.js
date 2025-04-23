@@ -9,8 +9,8 @@ const concat = require('gulp-concat');
 const minifier = require('gulp-uglify/minifier');
 const uglifyjs = require('uglify-js');
 const argv = require('yargs').argv;
-const min = argv.min === "true";
-const prod = argv.prod === "true";
+const min = (argv.min === undefined) ? false : true;
+const prod = (argv.prod === undefined) ? false : true;
 const vscodeTest = require('@vscode/test-electron');
 const { exec } = require('child_process');
 const gulpESLintNew = require('gulp-eslint-new');
@@ -183,6 +183,7 @@ async function generateReactWebviewsBundle() {
 		 * for each entry point, to be used by the webview's HTML content.
 		 */
 		entryPoints: {
+			'addFirewallRule': 'src/reactviews/pages/AddFirewallRule/index.tsx',
 			'connectionDialog': 'src/reactviews/pages/ConnectionDialog/index.tsx',
 			'executionPlan': 'src/reactviews/pages/ExecutionPlan/index.tsx',
 			'tableDesigner': 'src/reactviews/pages/TableDesigner/index.tsx',

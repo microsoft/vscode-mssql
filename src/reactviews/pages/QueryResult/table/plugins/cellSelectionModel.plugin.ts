@@ -11,6 +11,7 @@ import {
     ISlickRange,
     QueryResultReducers,
     QueryResultWebviewState,
+    SelectionSummaryStats,
 } from "../../../../../sharedInterfaces/queryResult";
 
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
@@ -44,6 +45,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
     private ranges: Array<Slick.Range> = [];
     private _handler = new Slick.EventHandler();
     private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>;
+    private isMac: boolean | undefined;
 
     public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
@@ -67,6 +69,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     public init(grid: Slick.Grid<T>) {
         this.grid = grid;
+        this.isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
         this._handler.subscribe(this.grid.onKeyDown, (e: Slick.DOMEvent) =>
             this.handleKeyDown(e as unknown as KeyboardEvent),
         );
@@ -75,8 +78,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
         );
         this._handler.subscribe(
             this.grid.onClick,
-            (e: Slick.DOMEvent, args: Slick.OnClickEventArgs<T>) =>
-                this.handleCellClick(e as MouseEvent, args),
+            async (e: Slick.DOMEvent, args: Slick.OnClickEventArgs<T>) =>
+                await this.handleCellClick(e as MouseEvent, args),
         );
         this._handler.subscribe(
             this.grid.onHeaderClick,
@@ -84,12 +87,15 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 this.handleHeaderClick(e as MouseEvent, args),
         );
         this.grid.registerPlugin(this.selector);
-        this._handler.subscribe(this.selector.onCellRangeSelected, (e: Event, range: Slick.Range) =>
-            this.handleCellRangeSelected(e, range, false),
+        this._handler.subscribe(
+            this.selector.onCellRangeSelected,
+            async (e: Event, range: Slick.Range) =>
+                await this.handleCellRangeSelected(e, range, false),
         );
         this._handler.subscribe(
             this.selector.onAppendCellRangeSelected,
-            (e: Event, range: Slick.Range) => this.handleCellRangeSelected(e, range, true),
+            async (e: Event, range: Slick.Range) =>
+                await this.handleCellRangeSelected(e, range, true),
         );
 
         this._handler.subscribe(
@@ -143,7 +149,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         });
     }
 
-    public getSelectedRanges() {
+    public getSelectedRanges(): Slick.Range[] {
         return this.ranges;
     }
 
@@ -155,7 +161,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         return true;
     }
 
-    private handleCellRangeSelected(_e: Event, range: Slick.Range, append: boolean) {
+    private async handleCellRangeSelected(_e: Event, range: Slick.Range, append: boolean) {
         this.grid.setActiveCell(range.fromRow, range.fromCell, false, false, true);
 
         if (append) {
@@ -163,10 +169,12 @@ export class CellSelectionModel<T extends Slick.SlickData>
         } else {
             this.setSelectedRanges([range]);
         }
+
+        await this.setSelectionSummaryText(true);
     }
 
     private isMultiSelection(_e: MouseEvent): boolean {
-        return false; //process.platform === 'darwin' ? e.metaKey : e.ctrlKey;
+        return this.isMac ? _e.metaKey : _e.ctrlKey;
     }
 
     private handleHeaderClick(e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>) {
@@ -338,7 +346,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         return newRanges;
     }
 
-    private handleCellClick(e: MouseEvent, args: Slick.OnClickEventArgs<T>) {
+    private async handleCellClick(e: MouseEvent, args: Slick.OnClickEventArgs<T>) {
         const activeCell = this.grid.getActiveCell();
         const columns = this.grid.getColumns();
         const isRowSelectorClicked: boolean | undefined =
@@ -374,6 +382,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
             ? { cell: 1, row: args.row }
             : { cell: args.cell, row: args.row };
         this.grid.setActiveCell(newActiveCell.row, newActiveCell.cell);
+
+        await this.setSelectionSummaryText();
     }
 
     public async handleSelectAll() {
@@ -399,8 +409,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         let handled = false;
-        let platform = await this.webViewState.extensionRpc.call("getPlatform");
-        if (platform === "darwin") {
+        if (this.isMac) {
             // Cmd + A
             if (e.metaKey && e.key === Keys.a) {
                 handled = true;
@@ -417,6 +426,12 @@ export class CellSelectionModel<T extends Slick.SlickData>
             e.preventDefault();
             e.stopPropagation();
         }
+    }
+
+    private async setSelectionSummaryText(isSelection?: boolean) {
+        await this.webViewState.extensionRpc.call("setSelectionSummary", {
+            summary: await selectionSummaryHelper(this.getSelectedRanges(), this.grid, isSelection),
+        });
     }
 
     // private handleKeyDown(e: StandardKeyboardEvent) {
@@ -481,4 +496,77 @@ export class CellSelectionModel<T extends Slick.SlickData>
             this.setSelectedRanges([new Slick.Range(activeCell.row, activeCell.cell)]);
         }
     }
+}
+
+// Public for testing
+export async function selectionSummaryHelper(
+    selectedRanges: Slick.Range[],
+    grid: Slick.Grid<any>,
+    isSelection?: boolean,
+): Promise<SelectionSummaryStats> {
+    let summary: SelectionSummaryStats = {
+        count: -1,
+        distinctCount: -1,
+        nullCount: -1,
+        removeSelectionStats: !isSelection,
+    };
+
+    if (isSelection) {
+        const firstRange = selectedRanges[0];
+        if (!firstRange) return summary;
+
+        const column = grid.getColumns()[firstRange.fromCell];
+        if (!column) return summary;
+
+        const values: any[] = [];
+        let nullCount = 0;
+        let numCount = 0;
+        let sum = 0;
+        let min = Infinity;
+        let max = -Infinity;
+
+        for (let row = firstRange.fromRow; row <= firstRange.toRow; row++) {
+            for (let col = firstRange.fromCell; col <= firstRange.toCell; col++) {
+                const cell = grid.getCellNode(row, col);
+                if (!cell) continue;
+                const value = cell.innerText;
+                if (value === "NULL") {
+                    nullCount++;
+                } else if (!isNaN(Number(value))) {
+                    numCount++;
+                    min = Math.min(min, Number(value));
+                    max = Math.max(max, Number(value));
+                    sum += Number(value);
+                }
+                values.push(value);
+            }
+        }
+
+        const count = values.length;
+        const distinctCount = new Set(values).size;
+
+        if (numCount) {
+            // format average into decimal, up to three places, with no trailing zeros
+            const average = (sum / numCount).toFixed(3).replace(/\.?0+$/, "");
+            summary = {
+                average: average,
+                count: count,
+                distinctCount: distinctCount,
+                max: max,
+                min: min,
+                nullCount: nullCount,
+                sum: sum,
+                removeSelectionStats: false,
+            };
+        } else {
+            summary = {
+                count: count,
+                distinctCount: distinctCount,
+                nullCount: nullCount,
+                removeSelectionStats: false,
+            };
+        }
+    }
+
+    return summary;
 }

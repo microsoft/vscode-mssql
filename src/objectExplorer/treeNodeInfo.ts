@@ -52,6 +52,14 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._metadata = objectMetadata;
         this._filters = filters;
         this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
+        if (this.connectionInfo?.database) {
+            if (this.nodeType === Constants.serverLabel) {
+                this.iconPath = ObjectExplorerUtils.iconPath(Constants.database_green);
+            }
+            if (this.nodeType === Constants.disconnectedServerNodeType) {
+                this.iconPath = ObjectExplorerUtils.iconPath(Constants.database_red);
+            }
+        }
     }
 
     public static fromNodeInfo(

@@ -25,10 +25,29 @@ export const enum SchemaUpdateAction {
     Add = 2,
 }
 
+export const enum SchemaCompareEndpointType {
+    Database = 0,
+    Dacpac = 1,
+    Project = 2,
+    // must be kept in-sync with SchemaCompareEndpointType in SQL Tools Service
+    // located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
+}
+
+// If this enum changes, then please update the ExtractTarget enum in vscode-mssql.d.ts.
+export const enum SharedExtractTarget {
+    dacpac = 0,
+    file = 1,
+    flat = 2,
+    objectType = 3,
+    schema = 4,
+    schemaObjectType = 5,
+}
+
 export interface SchemaCompareWebViewState {
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
-    activeServers: { [connectionUri: string]: string };
+    isIncludeExcludeAllOperationInProgress: boolean;
+    activeServers: { [connectionUri: string]: { profileName: string; server: string } };
     databases: string[];
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
     auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
@@ -127,6 +146,10 @@ export interface SchemaCompareReducers {
         includeRequest: boolean;
     };
 
+    includeExcludeAllNodes: {
+        includeRequest: boolean;
+    };
+
     openScmp: {};
 
     saveScmp: {};
@@ -194,6 +217,8 @@ export interface SchemaCompareContextProps {
     resetOptions: () => void;
 
     includeExcludeNode: (id: number, diffEntry: DiffEntry, includeRequest: boolean) => void;
+
+    includeExcludeAllNodes: (includeRequest: boolean) => void;
 
     openScmp: () => void;
 

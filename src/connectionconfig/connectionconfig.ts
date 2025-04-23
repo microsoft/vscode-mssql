@@ -18,7 +18,7 @@ import { getConnectionDisplayName } from "../models/connectionInfo";
  * Implements connection profile file storage.
  */
 export class ConnectionConfig implements IConnectionConfig {
-    private logger: Logger;
+    private _logger: Logger;
 
     initialized: Deferred<void> = new Deferred<void>();
     RootGroupName: string = "ROOT";
@@ -31,7 +31,7 @@ export class ConnectionConfig implements IConnectionConfig {
             this._vscodeWrapper = new VscodeWrapper();
         }
 
-        this.logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionConfig");
+        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionConfig");
 
         void this.assignMissingIds();
     }
@@ -56,7 +56,7 @@ export class ConnectionConfig implements IConnectionConfig {
                 id: Utils.generateGuid(),
             };
 
-            this.logger.logDebug(`Adding missing ROOT group to connection groups`);
+            this._logger.logDebug(`Adding missing ROOT group to connection groups`);
             madeChanges = true;
             groups.push(rootGroup);
         }
@@ -71,14 +71,14 @@ export class ConnectionConfig implements IConnectionConfig {
             if (!group.id) {
                 group.id = Utils.generateGuid();
                 madeChanges = true;
-                this.logger.logDebug(`Adding missing ID to connection group '${group.name}'`);
+                this._logger.logDebug(`Adding missing ID to connection group '${group.name}'`);
             }
 
             // ensure each group is in a group
             if (!group.groupId) {
                 group.groupId = rootGroup.id;
                 madeChanges = true;
-                this.logger.logDebug(`Adding missing parentId to connection '${group.name}'`);
+                this._logger.logDebug(`Adding missing parentId to connection '${group.name}'`);
             }
         }
 
@@ -86,27 +86,16 @@ export class ConnectionConfig implements IConnectionConfig {
         const profiles: IConnectionProfile[] = this.getProfilesFromSettings();
 
         for (const profile of profiles) {
-            // ensure each profile has an ID
-            if (ConnectionProfile.addIdIfMissing(profile)) {
-                madeChanges = true;
-                this.logger.logDebug(
-                    `Adding missing ID to connection '${getConnectionDisplayName(profile)}'`,
-                );
-            }
-
-            // ensure each profile is in a group
-            if (!profile.groupId) {
-                profile.groupId = rootGroup.id;
-                madeChanges = true;
-                this.logger.logDebug(
-                    `Adding missing groupId to connection '${getConnectionDisplayName(profile)}'`,
+            if (this.populateMissingIds(profile)) {
+                this._logger.logDebug(
+                    `Adding missing group ID or connection ID to connection '${getConnectionDisplayName(profile)}'`,
                 );
             }
         }
 
         // Save the changes to settings
         if (madeChanges) {
-            this.logger.logDebug(
+            this._logger.logDebug(
                 `Updates made to connection profiles and groups.  Writing all ${groups.length} group(s) and ${profiles.length} profile(s) to settings.`,
             );
 
@@ -118,19 +107,35 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Add a new connection to the connection config.
+     * Populate missing connection ID and group ID for a connection profile.
+     * @returns true if the profile was modified, false otherwise.
      */
-    public async addConnection(profile: IConnectionProfile): Promise<void> {
+    public populateMissingIds(profile: IConnectionProfile): boolean {
+        let modified = false;
+
+        // ensure each profile is in a group
         if (profile.groupId === undefined) {
             const rootGroup = this.getRootGroup();
             if (rootGroup) {
                 profile.groupId = rootGroup.id;
+                modified = true;
             }
         }
 
+        // ensure each profile has an ID
         if (profile.id === undefined) {
             ConnectionProfile.addIdIfMissing(profile);
+            modified = true;
         }
+
+        return modified;
+    }
+
+    /**
+     * Add a new connection to the connection config.
+     */
+    public async addConnection(profile: IConnectionProfile): Promise<void> {
+        this.populateMissingIds(profile);
 
         let profiles = this.getProfilesFromSettings();
 

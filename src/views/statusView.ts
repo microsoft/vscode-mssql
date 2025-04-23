@@ -414,6 +414,10 @@ export default class StatusView implements vscode.Disposable {
         }
         const self = this;
         let bar = this.getStatusBar(fileUri);
+
+        // Clear any existing timer first
+        clearInterval(bar.queryTimer);
+
         let milliseconds = 0;
         bar.queryTimer = setInterval(() => {
             milliseconds += 1000;

@@ -32,13 +32,16 @@ import {
     showOpenDialogForScmp,
     showSaveDialogForScmp,
     showOpenDialogForDacpacOrSqlProj,
+    includeExcludeAllNodes,
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { deepClone } from "../models/utils";
+import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
+import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -63,6 +66,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             {
                 isSqlProjectExtensionInstalled: false,
                 isComparisonInProgress: false,
+                isIncludeExcludeAllOperationInProgress: false,
                 activeServers: {},
                 databases: [],
                 defaultDeploymentOptionsResult: schemaCompareOptionsResult,
@@ -377,18 +381,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             if (payload.endpointType === "source") {
                 state.sourceEndpointInfo = state.auxiliaryEndpointInfo;
             } else {
+                if (state.auxiliaryEndpointInfo) {
+                    state.targetEndpointInfo = state.auxiliaryEndpointInfo;
+                }
+
                 if (
-                    state.auxiliaryEndpointInfo.endpointType ===
+                    state.targetEndpointInfo?.endpointType ===
                     mssql.SchemaCompareEndpointType.Project
                 ) {
-                    state.auxiliaryEndpointInfo.extractTarget = this.mapExtractTargetEnum(
+                    state.targetEndpointInfo.extractTarget = this.mapExtractTargetEnum(
                         payload.folderStructure,
                     );
                 }
-                state.targetEndpointInfo = state.auxiliaryEndpointInfo;
             }
-            state.auxiliaryEndpointInfo = undefined;
 
+            state.auxiliaryEndpointInfo = undefined;
             this.updateState(state);
 
             return state;
@@ -727,7 +734,67 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 }
 
                 this.updateState(state);
+            } else {
+                if (result.blockingDependencies) {
+                    const diffEntry = payload.diffEntry;
+                    const diffEntryName = this.formatEntryName(
+                        diffEntry.sourceValue ? diffEntry.sourceValue : diffEntry.targetValue,
+                    );
+
+                    const blockingDependencyNames = result.blockingDependencies
+                        .map((blockingEntry) => {
+                            return this.formatEntryName(
+                                blockingEntry.sourceValue
+                                    ? blockingEntry.sourceValue
+                                    : blockingEntry.targetValue,
+                            );
+                        })
+                        .filter((name) => name !== "");
+
+                    let message: string = "";
+                    if (blockingDependencyNames.length > 0) {
+                        message = payload.includeRequest
+                            ? locConstants.SchemaCompare.cannotIncludeEntryWithBlockingDependency(
+                                  diffEntryName,
+                                  blockingDependencyNames.join(", "),
+                              )
+                            : locConstants.SchemaCompare.cannotExcludeEntryWithBlockingDependency(
+                                  diffEntryName,
+                                  blockingDependencyNames.join(", "),
+                              );
+                    } else {
+                        message = payload.includeRequest
+                            ? locConstants.SchemaCompare.cannotIncludeEntry(diffEntryName)
+                            : locConstants.SchemaCompare.cannotExcludeEntry(diffEntryName);
+                    }
+
+                    vscode.window.showWarningMessage(message);
+                } else {
+                    vscode.window.showWarningMessage(result.errorMessage);
+                }
             }
+
+            return state;
+        });
+
+        this.registerReducer("includeExcludeAllNodes", async (state, payload) => {
+            state.isIncludeExcludeAllOperationInProgress = true;
+            this.updateState(state);
+
+            const result = await includeExcludeAllNodes(
+                this.operationId,
+                TaskExecutionMode.execute,
+                payload,
+                this.schemaCompareService,
+            );
+
+            this.state.isIncludeExcludeAllOperationInProgress = false;
+
+            if (result.success) {
+                state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
+            }
+
+            this.updateState(state);
 
             return state;
         });
@@ -887,6 +954,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
     }
 
+    private formatEntryName(nameParts: string[]): string {
+        if (isNullOrUndefined(nameParts) || nameParts.length === 0) {
+            return "";
+        }
+        return nameParts.join(".");
+    }
+
     private mapExtractTargetEnum(folderStructure: string): mssql.ExtractTarget {
         switch (folderStructure) {
             case "File":
@@ -903,18 +977,20 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         }
     }
 
-    private getActiveServersList(): { [connectionUri: string]: string } {
-        const activeServers: { [connectionUri: string]: string } = {};
-        let seenServerNames = new Set<string>();
-
+    private getActiveServersList(): {
+        [connectionUri: string]: { profileName: string; server: string };
+    } {
+        const activeServers: { [connectionUri: string]: { profileName: string; server: string } } =
+            {};
         const activeConnections = this.connectionMgr.activeConnections;
         Object.keys(activeConnections).forEach((connectionUri) => {
-            let serverName = activeConnections[connectionUri].credentials.server;
+            let credentials = activeConnections[connectionUri]
+                .credentials as IConnectionDialogProfile;
 
-            if (!seenServerNames.has(serverName)) {
-                activeServers[connectionUri] = serverName;
-                seenServerNames.add(serverName);
-            }
+            activeServers[connectionUri] = {
+                profileName: credentials.profileName ?? "",
+                server: credentials.server,
+            };
         });
 
         return activeServers;
@@ -982,9 +1058,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         if (endpoint && endpoint.endpointType === mssql.SchemaCompareEndpointType.Database) {
             const connInfo = endpoint.connectionDetails.options as mssql.IConnectionInfo;
 
-            ownerUri = this.connectionMgr.getUriForConnection(connInfo);
+            ownerUri = this.connectionMgr.getUriForScmpConnection(connInfo);
 
-            let isConnected = false;
+            let isConnected = ownerUri ? true : false;
             if (!ownerUri) {
                 ownerUri = utils.generateQueryUri().toString();
 

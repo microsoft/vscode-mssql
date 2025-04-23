@@ -36,6 +36,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import * as events from "events";
+import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -99,7 +100,7 @@ export default class ConnectionManager {
         string,
         Deferred<ConnectionContracts.ConnectionCompleteParams>
     >;
-    private _failedUriToFirewallIpMap: Map<string, string>;
+    private _failedUriToFirewallIpMap: Map<string, ConnectionContracts.ConnectionCompleteParams>;
     private _failedUriToSSLMap: Map<string, string>;
     private _accountService: AccountService;
     private _firewallService: FirewallService;
@@ -108,9 +109,10 @@ export default class ConnectionManager {
     private _event: events.EventEmitter = new events.EventEmitter();
 
     constructor(
-        context: vscode.ExtensionContext,
+        private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
+        private isRichExperiencesEnabled: boolean = Constants.isRichExperiencesEnabledDefault,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
         private _connectionStore?: ConnectionStore,
@@ -156,6 +158,7 @@ export default class ConnectionManager {
                 this._connectionStore,
                 this._accountStore,
                 prompter,
+                isRichExperiencesEnabled,
                 this.vscodeWrapper,
             );
         }
@@ -177,7 +180,10 @@ export default class ConnectionManager {
             this.azureController,
         );
         this._firewallService = new FirewallService(this._accountService);
-        this._failedUriToFirewallIpMap = new Map<string, string>();
+        this._failedUriToFirewallIpMap = new Map<
+            string,
+            ConnectionContracts.ConnectionCompleteParams
+        >();
         this._failedUriToSSLMap = new Map<string, string>();
 
         if (this.client !== undefined) {
@@ -292,7 +298,10 @@ export default class ConnectionManager {
         return Object.keys(this._connections).length;
     }
 
-    public get failedUriToFirewallIpMap(): Map<string, string> {
+    public get failedUriToFirewallIpMap(): Map<
+        string,
+        ConnectionContracts.ConnectionCompleteParams
+    > {
         return this._failedUriToFirewallIpMap;
     }
 
@@ -329,6 +338,15 @@ export default class ConnectionManager {
         return undefined;
     }
 
+    public getUriForScmpConnection(connection: IConnectionInfo): string {
+        for (let uri of Object.keys(this._connections)) {
+            if (Utils.isSameScmpConnection(this._connections[uri].credentials, connection)) {
+                return uri;
+            }
+        }
+        return undefined;
+    }
+
     public isConnected(fileUri: string): boolean {
         return (
             fileUri in this._connections &&
@@ -344,8 +362,8 @@ export default class ConnectionManager {
     /**
      * Get the connection string for the provided connection Uri or ConnectionDetails.
      * @param connectionUriOrDetails Either the connection Uri for the connection or the connection details for the connection is required.
-     * @param includePassword (optional) if password should be included in connection string.
-     * @param includeApplicationName (optional) if application name should be included in connection string.
+     * @param includePassword (optional) if password should be included in connection string; default is false
+     * @param includeApplicationName (optional) if application name should be included in connection string; default is true
      * @returns connection string for the connection
      */
     public async getConnectionString(
@@ -367,9 +385,12 @@ export default class ConnectionManager {
         );
     }
 
-    public async buildConnectionDetails(connectionString: string): Promise<ConnectionDetails> {
+    /**
+     * Parses the connection string into a ConnectionDetails object
+     */
+    public async parseConnectionString(connectionString: string): Promise<ConnectionDetails> {
         return await this.client.sendRequest(
-            ConnectionContracts.BuildConnectionDetailsRequest.type,
+            ConnectionContracts.ParseConnectionStringRequest.type,
             connectionString,
         );
     }
@@ -657,13 +678,12 @@ export default class ConnectionManager {
                 // check if it's an SSL failed error
                 this._failedUriToSSLMap.set(fileUri, result.errorMessage);
             } else if (result.errorNumber === Constants.errorFirewallRule) {
-                // check whether it's a firewall rule error
                 let firewallResult = await this.firewallService.handleFirewallRule(
                     result.errorNumber,
                     result.errorMessage,
                 );
                 if (firewallResult.result && firewallResult.ipAddress) {
-                    this.failedUriToFirewallIpMap.set(fileUri, firewallResult.ipAddress);
+                    this.failedUriToFirewallIpMap.set(fileUri, result);
                 } else {
                     Utils.showErrorMsg(
                         LocalizedConstants.msgConnectionError(
@@ -1037,23 +1057,47 @@ export default class ConnectionManager {
         connectionCreds: IConnectionInfo,
     ): Promise<boolean> {
         let connection = this._connections[fileUri];
-        if (!result && connection && connection.loginFailed) {
-            const newConnection =
-                await this.connectionUI.createProfileWithDifferentCredentials(connectionCreds);
-            if (newConnection) {
-                const newResult = await this.connect(fileUri, newConnection);
-                connection = this._connections[fileUri];
-                if (!newResult && connection && connection.loginFailed) {
-                    Utils.showErrorMsg(
-                        LocalizedConstants.msgConnectionError(
-                            connection.errorNumber,
-                            connection.errorMessage,
-                        ),
-                    );
+        if (!result && connection) {
+            if (connection.loginFailed) {
+                const newConnection =
+                    await this.connectionUI.createProfileWithDifferentCredentials(connectionCreds);
+                if (newConnection) {
+                    const newResult = await this.connect(fileUri, newConnection);
+                    connection = this._connections[fileUri];
+                    if (!newResult && connection && connection.loginFailed) {
+                        Utils.showErrorMsg(
+                            LocalizedConstants.msgConnectionError(
+                                connection.errorNumber,
+                                connection.errorMessage,
+                            ),
+                        );
+                    }
+                    return newResult;
+                } else {
+                    return true;
                 }
-                return newResult;
-            } else {
-                return true;
+            } else if (
+                connection.errorNumber === Constants.errorFirewallRule &&
+                this.isRichExperiencesEnabled
+            ) {
+                const addFirewallRuleController = new AddFirewallRuleWebviewController(
+                    this.context,
+                    this._vscodeWrapper,
+                    {
+                        serverName: connectionCreds.server,
+                        errorMessage: connection.errorMessage,
+                    },
+                    this.firewallService,
+                );
+                addFirewallRuleController.panel.reveal();
+
+                const wasCreated = await addFirewallRuleController.dialogResult;
+
+                if (wasCreated === true /** dialog closed is undefined */) {
+                    await this.connect(fileUri, connection.credentials);
+                } else {
+                    return false;
+                }
             }
         } else {
             return true;

@@ -104,6 +104,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._objectExplorerService.addDisconnectedNode(connectionCredentials);
     }
 
+    public deleteChildrenCache(node: TreeNodeInfo): void {
+        this._objectExplorerService.deleteChildren(node);
+    }
+
     /** Getters */
     public get currentNode(): TreeNodeInfo {
         return this._objectExplorerService.currentNode;

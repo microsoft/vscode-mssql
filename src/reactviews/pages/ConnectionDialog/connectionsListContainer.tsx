@@ -14,7 +14,7 @@ import {
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { MouseEventHandler, useContext } from "react";
+import { MouseEventHandler, useContext, useEffect, useState } from "react";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
@@ -146,6 +146,28 @@ export const ConnectionCard = ({
 }) => {
     const styles = useStyles();
     const context = useContext(ConnectionDialogContext);
+    const [displayName, setDisplayName] = useState<string>(
+        connection.profileName || connection.server,
+    );
+
+    // Fetch the display name asynchronously when the component mounts
+    useEffect(() => {
+        let isMounted = true;
+        const loadDisplayName = async () => {
+            if (context) {
+                const name = await context.getConnectionDisplayName(connection);
+                if (isMounted) {
+                    setDisplayName(name);
+                }
+            }
+        };
+
+        void loadDisplayName();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [context, connection]);
 
     if (context === undefined) {
         return undefined;
@@ -160,7 +182,7 @@ export const ConnectionCard = ({
             }}>
             <CardHeader
                 image={<ServerRegular fontSize={20} />}
-                header={connection.displayName}
+                header={displayName}
                 action={
                     actionButton && (
                         <div className={buttonContainer}>
