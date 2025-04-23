@@ -183,7 +183,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     case SortProperties.ASC:
                         $sortButton.removeClass("slick-header-sortasc-button");
                         $sortButton.addClass("slick-header-sortdesc-button");
-                        $sortButton.attr("aria-label", locConstants.queryResult.clearSort); // setting ASC, so next is cleared
+                        $sortButton.attr("aria-label", locConstants.queryResult.clearSort); // setting DESC, so next is cleared
                         $sortButton.attr("title", locConstants.queryResult.clearSort);
                         await this.handleMenuItemClick("sort-desc", column);
                         this.columnSortStateMapping.set(column.id!, SortProperties.DESC);
