@@ -21,6 +21,19 @@ interface ISqlChatResult extends vscode.ChatResult {
     };
 }
 
+const commandToSendResultToConnector = 'vscode-mssql-copilot-connector.saveResult';
+
+function myStreamMarkdown(
+    stream: vscode.ChatResponseStream,
+    message: string,
+): void {
+    vscode.commands.executeCommand(
+        commandToSendResultToConnector,
+        message,
+    );
+    stream.markdown(message);
+}
+
 const MODEL_SELECTOR: vscode.LanguageModelChatSelector = {
     vendor: "copilot",
     family: "gpt-4o",
@@ -88,7 +101,7 @@ export const createSqlAgentRequestHandler = (
 
         try {
             if (!model) {
-                stream.markdown("No model found.");
+                myStreamMarkdown(stream, "No model found.");
                 return { metadata: { command: "" } };
             }
 
@@ -180,7 +193,7 @@ export const createSqlAgentRequestHandler = (
                 Utils.logDebug(`Done processing message for '${conversationUri}'`);
                 // Output reply text if needed
                 if (printTextout) {
-                    stream.markdown(replyText);
+                    myStreamMarkdown(stream, replyText);
                     printTextout = false;
                 }
             }
@@ -376,7 +389,7 @@ export const createSqlAgentRequestHandler = (
         // Tool lookup
         const tool = resultTools.find((tool) => tool.functionName === part.name);
         if (!tool) {
-            stream.markdown(`Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}.`);
+            myStreamMarkdown(stream, `Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}.`);
             return { sqlTool, sqlToolParameters };
         }
 
@@ -417,7 +430,7 @@ export const createSqlAgentRequestHandler = (
             errorMessages[err.code] ||
             "An unexpected error occurred with the language model. Please try again.";
 
-        stream.markdown(errorMessage);
+        myStreamMarkdown(stream, errorMessage);
     }
 
     async function sendToDefaultLanguageModel(
@@ -445,13 +458,13 @@ export const createSqlAgentRequestHandler = (
             }
 
             if (replyText) {
-                stream.markdown(replyText);
+                myStreamMarkdown(stream, replyText);
             } else {
-                stream.markdown("The language model did not return any output.");
+                myStreamMarkdown(stream, "The language model did not return any output.");
             }
         } catch (err) {
             console.error("Error in fallback language model call:", err);
-            stream.markdown("An error occurred while processing your request.");
+            myStreamMarkdown(stream, "An error occurred while processing your request.");
         }
     }
 
@@ -463,10 +476,10 @@ export const createSqlAgentRequestHandler = (
                 message: err.message,
                 stack: err.stack,
             });
-            stream.markdown("An error occurred: " + err.message);
+            myStreamMarkdown(stream, "An error occurred: " + err.message);
         } else {
             console.error("Unknown Error Type:", err);
-            stream.markdown("An unknown error occurred. Please try again.");
+            myStreamMarkdown(stream, "An unknown error occurred. Please try again.");
         }
     }
 
