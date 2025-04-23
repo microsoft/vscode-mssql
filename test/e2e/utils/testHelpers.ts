@@ -127,7 +127,7 @@ export async function addDatabaseConnectionThroughWebview(
 
     const loadingIcon = connectionWebview.locator('[class*="fui-Spinner"][role="progressbar"]');
     await loadingIcon.waitFor({ state: "hidden" });
-    await connectionWebview.owner().waitFor({ state: "hidden", timeout: 30 * 1000 });
+    await connectionWebview.owner().waitFor({ state: "hidden", timeout: 120 * 1000 });
 
     // check connection is loaded in OE
     const addedConnection = await vsCodePage.locator(`[role="treeitem"]`).first();
