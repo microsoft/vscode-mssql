@@ -31,10 +31,7 @@ export interface CommandEventArgs<T extends Slick.SlickData> {
     command: SortDirection;
 }
 
-const ShowFilterText = locConstants.queryResult.showFilter;
-const SortAscendingText = locConstants.queryResult.sortAscending;
-
-export const FilterButtonWidth: number = 34;
+export const FilterButtonWidth = 34;
 
 export class HeaderFilter<T extends Slick.SlickData> {
     public onFilterApplied = new Slick.Event<{
@@ -113,12 +110,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
         args.node.classList.add("slick-header-with-filter");
         args.node.classList.add(theme);
         const $filterButton = jQuery(
-            `<button tabindex="-1" id="anchor-btn" aria-label="${ShowFilterText}" title="${ShowFilterText}"></button>`,
+            `<button tabindex="-1" id="anchor-btn" aria-label="${locConstants.queryResult.showFilter}" title="${locConstants.queryResult.showFilter}"></button>`,
         )
             .addClass("slick-header-menubutton")
             .data("column", column);
         const $sortButton = jQuery(
-            `<button tabindex="-1" id="anchor-btn" aria-label="${SortAscendingText}" title="${SortAscendingText} data-column-id=${column.id}"></button>`,
+            `<button tabindex="-1" id="anchor-btn" aria-label="${locConstants.queryResult.sortAscending}" title="${locConstants.queryResult.sortAscending}" data-column-id="${column.id}"></button>`,
         )
             .addClass("slick-header-sort-button")
             .data("column", column);
