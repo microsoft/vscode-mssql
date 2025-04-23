@@ -234,6 +234,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             await this.handleAzureMFAEdits("azureAuthType");
             await this.handleAzureMFAEdits("accountId");
 
+            await this.checkReadyToConnect();
+
             return state;
         });
 
@@ -466,7 +468,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     override async afterSetFormProperty(
         propertyName: keyof IConnectionDialogProfile,
     ): Promise<void> {
-        return await this.handleAzureMFAEdits(propertyName);
+        await this.handleAzureMFAEdits(propertyName);
+    }
+
+    private async checkReadyToConnect(): Promise<void> {
+        const fullValidation = await this.validateForm(
+            this.state.connectionProfile,
+            undefined,
+            false,
+        );
+
+        this.state.readyToConnect = fullValidation.length === 0;
     }
 
     async updateItemVisibility() {
@@ -492,6 +504,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         for (const component of Object.values(this.state.formComponents)) {
             component.hidden = hiddenProperties.includes(component.propertyName);
         }
+
+        await this.checkReadyToConnect();
     }
 
     protected getActiveFormComponents(
@@ -844,13 +858,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async loadConnectionToEdit(connectionToEdit: IConnectionInfo) {
         if (connectionToEdit) {
             this._connectionBeingEdited = structuredClone(connectionToEdit);
-            const connection = await this.initializeConnectionForDialog(connectionToEdit);
+            const connection = await this.initializeConnectionForDialog(
+                this._connectionBeingEdited,
+            );
             this.state.connectionProfile = connection;
             this.state.selectedInputMode = ConnectionInputMode.Parameters;
 
             if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
                 await this.handleAzureMFAEdits("accountId");
             }
+
+            await this.checkReadyToConnect();
 
             this.updateState();
         }
