@@ -362,12 +362,12 @@ export async function restartContainer(containerName: string): Promise<boolean> 
 
 /**
  * Checks if the provided container is ready for connections by checking the logs.
- * It waits for a maximum of 30 seconds, checking every second.
+ * It waits for a maximum of 60 seconds, checking every second.
  */
 export async function checkIfContainerIsReadyForConnections(
     containerName: string,
 ): Promise<DockerCommandParams> {
-    const timeoutMs = 30_000;
+    const timeoutMs = 60_000;
     const intervalMs = 1000;
     const start = Date.now();
 
