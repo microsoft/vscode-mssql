@@ -43,7 +43,7 @@ runs:
       shell: bash
       run: |
         cd ${{ inputs.source-dir }}
-        yarn build --prod=true
+        yarn build --prod
 
 inputs:
   source-dir:
