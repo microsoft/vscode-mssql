@@ -21,16 +21,10 @@ interface ISqlChatResult extends vscode.ChatResult {
     };
 }
 
-const commandToSendResultToConnector = 'vscode-mssql-copilot-connector.saveResult';
+const commandToSendResultToConnector = "vscode-mssql-copilot-connector.saveResult";
 
-function myStreamMarkdown(
-    stream: vscode.ChatResponseStream,
-    message: string,
-): void {
-    vscode.commands.executeCommand(
-        commandToSendResultToConnector,
-        message,
-    );
+function myStreamMarkdown(stream: vscode.ChatResponseStream, message: string): void {
+    vscode.commands.executeCommand(commandToSendResultToConnector, message);
     stream.markdown(message);
 }
 
@@ -389,7 +383,10 @@ export const createSqlAgentRequestHandler = (
         // Tool lookup
         const tool = resultTools.find((tool) => tool.functionName === part.name);
         if (!tool) {
-            myStreamMarkdown(stream, `Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}.`);
+            myStreamMarkdown(
+                stream,
+                `Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}.`,
+            );
             return { sqlTool, sqlToolParameters };
         }
 
