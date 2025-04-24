@@ -48,6 +48,24 @@ suite("UserSurvey Tests", () => {
         assert.strictEqual(instance, UserSurvey.getInstance());
     });
 
+    test("Should call promptUserForNPSFeedbackAsync when promptUserForNpsFeedback is called", async () => {
+        const userSurvey = UserSurvey.getInstance();
+        const promptUserForNPSFeedbackAsyncStub = sandbox.stub(
+            userSurvey as any,
+            "promptUserForNPSFeedbackAsync",
+        );
+
+        userSurvey.promptUserForNPSFeedback();
+
+        void (await new Promise((resolve) => setTimeout(resolve, 500))); // Wait for the async call to complete
+
+        assert.strictEqual(
+            promptUserForNPSFeedbackAsyncStub.calledOnce,
+            true,
+            "promptUserForNPSFeedbackAsync should be called once",
+        );
+    });
+
     test("should not prompt the user if they opted out of the survey", async () => {
         globalState.get.withArgs("nps/never", false).returns(true);
         const userSurvey = UserSurvey.getInstance();
