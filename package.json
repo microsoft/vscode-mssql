@@ -346,7 +346,7 @@
                 },
                 {
                     "command": "mssql.changeDatabase",
-                    "when": "editorLangId == sql && !isInDiffEditor",
+                    "when": "editorLangId == sql && !isInDiffEditor && resouce in mssql.connections",
                     "group": "navigation@4"
                 },
                 {
