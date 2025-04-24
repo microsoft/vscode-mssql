@@ -28,7 +28,7 @@ import { TrustServerCertificateDialog } from "./components/trustServerCertificat
 import { ConnectionStringDialog } from "./components/connectionStringDialog.component";
 import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
-import { AddFirewallRuleDialog } from "./components/addFirewallRule.component";
+import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
@@ -76,7 +76,10 @@ export const ConnectionInfoFormContainer = () => {
                 )}
                 {context.state.dialog?.type === "addFirewallRule" && (
                     <AddFirewallRuleDialog
-                        dialogProps={context.state.dialog as AddFirewallRuleDialogProps}
+                        state={(context.state.dialog as AddFirewallRuleDialogProps).props}
+                        addFirewallRule={context.addFirewallRule}
+                        closeDialog={context.closeDialog}
+                        signIntoAzure={context.signIntoAzureForFirewallRule}
                     />
                 )}
                 {context.state.dialog?.type === "loadFromConnectionString" && (

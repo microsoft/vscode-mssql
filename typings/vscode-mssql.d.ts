@@ -438,6 +438,7 @@ declare module "vscode-mssql" {
         connectionString: string | undefined;
     }
 
+    // If this enum changes, please update the SharedExtractTarget enum in schemaCompare.ts
     export const enum ExtractTarget {
         dacpac = 0,
         file = 1,

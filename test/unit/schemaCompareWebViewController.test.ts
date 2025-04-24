@@ -295,6 +295,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         mockServerConnInfo = TypeMoq.Mock.ofType<mssql.IConnectionInfo>();
         mockServerConnInfo.setup((info) => info.server).returns(() => "server1");
+        mockServerConnInfo.setup((info: any) => info.profileName).returns(() => "profile1");
 
         mockConnectionInfo = TypeMoq.Mock.ofType<ConnectionInfo>();
         mockConnectionInfo
@@ -763,7 +764,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         publishProjectChangesStub.restore();
     });
 
-    test("listActiveServers reducer - when called - returns: {conn_uri: 'server1'}", async () => {
+    test("listActiveServers reducer - when called - returns: {conn_uri: {profileName: 'profile1', server: 'server1'}}", async () => {
         const payload = {};
 
         const actualResult = await controller["_reducers"]["listActiveServers"](
@@ -771,12 +772,12 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        const expectedResult = { conn_uri: "server1" };
+        const expectedResult = { conn_uri: { profileName: "profile1", server: "server1" } };
 
         assert.deepEqual(
             actualResult.activeServers,
             expectedResult,
-            "listActiveServers should return: {conn_uri: 'server1'}",
+            "listActiveServers should return: {conn_uri: {profileName: 'profile1', server: 'server1'}}",
         );
     });
 

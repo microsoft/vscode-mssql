@@ -68,6 +68,11 @@
         <source xml:lang="en">Add Firewall Rule</source>
         <target state="translated">Agregar regla de firewall</target>
       </trans-unit>
+      <trans-unit id="++CODE++07d072b97d1e2346b3eed5778ffb9d979a83de20ca00ff8a5f8bfa99d41993a5">
+        <source xml:lang="en">Add Firewall Rule to {0}</source>
+        <note>{0} is the server name</note>
+        <target state="new">Add Firewall Rule to {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
         <source xml:lang="en">Add Table</source>
         <target state="translated">Agregar tabla</target>
@@ -75,6 +80,11 @@
       <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
         <source xml:lang="en">Add a Microsoft Entra account...</source>
         <target state="translated">Agregar una cuenta de Microsoft Entra...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
+        <source xml:lang="en">Add my client IP ({0})</source>
+        <note>{0} is the IP address of the client</note>
+        <target state="new">Add my client IP ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++cf502b3a94444bf574bf8c1ca17b7ba9f954543af389a62e0eeca0ec3faa08f3">
         <source xml:lang="en">Add new column</source>
@@ -177,12 +187,12 @@
       <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
         <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
         <note>{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum</note>
-        <target state="new">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</target>
+        <target state="translated">Promedio: {0} Recuento: {1} Recuento distinto: {2} Máx.: {3} Mín.: {4} Recuento nulo: {5} Suma: {6}</target>
       </trans-unit>
       <trans-unit id="++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca">
         <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
         <note>{0} is the average, {1} is the count, {2} is the sum</note>
-        <target state="new">Average: {0}  Count: {1}  Sum: {2}</target>
+        <target state="translated">Promedio: {0}; recuento: {1}; suma: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
         <source xml:lang="en">Azure Account</source>
@@ -207,6 +217,10 @@
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
         <target state="translated">Error al iniciar sesión en Azure.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bcfba23612af01d6083c1cbc352807182aa4a2a08665615d5e75206766e035c0">
+        <source xml:lang="en">Azure sign-in failed or was cancelled.</source>
+        <target state="new">Azure sign-in failed or was cancelled.</target>
       </trans-unit>
       <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
@@ -491,7 +505,7 @@
       </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
-        <target state="new">Comparison Details</target>
+        <target state="translated">Detalles de comparación</target>
       </trans-unit>
       <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
         <source xml:lang="en">Confirm to clear recent connections list</source>
@@ -597,7 +611,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
         <source xml:lang="en">Copy connection string to clipboard</source>
-        <target state="new">Copy connection string to clipboard</target>
+        <target state="translated">Copia la cadena de conexión en el Portapapeles.</target>
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
@@ -614,7 +628,7 @@
       <trans-unit id="++CODE++4a8d5a21d0db63fc6a204170919855b12207337b5357f2bb7eedcb7cafa77fce">
         <source xml:lang="en">Count: {0}  Distinct Count: {1}  Null Count: {2}</source>
         <note>{0} is the count, {1} is the distinct count, and {2} is the null count</note>
-        <target state="new">Count: {0}  Distinct Count: {1}  Null Count: {2}</target>
+        <target state="translated">Recuento: {0} Recuento distinto: {1} Recuento nulo: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++4759498ac2a719c619e2c8cf8ee60af2d2407425e95d308eb208425b2a6d427a">
         <source xml:lang="en">Create</source>
@@ -635,6 +649,11 @@
       <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
         <source xml:lang="en">Create a new firewall rule</source>
         <target state="translated">Crear una nueva regla de firewall</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
+        <source xml:lang="en">Create new firewall rule for {0}</source>
+        <note>{0} is the server name that the firewall rule will be created for</note>
+        <target state="new">Create new firewall rule for {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1209,7 +1228,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
-        <target state="new">Invalid connection string: {0}</target>
+        <target state="translated">Cadena de conexión no válida: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++b65d31b3dcfd9935b8fae6c977fe0f07a5d73a830edb2426c05d63464b299858">
         <source xml:lang="en">Invalid max length '{0}'</source>
@@ -1280,11 +1299,11 @@
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
-        <target state="new">Load</target>
+        <target state="translated">Carga</target>
       </trans-unit>
       <trans-unit id="++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b">
         <source xml:lang="en">Load from Connection String</source>
-        <target state="new">Load from Connection String</target>
+        <target state="translated">Cargar desde cadena de conexión</target>
       </trans-unit>
       <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
         <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
@@ -1672,11 +1691,11 @@
       </trans-unit>
       <trans-unit id="++CODE++f3380f7b44bd70af2a369de6026bf2ca2a7b36fde9086935efcd62a0e379cc7a">
         <source xml:lang="en">Paste</source>
-        <target state="new">Paste</target>
+        <target state="translated">Pegar</target>
       </trans-unit>
       <trans-unit id="++CODE++aa7e02a360294359df9e77459e71e6f350056d94cf36d644cc2c910fff983359">
         <source xml:lang="en">Paste connection string from clipboard</source>
-        <target state="new">Paste connection string from clipboard</target>
+        <target state="translated">Pegar cadena de conexión desde el Portapapeles</target>
       </trans-unit>
       <trans-unit id="++CODE++71f0edbc866bcd836e06eefc36556b0e6a3552f2d422dc8bc12bddd51e3b5a8e">
         <source xml:lang="en">Path: {0}</source>
@@ -1873,6 +1892,10 @@
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
         <target state="translated">Orden alfabético inverso</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
+        <source xml:lang="en">Rule name</source>
+        <target state="new">Rule name</target>
       </trans-unit>
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
@@ -2114,6 +2137,14 @@
       <trans-unit id="++CODE++2a2c6072cca49b7f2056d66f738d53593bce3004d1291d736ea9a69e58babae8">
         <source xml:lang="en">Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work</source>
         <target state="translated">Inicie sesión en la suscripción de Azure con un código de dispositivo. Use esta opción en las instalaciones en las que no funciona el comando Iniciar sesión.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f33c8e270a9d867a7ed6cb8d51e40f58132390afcd0e2eb79292952039fd8397">
+        <source xml:lang="en">Sign into Azure</source>
+        <target state="new">Sign into Azure</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cdc182077e173c86c2831fe9995d41691b9bc1182fe44519a292ea2b814eb17a">
+        <source xml:lang="en">Sign into Azure in order to add a firewall rule.</source>
+        <target state="new">Sign into Azure in order to add a firewall rule.</target>
       </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>

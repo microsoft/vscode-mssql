@@ -12,7 +12,8 @@ export abstract class FormWebviewController<
     TState extends FormState<TForm, TState, TFormItemSpec>,
     TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
     TReducers extends FormReducers<TForm>,
-> extends ReactWebviewPanelController<TState, TReducers> {
+    TResult = void,
+> extends ReactWebviewPanelController<TState, TReducers, TResult> {
     constructor(
         context,
         vscodeWrapper,
@@ -43,7 +44,11 @@ export abstract class FormWebviewController<
                     payload.event.propertyName
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 ] as any) = payload.event.value;
-                await this.validateForm(this.state.formState, payload.event.propertyName);
+                await this.validateForm(
+                    this.state.formState,
+                    payload.event.propertyName,
+                    payload.event.updateValidation,
+                );
                 await this.afterSetFormProperty(payload.event.propertyName);
             }
             await this.updateItemVisibility();
@@ -58,18 +63,35 @@ export abstract class FormWebviewController<
      * @param propertyName
      * @returns array of fields with errors
      */
-    protected async validateForm(formTarget: TForm, propertyName?: keyof TForm): Promise<string[]> {
-        const erroredInputs = [];
+    protected async validateForm(
+        formTarget: TForm,
+        propertyName?: keyof TForm,
+        updateValidation?: boolean,
+    ): Promise<(keyof TForm)[]> {
+        const erroredInputs: (keyof TForm)[] = [];
+        const self = this;
+
+        function validateComponent(component: FormItemSpec<TForm, TState, TFormItemSpec>) {
+            if (!component.validate) {
+                return;
+            }
+
+            const validation = component.validate(
+                self.state,
+                formTarget[component.propertyName] as string | boolean | number,
+            );
+            if (updateValidation) {
+                component.validation = validation;
+            }
+            if (!validation.isValid) {
+                erroredInputs.push(component.propertyName);
+            }
+        }
+
         if (propertyName) {
             const component = this.state.formComponents[propertyName];
-            if (component && component.validate) {
-                component.validation = component.validate(
-                    this.state,
-                    formTarget[propertyName] as string | boolean | number,
-                );
-                if (!component.validation.isValid) {
-                    erroredInputs.push(component.propertyName);
-                }
+            if (component) {
+                validateComponent(component);
             }
         } else {
             this.getActiveFormComponents(this.state)
@@ -82,15 +104,7 @@ export abstract class FormWebviewController<
                         };
                         return;
                     } else {
-                        if (c.validate) {
-                            c.validation = c.validate(
-                                this.state,
-                                formTarget[c.propertyName] as string | boolean | number,
-                            );
-                            if (!c.validation.isValid) {
-                                erroredInputs.push(c.propertyName);
-                            }
-                        }
+                        validateComponent(c);
                     }
                 });
         }

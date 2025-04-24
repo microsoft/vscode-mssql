@@ -29,7 +29,10 @@ export const ConnectButton = ({
             id={ConnectButtonId}
             type="submit"
             appearance="primary"
-            disabled={context.state.connectionStatus === ApiStatus.Loading}
+            disabled={
+                context.state.connectionStatus === ApiStatus.Loading ||
+                !context.state.readyToConnect
+            }
             className={className}
             style={style}
             iconPosition="after"

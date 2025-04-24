@@ -52,15 +52,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
-
-function getParentNode(node: TreeNodeType): TreeNodeInfo {
-    node = node.parentNode;
-    if (!(node instanceof TreeNodeInfo)) {
-        vscode.window.showErrorMessage(LocalizedConstants.nodeErrorMessage);
-        throw new Error(`Parent node was not TreeNodeInfo.`);
-    }
-    return node;
-}
+import { getConnectionDisplayName } from "../models/connectionInfo";
 
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
@@ -230,35 +222,6 @@ export class ObjectExplorerService {
         } finally {
             node.shouldRefresh = false;
         }
-    }
-
-    public updateNode(node: TreeNodeType): void {
-        if (node instanceof ConnectTreeNode) {
-            node = getParentNode(node);
-        }
-        for (let rootTreeNode of this._rootTreeNodeArray) {
-            if (
-                Utils.isSameConnectionInfo(
-                    node.connectionProfile,
-                    rootTreeNode.connectionProfile,
-                ) &&
-                rootTreeNode.label === node.label
-            ) {
-                rootTreeNode.sessionId = node.sessionId;
-                rootTreeNode.nodePath = node.nodePath;
-                rootTreeNode.nodeStatus = node.nodeStatus;
-                rootTreeNode.collapsibleState = node.collapsibleState;
-                rootTreeNode.context = node.context;
-                rootTreeNode.nodeType = node.nodeType;
-                rootTreeNode.iconPath = node.iconPath;
-                rootTreeNode.updateConnectionProfile(node.connectionProfile);
-
-                // delete this._rootTreeNodeArray[index];
-                // this._rootTreeNodeArray[index] = node;
-                return;
-            }
-        }
-        this._rootTreeNodeArray.push(node);
     }
 
     /**
