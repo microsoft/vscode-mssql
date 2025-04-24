@@ -30,7 +30,7 @@ import { AuthenticationTypes, IConnectionProfile } from "../models/interfaces";
 import * as LocalizedConstants from "../constants/locConstants";
 import { AddConnectionTreeNode } from "./nodes/addConnectionTreeNode";
 import { AccountSignInTreeNode } from "./nodes/accountSignInTreeNode";
-import { ConnectTreeNode, TreeNodeType } from "./nodes/connectTreeNode";
+import { ConnectTreeNode } from "./nodes/connectTreeNode";
 import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
@@ -52,7 +52,6 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
-import { getConnectionDisplayName } from "../models/connectionInfo";
 
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
@@ -121,7 +120,10 @@ export class ObjectExplorerService {
         }
     }
 
-    private async reconnectProfile(node: TreeNodeInfo, profile: IConnectionProfile): Promise<void> {
+    private async reconnectProfile(profile: IConnectionProfile): Promise<void> {
+        const node = this._rootTreeNodeArray.find((n) =>
+            Utils.isSameConnectionInfo(n.connectionProfile, profile),
+        ) as ConnectionNode;
         node.updateConnectionProfile(profile);
         this.cleanNodeChildren(node);
         this._objectExplorerProvider.refresh(node);
@@ -618,11 +620,7 @@ export class ObjectExplorerService {
     private async handleSessionCreationFailure(
         failureResponse: SessionCreatedParameters,
         connectionProfile: IConnectionProfile,
-    ): Promise<{
-        fixedConnectionProfile: IConnectionProfile;
-        shouldReconnect: boolean;
-        errorMessage: string;
-    }> {
+    ): Promise<void> {
         let error = LocalizedConstants.connectErrorLabel;
         let errorNumber: number;
         if (failureResponse.errorNumber) {
@@ -633,20 +631,17 @@ export class ObjectExplorerService {
         }
         if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
             this._logger.error("Session creation failed with SSL certificate validation error");
-            await new Promise((resolve) => {
+            const fixedProfile: IConnectionProfile = await new Promise((resolve) => {
                 void this._connectionManager.showInstructionTextAsWarning(
                     connectionProfile,
                     async (updatedProfile) => {
-                        resolve();
+                        resolve(updatedProfile);
                     },
                 );
             });
-            void this._connectionManager.showInstructionTextAsWarning(
-                connectionProfile,
-                async (updatedProfile) => {
-                    void this.reconnectProfile(this._currentNode, updatedProfile);
-                },
-            );
+            if (fixedProfile) {
+                void this.reconnectProfile(fixedProfile);
+            }
         } else if (ObjectExplorerUtils.isFirewallError(failureResponse.errorNumber)) {
             this._logger.error("Session creation failed with firewall error");
             // handle session failure because of firewall issue
@@ -658,12 +653,11 @@ export class ObjectExplorerService {
             if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
                 const isFirewallAdded =
                     await this._connectionManager.connectionUI.handleFirewallError(
-                        ObjectExplorerUtils.getNodeUriFromProfile(connectionProfile),
                         connectionProfile,
-                        handleFirewallResult.ipAddress,
+                        failureResponse,
                     );
                 if (isFirewallAdded) {
-                    void this.reconnectProfile(this._currentNode, connectionProfile);
+                    void this.reconnectProfile(connectionProfile);
                 }
             }
         } else if (
@@ -676,7 +670,7 @@ export class ObjectExplorerService {
             await this.refreshAccount(account, connectionProfile);
             // Do not await when performing reconnect to allow
             // OE node to expand after connection is established.
-            void this.reconnectProfile(this._currentNode, connectionProfile);
+            void this.reconnectProfile(connectionProfile);
         } else {
             // If not a known error, show the error message
             this._logger.error("Session creation failed with unknown error", errorNumber);
