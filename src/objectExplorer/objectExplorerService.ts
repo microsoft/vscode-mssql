@@ -131,7 +131,7 @@ export class ObjectExplorerService {
 
     private async reconnectProfile(node: TreeNodeInfo, profile: IConnectionProfile): Promise<void> {
         node.updateConnectionProfile(profile);
-        this._treeNodeToChildrenMap.delete(node);
+        this.cleanNodeChildren(node);
         this._objectExplorerProvider.refresh(node);
     }
 
@@ -443,237 +443,281 @@ export class ObjectExplorerService {
      * OE out of
      * @param connectionProfile Connection Credentials for a node
      */
-    public async createSession(connectionCredentials?: IConnectionInfo): Promise<{
+    public async createSession(connectionInfo?: IConnectionInfo): Promise<{
         sessionId: string | undefined;
         connectionNode: ConnectionNode | undefined;
     }> {
-        if (!connectionCredentials) {
+        const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
+
+        if (!connectionProfile) {
+            this._logger.error("Connection could not be made, as credentials not available.");
+            return undefined;
+        }
+
+        const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionProfile);
+
+        const sessionIdResponse: GetSessionIdResponse =
+            await this._connectionManager.client.sendRequest(
+                GetSessionIdRequest.type,
+                connectionDetails,
+            );
+
+        const sessionCreatedResponse: Deferred<SessionCreatedParameters> =
+            new Deferred<SessionCreatedParameters>();
+
+        this._pendingSessionCreations.set(sessionIdResponse.sessionId, sessionCreatedResponse);
+
+        const createSessionResponse: CreateSessionResponse =
+            await this._connectionManager.client.sendRequest(
+                CreateSessionRequest.type,
+                connectionDetails,
+            );
+
+        if (createSessionResponse) {
+            const sessionCreationResult = await sessionCreatedResponse;
+            if (sessionCreationResult.success) {
+                return this.handleSessionCreationSuccess(sessionCreationResult, connectionProfile);
+            } else {
+                await this.handleSessionCreationFailure(sessionCreationResult, connectionProfile);
+                return undefined;
+            }
+        } else {
+            this._client.logger.error("No response received for session creation request");
+            return undefined;
+        }
+    }
+
+    private async prepareConnectionProfile(
+        connectionInfo?: IConnectionInfo,
+    ): Promise<IConnectionProfile> {
+        let connectionProfile: IConnectionProfile = connectionInfo as IConnectionProfile;
+        if (!connectionProfile) {
             const connectionUI = this._connectionManager.connectionUI;
-            connectionCredentials = await connectionUI.createAndSaveProfile();
+            connectionProfile = await connectionUI.createAndSaveProfile();
             sendActionEvent(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateConnection,
                 undefined,
                 undefined,
-                connectionCredentials as IConnectionProfile,
-                this._connectionManager.getServerInfo(connectionCredentials),
+                connectionInfo as IConnectionProfile,
+                this._connectionManager.getServerInfo(connectionInfo),
             );
         }
 
-        if (connectionCredentials) {
-            const connectionProfile = connectionCredentials as IConnectionProfile;
+        if (!connectionProfile) {
+            this._logger.error("Connection could not be made, as credentials not available.");
+            return undefined;
+        }
 
-            if (!connectionProfile.id) {
-                connectionProfile.id = Utils.generateGuid();
+        if (!connectionProfile.id) {
+            this._logger.verbose("Connection profile ID is not set, generating a new one.");
+            connectionProfile.id = Utils.generateGuid();
+        }
+
+        if (connectionProfile.connectionString) {
+            if (connectionProfile.savePassword) {
+                // look up connection string
+                let connectionString = await this._connectionManager.connectionStore.lookupPassword(
+                    connectionProfile,
+                    true,
+                );
+                connectionProfile.connectionString = connectionString;
+                return connectionProfile;
+            } else {
+                this._logger.error("Cannot find connection string in cred store.");
+                return undefined;
             }
+        }
 
-            // connection string based credential
-            if (connectionProfile.connectionString) {
-                if ((connectionProfile as IConnectionProfile).savePassword) {
-                    // look up connection string
-                    let connectionString =
+        if (ConnectionCredentials.isPasswordBasedCredential(connectionProfile)) {
+            this._logger.verbose("Password based profile detected.");
+            // show password prompt if SQL Login and password isn't saved
+            let password = connectionProfile.password;
+            if (Utils.isEmpty(password)) {
+                this._logger.verbose("Password is empty. Getting password from user.");
+
+                if (connectionProfile.savePassword) {
+                    this._logger.verbose("Password is saved. Looking up password in cred store.");
+                    password =
                         await this._connectionManager.connectionStore.lookupPassword(
                             connectionProfile,
-                            true,
                         );
-                    connectionProfile.connectionString = connectionString;
                 }
-            } else {
-                if (ConnectionCredentials.isPasswordBasedCredential(connectionProfile)) {
-                    // show password prompt if SQL Login and password isn't saved
-                    let password = connectionProfile.password;
-                    if (Utils.isEmpty(password)) {
-                        // if password isn't saved
-                        if (!(connectionProfile as IConnectionProfile).savePassword) {
-                            // prompt for password
-                            password =
-                                await this._connectionManager.connectionUI.promptForPassword();
-                            if (!password) {
-                                return undefined;
-                            }
-                        } else {
-                            // look up saved password
-                            password =
-                                await this._connectionManager.connectionStore.lookupPassword(
-                                    connectionProfile,
-                                );
-                            if (connectionProfile.authenticationType !== Constants.azureMfa) {
-                                connectionProfile.azureAccountToken = undefined;
-                            }
-                        }
-                        connectionProfile.password = password;
+
+                if (!password) {
+                    password = await this._connectionManager.connectionUI.promptForPassword();
+                    if (!password) {
+                        this._logger.error("Password not provided by user.");
+                        return undefined;
                     }
-                } else if (
-                    connectionProfile.authenticationType ===
-                    Utils.authTypeToString(AuthenticationTypes.Integrated)
-                ) {
+                }
+
+                if (connectionProfile.authenticationType !== Constants.azureMfa) {
                     connectionProfile.azureAccountToken = undefined;
-                } else if (connectionProfile.authenticationType === Constants.azureMfa) {
-                    let azureController = this._connectionManager.azureController;
-                    let account = this._connectionManager.accountStore.getAccount(
-                        connectionProfile.accountId,
-                    );
-                    let needsRefresh = false;
-                    if (!account) {
-                        needsRefresh = true;
-                    } else if (azureController.isSqlAuthProviderEnabled()) {
-                        connectionProfile.user = account.displayInfo.displayName;
-                        connectionProfile.email = account.displayInfo.email;
-                        // Update profile after updating user/email
-                        await this._connectionManager.connectionUI.saveProfile(
-                            connectionProfile as IConnectionProfile,
-                        );
-                        if (!azureController.isAccountInCache(account)) {
-                            needsRefresh = true;
-                        }
-                    }
-                    if (
-                        !connectionProfile.azureAccountToken &&
-                        (!azureController.isSqlAuthProviderEnabled() || needsRefresh)
-                    ) {
-                        void this.refreshAccount(account, connectionProfile);
-                    }
                 }
+                connectionProfile.password = password;
             }
-            const connectionDetails =
-                ConnectionCredentials.createConnectionDetails(connectionProfile);
+            return connectionProfile;
+        }
 
-            const sessionIdResponse: GetSessionIdResponse =
-                await this._connectionManager.client.sendRequest(
-                    GetSessionIdRequest.type,
-                    connectionDetails,
-                );
+        if (
+            connectionProfile.authenticationType ===
+            Utils.authTypeToString(AuthenticationTypes.Integrated)
+        ) {
+            connectionProfile.azureAccountToken = undefined;
+            return connectionProfile;
+        }
 
-            // const nodeLabel =
-            //     (connectionProfile as IConnectionProfile).profileName ??
-            //     ConnInfo.getConnectionDisplayName(connectionProfile);
-
-            const sessionCreatedResponse: Deferred<SessionCreatedParameters> =
-                new Deferred<SessionCreatedParameters>();
-
-            this._pendingSessionCreations.set(sessionIdResponse.sessionId, sessionCreatedResponse);
-
-            const response: CreateSessionResponse =
-                await this._connectionManager.client.sendRequest(
-                    CreateSessionRequest.type,
-                    connectionDetails,
-                );
-
-            if (response) {
-                const result = await sessionCreatedResponse;
-
-                if (this._currentNode instanceof ConnectTreeNode) {
-                    this._currentNode = getParentNode(this._currentNode);
-                }
-                if (result.success) {
-                    let connectionNode = this._rootTreeNodeArray.find((node) =>
-                        Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
-                    ) as ConnectionNode;
-                    let isNewConnection = false;
-                    if (!connectionNode) {
-                        isNewConnection = true;
-                        connectionNode = new ConnectionNode(connectionProfile);
-                        this._rootTreeNodeArray.push(connectionNode);
-                    }
-
-                    connectionNode.updateToConnectedState({
-                        nodeInfo: result.rootNode,
-                        sessionId: result.sessionId,
-                        parentNode: undefined,
-                        connectionProfile: connectionProfile,
-                    });
-
-                    // make a connection if not connected already
-                    const nodeUri = this.getNodeIdentifier(connectionNode);
-                    if (
-                        !this._connectionManager.isConnected(nodeUri) &&
-                        !this._connectionManager.isConnecting(nodeUri)
-                    ) {
-                        await this._connectionManager.connect(
-                            nodeUri,
-                            connectionNode.connectionProfile,
-                        );
-                    }
-                    if (isNewConnection) {
-                        this.addConnectionNodeAtRightPosition(connectionNode);
-                    }
-                    this._objectExplorerProvider.objectExplorerExists = true;
-                    // remove the sign in node once the session is created
-                    if (this._treeNodeToChildrenMap.has(connectionNode)) {
-                        this._treeNodeToChildrenMap.delete(connectionNode);
-                    }
-                } else {
-                    // create session failure
-                    if (this._currentNode?.connectionProfile?.password) {
-                        const profile = this._currentNode.connectionProfile;
-                        profile.password = "";
-                        this._currentNode.updateConnectionProfile(profile);
-                    }
-                    let error = LocalizedConstants.connectErrorLabel;
-                    let errorNumber: number;
-                    if (result.errorNumber) {
-                        errorNumber = result.errorNumber;
-                    }
-                    if (result.errorMessage) {
-                        error += `: ${result.errorMessage}`;
-                    }
-
-                    if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
-                        void this._connectionManager.showInstructionTextAsWarning(
-                            this._currentNode.connectionProfile,
-                            async (updatedProfile) => {
-                                void this.reconnectProfile(this._currentNode, updatedProfile);
-                            },
-                        );
-                    } else if (ObjectExplorerUtils.isFirewallError(result.errorNumber)) {
-                        // handle session failure because of firewall issue
-                        let handleFirewallResult =
-                            await this._connectionManager.firewallService.handleFirewallRule(
-                                Constants.errorFirewallRule,
-                                result.errorMessage,
-                            );
-                        if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
-                            const nodeUri = this.getNodeIdentifier(this._currentNode);
-                            const profile = <IConnectionProfile>this._currentNode.connectionProfile;
-                            //this.updateNode(this._currentNode);
-                            void this._connectionManager.connectionUI.handleFirewallError(
-                                nodeUri,
-                                profile,
-                                handleFirewallResult.ipAddress,
-                            );
-                        }
-                    } else if (
-                        this._currentNode.connectionProfile.authenticationType ===
-                            Constants.azureMfa &&
-                        this.needsAccountRefresh(result, this._currentNode.connectionProfile.user)
-                    ) {
-                        let profile = this._currentNode.connectionProfile;
-                        let account = this._connectionManager.accountStore.getAccount(
-                            profile.accountId,
-                        );
-                        await this.refreshAccount(account, profile);
-                        // Do not await when performing reconnect to allow
-                        // OE node to expand after connection is established.
-                        void this.reconnectProfile(this._currentNode, profile);
-                    } else {
-                        this._connectionManager.vscodeWrapper.showErrorMessage(error);
-                    }
-                }
-
-                return {
-                    sessionId: result.sessionId,
-                    connectionNode: this._rootTreeNodeArray.find((node) =>
-                        Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
-                    ) as ConnectionNode,
-                };
-            } else {
-                this._client.logger.error("No response received for session creation request");
-            }
-        } else {
-            this._client.logger.error(
-                "Connection could not be made, as credentials not available.",
+        if (connectionProfile.authenticationType === Constants.azureMfa) {
+            let azureController = this._connectionManager.azureController;
+            let account = this._connectionManager.accountStore.getAccount(
+                connectionProfile.accountId,
             );
-            return undefined;
+            let needsRefresh = false;
+            if (!account) {
+                needsRefresh = true;
+            } else if (azureController.isSqlAuthProviderEnabled()) {
+                connectionProfile.user = account.displayInfo.displayName;
+                connectionProfile.email = account.displayInfo.email;
+                // Update profile after updating user/email
+                await this._connectionManager.connectionUI.saveProfile(
+                    connectionProfile as IConnectionProfile,
+                );
+                if (!azureController.isAccountInCache(account)) {
+                    needsRefresh = true;
+                }
+            }
+            if (
+                !connectionProfile.azureAccountToken &&
+                (!azureController.isSqlAuthProviderEnabled() || needsRefresh)
+            ) {
+                void this.refreshAccount(account, connectionProfile);
+            }
+
+            return connectionProfile;
+        }
+
+        return connectionProfile;
+    }
+
+    private async handleSessionCreationSuccess(
+        successResponse: SessionCreatedParameters,
+        connectionProfile: IConnectionProfile,
+    ) {
+        if (!successResponse.success) {
+            this._logger.error("Success methods should not be called on failure");
+            return;
+        }
+
+        let connectionNode = this._rootTreeNodeArray.find((node) =>
+            Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
+        ) as ConnectionNode;
+
+        let isNewConnection = false;
+        if (!connectionNode) {
+            isNewConnection = true;
+            connectionNode = new ConnectionNode(connectionProfile);
+            this._rootTreeNodeArray.push(connectionNode);
+        }
+
+        connectionNode.updateToConnectedState({
+            nodeInfo: successResponse.rootNode,
+            sessionId: successResponse.sessionId,
+            parentNode: undefined,
+            connectionProfile: connectionProfile,
+        });
+
+        // make a connection if not connected already
+        const nodeUri = this.getNodeIdentifier(connectionNode);
+        if (
+            !this._connectionManager.isConnected(nodeUri) &&
+            !this._connectionManager.isConnecting(nodeUri)
+        ) {
+            await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile);
+        }
+        if (isNewConnection) {
+            this.addConnectionNodeAtRightPosition(connectionNode);
+        }
+        this._objectExplorerProvider.objectExplorerExists = true;
+        // remove the sign in node once the session is created
+        if (this._treeNodeToChildrenMap.has(connectionNode)) {
+            this._treeNodeToChildrenMap.delete(connectionNode);
+        }
+
+        return {
+            sessionId: successResponse.sessionId,
+            connectionNode: this._rootTreeNodeArray.find((node) =>
+                Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
+            ) as ConnectionNode,
+        };
+    }
+
+    private async handleSessionCreationFailure(
+        failureResponse: SessionCreatedParameters,
+        connectionProfile: IConnectionProfile,
+    ): Promise<{
+        fixedConnectionProfile: IConnectionProfile;
+        shouldReconnect: boolean;
+        errorMessage: string;
+    }> {
+        let error = LocalizedConstants.connectErrorLabel;
+        let errorNumber: number;
+        if (failureResponse.errorNumber) {
+            errorNumber = failureResponse.errorNumber;
+        }
+        if (failureResponse.errorMessage) {
+            error += `: ${failureResponse.errorMessage}`;
+        }
+        if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
+            this._logger.error("Session creation failed with SSL certificate validation error");
+            await new Promise((resolve) => {
+                void this._connectionManager.showInstructionTextAsWarning(
+                    connectionProfile,
+                    async (updatedProfile) => {
+                        resolve();
+                    },
+                );
+            });
+            void this._connectionManager.showInstructionTextAsWarning(
+                connectionProfile,
+                async (updatedProfile) => {
+                    void this.reconnectProfile(this._currentNode, updatedProfile);
+                },
+            );
+        } else if (ObjectExplorerUtils.isFirewallError(failureResponse.errorNumber)) {
+            this._logger.error("Session creation failed with firewall error");
+            // handle session failure because of firewall issue
+            let handleFirewallResult =
+                await this._connectionManager.firewallService.handleFirewallRule(
+                    Constants.errorFirewallRule,
+                    failureResponse.errorMessage,
+                );
+            if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
+                const isFirewallAdded =
+                    await this._connectionManager.connectionUI.handleFirewallError(
+                        ObjectExplorerUtils.getNodeUriFromProfile(connectionProfile),
+                        connectionProfile,
+                        handleFirewallResult.ipAddress,
+                    );
+                if (isFirewallAdded) {
+                    void this.reconnectProfile(this._currentNode, connectionProfile);
+                }
+            }
+        } else if (
+            connectionProfile.authenticationType === Constants.azureMfa &&
+            this.needsAccountRefresh(failureResponse, connectionProfile.user)
+        ) {
+            let account = this._connectionManager.accountStore.getAccount(
+                connectionProfile.accountId,
+            );
+            await this.refreshAccount(account, connectionProfile);
+            // Do not await when performing reconnect to allow
+            // OE node to expand after connection is established.
+            void this.reconnectProfile(this._currentNode, connectionProfile);
+        } else {
+            // If not a known error, show the error message
+            this._logger.error("Session creation failed with unknown error", errorNumber);
+            this._connectionManager.vscodeWrapper.showErrorMessage(error);
         }
     }
 
