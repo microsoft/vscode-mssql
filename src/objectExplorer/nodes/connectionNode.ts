@@ -33,7 +33,7 @@ const createDisconnectedNodeContextValue = (
 
 export class ConnectionNode extends TreeNodeInfo {
     constructor(connectionProfile: ConnectionProfile) {
-        const displayName = ConnInfo.getSimpleConnectionDisplayName(connectionProfile);
+        const displayName = ConnInfo.getConnectionDisplayName(connectionProfile);
         super(
             displayName,
             createDisconnectedNodeContextValue(connectionProfile),
