@@ -319,6 +319,9 @@
     <trans-unit id="++CODE++c52ff5ea803d577544a8224d1404ecefa836b803f029d87cd7450af6c18a70ef">
       <source xml:lang="en">Clear Selection</source>
     </trans-unit>
+    <trans-unit id="++CODE++8046678782bb5feaf7131b03db70b9f5f66007fcc8b0c670c186db149edeb041">
+      <source xml:lang="en">Clear Sort</source>
+    </trans-unit>
     <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
       <source xml:lang="en">Click to connect to a database</source>
     </trans-unit>

@@ -244,7 +244,7 @@
             "panel": [
                 {
                     "id": "queryResult",
-                    "title": "Query Results (Preview)",
+                    "title": "%extension.queryResult%",
                     "icon": "media/SignIn.svg"
                 }
             ]
