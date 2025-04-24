@@ -420,18 +420,15 @@ export class ObjectExplorerService {
 
     // Create a session and expand a node
     async createSessionAndExpandNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const sessionPromise = new Deferred<TreeNodeInfo>();
-        const sessionId = await this.createSession(sessionPromise, element.connectionProfile);
+        const sessionResult = await this.createSession(element.connectionProfile);
 
         // if the session was not created, show the sign in node
-        if (!sessionId) {
+        if (!sessionResult?.sessionId) {
             return this.createSignInNode(element);
         }
 
-        const node = await sessionPromise;
-
         // If the session was created but the connected node was not created, show sign in node
-        if (!node) {
+        if (!sessionResult.connectionNode) {
             return this.createSignInNode(element);
         } else {
             const children = this.expandExistingNode(element);
@@ -446,11 +443,10 @@ export class ObjectExplorerService {
      * OE out of
      * @param connectionProfile Connection Credentials for a node
      */
-    public async createSession(
-        promise: Deferred<vscode.TreeItem | undefined>,
-        connectionCredentials?: IConnectionInfo,
-        _context?: vscode.ExtensionContext,
-    ): Promise<string> {
+    public async createSession(connectionCredentials?: IConnectionInfo): Promise<{
+        sessionId: string | undefined;
+        connectionNode: ConnectionNode | undefined;
+    }> {
         if (!connectionCredentials) {
             const connectionUI = this._connectionManager.connectionUI;
             connectionCredentials = await connectionUI.createAndSaveProfile();
@@ -493,7 +489,6 @@ export class ObjectExplorerService {
                             password =
                                 await this._connectionManager.connectionUI.promptForPassword();
                             if (!password) {
-                                promise.resolve(undefined);
                                 return undefined;
                             }
                         } else {
@@ -607,7 +602,6 @@ export class ObjectExplorerService {
                     if (this._treeNodeToChildrenMap.has(connectionNode)) {
                         this._treeNodeToChildrenMap.delete(connectionNode);
                     }
-                    promise?.resolve(connectionNode);
                 } else {
                     // create session failure
                     if (this._currentNode?.connectionProfile?.password) {
@@ -664,12 +658,14 @@ export class ObjectExplorerService {
                     } else {
                         this._connectionManager.vscodeWrapper.showErrorMessage(error);
                     }
-                    if (promise) {
-                        promise.resolve(undefined);
-                    }
                 }
 
-                return response.sessionId;
+                return {
+                    sessionId: result.sessionId,
+                    connectionNode: this._rootTreeNodeArray.find((node) =>
+                        Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
+                    ) as ConnectionNode,
+                };
             } else {
                 this._client.logger.error("No response received for session creation request");
             }
@@ -677,8 +673,6 @@ export class ObjectExplorerService {
             this._client.logger.error(
                 "Connection could not be made, as credentials not available.",
             );
-            // no connection was made
-            promise.resolve(undefined);
             return undefined;
         }
     }

@@ -54,6 +54,10 @@ export class ConnectionNode extends TreeNodeInfo {
         }
     }
 
+    protected override generateId(): string {
+        return `${this.connectionProfile.id}_${Date.now()}`;
+    }
+
     /**
      * Updates the node to represent a connected state
      */
