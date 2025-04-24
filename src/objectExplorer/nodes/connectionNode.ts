@@ -12,7 +12,7 @@ import * as ConnInfo from "../../models/connectionInfo";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
 
 // Constants for node types and icon names
-export const SERVER_NODE_DISCONNECTED = "disconnectedServerNode";
+export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
 export const DATABASE_SUBTYPE = "Database";
 export const SERVER_NODE_CONNECTED = "Server";
 export const ICON_SERVER_DISCONNECTED = "Server_red";

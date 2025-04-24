@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
-import { ObjectExplorerService } from "./objectExplorerService";
+import { CreateSessionResult, ObjectExplorerService } from "./objectExplorerService";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { Deferred } from "../protocol";
 import { IConnectionInfo } from "vscode-mssql";
@@ -56,10 +56,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         }
     }
 
-    async createSession(connectionCredentials?: IConnectionInfo): Promise<{
-        sessionId: string | undefined;
-        connectionNode: ConnectionNode | undefined;
-    }> {
+    async createSession(connectionCredentials?: IConnectionInfo): Promise<CreateSessionResult> {
         return this._objectExplorerService.createSession(connectionCredentials);
     }
 
