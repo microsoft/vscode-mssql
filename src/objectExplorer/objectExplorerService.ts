@@ -109,7 +109,7 @@ export class ObjectExplorerService {
         if (promise) {
             promise.resolve(result);
         } else {
-            this._logger.logDebug(
+            this._logger.verbose(
                 `Session created notification received for sessionId ${result.sessionId} but no promise found.`,
             );
         }
@@ -120,7 +120,7 @@ export class ObjectExplorerService {
         if (promise) {
             promise.resolve(result);
         } else {
-            this._logger.logDebug(
+            this._logger.verbose(
                 `Expand node notification received for sessionId ${result.sessionId} but no promise found.`,
             );
         }
@@ -787,6 +787,16 @@ export class ObjectExplorerService {
     }
 
     public addConnectionNodeAtRightPosition(connectionNode: ConnectionNode): void {
+        // Check if the node already exists in the array
+        const existingNodeIndex = this._rootTreeNodeArray.findIndex((node) =>
+            Utils.isSameConnectionInfo(node.connectionProfile, connectionNode.connectionProfile),
+        );
+        // Delete the existing node if found
+        // This is to ensure that we don't have duplicate nodes in the array
+        if (existingNodeIndex !== -1) {
+            this._rootTreeNodeArray.splice(existingNodeIndex, 1);
+        }
+
         // Find the right position to insert the node
         const index = this._rootTreeNodeArray.findIndex(
             (node) => (node.label as string).localeCompare(connectionNode.label as string) > 0,
@@ -794,7 +804,8 @@ export class ObjectExplorerService {
         if (index === -1) {
             this._rootTreeNodeArray.push(connectionNode);
         } else {
-            this._rootTreeNodeArray.splice(index, 0, connectionNode);
+            // Replace the existing node at the index with the new one
+            this._rootTreeNodeArray[index] = connectionNode;
         }
     }
 
@@ -844,11 +855,6 @@ export class ObjectExplorerService {
     }
 
     //#region Getters and Setters
-
-    public get rootTreeNodeArray(): TreeNodeInfo[] {
-        return this._rootTreeNodeArray;
-    }
-
     public get rootNodeConnections(): IConnectionInfo[] {
         const connections = this._rootTreeNodeArray.map((node) => node.connectionProfile);
         return connections;
