@@ -41,7 +41,7 @@ export class UserSurvey {
 
     /** checks user eligibility for NPS survey and, if eligible, displays the survey and submits feedback */
     public promptUserForNPSFeedback(): void {
-        void (async () => this.promptUserForNPSFeedbackAsync())();
+        void this.promptUserForNPSFeedbackAsync();
     }
 
     private async promptUserForNPSFeedbackAsync(): Promise<void> {
