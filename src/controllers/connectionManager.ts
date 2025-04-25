@@ -1451,7 +1451,6 @@ export default class ConnectionManager {
     }
 
     public async transferFileConnection(oldFileUri: string, newFileUri: string): Promise<void> {
-        console.log("in transferFileConnection");
         // Is the new file connected or the old file not connected?
         if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
