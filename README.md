@@ -31,6 +31,11 @@ With a rich set of features, the MSSQL extension for Visual Studio Code enhances
   - **Node Navigation**: Interact with each step in the execution plan, including collapsing or expanding nodes for a simplified view.
   - **Zoom Controls**: Zoom in or out to adjust the level of detail, or use "zoom to fit" for a complete view of the plan.
   - **Metrics and Highlighting**: Highlight key performance indicators, such as elapsed time or subtree cost, to identify bottlenecks in query execution.
+- **Schema Compare (Preview)**: Effortless schema synchronization and management
+  - Compare schemas between two databases, DACPAC files, or SQL projects and see additions, removals, and modifications at a glance
+  - Filter and exclude specific differences before syncing
+  - Apply changes directly or generate a deployment script for later use
+  - Save comparisons to rerun or audit schema changes
 - **Customizable Extension Options**: Configure command shortcuts, appearance, and other settings to personalize your development experience.
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
