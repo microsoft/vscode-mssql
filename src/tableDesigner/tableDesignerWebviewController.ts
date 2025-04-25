@@ -303,7 +303,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     select: true,
                 });
                 await this._objectExplorerProvider.refreshNode(targetNode);
-                await this._objectExplorerProvider.refresh(targetNode);
             }
             return state;
         });

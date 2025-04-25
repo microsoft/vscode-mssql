@@ -713,7 +713,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     this._connectionBeingEdited as any,
                 );
-                this._objectExplorerProvider.refresh(undefined);
             }
 
             // all properties are set when converting from a ConnectionDetails object,
@@ -728,8 +727,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 cleanedConnection as any,
             );
             const node = await this._mainController.createObjectExplorerSession(cleanedConnection);
-
-            this._objectExplorerProvider.refresh(undefined);
             await this.updateLoadedConnections(state);
             this.updateState();
 

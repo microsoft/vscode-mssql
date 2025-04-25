@@ -62,6 +62,7 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 
 /**
  * The main controller class that initializes the extension
@@ -647,9 +648,6 @@ export default class MainController implements vscode.Disposable {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
             if (!this.isRichExperiencesEnabled) {
-                if (!self._objectExplorerProvider.objectExplorerExists) {
-                    self._objectExplorerProvider.objectExplorerExists = true;
-                }
                 await self.createObjectExplorerSession();
             } else {
                 let connectionInfo: IConnectionInfo | undefined = undefined;
@@ -703,11 +701,8 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdRemoveObjectExplorerNode,
-                async (treeNodeInfo: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo);
-                    let profile = <IConnectionProfile>treeNodeInfo.connectionProfile;
-                    await this._connectionMgr.connectionStore.removeProfile(profile, false);
-                    return this._objectExplorerProvider.refresh(undefined);
+                async (treeNodeInfo: ConnectionNode) => {
+                    await this._objectExplorerProvider.removeNode(treeNodeInfo);
                 },
             ),
         );
@@ -774,9 +769,8 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdDisconnectObjectExplorerNode,
-                async (node: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
-                    return this._objectExplorerProvider.refresh(undefined);
+                async (node: ConnectionNode) => {
+                    await this._objectExplorerProvider.disconnectNode(node);
                 },
             ),
         );

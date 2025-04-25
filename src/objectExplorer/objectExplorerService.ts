@@ -18,7 +18,6 @@ import {
     ExpandCompleteNotification,
     ExpandResponse,
 } from "../models/contracts/objectExplorer/expandNodeRequest";
-import { ObjectExplorerProvider } from "./objectExplorerProvider";
 import { RefreshRequest } from "../models/contracts/objectExplorer/refreshSessionRequest";
 import {
     CloseSessionRequest,
@@ -83,7 +82,7 @@ export class ObjectExplorerService {
     constructor(
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
-        private _objectExplorerProvider: ObjectExplorerProvider,
+        private _refreshCallback: (node: TreeNodeInfo) => void,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -94,7 +93,6 @@ export class ObjectExplorerService {
         this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ObjectExplorerService");
 
         this._treeNodeToChildrenMap = new Map<vscode.TreeItem, vscode.TreeItem[]>();
-        this._rootTreeNodeArray = new Array<TreeNodeInfo>();
 
         this._client.onNotification(CreateSessionCompleteNotification.type, (e) =>
             this.handleSessionCreatedNotification(e),
@@ -109,7 +107,7 @@ export class ObjectExplorerService {
         if (promise) {
             promise.resolve(result);
         } else {
-            this._logger.verbose(
+            this._logger.error(
                 `Session created notification received for sessionId ${result.sessionId} but no promise found.`,
             );
         }
@@ -120,7 +118,7 @@ export class ObjectExplorerService {
         if (promise) {
             promise.resolve(result);
         } else {
-            this._logger.verbose(
+            this._logger.error(
                 `Expand node notification received for sessionId ${result.sessionId} but no promise found.`,
             );
         }
@@ -133,7 +131,7 @@ export class ObjectExplorerService {
         if (node) {
             node.updateConnectionProfile(profile);
             this.cleanNodeChildren(node);
-            this._objectExplorerProvider.refresh(node);
+            this._refreshCallback(node);
         }
     }
 
@@ -286,7 +284,6 @@ export class ObjectExplorerService {
      */
     private getAddConnectionNode(): AddConnectionTreeNode[] {
         this._rootTreeNodeArray = [];
-        this._objectExplorerProvider.objectExplorerExists = true;
         return [new AddConnectionTreeNode()];
     }
 
@@ -311,39 +308,26 @@ export class ObjectExplorerService {
 
     // Handle getting root nodes
     async getRootNodes(): Promise<vscode.TreeItem[]> {
-        this._logger.logDebug("Getting root OE nodes");
-
         // retrieve saved connections first when opening object explorer for the first time
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
 
         // if there are no saved connections, show the add connection node
         if (savedConnections.length === 0) {
-            this._logger.logDebug("No saved connections found; displaying 'Add Connection' node");
             return this.getAddConnectionNode();
         }
 
-        // if OE doesn't exist the first time, then build the nodes off of saved connections
-        if (!this._objectExplorerProvider.objectExplorerExists) {
-            // if there are actually saved connections
-            this._rootTreeNodeArray = await this.getSavedConnectionNodes();
-            this._logger.logDebug(
-                `No current OE; created OE root with ${this._rootTreeNodeArray.length}`,
-            );
-            this._objectExplorerProvider.objectExplorerExists = true;
+        if (this._rootTreeNodeArray) {
+            // otherwise returned the cached nodes
             return this.sortByServerName(this._rootTreeNodeArray);
         } else {
-            this._logger.logDebug(
-                `Returning cached OE root nodes (${this._rootTreeNodeArray.length})`,
-            );
-            // otherwise returned the cached nodes
+            // if there are actually saved connections
+            this._rootTreeNodeArray = await this.getSavedConnectionNodes();
             return this.sortByServerName(this._rootTreeNodeArray);
         }
     }
 
     // Handle getting children for a specific node
     async getNodeChildren(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        this._logger.logDebug(`Getting children for node '${element.id}'`);
-
         // set current node for very first expansion of disconnected node
         if (this._currentNode !== element) {
             this._currentNode = element;
@@ -410,7 +394,7 @@ export class ObjectExplorerService {
             return this.createSignInNode(element);
         } else {
             const children = this.expandExistingNode(element);
-            setTimeout(() => this._objectExplorerProvider.refresh(element), 0);
+            setTimeout(() => this._refreshCallback(element), 0);
             return children;
         }
     }
@@ -425,7 +409,6 @@ export class ObjectExplorerService {
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
 
         if (!connectionProfile) {
-            this._logger.error("Connection could not be made, as credentials not available.");
             return undefined;
         }
 
@@ -464,7 +447,6 @@ export class ObjectExplorerService {
                 };
             }
         } else {
-            this._client.logger.error("No response received for session creation request");
             return undefined;
         }
     }
@@ -487,12 +469,10 @@ export class ObjectExplorerService {
         }
 
         if (!connectionProfile) {
-            this._logger.error("Connection could not be made, as credentials not available.");
             return undefined;
         }
 
         if (!connectionProfile.id) {
-            this._logger.verbose("Connection profile ID is not set, generating a new one.");
             connectionProfile.id = Utils.generateGuid();
         }
 
@@ -506,20 +486,15 @@ export class ObjectExplorerService {
                 connectionProfile.connectionString = connectionString;
                 return connectionProfile;
             } else {
-                this._logger.error("Cannot find connection string in cred store.");
                 return undefined;
             }
         }
 
         if (ConnectionCredentials.isPasswordBasedCredential(connectionProfile)) {
-            this._logger.verbose("Password based profile detected.");
             // show password prompt if SQL Login and password isn't saved
             let password = connectionProfile.password;
             if (Utils.isEmpty(password)) {
-                this._logger.verbose("Password is empty. Getting password from user.");
-
                 if (connectionProfile.savePassword) {
-                    this._logger.verbose("Password is saved. Looking up password in cred store.");
                     password =
                         await this._connectionManager.connectionStore.lookupPassword(
                             connectionProfile,
@@ -529,7 +504,6 @@ export class ObjectExplorerService {
                 if (!password) {
                     password = await this._connectionManager.connectionUI.promptForPassword();
                     if (!password) {
-                        this._logger.error("Password not provided by user.");
                         return undefined;
                     }
                 }
@@ -587,7 +561,6 @@ export class ObjectExplorerService {
         connectionProfile: IConnectionProfile,
     ) {
         if (!successResponse.success) {
-            this._logger.error("Success methods should not be called on failure");
             return;
         }
 
@@ -600,6 +573,8 @@ export class ObjectExplorerService {
             isNewConnection = true;
             connectionNode = new ConnectionNode(connectionProfile);
             this._rootTreeNodeArray.push(connectionNode);
+        } else {
+            connectionNode.updateConnectionProfile(connectionProfile);
         }
 
         connectionNode.updateToConnectedState({
@@ -620,7 +595,6 @@ export class ObjectExplorerService {
         if (isNewConnection) {
             this.addConnectionNodeAtRightPosition(connectionNode);
         }
-        this._objectExplorerProvider.objectExplorerExists = true;
         // remove the sign in node once the session is created
         if (this._treeNodeToChildrenMap.has(connectionNode)) {
             this._treeNodeToChildrenMap.delete(connectionNode);
@@ -647,7 +621,6 @@ export class ObjectExplorerService {
             error += `: ${failureResponse.errorMessage}`;
         }
         if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
-            this._logger.error("Session creation failed with SSL certificate validation error");
             const fixedProfile: IConnectionProfile = await new Promise((resolve) => {
                 void this._connectionManager.showInstructionTextAsWarning(
                     connectionProfile,
@@ -660,8 +633,6 @@ export class ObjectExplorerService {
                 return true;
             }
         } else if (ObjectExplorerUtils.isFirewallError(failureResponse.errorNumber)) {
-            this._logger.error("Session creation failed with firewall error");
-            // handle session failure because of firewall issue
             let handleFirewallResult =
                 await this._connectionManager.firewallService.handleFirewallRule(
                     Constants.errorFirewallRule,
@@ -685,12 +656,8 @@ export class ObjectExplorerService {
                 connectionProfile.accountId,
             );
             await this.refreshAccount(account, connectionProfile);
-            // Do not await when performing reconnect to allow
-            // OE node to expand after connection is established.
             return true;
         } else {
-            // If not a known error, show the error message
-            this._logger.error("Session creation failed with unknown error", errorNumber);
             this._connectionManager.vscodeWrapper.showErrorMessage(error);
         }
         return false;
@@ -735,41 +702,28 @@ export class ObjectExplorerService {
         }
     }
 
-    public async removeObjectExplorerNode(
-        node: ConnectionNode,
-        isDisconnect: boolean = false,
-    ): Promise<void> {
+    public async removeNode(node: ConnectionNode): Promise<void> {
+        await this.disconnectNode(node);
+        const index = this._rootTreeNodeArray.indexOf(node, 0);
+        if (index > -1) {
+            this._rootTreeNodeArray.splice(index, 1);
+        }
+    }
+
+    public async disconnectNode(node: ConnectionNode): Promise<void> {
         await this.closeSession(node);
         const nodeUri = this.getNodeIdentifier(node);
         await this._connectionManager.disconnect(nodeUri);
         this.cleanNodeChildren(node);
-        if (!isDisconnect) {
-            const index = this._rootTreeNodeArray.indexOf(node, 0);
-            if (index > -1) {
-                this._rootTreeNodeArray.splice(index, 1);
-            }
-        } else {
-            node.updateToDisconnectedState();
-            this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);
-            this._objectExplorerProvider.refresh(node);
-        }
-        sendActionEvent(
-            TelemetryViews.ObjectExplorer,
-            isDisconnect ? TelemetryActions.RemoveConnection : TelemetryActions.Disconnect,
-            {
-                nodeType: node.nodeType,
-            },
-            undefined,
-            node.connectionProfile as IConnectionProfile,
-            this._connectionManager.getServerInfo(node.connectionProfile),
-        );
+        node.updateToDisconnectedState();
+        this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);
     }
 
     public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
         for (let conn of connections) {
             for (let node of this._rootTreeNodeArray) {
                 if (Utils.isSameConnectionInfo(node.connectionProfile, conn)) {
-                    await this.removeObjectExplorerNode(node as ConnectionNode);
+                    await this.removeNode(node as ConnectionNode);
                 }
             }
         }
