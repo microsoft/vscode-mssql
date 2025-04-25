@@ -1859,7 +1859,7 @@ export default class MainController implements vscode.Disposable {
                 this._queryResultWebviewController.deleteQueryResultState(closedDocumentUri);
             }
             //TODO: call updateQueryRunnerUri to update the query runner uri
-            await this._outputContentProvider.updateQueryRunnerUri(
+            this._outputContentProvider.updateQueryRunnerUri(
                 closedDocumentUri,
                 this._lastOpenedUri,
             );

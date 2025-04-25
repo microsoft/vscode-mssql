@@ -165,7 +165,7 @@ export interface QueryExecutionOptions {
 // ------------------------------- < Query Connection URI Change Request > ------------------------------------
 
 export namespace QueryConnectionUriChangeRequest {
-    export const type = new RequestType<QueryConnectionUriChangeParams, boolean, void, void>(
+    export const type = new NotificationType<QueryConnectionUriChangeParams, boolean>(
         "query/connectionUriChanged",
     );
 }

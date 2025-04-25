@@ -562,9 +562,9 @@ export class SqlOutputContentProvider {
         this._queryResultsMap.delete(untitledResultsUri);
     }
 
-    public async updateQueryRunnerUri(oldUri: string, newUri: string): Promise<void> {
+    public updateQueryRunnerUri(oldUri: string, newUri: string): void {
         let queryRunner = this.getQueryRunner(oldUri);
-        await queryRunner.updateQueryRunnerUri(oldUri, newUri);
+        queryRunner.updateQueryRunnerUri(oldUri, newUri);
     }
 
     /**

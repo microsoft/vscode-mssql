@@ -891,12 +891,12 @@ export default class QueryRunner {
         return this._totalElapsedMilliseconds;
     }
 
-    public async updateQueryRunnerUri(oldUri: string, newUri: string): Promise<void> {
+    public updateQueryRunnerUri(oldUri: string, newUri: string): void {
         let queryConnectionUriChangeParams: QueryConnectionUriChangeParams = {
             newUri: newUri,
             oldUri: oldUri,
         };
-        await this._client.sendRequest(
+        this._client.sendNotification(
             QueryConnectionUriChangeRequest.type,
             queryConnectionUriChangeParams,
         );
