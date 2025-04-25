@@ -1,0 +1,108 @@
+name: Bug Report - GitHub Copilot integration
+description: File a bug report to help us improve GitHub Copilot integration for the MSSQL extension.
+title: "[GitHub Copilot - Bug]: "
+labels: ["bug", "PrPr", "Area - GitHub Copilot", "Triage: Needed"]
+assignees: []
+
+body:
+  # Introductory message to thank the user and set expectations
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for taking the time to report a bug!
+        Please provide as much detail as possible (screenshots, screen recordings, logs) to help us reproduce and fix the issue.
+
+  # Section for describing the issue
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Briefly explain what you expected to happen and what actually happened.
+      placeholder: |
+        Expected GitHub Copilot to suggest valid output...
+        But the suggestion was incorrect or not aligned with the prompt.
+        Paste or drag and drop screenshots or recordings that show the bug.
+    validations:
+      required: true
+
+  # Section for providing steps to reproduce the issue
+  - type: textarea
+    id: repro-steps
+    attributes:
+      label: Steps to Reproduce
+      description: Describe the GitHub Copilot prompt, action, and the sequence that led to the issue.
+      placeholder: |
+        1. Entered a prompt in the editor
+        2. Reviewed GitHub Copilot's suggestion
+        3. Accepted or modified the suggestion
+        4. Observed unexpected output or behavior
+    validations:
+      required: true
+
+  # Section for selecting affected areas
+  - type: checkboxes
+    id: affected-area
+    attributes:
+      label: Affected Area
+      description: Select all the areas where you encountered issues.
+      options:
+        - label: Chat and inline suggestions
+        - label: Code generation
+        - label: Database schema creation and management assistant
+        - label: Query building assistant
+        - label: Query optimization assistant
+        - label: Business Logic Assistant
+        - label: Security assistant
+        - label: Localization, Encoding, and Formatting
+        - label: Testing and mock data assistant
+        - label: Other (please describe below)
+
+  - type: textarea
+    id: other-affected-area
+    attributes:
+      label: If you selected "Other", please describe the affected area
+      description: Only fill this if you selected "Other" above.
+      placeholder: Describe the affected area here...
+    validations:
+      required: false
+
+  # Section for providing environment details
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Information (Optional)
+      description: Add versions and environment details below.
+      placeholder: |
+        • VS Code Version:
+        • MSSQL Extension Version:
+        • GitHub Copilot Version:
+        • Operating System:
+
+  # Section for rating the Copilot's response
+  - type: checkboxes
+    id: copilot-rating
+    attributes:
+      label: Rate the answer provided by GitHub Copilot (Optional)
+      description: Select all that apply.
+      options:
+        - label: Amazing
+        - label: Great
+        - label: Helpful
+        - label: Unhelpful
+        - label: Bad
+        - label: Fix ASAP
+
+  # Section for confirming issue search and willingness to work on the issue
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have searched existing issues and couldn’t find a match
+          required: true
+        - label: I want to work on this issue
+
+  # Closing message to thank the user
+  - type: markdown
+    attributes:
+      value: "Thank you for reporting this issue! We’ll get back to you as soon as possible. 🙌"
