@@ -48,13 +48,13 @@ body:
       options:
         - label: Chat and inline suggestions
         - label: Code generation
-        - label: Database schema creation and management assistant
-        - label: Query building assistant
-        - label: Query optimization assistant
-        - label: Business Logic Assistant
-        - label: Security assistant
-        - label: Localization, Encoding, and Formatting
-        - label: Testing and mock data assistant
+        - label: Schema Explorer & Designer
+        - label: Smart Query Builder
+        - label: Query Optimizer Assistant
+        - label: Business Logic Explainer
+        - label: Security Analyzer
+        - label: Localization & Formatting Helper
+        - label: Testing and Mocking Data Generator
         - label: Other (please describe below)
 
   - type: textarea
@@ -77,20 +77,6 @@ body:
         • MSSQL Extension Version:
         • GitHub Copilot Version:
         • Operating System:
-
-  # Section for rating the Copilot's response
-  - type: checkboxes
-    id: copilot-rating
-    attributes:
-      label: Rate the answer provided by GitHub Copilot (Optional)
-      description: Select all that apply.
-      options:
-        - label: Amazing
-        - label: Great
-        - label: Helpful
-        - label: Unhelpful
-        - label: Bad
-        - label: Fix ASAP
 
   # Section for confirming issue search and willingness to work on the issue
   - type: checkboxes
