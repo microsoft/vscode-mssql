@@ -21,6 +21,7 @@ import { ConnectionProfile } from "../models/connectionProfile";
 import { ConnectionStore } from "../models/connectionStore";
 import { IAccount } from "../models/contracts/azure";
 import * as ConnectionContracts from "../models/contracts/connection";
+import * as QueryContracts from "../models/contracts/queryExecute";
 import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { EncryptOptions, IConnectionProfile } from "../models/interfaces";
@@ -1451,6 +1452,7 @@ export default class ConnectionManager {
     }
 
     public async transferFileConnection(oldFileUri: string, newFileUri: string): Promise<void> {
+        console.log("in transferFileConnection");
         // Is the new file connected or the old file not connected?
         if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
@@ -1462,6 +1464,15 @@ export default class ConnectionManager {
         if (result) {
             await this.disconnect(oldFileUri);
         }
+
+        await this.sendRequest(QueryContracts.QueryConnectionUriChangeRequest.type, <
+            QueryContracts.QueryConnectionUriChangeParams
+        >{
+            newUri: newFileUri,
+            oldUri: oldFileUri,
+        });
+
+        console.log("finish sts request");
     }
 
     public async refreshAzureAccountToken(uri: string): Promise<void> {

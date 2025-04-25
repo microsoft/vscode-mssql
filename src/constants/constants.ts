@@ -126,8 +126,8 @@ export const outputContentTypeShowWarning = "showWarning";
 export const outputServiceLocalhost = "http://localhost:";
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
-export const untitledSaveTimeThreshold = 10.0;
-export const renamedOpenTimeThreshold = 10.0;
+export const untitledSaveTimeThreshold = 40.0;
+export const renamedOpenTimeThreshold = 200.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
 export const macOpenSslHelpLink =
     "https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration";
