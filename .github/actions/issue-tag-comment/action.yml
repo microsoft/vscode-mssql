@@ -1,0 +1,35 @@
+name: Comment on Label Added
+
+on:
+  issues:
+    types:
+      - labeled
+
+jobs:
+  comment-on-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Comment when a specific label is added
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const labelName = context.payload.label.name.replace(/\s+/g, '').toLowerCase();
+            const filename = `issue_${labelName}_template.md`;
+            const filepath = path.join('.', filename);
+            console.log(filepath);
+
+            if (fs.existsSync(filepath)) {
+              const comment = fs.readFileSync(filepath, 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
