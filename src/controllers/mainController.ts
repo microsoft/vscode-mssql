@@ -62,6 +62,7 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import { DefaultWebviewNotifications } from "./reactWebviewBaseController";
 
 /**
  * The main controller class that initializes the extension
@@ -1832,10 +1833,18 @@ export default class MainController implements vscode.Disposable {
             console.log("transfer for untitled file");
             // Untitled file was saved and connection will be transfered
             await this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastSavedUri);
+
+            this._outputContentProvider.updateQueryRunnerUri(closedDocumentUri, this._lastSavedUri);
+            this._outputContentProvider.onUntitledFileSaved(closedDocumentUri, this._lastSavedUri);
+
             let state = this._queryResultWebviewController.getQueryResultState(closedDocumentUri);
 
             if (state) {
                 state.uri = this._lastSavedUri;
+                this._queryResultWebviewController.postNotification(
+                    DefaultWebviewNotifications.updateState,
+                    state,
+                );
                 this._queryResultWebviewController.setQueryResultState(this._lastSavedUri, state);
                 this._queryResultWebviewController.deleteQueryResultState(closedDocumentUri);
             }
@@ -1844,7 +1853,7 @@ export default class MainController implements vscode.Disposable {
             // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
         } else if (
             this._lastOpenedUri &&
-            this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold
+            this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold
         ) {
             console.log("transfer for renamed file");
             // File was renamed and connection will be transfered
@@ -1852,19 +1861,23 @@ export default class MainController implements vscode.Disposable {
                 closedDocumentUri,
                 this._lastOpenedUri,
             );
-            let state = this._queryResultWebviewController.getQueryResultState(closedDocumentUri);
-            if (state) {
-                state.uri = this._lastOpenedUri;
-                this._queryResultWebviewController.setQueryResultState(this._lastOpenedUri, state);
-                this._queryResultWebviewController.deleteQueryResultState(closedDocumentUri);
-            }
-            //TODO: call updateQueryRunnerUri to update the query runner uri
             this._outputContentProvider.updateQueryRunnerUri(
                 closedDocumentUri,
                 this._lastOpenedUri,
             );
             this._outputContentProvider.onUntitledFileSaved(closedDocumentUri, this._lastOpenedUri);
 
+            let state = this._queryResultWebviewController.getQueryResultState(closedDocumentUri);
+            if (state) {
+                state.uri = this._lastOpenedUri;
+                this._queryResultWebviewController.postNotification(
+                    DefaultWebviewNotifications.updateState,
+                    state,
+                );
+                this._queryResultWebviewController.setQueryResultState(this._lastOpenedUri, state);
+                this._queryResultWebviewController.deleteQueryResultState(closedDocumentUri);
+                // Post a notification to the webview to update the state of the query result
+            }
             console.log("done with renamed file");
         } else {
             // Pass along the close event to the other handlers for a normal closed file
