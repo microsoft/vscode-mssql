@@ -562,6 +562,11 @@ export class SqlOutputContentProvider {
         this._queryResultsMap.delete(untitledResultsUri);
     }
 
+    public async updateQueryRunnerUri(oldUri: string, newUri: string): Promise<void> {
+        let queryRunner = this.getQueryRunner(oldUri);
+        await queryRunner.updateQueryRunnerUri(oldUri, newUri);
+    }
+
     /**
      * Executed from the MainController when a text document (that already exists on disk) was
      * closed. If the query is in progress, it will be canceled. If there is a query at all,

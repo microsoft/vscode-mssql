@@ -1858,7 +1858,13 @@ export default class MainController implements vscode.Disposable {
                 this._queryResultWebviewController.setQueryResultState(this._lastOpenedUri, state);
                 this._queryResultWebviewController.deleteQueryResultState(closedDocumentUri);
             }
+            //TODO: call updateQueryRunnerUri to update the query runner uri
+            await this._outputContentProvider.updateQueryRunnerUri(
+                closedDocumentUri,
+                this._lastOpenedUri,
+            );
             this._outputContentProvider.onUntitledFileSaved(closedDocumentUri, this._lastOpenedUri);
+
             console.log("done with renamed file");
         } else {
             // Pass along the close event to the other handlers for a normal closed file
