@@ -253,6 +253,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             packetSize: undefined,
             typeSystemVersion: undefined,
             connectionString: "",
+            containerName: undefined,
         };
 
         treeNode = new TreeNodeInfo(

@@ -554,6 +554,18 @@
                     "command": "mssql.deleteQueryHistory",
                     "when": "view == queryHistory && viewItem == queryHistoryNode",
                     "group": "MS_SQL@3"
+                },
+                {
+                    "command": "mssql.stopContainer",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer)\\b/"
+                },
+                {
+                    "command": "mssql.deleteContainer",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer)\\b/"
+                },
+                {
+                    "command": "mssql.startContainer",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer)\\b/"
                 }
             ],
             "commandPalette": [
@@ -968,6 +980,30 @@
                 "command": "mssql.enableRichExperiences",
                 "title": "%mssql.enableRichExperiences%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.deployLocalDockerContainer",
+                "title": "%mssql.deployLocalDockerContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.stopContainer",
+                "title": "%mssql.stopContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.deleteContainer",
+                "title": "%mssql.deleteContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.startContainer",
+                "title": "%mssql.startContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -1304,6 +1340,11 @@
                             "emptyPasswordInput": {
                                 "type": "boolean",
                                 "description": "%mssql.connection.emptyPasswordInput%"
+                            },
+                            "containerName": {
+                                "type": "string",
+                                "default": "",
+                                "description": "%mssql.connection.containerName%"
                             }
                         }
                     },

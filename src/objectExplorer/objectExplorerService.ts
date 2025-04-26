@@ -55,6 +55,10 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import {
+    checkIfConnectionIsDockerContainer,
+    restartContainer,
+} from "../containerDeployment/dockerUtils";
 
 function getParentNode(node: TreeNodeType): TreeNodeInfo {
     node = node.parentNode;
@@ -619,10 +623,31 @@ export class ObjectExplorerService {
         if (connectionCredentials) {
             const connectionProfile = connectionCredentials as IConnectionProfile;
 
+            // Check if connection is a Docker container
+            const serverName = connectionCredentials.connectionString
+                ? connectionCredentials.connectionString.match(/^Server=([^;]+)/)?.[1]
+                : connectionCredentials.server;
+
+            if (serverName && !connectionCredentials.containerName) {
+                const containerName = await checkIfConnectionIsDockerContainer(serverName);
+                if (containerName) {
+                    connectionCredentials.containerName = containerName;
+                }
+            }
+
             if (!connectionProfile.id) {
                 connectionProfile.id = Utils.generateGuid();
             }
 
+            // Local container, ensure it is started
+            if (connectionCredentials.containerName) {
+                sendActionEvent(
+                    TelemetryViews.ContainerDeployment,
+                    TelemetryActions.ConnectToContainer,
+                );
+                // start docker and docker container
+                await restartContainer(connectionCredentials.containerName);
+            }
             // connection string based credential
             if (connectionProfile.connectionString) {
                 if ((connectionProfile as IConnectionProfile).savePassword) {

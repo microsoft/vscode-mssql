@@ -23,6 +23,12 @@ export class ObjectExplorerUtils {
             } else if (label === Constants.serverLabel) {
                 // if connected
                 label += "_green";
+            } else if (label === Constants.disconnectedDockerContainerNodeType) {
+                // if disconnected
+                label = `${Constants.dockerContainerLabel}_red`;
+            } else if (label === Constants.dockerContainerLabel) {
+                // if connected
+                label += "_green";
             }
             return path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
         }
@@ -94,7 +100,9 @@ export class ObjectExplorerUtils {
         // We're on a server node so just use the database directly from the connection string
         if (
             node.nodeType === Constants.serverLabel ||
-            node.nodeType === Constants.disconnectedServerNodeType
+            node.nodeType === Constants.disconnectedServerNodeType ||
+            node.context.type === Constants.dockerContainerLabel ||
+            node.context.type === Constants.disconnectedDockerContainerNodeType
         ) {
             return node.connectionInfo.database;
         }

@@ -62,6 +62,8 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
+import { deleteContainer, stopContainer } from "../containerDeployment/dockerUtils";
 
 /**
  * The main controller class that initializes the extension
@@ -196,6 +198,11 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearPooledConnections, async () => {
                 await this.onClearPooledConnections();
             });
+            this.registerCommand(Constants.cmdDeployLocalDockerContainer);
+            this._event.on(Constants.cmdDeployLocalDockerContainer, async () => {
+                // Commenting out the container deployment view while react code get finished
+                // await this.onDeployContainer();
+            });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
                 void this.onRunCurrentStatement();
@@ -290,20 +297,6 @@ export default class MainController implements vscode.Disposable {
                 vscode.workspace
                     .getConfiguration()
                     .update(Constants.cmdObjectExplorerGroupBySchemaFlagName, false, true);
-            });
-
-            this.registerCommand(Constants.cmdEnableRichExperiencesCommand);
-            this._event.on(Constants.cmdEnableRichExperiencesCommand, async () => {
-                await this._vscodeWrapper
-                    .getConfiguration()
-                    .update(
-                        Constants.configEnableRichExperiences,
-                        true,
-                        vscode.ConfigurationTarget.Global,
-                    );
-
-                // reload immediately so that the changes take effect
-                await vscode.commands.executeCommand("workbench.action.reloadWindow");
             });
 
             this.initializeQueryHistory();
@@ -1007,7 +1000,9 @@ export default class MainController implements vscode.Disposable {
                     return;
                 } else if (
                     node.context.type === Constants.serverLabel ||
-                    node.context.type === Constants.disconnectedServerNodeType
+                    node.context.type === Constants.disconnectedServerNodeType ||
+                    node.context.type === Constants.dockerContainerLabel ||
+                    node.context.type === Constants.disconnectedDockerContainerNodeType
                 ) {
                     const label = typeof node.label === "string" ? node.label : node.label.label;
                     await this._vscodeWrapper.clipboardWriteText(label);
@@ -1027,6 +1022,104 @@ export default class MainController implements vscode.Disposable {
                 }
             }),
         );
+
+        // Stop container command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdStopContainer,
+                async (node: TreeNodeInfo) => {
+                    const containerName = node.connectionInfo.containerName;
+                    const stoppedSuccessfully = await stopContainer(
+                        node.connectionInfo.containerName,
+                    );
+                    vscode.window.showInformationMessage(
+                        stoppedSuccessfully
+                            ? LocalizedConstants.ContainerDeployment.stoppedContainerSucessfully(
+                                  containerName,
+                              )
+                            : LocalizedConstants.ContainerDeployment.failStopContainer(
+                                  containerName,
+                              ),
+                    );
+                    if (stoppedSuccessfully) {
+                        // Disconnect from the node
+                        await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
+                        return this._objectExplorerProvider.refresh(undefined);
+                    }
+                },
+            ),
+        );
+        // Delete container command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDeleteContainer,
+                async (node: TreeNodeInfo) => {
+                    const confirmation = await vscode.window.showInformationMessage(
+                        LocalizedConstants.Common.areYouSureYouWantTo("delete the container"),
+                        LocalizedConstants.Common.delete,
+                        LocalizedConstants.Common.cancel,
+                    );
+
+                    if (confirmation === LocalizedConstants.Common.delete) {
+                        const containerName = node.connectionInfo.containerName;
+                        const deletedSuccessfully = await deleteContainer(containerName);
+                        vscode.window.showInformationMessage(
+                            deletedSuccessfully
+                                ? LocalizedConstants.ContainerDeployment.deletedContainerSucessfully(
+                                      containerName,
+                                  )
+                                : LocalizedConstants.ContainerDeployment.failDeleteContainer(
+                                      containerName,
+                                  ),
+                        );
+                        if (deletedSuccessfully) {
+                            // Delete node from tree
+                            await this._objectExplorerProvider.removeObjectExplorerNode(node);
+                            return this._objectExplorerProvider.refresh(undefined);
+                        }
+                    }
+                },
+            ),
+        );
+        // Start container command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdStartContainer,
+                async (node: TreeNodeInfo) => {
+                    try {
+                        // doing it this way instead of directly calling startContainer
+                        // allows for the object explorer item loading UI to show
+                        this._objectExplorerProvider.deleteChildrenCache(node);
+                        await this._objectExplorerProvider.refresh(node);
+                        await this.objectExplorerTree.reveal(node, {
+                            select: true,
+                            focus: true,
+                            expand: true,
+                        });
+                    } catch {
+                        vscode.window.showErrorMessage(
+                            LocalizedConstants.ContainerDeployment.failStartContainer(
+                                node.connectionInfo.containerName,
+                            ),
+                        );
+                    }
+                },
+            ),
+        );
+
+        this.registerCommand(Constants.cmdEnableRichExperiencesCommand);
+        this._event.on(Constants.cmdEnableRichExperiencesCommand, async () => {
+            await this._vscodeWrapper
+                .getConfiguration()
+                .update(
+                    Constants.configEnableRichExperiences,
+                    true,
+                    vscode.ConfigurationTarget.Global,
+                );
+
+            // reload immediately so that the changes take effect
+            await vscode.commands.executeCommand("workbench.action.reloadWindow");
+        });
 
         // Reveal Query Results command
         this._context.subscriptions.push(
@@ -1276,6 +1369,16 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    public async onDeployContainer(): Promise<boolean> {
+        const reactPanel = new ContainerDeploymentWebviewController(
+            this._context,
+            this._vscodeWrapper,
+            this,
+        );
+        reactPanel.revealToForeground();
+        return true;
     }
 
     /**
