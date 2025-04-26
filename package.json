@@ -1718,6 +1718,11 @@
                     "default": 45,
                     "minimum": 1,
                     "description": "%mssql.objectExplorer.expandTimeout%"
+                },
+                "mssql.statusBar.connectionInfoMaxLength": {
+                    "type": "number",
+                    "default": 50,
+                    "description": "%mssql.statusBar.connectionInfoMaxLength.description%"
                 }
             }
         },
