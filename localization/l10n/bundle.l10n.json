@@ -203,6 +203,25 @@
   "Back to preview": "Back to preview",
   "Copy": "Copy",
   "You must review and accept the terms to proceed": "You must review and accept the terms to proceed",
+  "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
+    "message": "Create new firewall rule for {0}",
+    "comment": [
+      "{0} is the server name that the firewall rule will be created for"
+    ]
+  },
+  "Create a new firewall rule": "Create a new firewall rule",
+  "A firewall rule is required to access this server.": "A firewall rule is required to access this server.",
+  "Add Firewall Rule": "Add Firewall Rule",
+  "Sign into Azure in order to add a firewall rule.": "Sign into Azure in order to add a firewall rule.",
+  "Sign into Azure": "Sign into Azure",
+  "Tenant": "Tenant",
+  "Rule name": "Rule name",
+  "Add my client IP ({0})/{0} is the IP address of the client": {
+    "message": "Add my client IP ({0})",
+    "comment": [
+      "{0} is the IP address of the client"
+    ]
+  },
   "Connect": "Connect",
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
@@ -230,9 +249,6 @@
   "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?": "Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?",
   "Read more": "Read more",
   "Enable 'Trust Server Certificate'": "Enable 'Trust Server Certificate'",
-  "Create a new firewall rule": "Create a new firewall rule",
-  "A firewall rule is required to access this server.": "A firewall rule is required to access this server.",
-  "Add Firewall Rule": "Add Firewall Rule",
   "Select a {0} for filtering/{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'": {
     "message": "Select a {0} for filtering",
     "comment": [
@@ -309,6 +325,7 @@
   "Show Filter": "Show Filter",
   "Sort Ascending": "Sort Ascending",
   "Sort Descending": "Sort Descending",
+  "Clear Sort": "Clear Sort",
   "Save as CSV": "Save as CSV",
   "Save as Excel": "Save as Excel",
   "Save as JSON": "Save as JSON",
@@ -746,7 +763,6 @@
   "Cannot connect due to expired tokens. Please re-authenticate and try again.": "Cannot connect due to expired tokens. Please re-authenticate and try again.",
   "Microsoft Entra Id": "Microsoft Entra Id",
   "Choose a Microsoft Entra tenant": "Choose a Microsoft Entra tenant",
-  "Tenant": "Tenant",
   "User name": "User name",
   "User name (SQL Login)": "User name (SQL Login)",
   "Password": "Password",
@@ -1066,6 +1082,13 @@
       "{0} is the connection name"
     ]
   },
+  "Add Firewall Rule to {0}/{0} is the server name": {
+    "message": "Add Firewall Rule to {0}",
+    "comment": [
+      "{0} is the server name"
+    ]
+  },
+  "Azure sign-in failed or was cancelled.": "Azure sign-in failed or was cancelled.",
   "Error loading Azure account information for tenant ID '{0}'/{0} is the tenant ID": {
     "message": "Error loading Azure account information for tenant ID '{0}'",
     "comment": [

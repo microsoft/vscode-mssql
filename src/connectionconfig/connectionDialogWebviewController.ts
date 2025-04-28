@@ -29,6 +29,7 @@ import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form"
 import {
     ConnectionDialog as Loc,
     Common as LocCommon,
+    Azure as LocAzure,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
@@ -49,10 +50,6 @@ import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import {
-    connectionCertValidationFailedErrorCode,
-    connectionFirewallErrorCode,
-} from "./connectionConstants";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
@@ -61,11 +58,12 @@ import {
     IConnectionProfile,
     IConnectionProfileWithSource,
 } from "../models/interfaces";
-import { IAccount } from "../models/contracts/azure";
 import { generateConnectionComponents, groupAdvancedOptions } from "./formComponentHelpers";
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
+import { errorFirewallRule, errorSSLCertificateValidationFailed } from "../constants/constants";
+import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -127,8 +125,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         this.registerRpcHandlers();
-        this.initializeDialog(connectionToEdit)
-            .then(() => this.initialized.resolve())
+        void this.initializeDialog(connectionToEdit)
+            .then(() => {
+                this.updateState();
+                this.initialized.resolve();
+            })
             .catch((err) => {
                 void vscode.window.showErrorMessage(getErrorMessage(err));
 
@@ -206,7 +207,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         await this.updateItemVisibility();
-        this.updateState();
     }
 
     private registerRpcHandlers() {
@@ -234,6 +234,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             await this.handleAzureMFAEdits("azureAuthType");
             await this.handleAzureMFAEdits("accountId");
 
+            await this.checkReadyToConnect();
+
             return state;
         });
 
@@ -248,24 +250,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("addFirewallRule", async (state, payload) => {
-            const [startIp, endIp] =
-                typeof payload.ip === "string"
-                    ? [payload.ip, payload.ip]
-                    : [payload.ip.startIp, payload.ip.endIp];
-
-            console.debug(`Setting firewall rule: "${payload.name}" (${startIp} - ${endIp})`);
-            let account, tokenMappings;
+            (state.dialog as AddFirewallRuleDialogProps).props.addFirewallRuleState =
+                ApiStatus.Loading;
+            this.updateState(state);
 
             try {
-                ({ account, tokenMappings } = await this.constructAzureAccountForTenant(
-                    payload.tenantId,
-                ));
-            } catch (err) {
-                state.formError = Loc.errorCreatingFirewallRule(
-                    `"${payload.name}" (${startIp} - ${endIp})`,
-                    getErrorMessage(err),
+                await this._mainController.connectionManager.firewallService.createFirewallRuleWithVscodeAccount(
+                    payload.firewallRuleSpec,
+                    this.state.connectionProfile.server,
                 );
-
+                state.dialog = undefined;
+            } catch (err) {
+                state.formError = getErrorMessage(err);
                 state.dialog = undefined;
 
                 sendErrorEvent(
@@ -276,38 +272,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     undefined, // errorCode
                     undefined, // errorType
                     {
-                        failure: "constructAzureAccountForTenant",
-                    },
-                );
-
-                return state;
-            }
-
-            const result =
-                await this._mainController.connectionManager.firewallService.createFirewallRule({
-                    account: account,
-                    firewallRuleName: payload.name,
-                    startIpAddress: startIp,
-                    endIpAddress: endIp,
-                    serverName: this.state.connectionProfile.server,
-                    securityTokenMappings: tokenMappings,
-                });
-
-            if (!result.result) {
-                state.formError = Loc.errorCreatingFirewallRule(
-                    `"${payload.name}" (${startIp} - ${endIp})`,
-                    result.errorMessage,
-                );
-
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.AddFirewallRule,
-                    new Error(result.errorMessage),
-                    false, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                    {
-                        failure: "firewallService.createFirewallRule",
+                        failure: err.Name,
                     },
                 );
             }
@@ -482,7 +447,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerRequestHandler("getConnectionDisplayName", async (payload) => {
-            return payload.profileName ? payload.profileName : getConnectionDisplayName(payload);
+            return getConnectionDisplayName(payload);
+        });
+
+        this.registerReducer("signIntoAzureForFirewallRule", async (state) => {
+            if (state.dialog?.type !== "addFirewallRule") {
+                return state;
+            }
+
+            await this.populateTentants((state.dialog as AddFirewallRuleDialogProps).props);
+
+            return state;
         });
     }
 
@@ -493,7 +468,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     override async afterSetFormProperty(
         propertyName: keyof IConnectionDialogProfile,
     ): Promise<void> {
-        return await this.handleAzureMFAEdits(propertyName);
+        await this.handleAzureMFAEdits(propertyName);
+    }
+
+    private async checkReadyToConnect(): Promise<void> {
+        const fullValidation = await this.validateForm(
+            this.state.connectionProfile,
+            undefined,
+            false,
+        );
+
+        this.state.readyToConnect = fullValidation.length === 0;
     }
 
     async updateItemVisibility() {
@@ -519,6 +504,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         for (const component of Object.values(this.state.formComponents)) {
             component.hidden = hiddenProperties.includes(component.propertyName);
         }
+
+        await this.checkReadyToConnect();
     }
 
     protected getActiveFormComponents(
@@ -798,7 +785,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         result: ConnectionCompleteParams,
         state: ConnectionDialogWebviewState,
     ): Promise<ConnectionDialogWebviewState> {
-        if (result.errorNumber === connectionCertValidationFailedErrorCode) {
+        if (result.errorNumber === errorSSLCertificateValidationFailed) {
             this.state.connectionStatus = ApiStatus.Error;
             this.state.dialog = {
                 type: "trustServerCert",
@@ -809,7 +796,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             // just prompt the user to trust the cert
 
             return state;
-        } else if (result.errorNumber === connectionFirewallErrorCode) {
+        } else if (result.errorNumber === errorFirewallRule) {
             this.state.connectionStatus = ApiStatus.Error;
 
             const handleFirewallErrorResult =
@@ -837,14 +824,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             this.state.dialog = {
                 type: "addFirewallRule",
-                message: result.errorMessage,
-                clientIp: handleFirewallErrorResult.ipAddress,
-                tenants: tenants.map((t) => {
-                    return {
-                        name: t.displayName,
-                        id: t.tenantId,
-                    };
-                }),
+                props: {
+                    message: result.errorMessage,
+                    clientIp: handleFirewallErrorResult.ipAddress,
+                    tenants: tenants.map((t) => {
+                        return {
+                            name: t.displayName,
+                            id: t.tenantId,
+                        };
+                    }),
+                    isSignedIn: true,
+                    serverName: this.state.connectionProfile.server,
+                },
             } as AddFirewallRuleDialogProps;
 
             return state;
@@ -867,13 +858,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async loadConnectionToEdit(connectionToEdit: IConnectionInfo) {
         if (connectionToEdit) {
             this._connectionBeingEdited = structuredClone(connectionToEdit);
-            const connection = await this.initializeConnectionForDialog(connectionToEdit);
+            const connection = await this.initializeConnectionForDialog(
+                this._connectionBeingEdited,
+            );
             this.state.connectionProfile = connection;
             this.state.selectedInputMode = ConnectionInputMode.Parameters;
 
             if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
                 await this.handleAzureMFAEdits("accountId");
             }
+
+            await this.checkReadyToConnect();
 
             this.updateState();
         }
@@ -943,6 +938,29 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#endregion
 
     //#region Azure helpers
+
+    public async populateTentants(state: AddFirewallRuleState): Promise<void> {
+        const auth = await confirmVscodeAzureSignin();
+
+        if (!auth) {
+            const errorMessage = LocAzure.azureSignInFailedOrWasCancelled;
+
+            this.logger.error(errorMessage);
+            this.vscodeWrapper.showErrorMessage(errorMessage);
+
+            return;
+        }
+
+        const tenants = await auth.getTenants();
+
+        state.isSignedIn = true;
+        state.tenants = tenants.map((t) => {
+            return {
+                name: t.displayName,
+                id: t.tenantId,
+            };
+        });
+    }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
         const actionButtons: FormItemActionButton[] = [];
@@ -1065,58 +1083,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 accountComponent.actionButtons = await this.getAzureActionButtons();
                 break;
         }
-    }
-
-    private async constructAzureAccountForTenant(
-        tenantId: string,
-    ): Promise<{ account: IAccount; tokenMappings: {} }> {
-        const auth = await confirmVscodeAzureSignin();
-        const subs = await auth.getSubscriptions(false /* filter */);
-        const sub = subs.filter((s) => s.tenantId === tenantId)[0];
-
-        if (!sub) {
-            throw new Error(Loc.errorLoadingAzureAccountInfoForTenantId(tenantId));
-        }
-
-        const token = await sub.credential.getToken(".default");
-
-        const session = await sub.authentication.getSession();
-
-        const account: IAccount = {
-            displayInfo: {
-                displayName: session.account.label,
-                userId: session.account.label,
-                name: session.account.label,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                accountType: (session.account as any).type as any,
-            },
-            key: {
-                providerId: "microsoft",
-                id: session.account.label,
-            },
-            isStale: false,
-            properties: {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                azureAuthType: 0 as any,
-                providerSettings: undefined,
-                isMsAccount: false,
-                owningTenant: undefined,
-                tenants: [
-                    {
-                        displayName: sub.tenantId,
-                        id: sub.tenantId,
-                        userId: token.token,
-                    },
-                ],
-            },
-        };
-
-        const tokenMappings = {};
-        tokenMappings[sub.tenantId] = {
-            Token: token.token,
-        };
-
-        return { account, tokenMappings };
     }
 
     private async loadAzureSubscriptions(

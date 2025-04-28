@@ -634,6 +634,7 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._statusview,
             this._prompter,
+            this.isRichExperiencesEnabled,
         );
 
         void this.showOnLaunchPrompts();
