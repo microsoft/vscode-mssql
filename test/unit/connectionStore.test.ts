@@ -18,7 +18,6 @@ suite("ConnectionStore Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionStore: ConnectionStore;
 
-    // let connectionStore: ConnectionStore;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let mockLogger: TypeMoq.IMock<Logger>;
     let mockCredentialStore: TypeMoq.IMock<ICredentialStore>;
@@ -28,7 +27,6 @@ suite("ConnectionStore Tests", () => {
     setup(async () => {
         sandbox = sinon.createSandbox();
 
-        // Set up mocks
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
         mockLogger = TypeMoq.Mock.ofType<Logger>();
@@ -174,25 +172,13 @@ suite("ConnectionStore Tests", () => {
             "Microsoft.SqlTools|itemtype:Profile|server:localhost|db:TestDb|user:testUser|isConnectionString:true",
         );
 
-        credentialId = ConnectionStore.formatCredentialId(
-            testServer,
-            testDatabase,
-            undefined, // user
-            undefined, // itemType
-            undefined, // isConnectionString
-        );
+        credentialId = ConnectionStore.formatCredentialId(testServer, testDatabase);
 
         expect(credentialId).to.equal(
             "Microsoft.SqlTools|itemtype:Profile|server:localhost|db:TestDb",
         );
 
-        credentialId = ConnectionStore.formatCredentialId(
-            testServer,
-            undefined, // database
-            undefined, // user
-            undefined, // itemType
-            undefined, // isConnectionString
-        );
+        credentialId = ConnectionStore.formatCredentialId(testServer);
 
         expect(credentialId).to.equal("Microsoft.SqlTools|itemtype:Profile|server:localhost");
     });

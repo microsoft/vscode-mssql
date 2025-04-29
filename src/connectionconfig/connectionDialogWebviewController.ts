@@ -571,6 +571,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             },
         );
 
+        const self = this;
+
         function processConnections(
             conns: IConnectionProfileWithSource[],
             connType: "recent" | "saved",
@@ -578,7 +580,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return conns
                 .map((conn) => {
                     try {
-                        return this.initializeConnectionForDialog(conn);
+                        return self.initializeConnectionForDialog(conn);
                     } catch (err) {
                         console.error(
                             `Error initializing ${connType} connection: ${getErrorMessage(err)}`,
