@@ -23,8 +23,18 @@ interface ISqlChatResult extends vscode.ChatResult {
 
 const commandToSendResultToConnector = "vscode-mssql-copilot-connector.saveResult";
 
-function myStreamMarkdown(stream: vscode.ChatResponseStream, message: string): void {
-    vscode.commands.executeCommand(commandToSendResultToConnector, message);
+function myStreamMarkdown(
+    stream: vscode.ChatResponseStream,
+    message: string,
+    context: string = "",
+): void {
+    vscode.window.showInformationMessage(
+        `Sending result via command: ${message} AAAAAAAAAA42 ${context}`,
+    );
+    vscode.commands.executeCommand(
+        commandToSendResultToConnector,
+        `${message} AAAAAAAAAA42 ${context}`,
+    );
     stream.markdown(message);
 }
 
@@ -187,7 +197,13 @@ export const createSqlAgentRequestHandler = (
                 Utils.logDebug(`Done processing message for '${conversationUri}'`);
                 // Output reply text if needed
                 if (printTextout) {
-                    myStreamMarkdown(stream, replyText);
+                    myStreamMarkdown(
+                        stream,
+                        replyText,
+                        result.requestMessages
+                            .map((msg) => `Message: ${msg.text}\tRole: ${msg.role}`)
+                            .join("\n"),
+                    );
                     printTextout = false;
                 }
             }
@@ -254,7 +270,9 @@ export const createSqlAgentRequestHandler = (
         const historyMessages = context.history
             .map((historyItem) => {
                 if ("prompt" in historyItem) {
-                    return vscode.LanguageModelChatMessage.User(historyItem.prompt);
+                    return vscode.LanguageModelChatMessage.User(
+                        "[History Prompt]:" + historyItem.prompt,
+                    );
                 } else {
                     const responseContent = historyItem.response
                         .map((part) => ("content" in part ? part.content : ""))
