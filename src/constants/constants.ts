@@ -201,6 +201,7 @@ export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
+export const copilotDebugLogging = "mssql.copilotDebugLogging";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";

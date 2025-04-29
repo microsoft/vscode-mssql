@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import * as Utils from "../models/utils";
 import { CopilotService } from "../services/copilotService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import * as Constants from "../constants/constants";
 import {
     GetNextMessageResponse,
     LanguageModelChatTool,
@@ -92,9 +93,15 @@ export const createSqlAgentRequestHandler = (
                 return { metadata: { command: "" } };
             }
 
-            stream.progress(
-                `Using ${model.name} (${context.languageModelAccessInformation.canSendRequest(model)})...`,
-            );
+            // Tool lookup
+            const copilotDebugLogging = vscodeWrapper
+                .getConfiguration()
+                .get(Constants.copilotDebugLogging, false);
+            if (copilotDebugLogging) {
+                stream.progress(
+                    `Using ${model.name} (${context.languageModelAccessInformation.canSendRequest(model)})...`,
+                );
+            }
 
             if (!connectionUri) {
                 await sendToDefaultLanguageModel(prompt, model, stream, token);
@@ -374,9 +381,15 @@ export const createSqlAgentRequestHandler = (
         let sqlToolParameters: string | undefined;
 
         // Tool lookup
+        const copilotDebugLogging = vscodeWrapper
+            .getConfiguration()
+            .get(Constants.copilotDebugLogging, false);
+
         const tool = resultTools.find((tool) => tool.functionName === part.name);
         if (!tool) {
-            stream.markdown(`Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}.`);
+            if (copilotDebugLogging) {
+                stream.markdown(`Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}.`);
+            }
             return { sqlTool, sqlToolParameters };
         }
 
@@ -392,8 +405,9 @@ export const createSqlAgentRequestHandler = (
         }
 
         // Log tool call
-        stream.progress(`Calling tool: ${tool.functionName} with ${sqlToolParameters}`);
-
+        if (copilotDebugLogging) {
+            stream.progress(`Calling tool: ${tool.functionName} with ${sqlToolParameters}`);
+        }
         return { sqlTool, sqlToolParameters };
     }
 
