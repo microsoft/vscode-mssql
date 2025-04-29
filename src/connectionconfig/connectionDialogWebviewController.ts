@@ -166,7 +166,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         };
 
         this.state.connectionComponents.groupedAdvancedOptions = groupAdvancedOptions(
-            this.state.formComponents as any,
+            this.state.formComponents as Record<
+                keyof IConnectionDialogProfile,
+                ConnectionDialogFormItemSpec
+            >, // cast away the Partial type
             this.state.connectionComponents,
         );
 
@@ -568,63 +571,41 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             },
         );
 
+        function processConnections(
+            conns: IConnectionProfileWithSource[],
+            connType: "recent" | "saved",
+        ) {
+            return conns
+                .map((conn) => {
+                    try {
+                        return this.initializeConnectionForDialog(conn);
+                    } catch (err) {
+                        console.error(
+                            `Error initializing ${connType} connection: ${getErrorMessage(err)}`,
+                        );
+
+                        sendErrorEvent(
+                            TelemetryViews.ConnectionDialog,
+                            TelemetryActions.LoadConnections,
+                            err,
+                            false, // includeErrorMessage
+                            undefined, // errorCode
+                            undefined, // errorType
+                            {
+                                connectionType: connType,
+                                authType: conn.authenticationType,
+                            },
+                        );
+
+                        return Promise.resolve(undefined);
+                    }
+                })
+                .filter((c) => c !== undefined);
+        }
+
         return {
-            recentConnections: await Promise.all(
-                recentConnections
-                    .map((conn) => {
-                        try {
-                            return this.initializeConnectionForDialog(conn);
-                        } catch (ex) {
-                            console.error(
-                                "Error initializing recent connection: " + getErrorMessage(ex),
-                            );
-
-                            sendErrorEvent(
-                                TelemetryViews.ConnectionDialog,
-                                TelemetryActions.LoadConnections,
-                                ex,
-                                false, // includeErrorMessage
-                                undefined, // errorCode
-                                undefined, // errorType
-                                {
-                                    connectionType: "recent",
-                                    authType: conn.authenticationType,
-                                },
-                            );
-
-                            return Promise.resolve(undefined);
-                        }
-                    })
-                    .filter((c) => c !== undefined),
-            ),
-            savedConnections: await Promise.all(
-                savedConnections
-                    .map((conn) => {
-                        try {
-                            return this.initializeConnectionForDialog(conn);
-                        } catch (ex) {
-                            console.error(
-                                "Error initializing saved connection: " + getErrorMessage(ex),
-                            );
-
-                            sendErrorEvent(
-                                TelemetryViews.ConnectionDialog,
-                                TelemetryActions.LoadConnections,
-                                ex,
-                                false, // includeErrorMessage
-                                undefined, // errorCode
-                                undefined, // errorType
-                                {
-                                    connectionType: "saved",
-                                    authType: conn.authenticationType,
-                                },
-                            );
-
-                            return Promise.resolve(undefined);
-                        }
-                    })
-                    .filter((c) => c !== undefined),
-            ),
+            recentConnections: await Promise.all(processConnections(recentConnections, "recent")),
+            savedConnections: await Promise.all(processConnections(savedConnections, "saved")),
         };
     }
 
@@ -891,7 +872,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connection: IConnectionInfo,
     ): Promise<IConnectionDialogProfile> {
         // Load the password if it's saved
-        if (!Utils.isEmpty(connection.connectionString)) {
+        if (Utils.isEmpty(connection.connectionString)) {
             const password =
                 await this._mainController.connectionManager.connectionStore.lookupPassword(
                     connection,
