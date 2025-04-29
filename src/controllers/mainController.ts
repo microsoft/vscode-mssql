@@ -995,13 +995,14 @@ export default class MainController implements vscode.Disposable {
                         let scriptingObject = this._scriptingService.getObjectFromNode(node);
                         const escapedName = Utils.escapeClosingBrackets(scriptingObject.name);
                         if (scriptingObject.schema) {
-                            let database = ObjectExplorerUtils.getDatabaseName(node);
-                            const databaseName = Utils.escapeClosingBrackets(database);
+                            const escapedDatabase = Utils.escapeClosingBrackets(
+                                ObjectExplorerUtils.getDatabaseName(node),
+                            );
                             const escapedSchema = Utils.escapeClosingBrackets(
                                 scriptingObject.schema,
                             );
                             await this._vscodeWrapper.clipboardWriteText(
-                                `[${databaseName}].${escapedSchema}.[${escapedName}]`,
+                                `[${escapedDatabase}].${escapedSchema}.[${escapedName}]`,
                             );
                         } else {
                             await this._vscodeWrapper.clipboardWriteText(`[${escapedName}]`);
