@@ -786,7 +786,7 @@ export class ObjectExplorerService {
             if (index > -1) {
                 this._rootTreeNodeArray.splice(index, 1);
             }
-            this._refreshCallback(undefined);
+            this._refreshCallback(undefined); // Refresh tree root.
             await this._connectionManager.connectionStore.removeProfile(
                 node.connectionProfile,
                 false,
