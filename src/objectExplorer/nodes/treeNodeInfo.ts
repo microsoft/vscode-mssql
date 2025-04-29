@@ -70,7 +70,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
     // Gernating a unique ID for the node
     protected generateId(): string {
-        return `${this._connectionProfile.id}-${this._nodePath}-${Date.now()}`;
+        return `${this._connectionProfile?.id}-${this._nodePath}-${Date.now()}`;
     }
 
     public static fromNodeInfo(
