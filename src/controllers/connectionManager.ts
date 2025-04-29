@@ -87,6 +87,10 @@ export class ConnectionInfo {
 }
 
 export interface IReconnectAction {
+    /**
+     * Reconnect to the server with the provided profile
+     * @param profile The connection profile to use for reconnection. If undefined, the connection creation was cancelled.
+     */
     (profile: IConnectionProfile | undefined): Promise<void>;
 }
 
