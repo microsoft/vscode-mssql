@@ -297,24 +297,7 @@ suite("ReactWebviewPanelController", () => {
         test("dialogResult should be undefined when disposed without setting dialogResult", async () => {
             const controller = createController<string>();
             let isCompleted = false;
-            controller.completed.then(() => {
-                isCompleted = true;
-            });
-
-            assert.equal(isCompleted, false, "dialogResult should be an uncompleted promise");
-
-            controller.dispose();
-
-            await delay(50); // Give a moment for the promise completion check to occur
-            assert.equal(isCompleted, true, "dialogResult should a resolved promise");
-            assert.equal(await controller.completed, undefined, "dialogResult should be undefined");
-        });
-
-        test("Should have dialogResult set when disposed after setting dialogResult", async () => {
-            const controller = createController<string>();
-            let isCompleted = false;
-            controller.completed.resolve("testResult");
-            controller.completed.then(() => {
+            controller.dialogResult.then(() => {
                 isCompleted = true;
             });
 
@@ -325,7 +308,28 @@ suite("ReactWebviewPanelController", () => {
             await delay(50); // Give a moment for the promise completion check to occur
             assert.equal(isCompleted, true, "dialogResult should a resolved promise");
             assert.equal(
-                await controller.completed,
+                await controller.dialogResult,
+                undefined,
+                "dialogResult should be undefined",
+            );
+        });
+
+        test("Should have dialogResult set when disposed after setting dialogResult", async () => {
+            const controller = createController<string>();
+            let isCompleted = false;
+            controller.dialogResult.resolve("testResult");
+            controller.dialogResult.then(() => {
+                isCompleted = true;
+            });
+
+            assert.equal(isCompleted, false, "dialogResult should be an uncompleted promise");
+
+            controller.dispose();
+
+            await delay(50); // Give a moment for the promise completion check to occur
+            assert.equal(isCompleted, true, "dialogResult should a resolved promise");
+            assert.equal(
+                await controller.dialogResult,
                 "testResult",
                 "dialogResult should be set to the correct value",
             );
@@ -334,7 +338,7 @@ suite("ReactWebviewPanelController", () => {
         test("dialogResult should be completed when the controller is disposed", async () => {
             const controller = createController();
             let isCompleted = false;
-            controller.completed.then(() => {
+            controller.dialogResult.then(() => {
                 isCompleted = true;
             });
 
