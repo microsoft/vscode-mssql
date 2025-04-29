@@ -718,10 +718,8 @@ export default class MainController implements vscode.Disposable {
         );
 
         const connectParentNode = async (node: AccountSignInTreeNode | ConnectTreeNode) => {
-            node.label = LocalizedConstants.ObjectExplorer.Connecting;
-            await this._objectExplorerProvider.refresh(node as unknown as TreeNodeInfo);
             this._objectExplorerProvider.deleteChildrenCache(node.parentNode);
-            await this._objectExplorerProvider.refresh(node.parentNode);
+            void this._objectExplorerProvider.refresh(node.parentNode);
         };
 
         // Sign In into Object Explorer Node

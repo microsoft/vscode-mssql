@@ -25,7 +25,11 @@ import {
     CloseSessionResponse,
 } from "../models/contracts/objectExplorer/closeSessionRequest";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
-import { AuthenticationTypes, IConnectionProfile } from "../models/interfaces";
+import {
+    AuthenticationTypes,
+    IConnectionProfile,
+    IConnectionProfileWithSource,
+} from "../models/interfaces";
 import * as LocalizedConstants from "../constants/locConstants";
 import { AddConnectionTreeNode } from "./nodes/addConnectionTreeNode";
 import { AccountSignInTreeNode } from "./nodes/accountSignInTreeNode";
@@ -302,6 +306,20 @@ export class ObjectExplorerService {
         const result: TreeNodeInfo[] = [];
 
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
+        // Remove any connections that have duplicated IDs
+        if (savedConnections.length > 0) {
+            const uniqueConnections = new Map<string, IConnectionProfileWithSource>();
+            for (const conn of savedConnections) {
+                if (!uniqueConnections.has(conn.id)) {
+                    uniqueConnections.set(conn.id, conn);
+                } else {
+                    this._logger.verbose(
+                        `Duplicate connection ID found: ${conn.id}. Removing duplicate connection.`,
+                    );
+                }
+            }
+            savedConnections = Array.from(uniqueConnections.values());
+        }
         for (const conn of savedConnections) {
             const connectionNode = new ConnectionNode(conn);
             result.push(connectionNode);
@@ -370,7 +388,18 @@ export class ObjectExplorerService {
                 return this._treeNodeToChildrenMap.get(element);
             }
         }
-        return this.getOrCreateNodeChildrenWithSession(element);
+        /**
+         * If no children are cached, return a temporary loading node to keep the UI responsive
+         * and trigger the async call to fetch real children.
+         * This node will be replaced once the data is retrieved and the tree is refreshed.
+         * Without this, tree expansion is queued—so if multiple connections are expanding,
+         * one blocked operation can delay the others.
+         */
+        void this.getOrCreateNodeChildrenWithSession(element);
+        const loadingNode = new vscode.TreeItem("Loading...", vscode.TreeItemCollapsibleState.None);
+        loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
+        this._treeNodeToChildrenMap.set(element, [loadingNode]);
+        return [loadingNode];
     }
 
     /**
@@ -379,14 +408,13 @@ export class ObjectExplorerService {
      * @param element The node to get or create children for
      * @returns The children of the node
      */
-    private async getOrCreateNodeChildrenWithSession(
-        element: TreeNodeInfo,
-    ): Promise<vscode.TreeItem[]> {
+    private async getOrCreateNodeChildrenWithSession(element: TreeNodeInfo): Promise<void> {
         if (element.sessionId) {
-            return this.expandExistingNode(element);
+            await this.expandExistingNode(element);
         } else {
-            return this.createSessionAndExpandNode(element);
+            await this.createSessionAndExpandNode(element);
         }
+        this._refreshCallback(element);
     }
 
     /**
@@ -401,7 +429,9 @@ export class ObjectExplorerService {
 
         if (children) {
             if (children.length === 0) {
-                return [new NoItemsNode(element)];
+                const noItemsNode = [new NoItemsNode(element)];
+                this._treeNodeToChildrenMap.set(element, noItemsNode);
+                return noItemsNode;
             }
             return children;
         } else {
