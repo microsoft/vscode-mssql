@@ -396,6 +396,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "should not be a connection being edited at first",
             ).to.be.undefined;
 
+            expect(
+                controller.state.readyToConnect,
+                "should not be ready to connect before profile has been loaded",
+            ).to.be.false;
+
             const testConnection = {
                 profileName: "Test Server to Edit",
                 server: "SavedServer",
@@ -420,6 +425,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 controller.state.formError,
                 "Error should be cleared after loading the connection",
             ).to.equal("");
+
+            expect(
+                controller.state.readyToConnect,
+                "should be ready to connect after profile has been loaded",
+            ).to.be.true;
         });
 
         suite("connect", () => {
