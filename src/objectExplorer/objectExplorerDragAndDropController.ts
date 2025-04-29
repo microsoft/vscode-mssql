@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
+import { ObjectExplorerUtils } from "./objectExplorerUtils";
 
 export class ObjectExplorerDragAndDropController
     implements vscode.TreeDragAndDropController<TreeNodeInfo>
@@ -20,20 +21,9 @@ export class ObjectExplorerDragAndDropController
         token: vscode.CancellationToken,
     ): void {
         const item = source[0]; // Handle only the first item for simplicity
-        let objectString = "";
-        if (item.metadata) {
-            switch (item.metadata.metadataTypeName) {
-                case "Table":
-                case "StoredProcedure":
-                case "View":
-                case "UserDefinedFunction":
-                    objectString = `[${item.metadata.schema}].[${item.metadata.name}]`;
-                    break;
-                default:
-                    objectString = `[${item.metadata.name}]`;
-                    break;
-            }
-            dataTransfer.set("text/plain", new vscode.DataTransferItem(objectString));
+        const name = ObjectExplorerUtils.getQualifiedName(item);
+        if (name) {
+            dataTransfer.set("text/plain", new vscode.DataTransferItem(name));
         }
     }
 }

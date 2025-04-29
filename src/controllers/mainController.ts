@@ -981,32 +981,9 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdCopyObjectName,
                 async (node: TreeNodeInfo) => {
-                    // Folder node
-                    if (node.context.type === Constants.folderLabel) {
-                        return;
-                    } else if (
-                        node.context.type === Constants.serverLabel ||
-                        node.context.type === Constants.disconnectedServerNodeType
-                    ) {
-                        const label =
-                            typeof node.label === "string" ? node.label : node.label.label;
-                        await this._vscodeWrapper.clipboardWriteText(label);
-                    } else {
-                        let scriptingObject = this._scriptingService.getObjectFromNode(node);
-                        const escapedName = Utils.escapeClosingBrackets(scriptingObject.name);
-                        if (scriptingObject.schema) {
-                            const escapedDatabase = Utils.escapeClosingBrackets(
-                                ObjectExplorerUtils.getDatabaseName(node),
-                            );
-                            const escapedSchema = Utils.escapeClosingBrackets(
-                                scriptingObject.schema,
-                            );
-                            await this._vscodeWrapper.clipboardWriteText(
-                                `[${escapedDatabase}].${escapedSchema}.[${escapedName}]`,
-                            );
-                        } else {
-                            await this._vscodeWrapper.clipboardWriteText(`[${escapedName}]`);
-                        }
+                    const name = ObjectExplorerUtils.getQualifiedName(node);
+                    if (name) {
+                        await this._vscodeWrapper.clipboardWriteText(name);
                     }
                 },
             ),

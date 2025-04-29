@@ -48,8 +48,11 @@ export class ScriptingService {
      * Helper to get the object name and schema name
      * (Public for testing purposes)
      */
-    public getObjectFromNode(node: TreeNodeInfo): IScriptingObject {
+    public getObjectFromNode(node: TreeNodeInfo): IScriptingObject | undefined {
         let metadata = node.metadata;
+        if (!metadata) {
+            return undefined;
+        }
         let scriptingObject: IScriptingObject = {
             type: metadata.metadataTypeName,
             schema: metadata.schema,

@@ -87,4 +87,22 @@ export class ObjectExplorerUtils {
     public static isFirewallError(errorCode: number): boolean {
         return errorCode === Constants.errorFirewallRule;
     }
+
+    public static getQualifiedName(node: TreeNodeInfo): string {
+        let objectString = "";
+        if (node.metadata) {
+            switch (node.metadata.metadataTypeName) {
+                case "Table":
+                case "StoredProcedure":
+                case "View":
+                case "UserDefinedFunction":
+                    objectString = `[${node.metadata.schema}].[${node.metadata.name}]`;
+                    break;
+                default:
+                    objectString = `[${node.metadata.name}]`;
+                    break;
+            }
+        }
+        return objectString;
+    }
 }

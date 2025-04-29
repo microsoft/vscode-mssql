@@ -12,7 +12,6 @@ import { IConnectionInfo } from "vscode-mssql";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionProfile } from "../models/interfaces";
 import { ConnectionNode } from "./nodes/connectionNode";
-import * as LocalizedConstants from "../constants/locConstants";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -24,7 +23,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
     constructor(
         private _vscodeWrapper: VscodeWrapper,
-        private _connectionManager: ConnectionManager,
+        connectionManager: ConnectionManager,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -32,7 +31,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
         this._objectExplorerService = new ObjectExplorerService(
             this._vscodeWrapper,
-            _connectionManager,
+            connectionManager,
             (node) => {
                 this.refresh(node);
             },
