@@ -8,7 +8,7 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<

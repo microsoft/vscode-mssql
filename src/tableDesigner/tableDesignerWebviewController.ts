@@ -10,7 +10,7 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import * as designer from "../sharedInterfaces/tableDesigner";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
@@ -89,7 +89,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         const databaseName = targetDatabase ? targetDatabase : "master";
         // clone connection info and set database name
 
-        const connectionInfo = this._targetNode.connectionInfo;
+        const connectionInfo = this._targetNode.connectionProfile;
         connectionInfo.database = databaseName;
 
         let connectionString;
@@ -303,7 +303,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     select: true,
                 });
                 await this._objectExplorerProvider.refreshNode(targetNode);
-                await this._objectExplorerProvider.refresh(targetNode);
             }
             return state;
         });

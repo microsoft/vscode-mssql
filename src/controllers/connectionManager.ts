@@ -87,7 +87,11 @@ export class ConnectionInfo {
 }
 
 export interface IReconnectAction {
-    (profile: IConnectionInfo): Promise<void>;
+    /**
+     * Reconnect to the server with the provided profile
+     * @param profile The connection profile to use for reconnection. If undefined, the connection creation was cancelled.
+     */
+    (profile: IConnectionProfile | undefined): Promise<void>;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -758,7 +762,7 @@ export default class ConnectionManager {
     }
 
     public async showInstructionTextAsWarning(
-        profile: IConnectionInfo,
+        profile: IConnectionProfile,
         reconnectAction: IReconnectAction,
     ): Promise<void> {
         const selection = await this.vscodeWrapper.showWarningMessageAdvanced(
@@ -783,6 +787,8 @@ export default class ConnectionManager {
         } else if (selection === LocalizedConstants.readMore) {
             this.vscodeWrapper.openExternal(Constants.encryptionBlogLink);
             await this.showInstructionTextAsWarning(profile, reconnectAction);
+        } else if (selection === LocalizedConstants.Common.cancel) {
+            await reconnectAction(undefined);
         }
     }
 
