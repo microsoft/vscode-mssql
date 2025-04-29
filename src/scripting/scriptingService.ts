@@ -12,7 +12,7 @@ import {
     IScriptingObject,
     IScriptOptions,
 } from "../models/contracts/scripting/scriptingRequest";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 
 export class ScriptingService {
     private _client: SqlToolsServiceClient;
@@ -48,8 +48,11 @@ export class ScriptingService {
      * Helper to get the object name and schema name
      * (Public for testing purposes)
      */
-    public getObjectFromNode(node: TreeNodeInfo): IScriptingObject {
+    public getObjectFromNode(node: TreeNodeInfo): IScriptingObject | undefined {
         let metadata = node.metadata;
+        if (!metadata) {
+            return undefined;
+        }
         let scriptingObject: IScriptingObject = {
             type: metadata.metadataTypeName,
             schema: metadata.schema,
@@ -69,7 +72,7 @@ export class ScriptingService {
         operation: ScriptOperation,
     ): IScriptingParams {
         const scriptingObject = this.getObjectFromNode(node);
-        let serverInfo = this._connectionManager.getServerInfo(node.connectionInfo);
+        let serverInfo = this._connectionManager.getServerInfo(node.connectionProfile);
         let scriptCreateDropOption: string;
         switch (operation) {
             case ScriptOperation.Select:

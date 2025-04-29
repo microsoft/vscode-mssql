@@ -111,6 +111,10 @@
     <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
       <source xml:lang="en">Apply changes to target</source>
     </trans-unit>
+    <trans-unit id="++CODE++d06cb9591349a9b98151fca38054ea9703b643b570f3b4557f3d2c07d76a7403">
+      <source xml:lang="en">Are you sure you want to delete {0}?</source>
+      <note>{0} is the node label</note>
+    </trans-unit>
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
       <source xml:lang="en">Are you sure you want to disconnect?</source>
     </trans-unit>

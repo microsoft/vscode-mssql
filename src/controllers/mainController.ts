@@ -21,11 +21,11 @@ import {
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import * as Utils from "../models/utils";
-import { AccountSignInTreeNode } from "../objectExplorer/accountSignInTreeNode";
-import { ConnectTreeNode } from "../objectExplorer/connectTreeNode";
+import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
+import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
 import { IPrompter } from "../prompts/question";
 import { Deferred } from "../protocol";
@@ -62,6 +62,7 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 
 /**
  * The main controller class that initializes the extension
@@ -384,7 +385,7 @@ export default class MainController implements vscode.Disposable {
         executeScript: boolean = false,
     ): Promise<void> {
         const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-        let connectionCreds = node.connectionInfo;
+        let connectionCreds = node.connectionProfile;
         const databaseName = ObjectExplorerUtils.getDatabaseName(node);
         // if not connected or different database
         if (
@@ -609,16 +610,11 @@ export default class MainController implements vscode.Disposable {
     public async createObjectExplorerSession(
         connectionCredentials?: IConnectionInfo,
     ): Promise<TreeNodeInfo> {
-        let createSessionPromise = new Deferred<TreeNodeInfo>();
-        const sessionId = await this._objectExplorerProvider.createSession(
-            createSessionPromise,
-            connectionCredentials,
-            this._context,
-        );
-        if (sessionId) {
-            const newNode = await createSessionPromise;
+        const sessionCreationResult =
+            await this._objectExplorerProvider.createSession(connectionCredentials);
+        if (sessionCreationResult) {
+            const newNode = await sessionCreationResult.connectionNode;
             if (newNode) {
-                console.log(newNode);
                 this._objectExplorerProvider.refresh(undefined);
                 return newNode;
             }
@@ -645,17 +641,6 @@ export default class MainController implements vscode.Disposable {
         });
         this._context.subscriptions.push(this.objectExplorerTree);
 
-        // Sets the correct current node on any node selection
-        this._context.subscriptions.push(
-            this.objectExplorerTree.onDidChangeSelection(
-                (e: vscode.TreeViewSelectionChangeEvent<TreeNodeInfo>) => {
-                    if (e.selection?.length > 0) {
-                        self._objectExplorerProvider.currentNode = e.selection[0];
-                    }
-                },
-            ),
-        );
-
         // Old style Add connection when experimental features are not enabled
 
         // Add Object Explorer Node
@@ -663,9 +648,6 @@ export default class MainController implements vscode.Disposable {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
             if (!this.isRichExperiencesEnabled) {
-                if (!self._objectExplorerProvider.objectExplorerExists) {
-                    self._objectExplorerProvider.objectExplorerExists = true;
-                }
                 await self.createObjectExplorerSession();
             } else {
                 let connectionInfo: IConnectionInfo | undefined = undefined;
@@ -698,7 +680,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdObjectExplorerNewQuery,
                 async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = treeNodeInfo.connectionInfo;
+                    const connectionCredentials = treeNodeInfo.connectionProfile;
                     const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
 
                     if (
@@ -709,7 +691,7 @@ export default class MainController implements vscode.Disposable {
                     } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
                         connectionCredentials.database = "";
                     }
-                    treeNodeInfo.updateConnectionInfo(connectionCredentials);
+                    treeNodeInfo.updateConnectionProfile(connectionCredentials);
                     await self.onNewQuery(treeNodeInfo);
                 },
             ),
@@ -719,11 +701,8 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdRemoveObjectExplorerNode,
-                async (treeNodeInfo: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.removeObjectExplorerNode(treeNodeInfo);
-                    let profile = <IConnectionProfile>treeNodeInfo.connectionInfo;
-                    await this._connectionMgr.connectionStore.removeProfile(profile, false);
-                    return this._objectExplorerProvider.refresh(undefined);
+                async (treeNodeInfo: ConnectionNode) => {
+                    await this._objectExplorerProvider.removeNode(treeNodeInfo);
                 },
             ),
         );
@@ -762,7 +741,7 @@ export default class MainController implements vscode.Disposable {
                                 this._vscodeWrapper,
                                 this,
                                 this._objectExplorerProvider,
-                                node.parentNode.connectionInfo,
+                                node.parentNode.connectionProfile,
                             );
                             connDialog.revealToForeground();
                             break;
@@ -790,9 +769,8 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdDisconnectObjectExplorerNode,
-                async (node: TreeNodeInfo) => {
-                    await this._objectExplorerProvider.removeObjectExplorerNode(node, true);
-                    return this._objectExplorerProvider.refresh(undefined);
+                async (node: ConnectionNode) => {
+                    await this._objectExplorerProvider.disconnectNode(node);
                 },
             ),
         );
@@ -822,7 +800,7 @@ export default class MainController implements vscode.Disposable {
                             this._vscodeWrapper,
                             this,
                             this._objectExplorerProvider,
-                            node.connectionInfo,
+                            node.connectionProfile,
                         );
                         connDialog.revealToForeground();
                     },
@@ -1000,32 +978,15 @@ export default class MainController implements vscode.Disposable {
 
         // Copy object name command
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdCopyObjectName, async () => {
-                let node = this._objectExplorerProvider.currentNode;
-                // Folder node
-                if (node.context.type === Constants.folderLabel) {
-                    return;
-                } else if (
-                    node.context.type === Constants.serverLabel ||
-                    node.context.type === Constants.disconnectedServerNodeType
-                ) {
-                    const label = typeof node.label === "string" ? node.label : node.label.label;
-                    await this._vscodeWrapper.clipboardWriteText(label);
-                } else {
-                    let scriptingObject = this._scriptingService.getObjectFromNode(node);
-                    const escapedName = Utils.escapeClosingBrackets(scriptingObject.name);
-                    if (scriptingObject.schema) {
-                        let database = ObjectExplorerUtils.getDatabaseName(node);
-                        const databaseName = Utils.escapeClosingBrackets(database);
-                        const escapedSchema = Utils.escapeClosingBrackets(scriptingObject.schema);
-                        await this._vscodeWrapper.clipboardWriteText(
-                            `[${databaseName}].${escapedSchema}.[${escapedName}]`,
-                        );
-                    } else {
-                        await this._vscodeWrapper.clipboardWriteText(`[${escapedName}]`);
+            vscode.commands.registerCommand(
+                Constants.cmdCopyObjectName,
+                async (node: TreeNodeInfo) => {
+                    const name = ObjectExplorerUtils.getQualifiedName(node);
+                    if (name) {
+                        await this._vscodeWrapper.clipboardWriteText(name);
                     }
-                }
-            }),
+                },
+            ),
         );
 
         // Reveal Query Results command
@@ -1691,11 +1652,11 @@ export default class MainController implements vscode.Disposable {
             const uri = editor.document.uri.toString(true);
             if (node) {
                 // connect to the node if the command came from the context
-                const connectionCreds = node.connectionInfo;
+                const connectionCreds = node.connectionProfile;
                 // if the node isn't connected
                 if (!node.sessionId) {
                     // connect it first
-                    await this.createObjectExplorerSession(node.connectionInfo);
+                    await this.createObjectExplorerSession(node.connectionProfile);
                 }
                 this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
                 // connection string based credential
@@ -1722,8 +1683,8 @@ export default class MainController implements vscode.Disposable {
                         nodeType: node.nodeType,
                     },
                     undefined,
-                    node.connectionInfo as IConnectionProfile,
-                    this._connectionMgr.getServerInfo(node.connectionInfo),
+                    node.connectionProfile as IConnectionProfile,
+                    this._connectionMgr.getServerInfo(node.connectionProfile),
                 );
                 return true;
             } else {
