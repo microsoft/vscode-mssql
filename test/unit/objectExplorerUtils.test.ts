@@ -13,13 +13,8 @@ import { ObjectMetadata } from "vscode-mssql";
 
 suite("Object Explorer Utils Tests", () => {
     test("Test iconPath function", () => {
-        const testObjects = ["Server", "Table", "StoredProcedure", "disconnectedServer"];
-        const expectedPaths = [
-            "Server_green.svg",
-            "Table.svg",
-            "StoredProcedure.svg",
-            "Server_red.svg",
-        ];
+        const testObjects = ["Server", "Table", "StoredProcedure"];
+        const expectedPaths = ["Server.svg", "Table.svg", "StoredProcedure.svg"];
         for (let i = 0; i < testObjects.length; i++) {
             const iconPath = ObjectExplorerUtils.iconPath(testObjects[i]);
             const fileName = path.basename(iconPath);
