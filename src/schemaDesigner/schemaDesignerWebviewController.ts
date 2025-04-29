@@ -16,6 +16,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     SchemaDesigner.SchemaDesignerReducers
 > {
     private _sessionId: string = "";
+    private _key: string = "";
+    private _isDirty: boolean = false;
+    public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -26,6 +29,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         private accessToken: string | undefined,
         private databaseName: string,
         private treeNode: TreeNodeInfo,
+        private schemaDesignerCache: Map<string, SchemaDesigner.CreateSessionResponse>,
     ) {
         super(
             context,
@@ -52,6 +56,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             },
         );
 
+        this._key = `${this.connectionString}-${this.databaseName}`;
+
         this.registerReducers();
     }
 
@@ -75,12 +81,21 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.registerRequestHandler("initializeSchemaDesigner", async () => {
-            const sessionResponse = await this.schemaDesignerService.createSession({
-                connectionString: this.connectionString,
-                accessToken: this.accessToken,
-                databaseName: this.databaseName,
-            });
-            this._sessionId = sessionResponse.sessionId;
+            let sessionResponse: SchemaDesigner.CreateSessionResponse;
+            if (!this.schemaDesignerCache.has(this._key)) {
+                sessionResponse = await this.schemaDesignerService.createSession({
+                    connectionString: this.connectionString,
+                    accessToken: this.accessToken,
+                    databaseName: this.databaseName,
+                });
+                this._sessionId = sessionResponse.sessionId;
+            } else {
+                // if the cache has the session, the changes have not been saved, and the
+                // session is dirty
+                sessionResponse = this.schemaDesignerCache.get(this._key)!;
+                this._isDirty = true;
+            }
+            this.schemaDesignerDetails = sessionResponse;
             return sessionResponse;
         });
 
@@ -89,6 +104,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
             });
+            this.handleSchemaChanges(payload.updatedSchema);
             return script;
         });
 
@@ -98,6 +114,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     updatedSchema: payload.updatedSchema,
                     sessionId: this._sessionId,
                 });
+                this.handleSchemaChanges(payload.updatedSchema);
                 return {
                     report,
                 };
@@ -113,6 +130,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 await this.schemaDesignerService.publishSession({
                     sessionId: this._sessionId,
                 });
+                this._isDirty = false;
                 return {
                     success: true,
                 };
@@ -146,7 +164,31 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
     }
 
-    override dispose(): void {
+    private handleSchemaChanges(updatedSchema: SchemaDesigner.Schema): void {
+        this.schemaDesignerDetails!.schema = updatedSchema;
+        this._isDirty = true;
+    }
+
+    override async dispose(): Promise<void> {
+        if (this._isDirty) {
+            const choice = await vscode.window.showInformationMessage(
+                "You have unsaved changes in your schema. Are you sure you want to exit without saving?",
+                { modal: true },
+                "Save and Close",
+                "Close without saving",
+            );
+
+            if (choice === "Save and Close") {
+                // Set the schema designer details in the cache
+                this.schemaDesignerCache.set(this._key, this.schemaDesignerDetails);
+            } else {
+                // User chose not to save, so remove the session from the cache
+                // Set the schema designer details in the cache
+                this.schemaDesignerCache.delete(this._key);
+            }
+        } else {
+            this.schemaDesignerCache.delete(this._key);
+        }
         super.dispose();
         this.schemaDesignerService.disposeSession({
             sessionId: this._sessionId,

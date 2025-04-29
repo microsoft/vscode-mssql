@@ -13,6 +13,7 @@ import MainController from "../controllers/mainController";
 export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;
     private schemaDesigners: Map<string, SchemaDesignerWebviewController> = new Map();
+    private schemaDesignerCache: Map<string, SchemaDesigner.CreateSessionResponse> = new Map();
 
     public static getInstance(): SchemaDesignerWebviewManager {
         if (!this.instance) {
@@ -58,6 +59,7 @@ export class SchemaDesignerWebviewManager {
                 connectionInfo.azureAccountToken,
                 databaseName,
                 treeNode,
+                this.schemaDesignerCache,
             );
             schemaDesigner.onDisposed(() => {
                 this.schemaDesigners.delete(key);
