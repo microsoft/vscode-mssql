@@ -61,19 +61,25 @@ export interface CreateSessionResult {
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
     private _logger: Logger;
-    private _currentNode: TreeNodeInfo;
 
-    // Flat map of tree nodes to their children
-    // This is used to cache the children of a node so that we don't have to re-query them every time
-    // we expand a node. The key is the node and the value is the array of children.
+    /**
+     * Flat map of tree nodes to their children
+     * This is used to cache the children of a node so that we don't have to re-query them every time
+     * we expand a node. The key is the node and the value is the array of children.
+     */
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
     private _rootTreeNodeArray: Array<TreeNodeInfo>;
 
-    // Deferred promise maps
+    /**
+     * Map of pending session creations
+     */
     private _pendingSessionCreations: Map<string, Deferred<SessionCreatedParameters>> = new Map<
         string,
         Deferred<SessionCreatedParameters>
     >();
+    /**
+     * Map of pending expands
+     */
     private _pendingExpands: Map<string, Deferred<ExpandResponse>> = new Map<
         string,
         Deferred<ExpandResponse>
@@ -102,6 +108,10 @@ export class ObjectExplorerService {
         );
     }
 
+    /**
+     * Handles the session created notification from the SQL Tools Service.
+     * @param result The result of the session creation request.
+     */
     public handleSessionCreatedNotification(result: SessionCreatedParameters): void {
         const promise = this._pendingSessionCreations.get(result.sessionId);
         if (promise) {
@@ -113,6 +123,10 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Handles the expand node notification from the SQL Tools Service.
+     * @param result The result of the expand node request.
+     */
     public handleExpandNodeNotification(result: ExpandResponse): void {
         const promise = this._pendingExpands.get(`${result.sessionId}${result.nodePath}`);
         if (promise) {
@@ -124,6 +138,10 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Adds a connection node to the OE tree at the right position based on its label.
+     * @param profile The connection profile to reconnect.
+     */
     private async reconnectProfile(profile: IConnectionProfile): Promise<void> {
         const node = this._rootTreeNodeArray.find((n) =>
             Utils.isSameConnectionInfo(n.connectionProfile, profile),
@@ -135,6 +153,12 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Checks if the account needs to be refreshed based on the error message.
+     * @param result The result of the session creation.
+     * @param username The username of the account.
+     * @returns
+     */
     private needsAccountRefresh(result: SessionCreatedParameters, username: string): boolean {
         let email = username?.includes(" - ")
             ? username.substring(username.indexOf("-") + 2)
@@ -150,6 +174,13 @@ export class ObjectExplorerService {
         );
     }
 
+    /**
+     * Expands a node in the tree and retrieves its children.
+     * @param node The node to expand
+     * @param sessionId The session ID to use for the expansion
+     * @param promise A deferred promise to resolve with the children of the node
+     * @returns A boolean indicating whether the expansion was successful
+     */
     public async expandNode(
         node: TreeNodeInfo,
         sessionId: string,
@@ -298,7 +329,7 @@ export class ObjectExplorerService {
     }
 
     // Main method that routes to the appropriate handler
-    async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+    public async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element) {
             return this.getNodeChildren(element);
         } else {
@@ -306,9 +337,11 @@ export class ObjectExplorerService {
         }
     }
 
-    // Handle getting root nodes
-    async getRootNodes(): Promise<vscode.TreeItem[]> {
-        // retrieve saved connections first when opening object explorer for the first time
+    /**
+     * Handle getting root node children.
+     * @returns The root node children
+     */
+    private async getRootNodes(): Promise<vscode.TreeItem[]> {
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
 
         // if there are no saved connections, show the add connection node
@@ -317,55 +350,56 @@ export class ObjectExplorerService {
         }
 
         if (this._rootTreeNodeArray) {
-            // otherwise returned the cached nodes
             return this.sortByServerName(this._rootTreeNodeArray);
         } else {
-            // if there are actually saved connections
             this._rootTreeNodeArray = await this.getSavedConnectionNodes();
             return this.sortByServerName(this._rootTreeNodeArray);
         }
     }
 
-    // Handle getting children for a specific node
-    async getNodeChildren(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        // set current node for very first expansion of disconnected node
-        if (this._currentNode !== element) {
-            this._currentNode = element;
-        }
-
-        // Clean up children if the node is marked for refresh
+    /**
+     * Handles getting children for all nodes other than the root node
+     * @param element The node to get children for
+     * @returns The children of the node
+     */
+    private async getNodeChildren(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         if (element.shouldRefresh) {
             this.cleanNodeChildren(element);
         } else {
-            // If the node has cached children already, return them
             if (this._treeNodeToChildrenMap.has(element)) {
                 return this._treeNodeToChildrenMap.get(element);
             }
         }
-
         return this.getOrCreateNodeChildrenWithSession(element);
     }
 
-    // Handle session management and node expansion
-    async getOrCreateNodeChildrenWithSession(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        // If we already have a session ID, use it for expansion
+    /**
+     * Get or create the children of a node. If the node has a session ID, expand it.
+     * If it doesn't, create a new session and expand it.
+     * @param element The node to get or create children for
+     * @returns The children of the node
+     */
+    private async getOrCreateNodeChildrenWithSession(
+        element: TreeNodeInfo,
+    ): Promise<vscode.TreeItem[]> {
         if (element.sessionId) {
             return this.expandExistingNode(element);
         } else {
-            // Otherwise create a new session
             return this.createSessionAndExpandNode(element);
         }
     }
 
-    // Expand a node that already has a session
-    async expandExistingNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        // node expansion
+    /**
+     * Expand a node that already has a session ID.
+     * @param element The node to expand
+     * @returns The children of the node
+     */
+    private async expandExistingNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const promise = new Deferred<TreeNodeInfo[]>();
         await this.expandNode(element, element.sessionId, promise);
         const children = await promise;
 
         if (children) {
-            // clean expand session promise
             if (children.length === 0) {
                 return [new NoItemsNode(element)];
             }
@@ -375,8 +409,15 @@ export class ObjectExplorerService {
         }
     }
 
-    // Create a session and expand a node
-    async createSessionAndExpandNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+    /**
+     * Create a new session for the given node and expand it.
+     * If the session was not created, show the sign in node.
+     * If the session was created but the connected node was not created, show the sign in node.
+     * Otherwise, expand the existing node.
+     * @param element The node to create a session for and expand
+     * @returns The children of the node
+     */
+    private async createSessionAndExpandNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const sessionResult = await this.createSession(element.connectionProfile);
 
         if (sessionResult?.shouldRetryOnFailure) {
@@ -401,11 +442,14 @@ export class ObjectExplorerService {
 
     /**
      * Create an OE session for the given connection credentials
-     * otherwise prompt the user to select a connection to make an
-     * OE out of
+     * otherwise prompt the user to create a new connection profile
+     * After the session is created, the connection node is added to the tree
      * @param connectionProfile Connection Credentials for a node
+     * @returns The session ID and connection node. If undefined, the session was not created.
      */
-    public async createSession(connectionInfo?: IConnectionInfo): Promise<CreateSessionResult> {
+    public async createSession(
+        connectionInfo?: IConnectionInfo,
+    ): Promise<CreateSessionResult | undefined> {
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
 
         if (!connectionProfile) {
@@ -451,9 +495,14 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Prepares the connection profile for session creation.
+     * @param connectionInfo The connection info to prepare.
+     * @returns The prepared connection profile. If undefined, the connection was not prepared properly.
+     */
     private async prepareConnectionProfile(
         connectionInfo?: IConnectionInfo,
-    ): Promise<IConnectionProfile> {
+    ): Promise<IConnectionProfile | undefined> {
         let connectionProfile: IConnectionProfile = connectionInfo as IConnectionProfile;
         if (!connectionProfile) {
             const connectionUI = this._connectionManager.connectionUI;
@@ -556,6 +605,12 @@ export class ObjectExplorerService {
         return connectionProfile;
     }
 
+    /**
+     * Handles the success of session creation.
+     * @param successResponse The response from the session creation request.
+     * @param connectionProfile The connection profile used to create the session.
+     * @returns The session ID and corresponding connection node. If undefined, the session was not created.
+     */
     private async handleSessionCreationSuccess(
         successResponse: SessionCreatedParameters,
         connectionProfile: IConnectionProfile,
@@ -608,6 +663,12 @@ export class ObjectExplorerService {
         };
     }
 
+    /**
+     * Handles the failure of session creation.
+     * @param failureResponse The response from the session creation request.
+     * @param connectionProfile The connection profile used to create the session.
+     * @returns True if the session creation should be retried, false otherwise.
+     */
     private async handleSessionCreationFailure(
         failureResponse: SessionCreatedParameters,
         connectionProfile: IConnectionProfile,
@@ -663,6 +724,11 @@ export class ObjectExplorerService {
         return false;
     }
 
+    /**
+     * Refreshes the account token for the given connection credentials.
+     * @param account The account to refresh.
+     * @param connectionCredentials The connection credentials to refresh.
+     */
     private async refreshAccount(
         account: IAccount,
         connectionCredentials: ConnectionCredentials,
@@ -702,6 +768,10 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Removes a node from the OE tree. It will also disconnect the node from the server before removing it.
+     * @param node The connection node to remove.
+     */
     public async removeNode(node: ConnectionNode): Promise<void> {
         await this.disconnectNode(node);
         const index = this._rootTreeNodeArray.indexOf(node, 0);
@@ -710,6 +780,10 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Disconnects a connection node and cleans up its cached children.
+     * @param node The connection node to disconnect.
+     */
     public async disconnectNode(node: ConnectionNode): Promise<void> {
         await this.closeSession(node);
         const nodeUri = this.getNodeIdentifier(node);
@@ -719,6 +793,10 @@ export class ObjectExplorerService {
         this._treeNodeToChildrenMap.set(node, [new ConnectTreeNode(node)]);
     }
 
+    /**
+     * Remove multiple connection nodes from the OE tree.
+     * @param connections Connection info of the nodes to remove.
+     */
     public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
         for (let conn of connections) {
             for (let node of this._rootTreeNodeArray) {
@@ -729,43 +807,42 @@ export class ObjectExplorerService {
         }
     }
 
-    public signInNodeServer(node: TreeNodeInfo): void {
-        if (this._treeNodeToChildrenMap.has(node)) {
-            this._treeNodeToChildrenMap.delete(node);
-        }
-    }
-
+    /**
+     * Adds a new disconnected node to the OE tree.
+     * @param connectionCredentials The connection credentials for the new node.
+     */
     public addDisconnectedNode(connectionCredentials: IConnectionProfile): void {
         const connectionNode = new ConnectionNode(connectionCredentials);
         this.addConnectionNodeAtRightPosition(connectionNode);
     }
 
-    public addConnectionNodeAtRightPosition(connectionNode: ConnectionNode): void {
-        // Check if the node already exists in the array
+    /**
+     * Adds a connection node to the OE tree at the right position based on its label.
+     * @param connectionNode The connection node to add.
+     * This will replace any existing node with the same connection profile.
+     */
+    private addConnectionNodeAtRightPosition(connectionNode: ConnectionNode): void {
+        // Remove any existing node with the same connection profile
         const existingNodeIndex = this._rootTreeNodeArray.findIndex((node) =>
             Utils.isSameConnectionInfo(node.connectionProfile, connectionNode.connectionProfile),
         );
-        // Delete the existing node if found
-        // This is to ensure that we don't have duplicate nodes in the array
         if (existingNodeIndex !== -1) {
             this._rootTreeNodeArray.splice(existingNodeIndex, 1);
         }
 
-        // Find the right position to insert the node
         const index = this._rootTreeNodeArray.findIndex(
             (node) => (node.label as string).localeCompare(connectionNode.label as string) > 0,
         );
         if (index === -1) {
             this._rootTreeNodeArray.push(connectionNode);
         } else {
-            // Replace the existing node at the index with the new one
-            this._rootTreeNodeArray[index] = connectionNode;
+            this._rootTreeNodeArray.splice(index, 0, connectionNode);
         }
     }
 
     /**
      * Sends a close session request
-     * @param node
+     * @param node The node to close the session for
      */
     public async closeSession(node: TreeNodeInfo): Promise<void> {
         if (!node.sessionId) {
@@ -793,6 +870,12 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Gets a unique identifier for the node.
+     * @param node The node to get the identifier for
+     * @returns The unique identifier for the node.
+     * If the node does not have a session ID, it will return the node URI.
+     */
     private getNodeIdentifier(node: TreeNodeInfo): string {
         if (node.sessionId) {
             return node.sessionId;
@@ -802,17 +885,18 @@ export class ObjectExplorerService {
         }
     }
 
+    /**
+     * Deletes the children of a node from the tree node to children map.
+     * @param node The node to delete the children for
+     */
     public deleteChildren(node: TreeNodeInfo): void {
         if (this._treeNodeToChildrenMap.has(node)) {
             this._treeNodeToChildrenMap.delete(node);
         }
     }
 
-    //#region Getters and Setters
     public get rootNodeConnections(): IConnectionInfo[] {
         const connections = this._rootTreeNodeArray.map((node) => node.connectionProfile);
         return connections;
     }
-
-    //#endregion
 }
