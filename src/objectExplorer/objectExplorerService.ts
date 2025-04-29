@@ -773,10 +773,24 @@ export class ObjectExplorerService {
      * @param node The connection node to remove.
      */
     public async removeNode(node: ConnectionNode): Promise<void> {
-        await this.disconnectNode(node);
-        const index = this._rootTreeNodeArray.indexOf(node, 0);
-        if (index > -1) {
-            this._rootTreeNodeArray.splice(index, 1);
+        const response = await vscode.window.showInformationMessage(
+            LocalizedConstants.ObjectExplorer.NodeDeletionConfirmation(node.label as string),
+            {
+                modal: true,
+            },
+            LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes,
+        );
+        if (response === LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes) {
+            await this.disconnectNode(node);
+            const index = this._rootTreeNodeArray.indexOf(node, 0);
+            if (index > -1) {
+                this._rootTreeNodeArray.splice(index, 1);
+            }
+            this._refreshCallback(undefined);
+            await this._connectionManager.connectionStore.removeProfile(
+                node.connectionProfile,
+                false,
+            );
         }
     }
 

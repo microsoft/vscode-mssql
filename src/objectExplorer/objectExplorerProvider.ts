@@ -73,21 +73,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public async removeNode(node: ConnectionNode): Promise<void> {
-        const response = await vscode.window.showInformationMessage(
-            LocalizedConstants.ObjectExplorer.NodeDeletionConfirmation(node.label as string),
-            {
-                modal: true,
-            },
-            LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes,
-        );
-        if (response === LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes) {
-            await this._objectExplorerService.removeNode(node);
-            this.refresh(undefined); // Refresh the root node
-            await this._connectionManager.connectionStore.removeProfile(
-                node.connectionProfile,
-                false,
-            );
-        }
+        await this._objectExplorerService.removeNode(node);
     }
 
     public async disconnectNode(node: ConnectionNode): Promise<void> {
