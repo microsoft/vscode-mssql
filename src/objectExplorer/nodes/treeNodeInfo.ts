@@ -26,6 +26,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _filters: vscodeMssql.NodeFilter[];
     private _originalLabel: string;
 
+    /**
+     * Use this flag to force a refresh of the node in the next expansion.
+     * It will be reset to false after the refresh is done.
+     */
     public shouldRefresh: boolean = false;
 
     constructor(
