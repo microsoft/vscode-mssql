@@ -39,26 +39,28 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         );
     }
 
-    getParent(element: TreeNodeInfo) {
+    public getParent(element: TreeNodeInfo) {
         return element.parentNode;
     }
 
-    refresh(nodeInfo?: TreeNodeInfo): void {
+    public refresh(nodeInfo?: TreeNodeInfo): void {
         this._onDidChangeTreeData.fire(nodeInfo);
     }
 
-    getTreeItem(node: TreeNodeInfo): TreeNodeInfo {
+    public getTreeItem(node: TreeNodeInfo): TreeNodeInfo {
         return node;
     }
 
-    async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+    public async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const children = await this._objectExplorerService.getChildren(element);
         if (children) {
             return children;
         }
     }
 
-    async createSession(connectionCredentials?: IConnectionInfo): Promise<CreateSessionResult> {
+    public async createSession(
+        connectionCredentials?: IConnectionInfo,
+    ): Promise<CreateSessionResult> {
         return this._objectExplorerService.createSession(connectionCredentials);
     }
 
@@ -80,7 +82,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         );
         if (response === LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes) {
             await this._objectExplorerService.removeNode(node);
-            this.refresh(undefined);
+            this.refresh(undefined); // Refresh the root node
             await this._connectionManager.connectionStore.removeProfile(
                 node.connectionProfile,
                 false,
