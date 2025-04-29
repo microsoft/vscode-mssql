@@ -231,71 +231,104 @@ suite("ConnectionDialogWebviewController Tests", () => {
         sandbox.restore();
     });
 
-    test("should initialize correctly", async () => {
-        const expectedInitialFormState = {
-            authenticationType: "SqlLogin",
-            connectTimeout: 30,
-            applicationName: "vscode-mssql",
-        };
+    suite("Initialization", () => {
+        test("should initialize correctly for new connection", async () => {
+            const expectedInitialFormState = {
+                authenticationType: "SqlLogin",
+                connectTimeout: 30,
+                applicationName: "vscode-mssql",
+            };
 
-        expect(controller.state.formState).to.deep.equal(
-            expectedInitialFormState,
-            "Initial form state is incorrect",
-        );
+            expect(controller.state.formState).to.deep.equal(
+                expectedInitialFormState,
+                "Initial form state is incorrect",
+            );
 
-        expect(controller.state.formError).to.deep.equal(
-            "",
-            "Should be no error in the initial state",
-        );
+            expect(controller.state.formError).to.deep.equal(
+                "",
+                "Should be no error in the initial state",
+            );
 
-        expect(controller.state.connectionStatus).to.equal(
-            ApiStatus.NotStarted,
-            "Connection status should be NotStarted",
-        );
+            expect(controller.state.connectionStatus).to.equal(
+                ApiStatus.NotStarted,
+                "Connection status should be NotStarted",
+            );
 
-        expect(controller.state.loadingAzureServersStatus).to.equal(
-            ApiStatus.NotStarted,
-            "Azure server load status should be NotStarted",
-        );
+            expect(controller.state.loadingAzureServersStatus).to.equal(
+                ApiStatus.NotStarted,
+                "Azure server load status should be NotStarted",
+            );
 
-        expect(controller.state.formComponents).to.contains.all.keys(["server", "user"]);
+            expect(controller.state.formComponents).to.contains.all.keys(["server", "user"]);
 
-        expect(controller.state.formComponents).to.contains.all.keys([
-            "profileName",
-            "savePassword",
-            "accountId",
-            "tenantId",
-            "connectionString",
-        ]);
+            expect(controller.state.formComponents).to.contains.all.keys([
+                "profileName",
+                "savePassword",
+                "accountId",
+                "tenantId",
+                "connectionString",
+            ]);
 
-        expect(controller.state.connectionComponents.mainOptions).to.deep.equal([
-            "server",
-            "trustServerCertificate",
-            "authenticationType",
-            "user",
-            "password",
-            "savePassword",
-            "accountId",
-            "tenantId",
-            "database",
-            "encrypt",
-        ]);
+            expect(controller.state.connectionComponents.mainOptions).to.deep.equal([
+                "server",
+                "trustServerCertificate",
+                "authenticationType",
+                "user",
+                "password",
+                "savePassword",
+                "accountId",
+                "tenantId",
+                "database",
+                "encrypt",
+            ]);
 
-        expect(controller.state.connectionComponents.topAdvancedOptions).to.deep.equal([
-            "port",
-            "applicationName",
-            "connectTimeout",
-            "multiSubnetFailover",
-        ]);
+            expect(controller.state.connectionComponents.topAdvancedOptions).to.deep.equal([
+                "port",
+                "applicationName",
+                "connectTimeout",
+                "multiSubnetFailover",
+            ]);
 
-        expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
-        expect(controller.state.savedConnections).to.have.lengthOf(1);
-        expect(controller.state.savedConnections[0]).to.deep.include(testSavedConnection);
+            expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
+            expect(controller.state.savedConnections).to.have.lengthOf(1);
+            expect(controller.state.savedConnections[0]).to.deep.include(testSavedConnection);
 
-        expect(controller.state.recentConnections).to.have.lengthOf(1);
-        expect(controller.state.recentConnections).to.deep.include(testMruConnection);
+            expect(controller.state.recentConnections).to.have.lengthOf(1);
+            expect(controller.state.recentConnections).to.deep.include(testMruConnection);
+            expect(
+                controller.state.readyToConnect,
+                "Incomplete connection dialog should not be ready to connect",
+            ).to.be.false;
+        });
+
+        test("should initialize correctly when editing connection", async () => {
+            const editedConnection = {
+                profileName: "Test Server to Edit",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.Integrated,
+            } as IConnectionDialogProfile;
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext.object,
+                mockVscodeWrapper.object,
+                mainController,
+                mockObjectExplorerProvider.object,
+                editedConnection,
+            );
+            await controller.initialized;
+
+            expect(controller["_connectionBeingEdited"]).to.deep.equal(
+                { ...editedConnection, password: undefined },
+                "Form state should be the same as the connection being edited",
+            );
+
+            expect(
+                controller.state.readyToConnect,
+                "should be ready to connect when launched with a profile to edit",
+            ).to.be.true;
+        });
     });
-
     suite("Reducers", () => {
         suite("setConnectionInputType", () => {
             test("Should set connection input type correctly for Parameters", async () => {

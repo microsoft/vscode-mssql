@@ -31,10 +31,7 @@ export interface CommandEventArgs<T extends Slick.SlickData> {
     command: SortDirection;
 }
 
-const ShowFilterText = locConstants.queryResult.showFilter;
-const SortAscendingText = locConstants.queryResult.sortAscending;
-
-export const FilterButtonWidth: number = 34;
+export const FilterButtonWidth = 34;
 
 export class HeaderFilter<T extends Slick.SlickData> {
     public onFilterApplied = new Slick.Event<{
@@ -113,12 +110,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
         args.node.classList.add("slick-header-with-filter");
         args.node.classList.add(theme);
         const $filterButton = jQuery(
-            `<button tabindex="-1" id="anchor-btn" aria-label="${ShowFilterText}" title="${ShowFilterText}"></button>`,
+            `<button tabindex="-1" id="anchor-btn" aria-label="${locConstants.queryResult.showFilter}" title="${locConstants.queryResult.showFilter}"></button>`,
         )
             .addClass("slick-header-menubutton")
             .data("column", column);
         const $sortButton = jQuery(
-            `<button tabindex="-1" id="anchor-btn" aria-label="${SortAscendingText}" title="${SortAscendingText} data-column-id=${column.id}"></button>`,
+            `<button tabindex="-1" id="anchor-btn" aria-label="${locConstants.queryResult.sortAscending}" title="${locConstants.queryResult.sortAscending}" data-column-id="${column.id}"></button>`,
         )
             .addClass("slick-header-sort-button")
             .data("column", column);
@@ -175,6 +172,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
                         }
                         $sortButton.removeClass("slick-header-sort-button");
                         $sortButton.addClass("slick-header-sortasc-button");
+                        $sortButton.attr("aria-label", locConstants.queryResult.sortDescending); // setting ASC, so next is DESC
+                        $sortButton.attr("title", locConstants.queryResult.sortDescending);
                         await this.handleMenuItemClick("sort-asc", column);
                         this.columnSortStateMapping.set(column.id!, SortProperties.ASC);
                         columnFilterState.sorted = SortProperties.ASC;
@@ -184,6 +183,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     case SortProperties.ASC:
                         $sortButton.removeClass("slick-header-sortasc-button");
                         $sortButton.addClass("slick-header-sortdesc-button");
+                        $sortButton.attr("aria-label", locConstants.queryResult.clearSort); // setting DESC, so next is cleared
+                        $sortButton.attr("title", locConstants.queryResult.clearSort);
                         await this.handleMenuItemClick("sort-desc", column);
                         this.columnSortStateMapping.set(column.id!, SortProperties.DESC);
                         columnFilterState.sorted = SortProperties.DESC;
@@ -191,6 +192,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     case SortProperties.DESC:
                         $sortButton.removeClass("slick-header-sortdesc-button");
                         $sortButton.addClass("slick-header-sort-button");
+                        $sortButton.attr("aria-label", locConstants.queryResult.sortAscending); // setting cleared, so next is ASC
+                        $sortButton.attr("title", locConstants.queryResult.sortAscending);
                         this.columnSortStateMapping.set(column.id!, SortProperties.NONE);
                         await this.handleMenuItemClick("reset", column);
                         columnFilterState.sorted = SortProperties.NONE;

@@ -243,19 +243,25 @@ export function getEncryptionMode(encryption: string | boolean | undefined): Enc
     return encryptionMode;
 }
 
-export function getConnectionDisplayName(credentials: IConnectionInfo): string {
-    let database = credentials.database;
-    const server = credentials.server;
-    const authType = credentials.authenticationType;
-    let userOrAuthType = authType;
-    if (authType === Constants.sqlAuthentication) {
-        userOrAuthType = credentials.user;
+export function getConnectionDisplayName(connection: IConnectionInfo): string {
+    const profile: Interfaces.IConnectionProfile = connection as Interfaces.IConnectionProfile;
+
+    if (profile.profileName) {
+        return profile.profileName;
+    } else {
+        let database = connection.database;
+        const server = connection.server;
+        const authType = connection.authenticationType;
+        let userOrAuthType = authType;
+        if (authType === Constants.sqlAuthentication) {
+            userOrAuthType = connection.user;
+        }
+        if (authType === Constants.azureMfa) {
+            userOrAuthType = connection.email;
+        }
+        if (!database || database === "") {
+            database = LocalizedConstants.defaultDatabaseLabel;
+        }
+        return `${server}, ${database} (${userOrAuthType})`;
     }
-    if (authType === Constants.azureMfa) {
-        userOrAuthType = credentials.email;
-    }
-    if (!database || database === "") {
-        database = LocalizedConstants.defaultDatabaseLabel;
-    }
-    return `${server}, ${database} (${userOrAuthType})`;
 }
