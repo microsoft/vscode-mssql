@@ -405,7 +405,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 profileName: "Test Server to Edit",
                 server: "SavedServer",
                 database: "SavedDatabase",
-                authenticationType: AuthenticationType.SqlLogin,
+                authenticationType: AuthenticationType.Integrated,
             } as IConnectionDialogProfile;
 
             await controller["_reducers"].loadConnection(controller.state, {
