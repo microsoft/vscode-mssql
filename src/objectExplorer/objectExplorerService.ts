@@ -396,7 +396,10 @@ export class ObjectExplorerService {
          * one blocked operation can delay the others.
          */
         void this.getOrCreateNodeChildrenWithSession(element);
-        const loadingNode = new vscode.TreeItem("Loading...", vscode.TreeItemCollapsibleState.None);
+        const loadingNode = new vscode.TreeItem(
+            LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
+            vscode.TreeItemCollapsibleState.None,
+        );
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
         this._treeNodeToChildrenMap.set(element, [loadingNode]);
         return [loadingNode];
