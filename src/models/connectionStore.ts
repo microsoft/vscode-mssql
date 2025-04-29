@@ -582,7 +582,7 @@ export class ConnectionStore {
         // TODO re-add deduplication logic from old method
 
         this._logger.logDebug(
-            `readAllConnections: ${connResults.length} connections${includeRecentConnections ? ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)` : "; excluded recent"})`,
+            `readAllConnections: ${connResults.length} connections${includeRecentConnections ? ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)` : "; excluded recent"}`,
         );
 
         return connResults;
@@ -680,9 +680,13 @@ export class ConnectionStore {
                 // extract password from connection string
                 const passwordStart = passwordIndex + "password=".length;
                 const passwordEnd = realConnectionString.indexOf(";", passwordStart);
-                if (passwordEnd !== -1) {
-                    profile.password = realConnectionString.substring(passwordStart, passwordEnd);
-                }
+
+                profile.password = realConnectionString.substring(
+                    passwordStart,
+                    passwordEnd === -1 ? undefined : passwordEnd, // if no further semicolon found, password must be the last item in the connection string
+                );
+
+                profile.savePassword = true;
 
                 // clear the old connection string from the profile as it no longer has useful information
                 profile.connectionString = "";
