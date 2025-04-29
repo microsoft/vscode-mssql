@@ -64,6 +64,7 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
 import { errorFirewallRule, errorSSLCertificateValidationFailed } from "../constants/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
+import * as Utils from "../models/utils";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -890,46 +891,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connection: IConnectionInfo,
     ): Promise<IConnectionDialogProfile> {
         // Load the password if it's saved
-        const isConnectionStringConnection =
-            connection.connectionString !== undefined && connection.connectionString !== "";
-        if (!isConnectionStringConnection) {
+        if (!Utils.isEmpty(connection.connectionString)) {
             const password =
                 await this._mainController.connectionManager.connectionStore.lookupPassword(
                     connection,
-                    isConnectionStringConnection,
+                    false /* isConnectionString */,
                 );
             connection.password = password;
         } else {
-            // If the connection is a connection string connection with SQL Auth:
-            //   * the full connection string is stored as the "password" in the credential store
-            //   * we need to extract the password from the connection string
-            // If the connection is a connection string connection with a different auth type, then there's nothing in the credential store.
-
-            const connectionString =
-                await this._mainController.connectionManager.connectionStore.lookupPassword(
-                    connection,
-                    isConnectionStringConnection,
-                );
-
-            if (connectionString) {
-                const passwordIndex = connectionString.toLowerCase().indexOf("password=");
-
-                if (passwordIndex !== -1) {
-                    // extract password from connection string; found between 'Password=' and the next ';'
-                    const passwordStart = passwordIndex + "password=".length;
-                    const passwordEnd = connectionString.indexOf(";", passwordStart);
-                    if (passwordEnd !== -1) {
-                        connection.password = connectionString.substring(
-                            passwordStart,
-                            passwordEnd,
-                        );
-                    }
-
-                    // clear the connection string from the IConnectionDialogProfile so that the ugly connection string key
-                    // that's used to look up the actual connection string (with password) isn't displayed
-                    connection.connectionString = "";
-                }
-            }
+            this.logger.logDebug(
+                "Connection string connection found in Connection Dialog initialization; should have been converted.",
+            );
         }
 
         return connection;

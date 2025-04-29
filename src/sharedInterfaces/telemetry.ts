@@ -76,6 +76,7 @@ export enum TelemetryActions {
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
     LoadFromConnectionString = "LoadFromConnectionString",
+    MigrateLegacyConnections = "MigrateLegacyConnections",
 }
 
 /**

@@ -24,6 +24,9 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
 import { Deferred } from "../protocol";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { getErrorMessage } from "../utils/utils";
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -32,6 +35,8 @@ import { Deferred } from "../protocol";
  * @class ConnectionStore
  */
 export class ConnectionStore {
+    initialized: Deferred<void> = new Deferred<void>();
+
     constructor(
         private _context: vscode.ExtensionContext,
         private _logger: Logger,
@@ -45,10 +50,15 @@ export class ConnectionStore {
         if (!this._connectionConfig) {
             this._connectionConfig = new ConnectionConfig();
         }
+
+        void this.initialize();
     }
 
-    public get initialized(): Deferred<void> {
-        return (this._connectionConfig as ConnectionConfig).initialized;
+    private async initialize(): Promise<void> {
+        await this._connectionConfig.initialized;
+        await this.migrateLegacyConnectionProfiles();
+
+        this.initialized.resolve();
     }
 
     public static get CRED_PREFIX(): string {
@@ -610,5 +620,89 @@ export class ConnectionStore {
             maxConnections = 5;
         }
         return maxConnections;
+    }
+
+    public async migrateLegacyConnectionProfiles(): Promise<void> {
+        this._logger.logDebug("Beginning migration of legacy connections");
+
+        const connections: IConnectionProfile[] = await this.readAllConnections(false);
+        const tally = {
+            migrated: 0,
+            noStoredCredential: 0,
+            notNeeded: 0,
+            error: 0,
+        };
+
+        for (const connection of connections) {
+            const result = await this.migrateLegacyConnection(connection);
+
+            tally[result] = (tally[result] || 0) + 1;
+        }
+
+        if (tally.migrated > 0) {
+            this._logger.logDebug(
+                `Completed migration of legacy Connection String connections. Migrated ${tally.migrated} connections.`,
+            );
+        } else {
+            this._logger.logDebug("No legacy Connection String connections found to migrate");
+        }
+
+        sendActionEvent(
+            TelemetryViews.General,
+            TelemetryActions.MigrateLegacyConnections,
+            {}, // properties
+            {
+                ...tally,
+            },
+        );
+    }
+
+    private async migrateLegacyConnection(
+        profile: IConnectionProfile,
+    ): Promise<"notNeeded" | "migrated" | "noStoredCredential" | "error"> {
+        try {
+            if (Utils.isEmpty(profile.connectionString)) {
+                return "notNeeded"; // Not a connection string profile; skip
+            }
+
+            // Get the real connection string from credentials store
+            const realConnectionString = await this.lookupPassword(profile, true);
+
+            if (Utils.isEmpty(realConnectionString)) {
+                this._logger.logDebug(`No connection string found for connection ID ${profile.id}`);
+
+                return "noStoredCredential"; // No connection string found in credential store; skip
+            }
+
+            const passwordIndex = realConnectionString.toLowerCase().indexOf("password=");
+
+            if (passwordIndex !== -1) {
+                // extract password from connection string
+                const passwordStart = passwordIndex + "password=".length;
+                const passwordEnd = realConnectionString.indexOf(";", passwordStart);
+                if (passwordEnd !== -1) {
+                    profile.password = realConnectionString.substring(passwordStart, passwordEnd);
+                }
+
+                // clear the old connection string from the profile as it no longer has useful information
+                profile.connectionString = "";
+            }
+
+            await this.saveProfile(profile);
+            return "migrated";
+        } catch (err) {
+            this._logger.error(
+                `Error migrating legacy connection ID ${profile.id}: ${getErrorMessage(err)}`,
+            );
+
+            sendErrorEvent(
+                TelemetryViews.General,
+                TelemetryActions.MigrateLegacyConnections,
+                err,
+                false, // includeErrorMessage
+            );
+
+            return "error";
+        }
     }
 }
