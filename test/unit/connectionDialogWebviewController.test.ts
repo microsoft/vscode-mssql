@@ -40,7 +40,6 @@ import {
 } from "@microsoft/vscode-azext-azureauth";
 import { stubTelemetry } from "./utils";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { Deferred } from "../../src/protocol";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 
 suite("ConnectionDialogWebviewController Tests", () => {
