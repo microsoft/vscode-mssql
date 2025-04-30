@@ -62,6 +62,7 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import { DefaultWebviewNotifications } from "./reactWebviewBaseController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 
 /**
@@ -1781,18 +1782,14 @@ export default class MainController implements vscode.Disposable {
             this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold
         ) {
             // Untitled file was saved and connection will be transfered
-            await this._connectionMgr.transferFileConnection(closedDocumentUri, this._lastSavedUri);
+            await this.updateUri(closedDocumentUri, this._lastSavedUri);
 
             // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
         } else if (
             this._lastOpenedUri &&
-            this._lastOpenedTimer.getDuration() < Constants.renamedOpenTimeThreshold
+            this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold
         ) {
-            // File was renamed and connection will be transfered
-            await this._connectionMgr.transferFileConnection(
-                closedDocumentUri,
-                this._lastOpenedUri,
-            );
+            await this.updateUri(closedDocumentUri, this._lastOpenedUri);
         } else {
             // Pass along the close event to the other handlers for a normal closed file
             await this._connectionMgr.onDidCloseTextDocument(doc);
@@ -1826,6 +1823,32 @@ export default class MainController implements vscode.Disposable {
 
         // Delete query result fiters for the closed uri
         store.delete(closedDocumentUri);
+    }
+
+    private async updateUri(oldUri: string, newUri: string) {
+        // Transfer the connection to the new URI
+        await this._connectionMgr.transferFileConnection(oldUri, newUri);
+
+        // Call STS  & Query Runner to update URI
+        this._outputContentProvider.updateQueryRunnerUri(oldUri, newUri);
+
+        // Update the URI in the output content provider query result map
+        this._outputContentProvider.onUntitledFileSaved(oldUri, newUri);
+
+        let state = this._queryResultWebviewController.getQueryResultState(oldUri);
+        if (state) {
+            state.uri = newUri;
+
+            // Post a notification to the webview to update the state of the query result
+            this._queryResultWebviewController.postNotification(
+                DefaultWebviewNotifications.updateState,
+                state,
+            );
+
+            //Update the URI in the query result webview state
+            this._queryResultWebviewController.setQueryResultState(newUri, state);
+            this._queryResultWebviewController.deleteQueryResultState(oldUri);
+        }
     }
 
     /**
