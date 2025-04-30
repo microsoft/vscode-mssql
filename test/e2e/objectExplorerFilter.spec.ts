@@ -17,7 +17,7 @@ import {
     getSavePassword,
     getProfileName,
 } from "./utils/envConfigReader";
-import { writeCoverage } from "./utils/coverageHelpers";
+import { getCoverageFromWebview, writeCoverage } from "./utils/coverageHelpers";
 
 test.describe("MSSQL Extension - Object Explorer Filter", async () => {
     let vsCodeApp: ElectronApplication;
@@ -30,6 +30,7 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
     let password: string;
     let savePassword: string;
     let profileName: string;
+    let coverageMap: Map<string, any> = new Map();
 
     test.beforeAll("Setting up for Object Explorer Filter Tests", async () => {
         const { electronApp, page } = await launchVsCodeWithMssqlExtension();
@@ -84,7 +85,10 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         // Log coverage now, because context is lost when webview is closed
         // upon pressing "OK"
         await refocusFilterTab(vsCodePage);
-        await writeCoverage(iframe, `objectExplorerFilter-${generateUUID()}`);
+        coverageMap.set(
+            `objectExplorerFilter-${generateUUID()}`,
+            await getCoverageFromWebview(iframe),
+        );
         let okButton = iframe.getByText("OK");
         await okButton.click();
         const nonSPTTable = vsCodePage.locator(
@@ -104,7 +108,10 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         // Log coverage now, because context is lost when webview is closed
         // upon pressing "OK"
         await refocusFilterTab(vsCodePage);
-        await writeCoverage(iframe, `objectExplorerFilter-${generateUUID()}`);
+        coverageMap.set(
+            `objectExplorerFilter-${generateUUID()}`,
+            await getCoverageFromWebview(iframe),
+        );
         let okButton = iframe.getByText("OK");
         await okButton.click();
         const nonSPTTable = vsCodePage.locator(
@@ -131,7 +138,10 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         // Log coverage now, because context is lost when webview is closed
         // upon pressing "OK"
         await refocusFilterTab(vsCodePage);
-        await writeCoverage(iframe, `objectExplorerFilter-${generateUUID()}`);
+        coverageMap.set(
+            `objectExplorerFilter-${generateUUID()}`,
+            await getCoverageFromWebview(iframe),
+        );
         let okButton = iframe.getByText("OK");
         await okButton.click();
     });
@@ -157,7 +167,10 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         // Log coverage now, because context is lost when webview is closed
         // upon pressing "OK"
         await refocusFilterTab(vsCodePage);
-        await writeCoverage(iframe, `objectExplorerFilter-${generateUUID()}`);
+        coverageMap.set(
+            `objectExplorerFilter-${generateUUID()}`,
+            await getCoverageFromWebview(iframe),
+        );
         let closeButton = iframe.getByText("Close");
         await closeButton.click();
 
@@ -169,6 +182,7 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
     });
 
     test.afterAll(async () => {
+        await writeCoverage(coverageMap);
         await vsCodeApp.close();
     });
 });

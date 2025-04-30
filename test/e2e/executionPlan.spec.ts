@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ElectronApplication, FrameLocator, Locator, Page } from "@playwright/test";
-import { test, expect } from "./baseFixtures";
+import { test, expect, generateUUID } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
 import { getWebviewByTitle, waitForCommandPaletteToBeVisible } from "./utils/testHelpers";
-import { writeCoverage } from "./utils/coverageHelpers";
+import { getCoverageFromWebview, writeCoverage } from "./utils/coverageHelpers";
 import path from "path";
 
 test.describe("MSSQL Extension - Query Plan", async () => {
@@ -16,7 +16,8 @@ test.describe("MSSQL Extension - Query Plan", async () => {
     let vsCodePage: Page;
     let iframe: FrameLocator;
     let queryPlanMXGraph: Locator;
-    let currentZoom: number = 100;
+    let coverageMap: Map<string, any> = new Map();
+    let currentZoom = 100;
 
     test.beforeAll("Setting up for Query Plan Tests", async () => {
         const { electronApp, page } = await launchVsCodeWithMssqlExtension();
@@ -319,7 +320,9 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
     test.afterAll(async () => {
         await refocusQueryPlanTab(vsCodePage);
-        await writeCoverage(iframe, "executionPlan");
+
+        coverageMap.set(`executionPlan-${generateUUID()}`, await getCoverageFromWebview(iframe));
+        await writeCoverage(coverageMap);
 
         // Close query plan webview
         await vsCodePage.keyboard.press("Control+F4");
