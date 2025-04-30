@@ -365,7 +365,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                         publishState: designer.LoadState.NotStarted,
                     },
                     generatePreviewReportResult: {
-                        schemaValidationError: e.toString(),
+                        schemaValidationError: getErrorMessage(e),
                         report: "",
                         mimeType: "",
                     },
