@@ -1850,15 +1850,21 @@ export default class MainController implements vscode.Disposable {
                 closedDocumentUri,
                 this._lastOpenedUri,
             );
+
+            // Call STS to update URI
             this._outputContentProvider.updateQueryRunnerUri(
                 closedDocumentUri,
                 this._lastOpenedUri,
             );
+
+            // Update the URI in the output content provider query result map
             this._outputContentProvider.onUntitledFileSaved(closedDocumentUri, this._lastOpenedUri);
 
             let state = this._queryResultWebviewController.getQueryResultState(closedDocumentUri);
             if (state) {
                 state.uri = this._lastOpenedUri;
+
+                //Update the URI in the query result webview state
                 this._queryResultWebviewController.postNotification(
                     DefaultWebviewNotifications.updateState,
                     state,

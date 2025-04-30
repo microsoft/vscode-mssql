@@ -893,8 +893,8 @@ export default class QueryRunner {
 
     public updateQueryRunnerUri(oldUri: string, newUri: string): void {
         let queryConnectionUriChangeParams: QueryConnectionUriChangeParams = {
-            newUri: newUri,
-            oldUri: oldUri,
+            newOwnerUri: newUri,
+            originalOwnerUri: oldUri,
         };
         this._client.sendNotification(
             QueryConnectionUriChangeRequest.type,

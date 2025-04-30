@@ -171,6 +171,6 @@ export namespace QueryConnectionUriChangeRequest {
 }
 
 export class QueryConnectionUriChangeParams {
-    newUri: string;
-    oldUri: string;
+    newOwnerUri: string;
+    originalOwnerUri: string;
 }
