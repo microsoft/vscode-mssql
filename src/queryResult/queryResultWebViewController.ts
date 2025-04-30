@@ -60,6 +60,9 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         void this.initialize();
 
         if (this.isRichExperiencesEnabled) {
+            // this._getWebviewView().onDidChangeVisibility(async (e) => {
+            //     await this.initialize();
+            // });
             vscode.window.onDidChangeActiveTextEditor((editor) => {
                 const uri = editor?.document?.uri?.toString(true);
                 if (uri && this._queryResultStateMap.has(uri)) {
@@ -203,6 +206,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     public async createPanelController(uri: string) {
         const viewColumn = getNewResultPaneViewColumn(uri, this.vscodeWrapper);
+        console.log(viewColumn);
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
             this._queryResultWebviewPanelControllerMap.get(uri).revealToForeground();
             return;

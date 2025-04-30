@@ -41,6 +41,10 @@ export class ReactWebviewViewController<State, Reducers>
         return this._webviewView?.webview;
     }
 
+    protected _getWebviewView(): vscode.WebviewView {
+        return this._webviewView;
+    }
+
     /**
      * returns if the webview is visible
      */
@@ -69,6 +73,24 @@ export class ReactWebviewViewController<State, Reducers>
     ) {
         this._loadStartTime = Date.now();
         this._webviewView = webviewView;
+
+        this._webviewView.onDidChangeVisibility(async (e) => {
+            //TODO: reload webview here
+            // need to bootstrap webview again
+            console.log("Visibility changed", e);
+            console.log("webview", this._webviewView.webview);
+            this._webviewView.webview.html = this._getHtmlTemplate(); // Reload the HTML content
+            this.registerDisposable(
+                this._webviewView.webview.onDidReceiveMessage(this._webviewMessageHandler),
+            );
+            this.initializeBase(); // Reinitialize any base logic
+            await this.revealToForeground();
+            console.log("webview.visible", this._webviewView.visible);
+
+            // } else {
+            //     console.log("Webview is hidden.");
+            // }
+        });
 
         webviewView.webview.options = {
             // Allow scripts in the webview
