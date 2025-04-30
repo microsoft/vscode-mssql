@@ -900,5 +900,6 @@ export default class QueryRunner {
             QueryConnectionUriChangeRequest.type,
             queryConnectionUriChangeParams,
         );
+        this.uri = newUri;
     }
 }
