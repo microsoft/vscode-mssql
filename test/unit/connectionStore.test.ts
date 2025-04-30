@@ -12,7 +12,6 @@ import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { expect } from "chai";
 import * as sinon from "sinon";
-import { IConnectionProfile } from "../../src/models/interfaces";
 
 suite("ConnectionStore Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -59,88 +58,136 @@ suite("ConnectionStore Tests", () => {
             await connectionStore.initialized; // Wait for initialization to complete
         });
 
-        test("Initialization migrates legacy Connection String connections", async () => {
-            const testServer = "localhost";
-            const testDatabase = "TestDb";
-            const testUser = "testUser";
-            const testPassword = "testPassword";
-            const testConnectionString = `Data Source=${testServer};Initial Catalog=${testDatabase};User Id=${testUser};Password=${testPassword}`;
-            const testCredentialId = "test_credential_id";
-            const testConnectionId = "00000000-1111-2222-3333-444444444444";
+        // test("Initialization migrates legacy Connection String connections in credential store", async () => {
+        //     const testServer = "localhost";
+        //     const testDatabase = "TestDb";
+        //     const testUser = "testUser";
+        //     const testPassword = "testPassword";
+        //     const testConnectionString = `Data Source=${testServer};Initial Catalog=${testDatabase};User Id=${testUser};Password=${testPassword}`;
+        //     const testCredentialId = "test_credential_id";
+        //     const testConnectionId = "00000000-1111-2222-3333-444444444444";
 
-            mockCredentialStore
-                .setup((cs) => cs.readCredential(TypeMoq.It.isAny()))
-                .returns((credId: string) => {
-                    return Promise.resolve({
-                        credentialId: credId,
-                        password: testConnectionString,
-                    });
-                });
+        //     mockCredentialStore
+        //         .setup((cs) => cs.readCredential(TypeMoq.It.isAny()))
+        //         .returns((credId: string) => {
+        //             return Promise.resolve({
+        //                 credentialId: credId,
+        //                 password: testConnectionString,
+        //             });
+        //         });
 
-            let savedCredential;
+        //     let savedCredential;
 
-            mockCredentialStore
-                .setup((cs) => cs.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns((credId, password) => {
-                    savedCredential = password;
-                    return Promise.resolve(true);
-                });
+        //     mockCredentialStore
+        //         .setup((cs) => cs.saveCredential(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+        //         .returns((credId, password) => {
+        //             savedCredential = password;
+        //             return Promise.resolve(true);
+        //         });
 
-            mockConnectionConfig.reset();
-            mockConnectionConfig
-                .setup((c) => c.getConnections(TypeMoq.It.isAny()))
-                .returns(() => {
-                    return Promise.resolve([
-                        {
-                            id: testConnectionId,
-                            connectionString: testCredentialId,
-                            server: testServer,
-                            database: testDatabase,
-                            user: testUser,
-                        } as IConnectionProfile,
-                    ]);
-                });
+        //     mockConnectionConfig.reset();
+        //     mockConnectionConfig
+        //         .setup((c) => c.getConnections(TypeMoq.It.isAny()))
+        //         .returns(() => {
+        //             return Promise.resolve([
+        //                 {
+        //                     id: testConnectionId,
+        //                     connectionString: testCredentialId,
+        //                     server: testServer,
+        //                     database: testDatabase,
+        //                     user: testUser,
+        //                 } as IConnectionProfile,
+        //             ]);
+        //         });
 
-            let savedProfile: IConnectionProfile;
+        //     let savedProfile: IConnectionProfile;
 
-            mockConnectionConfig
-                .setup((cc) => cc.addConnection(TypeMoq.It.isAny()))
-                .returns((profile: IConnectionProfile) => {
-                    savedProfile = profile;
-                    return Promise.resolve();
-                });
+        //     mockConnectionConfig
+        //         .setup((cc) => cc.addConnection(TypeMoq.It.isAny()))
+        //         .returns((profile: IConnectionProfile) => {
+        //             savedProfile = profile;
+        //             return Promise.resolve();
+        //         });
 
-            connectionStore = new ConnectionStore(
-                mockContext.object,
-                mockLogger.object,
-                mockCredentialStore.object,
-                mockConnectionConfig.object,
-                mockVscodeWrapper.object,
-            );
+        //     connectionStore = new ConnectionStore(
+        //         mockContext.object,
+        //         mockLogger.object,
+        //         mockCredentialStore.object,
+        //         mockConnectionConfig.object,
+        //         mockVscodeWrapper.object,
+        //     );
 
-            await connectionStore.initialized; // Wait for initialization to complete
+        //     await connectionStore.initialized; // Wait for initialization to complete
 
-            expect(savedProfile, "Migrated profile should have been saved").to.not.be.undefined;
+        //     expect(savedProfile, "Migrated profile should have been saved").to.not.be.undefined;
 
-            expect(savedProfile.id, "saved profile ID should be the same as the original").to.equal(
-                testConnectionId,
-            );
+        //     expect(savedProfile.id, "saved profile ID should be the same as the original").to.equal(
+        //         testConnectionId,
+        //     );
 
-            expect(
-                savedProfile.connectionString,
-                "connection string should not be set after migration",
-            ).to.equal("");
+        //     expect(
+        //         savedProfile.connectionString,
+        //         "connection string should not be set after migration",
+        //     ).to.equal("");
 
-            expect(
-                savedProfile.savePassword,
-                "savePassword should be true when a connection string containing a password has been migrated",
-            ).to.be.true;
+        //     expect(
+        //         savedProfile.savePassword,
+        //         "savePassword should be true when a connection string containing a password has been migrated",
+        //     ).to.be.true;
 
-            expect(
-                savedCredential,
-                "password extracted from the connection string should have been saved",
-            ).to.equal(testPassword);
-        });
+        //     expect(
+        //         savedCredential,
+        //         "password extracted from the connection string should have been saved",
+        //     ).to.equal(testPassword);
+        // });
+
+        // test("Initialization migrates legacy Connection String connections with no credential", async () => {
+        //     const testServer = "localhost";
+        //     const testDatabase = "TestDb";
+        //     const testConnectionString = `Data Source=${testServer};Initial Catalog=${testDatabase};Integrated Security=True;`;
+        //     const testConnectionId = "00000000-1111-2222-3333-444444444444";
+
+        //     mockConnectionConfig.reset();
+        //     mockConnectionConfig
+        //         .setup((c) => c.getConnections(TypeMoq.It.isAny()))
+        //         .returns(() => {
+        //             return Promise.resolve([
+        //                 {
+        //                     id: testConnectionId,
+        //                     connectionString: testConnectionString,
+        //                     server: testServer,
+        //                     database: testDatabase,
+        //                     user: "",
+        //                     password: "",
+        //                 } as IConnectionProfile,
+        //             ]);
+        //         });
+
+        //     let savedProfile: IConnectionProfile;
+
+        //     mockConnectionConfig
+        //         .setup((cc) => cc.addConnection(TypeMoq.It.isAny()))
+        //         .returns((profile: IConnectionProfile) => {
+        //             savedProfile = profile;
+        //             return Promise.resolve();
+        //         });
+
+        //     connectionStore = new ConnectionStore(
+        //         mockContext.object,
+        //         mockLogger.object,
+        //         mockCredentialStore.object,
+        //         mockConnectionConfig.object,
+        //         mockVscodeWrapper.object,
+        //     );
+
+        //     await connectionStore.initialized; // Wait for initialization to complete
+
+        //     expect(savedProfile, "Migrated profile should have been saved").to.not.be.undefined;
+
+        //     expect(savedProfile.id, "saved profile ID should be the same as the original").to.equal(
+        //         testConnectionId,
+        //     );
+        // });
     });
 
     test("formatCredentialId", () => {

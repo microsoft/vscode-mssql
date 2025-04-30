@@ -702,7 +702,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             // all properties are set when converting from a ConnectionDetails object,
             // so we want to clean the default undefined properties before saving.
-            cleanedConnection = this.removeUndefinedProperties(
+            cleanedConnection = ConnectionCredentials.removeUndefinedProperties(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 cleanedConnection as any,
             );
@@ -745,24 +745,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         }
         return state;
-    }
-
-    private removeUndefinedProperties(connProfile: IConnectionProfile): IConnectionProfile {
-        // TODO: ideally this compares against the default values acquired from a source of truth (e.g. STS),
-        // so that it can clean up more than just undefined properties.
-
-        const output = Object.assign({}, connProfile);
-        for (const key of Object.keys(output)) {
-            if (
-                output[key] === undefined ||
-                // eslint-disable-next-line no-restricted-syntax
-                output[key] === null
-            ) {
-                delete output[key];
-            }
-        }
-
-        return output;
     }
 
     private async handleConnectionErrorCodes(

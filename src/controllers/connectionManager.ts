@@ -37,6 +37,8 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import * as events from "events";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
+import { getErrorMessage } from "../utils/utils";
+import { Logger } from "../models/logger";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -108,11 +110,14 @@ export default class ConnectionManager {
 
     private _event: events.EventEmitter = new events.EventEmitter();
 
+    public initialized: Deferred<void> = new Deferred<void>();
+
     constructor(
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
         private isRichExperiencesEnabled: boolean = Constants.isRichExperiencesEnabledDefault,
+        private _logger?: Logger,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
         private _connectionStore?: ConnectionStore,
@@ -128,6 +133,7 @@ export default class ConnectionManager {
             string,
             Deferred<ConnectionContracts.ConnectionCompleteParams>
         >();
+
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
         }
@@ -135,20 +141,20 @@ export default class ConnectionManager {
             this.vscodeWrapper = new VscodeWrapper();
         }
 
+        if (!this._logger) {
+            this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionManager");
+        }
+
         if (!this._credentialStore) {
             this._credentialStore = new CredentialStore(context);
         }
 
         if (!this._connectionStore) {
-            this._connectionStore = new ConnectionStore(
-                context,
-                this.client?.logger,
-                this._credentialStore,
-            );
+            this._connectionStore = new ConnectionStore(context, this._credentialStore);
         }
 
         if (!this._accountStore) {
-            this._accountStore = new AccountStore(context, this.client?.logger);
+            this._accountStore = new AccountStore(context, this._logger);
         }
 
         if (!this._connectionUI) {
@@ -204,10 +210,15 @@ export default class ConnectionManager {
                 this.handleNonTSqlNotification(),
             );
         }
+
+        void this.initialize();
     }
 
-    public get initialized(): Deferred<void> {
-        return this.connectionStore.initialized;
+    private async initialize(): Promise<void> {
+        await this.connectionStore.initialized;
+        await this.migrateLegacyConnectionProfiles();
+
+        this.initialized.resolve();
     }
 
     /**
@@ -1580,5 +1591,112 @@ export default class ConnectionManager {
     public onClearTokenCache(): void {
         this.azureController.clearTokenCache();
         this.vscodeWrapper.showInformationMessage(LocalizedConstants.clearedAzureTokenCache);
+    }
+
+    public async migrateLegacyConnectionProfiles(): Promise<void> {
+        this._logger.logDebug("Beginning migration of legacy connections");
+
+        const connections: IConnectionProfile[] =
+            await this.connectionStore.readAllConnections(false);
+        const tally = {
+            migrated: 0,
+            notNeeded: 0,
+            error: 0,
+        };
+
+        for (const connection of connections) {
+            const result = await this.migrateLegacyConnection(connection);
+
+            tally[result] = (tally[result] || 0) + 1;
+        }
+
+        if (tally.migrated > 0) {
+            this._logger.logDebug(
+                `Completed migration of legacy Connection String connections. (${tally.migrated} migrated, ${tally.notNeeded} not needed, ${tally.error} errored)`,
+            );
+        } else {
+            this._logger.logDebug(
+                `No legacy Connection String connections found to migrate. (${tally.notNeeded} not needed, ${tally.error} errored)`,
+            );
+        }
+
+        sendActionEvent(
+            TelemetryViews.General,
+            TelemetryActions.MigrateLegacyConnections,
+            {}, // properties
+            {
+                ...tally,
+            },
+        );
+    }
+
+    private async migrateLegacyConnection(
+        profile: IConnectionProfile,
+    ): Promise<"notNeeded" | "migrated" | "error"> {
+        try {
+            if (Utils.isEmpty(profile.connectionString)) {
+                return "notNeeded"; // Not a connection string profile; skip
+            }
+
+            let connectionString = profile.connectionString;
+
+            // Get the real connection string from credentials store if necessary
+            if (connectionString.includes(ConnectionStore.CRED_CONNECTION_STRING_PREFIX)) {
+                const retrievedString = await this.connectionStore.lookupPassword(profile, true);
+                connectionString = retrievedString ?? connectionString;
+
+                // return "noStoredCredential"; // No connection string found in credential store; skip?
+            }
+
+            // merge profile from connection string with existing profile
+            const connDetails = await this.parseConnectionString(connectionString);
+            const profileFromString = ConnectionCredentials.removeUndefinedProperties(
+                ConnectionCredentials.createConnectionInfo(connDetails),
+            );
+
+            const newProfile: IConnectionProfile = {
+                ...profileFromString,
+                ...profile,
+            };
+
+            // state.connectionProfile = await this.hydrateConnectionDetailsFromProfile(
+            //     connDetails,
+            //     state.connectionProfile,
+            // );
+
+            const passwordIndex = connectionString.toLowerCase().indexOf("password=");
+
+            if (passwordIndex !== -1) {
+                // extract password from connection string
+                const passwordStart = passwordIndex + "password=".length;
+                const passwordEnd = connectionString.indexOf(";", passwordStart);
+
+                newProfile.password = connectionString.substring(
+                    passwordStart,
+                    passwordEnd === -1 ? undefined : passwordEnd, // if no further semicolon found, password must be the last item in the connection string
+                );
+
+                newProfile.savePassword = true;
+            }
+
+            // clear the old connection string from the profile as it no longer has useful information
+            newProfile.connectionString = "";
+
+            await this.connectionStore.saveProfile(newProfile);
+            return "migrated";
+        } catch (err) {
+            this._logger.error(
+                `Error migrating legacy connection ID ${profile.id}: ${getErrorMessage(err)}`,
+            );
+
+            sendErrorEvent(
+                TelemetryViews.General,
+                TelemetryActions.MigrateLegacyConnections,
+                err,
+                false, // includeErrorMessage
+            );
+
+            return "error";
+        }
     }
 }
