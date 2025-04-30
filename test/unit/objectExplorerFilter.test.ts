@@ -18,7 +18,7 @@ import {
     ObjectExplorerFilterState,
     ObjectExplorerFilterUtils,
 } from "../../src/sharedInterfaces/objectExplorerFilter";
-import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 
 suite("ObjectExplorerFilterReactWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
