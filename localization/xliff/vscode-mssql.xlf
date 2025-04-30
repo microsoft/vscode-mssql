@@ -111,6 +111,10 @@
     <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
       <source xml:lang="en">Apply changes to target</source>
     </trans-unit>
+    <trans-unit id="++CODE++d06cb9591349a9b98151fca38054ea9703b643b570f3b4557f3d2c07d76a7403">
+      <source xml:lang="en">Are you sure you want to delete {0}?</source>
+      <note>{0} is the node label</note>
+    </trans-unit>
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
       <source xml:lang="en">Are you sure you want to disconnect?</source>
     </trans-unit>
@@ -1018,6 +1022,9 @@
     </trans-unit>
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
+      <source xml:lang="en">Loading...</source>
     </trans-unit>
     <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
       <source xml:lang="en">Location</source>

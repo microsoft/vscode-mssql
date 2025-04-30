@@ -422,14 +422,19 @@
                     "group": "1_MSSQL_serverAndDbManagement@1"
                 },
                 {
+                    "command": "mssql.editConnection",
+                    "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
+                    "group": "1_MSSQL_serverAndDbManagement@2"
+                },
+                {
                     "command": "mssql.disconnectObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@2"
+                    "group": "1_MSSQL_serverAndDbManagement@3"
                 },
                 {
                     "command": "mssql.removeObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@3"
+                    "group": "1_MSSQL_serverAndDbManagement@4"
                 },
                 {
                     "command": "mssql.designSchema",

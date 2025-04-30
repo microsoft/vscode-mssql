@@ -585,6 +585,16 @@ export class ObjectExplorer {
     public static FailedOEConnectionErrorRetry = l10n.t("Retry");
     public static FailedOEConnectionErrorUpdate = l10n.t("Edit Connection Profile");
     public static Connecting = l10n.t("Connecting...");
+    public static NodeDeletionConfirmation(nodeLabel: string) {
+        return l10n.t({
+            message: "Are you sure you want to delete {0}?",
+            args: [nodeLabel],
+            comment: ["{0} is the node label"],
+        });
+    }
+    public static NodeDeletionConfirmationYes = l10n.t("Yes");
+    public static NodeDeletionConfirmationNo = l10n.t("No");
+    public static LoadingNodeLabel = l10n.t("Loading...");
 }
 
 export class ConnectionDialog {
