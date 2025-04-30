@@ -291,9 +291,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("filterAzureSubscriptions", async (state) => {
-            await promptForAzureSubscriptionFilter(state);
-            await this.loadAllAzureServers(state);
-
+            if (await promptForAzureSubscriptionFilter(state)) {
+                await this.loadAllAzureServers(state);
+            }
             return state;
         });
 
