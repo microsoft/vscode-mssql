@@ -1524,6 +1524,9 @@
       <source xml:lang="en">Schema Compare failed: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the compare operation</note>
     </trans-unit>
+    <trans-unit id="++CODE++15b5d02ad3478e97181969698b48fe22f92298cc513e992be78922dc8f3ffe9c">
+      <source xml:lang="en">Schema Designer</source>
+    </trans-unit>
     <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
       <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
     </trans-unit>
@@ -1914,9 +1917,6 @@
     </trans-unit>
     <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
       <source xml:lang="en">Yes</source>
-    </trans-unit>
-    <trans-unit id="++CODE++866b5c1e9645a0f3a2a90c91793c7f7b1f7cdca2d11787ffb2a709b04dc67bc3">
-      <source xml:lang="en">You have unsaved changes. Save your schema design for next time?</source>
     </trans-unit>
     <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
       <source xml:lang="en">You must review and accept the terms to proceed</source>

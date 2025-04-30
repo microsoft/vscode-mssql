@@ -375,4 +375,9 @@ export namespace SchemaDesigner {
         copyToClipboard: CopyToClipboardOptions;
         openInEditor: OpenInEditorOptions;
     }
+
+    export interface SchemaDesignerCacheItem {
+        schemaDesignerDetails: SchemaDesigner.CreateSessionResponse;
+        isDirty: boolean;
+    }
 }

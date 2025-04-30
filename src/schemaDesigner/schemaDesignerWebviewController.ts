@@ -17,7 +17,6 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 > {
     private _sessionId: string = "";
     private _key: string = "";
-    private _isDirty: boolean = false;
     public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
 
     constructor(
@@ -29,7 +28,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         private accessToken: string | undefined,
         private databaseName: string,
         private treeNode: TreeNodeInfo,
-        private schemaDesignerCache: Map<string, SchemaDesigner.CreateSessionResponse>,
+        private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
     ) {
         super(
             context,
@@ -88,14 +87,17 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     accessToken: this.accessToken,
                     databaseName: this.databaseName,
                 });
-                this._sessionId = sessionResponse.sessionId;
+                this.schemaDesignerCache.set(this._key, {
+                    schemaDesignerDetails: sessionResponse,
+                    isDirty: false,
+                });
             } else {
                 // if the cache has the session, the changes have not been saved, and the
                 // session is dirty
-                sessionResponse = this.schemaDesignerCache.get(this._key)!;
-                this._isDirty = true;
+                sessionResponse = this.updateCacheItem(undefined, true).schemaDesignerDetails;
             }
             this.schemaDesignerDetails = sessionResponse;
+            this._sessionId = sessionResponse.sessionId;
             return sessionResponse;
         });
 
@@ -104,7 +106,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
             });
-            this.handleSchemaChanges(payload.updatedSchema);
+            this.updateCacheItem(payload.updatedSchema, true);
             return script;
         });
 
@@ -114,7 +116,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     updatedSchema: payload.updatedSchema,
                     sessionId: this._sessionId,
                 });
-                this.handleSchemaChanges(payload.updatedSchema);
+                this.updateCacheItem(payload.updatedSchema, true);
                 return {
                     report,
                 };
@@ -130,7 +132,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 await this.schemaDesignerService.publishSession({
                     sessionId: this._sessionId,
                 });
-                this._isDirty = false;
+                this.updateCacheItem(undefined, false);
                 return {
                     success: true,
                 };
@@ -164,33 +166,24 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
     }
 
-    private handleSchemaChanges(updatedSchema: SchemaDesigner.Schema): void {
-        this.schemaDesignerDetails!.schema = updatedSchema;
-        this._isDirty = true;
+    private updateCacheItem(
+        updatedSchema?: SchemaDesigner.Schema,
+        isDirty?: boolean,
+    ): SchemaDesigner.SchemaDesignerCacheItem {
+        let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key)!;
+        if (updatedSchema) {
+            this.schemaDesignerDetails!.schema = updatedSchema;
+            schemaDesignerCacheItem.schemaDesignerDetails.schema = updatedSchema;
+        }
+        // if isDirty is not provided, set it to schemaDesignerCacheItem.isDirty
+        // else, set it to the provided value
+        schemaDesignerCacheItem.isDirty = isDirty ?? schemaDesignerCacheItem.isDirty;
+        this.schemaDesignerCache.set(this._key, schemaDesignerCacheItem);
+        return schemaDesignerCacheItem;
     }
 
     override async dispose(): Promise<void> {
-        if (this._isDirty) {
-            const choice = await vscode.window.showInformationMessage(
-                LocConstants.SchemaDesigner.UnsavedChangesPrompt,
-                { modal: true },
-                LocConstants.SchemaDesigner.Save,
-            );
-
-            if (choice === LocConstants.SchemaDesigner.Save) {
-                // Set the schema designer details in the cache
-                this.schemaDesignerCache.set(this._key, this.schemaDesignerDetails);
-            } else {
-                // User chose not to save, so remove the session from the cache
-                // Set the schema designer details in the cache
-                this.schemaDesignerCache.delete(this._key);
-            }
-        } else {
-            this.schemaDesignerCache.delete(this._key);
-        }
+        this.updateCacheItem(this.schemaDesignerDetails!.schema);
         super.dispose();
-        this.schemaDesignerService.disposeSession({
-            sessionId: this._sessionId,
-        });
     }
 }
