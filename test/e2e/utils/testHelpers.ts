@@ -127,8 +127,12 @@ export async function addDatabaseConnectionThroughWebview(
 
     const loadingIcon = connectionWebview.locator('[class*="fui-Spinner"][role="progressbar"]');
     await loadingIcon.waitFor({ state: "hidden" });
-    await connectionWebview.owner().waitFor({ state: "hidden", timeout: 120 * 1000 });
-
+    try {
+        await connectionWebview.owner().waitFor({ state: "hidden", timeout: 120 * 1000 });
+    } catch (error) {
+        console.log("Connection dialog is still open");
+        await clearNotifications(vsCodePage);
+    }
     // check connection is loaded in OE
     const addedConnection = await vsCodePage.locator(`[role="treeitem"]`).first();
     await addedConnection.waitFor({ state: "visible", timeout: 30 * 1000 });
