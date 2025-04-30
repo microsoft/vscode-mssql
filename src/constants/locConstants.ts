@@ -840,4 +840,7 @@ export class SchemaDesigner {
     );
     public static SaveAs = l10n.t("Save As");
     public static Save = l10n.t("Save");
+    public static UnsavedChangesPrompt = l10n.t(
+        "You have unsaved changes. Save your schema design for next time?",
+    );
 }

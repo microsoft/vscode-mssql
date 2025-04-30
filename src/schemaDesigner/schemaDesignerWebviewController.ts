@@ -172,13 +172,12 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     override async dispose(): Promise<void> {
         if (this._isDirty) {
             const choice = await vscode.window.showInformationMessage(
-                "You have unsaved changes in your schema. Are you sure you want to exit without saving?",
+                LocConstants.SchemaDesigner.UnsavedChangesPrompt,
                 { modal: true },
-                "Save and Close",
-                "Close without saving",
+                LocConstants.SchemaDesigner.Save,
             );
 
-            if (choice === "Save and Close") {
+            if (choice === LocConstants.SchemaDesigner.Save) {
                 // Set the schema designer details in the cache
                 this.schemaDesignerCache.set(this._key, this.schemaDesignerDetails);
             } else {
