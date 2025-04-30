@@ -314,7 +314,7 @@ export class ObjectExplorerService {
                     uniqueConnections.set(conn.id, conn);
                 } else {
                     this._logger.verbose(
-                        `Duplicate connection ID found: ${conn.id}. Removing duplicate connection.`,
+                        `Duplicate connection ID found: ${conn.id}. Ignoring duplicate connection.`,
                     );
                 }
             }
@@ -392,8 +392,8 @@ export class ObjectExplorerService {
          * If no children are cached, return a temporary loading node to keep the UI responsive
          * and trigger the async call to fetch real children.
          * This node will be replaced once the data is retrieved and the tree is refreshed.
-         * Without this, tree expansion is queued—so if multiple connections are expanding,
-         * one blocked operation can delay the others.
+         * Tree expansion is queued, so without this if multiple connections are expanding,
+         * one blocked operation can delay the other.
          */
         void this.getOrCreateNodeChildrenWithSession(element);
         const loadingNode = new vscode.TreeItem(
