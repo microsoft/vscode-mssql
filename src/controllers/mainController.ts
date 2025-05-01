@@ -406,7 +406,8 @@ export default class MainController implements vscode.Disposable {
                         Prompts.explainQueryPrompt,
                         Prompts.explainQuerySelectionPrompt,
                     );
-                    // TODO: Add telemetry
+
+                    sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.ExplainQuery);
                 }),
             );
 
@@ -417,7 +418,8 @@ export default class MainController implements vscode.Disposable {
                         Prompts.rewriteQueryPrompt,
                         Prompts.rewriteQuerySelectionPrompt,
                     );
-                    // TODO: Add telemetry
+
+                    sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.RewriteQuery);
                 }),
             );
 
@@ -425,7 +427,11 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdAnalyzeQueryPerformance, async () => {
                     await launchEditorChatWithPrompt(Prompts.analyzeQueryPerformancePrompt);
-                    // TODO: Add telemetry
+
+                    sendActionEvent(
+                        TelemetryViews.SqlCopilot,
+                        TelemetryActions.AnalyzeQueryPerformance,
+                    );
                 }),
             );
 
