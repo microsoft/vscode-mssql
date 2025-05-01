@@ -44,29 +44,17 @@ export const AdvancedOptionsDrawer = ({
         return undefined;
     }
 
-    const doesGroupHaveVisibleOptions = (group: ConnectionComponentGroup) => {
-        return group.options.some((optionName) => {
-            if (context.state.formComponents[optionName]?.hidden === true) {
-                return false;
-            }
-            if (searchSettingsText) {
-                return optionName.toLowerCase().includes(searchSettingsText.toLowerCase());
-            } else {
-                return true;
-            }
-        });
-    };
+    function doesGroupHaveVisibleOptions(group: ConnectionComponentGroup) {
+        return group.options.some((optionName) => isOptionVisible(optionName));
+    }
 
-    const isOptionVisible = (optionName: keyof IConnectionDialogProfile) => {
-        if (context.state.formComponents[optionName]?.hidden === true) {
-            return false;
-        }
+    function isOptionVisible(optionName: keyof IConnectionDialogProfile) {
         if (searchSettingsText) {
             return optionName.toLowerCase().includes(searchSettingsText.toLowerCase());
         } else {
             return true;
         }
-    };
+    }
 
     return (
         <OverlayDrawer
