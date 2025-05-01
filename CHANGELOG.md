@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 1.31.1
+* Release date: May 2, 2025
+* Release status: GA
+### What’s new in 1.31.1
+* Resolved an issue related to tokens with local logging in some instances
+
 ## Version 1.31.0
 * Release date: April 30, 2025
 * Release status: GA
