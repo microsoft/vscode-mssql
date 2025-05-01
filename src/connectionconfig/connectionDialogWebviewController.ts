@@ -871,6 +871,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             authenticationType: AuthenticationType.SqlLogin,
             connectTimeout: 30, // seconds
             applicationName: "vscode-mssql",
+            applicationIntent: "ReadWrite",
         } as IConnectionDialogProfile;
     }
 
