@@ -155,12 +155,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.state.connectionComponents = {
             mainOptions: [...ConnectionDialogWebviewController.mainOptions],
-            topAdvancedOptions: [
-                "port",
-                "applicationName",
-                "connectTimeout",
-                "multiSubnetFailover",
-            ],
+            topAdvancedOptions: [],
             groupedAdvancedOptions: [], // computed below
         };
 

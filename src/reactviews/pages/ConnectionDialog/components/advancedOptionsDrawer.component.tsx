@@ -13,14 +13,16 @@ import {
     DrawerHeader,
     DrawerHeaderTitle,
     OverlayDrawer,
+    SearchBox,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 
 import { locConstants } from "../../../common/locConstants";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { FormField } from "../../../common/forms/form.component";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import {
+    ConnectionComponentGroup,
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
@@ -35,10 +37,36 @@ export const AdvancedOptionsDrawer = ({
     setIsAdvancedDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
     const context = useContext(ConnectionDialogContext);
+    const [searchSettingsText, setSearchSettingText] = useState<string>("");
+    const [userOpenedSections, setUserOpenedSections] = useState<string[]>(["General"]);
 
     if (context === undefined) {
         return undefined;
     }
+
+    const doesGroupHaveVisibleOptions = (group: ConnectionComponentGroup) => {
+        return group.options.some((optionName) => {
+            if (context.state.formComponents[optionName]?.hidden === true) {
+                return false;
+            }
+            if (searchSettingsText) {
+                return optionName.toLowerCase().includes(searchSettingsText.toLowerCase());
+            } else {
+                return true;
+            }
+        });
+    };
+
+    const isOptionVisible = (optionName: keyof IConnectionDialogProfile) => {
+        if (context.state.formComponents[optionName]?.hidden === true) {
+            return false;
+        }
+        if (searchSettingsText) {
+            return optionName.toLowerCase().includes(searchSettingsText.toLowerCase());
+        } else {
+            return true;
+        }
+    };
 
     return (
         <OverlayDrawer
@@ -61,9 +89,19 @@ export const AdvancedOptionsDrawer = ({
             </DrawerHeader>
 
             <DrawerBody>
+                <SearchBox
+                    size="medium"
+                    style={{ width: "100%", maxWidth: "100%" }}
+                    placeholder={locConstants.connectionDialog.searchSettings}
+                    onChange={(_e, data) => {
+                        setSearchSettingText(data.value ?? "");
+                    }}
+                    value={searchSettingsText}
+                />
                 <div style={{ margin: "20px 0px" }}>
-                    {context.state.connectionComponents.topAdvancedOptions.map(
-                        (optionName, idx) => {
+                    {context.state.connectionComponents.topAdvancedOptions
+                        .filter((optionName) => isOptionVisible(optionName))
+                        .map((optionName, idx) => {
                             return (
                                 <FormField<
                                     IConnectionDialogProfile,
@@ -77,44 +115,62 @@ export const AdvancedOptionsDrawer = ({
                                     idx={idx}
                                 />
                             );
-                        },
-                    )}
+                        })}
                 </div>
-                <Accordion multiple collapsible>
-                    {context.state.connectionComponents.groupedAdvancedOptions.map(
-                        (group, groupIndex) => {
+                <Accordion
+                    multiple
+                    collapsible
+                    onToggle={(_e, data) => {
+                        if (searchSettingsText) {
+                            // We don't support expanding/collapsing sections when searching
+                            return;
+                        } else {
+                            setUserOpenedSections(data.openItems as string[]);
+                        }
+                    }}
+                    openItems={
+                        /**
+                         * If the user is searching, we keep all sections open
+                         * If the user is not searching, we only open the sections that the user has opened
+                         */
+                        searchSettingsText
+                            ? context.state.connectionComponents.groupedAdvancedOptions.map(
+                                  (group) => group.groupName,
+                              )
+                            : userOpenedSections
+                    }>
+                    {context.state.connectionComponents.groupedAdvancedOptions
+                        .filter((group) => doesGroupHaveVisibleOptions(group))
+                        .map((group, groupIndex) => {
                             return (
                                 <AccordionItem value={group.groupName} key={groupIndex}>
                                     <AccordionHeader>{group.groupName}</AccordionHeader>
                                     <AccordionPanel>
-                                        {group.options.map((optionName, idx) => {
-                                            if (
-                                                context.state.formComponents[optionName]?.hidden ===
-                                                true
-                                            ) {
-                                                return undefined;
-                                            }
-                                            return (
-                                                <FormField<
-                                                    IConnectionDialogProfile,
-                                                    ConnectionDialogWebviewState,
-                                                    ConnectionDialogFormItemSpec,
-                                                    ConnectionDialogContextProps
-                                                >
-                                                    key={idx}
-                                                    context={context}
-                                                    component={
-                                                        context.state.formComponents[optionName]!
-                                                    }
-                                                    idx={idx}
-                                                />
-                                            );
-                                        })}
+                                        {group.options
+                                            .filter((optionName) => isOptionVisible(optionName))
+                                            .map((optionName, idx) => {
+                                                return (
+                                                    <FormField<
+                                                        IConnectionDialogProfile,
+                                                        ConnectionDialogWebviewState,
+                                                        ConnectionDialogFormItemSpec,
+                                                        ConnectionDialogContextProps
+                                                    >
+                                                        key={idx}
+                                                        context={context}
+                                                        component={
+                                                            context.state.formComponents[
+                                                                optionName
+                                                            ]!
+                                                        }
+                                                        idx={idx}
+                                                    />
+                                                );
+                                            })}
                                     </AccordionPanel>
                                 </AccordionItem>
                             );
-                        },
-                    )}
+                        })}
                 </Accordion>
             </DrawerBody>
         </OverlayDrawer>
