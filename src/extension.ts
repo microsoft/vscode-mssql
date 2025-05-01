@@ -16,6 +16,9 @@ import { ConnectionProfile } from "./models/connectionProfile";
 import { FirewallRuleError } from "./languageservice/interfaces";
 import { RequestType } from "vscode-languageclient";
 import { createSqlAgentRequestHandler } from "./chat/chatAgentRequestHandler";
+import { sendActionEvent } from "./telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
+import { ChatResultFeedbackKind } from "vscode";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -47,6 +50,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         "mssql.agent",
         createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context),
     );
+
+    participant.onDidReceiveFeedback((feedback: vscode.ChatResultFeedback) => {
+        feedback.kind;
+        sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.Feedback, {
+            kind: feedback.kind === ChatResultFeedbackKind.Helpful ? "Helpful" : "Unhelpful",
+        });
+    });
+
     context.subscriptions.push(controller, participant);
 
     return {

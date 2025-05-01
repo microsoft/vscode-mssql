@@ -20,6 +20,7 @@ export enum TelemetryViews {
     ConnectionDialog = "ConnectionDialog",
     ExecutionPlan = "ExecutionPlan",
     AddFirewallRule = "AddFirewallRule",
+    SqlCopilot = "SqlCopilot",
 }
 
 export enum TelemetryActions {
@@ -76,6 +77,12 @@ export enum TelemetryActions {
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
     LoadFromConnectionString = "LoadFromConnectionString",
+    ExplainQuery = "ExplainQuery",
+    RewriteQuery = "RewriteQuery",
+    AnalyzeQueryPerformance = "AnalyzeQueryPerformance",
+    Error = "Error",
+    ToolCall = "ToolCall",
+    Feedback = "Feedback",
 }
 
 /**
