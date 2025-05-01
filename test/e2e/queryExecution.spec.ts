@@ -77,7 +77,14 @@ SELECT Name FROM TestTable;`;
         await enterTextIntoQueryEditor(vsCodePage, sqlScript);
         await executeQuery(vsCodePage);
 
-        const nameQueryResult = await vsCodePage.getByText("Doe");
+        const resultWebview = await vsCodePage
+            .frameLocator(".webview")
+            .frameLocator('[title*="Untitled"]')
+            .first();
+
+        const nameQueryResult = await resultWebview.locator(
+            '[class*="grid-cell-value-container"][title="Doe"]',
+        );
         await expect(nameQueryResult).toBeVisible({ timeout: 10000 });
     });
 
@@ -95,7 +102,6 @@ DROP DATABASE TestDB;`;
         await executeQuery(vsCodePage);
 
         await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
-
         await vsCodeApp.close();
     });
 });
