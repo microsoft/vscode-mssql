@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import * as Utils from "../models/utils";
 import { CopilotService } from "../services/copilotService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { sendActionEvent } from "../telemetry/telemetry";
 import * as Constants from "../constants/constants";
 import {
     GetNextMessageResponse,
@@ -15,6 +16,7 @@ import {
     MessageRole,
     MessageType,
 } from "../models/contracts/copilot";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -408,6 +410,12 @@ export const createSqlAgentRequestHandler = (
         if (copilotDebugLogging) {
             stream.progress(`Calling tool: ${tool.functionName} with ${sqlToolParameters}`);
         }
+
+        sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.ToolCall, {
+            toolName: tool.functionName,
+            toolDescription: tool.functionDescription,
+        });
+
         return { sqlTool, sqlToolParameters };
     }
 
@@ -430,6 +438,12 @@ export const createSqlAgentRequestHandler = (
         const errorMessage =
             errorMessages[err.code] ||
             "An unexpected error occurred with the language model. Please try again.";
+
+        sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.Error, {
+            errorCode: err.code || "Unknown",
+            errorName: err.name || "Unknown",
+            errorMessage: errorMessage,
+        });
 
         stream.markdown(errorMessage);
     }
