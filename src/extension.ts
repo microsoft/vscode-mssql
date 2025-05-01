@@ -51,13 +51,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context),
     );
 
-    participant.onDidReceiveFeedback((feedback: vscode.ChatResultFeedback) => {
-        sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.Feedback, {
-            kind: feedback.kind === ChatResultFeedbackKind.Helpful ? "Helpful" : "Unhelpful",
-        });
-    });
+    const receiveFeedbackDisposable = participant.onDidReceiveFeedback(
+        (feedback: vscode.ChatResultFeedback) => {
+            sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.Feedback, {
+                kind: feedback.kind === ChatResultFeedbackKind.Helpful ? "Helpful" : "Unhelpful",
+            });
+        },
+    );
 
-    context.subscriptions.push(controller, participant);
+    context.subscriptions.push(controller, participant, receiveFeedbackDisposable);
 
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
