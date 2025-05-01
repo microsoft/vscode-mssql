@@ -267,6 +267,7 @@
   "Copy connection string to clipboard": "Copy connection string to clipboard",
   "Paste connection string from clipboard": "Paste connection string from clipboard",
   "Paste": "Paste",
+  "Search settings...": "Search settings...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
