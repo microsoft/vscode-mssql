@@ -99,10 +99,7 @@ export function groupAdvancedOptions(
     ]);
 
     const optionsToGroup = Object.values(components).filter(
-        (c) =>
-            c.isAdvancedOption &&
-            !componentsInfo.mainOptions.includes(c.propertyName) &&
-            !componentsInfo.topAdvancedOptions.includes(c.propertyName),
+        (c) => c.isAdvancedOption && !componentsInfo.mainOptions.includes(c.propertyName),
     );
 
     for (const option of optionsToGroup) {

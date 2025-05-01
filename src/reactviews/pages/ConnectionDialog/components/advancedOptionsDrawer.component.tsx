@@ -98,25 +98,6 @@ export const AdvancedOptionsDrawer = ({
                     }}
                     value={searchSettingsText}
                 />
-                <div style={{ margin: "20px 0px" }}>
-                    {context.state.connectionComponents.topAdvancedOptions
-                        .filter((optionName) => isOptionVisible(optionName))
-                        .map((optionName, idx) => {
-                            return (
-                                <FormField<
-                                    IConnectionDialogProfile,
-                                    ConnectionDialogWebviewState,
-                                    ConnectionDialogFormItemSpec,
-                                    ConnectionDialogContextProps
-                                >
-                                    key={idx}
-                                    context={context}
-                                    component={context.state.formComponents[optionName]!}
-                                    idx={idx}
-                                />
-                            );
-                        })}
-                </div>
                 <Accordion
                     multiple
                     collapsible

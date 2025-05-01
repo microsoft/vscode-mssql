@@ -155,7 +155,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.state.connectionComponents = {
             mainOptions: [...ConnectionDialogWebviewController.mainOptions],
-            topAdvancedOptions: [],
             groupedAdvancedOptions: [], // computed below
         };
 

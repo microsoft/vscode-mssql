@@ -287,13 +287,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "encrypt",
             ]);
 
-            expect(controller.state.connectionComponents.topAdvancedOptions).to.deep.equal([
-                "port",
-                "applicationName",
-                "connectTimeout",
-                "multiSubnetFailover",
-            ]);
-
             expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
             expect(controller.state.savedConnections).to.have.lengthOf(1);
             expect(controller.state.savedConnections[0]).to.deep.include(testSavedConnection);
