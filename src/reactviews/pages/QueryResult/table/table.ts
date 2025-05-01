@@ -199,7 +199,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.mapMouseEvent(this._grid.onContextMenu);
         this.mapMouseEvent(this._grid.onClick);
         this.mapMouseEvent(this._grid.onDblClick);
-        this._grid.onColumnsResized.subscribe(async (e, data) => {
+        this._grid.onColumnsResized.subscribe(async (_e, data) => {
             if (!data) {
                 return;
             }
