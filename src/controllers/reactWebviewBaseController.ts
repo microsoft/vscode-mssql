@@ -148,7 +148,9 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
 				</head>
 				<body>
 					<link rel="stylesheet" href="${this._sourceFile}.css">
-					<div id="root"></div>
+					<div id="root">
+                        <p>Test</p>
+                    </div>
 				  	<script type="module" nonce="${nonce}" src="${this._sourceFile}.js"></script> <!-- since our bundles are in esm format we need to use type="module" -->
 				</body>
 			</html>

@@ -301,6 +301,30 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         }
     }
 
+    public override async resolveWebviewView(
+        webviewView: vscode.WebviewView,
+        context: vscode.WebviewViewResolveContext,
+        _token: vscode.CancellationToken,
+    ): Promise<void> {
+        super.resolveWebviewView(webviewView, context, _token);
+        webviewView.onDidChangeVisibility(async (e) => {
+            //TODO: reload webview here
+            // need to bootstrap webview again
+            console.log("Visibility changed", e);
+            console.log("webview", webviewView.webview);
+            webviewView.webview.html = this._getHtmlTemplate(); // Reload the HTML content
+            this.registerDisposable(
+                webviewView.webview.onDidReceiveMessage(this._webviewMessageHandler),
+            );
+            this.initializeBase(); // Reinitialize any base logic
+            await this.revealToForeground();
+            console.log("queryResult webviewView.visible", webviewView.visible);
+
+            this._queryResultStateMap;
+        });
+        await this.initialize();
+    }
+
     public hasPanel(uri: string): boolean {
         return this._queryResultWebviewPanelControllerMap.has(uri);
     }
