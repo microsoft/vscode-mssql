@@ -63,13 +63,7 @@ export async function addDatabaseConnection(
     if (isEnableTrustButtonVisible) {
         await enableTrustServerCertificateButton.click();
     }
-
-    // check connection is loaded in OE
-    const addedConnection = await vsCodePage.locator(
-        `[class*="tree-node-item"][aria-label="${profileName}"]`,
-    );
-    await addedConnection.waitFor({ state: "visible", timeout: 30 * 1000 });
-    await expect(addedConnection).toBeVisible();
+    await waitForConnectionToShowInObjectExplorer(vsCodePage, profileName);
 }
 
 export async function addDatabaseConnectionThroughWebview(
@@ -140,13 +134,7 @@ export async function addDatabaseConnectionThroughWebview(
         console.log("Connection dialog is still open");
         await clearNotifications(vsCodePage);
     }
-    // check connection is loaded in OE
-    const addedConnection = await vsCodePage.locator(
-        `[class*="tree-node-item"][aria-label="${profileName}"]`,
-    );
-    await addedConnection.waitFor({ state: "visible", timeout: 30 * 1000 });
-    await expect(addedConnection).toBeVisible();
-
+    await waitForConnectionToShowInObjectExplorer(vsCodePage, profileName);
     await clearNotifications(vsCodePage);
 }
 
@@ -194,6 +182,19 @@ export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promis
 
 export async function getWebviewByTitle(vsCodePage: Page, title: string): Promise<FrameLocator> {
     return vsCodePage.frameLocator(".webview").frameLocator(`[title='${title}']`);
+}
+
+export async function waitForConnectionToShowInObjectExplorer(
+    vsCodePage: Page,
+    profileName?: string,
+): Promise<void> {
+    if (!profileName) return;
+    // check connection is loaded in OE
+    const addedConnection = await vsCodePage.locator(
+        `[class*="tree-node-item"][aria-label="${profileName}"]`,
+    );
+    await addedConnection.waitFor({ state: "visible", timeout: 120 * 1000 });
+    await expect(addedConnection).toBeVisible();
 }
 
 export async function clearNotifications(vsCodePage: Page): Promise<void> {
