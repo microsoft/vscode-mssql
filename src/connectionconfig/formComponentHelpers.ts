@@ -88,7 +88,7 @@ export function groupAdvancedOptions(
     componentsInfo: ConnectionComponentsInfo,
 ): ConnectionComponentGroup[] {
     const groupMap: Map<string, ConnectionComponentGroup> = new Map([
-        // intialize with display order; any that aren't pre-defined will be appended
+        // initialize with display order; any that aren't pre-defined will be appended
         // these values must match the GroupName defined in SQL Tools Service.
         ["general", undefined],
         ["security", undefined],
