@@ -45,12 +45,19 @@ export const AdvancedOptionsDrawer = ({
     }
 
     function doesGroupHaveVisibleOptions(group: ConnectionComponentGroup) {
-        return group.options.some((optionName) => isOptionVisible(optionName));
+        return group.options.some((optionName) =>
+            isOptionVisible(
+                context?.state?.formComponents[optionName] as ConnectionDialogFormItemSpec,
+            ),
+        );
     }
 
-    function isOptionVisible(optionName: keyof IConnectionDialogProfile) {
+    function isOptionVisible(option: ConnectionDialogFormItemSpec) {
         if (searchSettingsText) {
-            return optionName.toLowerCase().includes(searchSettingsText.toLowerCase());
+            return (
+                option.label.toLowerCase().includes(searchSettingsText.toLowerCase()) ||
+                option.propertyName.toLowerCase().includes(searchSettingsText.toLowerCase())
+            );
         } else {
             return true;
         }
@@ -116,7 +123,11 @@ export const AdvancedOptionsDrawer = ({
                                     <AccordionHeader>{group.groupName}</AccordionHeader>
                                     <AccordionPanel>
                                         {group.options
-                                            .filter((optionName) => isOptionVisible(optionName))
+                                            .filter((optionName) =>
+                                                isOptionVisible(
+                                                    context.state.formComponents[optionName]!,
+                                                ),
+                                            )
                                             .map((optionName, idx) => {
                                                 return (
                                                     <FormField<
