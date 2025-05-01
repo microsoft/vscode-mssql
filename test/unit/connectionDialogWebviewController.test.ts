@@ -241,6 +241,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: "SqlLogin",
                 connectTimeout: 30,
                 applicationName: "vscode-mssql",
+                applicationIntent: "ReadWrite",
             };
 
             expect(controller.state.formState).to.deep.equal(
