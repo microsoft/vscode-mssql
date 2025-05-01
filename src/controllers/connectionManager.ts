@@ -1214,87 +1214,80 @@ export default class ConnectionManager {
         connectionCreds: IConnectionInfo,
         promise?: Deferred<boolean>,
     ): Promise<boolean> {
-        return await vscode.window.withProgress(
-            {
-                location: vscode.ProgressLocation.Notification,
-                title: LocalizedConstants.connectProgressNoticationTitle,
-                cancellable: false,
-            },
-            async (_progress, _cancellationToken) => {
-                if (!connectionCreds.server && !connectionCreds.connectionString) {
-                    throw new Error(LocalizedConstants.serverNameMissing);
-                }
+        if (!connectionCreds.server && !connectionCreds.connectionString) {
+            throw new Error(LocalizedConstants.serverNameMissing);
+        }
 
-                if (connectionCreds.authenticationType === Constants.azureMfa) {
-                    await this.confirmEntraTokenValidity(connectionCreds);
-                }
+        if (connectionCreds.authenticationType === Constants.azureMfa) {
+            await this.confirmEntraTokenValidity(connectionCreds);
+        }
 
-                let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
-                    if (
-                        connectionCreds.connectionString?.includes(ConnectionStore.CRED_PREFIX) &&
-                        connectionCreds.connectionString?.includes("isConnectionString:true")
-                    ) {
-                        let connectionString = await this.connectionStore.lookupPassword(
-                            connectionCreds,
-                            true,
-                        );
-                        connectionCreds.connectionString = connectionString;
-                    }
+        let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
+            if (
+                connectionCreds.connectionString?.includes(ConnectionStore.CRED_PREFIX) &&
+                connectionCreds.connectionString?.includes("isConnectionString:true")
+            ) {
+                let connectionString = await this.connectionStore.lookupPassword(
+                    connectionCreds,
+                    true,
+                );
+                connectionCreds.connectionString = connectionString;
+            }
 
-                    let connectionInfo: ConnectionInfo = new ConnectionInfo();
-                    connectionInfo.credentials = connectionCreds;
-                    connectionInfo.connecting = true;
-                    this.addActiveConnection(fileUri, connectionInfo);
+            let connectionInfo: ConnectionInfo = new ConnectionInfo();
+            connectionInfo.credentials = connectionCreds;
+            connectionInfo.connecting = true;
+            this.addActiveConnection(fileUri, connectionInfo);
 
-                    // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
-                    if (this.statusView) {
-                        this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
-                        this.statusView.connecting(fileUri, connectionCreds);
-                        this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
-                    }
-                    this.vscodeWrapper.logToOutputChannel(
-                        LocalizedConstants.msgConnecting(connectionCreds.server, fileUri),
+            // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
+            if (this.statusView) {
+                this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+                this.statusView.connecting(fileUri, connectionCreds);
+                await new Promise((resolve) => setTimeout(resolve, 5000));
+                this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+            }
+
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgConnecting(connectionCreds.server, fileUri),
+            );
+
+            // Setup the handler for the connection complete notification to call
+            connectionInfo.connectHandler = (connectResult, error) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    vscode.commands.executeCommand(
+                        "setContext",
+                        "mssql.connections",
+                        this._connections,
                     );
+                    resolve(connectResult);
+                }
+            };
 
-                    // Setup the handler for the connection complete notification to call
-                    connectionInfo.connectHandler = (connectResult, error) => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            vscode.commands.executeCommand(
-                                "setContext",
-                                "mssql.connections",
-                                this._connections,
-                            );
-                            resolve(connectResult);
-                        }
-                    };
+            // package connection details for request message
+            const connectionDetails =
+                ConnectionCredentials.createConnectionDetails(connectionCreds);
+            let connectParams = new ConnectionContracts.ConnectParams();
+            connectParams.ownerUri = fileUri;
+            connectParams.connection = connectionDetails;
 
-                    // package connection details for request message
-                    const connectionDetails =
-                        ConnectionCredentials.createConnectionDetails(connectionCreds);
-                    let connectParams = new ConnectionContracts.ConnectParams();
-                    connectParams.ownerUri = fileUri;
-                    connectParams.connection = connectionDetails;
-
-                    // send connection request message to service host
-                    this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise!);
-                    try {
-                        const result = await this.client.sendRequest(
-                            ConnectionContracts.ConnectionRequest.type,
-                            connectParams,
-                        );
-                        if (!result) {
-                            // Failed to process connect request
-                            resolve(false);
-                        }
-                    } catch (error) {
-                        reject(error);
-                    }
-                });
-                return connectionPromise;
-            },
-        );
+            // send connection request message to service host
+            this._uriToConnectionPromiseMap.set(connectParams.ownerUri, promise!);
+            try {
+                const result = await this.client.sendRequest(
+                    ConnectionContracts.ConnectionRequest.type,
+                    connectParams,
+                );
+                if (!result) {
+                    // Failed to process connect request
+                    resolve(false);
+                }
+            } catch (error) {
+                reject(error);
+            }
+        });
+        return connectionPromise;
     }
 
     public async connectDialog(
