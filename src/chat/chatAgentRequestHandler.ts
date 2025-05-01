@@ -52,16 +52,116 @@ export const createSqlAgentRequestHandler = (
         let referenceTexts: string[] = [];
         const activeEditor = vscode.window.activeTextEditor;
 
-        // Get references from request instead of the active editor to
-        // respect the file context visibility setting
+        async function findEditorFromReferences(
+            references: readonly vscode.ChatPromptReference[],
+        ): Promise<vscode.TextEditor | undefined> {
+            const tabGroups = vscode.window.tabGroups.all;
+
+            // Function to check if document is SQL
+            function isSqlDocument(document: vscode.TextDocument): boolean {
+                const sqlLanguageIds = ["sql", "mssql"];
+                return sqlLanguageIds.includes(document.languageId);
+            }
+
+            for (const reference of references) {
+                const value = reference.value;
+                let referenceUri: vscode.Uri | undefined;
+
+                if (value instanceof vscode.Location) {
+                    referenceUri = value.uri;
+                } else if (value instanceof vscode.Uri) {
+                    referenceUri = value;
+                }
+
+                if (referenceUri) {
+                    // Try to find this URI in the visible editors, but only if it's an SQL file
+                    const matchingEditor = vscode.window.visibleTextEditors.find(
+                        (editor) =>
+                            editor.document.uri.toString() === referenceUri?.toString() &&
+                            isSqlDocument(editor.document),
+                    );
+
+                    if (matchingEditor) {
+                        return matchingEditor;
+                    }
+
+                    // Try to find this URI in tab groups
+                    for (const group of tabGroups) {
+                        const activeTab = group.activeTab;
+                        if (activeTab) {
+                            try {
+                                /* eslint-disable @typescript-eslint/no-explicit-any */
+                                const tabUri =
+                                    (activeTab.input as any)?.uri ||
+                                    (activeTab.input as any)?.textEditor?.document?.uri;
+                                /* eslint-enable @typescript-eslint/no-explicit-any */
+
+                                if (tabUri && tabUri.toString() === referenceUri.toString()) {
+                                    const editor = vscode.window.visibleTextEditors.find(
+                                        (ed) => ed.document.uri.toString() === tabUri.toString(),
+                                    );
+                                    // Only return the editor if it's an SQL document
+                                    if (editor && isSqlDocument(editor.document)) {
+                                        return editor;
+                                    }
+                                }
+                            } catch (error) {
+                                console.log("Error accessing tab properties:", error);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // If no match found, try to get any active SQL tab from tab groups
+            for (const group of tabGroups) {
+                const activeTab = group.activeTab;
+                if (activeTab) {
+                    try {
+                        /* eslint-disable @typescript-eslint/no-explicit-any */
+                        // Safely access tab.input properties
+                        const tabUri =
+                            (activeTab.input as any).uri ||
+                            (activeTab.input as any)?.textEditor?.document?.uri;
+                        /* eslint-enable @typescript-eslint/no-explicit-any */
+
+                        if (tabUri) {
+                            const editor = vscode.window.visibleTextEditors.find(
+                                (ed) => ed.document.uri.toString() === tabUri.toString(),
+                            );
+                            // Only return the editor if it's an SQL document
+                            if (editor && isSqlDocument(editor.document)) {
+                                return editor;
+                            }
+                        }
+                    } catch (error) {
+                        console.log("Error accessing tab properties:", error);
+                    }
+                }
+            }
+
+            return undefined;
+        }
+
+        // Process references using the appropriate editor
         if (request.references) {
+            // Use activeEditor if available, otherwise try to find one from references
+            const editorToUse =
+                activeEditor || (await findEditorFromReferences(request.references));
+
+            // Use the preferred editor's URI if available
+            connectionUri = editorToUse?.document.uri.toString() ?? connectionUri;
+
             for (const reference of request.references) {
                 const value = reference.value;
                 if (value instanceof vscode.Location) {
                     // Could be a document / selection in the current editor
-                    if (value.uri.toString() === activeEditor?.document.uri.toString()) {
+                    if (
+                        editorToUse &&
+                        value.uri.toString() === editorToUse.document.uri.toString()
+                    ) {
                         referenceTexts.push(
-                            `${reference.modelDescription ?? "ChatResponseReference"}: ${activeEditor.document.getText(value.range)}`,
+                            `${reference.modelDescription ?? "ChatResponseReference"}: ${editorToUse.document.getText(value.range)}`,
                         );
                     } else {
                         const doc = await vscode.workspace.openTextDocument(value.uri);
