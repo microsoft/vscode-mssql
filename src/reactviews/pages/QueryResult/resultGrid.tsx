@@ -123,10 +123,10 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
 
     const createTable = () => {
         const filter = async () => {
-            let hasNewFilters = await table.setupFilterState();
-            if (hasNewFilters) {
-                table.rerenderGrid();
-            }
+            await table.setupFilterState();
+            await table.setupColumnWidths();
+            // table.grid.setColumnWidths()
+            table.rerenderGrid();
         };
         const DEFAULT_FONT_SIZE = 12;
         context?.log(`resultGrid: ${context.state.fontSettings.fontSize}`);

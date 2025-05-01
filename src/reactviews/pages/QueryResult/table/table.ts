@@ -199,9 +199,61 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.mapMouseEvent(this._grid.onContextMenu);
         this.mapMouseEvent(this._grid.onClick);
         this.mapMouseEvent(this._grid.onDblClick);
-        this._grid.onColumnsResized.subscribe(() => console.log("oncolumnresize"));
+        this._grid.onColumnsResized.subscribe(async (e, data) => {
+            console.log("oncolumnresize");
+            console.log("e", e);
+            console.log("data", data);
+            if (!data) {
+                // this is from the first table render, disregard
+                return;
+            }
+            let columnSizes = this.grid
+                .getColumns()
+                .slice(1)
+                .map((v) => v.width);
+            let currentColumnSizes = await this.webViewState.extensionRpc.call("getColumnWidths", {
+                uri: this.queryResultContext.state.uri,
+            });
+            if (currentColumnSizes === columnSizes) {
+                console.log("no change in column sizes");
+                return;
+            }
+
+            let message = {
+                uri: this.queryResultContext.state.uri,
+                columnWidths: columnSizes,
+            };
+            await this.webViewState.extensionRpc.call("setColumnWidths", message);
+        });
+
         this.style(styles);
         // this.registerPlugin(new MouseWheelSupport());
+    }
+
+    public async setupColumnWidths(): Promise<void> {
+        //TODO: apply column widths to grid
+        console.log("setupColumnWidths");
+        const columnWidthArray = (await this.webViewState.extensionRpc.call("getColumnWidths", {
+            uri: this.queryResultContext.state.uri,
+        })) as number[];
+        if (!columnWidthArray) {
+            return;
+        }
+        console.log("columnWidths", columnWidthArray);
+
+        if (!columnWidthArray) {
+            return;
+        }
+        let count = 0;
+        for (const column of this._grid.getColumns()) {
+            // Skip the first column (row selector)
+            if (count === 0) {
+                count++;
+                continue;
+            }
+            column.width = columnWidthArray[count - 1];
+            count++;
+        }
     }
 
     /**

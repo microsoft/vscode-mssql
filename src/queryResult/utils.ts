@@ -19,7 +19,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
-import store from "./singletonStore";
+import store, { SubKeys } from "./singletonStore";
 
 export function getNewResultPaneViewColumn(
     uri: string,
@@ -195,16 +195,25 @@ export function registerCommonRequestHandlers(
 
     // Register request handlers for query result filters
     webviewController.registerRequestHandler("getFilters", async (message) => {
-        return store.get(message.uri);
+        return store.get(message.uri, SubKeys.Filter);
     });
 
     webviewController.registerRequestHandler("setFilters", async (message) => {
-        store.set(message.uri, message.filters);
+        store.set(message.uri, SubKeys.Filter, message.filters);
         return true;
     });
 
+    webviewController.registerRequestHandler("setColumnWidths", async (message) => {
+        store.set(message.uri, SubKeys.ColumnWidth, message.columnWidths);
+        return true;
+    });
+
+    webviewController.registerRequestHandler("getColumnWidths", async (message) => {
+        return store.get(message.uri, SubKeys.ColumnWidth);
+    });
+
     webviewController.registerRequestHandler("deleteFilter", async (message) => {
-        store.delete(message.uri);
+        store.delete(message.uri, SubKeys.Filter);
         return true;
     });
 
