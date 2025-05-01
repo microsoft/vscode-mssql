@@ -575,6 +575,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
         this.columnDef.filterValues = this.columnDef.filterValues || [];
         const workingFilters = this.columnDef.filterValues.slice(0);
 
+        this.compileFilters(workingFilters, filterItems);
+        this._list.updateItems(this._listData.filter((i) => i.isVisible));
+        return gridFiltersArray;
+    }
+
+    private compileFilters(workingFilters: string[], filterItems: string[]) {
         for (let i = 0; i < filterItems.length; i++) {
             const filtered = workingFilters.some((x) => x === filterItems[i]);
             // work item to remove the 'Error:' string check: https://github.com/microsoft/azuredatastudio/issues/15206
@@ -585,8 +591,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 this._listData.push(element);
             }
         }
-        this._list.updateItems(this._listData.filter((i) => i.isVisible));
-        return gridFiltersArray;
     }
 
     /**
@@ -703,16 +707,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             filterItems.unshift("");
         }
         this._listData = [];
-        for (let i = 0; i < filterItems.length; i++) {
-            const filtered = workingFilters.some((x) => x === filterItems[i]);
-            // work item to remove the 'Error:' string check: https://github.com/microsoft/azuredatastudio/issues/15206
-            const filterItem = filterItems[i];
-            if (!filterItem || filterItem.indexOf("Error:") < 0) {
-                let element = new TableFilterListElement(filterItem, filtered);
-                element.index = i;
-                this._listData.push(element);
-            }
-        }
+        this.compileFilters(workingFilters, filterItems);
     }
 
     private getFilterValues(dataView: Slick.DataProvider<T>, column: Slick.Column<T>): Array<any> {
