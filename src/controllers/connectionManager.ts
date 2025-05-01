@@ -1243,7 +1243,6 @@ export default class ConnectionManager {
             if (this.statusView) {
                 this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
                 this.statusView.connecting(fileUri, connectionCreds);
-                await new Promise((resolve) => setTimeout(resolve, 5000));
                 this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
             }
 

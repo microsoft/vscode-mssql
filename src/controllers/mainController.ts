@@ -503,7 +503,6 @@ export default class MainController implements vscode.Disposable {
                 title: LocalizedConstants.ObjectExplorer.FetchingScriptLabel(operationType),
             },
             async () => {
-                await new Promise((resolve) => setTimeout(resolve, 10000));
                 await scriptNodeOperation();
             },
         );
