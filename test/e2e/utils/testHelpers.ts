@@ -63,6 +63,13 @@ export async function addDatabaseConnection(
     if (isEnableTrustButtonVisible) {
         await enableTrustServerCertificateButton.click();
     }
+
+    // check connection is loaded in OE
+    const addedConnection = await vsCodePage.locator(
+        `[class*="tree-node-item"][aria-label="${profileName}"]`,
+    );
+    await addedConnection.waitFor({ state: "visible", timeout: 30 * 1000 });
+    await expect(addedConnection).toBeVisible();
 }
 
 export async function addDatabaseConnectionThroughWebview(
@@ -134,7 +141,9 @@ export async function addDatabaseConnectionThroughWebview(
         await clearNotifications(vsCodePage);
     }
     // check connection is loaded in OE
-    const addedConnection = await vsCodePage.locator(`[role="treeitem"]`).first();
+    const addedConnection = await vsCodePage.locator(
+        `[class*="tree-node-item"][aria-label="${profileName}"]`,
+    );
     await addedConnection.waitFor({ state: "visible", timeout: 30 * 1000 });
     await expect(addedConnection).toBeVisible();
 
