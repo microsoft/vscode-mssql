@@ -527,21 +527,28 @@ export class ConnectionUI {
     public async createAndSaveProfile(
         validate: boolean = true,
     ): Promise<IConnectionProfile | undefined> {
-        let profile = await this.promptForCreateProfile();
-        if (profile) {
-            let savedProfile = validate
-                ? await this.validateAndSaveProfile(profile)
-                : await this.saveProfile(profile);
-            if (savedProfile) {
-                if (validate) {
-                    this.vscodeWrapper.showInformationMessage(
-                        LocalizedConstants.msgProfileCreatedAndConnected,
-                    );
-                } else {
-                    this.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreated);
+        if (this._isRichExperiencesEnabled) {
+            vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
+            return undefined;
+        } else {
+            let profile = await this.promptForCreateProfile();
+            if (profile) {
+                let savedProfile = validate
+                    ? await this.validateAndSaveProfile(profile)
+                    : await this.saveProfile(profile);
+                if (savedProfile) {
+                    if (validate) {
+                        this.vscodeWrapper.showInformationMessage(
+                            LocalizedConstants.msgProfileCreatedAndConnected,
+                        );
+                    } else {
+                        this.vscodeWrapper.showInformationMessage(
+                            LocalizedConstants.msgProfileCreated,
+                        );
+                    }
                 }
+                return savedProfile;
             }
-            return savedProfile;
         }
     }
 
@@ -662,7 +669,10 @@ export class ConnectionUI {
                 this.connectionManager.accountService.setAccount(account!);
             }
 
-            const handleResponse = await this.connectionManager.firewallService.handleFirewallRule(connectionResponse.errorNumber, connectionResponse.errorMessage);
+            const handleResponse = await this.connectionManager.firewallService.handleFirewallRule(
+                connectionResponse.errorNumber,
+                connectionResponse.errorMessage,
+            );
 
             let success = handleResponse.result;
 

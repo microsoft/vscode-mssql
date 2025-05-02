@@ -1124,17 +1124,16 @@ export default class ConnectionManager {
             // A text document needs to be open before we can connect
             this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return undefined;
-        } else if (!this.vscodeWrapper.isEditingSqlFile) {
-            const result = await this.connectionUI.promptToChangeLanguageMode();
-            if (result) {
-                const credentials = await this.showConnectionsAndConnect(fileUri);
-                return credentials;
-            } else {
-                return undefined;
+        }
+
+        if (!this.vscodeWrapper.isEditingSqlFile) {
+            if (!(await this.connectionUI.promptToChangeLanguageMode())) {
+                return undefined; // cancel operation
             }
         }
-        const creds = await this.showConnectionsAndConnect(fileUri);
-        return creds;
+
+        const connProfile = await this.showConnectionsAndConnect(fileUri);
+        return connProfile;
     }
 
     /**
