@@ -155,12 +155,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.state.connectionComponents = {
             mainOptions: [...ConnectionDialogWebviewController.mainOptions],
-            topAdvancedOptions: [
-                "port",
-                "applicationName",
-                "connectTimeout",
-                "multiSubnetFailover",
-            ],
             groupedAdvancedOptions: [], // computed below
         };
 
@@ -876,6 +870,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             authenticationType: AuthenticationType.SqlLogin,
             connectTimeout: 30, // seconds
             applicationName: "vscode-mssql",
+            applicationIntent: "ReadWrite",
         } as IConnectionDialogProfile;
     }
 

@@ -241,6 +241,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: "SqlLogin",
                 connectTimeout: 30,
                 applicationName: "vscode-mssql",
+                applicationIntent: "ReadWrite",
             };
 
             expect(controller.state.formState).to.deep.equal(
@@ -284,13 +285,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "tenantId",
                 "database",
                 "encrypt",
-            ]);
-
-            expect(controller.state.connectionComponents.topAdvancedOptions).to.deep.equal([
-                "port",
-                "applicationName",
-                "connectTimeout",
-                "multiSubnetFailover",
             ]);
 
             expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
