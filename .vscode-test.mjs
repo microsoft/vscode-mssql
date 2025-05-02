@@ -7,7 +7,7 @@ export default testCli.defineConfig([
 		version: 'insiders',
 		mocha: {
 			ui: 'tdd',
-			timeout: 600_000
+			timeout: 6_000
 		}
 	}
 ])
