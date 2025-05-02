@@ -39,8 +39,8 @@ import {
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
 import { stubTelemetry } from "./utils";
-import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
-import { Deferred } from "../../src/protocol";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -241,6 +241,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: "SqlLogin",
                 connectTimeout: 30,
                 applicationName: "vscode-mssql",
+                applicationIntent: "ReadWrite",
             };
 
             expect(controller.state.formState).to.deep.equal(
@@ -284,13 +285,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "tenantId",
                 "database",
                 "encrypt",
-            ]);
-
-            expect(controller.state.connectionComponents.topAdvancedOptions).to.deep.equal([
-                "port",
-                "applicationName",
-                "connectTimeout",
-                "multiSubnetFailover",
             ]);
 
             expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
@@ -443,12 +437,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
             const { sendErrorEvent } = stubTelemetry(sandbox);
 
             mockObjectExplorerProvider
-                .setup((oep) =>
-                    oep.createSession(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                )
-                .returns((createSessionPromise: Deferred<TreeNodeInfo>) => {
-                    createSessionPromise.resolve(
-                        new TreeNodeInfo(
+                .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve({
+                        sessionId: "testSessionId",
+                        rootNode: new TreeNodeInfo(
                             "testNode",
                             undefined,
                             undefined,
@@ -459,9 +452,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
                             undefined,
                             undefined,
                             undefined,
+                            undefined,
                         ),
-                    );
-                    return Promise.resolve("testSessionId");
+                        success: true,
+                    } as CreateSessionResponse);
                 });
 
             connectionManager

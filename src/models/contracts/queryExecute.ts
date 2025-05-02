@@ -161,3 +161,16 @@ export class QueryExecutionOptionsParams {
 export interface QueryExecutionOptions {
     [option: string]: any;
 }
+
+// ------------------------------- < Query Connection URI Change Request > ------------------------------------
+
+export namespace QueryConnectionUriChangeRequest {
+    export const type = new NotificationType<QueryConnectionUriChangeParams, boolean>(
+        "query/connectionUriChanged",
+    );
+}
+
+export class QueryConnectionUriChangeParams {
+    newOwnerUri: string;
+    originalOwnerUri: string;
+}

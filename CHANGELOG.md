@@ -1,5 +1,21 @@
 # Change Log
 
+## Version 1.31.1
+* Release date: May 2, 2025
+* Release status: GA
+### What’s new in 1.31.1
+* Resolved an issue related to tokens with local logging in some instances
+
+## Version 1.31.0
+* Release date: April 30, 2025
+* Release status: GA
+### What’s new in 1.31.0
+* Introduced Schema Compare to visually compare and script out schema differences
+* Enhanced Query Results experience with live execution timing summary metrics and stability improvements on large result sets
+* Improved connection workflow with smarter retries streamlined error handling and seamless AAD sign-in support
+* Resolved Fabric SQL Database connectivity issues for more reliable cloud access
+* UI/UX enhancements including removal of duplicate saved connections and elimination of console errors in the results pane
+
 ## Version 1.30.0
 * Release date: March 31, 2025
 * Release status: GA

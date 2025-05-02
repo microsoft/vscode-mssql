@@ -14,7 +14,7 @@ import {
     SchemaCompareReducers,
     SchemaCompareWebViewState,
 } from "../sharedInterfaces/schemaCompare";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
 import { IConnectionProfile } from "../models/interfaces";
 import {
