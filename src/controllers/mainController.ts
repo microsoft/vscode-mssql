@@ -334,6 +334,7 @@ export default class MainController implements vscode.Disposable {
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
             this._event.on(Constants.cmdChatWithDatabase, async (treeNodeInfo: TreeNodeInfo) => {
+                sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.ChatWithDatabase);
                 const connectionCredentials = Object.assign({}, treeNodeInfo.connectionInfo);
                 const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                 if (

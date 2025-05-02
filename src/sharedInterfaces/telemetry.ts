@@ -83,6 +83,7 @@ export enum TelemetryActions {
     Error = "Error",
     ToolCall = "ToolCall",
     Feedback = "Feedback",
+    ChatWithDatabase = "ChatWithDatabase",
 }
 
 /**
