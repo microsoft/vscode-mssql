@@ -724,7 +724,7 @@ suite("Per File Connection Tests", () => {
             TypeMoq.MockBehavior.Loose,
             TestExtensionContext.object,
         );
-        connectionManagerMock.setup((x) => x.isConnected(TypeMoq.It.isAny())).returns(() => false); // not connected the first time to trigger connection prompt
+        connectionManagerMock.setup((x) => x.isConnected(TypeMoq.It.isAny())).returns(() => false); // not connected to trigger connection prompt
 
         connectionManagerMock
             .setup((x) => x.onNewConnection())

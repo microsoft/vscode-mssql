@@ -522,12 +522,16 @@ export class ConnectionUI {
     /**
      * Calls the create profile workflow
      * @param validate whether the profile should be connected to and validated before saving
-     * @returns undefined if profile creation failed
+     * @returns undefined if profile creation failed or was cancelled, or if the Connection Dialog is getting used
      */
     public async createAndSaveProfile(
         validate: boolean = true,
     ): Promise<IConnectionProfile | undefined> {
         if (this._isRichExperiencesEnabled) {
+            // Opening the Connection Dialog is considering the end of the flow regardless of whether they create a new connection,
+            // so undefined is returned.
+            // It's considered the end of the flow because opening a complex dialog in the middle of a flow then continuing is disorienting.
+            // If they want to use their new connection, they can execute their query again.
             vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
             return undefined;
         } else {

@@ -1431,6 +1431,10 @@ export default class MainController implements vscode.Disposable {
         }
     }
 
+    /**
+     * Checks if there's an active SQL file that has a connection associated with it.
+     * @returns true if the file is a SQL file and has a connection, false otherwise
+     */
     public async checkIsReadyToExecuteQuery(): Promise<boolean> {
         if (!(await this.checkForActiveSqlFile())) {
             return false;
