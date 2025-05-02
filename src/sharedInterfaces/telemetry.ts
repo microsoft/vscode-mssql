@@ -84,6 +84,7 @@ export enum TelemetryActions {
     ToolCall = "ToolCall",
     Feedback = "Feedback",
     ChatWithDatabase = "ChatWithDatabase",
+    StartConversation = "StartConversation",
 }
 
 /**

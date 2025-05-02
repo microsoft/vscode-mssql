@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as Utils from "../models/utils";
 import { CopilotService } from "../services/copilotService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import * as Constants from "../constants/constants";
 import {
     GetNextMessageResponse,
@@ -16,7 +16,7 @@ import {
     MessageRole,
     MessageType,
 } from "../models/contracts/copilot";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -110,12 +110,20 @@ export const createSqlAgentRequestHandler = (
                 return { metadata: { command: "" } };
             }
 
+            const activity = startActivity(
+                TelemetryViews.SqlCopilot,
+                TelemetryActions.StartConversation,
+                conversationUri,
+            );
+
             const success = await copilotService.startConversation(
                 conversationUri,
                 connectionUri,
                 prompt,
             );
             if (!success) {
+                activity.endFailed(new Error("Failed to start conversation."));
+
                 await sendToDefaultLanguageModel(prompt, model, stream, token);
                 return { metadata: { command: "" } };
             }
@@ -152,6 +160,10 @@ export const createSqlAgentRequestHandler = (
                 // Handle different message types
                 switch (result.messageType) {
                     case MessageType.Complete:
+                        activity.end(ActivityStatus.Succeeded, {
+                            conversationUri: conversationUri,
+                        });
+
                         continuePollingMessages = false; // Stop polling
                         break;
 
@@ -181,6 +193,9 @@ export const createSqlAgentRequestHandler = (
                         break;
 
                     default:
+                        activity.endFailed(
+                            new Error(`Unhandled message type: ${result.messageType}`),
+                        );
                         console.warn(`Unhandled message type: ${result.messageType}`);
                         continuePollingMessages = false;
                         break;
