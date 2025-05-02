@@ -55,7 +55,7 @@ export async function promptForAzureSubscriptionFilter(
 
         if (!auth) {
             state.formError = l10n.t("Azure sign in failed.");
-            return;
+            return false;
         }
 
         const selectedSubs = await vscode.window.showQuickPick(getQuickPickItems(auth), {
@@ -78,7 +78,7 @@ export async function promptForAzureSubscriptionFilter(
     } catch (error) {
         state.formError = l10n.t("Error loading Azure subscriptions.");
         console.error(state.formError + "\n" + getErrorMessage(error));
-        return;
+        return false;
     }
 }
 
