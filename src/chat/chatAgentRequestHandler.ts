@@ -458,6 +458,7 @@ export const createSqlAgentRequestHandler = (
             errorCode: err.code || "Unknown",
             errorName: err.name || "Unknown",
             errorMessage: errorMessage,
+            originalErrorMessage: err.message || "",
         });
 
         stream.markdown(errorMessage);
