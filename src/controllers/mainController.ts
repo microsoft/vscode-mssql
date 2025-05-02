@@ -335,6 +335,7 @@ export default class MainController implements vscode.Disposable {
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
             this._event.on(Constants.cmdChatWithDatabase, async (treeNodeInfo: TreeNodeInfo) => {
                 sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.ChatWithDatabase);
+
                 const connectionCredentials = Object.assign({}, treeNodeInfo.connectionInfo);
                 const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                 if (
@@ -403,36 +404,36 @@ export default class MainController implements vscode.Disposable {
             // -- EXPLAIN QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdExplainQuery, async () => {
+                    sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.ExplainQuery);
+
                     await launchEditorChatWithPrompt(
                         Prompts.explainQueryPrompt,
                         Prompts.explainQuerySelectionPrompt,
                     );
-
-                    sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.ExplainQuery);
                 }),
             );
 
             // -- REWRITE QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdRewriteQuery, async () => {
+                    sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.RewriteQuery);
+
                     await launchEditorChatWithPrompt(
                         Prompts.rewriteQueryPrompt,
                         Prompts.rewriteQuerySelectionPrompt,
                     );
-
-                    sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.RewriteQuery);
                 }),
             );
 
             // -- ANALYZE QUERY PERFORMANCE --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdAnalyzeQueryPerformance, async () => {
-                    await launchEditorChatWithPrompt(Prompts.analyzeQueryPerformancePrompt);
-
                     sendActionEvent(
                         TelemetryViews.SqlCopilot,
                         TelemetryActions.AnalyzeQueryPerformance,
                     );
+
+                    await launchEditorChatWithPrompt(Prompts.analyzeQueryPerformancePrompt);
                 }),
             );
 
