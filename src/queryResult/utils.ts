@@ -20,6 +20,7 @@ import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store from "./singletonStore";
+import { JsonFormattingEditProvider } from "./formatter";
 
 export function getNewResultPaneViewColumn(
     uri: string,
@@ -259,6 +260,14 @@ export function registerCommonRequestHandlers(
             content: payload.content,
             language: payload.type,
         });
+
+        if (payload.type === "json") {
+            const formatter = new JsonFormattingEditProvider();
+            const edits = await formatter.provideDocumentFormattingEdits(newDoc);
+            const workspaceEdit = new vscode.WorkspaceEdit();
+            workspaceEdit.set(newDoc.uri, edits);
+            await vscode.workspace.applyEdit(workspaceEdit);
+        }
 
         void vscode.window.showTextDocument(newDoc);
 
