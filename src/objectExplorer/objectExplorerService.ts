@@ -706,7 +706,7 @@ export class ObjectExplorerService {
         failureResponse: SessionCreatedParameters,
         connectionProfile: IConnectionProfile,
     ): Promise<boolean> {
-        let error = LocalizedConstants.connectErrorLabel;
+        let error = LocalizedConstants.StatusBar.connectErrorLabel;
         let errorNumber: number;
         if (failureResponse.errorNumber) {
             errorNumber = failureResponse.errorNumber;

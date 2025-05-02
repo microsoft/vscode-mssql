@@ -787,11 +787,7 @@
   "Yes": "Yes",
   "No": "No",
   "<default>": "<default>",
-  "Disconnected": "Disconnected",
-  "Click to connect to a database": "Click to connect to a database",
-  "Connecting": "Connecting",
   "Connecting to: ": "Connecting to: ",
-  "Connection error": "Connection error",
   "Error connecting to: ": "Error connecting to: ",
   "Error code: ": "Error code: ",
   "Error Message: ": "Error Message: ",
@@ -1064,6 +1060,17 @@
     ]
   },
   "Loading...": "Loading...",
+  "Fetching {0} script.../{0} is the script type": {
+    "message": "Fetching {0} script...",
+    "comment": [
+      "{0} is the script type"
+    ]
+  },
+  "Select": "Select",
+  "Insert": "Insert",
+  "Update": "Update",
+  "Execute": "Execute",
+  "Alter": "Alter",
   "Connection Dialog (Preview)": "Connection Dialog (Preview)",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
@@ -1178,6 +1185,10 @@
   "Loading Schema Designer Model...": "Loading Schema Designer Model...",
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",
+  "Connect to MSSQL": "Connect to MSSQL",
+  "Click to connect to a database": "Click to connect to a database",
+  "Connecting": "Connecting",
+  "Connection error": "Connection error",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

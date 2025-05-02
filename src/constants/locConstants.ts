@@ -222,11 +222,7 @@ export let msgError = l10n.t("Error: ");
 export let msgYes = l10n.t("Yes");
 export let msgNo = l10n.t("No");
 export let defaultDatabaseLabel = l10n.t("<default>");
-export let notConnectedLabel = l10n.t("Disconnected");
-export let notConnectedTooltip = l10n.t("Click to connect to a database");
-export let connectingLabel = l10n.t("Connecting");
 export let connectingTooltip = l10n.t("Connecting to: ");
-export let connectErrorLabel = l10n.t("Connection error");
 export let connectErrorTooltip = l10n.t("Error connecting to: ");
 export let connectErrorCode = l10n.t("Error code: ");
 export let connectErrorMessage = l10n.t("Error Message: ");
@@ -595,6 +591,20 @@ export class ObjectExplorer {
     public static NodeDeletionConfirmationYes = l10n.t("Yes");
     public static NodeDeletionConfirmationNo = l10n.t("No");
     public static LoadingNodeLabel = l10n.t("Loading...");
+    public static FetchingScriptLabel(scriptType: string) {
+        return l10n.t({
+            message: "Fetching {0} script...",
+            args: [scriptType],
+            comment: ["{0} is the script type"],
+        });
+    }
+    public static ScriptSelectLabel = l10n.t("Select");
+    public static ScriptCreateLabel = l10n.t("Create");
+    public static ScriptInsertLabel = l10n.t("Insert");
+    public static ScriptUpdateLabel = l10n.t("Update");
+    public static ScriptDeleteLabel = l10n.t("Delete");
+    public static ScriptExecuteLabel = l10n.t("Execute");
+    public static ScriptAlterLabel = l10n.t("Alter");
 }
 
 export class ConnectionDialog {
@@ -850,4 +860,11 @@ export class SchemaDesigner {
     );
     public static SaveAs = l10n.t("Save As");
     public static Save = l10n.t("Save");
+}
+
+export class StatusBar {
+    public static disconnectedLabel = l10n.t("Connect to MSSQL");
+    public static notConnectedTooltip = l10n.t("Click to connect to a database");
+    public static connectingLabel = l10n.t("Connecting");
+    public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
 }
