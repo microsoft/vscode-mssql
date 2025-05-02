@@ -630,6 +630,15 @@ export class ConnectionDialog {
             comment: ["{0} is the connection name"],
         });
     };
+    public static multipleMatchingTokensError(accountDisplayName: string, tenantId: string) {
+        return l10n.t({
+            message:
+                "Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+            args: [accountDisplayName, tenantId],
+            comment: ["{0} is the account display name", "{1} is the tenant id"],
+        });
+    }
+    public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
 }
 
 export class FirewallRule {
