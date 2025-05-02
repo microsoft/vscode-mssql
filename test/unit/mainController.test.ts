@@ -182,7 +182,7 @@ suite("MainController Tests", function () {
                 done(new Error(err));
             }
             // Timeout set to the max threshold + 1
-        }, Constants.renamedOpenTimeThreshold + 1);
+        }, Constants.untitledSaveTimeThreshold + 1);
     });
 
     // Open document event test

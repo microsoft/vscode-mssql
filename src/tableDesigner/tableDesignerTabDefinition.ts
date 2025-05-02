@@ -150,7 +150,7 @@ export function getColumnsTabComponents(
 
     const displayProperties = getTableDisplayProperties(columnTableOptions, [
         designer.TableColumnProperty.Name,
-        designer.TableColumnProperty.Type,
+        designer.TableColumnProperty.AdvancedType,
         designer.TableColumnProperty.IsPrimaryKey,
         designer.TableColumnProperty.IsIdentity,
         designer.TableColumnProperty.AllowNulls,

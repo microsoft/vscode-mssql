@@ -498,7 +498,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     gridColumnMapArray = [];
                 }
                 // Drill down into the grid column map array and clear the filter values for the specified column
-                gridColumnMapArray = this.clearFilterValues(gridColumnMapArray, columnDef.id!);
+                gridColumnMapArray = await this.clearFilterValues(
+                    gridColumnMapArray,
+                    columnDef.id!,
+                );
                 await this.webviewState.extensionRpc.call("setFilters", {
                     uri: this.queryResultContext.state.uri,
                     filters: gridColumnMapArray,
@@ -547,7 +550,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
      * @param columnId
      * @returns
      */
-    private clearFilterValues(gridFiltersArray: GridColumnMap[], columnId: string) {
+    private async clearFilterValues(gridFiltersArray: GridColumnMap[], columnId: string) {
         const targetGridFilters = gridFiltersArray.find((gridFilters) => gridFilters[this.gridId]);
 
         // Return original array if gridId is not found
@@ -565,7 +568,29 @@ export class HeaderFilter<T extends Slick.SlickData> {
             }
         }
 
+        this._listData = [];
+        const dataView = this.grid.getData() as IDisposableDataProvider<T>;
+
+        let filterItems = await dataView.getColumnValues(this.columnDef);
+        this.columnDef.filterValues = this.columnDef.filterValues || [];
+        const workingFilters = this.columnDef.filterValues.slice(0);
+
+        this.compileFilters(workingFilters, filterItems);
+        this._list.updateItems(this._listData.filter((i) => i.isVisible));
         return gridFiltersArray;
+    }
+
+    private compileFilters(workingFilters: string[], filterItems: string[]) {
+        for (let i = 0; i < filterItems.length; i++) {
+            const filtered = workingFilters.some((x) => x === filterItems[i]);
+            // work item to remove the 'Error:' string check: https://github.com/microsoft/azuredatastudio/issues/15206
+            const filterItem = filterItems[i];
+            if (!filterItem || filterItem.indexOf("Error:") < 0) {
+                let element = new TableFilterListElement(filterItem, filtered);
+                element.index = i;
+                this._listData.push(element);
+            }
+        }
     }
 
     /**
@@ -682,16 +707,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
             filterItems.unshift("");
         }
         this._listData = [];
-        for (let i = 0; i < filterItems.length; i++) {
-            const filtered = workingFilters.some((x) => x === filterItems[i]);
-            // work item to remove the 'Error:' string check: https://github.com/microsoft/azuredatastudio/issues/15206
-            const filterItem = filterItems[i];
-            if (!filterItem || filterItem.indexOf("Error:") < 0) {
-                let element = new TableFilterListElement(filterItem, filtered);
-                element.index = i;
-                this._listData.push(element);
-            }
-        }
+        this.compileFilters(workingFilters, filterItems);
     }
 
     private getFilterValues(dataView: Slick.DataProvider<T>, column: Slick.Column<T>): Array<any> {

@@ -171,10 +171,17 @@ suite("Object Explorer Provider Tests", function () {
 
         parentTreeNode.setup((s) => s.sessionId).returns(() => "test_session");
 
-        const children = await testObjectExplorerService.getChildren(parentTreeNode.object);
+        let children = await testObjectExplorerService.getChildren(parentTreeNode.object);
+        expect(children.length, "loading node should be returned").is.equal(1);
+        expect(children[0].label, "Should return loading node").is.equal(
+            LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
+        );
 
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        children = await testObjectExplorerService.getChildren(parentTreeNode.object);
         expect(children.length, "No items nodes should be returned").is.equal(1);
-        expect(children[0].label, "No items nodes should have the correct label").is.equal(
+        expect(children[0].label, "should return No items node").is.equal(
             LocalizedConstants.ObjectExplorer.NoItems,
         );
     });

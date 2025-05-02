@@ -25,7 +25,11 @@ import {
     CloseSessionResponse,
 } from "../models/contracts/objectExplorer/closeSessionRequest";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
-import { AuthenticationTypes, IConnectionProfile } from "../models/interfaces";
+import {
+    AuthenticationTypes,
+    IConnectionProfile,
+    IConnectionProfileWithSource,
+} from "../models/interfaces";
 import * as LocalizedConstants from "../constants/locConstants";
 import { AddConnectionTreeNode } from "./nodes/addConnectionTreeNode";
 import { AccountSignInTreeNode } from "./nodes/accountSignInTreeNode";
@@ -302,6 +306,20 @@ export class ObjectExplorerService {
         const result: TreeNodeInfo[] = [];
 
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
+        // Remove any connections that have duplicated IDs
+        if (savedConnections.length > 0) {
+            const uniqueConnections = new Map<string, IConnectionProfileWithSource>();
+            for (const conn of savedConnections) {
+                if (!uniqueConnections.has(conn.id)) {
+                    uniqueConnections.set(conn.id, conn);
+                } else {
+                    this._logger.verbose(
+                        `Duplicate connection ID found: ${conn.id}. Ignoring duplicate connection.`,
+                    );
+                }
+            }
+            savedConnections = Array.from(uniqueConnections.values());
+        }
         for (const conn of savedConnections) {
             const connectionNode = new ConnectionNode(conn);
             result.push(connectionNode);
@@ -370,7 +388,21 @@ export class ObjectExplorerService {
                 return this._treeNodeToChildrenMap.get(element);
             }
         }
-        return this.getOrCreateNodeChildrenWithSession(element);
+        /**
+         * If no children are cached, return a temporary loading node to keep the UI responsive
+         * and trigger the async call to fetch real children.
+         * This node will be replaced once the data is retrieved and the tree is refreshed.
+         * Tree expansion is queued, so without this if multiple connections are expanding,
+         * one blocked operation can delay the other.
+         */
+        void this.getOrCreateNodeChildrenWithSession(element);
+        const loadingNode = new vscode.TreeItem(
+            LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
+            vscode.TreeItemCollapsibleState.None,
+        );
+        loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
+        this._treeNodeToChildrenMap.set(element, [loadingNode]);
+        return [loadingNode];
     }
 
     /**
@@ -379,14 +411,13 @@ export class ObjectExplorerService {
      * @param element The node to get or create children for
      * @returns The children of the node
      */
-    private async getOrCreateNodeChildrenWithSession(
-        element: TreeNodeInfo,
-    ): Promise<vscode.TreeItem[]> {
+    private async getOrCreateNodeChildrenWithSession(element: TreeNodeInfo): Promise<void> {
         if (element.sessionId) {
-            return this.expandExistingNode(element);
+            await this.expandExistingNode(element);
         } else {
-            return this.createSessionAndExpandNode(element);
+            await this.createSessionAndExpandNode(element);
         }
+        this._refreshCallback(element);
     }
 
     /**
@@ -401,7 +432,9 @@ export class ObjectExplorerService {
 
         if (children) {
             if (children.length === 0) {
-                return [new NoItemsNode(element)];
+                const noItemsNode = [new NoItemsNode(element)];
+                this._treeNodeToChildrenMap.set(element, noItemsNode);
+                return noItemsNode;
             }
             return children;
         } else {
@@ -771,27 +804,33 @@ export class ObjectExplorerService {
     /**
      * Removes a node from the OE tree. It will also disconnect the node from the server before removing it.
      * @param node The connection node to remove.
+     * @param showUserConfirmationPrompt Whether to show a confirmation prompt to the user before removing the node.
      */
-    public async removeNode(node: ConnectionNode): Promise<void> {
-        const response = await vscode.window.showInformationMessage(
-            LocalizedConstants.ObjectExplorer.NodeDeletionConfirmation(node.label as string),
-            {
-                modal: true,
-            },
-            LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes,
-        );
-        if (response === LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes) {
-            await this.disconnectNode(node);
-            const index = this._rootTreeNodeArray.indexOf(node, 0);
-            if (index > -1) {
-                this._rootTreeNodeArray.splice(index, 1);
-            }
-            this._refreshCallback(undefined); // Refresh tree root.
-            await this._connectionManager.connectionStore.removeProfile(
-                node.connectionProfile,
-                false,
+    public async removeNode(
+        node: ConnectionNode,
+        showUserConfirmationPrompt: boolean = true,
+    ): Promise<void> {
+        if (showUserConfirmationPrompt) {
+            const response = await vscode.window.showInformationMessage(
+                LocalizedConstants.ObjectExplorer.NodeDeletionConfirmation(node.label as string),
+                {
+                    modal: true,
+                },
+                LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes,
+                LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationNo,
             );
+            if (response !== LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes) {
+                return;
+            }
         }
+
+        await this.disconnectNode(node);
+        const index = this._rootTreeNodeArray.indexOf(node, 0);
+        if (index > -1) {
+            this._rootTreeNodeArray.splice(index, 1);
+        }
+        this._refreshCallback(undefined); // Refresh tree root.
+        await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
     }
 
     /**
@@ -815,7 +854,7 @@ export class ObjectExplorerService {
         for (let conn of connections) {
             for (let node of this._rootTreeNodeArray) {
                 if (Utils.isSameConnectionInfo(node.connectionProfile, conn)) {
-                    await this.removeNode(node as ConnectionNode);
+                    await this.removeNode(node as ConnectionNode, false);
                 }
             }
         }

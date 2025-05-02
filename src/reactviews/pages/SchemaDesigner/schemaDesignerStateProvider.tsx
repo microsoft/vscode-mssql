@@ -242,6 +242,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             nodeWithPosition.selected = true;
             reactFlow.addNodes(nodeWithPosition);
             reactFlow.addEdges(edgesForNewTable);
+            // update all affected positions
+            for (const updatedNode of updatedPositions.nodes) {
+                if (updatedNode.id === nodeWithPosition.id) continue;
+                reactFlow.updateNode(updatedNode.id, {
+                    position: updatedNode.position,
+                    data: updatedNode.data,
+                });
+            }
             requestAnimationFrame(async () => {
                 setCenter(nodeWithPosition.id, true);
             });

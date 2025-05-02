@@ -594,6 +594,7 @@ export class ObjectExplorer {
     }
     public static NodeDeletionConfirmationYes = l10n.t("Yes");
     public static NodeDeletionConfirmationNo = l10n.t("No");
+    public static LoadingNodeLabel = l10n.t("Loading...");
 }
 
 export class ConnectionDialog {

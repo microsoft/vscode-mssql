@@ -341,24 +341,40 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 },
                 publishingError: undefined,
             };
-            const previewReport = await this._tableDesignerService.generatePreviewReport(
-                payload.table,
-            );
+            try {
+                const previewReport = await this._tableDesignerService.generatePreviewReport(
+                    payload.table,
+                );
+                state = {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        previewState: previewReport.schemaValidationError
+                            ? designer.LoadState.Error
+                            : designer.LoadState.Loaded,
+                        publishState: designer.LoadState.NotStarted,
+                    },
+                    generatePreviewReportResult: previewReport,
+                };
+            } catch (e) {
+                state = {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        previewState: designer.LoadState.Error,
+                        publishState: designer.LoadState.NotStarted,
+                    },
+                    generatePreviewReportResult: {
+                        schemaValidationError: getErrorMessage(e),
+                        report: "",
+                        mimeType: "",
+                    },
+                };
+            }
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
                 correlationId: this._correlationId,
             });
 
-            state = {
-                ...state,
-                apiState: {
-                    ...state.apiState,
-                    previewState: previewReport.schemaValidationError
-                        ? designer.LoadState.Error
-                        : designer.LoadState.Loaded,
-                    publishState: designer.LoadState.NotStarted,
-                },
-                generatePreviewReportResult: previewReport,
-            };
             return state;
         });
 
