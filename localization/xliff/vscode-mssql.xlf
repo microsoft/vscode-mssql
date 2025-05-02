@@ -134,6 +134,11 @@
     <trans-unit id="++CODE++53c90adec54ba3992244fa9a6edbef327f573af7d2c99f2a110ba57949283b38">
       <source xml:lang="en">Authentication Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++9a1bed14bd9674de782c072cb0e866910c7df51326e29f8a0bea807d4791a7e6">
+      <source xml:lang="en">Authentication error for account &apos;{0}&apos; (tenant &apos;{1}&apos;). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</source>
+      <note>{0} is the account display name
+{1} is the tenant id</note>
+    </trans-unit>
     <trans-unit id="++CODE++439a99b0935fb17d372edb14b699ddd05330257d8c40b464365c1129bdf94d6a">
       <source xml:lang="en">Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.</source>
     </trans-unit>
@@ -325,6 +330,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8046678782bb5feaf7131b03db70b9f5f66007fcc8b0c670c186db149edeb041">
       <source xml:lang="en">Clear Sort</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
+      <source xml:lang="en">Clear cache and refresh token</source>
     </trans-unit>
     <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
       <source xml:lang="en">Click to connect to a database</source>
