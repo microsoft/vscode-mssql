@@ -63,7 +63,7 @@ export async function addDatabaseConnection(
     if (isEnableTrustButtonVisible) {
         await enableTrustServerCertificateButton.click();
     }
-    // await waitForConnectionToShowInObjectExplorer(vsCodePage, profileName);
+    await waitForConnectionToShowInObjectExplorer(vsCodePage, profileName);
 }
 
 export async function addDatabaseConnectionThroughWebview(
