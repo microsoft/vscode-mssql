@@ -1117,7 +1117,11 @@ export default class ConnectionManager {
         return await this._connectionStore.deleteCredential(profile);
     }
 
-    // let users pick from a picklist of connections
+    /**
+     * Confirm that the is in a ready-to-connect state (active document is a SQL file),
+     * then prompts the user to select a connection via quickpick
+     * @returns the connection profile selected by the user, or undefined if canceled
+     */
     public async onNewConnection(): Promise<IConnectionInfo> {
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
         if (!fileUri) {

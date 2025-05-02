@@ -1431,33 +1431,6 @@ export default class MainController implements vscode.Disposable {
         }
     }
 
-    /**
-     * Check if the state is ready to execute a query and retry
-     * the query execution method if needed
-     */
-    // public async isRetryRequiredBeforeQuery(retryMethod: any): Promise<boolean | undefined> {
-    //     let self = this;
-    //     let result: boolean = undefined;
-    //     try {
-
-    //         if (!self._vscodeWrapper.isEditingSqlFile) {
-    //             // Prompt the user to change the language mode to SQL before running a query
-    //             const  = await self._connectionMgr.connectionUI.promptToChangeLanguageMode();
-    //         } else if (!self._connectionMgr.isConnected(self._vscodeWrapper.activeTextEditorUri)) {
-    //             result = await self.onNewConnection();
-    //         }
-    //         if (result) {
-    //             await retryMethod(self);
-    //             return true;
-    //         } else {
-    //             // we don't need to do anything to configure environment before running query
-    //             return false;
-    //         }
-    //     } catch (err) {
-    //         await self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
-    //     }
-    // }
-
     public async checkIsReadyToExecuteQuery(): Promise<boolean> {
         if (!(await this.checkForActiveSqlFile())) {
             return false;
