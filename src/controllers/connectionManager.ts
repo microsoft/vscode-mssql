@@ -1644,8 +1644,6 @@ export default class ConnectionManager {
             if (connectionString.includes(ConnectionStore.CRED_CONNECTION_STRING_PREFIX)) {
                 const retrievedString = await this.connectionStore.lookupPassword(profile, true);
                 connectionString = retrievedString ?? connectionString;
-
-                // return "noStoredCredential"; // No connection string found in credential store; skip?
             }
 
             // merge profile from connection string with existing profile
@@ -1658,11 +1656,6 @@ export default class ConnectionManager {
                 ...profileFromString,
                 ...profile,
             };
-
-            // state.connectionProfile = await this.hydrateConnectionDetailsFromProfile(
-            //     connDetails,
-            //     state.connectionProfile,
-            // );
 
             const passwordIndex = connectionString.toLowerCase().indexOf("password=");
 
