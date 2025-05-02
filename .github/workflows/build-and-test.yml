@@ -154,14 +154,22 @@ jobs:
           echo "Setting up environment for smoke tests"
           export SA_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)
           echo "PASSWORD=$SA_PASSWORD" >> $GITHUB_ENV
-          sudo cp build/mssql.init /etc/init.d/mssql-server
-          sudo chmod +x /etc/init.d/mssql-server
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-          sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list)"
-          sudo apt-get update
-          sudo apt-get install -y mssql-server
-          sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD=${{ env.PASSWORD }} /opt/mssql/bin/mssql-conf setup || true
-          sudo service mssql-server start
+          docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=$SA_PASSWORD" \
+            -p 1433:1433 --name sql_server_container \
+            -d mcr.microsoft.com/mssql/server:2022-latest
+
+          echo "Waiting for SQL Server to be ready..."
+          for i in {1..10}; do
+            if docker exec sql_server_container /opt/mssql-tools/bin/sqlcmd \
+              -S localhost -U sa -P "$SA_PASSWORD" \
+              -Q "SELECT @@VERSION" > /dev/null; then
+              echo "SQL Server is ready!"
+              break
+            else
+              echo "Still waiting... ($i)"
+              sleep 5
+            fi
+          done
         working-directory: ./pr
 
       - name: Run smoke tests
