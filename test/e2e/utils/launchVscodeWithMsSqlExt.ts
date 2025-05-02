@@ -19,8 +19,8 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
     const mssqlExtensionPath = path.resolve(__dirname, "../../../");
 
     const settingsOption = oldUi
-        ? `--user-data-dir=${path.join(process.cwd(), "test", "resources", "launchDir")}`
-        : "";
+        ? `--user-data-dir=${path.join(process.cwd(), "test", "resources", "launchDirOldUi")}`
+        : `--user-data-dir=${path.join(process.cwd(), "test", "resources", "launchDir")}`;
 
     const electronApp = await electron.launch({
         executablePath: vsCodeExecutablePath,

@@ -1,5 +1,6 @@
 {
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": false,
-    "mssql.enableRichExperiences": false,
+    "mssql.enableRichExperiences": true,
+    "mssql.enableNewConnectionFeature": false,
     "mssql.autoDisableNonTSqlLanguageService": false
 }

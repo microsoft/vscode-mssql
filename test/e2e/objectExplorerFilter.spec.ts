@@ -7,7 +7,7 @@ import { ElectronApplication, FrameLocator, Page } from "@playwright/test";
 import { test, expect, generateUUID } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
-import { addDatabaseConnectionThroughWebview, getWebviewByTitle } from "./utils/testHelpers";
+import { addDatabaseConnection, getWebviewByTitle } from "./utils/testHelpers";
 import {
     getServerName,
     getDatabaseName,
@@ -46,7 +46,7 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         savePassword = getSavePassword();
         profileName = getProfileName();
 
-        await addDatabaseConnectionThroughWebview(
+        await addDatabaseConnection(
             vsCodePage,
             serverName,
             databaseName,

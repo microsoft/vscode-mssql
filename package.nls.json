@@ -171,6 +171,7 @@
     "mssql.enableRichExperiencesDoNotShowPrompt.description": "Do not show prompts to enable UI-based features",
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",
+    "mssql.enableNewConnectionFeature.description": "Enables the new Connection feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
     "mssql.enableNewQueryResultFeature.description": "Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
     "mssql.userFeedback": "Give Feedback",
     "mssql.selectedSubscriptions": "Selected Subscriptions",

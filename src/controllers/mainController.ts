@@ -647,7 +647,10 @@ export default class MainController implements vscode.Disposable {
         this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
-            if (!this.isRichExperiencesEnabled) {
+            if (
+                !this.isRichExperiencesEnabled ||
+                !this.configuration.get(Constants.configEnableNewConnectionFeature)
+            ) {
                 await self.createObjectExplorerSession();
             } else {
                 let connectionInfo: IConnectionInfo | undefined = undefined;

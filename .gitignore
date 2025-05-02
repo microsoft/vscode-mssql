@@ -32,3 +32,4 @@ webviews-metafile.json
 .eslintcache
 .nyc_output
 /test/resources/launchDir
+/test/resources/launchDirOldUi
