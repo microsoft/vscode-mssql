@@ -1544,6 +1544,9 @@
       <source xml:lang="en">Schema Compare failed: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the compare operation</note>
     </trans-unit>
+    <trans-unit id="++CODE++15b5d02ad3478e97181969698b48fe22f92298cc513e992be78922dc8f3ffe9c">
+      <source xml:lang="en">Schema Designer</source>
+    </trans-unit>
     <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
       <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
     </trans-unit>

@@ -860,6 +860,7 @@ export class SchemaDesigner {
     );
     public static SaveAs = l10n.t("Save As");
     public static Save = l10n.t("Save");
+    public static SchemaDesigner = l10n.t("Schema Designer");
 }
 
 export class StatusBar {

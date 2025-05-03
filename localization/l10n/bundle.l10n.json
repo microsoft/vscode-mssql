@@ -1189,6 +1189,7 @@
   "Click to connect to a database": "Click to connect to a database",
   "Connecting": "Connecting",
   "Connection error": "Connection error",
+  "Schema Designer": "Schema Designer",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
