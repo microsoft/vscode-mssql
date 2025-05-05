@@ -34,7 +34,7 @@ suite("ConnectionManager Tests", () => {
         sandbox = sinon.createSandbox();
 
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
+        mockVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
         mockLogger = TypeMoq.Mock.ofType<Logger>();
         mockConnectionStore = TypeMoq.Mock.ofType<ConnectionStore>();
         mockCredentialStore = TypeMoq.Mock.ofType<CredentialStore>();
@@ -158,24 +158,18 @@ suite("ConnectionManager Tests", () => {
 
             expect(savedProfile, "Migrated profile should have been saved").to.not.be.undefined;
 
-            expect(savedProfile.id, "saved profile ID should be the same as the original").to.equal(
-                testConnectionId,
+            expect(savedProfile, "Saved profile should have the expected properties").to.deep.equal(
+                {
+                    id: testConnectionId,
+                    server: testServer,
+                    database: testDatabase,
+                    authenticationType: "Integrated",
+                    connectionString: "",
+                    savePassword: true,
+                    user: testUser,
+                    password: testPassword,
+                } as IConnectionProfile,
             );
-
-            expect(
-                savedProfile.connectionString,
-                "connection string should not be set after migration",
-            ).to.equal("");
-
-            expect(
-                savedProfile.savePassword,
-                "savePassword should be true when a connection string containing a password has been migrated",
-            ).to.be.true;
-
-            expect(
-                savedProfile.password,
-                "password should be extracted from the connection string",
-            ).to.equal(testPassword);
         });
 
         test("Initialization migrates legacy Connection String connections with no credential", async () => {
@@ -259,6 +253,59 @@ suite("ConnectionManager Tests", () => {
                     authenticationType: "Integrated",
                     connectionString: "",
                 } as IConnectionProfile,
+            );
+        });
+    });
+
+    suite("Functionality tests", () => {
+        setup(() => {
+            connectionManager = new ConnectionManager(
+                mockContext.object,
+                mockStatusView.object,
+                undefined, // prompter
+                true, // isRichExperiencesEnabled
+                mockLogger.object,
+                mockServiceClient.object,
+                mockVscodeWrapper.object,
+                mockConnectionStore.object,
+                mockCredentialStore.object,
+                undefined, // connectionUI
+                undefined, // accountStore
+            );
+        });
+
+        test("User is informed when legacy connection migration fails", async () => {
+            const erroringConnProfile: IConnectionProfile = {
+                connectionString: "some test connection string",
+                id: "00000000-1111-2222-3333-444444444444",
+            } as IConnectionProfile;
+
+            mockVscodeWrapper
+                .setup((x) => x.showErrorMessage(TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve(undefined);
+                });
+
+            mockServiceClient
+                .setup((sc) =>
+                    sc.sendRequest(
+                        TypeMoq.It.isValue(ParseConnectionStringRequest.type),
+                        TypeMoq.It.isAny(),
+                    ),
+                )
+                .returns(() => {
+                    throw new Error("Test error!");
+                });
+
+            const result = await connectionManager["migrateLegacyConnection"](erroringConnProfile);
+
+            expect(result, "Migration should return that it errored instead of throwing").to.equal(
+                "error",
+            );
+
+            mockVscodeWrapper.verify(
+                (v) => v.showErrorMessage(TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
             );
         });
     });

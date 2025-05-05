@@ -841,3 +841,14 @@ export class SchemaDesigner {
     public static SaveAs = l10n.t("Save As");
     public static Save = l10n.t("Save");
 }
+
+export class Connection {
+    public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
+        return l10n.t({
+            message:
+                "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
+            args: [connectionId, errorMessage],
+            comment: ["{0} is the connection id", "{1} is the error message"],
+        });
+    };
+}

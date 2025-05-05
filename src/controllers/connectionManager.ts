@@ -1593,7 +1593,7 @@ export default class ConnectionManager {
         this.vscodeWrapper.showInformationMessage(LocalizedConstants.clearedAzureTokenCache);
     }
 
-    public async migrateLegacyConnectionProfiles(): Promise<void> {
+    private async migrateLegacyConnectionProfiles(): Promise<void> {
         this._logger.logDebug("Beginning migration of legacy connections");
 
         const connections: IConnectionProfile[] =
@@ -1611,11 +1611,11 @@ export default class ConnectionManager {
         }
 
         if (tally.migrated > 0) {
-            this._logger.logDebug(
+            this._logger.verbose(
                 `Completed migration of legacy Connection String connections. (${tally.migrated} migrated, ${tally.notNeeded} not needed, ${tally.error} errored)`,
             );
         } else {
-            this._logger.logDebug(
+            this._logger.verbose(
                 `No legacy Connection String connections found to migrate. (${tally.notNeeded} not needed, ${tally.error} errored)`,
             );
         }
@@ -1679,7 +1679,14 @@ export default class ConnectionManager {
             return "migrated";
         } catch (err) {
             this._logger.error(
-                `Error migrating legacy connection ID ${profile.id}: ${getErrorMessage(err)}`,
+                `Error migrating legacy connection with ID ${profile.id}: ${getErrorMessage(err)}`,
+            );
+
+            this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.Connection.errorMigratingLegacyConnection(
+                    profile.id,
+                    getErrorMessage(err),
+                ),
             );
 
             sendErrorEvent(
