@@ -1810,6 +1810,10 @@
     <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
       <source xml:lang="en">The columns of the index.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
+      <source xml:lang="en">The connection with ID &apos;{0}&apos; does not have the &apos;server&apos; property set and is being ignored.  Please set the &apos;server&apos; property on this connection in order to use it.</source>
+      <note>{0} is the connection ID for the connection that has been ignored</note>
+    </trans-unit>
     <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
       <source xml:lang="en">The description of the check constraint.</source>
     </trans-unit>
@@ -1866,6 +1870,10 @@
     </trans-unit>
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7ed1603bef6f521bbe5dd76c85ffc15cad08db22de5b458b03287f07c77e36f6">
+      <source xml:lang="en">The workspace or workspace folder connection &apos;{0}&apos; is missing the &apos;id&apos; property and is being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it.</source>
+      <note>{0} is the display name for the connection that has been ignored</note>
     </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>

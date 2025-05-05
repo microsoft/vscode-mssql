@@ -87,6 +87,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         for (const profile of profiles) {
             if (this.populateMissingIds(profile)) {
+                madeChanges = true;
                 this._logger.logDebug(
                     `Adding missing group ID or connection ID to connection '${getConnectionDisplayName(profile)}'`,
                 );
@@ -165,6 +166,21 @@ export class ConnectionConfig implements IConnectionConfig {
         if (getWorkspaceConnections) {
             // Read from workspace settings
             let workspaceProfiles = this.getProfilesFromSettings(false);
+
+            // We don't currently auto-update connections in workspace/workspace folder config,
+            // so alert the user if any of those are missing their ID property that they need manual updating.
+            workspaceProfiles = workspaceProfiles.filter((profile) => {
+                if (!profile.id) {
+                    this._vscodeWrapper.showErrorMessage(
+                        LocalizedConstants.Connection.missingConnectionIdError(
+                            getConnectionDisplayName(profile),
+                        ),
+                    );
+                    return false;
+                }
+                return true;
+            });
+
             workspaceProfiles.sort(this.compareConnectionProfile);
             profiles = profiles.concat(workspaceProfiles);
         }
@@ -172,10 +188,19 @@ export class ConnectionConfig implements IConnectionConfig {
         if (profiles.length > 0) {
             profiles = profiles.filter((conn) => {
                 // filter any connection missing a connection string and server name or the sample that's shown by default
-                return (
-                    conn.connectionString ||
-                    (!!conn.server && conn.server !== LocalizedConstants.SampleServerName)
-                );
+                if (
+                    !(
+                        conn.connectionString ||
+                        (!!conn.server && conn.server !== LocalizedConstants.SampleServerName)
+                    )
+                ) {
+                    this._vscodeWrapper.showErrorMessage(
+                        LocalizedConstants.Connection.missingConnectionInformation(conn.id),
+                    );
+
+                    return false;
+                }
+                return true;
             });
         }
 

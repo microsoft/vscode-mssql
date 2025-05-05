@@ -883,3 +883,23 @@ export class StatusBar {
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
 }
+
+export class Connection {
+    public static missingConnectionIdError = (connectionDisplayNames: string) => {
+        return l10n.t({
+            message:
+                "The workspace or workspace folder connection '{0}' is missing the 'id' property and is being ignored.  Please manually add the 'id' property to the connection in order to use it.",
+            args: [connectionDisplayNames],
+            comment: ["{0} is the display name for the connection that has been ignored"],
+        });
+    };
+
+    public static missingConnectionInformation = (connectionId: string) => {
+        return l10n.t({
+            message:
+                "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
+            args: [connectionId],
+            comment: ["{0} is the connection ID for the connection that has been ignored"],
+        });
+    };
+}
