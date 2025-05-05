@@ -225,7 +225,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         // this.registerPlugin(new MouseWheelSupport());
     }
 
-    public async setupColumnWidths(): Promise<void> {
+    public async restoreColumnWidths(): Promise<void> {
         const columnWidthArray = (await this.webViewState.extensionRpc.call("getColumnWidths", {
             uri: this.queryResultContext.state.uri,
         })) as number[];

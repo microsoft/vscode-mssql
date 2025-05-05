@@ -124,8 +124,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     const createTable = () => {
         const filter = async () => {
             await table.setupFilterState();
-            await table.setupColumnWidths();
-            // table.grid.setColumnWidths()
+            await table.restoreColumnWidths();
             table.rerenderGrid();
         };
         const DEFAULT_FONT_SIZE = 12;
