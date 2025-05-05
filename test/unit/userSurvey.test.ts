@@ -176,6 +176,8 @@ suite("UserSurvey Tests", () => {
                     q1: "answer1",
                     q2: "answer2",
                     modernFeaturesEnabled: true,
+                    useLegacyConnectionExperience: undefined,
+                    useLegacyQueryResultExperience: undefined,
                 },
                 {
                     q3: 3,

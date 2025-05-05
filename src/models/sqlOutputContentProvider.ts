@@ -215,9 +215,11 @@ export class SqlOutputContentProvider {
     }
 
     private get useLegacyQueryResults(): boolean {
-        return this._vscodeWrapper
-            .getConfiguration()
-            .get(Constants.configUseLegacyQueryResultExperience);
+        return (
+            this._vscodeWrapper
+                .getConfiguration()
+                .get(Constants.configUseLegacyQueryResultExperience) || false
+        );
     }
 
     private async runQueryCallback(
