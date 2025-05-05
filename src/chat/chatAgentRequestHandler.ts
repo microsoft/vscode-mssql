@@ -18,9 +18,10 @@ import {
 } from "../models/contracts/copilot";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
-interface ISqlChatResult extends vscode.ChatResult {
+export interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
         command: string;
+        correlationId: string;
     };
 }
 
@@ -45,8 +46,10 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         token: vscode.CancellationToken,
     ): Promise<ISqlChatResult> => {
+        const correlationId = Utils.generateGuid();
         let conversationUri = getNextConversationUri();
         let connectionUri = vscodeWrapper.activeTextEditorUri;
+
         Utils.logDebug(
             `Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`,
         );
@@ -54,7 +57,10 @@ export const createSqlAgentRequestHandler = (
         const activity = startActivity(
             TelemetryViews.MssqlCopilot,
             TelemetryActions.StartConversation,
-            conversationUri,
+            correlationId,
+            {
+                correlationId: correlationId,
+            },
         );
 
         let referenceTexts: string[] = [];
@@ -98,7 +104,7 @@ export const createSqlAgentRequestHandler = (
         try {
             if (!model) {
                 stream.markdown("No model found.");
-                return { metadata: { command: "" } };
+                return { metadata: { command: "", correlationId: correlationId } };
             }
 
             // Tool lookup
@@ -113,7 +119,7 @@ export const createSqlAgentRequestHandler = (
 
             if (!connectionUri) {
                 await sendToDefaultLanguageModel(prompt, model, stream, token);
-                return { metadata: { command: "" } };
+                return { metadata: { command: "", correlationId: correlationId } };
             }
 
             const success = await copilotService.startConversation(
@@ -122,10 +128,16 @@ export const createSqlAgentRequestHandler = (
                 prompt,
             );
             if (!success) {
-                activity.endFailed(new Error("Failed to start conversation."));
+                activity.endFailed(
+                    new Error("Failed to start conversation."),
+                    true,
+                    undefined,
+                    undefined,
+                    { correlationId: correlationId },
+                );
 
                 await sendToDefaultLanguageModel(prompt, model, stream, token);
-                return { metadata: { command: "" } };
+                return { metadata: { command: "", correlationId: correlationId } };
             }
 
             let sqlTools: { tool: LanguageModelChatTool; parameters: string }[];
@@ -161,7 +173,7 @@ export const createSqlAgentRequestHandler = (
                 switch (result.messageType) {
                     case MessageType.Complete:
                         activity.end(ActivityStatus.Succeeded, {
-                            conversationUri: conversationUri,
+                            correlationId: correlationId,
                         });
 
                         continuePollingMessages = false; // Stop polling
@@ -181,6 +193,7 @@ export const createSqlAgentRequestHandler = (
                             token,
                             chatContext,
                             referenceTexts,
+                            correlationId,
                         );
 
                         replyText = text;
@@ -195,6 +208,10 @@ export const createSqlAgentRequestHandler = (
                     default:
                         activity.endFailed(
                             new Error(`Unhandled message type: ${result.messageType}`),
+                            true,
+                            undefined,
+                            undefined,
+                            { correlationId: correlationId },
                         );
                         console.warn(`Unhandled message type: ${result.messageType}`);
                         continuePollingMessages = false;
@@ -209,10 +226,10 @@ export const createSqlAgentRequestHandler = (
                 }
             }
         } catch (err) {
-            handleError(err, stream);
+            handleError(err, stream, correlationId);
         }
 
-        return { metadata: { command: "" } };
+        return { metadata: { command: "", correlationId: correlationId } };
     };
 
     async function processToolCalls(
@@ -314,6 +331,7 @@ export const createSqlAgentRequestHandler = (
         stream: vscode.ChatResponseStream,
         chatResponse: vscode.LanguageModelChatResponse,
         tools: LanguageModelChatTool[],
+        correlationId: string,
     ): Promise<{
         replyText: string;
         toolsCalled: { tool: LanguageModelChatTool; parameters: string }[];
@@ -335,6 +353,7 @@ export const createSqlAgentRequestHandler = (
                     tools,
                     part,
                     stream,
+                    correlationId,
                 );
                 if (tool) {
                     toolsCalled.push({ tool, parameters });
@@ -353,6 +372,7 @@ export const createSqlAgentRequestHandler = (
         token: vscode.CancellationToken,
         context: vscode.ChatContext, // pass this context from above
         referenceTexts: string[],
+        correlationId: string,
     ): Promise<{
         text: string;
         tools: { tool: LanguageModelChatTool; parameters: string }[];
@@ -375,6 +395,7 @@ export const createSqlAgentRequestHandler = (
             stream,
             chatResponse,
             result.tools,
+            correlationId,
         );
 
         return {
@@ -389,6 +410,7 @@ export const createSqlAgentRequestHandler = (
         resultTools: Array<LanguageModelChatTool>, // Replace `any` with the actual tool type if available
         part: vscode.LanguageModelToolCallPart,
         stream: vscode.ChatResponseStream,
+        correlationId: string,
     ): Promise<{
         sqlTool: LanguageModelChatTool | undefined;
         sqlToolParameters: string | undefined;
@@ -429,6 +451,7 @@ export const createSqlAgentRequestHandler = (
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ToolCall, {
             toolName: tool.functionName,
             toolDescription: tool.functionDescription,
+            correlationId: correlationId,
         });
 
         return { sqlTool, sqlToolParameters };
@@ -437,6 +460,7 @@ export const createSqlAgentRequestHandler = (
     function handleLanguageModelError(
         err: vscode.LanguageModelError,
         stream: vscode.ChatResponseStream,
+        correlationId: string,
     ): void {
         console.error("Language Model Error:", err.message, "Code:", err.code);
 
@@ -459,6 +483,7 @@ export const createSqlAgentRequestHandler = (
             errorName: err.name || "Unknown",
             errorMessage: errorMessage,
             originalErrorMessage: err.message || "",
+            correlationId: correlationId,
         });
 
         stream.markdown(errorMessage);
@@ -499,9 +524,13 @@ export const createSqlAgentRequestHandler = (
         }
     }
 
-    function handleError(err: unknown, stream: vscode.ChatResponseStream): void {
+    function handleError(
+        err: unknown,
+        stream: vscode.ChatResponseStream,
+        correlationId: string,
+    ): void {
         if (err instanceof vscode.LanguageModelError) {
-            handleLanguageModelError(err, stream);
+            handleLanguageModelError(err, stream, correlationId);
         } else if (err instanceof Error) {
             console.error("Unhandled Error:", {
                 message: err.message,
