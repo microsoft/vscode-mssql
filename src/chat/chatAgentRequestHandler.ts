@@ -51,6 +51,12 @@ export const createSqlAgentRequestHandler = (
             `Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`,
         );
 
+        const activity = startActivity(
+            TelemetryViews.MssqlCopilot,
+            TelemetryActions.StartConversation,
+            conversationUri,
+        );
+
         let referenceTexts: string[] = [];
         const activeEditor = vscode.window.activeTextEditor;
 
@@ -109,12 +115,6 @@ export const createSqlAgentRequestHandler = (
                 await sendToDefaultLanguageModel(prompt, model, stream, token);
                 return { metadata: { command: "" } };
             }
-
-            const activity = startActivity(
-                TelemetryViews.MssqlCopilot,
-                TelemetryActions.StartConversation,
-                conversationUri,
-            );
 
             const success = await copilotService.startConversation(
                 conversationUri,
