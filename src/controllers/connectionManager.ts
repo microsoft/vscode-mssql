@@ -1117,24 +1117,27 @@ export default class ConnectionManager {
         return await this._connectionStore.deleteCredential(profile);
     }
 
-    // let users pick from a picklist of connections
+    /**
+     * Confirm that the is in a ready-to-connect state (active document is a SQL file),
+     * then prompts the user to select a connection via quickpick
+     * @returns the connection profile selected by the user, or undefined if canceled
+     */
     public async onNewConnection(): Promise<IConnectionInfo> {
         const fileUri = this.vscodeWrapper.activeTextEditorUri;
         if (!fileUri) {
             // A text document needs to be open before we can connect
             this.vscodeWrapper.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return undefined;
-        } else if (!this.vscodeWrapper.isEditingSqlFile) {
-            const result = await this.connectionUI.promptToChangeLanguageMode();
-            if (result) {
-                const credentials = await this.showConnectionsAndConnect(fileUri);
-                return credentials;
-            } else {
-                return undefined;
+        }
+
+        if (!this.vscodeWrapper.isEditingSqlFile) {
+            if (!(await this.connectionUI.promptToChangeLanguageMode())) {
+                return undefined; // cancel operation
             }
         }
-        const creds = await this.showConnectionsAndConnect(fileUri);
-        return creds;
+
+        const connProfile = await this.showConnectionsAndConnect(fileUri);
+        return connProfile;
     }
 
     /**
