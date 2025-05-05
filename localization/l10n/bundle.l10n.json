@@ -1170,6 +1170,13 @@
   "Loading Schema Designer Model...": "Loading Schema Designer Model...",
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",
+  "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}/{0} is the connection id{1} is the error message": {
+    "message": "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
+    "comment": [
+      "{0} is the connection id",
+      "{1} is the error message"
+    ]
+  },
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
