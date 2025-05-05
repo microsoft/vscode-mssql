@@ -8,7 +8,7 @@ export enum SubKeys {
     ColumnWidth = "columnWidth",
 }
 
-class QueryResultSingletonStore {
+export class QueryResultSingletonStore {
     private static instance: QueryResultSingletonStore;
     private store: Map<string, Map<string, any>>;
 
