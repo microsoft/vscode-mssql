@@ -285,10 +285,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("filterAzureSubscriptions", async (state) => {
-            await promptForAzureSubscriptionFilter(state);
-            await this.loadAllAzureServers(state);
+            try {
+                if (await promptForAzureSubscriptionFilter(state)) {
+                    await this.loadAllAzureServers(state);
+                }
+            } catch (err) {
+                this.state.formError = getErrorMessage(err);
 
-            return state;
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.FilterAzureSubscriptions,
+                    err,
+                    false, // includeErrorMessage
+                );
+            } finally {
+                return state;
+            }
         });
 
         this.registerReducer("refreshConnectionsList", async (state) => {
