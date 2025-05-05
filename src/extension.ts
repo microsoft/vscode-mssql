@@ -111,6 +111,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         getServerInfo: (connectionInfo: IConnectionInfo) => {
             return controller.connectionManager.getServerInfo(connectionInfo);
         },
+        getCredentialsByFileUri: (fileUri: string) => {
+            return controller.connectionManager.getCredentialsByFileUri(fileUri);
+        },
     };
 }
 

@@ -130,6 +130,12 @@ declare module "vscode-mssql" {
          * @returns server information
          */
         getServerInfo(connectionInfo: IConnectionInfo): IServerInfo;
+         /**
+         * Get connection credentials by file uri
+         * @param fileUri File uri
+         * @returns Connection info
+         */
+         getCredentialsByFileUri(fileUri: string): IConnectionInfo | undefined;
     }
 
     /**

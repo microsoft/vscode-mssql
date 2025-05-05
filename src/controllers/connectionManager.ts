@@ -920,6 +920,19 @@ export default class ConnectionManager {
     }
 
     /**
+     * Retrieves Connection Info by file uri
+     * @param fileUri The URI of the file
+     * @returns Connection info
+     */
+    public getCredentialsByFileUri(fileUri: string): IConnectionInfo | undefined {
+        if (this.isConnected(fileUri)) {
+            return this._connections[fileUri].credentials;
+        }
+
+        return undefined;
+    }
+
+    /**
      * Retrieves the list of databases for the connection specified by the given URI.
      * @param connectionUri The URI of the connection to list the databases for
      * @returns The list of databases retrieved from the connection
