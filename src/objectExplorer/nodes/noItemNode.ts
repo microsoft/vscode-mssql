@@ -4,18 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as LocalizedConstants from "../constants/locConstants";
-import * as Constants from "../constants/constants";
+import * as LocalizedConstants from "../../constants/locConstants";
 import { TreeNodeInfo } from "./treeNodeInfo";
+import { ObjectExplorerUtils } from "../objectExplorerUtils";
 
-export class AccountSignInTreeNode extends vscode.TreeItem {
+export class NoItemsNode extends vscode.TreeItem {
     constructor(private _parentNode: TreeNodeInfo) {
-        super(LocalizedConstants.msgConnect, vscode.TreeItemCollapsibleState.None);
-
-        this.command = {
-            title: LocalizedConstants.msgConnect,
-            command: Constants.cmdObjectExplorerNodeSignIn,
-            arguments: [this],
+        super(LocalizedConstants.ObjectExplorer.NoItems, vscode.TreeItemCollapsibleState.None);
+        this.iconPath = {
+            light: ObjectExplorerUtils.iconPath("NoItems_light"),
+            dark: ObjectExplorerUtils.iconPath("NoItems_dark"),
         };
     }
 

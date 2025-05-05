@@ -161,8 +161,8 @@ export default class StatusView implements vscode.Disposable {
 
     public notConnected(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
-        bar.statusConnection.text = LocalizedConstants.notConnectedLabel;
-        bar.statusConnection.tooltip = LocalizedConstants.notConnectedTooltip;
+        bar.statusConnection.text = `$(plug) ${LocalizedConstants.StatusBar.disconnectedLabel}`;
+        bar.statusConnection.tooltip = LocalizedConstants.StatusBar.notConnectedTooltip;
         bar.statusConnection.command = Constants.cmdConnect;
         this.showStatusBarItem(fileUri, bar.statusConnection);
         bar.statusLanguageService.text = "";
@@ -172,7 +172,7 @@ export default class StatusView implements vscode.Disposable {
 
     public connecting(fileUri: string, connCreds: IConnectionInfo): void {
         let bar = this.getStatusBar(fileUri);
-        bar.statusConnection.text = LocalizedConstants.connectingLabel;
+        bar.statusConnection.text = `$(loading~spin) ${LocalizedConstants.StatusBar.connectingLabel}`;
         bar.statusConnection.command = Constants.cmdDisconnect;
         bar.statusConnection.tooltip =
             LocalizedConstants.connectingTooltip + ConnInfo.getTooltip(connCreds);
@@ -186,7 +186,7 @@ export default class StatusView implements vscode.Disposable {
     ): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdChooseDatabase;
-        bar.statusConnection.text = ConnInfo.getConnectionDisplayString(connCreds);
+        bar.statusConnection.text = `$(check) ${ConnInfo.getConnectionDisplayString(connCreds)}`;
         bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.sqlCmdModeChanged(fileUri, false);
@@ -199,7 +199,7 @@ export default class StatusView implements vscode.Disposable {
     ): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
-        bar.statusConnection.text = LocalizedConstants.connectErrorLabel;
+        bar.statusConnection.text = `$(error) ${LocalizedConstants.StatusBar.connectErrorLabel}`;
         if (error.errorNumber && error.errorMessage && !Utils.isEmpty(error.errorMessage)) {
             bar.statusConnection.tooltip =
                 LocalizedConstants.connectErrorTooltip +

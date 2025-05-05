@@ -77,6 +77,7 @@ export enum TelemetryActions {
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
     LoadFromConnectionString = "LoadFromConnectionString",
     MigrateLegacyConnections = "MigrateLegacyConnections",
+    FilterAzureSubscriptions = "FilterAzureSubscriptions",
 }
 
 /**
