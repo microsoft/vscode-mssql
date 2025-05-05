@@ -168,6 +168,16 @@ export default class MainController implements vscode.Disposable {
         return this.configuration.get(Constants.configEnableRichExperiences);
     }
 
+    public get useLegacyConnectionUx(): boolean {
+        // undocumented flag, so defualt to false if not set
+        return this.configuration.get(Constants.configUseLegacyConnectionExperience) || false;
+    }
+
+    public get useLegacyQueryResultExperience(): boolean {
+        // undocumented flag, so defualt to false if not set
+        return this.configuration.get(Constants.configUseLegacyQueryResultExperience) || false;
+    }
+
     /**
      * Initializes the extension
      */
@@ -569,6 +579,8 @@ export default class MainController implements vscode.Disposable {
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
+            useLegacyConnections: this.useLegacyConnectionUx.toString(),
+            useLegacyQueryResults: this.useLegacyQueryResultExperience.toString(),
         });
 
         this._initialized = true;
@@ -687,7 +699,7 @@ export default class MainController implements vscode.Disposable {
         this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
-            if (!this.isRichExperiencesEnabled) {
+            if (this.useLegacyConnectionUx) {
                 await self.createObjectExplorerSession();
             } else {
                 let connectionInfo: IConnectionInfo | undefined = undefined;
@@ -709,9 +721,9 @@ export default class MainController implements vscode.Disposable {
             }
         });
 
-        // redirect the "(preview)" command to the original command
-        this.registerCommandWithArgs(Constants.cmdAddObjectExplorerPreview);
-        this._event.on(Constants.cmdAddObjectExplorerPreview, (args) => {
+        // redirect the "Legacy" command to the core command; that handler will differentiate
+        this.registerCommandWithArgs(Constants.cmdAddObjectExplorerLegacy);
+        this._event.on(Constants.cmdAddObjectExplorerLegacy, (args) => {
             vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, args);
         });
 
@@ -2049,6 +2061,8 @@ export default class MainController implements vscode.Disposable {
                 Constants.enableConnectionPooling,
                 Constants.configEnableExperimentalFeatures,
                 Constants.configEnableRichExperiences,
+                Constants.configUseLegacyConnectionExperience,
+                Constants.configUseLegacyQueryResultExperience,
             ];
 
             if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {
@@ -2126,11 +2140,7 @@ export default class MainController implements vscode.Disposable {
                 this.executionPlanService,
                 this.untitledSqlService,
                 planContents,
-                vscode.l10n.t({
-                    message: "{0} (Preview)",
-                    args: [docName],
-                    comment: "{0} is the file name",
-                }),
+                docName,
             );
 
             executionPlanController.revealToForeground();
