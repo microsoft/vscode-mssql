@@ -122,7 +122,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     };
 
     const createTable = () => {
-        const filter = async () => {
+        const setupState = async () => {
             await table.setupFilterState();
             await table.restoreColumnWidths();
             table.rerenderGrid();
@@ -259,7 +259,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             tableOptions,
             props.gridParentRef,
         );
-        void filter();
+        void setupState();
         collection.setCollectionChangedCallback((startIndex, count) => {
             let refreshedRows = range(startIndex, startIndex + count);
             table.invalidateRows(refreshedRows, true);
