@@ -20,7 +20,7 @@ import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store from "./singletonStore";
-import { JsonFormattingEditProvider } from "./formatter";
+import { JsonFormattingEditProvider } from "../utils/jsonFormatter";
 
 export function getNewResultPaneViewColumn(
     uri: string,
