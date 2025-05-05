@@ -111,7 +111,7 @@ export const createSqlAgentRequestHandler = (
             }
 
             const activity = startActivity(
-                TelemetryViews.SqlCopilot,
+                TelemetryViews.MssqlCopilot,
                 TelemetryActions.StartConversation,
                 conversationUri,
             );
@@ -426,7 +426,7 @@ export const createSqlAgentRequestHandler = (
             stream.progress(`Calling tool: ${tool.functionName} with ${sqlToolParameters}`);
         }
 
-        sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.ToolCall, {
+        sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ToolCall, {
             toolName: tool.functionName,
             toolDescription: tool.functionDescription,
         });
@@ -454,7 +454,7 @@ export const createSqlAgentRequestHandler = (
             errorMessages[err.code] ||
             "An unexpected error occurred with the language model. Please try again.";
 
-        sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.Error, {
+        sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
             errorCode: err.code || "Unknown",
             errorName: err.name || "Unknown",
             errorMessage: errorMessage,

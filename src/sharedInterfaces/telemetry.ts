@@ -20,7 +20,7 @@ export enum TelemetryViews {
     ConnectionDialog = "ConnectionDialog",
     ExecutionPlan = "ExecutionPlan",
     AddFirewallRule = "AddFirewallRule",
-    SqlCopilot = "SqlCopilot",
+    MssqlCopilot = "MssqlCopilot",
 }
 
 export enum TelemetryActions {

@@ -334,7 +334,7 @@ export default class MainController implements vscode.Disposable {
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
             this._event.on(Constants.cmdChatWithDatabase, async (treeNodeInfo: TreeNodeInfo) => {
-                sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.ChatWithDatabase);
+                sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatWithDatabase);
 
                 const connectionCredentials = Object.assign({}, treeNodeInfo.connectionInfo);
                 const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
@@ -404,7 +404,7 @@ export default class MainController implements vscode.Disposable {
             // -- EXPLAIN QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdExplainQuery, async () => {
-                    sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.ExplainQuery);
+                    sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ExplainQuery);
 
                     await launchEditorChatWithPrompt(
                         Prompts.explainQueryPrompt,
@@ -416,7 +416,7 @@ export default class MainController implements vscode.Disposable {
             // -- REWRITE QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdRewriteQuery, async () => {
-                    sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.RewriteQuery);
+                    sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.RewriteQuery);
 
                     await launchEditorChatWithPrompt(
                         Prompts.rewriteQueryPrompt,
@@ -429,7 +429,7 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdAnalyzeQueryPerformance, async () => {
                     sendActionEvent(
-                        TelemetryViews.SqlCopilot,
+                        TelemetryViews.MssqlCopilot,
                         TelemetryActions.AnalyzeQueryPerformance,
                     );
 

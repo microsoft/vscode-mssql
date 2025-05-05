@@ -53,7 +53,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
     const receiveFeedbackDisposable = participant.onDidReceiveFeedback(
         (feedback: vscode.ChatResultFeedback) => {
-            sendActionEvent(TelemetryViews.SqlCopilot, TelemetryActions.Feedback, {
+            sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Feedback, {
                 kind: feedback.kind === ChatResultFeedbackKind.Helpful ? "Helpful" : "Unhelpful",
             });
         },
