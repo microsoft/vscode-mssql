@@ -641,6 +641,10 @@
                 {
                     "command": "mssql.editConnection",
                     "when": "config.mssql.enableRichExperiences"
+                },
+                {
+                    "command": "mssql.designSchema",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableSchemaDesigner"
                 }
             ],
             "webview/context": [

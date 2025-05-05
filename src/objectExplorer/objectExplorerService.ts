@@ -706,7 +706,7 @@ export class ObjectExplorerService {
         failureResponse: SessionCreatedParameters,
         connectionProfile: IConnectionProfile,
     ): Promise<boolean> {
-        let error = LocalizedConstants.connectErrorLabel;
+        let error = LocalizedConstants.StatusBar.connectErrorLabel;
         let errorNumber: number;
         if (failureResponse.errorNumber) {
             errorNumber = failureResponse.errorNumber;
@@ -804,27 +804,33 @@ export class ObjectExplorerService {
     /**
      * Removes a node from the OE tree. It will also disconnect the node from the server before removing it.
      * @param node The connection node to remove.
+     * @param showUserConfirmationPrompt Whether to show a confirmation prompt to the user before removing the node.
      */
-    public async removeNode(node: ConnectionNode): Promise<void> {
-        const response = await vscode.window.showInformationMessage(
-            LocalizedConstants.ObjectExplorer.NodeDeletionConfirmation(node.label as string),
-            {
-                modal: true,
-            },
-            LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes,
-        );
-        if (response === LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes) {
-            await this.disconnectNode(node);
-            const index = this._rootTreeNodeArray.indexOf(node, 0);
-            if (index > -1) {
-                this._rootTreeNodeArray.splice(index, 1);
-            }
-            this._refreshCallback(undefined); // Refresh tree root.
-            await this._connectionManager.connectionStore.removeProfile(
-                node.connectionProfile,
-                false,
+    public async removeNode(
+        node: ConnectionNode,
+        showUserConfirmationPrompt: boolean = true,
+    ): Promise<void> {
+        if (showUserConfirmationPrompt) {
+            const response = await vscode.window.showInformationMessage(
+                LocalizedConstants.ObjectExplorer.NodeDeletionConfirmation(node.label as string),
+                {
+                    modal: true,
+                },
+                LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes,
+                LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationNo,
             );
+            if (response !== LocalizedConstants.ObjectExplorer.NodeDeletionConfirmationYes) {
+                return;
+            }
         }
+
+        await this.disconnectNode(node);
+        const index = this._rootTreeNodeArray.indexOf(node, 0);
+        if (index > -1) {
+            this._rootTreeNodeArray.splice(index, 1);
+        }
+        this._refreshCallback(undefined); // Refresh tree root.
+        await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
     }
 
     /**
@@ -848,7 +854,7 @@ export class ObjectExplorerService {
         for (let conn of connections) {
             for (let node of this._rootTreeNodeArray) {
                 if (Utils.isSameConnectionInfo(node.connectionProfile, conn)) {
-                    await this.removeNode(node as ConnectionNode);
+                    await this.removeNode(node as ConnectionNode, false);
                 }
             }
         }

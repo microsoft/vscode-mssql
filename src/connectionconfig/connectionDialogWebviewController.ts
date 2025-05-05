@@ -155,12 +155,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.state.connectionComponents = {
             mainOptions: [...ConnectionDialogWebviewController.mainOptions],
-            topAdvancedOptions: [
-                "port",
-                "applicationName",
-                "connectTimeout",
-                "multiSubnetFailover",
-            ],
             groupedAdvancedOptions: [], // computed below
         };
 
@@ -291,10 +285,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("filterAzureSubscriptions", async (state) => {
-            await promptForAzureSubscriptionFilter(state);
-            await this.loadAllAzureServers(state);
+            try {
+                if (await promptForAzureSubscriptionFilter(state)) {
+                    await this.loadAllAzureServers(state);
+                }
+            } catch (err) {
+                this.state.formError = getErrorMessage(err);
 
-            return state;
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.FilterAzureSubscriptions,
+                    err,
+                    false, // includeErrorMessage
+                );
+            } finally {
+                return state;
+            }
         });
 
         this.registerReducer("refreshConnectionsList", async (state) => {
@@ -876,6 +882,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             authenticationType: AuthenticationType.SqlLogin,
             connectTimeout: 30, // seconds
             applicationName: "vscode-mssql",
+            applicationIntent: "ReadWrite",
         } as IConnectionDialogProfile;
     }
 

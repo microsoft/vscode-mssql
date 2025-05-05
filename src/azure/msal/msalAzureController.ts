@@ -19,6 +19,7 @@ import { MsalCachePluginProvider } from "./msalCachePlugin";
 import { promises as fsPromises } from "fs";
 import * as path from "path";
 import * as AzureConstants from "../constants";
+import { getErrorMessage } from "../../utils/utils";
 
 export class MsalAzureController extends AzureController {
     private _authMappings = new Map<AzureAuthType, MsalAzureAuth>();
@@ -200,6 +201,20 @@ export class MsalAzureController extends AzureController {
                     );
                 } catch (ex) {
                     this._vscodeWrapper.showErrorMessage(ex);
+                }
+            }
+            if (getErrorMessage(ex).includes(AzureConstants.multiple_matching_tokens_error)) {
+                const response = await this._vscodeWrapper.showErrorMessage(
+                    LocalizedConstants.ConnectionDialog.multipleMatchingTokensError(
+                        account?.displayInfo?.displayName,
+                        tenantId,
+                    ),
+                    LocalizedConstants.ConnectionDialog.ClearCacheAndRefreshToken,
+                    LocalizedConstants.Common.cancel,
+                );
+                if (response === LocalizedConstants.msgYes) {
+                    await this.clearTokenCache();
+                    return await this.refreshAccessToken(account, accountStore, tenantId, settings);
                 }
             } else {
                 this._vscodeWrapper.showErrorMessage(ex);

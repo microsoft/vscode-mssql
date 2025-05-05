@@ -385,87 +385,126 @@ export default class MainController implements vscode.Disposable {
         operation: ScriptOperation,
         executeScript: boolean = false,
     ): Promise<void> {
-        const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-        let connectionCreds = node.connectionProfile;
-        const databaseName = ObjectExplorerUtils.getDatabaseName(node);
-        // if not connected or different database
-        if (
-            !this.connectionManager.isConnected(nodeUri) ||
-            connectionCreds.database !== databaseName
-        ) {
-            // make a new connection
-            connectionCreds.database = databaseName;
-            if (!this.connectionManager.isConnecting(nodeUri)) {
-                const promise = new Deferred<boolean>();
-                await this.connectionManager.connect(nodeUri, connectionCreds, promise);
-                await promise;
+        const scriptNodeOperation = async () => {
+            const nodeUri = ObjectExplorerUtils.getNodeUri(node);
+            let connectionCreds = node.connectionProfile;
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            // if not connected or different database
+            if (
+                !this.connectionManager.isConnected(nodeUri) ||
+                connectionCreds.database !== databaseName
+            ) {
+                // make a new connection
+                connectionCreds.database = databaseName;
+                if (!this.connectionManager.isConnecting(nodeUri)) {
+                    const promise = new Deferred<boolean>();
+                    await this.connectionManager.connect(nodeUri, connectionCreds, promise);
+                    await promise;
+                }
             }
-        }
 
-        const selectStatement = await this._scriptingService.script(node, nodeUri, operation);
-        const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
-        let uri = editor.document.uri.toString(true);
-        let scriptingObject = this._scriptingService.getObjectFromNode(node);
-        let title = `${scriptingObject.schema}.${scriptingObject.name}`;
-        const queryUriPromise = new Deferred<boolean>();
-        await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
-        await queryUriPromise;
-        this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
-        this._statusview.sqlCmdModeChanged(uri, false);
-        if (executeScript) {
-            const queryPromise = new Deferred<boolean>();
-            await this._outputContentProvider.runQuery(
-                this._statusview,
-                uri,
+            const selectStatement = await this._scriptingService.script(node, nodeUri, operation);
+            const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
+            let uri = editor.document.uri.toString(true);
+            let scriptingObject = this._scriptingService.getObjectFromNode(node);
+            let title = `${scriptingObject.schema}.${scriptingObject.name}`;
+            const queryUriPromise = new Deferred<boolean>();
+            await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
+            await queryUriPromise;
+            this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
+            this._statusview.sqlCmdModeChanged(uri, false);
+            if (executeScript) {
+                const queryPromise = new Deferred<boolean>();
+                await this._outputContentProvider.runQuery(
+                    this._statusview,
+                    uri,
+                    undefined,
+                    title,
+                    {},
+                    queryPromise,
+                );
+                await queryPromise;
+                await this.connectionManager.connectionStore.removeRecentlyUsed(
+                    <IConnectionProfile>connectionCreds,
+                );
+            }
+
+            let scriptType;
+            switch (operation) {
+                case ScriptOperation.Select:
+                    scriptType = "Select";
+                    break;
+                case ScriptOperation.Create:
+                    scriptType = "Create";
+                    break;
+                case ScriptOperation.Insert:
+                    scriptType = "Insert";
+                    break;
+                case ScriptOperation.Update:
+                    scriptType = "Update";
+                    break;
+                case ScriptOperation.Delete:
+                    scriptType = "Delete";
+                    break;
+                case ScriptOperation.Execute:
+                    scriptType = "Execute";
+                    break;
+                case ScriptOperation.Alter:
+                    scriptType = "Alter";
+                    break;
+                default:
+                    scriptType = "Unknown";
+                    break;
+            }
+            sendActionEvent(
+                TelemetryViews.QueryEditor,
+                TelemetryActions.RunQuery,
+                {
+                    isScriptExecuted: executeScript.toString(),
+                    objectType: node.nodeType,
+                    operation: scriptType,
+                },
                 undefined,
-                title,
-                {},
-                queryPromise,
+                connectionCreds as IConnectionProfile,
+                this.connectionManager.getServerInfo(connectionCreds),
             );
-            await queryPromise;
-            await this.connectionManager.connectionStore.removeRecentlyUsed(
-                <IConnectionProfile>connectionCreds,
-            );
-        }
+        };
 
-        let scriptType;
+        let operationType = "";
         switch (operation) {
             case ScriptOperation.Select:
-                scriptType = "Select";
+                operationType = LocalizedConstants.ObjectExplorer.ScriptSelectLabel;
                 break;
             case ScriptOperation.Create:
-                scriptType = "Create";
+                operationType = LocalizedConstants.ObjectExplorer.ScriptCreateLabel;
                 break;
             case ScriptOperation.Insert:
-                scriptType = "Insert";
+                operationType = LocalizedConstants.ObjectExplorer.ScriptInsertLabel;
                 break;
             case ScriptOperation.Update:
-                scriptType = "Update";
+                operationType = LocalizedConstants.ObjectExplorer.ScriptUpdateLabel;
                 break;
             case ScriptOperation.Delete:
-                scriptType = "Delete";
+                operationType = LocalizedConstants.ObjectExplorer.ScriptDeleteLabel;
                 break;
             case ScriptOperation.Execute:
-                scriptType = "Execute";
+                operationType = LocalizedConstants.ObjectExplorer.ScriptExecuteLabel;
                 break;
             case ScriptOperation.Alter:
-                scriptType = "Alter";
+                operationType = LocalizedConstants.ObjectExplorer.ScriptAlterLabel;
                 break;
             default:
-                scriptType = "Unknown";
-                break;
+                operationType = LocalizedConstants.ObjectExplorer.ScriptSelectLabel;
         }
-        sendActionEvent(
-            TelemetryViews.QueryEditor,
-            TelemetryActions.RunQuery,
+
+        await vscode.window.withProgress(
             {
-                isScriptExecuted: executeScript.toString(),
-                objectType: node.nodeType,
-                operation: scriptType,
+                location: vscode.ProgressLocation.Window,
+                title: LocalizedConstants.ObjectExplorer.FetchingScriptLabel(operationType),
             },
-            undefined,
-            connectionCreds as IConnectionProfile,
-            this.connectionManager.getServerInfo(connectionCreds),
+            async () => {
+                await scriptNodeOperation();
+            },
         );
     }
 
@@ -1322,7 +1361,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             // check if we're connected and editing a SQL file
-            if (await self.isRetryRequiredBeforeQuery(self.onRunCurrentStatement)) {
+            if (!(await this.checkIsReadyToExecuteQuery())) {
                 return;
             }
 
@@ -1366,7 +1405,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             // check if we're connected and editing a SQL file
-            if (await self.isRetryRequiredBeforeQuery(self.onRunQuery)) {
+            if (!(await self.checkIsReadyToExecuteQuery())) {
                 return;
             }
 
@@ -1433,29 +1472,21 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Check if the state is ready to execute a query and retry
-     * the query execution method if needed
+     * Checks if there's an active SQL file that has a connection associated with it.
+     * @returns true if the file is a SQL file and has a connection, false otherwise
      */
-    public async isRetryRequiredBeforeQuery(retryMethod: any): Promise<boolean> {
-        let self = this;
-        let result: boolean = undefined;
-        try {
-            if (!self._vscodeWrapper.isEditingSqlFile) {
-                // Prompt the user to change the language mode to SQL before running a query
-                result = await self._connectionMgr.connectionUI.promptToChangeLanguageMode();
-            } else if (!self._connectionMgr.isConnected(self._vscodeWrapper.activeTextEditorUri)) {
-                result = await self.onNewConnection();
-            }
-            if (result) {
-                await retryMethod(self);
-                return true;
-            } else {
-                // we don't need to do anything to configure environment before running query
-                return false;
-            }
-        } catch (err) {
-            await self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
+    public async checkIsReadyToExecuteQuery(): Promise<boolean> {
+        if (!(await this.checkForActiveSqlFile())) {
+            return false;
         }
+
+        if (this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+            return true;
+        }
+
+        const result = await this.onNewConnection();
+
+        return result;
     }
 
     /**
@@ -1528,6 +1559,22 @@ export default class MainController implements vscode.Disposable {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Checks if the current document is a SQL file
+     * @returns true if the current document is a SQL file, false if not or if there's no active document
+     */
+    private async checkForActiveSqlFile(): Promise<boolean> {
+        if (!this.validateTextDocumentHasFocus()) {
+            return false;
+        }
+
+        if (this._vscodeWrapper.isEditingSqlFile) {
+            return true;
+        }
+
+        return await this._connectionMgr.connectionUI.promptToChangeLanguageMode();
     }
 
     /**
