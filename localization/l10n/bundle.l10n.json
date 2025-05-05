@@ -1097,6 +1097,15 @@
       "{0} is the connection name"
     ]
   },
+  "Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.": "Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+  "Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts./{0} is the account display name{1} is the tenant id": {
+    "message": "Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+    "comment": [
+      "{0} is the account display name",
+      "{1} is the tenant id"
+    ]
+  },
+  "Clear cache and refresh token": "Clear cache and refresh token",
   "Add Firewall Rule to {0}/{0} is the server name": {
     "message": "Add Firewall Rule to {0}",
     "comment": [
