@@ -139,6 +139,9 @@
       <note>{0} is the account display name
 {1} is the tenant id</note>
     </trans-unit>
+    <trans-unit id="++CODE++b1b511843263fa8435aafed7abebc29efd242c576fd5d386e04e349e7288e092">
+      <source xml:lang="en">Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</source>
+    </trans-unit>
     <trans-unit id="++CODE++439a99b0935fb17d372edb14b699ddd05330257d8c40b464365c1129bdf94d6a">
       <source xml:lang="en">Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.</source>
     </trans-unit>
