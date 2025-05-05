@@ -25,6 +25,8 @@ export async function addDatabaseConnection(
     await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
     await addConnectionButton.click();
 
+    await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
+
     await vsCodePage.fill('input[aria-label="input"]', `${serverName}`);
     await vsCodePage.keyboard.press("Enter");
 

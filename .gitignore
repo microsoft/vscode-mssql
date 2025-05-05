@@ -31,5 +31,14 @@ webviews-metafile.json
 /localization/l10n/bundle.l10n.*.json
 .eslintcache
 .nyc_output
-/test/resources/launchDir
-/test/resources/launchDirOldUi
+/test/resources/launchDir/*
+/test/resources/launchDirOldUi/*
+# Unignore User dir so we can specify files inside
+!/test/resources/launchDir/User/
+!/test/resources/launchDirOldUi/User/
+# Ignore everything inside User dirs
+/test/resources/launchDir/User/*
+/test/resources/launchDirOldUi/User/*
+# Except for these files
+!/test/resources/launchDir/User/settings.json
+!/test/resources/launchDirOldUi/User/settings.json
