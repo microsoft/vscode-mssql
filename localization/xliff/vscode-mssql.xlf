@@ -2131,7 +2131,7 @@
       <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.analyzeQueryPerformance">
-      <source xml:lang="en">Analyze Query Performance</source>
+      <source xml:lang="en">Analyze Query Performance (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.autoSizeColumns">
       <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
@@ -2146,7 +2146,7 @@
       <source xml:lang="en">Change Database</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabase">
-      <source xml:lang="en">Chat with this database</source>
+      <source xml:lang="en">Chat with this database (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.chooseLanguageFlavor">
       <source xml:lang="en">Choose SQL handler for this file</source>
@@ -2332,7 +2332,7 @@
       <source xml:lang="en">Execute Query</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.explainQuery">
-      <source xml:lang="en">Explain Query</source>
+      <source xml:lang="en">Explain Query (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.description">
       <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
@@ -2353,7 +2353,7 @@
       <source xml:lang="en">Give Feedback</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
-      <source xml:lang="en">MSSQL Copilot</source>
+      <source xml:lang="en">MSSQL Copilot (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.Configuration">
       <source xml:lang="en">MSSQL configuration</source>
