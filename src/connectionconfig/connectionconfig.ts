@@ -208,7 +208,8 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Remove an existing connection from the connection config.
+     * Remove an existing connection from the connection config if it exists.
+     * @returns true if the connection was removed, false if the connection wasn't found.
      */
     public async removeConnection(profile: IConnectionProfile): Promise<boolean> {
         let profiles = this.getProfilesFromSettings();
