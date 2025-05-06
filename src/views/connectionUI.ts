@@ -52,7 +52,7 @@ export class ConnectionUI {
         private _connectionStore: ConnectionStore,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
-        private _legacyConnectionExperience: boolean = false,
+        private _useLegacyConnectionExperience: boolean = false,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!this._vscodeWrapper) {
@@ -527,7 +527,7 @@ export class ConnectionUI {
     public async createAndSaveProfile(
         validate: boolean = true,
     ): Promise<IConnectionProfile | undefined> {
-        if (!this._legacyConnectionExperience) {
+        if (!this._useLegacyConnectionExperience) {
             // Opening the Connection Dialog is considering the end of the flow regardless of whether they create a new connection,
             // so undefined is returned.
             // It's considered the end of the flow because opening a complex dialog in the middle of a flow then continuing is disorienting.
@@ -627,7 +627,7 @@ export class ConnectionUI {
         profile: IConnectionInfo,
         connectionResponse: ConnectionCompleteParams | SessionCreatedParameters,
     ): Promise<boolean> {
-        if (!this._legacyConnectionExperience) {
+        if (!this._useLegacyConnectionExperience) {
             if (connectionResponse.errorNumber !== constants.errorFirewallRule) {
                 Utils.logDebug(
                     `handleFirewallError called with non-firewall-error response; error number: '${connectionResponse.errorNumber}'`,

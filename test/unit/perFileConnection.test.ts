@@ -122,7 +122,7 @@ function createTestConnectionManager(
         TestExtensionContext.object,
         statusView,
         prompterMock.object,
-        false,
+        true, // useLegacyConnectionExperience
         serviceClient,
         wrapper,
         connectionStore,
