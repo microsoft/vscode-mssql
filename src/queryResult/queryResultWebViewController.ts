@@ -282,6 +282,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this._queryResultStateMap.set(uri, state);
     }
 
+    public deleteQueryResultState(uri: string): void {
+        this._queryResultStateMap.delete(uri);
+    }
+
     public updatePanelState(uri: string): void {
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
             this._queryResultWebviewPanelControllerMap

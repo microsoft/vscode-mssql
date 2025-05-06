@@ -10,7 +10,7 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import * as designer from "../sharedInterfaces/tableDesigner";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
@@ -89,7 +89,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         const databaseName = targetDatabase ? targetDatabase : "master";
         // clone connection info and set database name
 
-        const connectionInfo = this._targetNode.connectionInfo;
+        const connectionInfo = this._targetNode.connectionProfile;
         connectionInfo.database = databaseName;
 
         let connectionString;
@@ -303,7 +303,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     select: true,
                 });
                 await this._objectExplorerProvider.refreshNode(targetNode);
-                await this._objectExplorerProvider.refresh(targetNode);
             }
             return state;
         });
@@ -342,24 +341,40 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 },
                 publishingError: undefined,
             };
-            const previewReport = await this._tableDesignerService.generatePreviewReport(
-                payload.table,
-            );
+            try {
+                const previewReport = await this._tableDesignerService.generatePreviewReport(
+                    payload.table,
+                );
+                state = {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        previewState: previewReport.schemaValidationError
+                            ? designer.LoadState.Error
+                            : designer.LoadState.Loaded,
+                        publishState: designer.LoadState.NotStarted,
+                    },
+                    generatePreviewReportResult: previewReport,
+                };
+            } catch (e) {
+                state = {
+                    ...state,
+                    apiState: {
+                        ...state.apiState,
+                        previewState: designer.LoadState.Error,
+                        publishState: designer.LoadState.NotStarted,
+                    },
+                    generatePreviewReportResult: {
+                        schemaValidationError: getErrorMessage(e),
+                        report: "",
+                        mimeType: "",
+                    },
+                };
+            }
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.GenerateScript, {
                 correlationId: this._correlationId,
             });
 
-            state = {
-                ...state,
-                apiState: {
-                    ...state.apiState,
-                    previewState: previewReport.schemaValidationError
-                        ? designer.LoadState.Error
-                        : designer.LoadState.Loaded,
-                    publishState: designer.LoadState.NotStarted,
-                },
-                generatePreviewReportResult: previewReport,
-            };
             return state;
         });
 

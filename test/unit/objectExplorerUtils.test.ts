@@ -7,19 +7,14 @@ import * as path from "path";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import { expect, assert } from "chai";
 import * as Constants from "../../src/constants/constants";
-import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ObjectMetadata } from "vscode-mssql";
 
 suite("Object Explorer Utils Tests", () => {
     test("Test iconPath function", () => {
-        const testObjects = ["Server", "Table", "StoredProcedure", "disconnectedServer"];
-        const expectedPaths = [
-            "Server_green.svg",
-            "Table.svg",
-            "StoredProcedure.svg",
-            "Server_red.svg",
-        ];
+        const testObjects = ["Server", "Table", "StoredProcedure"];
+        const expectedPaths = ["Server.svg", "Table.svg", "StoredProcedure.svg"];
         for (let i = 0; i < testObjects.length; i++) {
             const iconPath = ObjectExplorerUtils.iconPath(testObjects[i]);
             const fileName = path.basename(iconPath.fsPath);
@@ -49,6 +44,7 @@ suite("Object Explorer Utils Tests", () => {
             disconnectedProfile,
             undefined,
             undefined,
+            undefined,
         );
         const serverTestNode = new TreeNodeInfo(
             "serverTest",
@@ -59,6 +55,7 @@ suite("Object Explorer Utils Tests", () => {
             "Server",
             undefined,
             testProfile,
+            undefined,
             undefined,
             undefined,
         );
@@ -73,6 +70,7 @@ suite("Object Explorer Utils Tests", () => {
             testProfile,
             serverTestNode,
             undefined,
+            undefined,
         );
         const tableTestNode = new TreeNodeInfo(
             "tableTest",
@@ -84,6 +82,7 @@ suite("Object Explorer Utils Tests", () => {
             undefined,
             testProfile,
             databaseTestNode,
+            undefined,
             undefined,
         );
         const testNodes = [disconnectedTestNode, serverTestNode, tableTestNode];
@@ -143,6 +142,7 @@ suite("Object Explorer Utils Tests", () => {
             testProfile,
             undefined,
             undefined,
+            undefined,
         );
         let databaseMetatadata: ObjectMetadata = {
             metadataType: undefined,
@@ -162,6 +162,7 @@ suite("Object Explorer Utils Tests", () => {
             undefined,
             serverTestNode,
             undefined,
+            undefined,
             databaseMetatadata,
         );
         const databaseTestNode2 = new TreeNodeInfo(
@@ -175,6 +176,7 @@ suite("Object Explorer Utils Tests", () => {
             undefined,
             serverTestNode,
             undefined,
+            undefined,
         );
         const tableTestNode = new TreeNodeInfo(
             "tableTest",
@@ -186,6 +188,7 @@ suite("Object Explorer Utils Tests", () => {
             undefined,
             undefined,
             databaseTestNode,
+            undefined,
             undefined,
         );
         const testNodes = [serverTestNode, databaseTestNode, databaseTestNode2, tableTestNode];

@@ -4,65 +4,38 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
-import { TreeNodeInfo } from "./treeNodeInfo";
+import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as vscodeMssql from "vscode-mssql";
-import { TreeNodeType } from "./connectTreeNode";
+import { TreeNodeType } from "./nodes/connectTreeNode";
 import * as vscode from "vscode";
 
 export class ObjectExplorerUtils {
     public static readonly rootPath: string = path.join(__dirname, "objectTypes");
 
-    public static iconPath(label: string): vscode.Uri | undefined {
-        if (label) {
-            if (label === Constants.disconnectedServerNodeType) {
-                label = `${Constants.serverLabel}_red`;
-            } else if (label === Constants.serverLabel) {
-                label += "_green";
-            }
-
-            const fullPath = path.join(ObjectExplorerUtils.rootPath, `${label}.svg`);
-            return vscode.Uri.file(fullPath);
-        }
-
-        return undefined;
-    }
-    public static createNoItemsTreeItem(): vscode.TreeItem {
-        return {
-            label: LocalizedConstants.ObjectExplorer.NoItems,
-            accessibilityInformation: {
-                label: LocalizedConstants.ObjectExplorer.NoItems,
-            },
-            tooltip: LocalizedConstants.ObjectExplorer.NoItems,
-            iconPath: {
-                light: ObjectExplorerUtils.iconPath("NoItems_light"),
-                dark: ObjectExplorerUtils.iconPath("NoItems_dark"),
-            },
-        };
-    }
-
-    public static createErrorTreeItem(errorMessage: string): vscode.TreeItem {
-        return {
-            label: LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
-            accessibilityInformation: {
-                label: errorMessage,
-            },
-            tooltip: errorMessage,
-            iconPath: {
-                light: ObjectExplorerUtils.iconPath("Error_light"),
-                dark: ObjectExplorerUtils.iconPath("Error_dark"),
-            },
-        };
+    /**
+     * Gets the path to the icon for a given node type.
+     * @param nodeType The type of node to get the icon for
+     * @returns The path to the icon for the node type
+     */
+    public static iconPath(nodeType: string): vscode.Uri | undefined {
+        const fullPath = path.join(ObjectExplorerUtils.rootPath, `${nodeType}.svg`);
+        return vscode.Uri.file(fullPath);
     }
 
     public static getNodeUri(node: TreeNodeType): string {
         let profile: IConnectionProfile;
         if (node instanceof TreeNodeInfo) {
-            profile = <IConnectionProfile>node.connectionInfo;
+            profile = node.connectionProfile;
         } else {
-            profile = <IConnectionProfile>node.parentNode.connectionInfo;
+            if (node.parentNode) {
+                profile = node.parentNode.connectionProfile;
+            }
+        }
+        if (profile === undefined) {
+            return "";
         }
         return ObjectExplorerUtils.getNodeUriFromProfile(profile);
     }
@@ -97,7 +70,7 @@ export class ObjectExplorerUtils {
             node.nodeType === Constants.serverLabel ||
             node.nodeType === Constants.disconnectedServerNodeType
         ) {
-            return node.connectionInfo.database;
+            return node.connectionProfile.database;
         }
         // Otherwise find the name from the node metadata - going up through the parents of the node
         // until we find the database node (so anything under a database node will get the name of
@@ -115,5 +88,23 @@ export class ObjectExplorerUtils {
 
     public static isFirewallError(errorCode: number): boolean {
         return errorCode === Constants.errorFirewallRule;
+    }
+
+    public static getQualifiedName(node: TreeNodeInfo): string {
+        let objectString = "";
+        if (node.metadata) {
+            switch (node.metadata.metadataTypeName) {
+                case "Table":
+                case "StoredProcedure":
+                case "View":
+                case "UserDefinedFunction":
+                    objectString = `[${node.metadata.schema}].[${node.metadata.name}]`;
+                    break;
+                default:
+                    objectString = `[${node.metadata.name}]`;
+                    break;
+            }
+        }
+        return objectString;
     }
 }

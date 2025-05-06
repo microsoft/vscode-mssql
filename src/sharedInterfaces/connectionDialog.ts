@@ -33,7 +33,6 @@ export class ConnectionDialogWebviewState
     public selectedInputMode: ConnectionInputMode = ConnectionInputMode.Parameters;
     public connectionComponents: ConnectionComponentsInfo = {
         mainOptions: [],
-        topAdvancedOptions: [],
         groupedAdvancedOptions: [],
     };
     public azureSubscriptions: AzureSubscriptionInfo[] = [];
@@ -94,7 +93,6 @@ export interface AzureSqlServerInfo {
 
 export interface ConnectionComponentsInfo {
     mainOptions: (keyof IConnectionDialogProfile)[];
-    topAdvancedOptions: (keyof IConnectionDialogProfile)[];
     groupedAdvancedOptions: ConnectionComponentGroup[];
 }
 

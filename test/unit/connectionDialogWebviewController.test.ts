@@ -39,8 +39,9 @@ import {
     VSCodeAzureSubscriptionProvider,
 } from "@microsoft/vscode-azext-azureauth";
 import { stubTelemetry } from "./utils";
-import { TreeNodeInfo } from "../../src/objectExplorer/treeNodeInfo";
-import { Deferred } from "../../src/protocol";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
+import { stubPromptForAzureSubscriptionFilter } from "./azureHelperStubs";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -79,6 +80,13 @@ suite("ConnectionDialogWebviewController Tests", () => {
         mockContext.setup((c) => c.extensionUri).returns(() => vscode.Uri.parse("file://fakePath"));
         mockContext.setup((c) => c.extensionPath).returns(() => "fakePath");
         mockContext.setup((c) => c.subscriptions).returns(() => []);
+        mockContext
+            .setup((c) => c.globalState)
+            .returns(() => {
+                return {
+                    get: (key: string, defaultValue: any) => defaultValue,
+                } as any;
+            });
 
         connectionManager = TypeMoq.Mock.ofType(
             ConnectionManager,
@@ -241,6 +249,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: "SqlLogin",
                 connectTimeout: 30,
                 applicationName: "vscode-mssql",
+                applicationIntent: "ReadWrite",
             };
 
             expect(controller.state.formState).to.deep.equal(
@@ -284,13 +293,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "tenantId",
                 "database",
                 "encrypt",
-            ]);
-
-            expect(controller.state.connectionComponents.topAdvancedOptions).to.deep.equal([
-                "port",
-                "applicationName",
-                "connectTimeout",
-                "multiSubnetFailover",
             ]);
 
             expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
@@ -391,124 +393,157 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 );
             });
         });
-    });
 
-    test("loadConnection", async () => {
-        controller.state.formError = "Sample error";
+        test("loadConnection", async () => {
+            controller.state.formError = "Sample error";
 
-        expect(
-            controller["_connectionBeingEdited"],
-            "should not be a connection being edited at first",
-        ).to.be.undefined;
+            expect(
+                controller["_connectionBeingEdited"],
+                "should not be a connection being edited at first",
+            ).to.be.undefined;
 
-        expect(
-            controller.state.readyToConnect,
-            "should not be ready to connect before profile has been loaded",
-        ).to.be.false;
+            expect(
+                controller.state.readyToConnect,
+                "should not be ready to connect before profile has been loaded",
+            ).to.be.false;
 
-        const testConnection = {
-            profileName: "Test Server to Edit",
-            server: "SavedServer",
-            database: "SavedDatabase",
-            authenticationType: AuthenticationType.Integrated,
-        } as IConnectionDialogProfile;
-
-        await controller["_reducers"].loadConnection(controller.state, {
-            connection: testConnection,
-        });
-
-        expect(
-            controller["_connectionBeingEdited"],
-            "connection being edited should have the same properties as the one passed to the reducer",
-        ).to.deep.equal(testConnection);
-        expect(
-            controller["_connectionBeingEdited"],
-            "connection being edited should be a clone of the one passed to the reducer, not the original",
-        ).to.not.equal(testConnection);
-
-        expect(
-            controller.state.formError,
-            "Error should be cleared after loading the connection",
-        ).to.equal("");
-
-        expect(
-            controller.state.readyToConnect,
-            "should be ready to connect after profile has been loaded",
-        ).to.be.true;
-    });
-
-    suite("connect", () => {
-        test("connect happy path", async () => {
-            // Set up mocks
-            const { sendErrorEvent } = stubTelemetry(sandbox);
-
-            mockObjectExplorerProvider
-                .setup((oep) =>
-                    oep.createSession(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                )
-                .returns((createSessionPromise: Deferred<TreeNodeInfo>) => {
-                    createSessionPromise.resolve(
-                        new TreeNodeInfo(
-                            "testNode",
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                        ),
-                    );
-                    return Promise.resolve("testSessionId");
-                });
-
-            connectionManager
-                .setup((cm) => cm.connectDialog(TypeMoq.It.isAny()))
-                .returns(() => Promise.resolve({} as ConnectionCompleteParams));
-
-            let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
-                undefined,
-                TypeMoq.MockBehavior.Loose,
-            );
-
-            mockObjectExplorerTree
-                .setup((oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns(() => {
-                    return Promise.resolve();
-                });
-
-            mainController.objectExplorerTree = mockObjectExplorerTree.object;
-
-            // Run test
-
-            controller.state.formState = {
-                server: "localhost",
-                user: "testUser",
-                password: "testPassword",
-                authenticationType: AuthenticationType.SqlLogin,
+            const testConnection = {
+                profileName: "Test Server to Edit",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.Integrated,
             } as IConnectionDialogProfile;
 
-            await controller["_reducers"].connect(controller.state, {});
+            await controller["_reducers"].loadConnection(controller.state, {
+                connection: testConnection,
+            });
 
-            expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
             expect(
-                controller.isDisposed,
-                "controller should be disposed after a successful connection",
+                controller["_connectionBeingEdited"],
+                "connection being edited should have the same properties as the one passed to the reducer",
+            ).to.deep.equal(testConnection);
+            expect(
+                controller["_connectionBeingEdited"],
+                "connection being edited should be a clone of the one passed to the reducer, not the original",
+            ).to.not.equal(testConnection);
+
+            expect(
+                controller.state.formError,
+                "Error should be cleared after loading the connection",
+            ).to.equal("");
+
+            expect(
+                controller.state.readyToConnect,
+                "should be ready to connect after profile has been loaded",
             ).to.be.true;
+        });
 
-            // ObjectExplorerTree should have revealed to the new node
-            mockObjectExplorerTree.verify(
-                (oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+        suite("connect", () => {
+            test("connect happy path", async () => {
+                // Set up mocks
+                const { sendErrorEvent } = stubTelemetry(sandbox);
 
-            // ConnectionStore should have saved the profile
-            connectionStore.verify(
-                (cs) => cs.saveProfile(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+                mockObjectExplorerProvider
+                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return Promise.resolve({
+                            sessionId: "testSessionId",
+                            rootNode: new TreeNodeInfo(
+                                "testNode",
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                            ),
+                            success: true,
+                        } as CreateSessionResponse);
+                    });
+
+                connectionManager
+                    .setup((cm) => cm.connectDialog(TypeMoq.It.isAny()))
+                    .returns(() => Promise.resolve({} as ConnectionCompleteParams));
+
+                let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
+                    undefined,
+                    TypeMoq.MockBehavior.Loose,
+                );
+
+                mockObjectExplorerTree
+                    .setup((oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return Promise.resolve();
+                    });
+
+                mainController.objectExplorerTree = mockObjectExplorerTree.object;
+
+                // Run test
+
+                controller.state.formState = {
+                    server: "localhost",
+                    user: "testUser",
+                    password: "testPassword",
+                    authenticationType: AuthenticationType.SqlLogin,
+                } as IConnectionDialogProfile;
+
+                await controller["_reducers"].connect(controller.state, {});
+
+                expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
+                expect(
+                    controller.isDisposed,
+                    "controller should be disposed after a successful connection",
+                ).to.be.true;
+
+                // ObjectExplorerTree should have revealed to the new node
+                mockObjectExplorerTree.verify(
+                    (oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                    TypeMoq.Times.once(),
+                );
+
+                // ConnectionStore should have saved the profile
+                connectionStore.verify(
+                    (cs) => cs.saveProfile(TypeMoq.It.isAny()),
+                    TypeMoq.Times.once(),
+                );
+            });
+        });
+
+        suite("filterAzureSubscriptions", () => {
+            test("Filter change cancelled", async () => {
+                stubPromptForAzureSubscriptionFilter(sandbox, false);
+
+                await controller["_reducers"].filterAzureSubscriptions(controller.state, {});
+
+                const stub = (controller["loadAllAzureServers"] = sandbox.stub().resolves());
+
+                expect(stub.notCalled, "loadAllAzureServers should not be called").to.be.true;
+            });
+
+            test("Filter updated", async () => {
+                const { sendErrorEvent } = stubTelemetry(sandbox);
+
+                stubPromptForAzureSubscriptionFilter(sandbox, true);
+                stubConfirmVscodeAzureSignin();
+                stubFetchServersFromAzure();
+
+                expect(
+                    controller.state.azureSubscriptions,
+                    "No subscriptions should be loaded initially",
+                ).to.have.lengthOf(0);
+
+                await controller["_reducers"].filterAzureSubscriptions(controller.state, {});
+
+                expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
+                expect(
+                    controller.state.azureSubscriptions,
+                    "changing Azure subscription filter settings should trigger reloading subscriptions",
+                ).to.have.lengthOf(2);
+            });
         });
     });
 

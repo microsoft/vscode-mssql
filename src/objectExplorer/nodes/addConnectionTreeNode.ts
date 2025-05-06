@@ -5,9 +5,9 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
-import * as Constants from "../constants/constants";
-import * as LocalizedConstants from "../constants/locConstants";
-import { ObjectExplorerUtils } from "./objectExplorerUtils";
+import * as Constants from "../../constants/constants";
+import * as LocalizedConstants from "../../constants/locConstants";
+import { ObjectExplorerUtils } from "../objectExplorerUtils";
 
 export class AddConnectionTreeNode extends vscode.TreeItem {
     constructor() {
