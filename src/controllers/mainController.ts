@@ -43,8 +43,8 @@ import { IConnectionProfile, ISelectionData } from "./../models/interfaces";
 import ConnectionManager from "./connectionManager";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
 import VscodeWrapper from "./vscodeWrapper";
-import { sendActionEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
@@ -503,7 +503,22 @@ export default class MainController implements vscode.Disposable {
                 title: LocalizedConstants.ObjectExplorer.FetchingScriptLabel(operationType),
             },
             async () => {
-                await scriptNodeOperation();
+                const scriptTelemetryActivity = startActivity(
+                    TelemetryViews.ObjectExplorer,
+                    TelemetryActions.ScriptNode,
+                    undefined,
+                    {
+                        operation: operationType,
+                        nodeType: node.nodeType,
+                        subType: node.nodeSubType,
+                    },
+                );
+                try {
+                    await scriptNodeOperation();
+                    scriptTelemetryActivity.end(ActivityStatus.Succeeded);
+                } catch (error) {
+                    scriptTelemetryActivity.endFailed(error, false);
+                }
             },
         );
     }
