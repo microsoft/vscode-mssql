@@ -808,7 +808,7 @@ export class ObjectExplorerService {
             vscode.window.withProgress(
                 {
                     location: vscode.ProgressLocation.Notification,
-                    title: "Signing in to Azure...",
+                    title: LocalizedConstants.ObjectExplorer.AzureSignInMessage,
                     cancellable: true,
                 },
                 async (progress, token) => {
