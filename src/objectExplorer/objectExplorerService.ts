@@ -751,7 +751,6 @@ export class ObjectExplorerService {
                 connectionProfile.accountId,
             );
             return this.refreshAccount(account, connectionProfile);
-            return true;
         } else {
             this._connectionManager.vscodeWrapper.showErrorMessage(error);
         }
