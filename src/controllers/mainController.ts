@@ -649,7 +649,7 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
             if (
                 !this.isRichExperiencesEnabled ||
-                !this.configuration.get(Constants.configEnableNewConnectionFeature)
+                this.configuration.get(Constants.configEnableNewConnectionFeature) === false
             ) {
                 await self.createObjectExplorerSession();
             } else {
