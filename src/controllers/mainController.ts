@@ -1838,7 +1838,7 @@ export default class MainController implements vscode.Disposable {
         if (
             this._lastSavedUri &&
             closedDocumentUriScheme === LocalizedConstants.untitledScheme &&
-            this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold
+            this._lastSavedTimer?.getDuration() < Constants.untitledSaveTimeThreshold
         ) {
             // Untitled file was saved and connection will be transfered
             await this.updateUri(closedDocumentUri, this._lastSavedUri);
@@ -1846,7 +1846,7 @@ export default class MainController implements vscode.Disposable {
             // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
         } else if (
             this._lastOpenedUri &&
-            this._lastSavedTimer.getDuration() < Constants.untitledSaveTimeThreshold
+            this._lastSavedTimer?.getDuration() < Constants.untitledSaveTimeThreshold
         ) {
             await this.updateUri(closedDocumentUri, this._lastOpenedUri);
         } else {
