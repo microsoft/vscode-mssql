@@ -330,26 +330,12 @@ export const createSqlAgentRequestHandler = (
         context: vscode.ChatContext,
         referenceTexts: string[],
     ): vscode.LanguageModelChatMessage[] {
-        // Step 1: Separate system messages from the requestMessages
+        // Separate system messages from the requestMessages
         const systemMessages = result.requestMessages
             .filter((message: LanguageModelRequestMessage) => message.role === MessageRole.System)
             .map((message: LanguageModelRequestMessage) =>
                 vscode.LanguageModelChatMessage.Assistant(message.text),
             );
-
-        // Step 2: Convert chat history messages to LanguageModelChatMessage format
-        // const historyMessages = context.history.map((historyItem) => {
-        //     if ("prompt" in historyItem) {
-        //         // This is a ChatRequestTurn (user message)
-        //         return vscode.LanguageModelChatMessage.User(historyItem.prompt);
-        //     } else {
-        //         // This is a ChatResponseTurn (assistant message)
-        //         const responseContent = historyItem.response
-        //             .map((part) => ("content" in part ? part.content : "")) // Handle ChatResponsePart
-        //             .join(""); // Combine multiple parts if present
-        //         return vscode.LanguageModelChatMessage.Assistant(responseContent);
-        //     }
-        // });
 
         const historyMessages = context.history
             .map((historyItem) => {
@@ -366,20 +352,20 @@ export const createSqlAgentRequestHandler = (
             })
             .filter((msg): msg is vscode.LanguageModelChatMessage => msg !== undefined);
 
-        // Step 3: Include the reference messages
+        // Include the reference messages
         // TODO: should we cut off the reference message or send a warning if it is too long? (especially without selection)
         const referenceMessages = referenceTexts
             ? referenceTexts.map((text) => vscode.LanguageModelChatMessage.Assistant(text))
             : [];
 
-        // Step 4: Get the new user messages (non-system messages from requestMessages)
+        //Get the new user messages (non-system messages from requestMessages)
         const userMessages = result.requestMessages
             .filter((message: LanguageModelRequestMessage) => message.role !== MessageRole.System)
             .map((message: LanguageModelRequestMessage) =>
                 vscode.LanguageModelChatMessage.User(message.text),
             );
 
-        // Step 5: Combine them in order: system messages, history, then new user messages
+        // Combine them in order: system messages, history, then new user messages
         return [...systemMessages, ...historyMessages, ...referenceMessages, ...userMessages];
     }
 
