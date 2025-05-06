@@ -9,6 +9,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { EncryptOptions } from "../models/interfaces";
 import * as Interfaces from "./interfaces";
 import * as Utils from "./utils";
+import * as vscode from "vscode";
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -149,9 +150,19 @@ export function getConnectionDisplayString(creds: IConnectionInfo): string {
     let user: string = getUserNameOrDomainLogin(creds);
     text = appendIfNotEmpty(text, user);
 
+    let statusBarConnectionInfoMaxLength: number = vscode.workspace
+        .getConfiguration(Constants.extensionConfigSectionName)
+        .get(Constants.configStatusBarConnectionInfoMaxLength);
+
+    statusBarConnectionInfoMaxLength ||= Constants.maxDisplayedStatusTextLength;
+
     // Limit the maximum length of displayed text
-    if (text && text.length > Constants.maxDisplayedStatusTextLength) {
-        text = text.substr(0, Constants.maxDisplayedStatusTextLength);
+    if (
+        statusBarConnectionInfoMaxLength >= 0 &&
+        text &&
+        text.length > statusBarConnectionInfoMaxLength
+    ) {
+        text = text.substr(0, statusBarConnectionInfoMaxLength);
         text += " \u2026"; // Ellipsis character (...)
     }
 
