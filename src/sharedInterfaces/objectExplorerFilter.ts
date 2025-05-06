@@ -67,51 +67,10 @@ export interface ObjectExplorerPageFilter {
 }
 
 export class ObjectExplorerFilterUtils {
-    private static CONTAINS: string;
-    private static NOT_CONTAINS: string;
-    private static STARTS_WITH: string;
-    private static NOT_STARTS_WITH: string;
-    private static ENDS_WITH: string;
-    private static NOT_ENDS_WITH: string;
-    private static EQUALS: string;
-    private static NOT_EQUALS: string;
-    private static LESS_THAN: string;
-    private static LESS_THAN_OR_EQUALS: string;
-    private static GREATER_THAN: string;
-    private static GREATER_THAN_OR_EQUALS: string;
-    private static BETWEEN: string;
-    private static NOT_BETWEEN: string;
+    private static strings: any;
 
-    public static initializeStrings(values: {
-        CONTAINS: string;
-        NOT_CONTAINS: string;
-        STARTS_WITH: string;
-        NOT_STARTS_WITH: string;
-        ENDS_WITH: string;
-        NOT_ENDS_WITH: string;
-        EQUALS: string;
-        NOT_EQUALS: string;
-        LESS_THAN: string;
-        LESS_THAN_OR_EQUALS: string;
-        GREATER_THAN: string;
-        GREATER_THAN_OR_EQUALS: string;
-        BETWEEN: string;
-        NOT_BETWEEN: string;
-    }) {
-        this.CONTAINS = values.CONTAINS;
-        this.NOT_CONTAINS = values.NOT_CONTAINS;
-        this.STARTS_WITH = values.STARTS_WITH;
-        this.NOT_STARTS_WITH = values.NOT_STARTS_WITH;
-        this.ENDS_WITH = values.ENDS_WITH;
-        this.NOT_ENDS_WITH = values.NOT_ENDS_WITH;
-        this.EQUALS = values.EQUALS;
-        this.NOT_EQUALS = values.NOT_EQUALS;
-        this.LESS_THAN = values.LESS_THAN;
-        this.LESS_THAN_OR_EQUALS = values.LESS_THAN_OR_EQUALS;
-        this.GREATER_THAN = values.GREATER_THAN;
-        this.GREATER_THAN_OR_EQUALS = values.GREATER_THAN_OR_EQUALS;
-        this.BETWEEN = values.BETWEEN;
-        this.NOT_BETWEEN = values.NOT_BETWEEN;
+    public static initializeStrings(strings: any) {
+        this.strings = strings;
     }
 
     static getFilters(uiFilters: ObjectExplorerPageFilter[]): vscodeMssql.NodeFilter[] {
@@ -129,8 +88,8 @@ export class ObjectExplorerFilterUtils {
                         break;
                     case NodeFilterPropertyDataType.Number:
                         if (
-                            f.selectedOperator === this.BETWEEN ||
-                            f.selectedOperator === this.NOT_BETWEEN
+                            f.selectedOperator === this.strings.between ||
+                            f.selectedOperator === this.strings.notBetween
                         ) {
                             value = (f.value as string[]).map((v) => Number(v));
                         } else {
@@ -209,33 +168,33 @@ export class ObjectExplorerFilterUtils {
 
         switch (operator) {
             case NodeFilterOperator.Contains:
-                return this.CONTAINS;
+                return this.strings.contains;
             case NodeFilterOperator.NotContains:
-                return this.NOT_CONTAINS;
+                return this.strings.notContains;
             case NodeFilterOperator.StartsWith:
-                return this.STARTS_WITH;
+                return this.strings.startsWith;
             case NodeFilterOperator.NotStartsWith:
-                return this.NOT_STARTS_WITH;
+                return this.strings.notStartsWith;
             case NodeFilterOperator.EndsWith:
-                return this.ENDS_WITH;
+                return this.strings.endsWith;
             case NodeFilterOperator.NotEndsWith:
-                return this.NOT_ENDS_WITH;
+                return this.strings.notEndsWith;
             case NodeFilterOperator.Equals:
-                return this.EQUALS;
+                return this.strings.equals;
             case NodeFilterOperator.NotEquals:
-                return this.NOT_EQUALS;
+                return this.strings.notEquals;
             case NodeFilterOperator.LessThan:
-                return this.LESS_THAN;
+                return this.strings.lessThan;
             case NodeFilterOperator.LessThanOrEquals:
-                return this.LESS_THAN_OR_EQUALS;
+                return this.strings.lessThanOrEquals;
             case NodeFilterOperator.GreaterThan:
-                return this.GREATER_THAN;
+                return this.strings.greaterThan;
             case NodeFilterOperator.GreaterThanOrEquals:
-                return this.GREATER_THAN_OR_EQUALS;
+                return this.strings.greaterThanOrEquals;
             case NodeFilterOperator.Between:
-                return this.BETWEEN;
+                return this.strings.between;
             case NodeFilterOperator.NotBetween:
-                return this.NOT_BETWEEN;
+                return this.strings.notBetween;
             default:
                 return "";
         }
@@ -243,33 +202,33 @@ export class ObjectExplorerFilterUtils {
 
     static getFilterOperatorEnum(operator: string): NodeFilterOperator {
         switch (operator) {
-            case this.CONTAINS:
+            case this.strings.contains:
                 return NodeFilterOperator.Contains;
-            case this.NOT_CONTAINS:
+            case this.strings.notContains:
                 return NodeFilterOperator.NotContains;
-            case this.STARTS_WITH:
+            case this.strings.startsWith:
                 return NodeFilterOperator.StartsWith;
-            case this.NOT_STARTS_WITH:
+            case this.strings.notStartsWith:
                 return NodeFilterOperator.NotStartsWith;
-            case this.ENDS_WITH:
+            case this.strings.endsWith:
                 return NodeFilterOperator.EndsWith;
-            case this.NOT_ENDS_WITH:
+            case this.strings.notEndsWith:
                 return NodeFilterOperator.NotEndsWith;
-            case this.EQUALS:
+            case this.strings.equals:
                 return NodeFilterOperator.Equals;
-            case this.NOT_EQUALS:
+            case this.strings.notEquals:
                 return NodeFilterOperator.NotEquals;
-            case this.LESS_THAN:
+            case this.strings.lessThan:
                 return NodeFilterOperator.LessThan;
-            case this.LESS_THAN_OR_EQUALS:
+            case this.strings.lessThanOrEquals:
                 return NodeFilterOperator.LessThanOrEquals;
-            case this.GREATER_THAN:
+            case this.strings.greaterThan:
                 return NodeFilterOperator.GreaterThan;
-            case this.GREATER_THAN_OR_EQUALS:
+            case this.strings.greaterThanOrEquals:
                 return NodeFilterOperator.GreaterThanOrEquals;
-            case this.BETWEEN:
+            case this.strings.between:
                 return NodeFilterOperator.Between;
-            case this.NOT_BETWEEN:
+            case this.strings.notBetween:
                 return NodeFilterOperator.NotBetween;
             default:
                 return NodeFilterOperator.Equals;
@@ -279,32 +238,32 @@ export class ObjectExplorerFilterUtils {
     static getFilterOperators(property: vscodeMssql.NodeFilterProperty): string[] {
         switch (property.type) {
             case NodeFilterPropertyDataType.Boolean:
-                return [this.EQUALS, this.NOT_EQUALS];
+                return [this.strings.equals, this.strings.notEquals];
             case NodeFilterPropertyDataType.String:
                 return [
-                    this.CONTAINS,
-                    this.NOT_CONTAINS,
-                    this.STARTS_WITH,
-                    this.NOT_STARTS_WITH,
-                    this.ENDS_WITH,
-                    this.NOT_ENDS_WITH,
-                    this.EQUALS,
-                    this.NOT_EQUALS,
+                    this.strings.contains,
+                    this.strings.notContains,
+                    this.strings.startsWith,
+                    this.strings.notStartsWith,
+                    this.strings.endsWith,
+                    this.strings.notEndsWith,
+                    this.strings.equals,
+                    this.strings.notEquals,
                 ];
             case NodeFilterPropertyDataType.Number:
             case NodeFilterPropertyDataType.Date:
                 return [
-                    this.EQUALS,
-                    this.NOT_EQUALS,
-                    this.LESS_THAN,
-                    this.LESS_THAN_OR_EQUALS,
-                    this.GREATER_THAN,
-                    this.GREATER_THAN_OR_EQUALS,
-                    this.BETWEEN,
-                    this.NOT_BETWEEN,
+                    this.strings.equals,
+                    this.strings.notEquals,
+                    this.strings.lessThan,
+                    this.strings.lessThanOrEquals,
+                    this.strings.greaterThan,
+                    this.strings.greaterThanOrEquals,
+                    this.strings.between,
+                    this.strings.notBetween,
                 ];
             case NodeFilterPropertyDataType.Choice:
-                return [this.EQUALS, this.NOT_EQUALS];
+                return [this.strings.equals, this.strings.notEquals];
             default:
                 return [];
         }

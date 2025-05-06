@@ -86,22 +86,7 @@ export const ObjectExplorerFilterPage = () => {
     const NOT_BETWEEN = locConstants.objectExplorerFiltering.notBetween;
 
     // Initialize the static values
-    ObjectExplorerFilterUtils.initializeStrings({
-        CONTAINS: locConstants.objectExplorerFiltering.contains,
-        NOT_CONTAINS: locConstants.objectExplorerFiltering.notContains,
-        STARTS_WITH: locConstants.objectExplorerFiltering.startsWith,
-        NOT_STARTS_WITH: locConstants.objectExplorerFiltering.notStartsWith,
-        ENDS_WITH: locConstants.objectExplorerFiltering.endsWith,
-        NOT_ENDS_WITH: locConstants.objectExplorerFiltering.notEndsWith,
-        EQUALS: locConstants.objectExplorerFiltering.equals,
-        NOT_EQUALS: locConstants.objectExplorerFiltering.notEquals,
-        LESS_THAN: locConstants.objectExplorerFiltering.lessThan,
-        LESS_THAN_OR_EQUALS: locConstants.objectExplorerFiltering.lessThanOrEquals,
-        GREATER_THAN: locConstants.objectExplorerFiltering.greaterThan,
-        GREATER_THAN_OR_EQUALS: locConstants.objectExplorerFiltering.greaterThanOrEquals,
-        BETWEEN: locConstants.objectExplorerFiltering.between,
-        NOT_BETWEEN: locConstants.objectExplorerFiltering.notBetween,
-    });
+    ObjectExplorerFilterUtils.initializeStrings(locConstants.objectExplorerFiltering);
 
     function getFilterChoices(
         property: vscodeMssql.NodeFilterChoiceProperty | vscodeMssql.NodeFilterProperty,
