@@ -163,7 +163,6 @@ suite("ConnectionManager Tests", () => {
                     id: testConnectionId,
                     server: testServer,
                     database: testDatabase,
-                    authenticationType: "Integrated",
                     connectionString: "",
                     savePassword: true,
                     user: testUser,
