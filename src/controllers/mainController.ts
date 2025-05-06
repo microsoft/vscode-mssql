@@ -336,6 +336,8 @@ export default class MainController implements vscode.Disposable {
 
             this.registerCommandWithArgs(Constants.cmdChatWithDatabase);
             this._event.on(Constants.cmdChatWithDatabase, async (treeNodeInfo: TreeNodeInfo) => {
+                sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatWithDatabase);
+
                 const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
                 const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
                 if (
@@ -404,30 +406,36 @@ export default class MainController implements vscode.Disposable {
             // -- EXPLAIN QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdExplainQuery, async () => {
+                    sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ExplainQuery);
+
                     await launchEditorChatWithPrompt(
                         Prompts.explainQueryPrompt,
                         Prompts.explainQuerySelectionPrompt,
                     );
-                    // TODO: Add telemetry
                 }),
             );
 
             // -- REWRITE QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdRewriteQuery, async () => {
+                    sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.RewriteQuery);
+
                     await launchEditorChatWithPrompt(
                         Prompts.rewriteQueryPrompt,
                         Prompts.rewriteQuerySelectionPrompt,
                     );
-                    // TODO: Add telemetry
                 }),
             );
 
             // -- ANALYZE QUERY PERFORMANCE --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdAnalyzeQueryPerformance, async () => {
+                    sendActionEvent(
+                        TelemetryViews.MssqlCopilot,
+                        TelemetryActions.AnalyzeQueryPerformance,
+                    );
+
                     await launchEditorChatWithPrompt(Prompts.analyzeQueryPerformancePrompt);
-                    // TODO: Add telemetry
                 }),
             );
 
