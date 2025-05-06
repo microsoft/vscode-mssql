@@ -621,7 +621,8 @@ export class ObjectExplorerService {
                 await this._connectionManager.connectionUI.saveProfile(
                     connectionProfile as IConnectionProfile,
                 );
-                if (!azureController.isAccountInCache(account)) {
+                const isAccountCache = await azureController.isAccountInCache(account);
+                if (!isAccountCache) {
                     needsRefresh = true;
                 }
             }

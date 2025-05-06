@@ -292,7 +292,8 @@ export abstract class MsalAzureAuth {
             account = await cache.getAccountByLocalId(accountId);
         }
         if (!account) {
-            throw new Error("Error: Could not find account from MSAL Cache.");
+            this.logger.error("Error: Could not find account from MSAL Cache.");
+            return null;
         }
         return account;
     }
