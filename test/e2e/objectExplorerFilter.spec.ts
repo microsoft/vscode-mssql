@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ElectronApplication, FrameLocator, Page } from "@playwright/test";
+import { ElectronApplication, FrameLocator, Locator, Page } from "@playwright/test";
 import { test, expect, generateUUID } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
@@ -31,6 +31,8 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
     let savePassword: string;
     let profileName: string;
     let coverageMap: Map<string, any> = new Map();
+    let storedProcsLocator: Locator;
+    let sysStoredProcsLocator: Locator;
 
     test.beforeAll("Setting up for Object Explorer Filter Tests", async () => {
         const { electronApp, page } = await launchVsCodeWithMssqlExtension();
@@ -68,20 +70,57 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
             .locator('[class*="monaco-list-row"][role="treeitem"][aria-label*="master"]')
             .click();
         await vsCodePage
-            .locator('[class*="monaco-list-row"][role="treeitem"][aria-label*="Tables"]')
+            .locator('[class*="monaco-list-row"][role="treeitem"][aria-label*="Programmability "]')
             .click();
-        await vsCodePage
-            .locator('[class*="monaco-list-row"][role="treeitem"][aria-label*="System Tables"]')
-            .click();
+        storedProcsLocator = await vsCodePage
+            .locator(
+                '[class*="monaco-list-row"][role="treeitem"][aria-label*="Stored Procedures "]',
+            )
+            .first();
+        await storedProcsLocator.click();
     });
 
     test.beforeEach("Set up before each test", async () => {
-        iframe = await openObjectExplorerFilter(vsCodePage);
+        iframe = await openObjectExplorerFilter(vsCodePage, storedProcsLocator);
+        sysStoredProcsLocator = vsCodePage.locator(
+            '[class*="monaco-list-row"][role="treeitem"][aria-label*="System Stored Procedures "]',
+        );
+        await sysStoredProcsLocator.click();
     });
 
     test("Filter name based on contains", async () => {
         const nameElement = iframe.locator('input[type="text"].fui-Input__input').nth(0);
-        await nameElement.fill("spt");
+        await nameElement.fill("cdc");
+
+        const booleanElement = iframe.locator('[class*="fui-Dropdown"][value*="Equals"]').last();
+        await booleanElement.click();
+        await iframe.getByText("Not Equals").click();
+
+        const dateElement = iframe.locator('[class*="fui-Dropdown"][value*="Equals"]').first();
+        await dateElement.click();
+        await iframe.getByText("Between").first().click();
+
+        await iframe.locator('input[type="date"].fui-Input__input').first().click();
+        // Input date
+        await vsCodePage.keyboard.press("ArrowLeft");
+        await vsCodePage.keyboard.press("ArrowLeft");
+        await vsCodePage.keyboard.type("04052000");
+
+        let okButton = iframe.getByText("OK");
+        await okButton.click();
+
+        // only fill one value of the date picker and check for error message
+        const errorMessage = await iframe.getByText(
+            "The second value must be set for the Between operator in the CreateDate filter",
+        );
+        await expect(errorMessage).toBeVisible();
+
+        await iframe.locator('input[type="date"].fui-Input__input').last().click();
+        // Tab to date picker
+        await vsCodePage.keyboard.press("ArrowLeft");
+        await vsCodePage.keyboard.press("ArrowLeft");
+        await vsCodePage.keyboard.type("04053000");
+
         // Log coverage now, because context is lost when webview is closed
         // upon pressing "OK"
         await refocusFilterTab(vsCodePage);
@@ -89,18 +128,19 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
             `objectExplorerFilter-${generateUUID()}`,
             await getCoverageFromWebview(iframe),
         );
-        let okButton = iframe.getByText("OK");
         await okButton.click();
-        const nonSPTTable = vsCodePage.locator(
-            '[class*="monaco-list-row"][role="treeitem"][aria-label*="dbo.MSreplication_options"]',
+
+        const nonContainTable = vsCodePage.locator(
+            '[class*="monaco-list-row"][role="treeitem"][aria-label*="dbo.sp_MSrepl_startup"]',
         );
-        await expect(nonSPTTable).toBeHidden();
-        await clearFilter(vsCodePage);
+        await sysStoredProcsLocator.click();
+        await expect(nonContainTable).toBeHidden();
+        await clearFilter(vsCodePage, storedProcsLocator);
     });
 
     test("Filter name based not contains", async () => {
         const nameElement = iframe.locator('input[type="text"].fui-Input__input').nth(0);
-        await nameElement.fill("spt");
+        await nameElement.fill("cdc");
 
         const operatorElement = iframe.locator('[class*="fui-Dropdown"]').nth(0);
         await operatorElement.click();
@@ -114,14 +154,16 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
         );
         let okButton = iframe.getByText("OK");
         await okButton.click();
-        const nonSPTTable = vsCodePage.locator(
-            '[class*="monaco-list-row"][role="treeitem"][aria-label*="dbo.MSreplication_options"]',
+        const nonContainTable = vsCodePage.locator(
+            '[class*="monaco-list-row"][role="treeitem"][aria-label*="dbo.sp_MSrepl_startup"]',
         );
-        await expect(nonSPTTable).toBeVisible();
+        await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
+        await sysStoredProcsLocator.click();
+        await expect(nonContainTable).toBeVisible();
     });
 
     test("Reopen OE Webview with old filters", async () => {
-        const oldFilterElement = iframe.locator('[value*="spt"]');
+        const oldFilterElement = iframe.locator('[value*="cdc"]');
         await expect(oldFilterElement).toBeVisible();
 
         const oldOptionElement = iframe.locator('[value*="Not Contains"]');
@@ -192,14 +234,19 @@ export async function refocusFilterTab(page: Page) {
     await filterTab.click();
 }
 
-export async function clearFilter(page: Page) {
+export async function clearFilter(page: Page, treeItemLocator: Locator) {
+    await refocusTreeItem(treeItemLocator);
     const clearFilterButton = page.locator('[role="button"][aria-label="Clear Filters"]');
     await clearFilterButton.waitFor({ state: "attached" });
     await clearFilterButton.click();
 }
 
-export async function openObjectExplorerFilter(page: Page): Promise<FrameLocator> {
-    const filterButton = page.locator('[role="button"][aria-label="Filter (Preview)"]').nth(2);
+export async function openObjectExplorerFilter(
+    page: Page,
+    treeItemLocator: Locator,
+): Promise<FrameLocator> {
+    await refocusTreeItem(treeItemLocator);
+    const filterButton = page.locator('[role="button"][aria-label="Filter (Preview)"]').nth(3);
 
     await filterButton.waitFor({ state: "attached" });
     await filterButton.click();
@@ -209,4 +256,18 @@ export async function openObjectExplorerFilter(page: Page): Promise<FrameLocator
     const filterHeader = iframe.getByText("Filter Settings");
     await filterHeader.waitFor({ state: "visible" });
     return iframe;
+}
+
+export async function refocusTreeItem(treeItemLocator: Locator) {
+    await treeItemLocator.click();
+    await treeItemLocator.click();
+}
+
+export async function tabToDatePicker(page: Page) {
+    // Tab to date picker
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Enter");
 }
