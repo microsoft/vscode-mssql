@@ -140,6 +140,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryActions.Initialize,
                     err,
                     true, // includeErrorMessage
+                    undefined, // errorCode,
+                    "catchAll", // errorType
                 );
                 this.initialized.reject(getErrorMessage(err));
             });
@@ -180,6 +182,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 TelemetryActions.Initialize,
                 err,
                 false, // includeErrorMessage
+                undefined, // errorCode,
+                "loadSavedConnections", // errorType
             );
         }
 
@@ -196,6 +200,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryActions.Initialize,
                     err,
                     false, // includeErrorMessage
+                    undefined, // errorCode,
+                    "loadConnectionToEdit", // errorType
                 );
             }
         }
@@ -264,7 +270,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     err,
                     false, // includeErrorMessage
                     undefined, // errorCode
-                    undefined, // errorType
+                    err.Name, // errorType
                     {
                         failure: err.Name,
                     },
@@ -298,9 +304,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     err,
                     false, // includeErrorMessage
                 );
-            } finally {
-                return state;
             }
+
+            return state;
         });
 
         this.registerReducer("refreshConnectionsList", async (state) => {
@@ -815,7 +821,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     new Error(result.errorMessage),
                     true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
                     undefined, // errorCode
-                    undefined, // errorType
+                    "parseIP", // errorType
                 );
 
                 // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
