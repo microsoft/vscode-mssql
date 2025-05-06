@@ -2446,7 +2446,7 @@
       <source xml:lang="en">Reveal Query Result Panel</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
-      <source xml:lang="en">Rewrite Query</source>
+      <source xml:lang="en">Rewrite Query (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.runQueryHistory">
       <source xml:lang="en">Run Query</source>
