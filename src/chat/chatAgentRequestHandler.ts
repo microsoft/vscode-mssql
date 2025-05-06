@@ -399,7 +399,7 @@ export const createSqlAgentRequestHandler = (
                 vscode.LanguageModelChatMessage.User(message.text),
             );
 
-        // Combine them in order: system messages, history, then new user messages
+        // Combine messages in appropriate order
         return [...systemMessages, ...historyMessages, ...referenceMessages, ...userMessages];
     }
 
@@ -493,7 +493,7 @@ export const createSqlAgentRequestHandler = (
 
     // Helper function for tool handling
     async function processToolCall(
-        resultTools: Array<LanguageModelChatTool>, // Replace `any` with the actual tool type if available
+        resultTools: Array<LanguageModelChatTool>,
         part: vscode.LanguageModelToolCallPart,
         stream: vscode.ChatResponseStream,
         correlationId: string,
