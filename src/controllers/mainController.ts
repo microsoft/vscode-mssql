@@ -699,6 +699,8 @@ export default class MainController implements vscode.Disposable {
         this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
+            console.error(`===: Use legacy connection UX? ${this.useLegacyConnectionUx}`);
+
             if (this.useLegacyConnectionUx) {
                 await self.createObjectExplorerSession();
             } else {
