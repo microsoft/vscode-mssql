@@ -178,7 +178,7 @@
         "typescript": "^5.6.2",
         "typescript-eslint": "^8.7.0",
         "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
-        "vite": "^6.2.6",
+        "vite": "^6.2.7",
         "vite-plugin-istanbul": "^7.0.0",
         "vscode-nls-dev": "2.0.1",
         "xliff": "^6.2.1",
@@ -641,6 +641,10 @@
                 {
                     "command": "mssql.editConnection",
                     "when": "config.mssql.enableRichExperiences"
+                },
+                {
+                    "command": "mssql.designSchema",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableSchemaDesigner"
                 }
             ],
             "webview/context": [

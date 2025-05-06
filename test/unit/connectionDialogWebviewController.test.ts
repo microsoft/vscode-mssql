@@ -34,7 +34,11 @@ import {
     GetCapabilitiesRequest,
 } from "../../src/models/contracts/connection";
 import { stubTelemetry } from "./utils";
-import { stubConfirmVscodeAzureSignin, stubFetchServersFromAzure } from "./azureHelperStubs";
+import {
+    stubConfirmVscodeAzureSignin,
+    stubFetchServersFromAzure,
+    stubPromptForAzureSubscriptionFilter,
+} from "./azureHelperStubs";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 
@@ -75,6 +79,13 @@ suite("ConnectionDialogWebviewController Tests", () => {
         mockContext.setup((c) => c.extensionUri).returns(() => vscode.Uri.parse("file://fakePath"));
         mockContext.setup((c) => c.extensionPath).returns(() => "fakePath");
         mockContext.setup((c) => c.subscriptions).returns(() => []);
+        mockContext
+            .setup((c) => c.globalState)
+            .returns(() => {
+                return {
+                    get: (key: string, defaultValue: any) => defaultValue,
+                } as any;
+            });
 
         connectionManager = TypeMoq.Mock.ofType(
             ConnectionManager,
@@ -237,6 +248,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: "SqlLogin",
                 connectTimeout: 30,
                 applicationName: "vscode-mssql",
+                applicationIntent: "ReadWrite",
             };
 
             expect(controller.state.formState).to.deep.equal(
@@ -280,13 +292,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "tenantId",
                 "database",
                 "encrypt",
-            ]);
-
-            expect(controller.state.connectionComponents.topAdvancedOptions).to.deep.equal([
-                "port",
-                "applicationName",
-                "connectTimeout",
-                "multiSubnetFailover",
             ]);
 
             expect(controller.state.selectedInputMode).to.equal(ConnectionInputMode.Parameters);
@@ -504,6 +509,39 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     (cs) => cs.saveProfile(TypeMoq.It.isAny()),
                     TypeMoq.Times.once(),
                 );
+            });
+        });
+
+        suite("filterAzureSubscriptions", () => {
+            test("Filter change cancelled", async () => {
+                stubPromptForAzureSubscriptionFilter(sandbox, false);
+
+                await controller["_reducers"].filterAzureSubscriptions(controller.state, {});
+
+                const stub = (controller["loadAllAzureServers"] = sandbox.stub().resolves());
+
+                expect(stub.notCalled, "loadAllAzureServers should not be called").to.be.true;
+            });
+
+            test("Filter updated", async () => {
+                const { sendErrorEvent } = stubTelemetry(sandbox);
+
+                stubPromptForAzureSubscriptionFilter(sandbox, true);
+                stubConfirmVscodeAzureSignin(sandbox);
+                stubFetchServersFromAzure(sandbox);
+
+                expect(
+                    controller.state.azureSubscriptions,
+                    "No subscriptions should be loaded initially",
+                ).to.have.lengthOf(0);
+
+                await controller["_reducers"].filterAzureSubscriptions(controller.state, {});
+
+                expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
+                expect(
+                    controller.state.azureSubscriptions,
+                    "changing Azure subscription filter settings should trigger reloading subscriptions",
+                ).to.have.lengthOf(2);
             });
         });
     });

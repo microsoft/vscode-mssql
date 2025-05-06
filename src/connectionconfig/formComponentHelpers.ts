@@ -88,20 +88,18 @@ export function groupAdvancedOptions(
     componentsInfo: ConnectionComponentsInfo,
 ): ConnectionComponentGroup[] {
     const groupMap: Map<string, ConnectionComponentGroup> = new Map([
-        // intialize with display order; any that aren't pre-defined will be appended
+        // initialize with display order; any that aren't pre-defined will be appended
         // these values must match the GroupName defined in SQL Tools Service.
+        ["general", undefined],
         ["security", undefined],
-        ["initialization", undefined],
         ["resiliency", undefined],
+        ["failover", undefined],
         ["pooling", undefined],
         ["context", undefined],
     ]);
 
     const optionsToGroup = Object.values(components).filter(
-        (c) =>
-            c.isAdvancedOption &&
-            !componentsInfo.mainOptions.includes(c.propertyName) &&
-            !componentsInfo.topAdvancedOptions.includes(c.propertyName),
+        (c) => c.isAdvancedOption && !componentsInfo.mainOptions.includes(c.propertyName),
     );
 
     for (const option of optionsToGroup) {

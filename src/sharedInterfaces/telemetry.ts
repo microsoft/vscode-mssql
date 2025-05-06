@@ -8,8 +8,10 @@ export enum TelemetryViews {
     CommandPalette = "CommandPalette",
     SqlProjects = "SqlProjects",
     QueryEditor = "QueryEditor",
-    QueryResult = "QueryResult", // react query result pane
-    ResultsGrid = "ResultsGrid", // angular results grid
+    /** react query result pane */
+    QueryResult = "QueryResult",
+    /** angular results grid */
+    ResultsGrid = "ResultsGrid",
     ConnectionPrompt = "ConnectionPrompt",
     WebviewController = "WebviewController",
     ObjectExplorerFilter = "ObjectExplorerFilter",
@@ -76,6 +78,7 @@ export enum TelemetryActions {
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
     LoadFromConnectionString = "LoadFromConnectionString",
+    FilterAzureSubscriptions = "FilterAzureSubscriptions",
 }
 
 /**

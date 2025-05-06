@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import Sinon from "sinon";
 import {
     AzureSubscription,
     AzureTenant,
@@ -11,7 +12,6 @@ import {
 
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { AzureSqlServerInfo } from "../../src/sharedInterfaces/connectionDialog";
-import Sinon from "sinon";
 
 export const mockSubscriptions = [
     {
@@ -69,4 +69,8 @@ export function stubFetchServersFromAzure(sandbox: sinon.SinonSandbox) {
                 },
             ] as AzureSqlServerInfo[];
         });
+}
+
+export function stubPromptForAzureSubscriptionFilter(sandbox: Sinon.SinonSandbox, result: boolean) {
+    return sandbox.stub(AzureHelpers, "promptForAzureSubscriptionFilter").resolves(result);
 }

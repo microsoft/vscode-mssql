@@ -245,6 +245,7 @@ export class LocConstants {
             pasteConnectionString: l10n.t("Paste connection string from clipboard"),
             copy: l10n.t("Copy"),
             paste: l10n.t("Paste"),
+            searchSettings: l10n.t("Search settings..."),
         };
     }
 

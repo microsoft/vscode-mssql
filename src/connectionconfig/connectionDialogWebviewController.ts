@@ -140,6 +140,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryActions.Initialize,
                     err,
                     true, // includeErrorMessage
+                    undefined, // errorCode,
+                    "catchAll", // errorType
                 );
                 this.initialized.reject(getErrorMessage(err));
             });
@@ -155,12 +157,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.state.connectionComponents = {
             mainOptions: [...ConnectionDialogWebviewController.mainOptions],
-            topAdvancedOptions: [
-                "port",
-                "applicationName",
-                "connectTimeout",
-                "multiSubnetFailover",
-            ],
             groupedAdvancedOptions: [], // computed below
         };
 
@@ -186,6 +182,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 TelemetryActions.Initialize,
                 err,
                 false, // includeErrorMessage
+                undefined, // errorCode,
+                "loadSavedConnections", // errorType
             );
         }
 
@@ -202,6 +200,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryActions.Initialize,
                     err,
                     false, // includeErrorMessage
+                    undefined, // errorCode,
+                    "loadConnectionToEdit", // errorType
                 );
             }
         }
@@ -270,7 +270,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     err,
                     false, // includeErrorMessage
                     undefined, // errorCode
-                    undefined, // errorType
+                    err.Name, // errorType
                     {
                         failure: err.Name,
                     },
@@ -291,8 +291,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("filterAzureSubscriptions", async (state) => {
-            await promptForAzureSubscriptionFilter(state);
-            await this.loadAllAzureServers(state);
+            try {
+                if (await promptForAzureSubscriptionFilter(state)) {
+                    await this.loadAllAzureServers(state);
+                }
+            } catch (err) {
+                this.state.formError = getErrorMessage(err);
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.FilterAzureSubscriptions,
+                    err,
+                    false, // includeErrorMessage
+                );
+            }
 
             return state;
         });
@@ -809,7 +821,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     new Error(result.errorMessage),
                     true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
                     undefined, // errorCode
-                    undefined, // errorType
+                    "parseIP", // errorType
                 );
 
                 // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
@@ -876,6 +888,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             authenticationType: AuthenticationType.SqlLogin,
             connectTimeout: 30, // seconds
             applicationName: "vscode-mssql",
+            applicationIntent: "ReadWrite",
         } as IConnectionDialogProfile;
     }
 
