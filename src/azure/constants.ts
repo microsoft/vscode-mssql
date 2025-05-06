@@ -85,6 +85,13 @@ export const mdsUserAccountNotReceived = "User account not received.";
  * Thrown by TS layer, indicates user account hint not provided. We request user to reauthenticate when this error occurs.
  */
 export const noAccountInSilentRequestError = "no_account_in_silent_request";
+/**
+ * multiple_matching_tokens error can occur in scenarios when users try to run vscode-mssql as different users, reference issue:
+ * https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/5134
+ * Error message: multiple_matching_tokens The cache contains multiple tokens satisfying the requirements.
+ * Call AcquireToken again providing more requirements such as authority or account.
+ */
+export const multiple_matching_tokens_error = "multiple_matching_tokens";
 
 /** MSAL Account version */
 export const accountVersion = "2.0";
