@@ -190,6 +190,7 @@ export class ConnectionCredentials implements IConnectionInfo {
         prompter: IPrompter,
         connectionStore: ConnectionStore,
         defaultProfileValues?: IConnectionInfo,
+        shouldSaveUpdates: boolean = true,
     ): Promise<IConnectionInfo> {
         let questions: IQuestion[] =
             await ConnectionCredentials.getRequiredCredentialValuesQuestions(
@@ -240,6 +241,7 @@ export class ConnectionCredentials implements IConnectionInfo {
                     // stored the password in the config file or purposefully set an empty password,
                     // then transfer the password to the credential store
                     if (
+                        shouldSaveUpdates &&
                         profile.savePassword &&
                         (!wasPasswordEmptyInConfigFile || profile.emptyPasswordInput)
                     ) {
@@ -254,7 +256,7 @@ export class ConnectionCredentials implements IConnectionInfo {
                             (<IConnectionProfile>unprocessedCredentials).savePassword ||
                         profile.password !== unprocessedCredentials.password
                     ) {
-                        if (await connectionStore.removeProfile(profile)) {
+                        if (shouldSaveUpdates && (await connectionStore.removeProfile(profile))) {
                             await connectionStore.saveProfile(profile);
                         }
                     }

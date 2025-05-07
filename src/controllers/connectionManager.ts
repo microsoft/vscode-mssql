@@ -1105,7 +1105,7 @@ export default class ConnectionManager {
                     }
                     return newResult;
                 } else {
-                    return true;
+                    return false;
                 }
             } else if (
                 connection.errorNumber === Constants.errorFirewallRule &&
