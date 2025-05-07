@@ -809,6 +809,11 @@ export default class ConnectionManager {
     ): Promise<IConnectionInfo | undefined> {
         let updatedConn: IConnectionInfo | undefined;
         await this.showInstructionTextAsWarning(profile, async (updatedConnection) => {
+            // If the operation was cancelled, we return undefined indicating that the connection was not fixed.
+            if (!updatedConnection) {
+                this.failedUriToSSLMap.delete(uri);
+                return;
+            }
             vscode.commands.executeCommand(
                 Constants.cmdConnectObjectExplorerProfile,
                 updatedConnection,
@@ -1046,7 +1051,16 @@ export default class ConnectionManager {
             await this.disconnect(fileUri);
             // connect to the server/database
             const result = await this.connect(fileUri, connectionCreds);
-            await this.handleConnectionResult(result, fileUri, connectionCreds);
+
+            const connectionOutcome = await this.handleConnectionResult(
+                result,
+                fileUri,
+                connectionCreds,
+            );
+            if (!connectionOutcome) {
+                // connection failed, return undefined
+                return undefined;
+            }
         }
         return connectionCreds;
     }
@@ -1111,7 +1125,17 @@ export default class ConnectionManager {
                 const wasCreated = await addFirewallRuleController.dialogResult;
 
                 if (wasCreated === true /** dialog closed is undefined */) {
-                    await this.connect(fileUri, connection.credentials);
+                    return await this.connect(fileUri, connection.credentials);
+                } else {
+                    return false;
+                }
+            } else if (connection.errorNumber === Constants.errorSSLCertificateValidationFailed) {
+                const updatedConnection = await this.handleSSLError(
+                    fileUri,
+                    connectionCreds as IConnectionProfile,
+                );
+                if (updatedConnection) {
+                    return await this.connect(fileUri, updatedConnection);
                 } else {
                     return false;
                 }
