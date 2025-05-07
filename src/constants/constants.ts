@@ -51,7 +51,7 @@ export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
 export const cmdAddObjectExplorer = "mssql.addObjectExplorer";
-export const cmdAddObjectExplorerPreview = "mssql.addObjectExplorerPreview";
+export const cmdAddObjectExplorerLegacy = "mssql.addObjectExplorerLegacy";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
@@ -196,7 +196,8 @@ export const configEnableRichExperiencesDoNotShowPrompt =
     "mssql.enableRichExperiencesDoNotShowPrompt";
 export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
-export const configEnableNewQueryResultFeature = "mssql.enableNewQueryResultFeature";
+export const configUseLegacyConnectionExperience = "mssql.useLegacyConnectionExperience";
+export const configUseLegacyQueryResultExperience = "mssql.useLegacyQueryResultExperience";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";

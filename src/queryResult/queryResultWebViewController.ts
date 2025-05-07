@@ -59,7 +59,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         void this.initialize();
 
-        if (this.isRichExperiencesEnabled) {
+        if (
+            !this.vscodeWrapper
+                .getConfiguration()
+                .get(Constants.configUseLegacyQueryResultExperience)
+        ) {
             vscode.window.onDidChangeActiveTextEditor((editor) => {
                 const uri = editor?.document?.uri?.toString(true);
                 if (uri && this._queryResultStateMap.has(uri)) {
@@ -121,10 +125,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
     private async initialize() {
         this.registerRpcHandlers();
-    }
-
-    private get isRichExperiencesEnabled(): boolean {
-        return this.vscodeWrapper.getConfiguration().get(Constants.configEnableRichExperiences);
     }
 
     private get isOpenQueryResultsInTabByDefaultEnabled(): boolean {

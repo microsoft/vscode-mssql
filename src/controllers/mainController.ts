@@ -58,7 +58,7 @@ import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
-import store from "../queryResult/singletonStore";
+import store, { SubKeys } from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
@@ -66,6 +66,7 @@ import { DefaultWebviewNotifications } from "./reactWebviewBaseController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../chat/prompts";
+import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 
 /**
  * The main controller class that initializes the extension
@@ -169,6 +170,14 @@ export default class MainController implements vscode.Disposable {
 
     public get isRichExperiencesEnabled(): boolean {
         return this.configuration.get(Constants.configEnableRichExperiences);
+    }
+
+    public get useLegacyConnectionExperience(): boolean {
+        return this.configuration.get(Constants.configUseLegacyConnectionExperience);
+    }
+
+    public get useLegacyQueryResultExperience(): boolean {
+        return this.configuration.get(Constants.configUseLegacyQueryResultExperience);
     }
 
     /**
@@ -698,7 +707,7 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._statusview,
             this._prompter,
-            this.isRichExperiencesEnabled,
+            this.useLegacyConnectionExperience,
         );
 
         void this.showOnLaunchPrompts();
@@ -716,6 +725,8 @@ export default class MainController implements vscode.Disposable {
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
+            useLegacyConnections: this.useLegacyConnectionExperience.toString(),
+            useLegacyQueryResults: this.useLegacyQueryResultExperience.toString(),
         });
 
         await this._connectionMgr.initialized;
@@ -799,8 +810,17 @@ export default class MainController implements vscode.Disposable {
     public async createObjectExplorerSession(
         connectionCredentials?: IConnectionInfo,
     ): Promise<TreeNodeInfo> {
-        const sessionCreationResult =
-            await this._objectExplorerProvider.createSession(connectionCredentials);
+        let retry = true;
+        // There can be many reasons for the session creation to fail, so we will retry until we get a successful result or the user cancels the operation.
+        let sessionCreationResult: CreateSessionResult = undefined;
+        while (retry) {
+            retry = false;
+            sessionCreationResult =
+                await this._objectExplorerProvider.createSession(connectionCredentials);
+            if (sessionCreationResult?.shouldRetryOnFailure) {
+                retry = true;
+            }
+        }
         if (sessionCreationResult) {
             const newNode = await sessionCreationResult.connectionNode;
             if (newNode) {
@@ -836,7 +856,7 @@ export default class MainController implements vscode.Disposable {
         this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
-            if (!this.isRichExperiencesEnabled) {
+            if (this.useLegacyConnectionExperience) {
                 await self.createObjectExplorerSession();
             } else {
                 let connectionInfo: IConnectionInfo | undefined = undefined;
@@ -858,9 +878,9 @@ export default class MainController implements vscode.Disposable {
             }
         });
 
-        // redirect the "(preview)" command to the original command
-        this.registerCommandWithArgs(Constants.cmdAddObjectExplorerPreview);
-        this._event.on(Constants.cmdAddObjectExplorerPreview, (args) => {
+        // redirect the "Legacy" command to the core command; that handler will differentiate
+        this.registerCommandWithArgs(Constants.cmdAddObjectExplorerLegacy);
+        this._event.on(Constants.cmdAddObjectExplorerLegacy, (args) => {
             vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, args);
         });
 
@@ -1605,7 +1625,8 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
             // Delete query result filters for the current uri when we run a new query
-            store.delete(uri);
+            store.delete(uri, SubKeys.Filter);
+            store.delete(uri, SubKeys.ColumnWidth);
 
             await self._outputContentProvider.runQuery(
                 self._statusview,
@@ -2018,7 +2039,8 @@ export default class MainController implements vscode.Disposable {
         }
 
         // Delete query result fiters for the closed uri
-        store.delete(closedDocumentUri);
+        store.delete(closedDocumentUri, SubKeys.Filter);
+        store.delete(closedDocumentUri, SubKeys.ColumnWidth);
     }
 
     private async updateUri(oldUri: string, newUri: string) {
@@ -2198,6 +2220,8 @@ export default class MainController implements vscode.Disposable {
                 Constants.enableConnectionPooling,
                 Constants.configEnableExperimentalFeatures,
                 Constants.configEnableRichExperiences,
+                Constants.configUseLegacyConnectionExperience,
+                Constants.configUseLegacyQueryResultExperience,
             ];
 
             if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {
@@ -2275,11 +2299,7 @@ export default class MainController implements vscode.Disposable {
                 this.executionPlanService,
                 this.untitledSqlService,
                 planContents,
-                vscode.l10n.t({
-                    message: "{0} (Preview)",
-                    args: [docName],
-                    comment: "{0} is the file name",
-                }),
+                docName,
             );
 
             executionPlanController.revealToForeground();
