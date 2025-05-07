@@ -199,9 +199,49 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.mapMouseEvent(this._grid.onContextMenu);
         this.mapMouseEvent(this._grid.onClick);
         this.mapMouseEvent(this._grid.onDblClick);
-        this._grid.onColumnsResized.subscribe(() => console.log("oncolumnresize"));
+        this._grid.onColumnsResized.subscribe(async (_e, data) => {
+            if (!data) {
+                return;
+            }
+            let columnSizes = this.grid
+                .getColumns()
+                .slice(1)
+                .map((v) => v.width);
+            let currentColumnSizes = await this.webViewState.extensionRpc.call("getColumnWidths", {
+                uri: this.queryResultContext.state.uri,
+            });
+            if (currentColumnSizes === columnSizes) {
+                return;
+            }
+
+            let message = {
+                uri: this.queryResultContext.state.uri,
+                columnWidths: columnSizes,
+            };
+            await this.webViewState.extensionRpc.call("setColumnWidths", message);
+        });
+
         this.style(styles);
         // this.registerPlugin(new MouseWheelSupport());
+    }
+
+    public async restoreColumnWidths(): Promise<void> {
+        const columnWidthArray = (await this.webViewState.extensionRpc.call("getColumnWidths", {
+            uri: this.queryResultContext.state.uri,
+        })) as number[];
+        if (!columnWidthArray) {
+            return;
+        }
+        let count = 0;
+        for (const column of this._grid.getColumns()) {
+            // Skip the first column (row selector)
+            if (count === 0) {
+                count++;
+                continue;
+            }
+            column.width = columnWidthArray[count - 1];
+            count++;
+        }
     }
 
     /**

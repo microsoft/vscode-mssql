@@ -152,9 +152,7 @@ export class ObjectExplorerService {
      * @param profile The connection profile to reconnect.
      */
     private async reconnectProfile(profile: IConnectionProfile): Promise<void> {
-        const node = this._rootTreeNodeArray.find((n) =>
-            Utils.isSameConnectionInfo(n.connectionProfile, profile),
-        ) as ConnectionNode;
+        const node = this.getConnectionNodeFromProfile(profile);
         if (node) {
             node.updateConnectionProfile(profile);
             this.cleanNodeChildren(node);
@@ -712,9 +710,7 @@ export class ObjectExplorerService {
             return;
         }
 
-        let connectionNode = this._rootTreeNodeArray.find((node) =>
-            Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
-        ) as ConnectionNode;
+        let connectionNode = this.getConnectionNodeFromProfile(connectionProfile);
 
         let isNewConnection = false;
         if (!connectionNode) {
@@ -750,9 +746,7 @@ export class ObjectExplorerService {
 
         return {
             sessionId: successResponse.sessionId,
-            connectionNode: this._rootTreeNodeArray.find((node) =>
-                Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
-            ) as ConnectionNode,
+            connectionNode: this.getConnectionNodeFromProfile(connectionProfile),
         };
     }
 
@@ -785,20 +779,20 @@ export class ObjectExplorerService {
         }
         if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
             this._logger.verbose("Fixing SSL trust server certificate error.");
-            const fixedProfile: IConnectionProfile = await new Promise((resolve) => {
-                void this._connectionManager.showInstructionTextAsWarning(
-                    connectionProfile,
-                    async (updatedProfile) => {
-                        resolve(updatedProfile);
-                    },
-                );
-            });
+            const fixedProfile: IConnectionProfile = (await this._connectionManager.handleSSLError(
+                undefined,
+                connectionProfile,
+            )) as IConnectionProfile;
             telemetryActivty.update({
                 connectionType: connectionProfile.authenticationType,
                 errorHandled: "trustServerCertificate",
                 isFixed: fixedProfile ? "true" : "false",
             });
             if (fixedProfile) {
+                const connectionNode = this.getConnectionNodeFromProfile(fixedProfile);
+                if (connectionNode) {
+                    connectionNode.updateConnectionProfile(fixedProfile);
+                }
                 return true;
             }
         } else if (ObjectExplorerUtils.isFirewallError(failureResponse.errorNumber)) {
@@ -1069,6 +1063,19 @@ export class ObjectExplorerService {
             this._client.logger.error("Node does not have a session ID");
             return ObjectExplorerUtils.getNodeUri(node); // TODO: can this removed entirely?  ideally, every node has a session ID associated with it
         }
+    }
+
+    /**
+     * Gets the connection node from the profile.
+     * @param connectionProfile The connection profile to get the node for
+     * @returns The connection node for the profile, or undefined if not found.
+     */
+    private getConnectionNodeFromProfile(
+        connectionProfile: IConnectionProfile,
+    ): ConnectionNode | undefined {
+        return this._rootTreeNodeArray.find((node) =>
+            Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
+        ) as ConnectionNode;
     }
 
     /**

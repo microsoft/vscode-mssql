@@ -76,9 +76,6 @@ export class ReactWebviewViewController<State, Reducers>
 
             localResourceRoots: [this._context.extensionUri],
         };
-        this._webviewView.onDidDispose(() => {
-            this.dispose();
-        });
 
         this._webviewView.webview.html = this._getHtmlTemplate();
         this.registerDisposable(

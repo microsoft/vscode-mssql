@@ -8,6 +8,7 @@ import { assert } from "chai";
 import { MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Uri } from "vscode";
+import { mockGetCapabilitiesRequest } from "./mocks";
 
 suite("MssqlProtocolHandler Tests", () => {
     let mssqlProtocolHandler: MssqlProtocolHandler;
@@ -19,121 +20,7 @@ suite("MssqlProtocolHandler Tests", () => {
             TypeMoq.MockBehavior.Loose,
         );
 
-        sqlToolsServiceClientMock
-            .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() =>
-                Promise.resolve({
-                    capabilities: {
-                        connectionProvider: {
-                            options: [
-                                {
-                                    specialValueType: "serverName",
-                                    isIdentity: true,
-                                    name: "server",
-                                    displayName: "Server name",
-                                    description: "Name of the SQL Server instance",
-                                    groupName: "Source",
-                                    valueType: "string",
-                                    defaultValue: null,
-                                    objectType: null,
-                                    categoryValues: null,
-                                    isRequired: true,
-                                    isArray: false,
-                                },
-                                {
-                                    specialValueType: "databaseName",
-                                    isIdentity: true,
-                                    name: "database",
-                                    displayName: "Database name",
-                                    description:
-                                        "The name of the initial catalog or database in the data source",
-                                    groupName: "Source",
-                                    valueType: "string",
-                                    defaultValue: null,
-                                    objectType: null,
-                                    categoryValues: null,
-                                    isRequired: false,
-                                    isArray: false,
-                                },
-                                {
-                                    specialValueType: "userName",
-                                    isIdentity: true,
-                                    name: "user",
-                                    displayName: "User name",
-                                    description:
-                                        "Indicates the user ID to be used when connecting to the data source",
-                                    groupName: "Security",
-                                    valueType: "string",
-                                    defaultValue: null,
-                                    objectType: null,
-                                    categoryValues: null,
-                                    isRequired: true,
-                                    isArray: false,
-                                },
-                                {
-                                    specialValueType: "authType",
-                                    isIdentity: true,
-                                    name: "authenticationType",
-                                    displayName: "Authentication type",
-                                    description:
-                                        "Specifies the method of authenticating with SQL Server",
-                                    groupName: "Security",
-                                    valueType: "category",
-                                    defaultValue: null,
-                                    objectType: null,
-                                    categoryValues: [
-                                        {
-                                            displayName: "SQL Login",
-                                            name: "SqlLogin",
-                                        },
-                                        {
-                                            displayName: "Windows Authentication",
-                                            name: "Integrated",
-                                        },
-                                        {
-                                            displayName:
-                                                "Microsoft Entra ID - Universal with MFA support",
-                                            name: "AzureMFA",
-                                        },
-                                    ],
-                                    isRequired: true,
-                                    isArray: false,
-                                },
-                                {
-                                    specialValueType: null,
-                                    isIdentity: false,
-                                    name: "connectTimeout",
-                                    displayName: "Connect timeout",
-                                    description:
-                                        "The length of time (in seconds) to wait for a connection to the server before terminating the attempt and generating an error",
-                                    groupName: "Initialization",
-                                    valueType: "number",
-                                    defaultValue: "15",
-                                    objectType: null,
-                                    categoryValues: null,
-                                    isRequired: false,
-                                    isArray: false,
-                                },
-                                {
-                                    specialValueType: null,
-                                    isIdentity: false,
-                                    name: "trustServerCertificate",
-                                    displayName: "Trust server certificate",
-                                    description:
-                                        "When true (and encrypt=true), SQL Server uses SSL encryption for all data sent between the client and server without validating the server certificate",
-                                    groupName: "Security",
-                                    valueType: "boolean",
-                                    defaultValue: null,
-                                    objectType: null,
-                                    categoryValues: null,
-                                    isRequired: false,
-                                    isArray: false,
-                                },
-                            ],
-                        },
-                    },
-                }),
-            );
+        mockGetCapabilitiesRequest(sqlToolsServiceClientMock);
 
         mssqlProtocolHandler = new MssqlProtocolHandler(sqlToolsServiceClientMock.object);
     });
@@ -169,18 +56,26 @@ suite("MssqlProtocolHandler Tests", () => {
     });
 
     test("handleUri - with connect command and query - parses query and returns connection info object", async () => {
-        const connInfo = await mssqlProtocolHandler.handleUri(
-            Uri.parse(
-                "vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&authenticationType=SqlLogin&connectTimeout=15&trustServerCertificate=true",
-            ),
-        );
+        let uri =
+            "vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&authenticationType=SqlLogin&connectTimeout=15&trustServerCertificate=true&user=testUser";
+
+        let connInfo = await mssqlProtocolHandler.handleUri(Uri.parse(uri));
 
         assert.isDefined(connInfo);
         assert.equal(connInfo.server, "myServer");
         assert.equal(connInfo.database, "dbName");
         assert.equal(connInfo.authenticationType, "SqlLogin");
         assert.equal(connInfo.connectTimeout, 15);
+        assert.equal(connInfo.user, "testUser");
+        assert.equal(connInfo.password, undefined);
         assert.isTrue(connInfo.trustServerCertificate);
+        assert.isFalse(connInfo.savePassword);
+
+        uri += "&password=testPassword";
+        connInfo = await mssqlProtocolHandler.handleUri(Uri.parse(uri));
+
+        assert.equal(connInfo.password, "testPassword");
+        assert.isTrue(connInfo.savePassword); // automatically set savePassword to true if password is provided
     });
 
     test("handleUri - with connect command and query with invalid bool value for trust server cert - trust server cert is false and parses valid params", async () => {

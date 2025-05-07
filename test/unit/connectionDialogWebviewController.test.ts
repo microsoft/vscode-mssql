@@ -26,22 +26,18 @@ import {
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
-import { IAccount, ServiceOption } from "vscode-mssql";
+import { IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import {
-    CapabilitiesResult,
-    ConnectionCompleteParams,
-    GetCapabilitiesRequest,
-} from "../../src/models/contracts/connection";
-import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
-import {
-    AzureSubscription,
-    VSCodeAzureSubscriptionProvider,
-} from "@microsoft/vscode-azext-azureauth";
+import { ConnectionCompleteParams } from "../../src/models/contracts/connection";
 import { stubTelemetry } from "./utils";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import {
+    stubConfirmVscodeAzureSignin,
+    stubFetchServersFromAzure,
+    stubPromptForAzureSubscriptionFilter,
+} from "./azureHelperStubs";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
-import { stubPromptForAzureSubscriptionFilter } from "./azureHelperStubs";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { mockGetCapabilitiesRequest } from "./mocks";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -132,89 +128,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 ]),
             );
 
-        serviceClientMock
-            .setup((s) =>
-                s.sendRequest(TypeMoq.It.isValue(GetCapabilitiesRequest.type), TypeMoq.It.isAny()),
-            )
-            .returns(() =>
-                Promise.resolve({
-                    capabilities: {
-                        connectionProvider: {
-                            groupDisplayNames: {
-                                group1: "Group 1",
-                                group2: "Group 2",
-                            },
-                            options: [
-                                {
-                                    name: "server",
-                                    displayName: "Server",
-                                    isRequired: true,
-                                    valueType: "string",
-                                },
-                                {
-                                    name: "user",
-                                    displayName: "User",
-                                    isRequired: false,
-                                    valueType: "string",
-                                },
-                                {
-                                    name: "password",
-                                    displayName: "Password",
-                                    isRequired: false,
-                                    valueType: "password",
-                                },
-                                {
-                                    name: "trustServerCertificate",
-                                    displayName: "Trust Server Certificate",
-                                    isRequired: false,
-                                    valueType: "boolean",
-                                },
-                                {
-                                    name: "authenticationType",
-                                    displayName: "Authentication Type",
-                                    isRequired: false,
-                                    valueType: "category",
-                                    categoryValues: [
-                                        AuthenticationType.SqlLogin,
-                                        AuthenticationType.Integrated,
-                                        AuthenticationType.AzureMFA,
-                                    ],
-                                },
-                                {
-                                    name: "savePassword",
-                                    displayName: "Save Password",
-                                    isRequired: false,
-                                    valueType: "boolean",
-                                },
-                                {
-                                    name: "accountId",
-                                    displayName: "Account Id",
-                                    isRequired: false,
-                                    valueType: "string",
-                                },
-                                {
-                                    name: "tenantId",
-                                    displayName: "Tenant Id",
-                                    isRequired: false,
-                                    valueType: "string",
-                                },
-                                {
-                                    name: "database",
-                                    displayName: "Database",
-                                    isRequired: false,
-                                    valueType: "string",
-                                },
-                                {
-                                    name: "encrypt",
-                                    displayName: "Encrypt",
-                                    isRequired: false,
-                                    valueType: "boolean",
-                                },
-                            ] as ServiceOption[],
-                        },
-                    },
-                } as unknown as CapabilitiesResult),
-            );
+        mockGetCapabilitiesRequest(serviceClientMock);
 
         mainController = new MainController(
             mockContext.object,
@@ -334,7 +248,38 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "should be ready to connect when launched with a profile to edit",
             ).to.be.true;
         });
+
+        test("should initialize correctly when editing connection with password", async () => {
+            const editedConnection = {
+                profileName: "Test Server to Edit",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.SqlLogin,
+                user: "testUser",
+                password: "testPassword",
+            } as IConnectionDialogProfile;
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext.object,
+                mockVscodeWrapper.object,
+                mainController,
+                mockObjectExplorerProvider.object,
+                editedConnection,
+            );
+            await controller.initialized;
+
+            expect(controller["_connectionBeingEdited"]).to.deep.equal(
+                editedConnection,
+                "Form state should be the same as the connection being edited",
+            );
+
+            expect(
+                controller.state.readyToConnect,
+                "should be ready to connect when launched with a profile to edit",
+            ).to.be.true;
+        });
     });
+
     suite("Reducers", () => {
         suite("setConnectionInputType", () => {
             test("Should set connection input type correctly for Parameters", async () => {
@@ -365,8 +310,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("should set connection input mode correctly and load server info for AzureBrowse", async () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
-                stubConfirmVscodeAzureSignin();
-                stubFetchServersFromAzure();
+                stubConfirmVscodeAzureSignin(sandbox);
+                stubFetchServersFromAzure(sandbox);
 
                 await controller["_reducers"].setConnectionInputType(controller.state, {
                     inputMode: ConnectionInputMode.AzureBrowse,
@@ -528,8 +473,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
                 stubPromptForAzureSubscriptionFilter(sandbox, true);
-                stubConfirmVscodeAzureSignin();
-                stubFetchServersFromAzure();
+                stubConfirmVscodeAzureSignin(sandbox);
+                stubFetchServersFromAzure(sandbox);
 
                 expect(
                     controller.state.azureSubscriptions,
@@ -546,50 +491,4 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
         });
     });
-
-    //#region Helpers
-
-    const mockSubscriptions = [
-        {
-            name: "Ten0Sub1",
-            subscriptionId: "00000000-0000-0000-0000-111111111111",
-            tenantId: "00000000-0000-0000-0000-000000000000",
-        },
-        {
-            name: "Ten1Sub1",
-            subscriptionId: "11111111-0000-0000-0000-111111111111",
-            tenantId: "11111111-1111-1111-1111-111111111111",
-        },
-    ];
-
-    function stubConfirmVscodeAzureSignin() {
-        return sandbox.stub(AzureHelpers, "confirmVscodeAzureSignin").resolves({
-            getSubscriptions: () => Promise.resolve(mockSubscriptions),
-        } as unknown as VSCodeAzureSubscriptionProvider);
-    }
-
-    function stubFetchServersFromAzure() {
-        return sandbox
-            .stub(AzureHelpers, "fetchServersFromAzure")
-            .callsFake(async (sub: AzureSubscription) => {
-                return [
-                    {
-                        location: "TestRegion",
-                        resourceGroup: `testResourceGroup-${sub.name}`,
-                        server: `testServer-${sub.name}-1`,
-                        databases: ["testDatabase1", "testDatabase2"],
-                        subscription: `${sub.name} (${sub.subscriptionId})`,
-                    },
-                    {
-                        location: "TestRegion",
-                        resourceGroup: `testResourceGroup-${sub.name}`,
-                        server: `testServer-${sub.name}-2`,
-                        databases: ["testDatabase1", "testDatabase2"],
-                        subscription: `${sub.name} (${sub.subscriptionId})`,
-                    },
-                ] as AzureSqlServerInfo[];
-            });
-    }
-
-    //#endregion
 });
