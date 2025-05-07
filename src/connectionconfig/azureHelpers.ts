@@ -44,13 +44,18 @@ export async function confirmVscodeAzureSignin(): Promise<
     return auth;
 }
 
-export async function promptForAzureSubscriptionFilter(state: ConnectionDialogWebviewState) {
+/**
+ *  * @returns true if the user selected subscriptions, false if they canceled the selection quickpick
+ */
+export async function promptForAzureSubscriptionFilter(
+    state: ConnectionDialogWebviewState,
+): Promise<boolean> {
     try {
         const auth = await confirmVscodeAzureSignin();
 
         if (!auth) {
             state.formError = l10n.t("Azure sign in failed.");
-            return;
+            return false;
         }
 
         const selectedSubs = await vscode.window.showQuickPick(getQuickPickItems(auth), {
@@ -60,7 +65,7 @@ export async function promptForAzureSubscriptionFilter(state: ConnectionDialogWe
         });
 
         if (!selectedSubs) {
-            return;
+            return false;
         }
 
         await vscode.workspace.getConfiguration().update(
@@ -68,10 +73,12 @@ export async function promptForAzureSubscriptionFilter(state: ConnectionDialogWe
             selectedSubs.map((s) => `${s.tenantId}/${s.subscriptionId}`),
             vscode.ConfigurationTarget.Global,
         );
+
+        return true;
     } catch (error) {
         state.formError = l10n.t("Error loading Azure subscriptions.");
         console.error(state.formError + "\n" + getErrorMessage(error));
-        return;
+        return false;
     }
 }
 

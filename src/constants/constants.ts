@@ -10,6 +10,7 @@ export const extensionName = "mssql";
 export const extensionConfigSectionName = "mssql";
 export const telemetryConfigSectionName = "telemetry";
 export const mssqlProviderName = "MSSQL";
+export const mssqlChatParticipantName = "mssql"; // must be the same as the one in package.json
 export const noneProviderName = "None";
 export const objectExplorerId = "objectExplorer";
 export const queryHistory = "queryHistory";
@@ -52,6 +53,10 @@ export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
 export const cmdAddObjectExplorer = "mssql.addObjectExplorer";
 export const cmdAddObjectExplorerPreview = "mssql.addObjectExplorerPreview";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
+export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
+export const cmdExplainQuery = "mssql.copilot.explainQuery";
+export const cmdRewriteQuery = "mssql.copilot.rewriteQuery";
+export const cmdAnalyzeQueryPerformance = "mssql.copilot.analyzeQueryPerformance";
 export const cmdRemoveObjectExplorerNode = "mssql.removeObjectExplorerNode";
 export const cmdRefreshObjectExplorerNode = "mssql.refreshObjectExplorerNode";
 export const cmdDisconnectObjectExplorerNode = "mssql.disconnectObjectExplorerNode";
@@ -126,7 +131,7 @@ export const outputContentTypeShowWarning = "showWarning";
 export const outputServiceLocalhost = "http://localhost:";
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
-export const untitledSaveTimeThreshold = 10.0;
+export const untitledSaveTimeThreshold = 50.0;
 export const renamedOpenTimeThreshold = 10.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
 export const macOpenSslHelpLink =
@@ -197,6 +202,7 @@ export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
+export const copilotDebugLogging = "mssql.copilotDebugLogging";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";

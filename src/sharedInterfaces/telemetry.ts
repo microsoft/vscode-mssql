@@ -8,8 +8,10 @@ export enum TelemetryViews {
     CommandPalette = "CommandPalette",
     SqlProjects = "SqlProjects",
     QueryEditor = "QueryEditor",
-    QueryResult = "QueryResult", // react query result pane
-    ResultsGrid = "ResultsGrid", // angular results grid
+    /** react query result pane */
+    QueryResult = "QueryResult",
+    /** angular results grid */
+    ResultsGrid = "ResultsGrid",
     ConnectionPrompt = "ConnectionPrompt",
     WebviewController = "WebviewController",
     ObjectExplorerFilter = "ObjectExplorerFilter",
@@ -20,6 +22,7 @@ export enum TelemetryViews {
     ConnectionDialog = "ConnectionDialog",
     ExecutionPlan = "ExecutionPlan",
     AddFirewallRule = "AddFirewallRule",
+    MssqlCopilot = "MssqlCopilot",
 }
 
 export enum TelemetryActions {
@@ -76,6 +79,15 @@ export enum TelemetryActions {
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
     LoadFromConnectionString = "LoadFromConnectionString",
+    FilterAzureSubscriptions = "FilterAzureSubscriptions",
+    ExplainQuery = "ExplainQuery",
+    RewriteQuery = "RewriteQuery",
+    AnalyzeQueryPerformance = "AnalyzeQueryPerformance",
+    Error = "Error",
+    ToolCall = "ToolCall",
+    Feedback = "Feedback",
+    ChatWithDatabase = "ChatWithDatabase",
+    StartConversation = "StartConversation",
 }
 
 /**
