@@ -710,14 +710,10 @@ export class ObjectExplorerService {
             error += `: ${failureResponse.errorMessage}`;
         }
         if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
-            const fixedProfile: IConnectionProfile = await new Promise((resolve) => {
-                void this._connectionManager.showInstructionTextAsWarning(
-                    connectionProfile,
-                    async (updatedProfile) => {
-                        resolve(updatedProfile);
-                    },
-                );
-            });
+            const fixedProfile: IConnectionProfile = (await this._connectionManager.handleSSLError(
+                undefined,
+                connectionProfile,
+            )) as IConnectionProfile;
             if (fixedProfile) {
                 const connectionNode = this.getConnectionNodeFromProfile(fixedProfile);
                 if (connectionNode) {
