@@ -195,6 +195,17 @@ export class ObjectExplorerService {
         sessionId: string,
         promise: Deferred<vscode.TreeItem[]>,
     ): Promise<boolean | undefined> {
+        const expandActivity = startActivity(
+            TelemetryViews.ObjectExplorer,
+            TelemetryActions.ExpandNode,
+            undefined,
+            {
+                nodeType: node.nodeType,
+                nodeSubType: node.nodeSubType,
+                isRefresh: node.shouldRefresh.toString(),
+            },
+        );
+        this._logger.verbose(`Expanding node ${node.label} with session ID ${sessionId}`);
         try {
             const expandParams: ExpandParams = {
                 sessionId: sessionId,
@@ -206,11 +217,13 @@ export class ObjectExplorerService {
 
             let response: boolean;
             if (node.shouldRefresh) {
+                this._logger.verbose(`Refreshing node ${node.label} with session ID ${sessionId}`);
                 response = await this._connectionManager.client.sendRequest(
                     RefreshRequest.type,
                     expandParams,
                 );
             } else {
+                this._logger.verbose(`Expanding node ${node.label} with session ID ${sessionId}`);
                 response = await this._connectionManager.client.sendRequest(
                     ExpandRequest.type,
                     expandParams,
@@ -219,11 +232,15 @@ export class ObjectExplorerService {
 
             if (response) {
                 const result = await expandResponse;
+                this._logger.verbose(`Expand node response: ${JSON.stringify(result)}`);
                 if (!result) {
                     return undefined;
                 }
 
                 if (result.nodes && !result.errorMessage) {
+                    this._logger.verbose(
+                        `Received ${result.nodes.length} children for node ${node.label}`,
+                    );
                     // successfully received children from SQL Tools Service
                     const children = result.nodes.map((n) =>
                         TreeNodeInfo.fromNodeInfo(
@@ -234,33 +251,26 @@ export class ObjectExplorerService {
                         ),
                     );
                     this._treeNodeToChildrenMap.set(node, children);
-                    sendActionEvent(
-                        TelemetryViews.ObjectExplorer,
-                        TelemetryActions.ExpandNode,
-                        {
-                            nodeType: node?.context?.subType ?? "",
-                            isErrored: (!!result.errorMessage).toString(),
-                        },
-                        {
-                            nodeCount: result?.nodes.length ?? 0,
-                        },
-                    );
-
+                    expandActivity.end(ActivityStatus.Succeeded, undefined, {
+                        childrenCount: children.length,
+                    });
                     promise.resolve(children);
                 } else {
                     // failure to expand node; display error
-
                     if (result.errorMessage) {
+                        this._logger.error(`Expand node failed: ${result.errorMessage}`);
                         this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
                     }
-
                     const errorNode = new ExpandErrorNode(node, result.errorMessage);
-
                     this._treeNodeToChildrenMap.set(node, [errorNode]);
+                    expandActivity.endFailed(new Error(result.errorMessage), false);
                     promise.resolve([errorNode]);
                 }
                 return response;
             } else {
+                this._logger.error(
+                    `Expand node failed: Didn't receive a response from SQL Tools Service`,
+                );
                 await this._connectionManager.vscodeWrapper.showErrorMessage(
                     LocalizedConstants.msgUnableToExpand,
                 );
@@ -538,6 +548,10 @@ export class ObjectExplorerService {
         if (createSessionResponse) {
             const sessionCreationResult = await sessionCreatedResponse;
             if (sessionCreationResult.success) {
+                this._logger.verbose(
+                    `Session created successfully for with session ID ${sessionCreationResult.sessionId}`,
+                );
+                this._pendingSessionCreations.delete(sessionIdResponse.sessionId);
                 const successResponse = await this.handleSessionCreationSuccess(
                     sessionCreationResult,
                     connectionProfile,
@@ -545,6 +559,9 @@ export class ObjectExplorerService {
                 createSessionActivity.end(ActivityStatus.Succeeded);
                 return successResponse;
             } else {
+                this._logger.error(
+                    `Session creation failed with error: ${sessionCreationResult.errorMessage}`,
+                );
                 const shouldReconnect = await this.handleSessionCreationFailure(
                     sessionCreationResult,
                     connectionProfile,
@@ -803,8 +820,19 @@ export class ObjectExplorerService {
             let account = this._connectionManager.accountStore.getAccount(
                 connectionProfile.accountId,
             );
-            return this.refreshAccount(account, connectionProfile);
+            this._logger.verbose(`Refreshing account token for ${account.displayInfo.userId}`);
+            const tokenAdded = this.refreshAccount(account, connectionProfile);
+            telemetryActivty.update({
+                connectionType: connectionProfile.authenticationType,
+                errorHandled: "refreshAccount",
+                isFixed: tokenAdded ? "true" : "false",
+            });
+            if (!tokenAdded) {
+                this._logger.error(`Token refresh failed for ${account.displayInfo.userId}`);
+            }
+            return tokenAdded;
         } else {
+            this._logger.error("Session creation failed: " + error);
             this._connectionManager.vscodeWrapper.showErrorMessage(error);
         }
         return false;
