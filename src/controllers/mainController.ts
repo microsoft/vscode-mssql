@@ -703,6 +703,8 @@ export default class MainController implements vscode.Disposable {
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
         });
 
+        await this._connectionMgr.initialized;
+
         this._initialized = true;
         return true;
     }

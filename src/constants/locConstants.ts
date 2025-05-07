@@ -884,3 +884,14 @@ export class StatusBar {
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
 }
+
+export class Connection {
+    public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
+        return l10n.t({
+            message:
+                "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
+            args: [connectionId, errorMessage],
+            comment: ["{0} is the connection id", "{1} is the error message"],
+        });
+    };
+}

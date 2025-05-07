@@ -164,6 +164,24 @@ export class ConnectionCredentials implements IConnectionInfo {
         return connInfo;
     }
 
+    public static removeUndefinedProperties(connection: IConnectionInfo): IConnectionInfo {
+        // TODO: ideally this compares against the default values acquired from a source of truth (e.g. STS),
+        // so that it can clean up more than just undefined properties.
+
+        const output = Object.assign({}, connection);
+        for (const key of Object.keys(output)) {
+            if (
+                output[key] === undefined ||
+                // eslint-disable-next-line no-restricted-syntax
+                output[key] === null
+            ) {
+                delete output[key];
+            }
+        }
+
+        return output;
+    }
+
     public static async ensureRequiredPropertiesSet(
         credentials: IConnectionInfo,
         isProfile: boolean,
