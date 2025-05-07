@@ -1071,6 +1071,7 @@
   "Update": "Update",
   "Execute": "Execute",
   "Alter": "Alter",
+  "Signing in to Azure...": "Signing in to Azure...",
   "Connection Dialog (Preview)": "Connection Dialog (Preview)",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
