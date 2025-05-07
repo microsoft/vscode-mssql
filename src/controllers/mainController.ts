@@ -792,7 +792,7 @@ export default class MainController implements vscode.Disposable {
             retry = false;
             sessionCreationResult =
                 await this._objectExplorerProvider.createSession(connectionCredentials);
-            if (sessionCreationResult.shouldRetryOnFailure) {
+            if (sessionCreationResult?.shouldRetryOnFailure) {
                 retry = true;
             }
         }
