@@ -81,6 +81,8 @@ export enum TelemetryActions {
     LoadFromConnectionString = "LoadFromConnectionString",
     MigrateLegacyConnections = "MigrateLegacyConnections",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
+    ScriptNode = "ScriptNode",
+    CreateSession = "CreateSession",
     ExplainQuery = "ExplainQuery",
     RewriteQuery = "RewriteQuery",
     AnalyzeQueryPerformance = "AnalyzeQueryPerformance",
