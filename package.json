@@ -1024,6 +1024,20 @@
                     "description": "%mssql.enableRichExperiencesDoNotShowPrompt.description%",
                     "scope": "application"
                 },
+                "mssql.useLegacyConnectionExperience": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.useLegacyConnectionExperience.description%",
+                    "deprecationMessage": "%mssql.legacySetting.deprecationMessage%",
+                    "scope": "application"
+                },
+                "mssql.useLegacyQueryResultExperience": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.useLegacyQueryResultExperience.description%",
+                    "deprecationMessage": "%mssql.legacySetting.deprecationMessage%",
+                    "scope": "application"
+                },
                 "mssql.openQueryResultsInTabByDefault": {
                     "type": "boolean",
                     "default": false,
