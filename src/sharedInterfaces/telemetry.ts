@@ -79,6 +79,7 @@ export enum TelemetryActions {
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
     LoadFromConnectionString = "LoadFromConnectionString",
+    MigrateLegacyConnections = "MigrateLegacyConnections",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
     ExplainQuery = "ExplainQuery",
     RewriteQuery = "RewriteQuery",

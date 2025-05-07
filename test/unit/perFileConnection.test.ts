@@ -123,10 +123,11 @@ function createTestConnectionManager(
         statusView,
         prompterMock.object,
         true, // useLegacyConnectionExperience
+        undefined, // logger
         serviceClient,
         wrapper,
         connectionStore,
-        undefined,
+        undefined, // credentialStore
         connectionUI,
     );
 }

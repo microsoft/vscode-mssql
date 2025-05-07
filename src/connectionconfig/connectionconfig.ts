@@ -87,6 +87,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         for (const profile of profiles) {
             if (this.populateMissingIds(profile)) {
+                madeChanges = true;
                 this._logger.logDebug(
                     `Adding missing group ID or connection ID to connection '${getConnectionDisplayName(profile)}'`,
                 );
