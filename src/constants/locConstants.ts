@@ -605,6 +605,7 @@ export class ObjectExplorer {
     public static ScriptDeleteLabel = l10n.t("Delete");
     public static ScriptExecuteLabel = l10n.t("Execute");
     public static ScriptAlterLabel = l10n.t("Alter");
+    public static AzureSignInMessage = l10n.t("Signing in to Azure...");
 }
 
 export class ConnectionDialog {
@@ -900,6 +901,15 @@ export class Connection {
                 "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
             args: [connectionId],
             comment: ["{0} is the connection ID for the connection that has been ignored"],
+        });
+    };
+
+    public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
+        return l10n.t({
+            message:
+                "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
+            args: [connectionId, errorMessage],
+            comment: ["{0} is the connection id", "{1} is the error message"],
         });
     };
 }
