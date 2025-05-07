@@ -22,6 +22,7 @@ export enum TelemetryViews {
     ConnectionDialog = "ConnectionDialog",
     ExecutionPlan = "ExecutionPlan",
     AddFirewallRule = "AddFirewallRule",
+    MssqlCopilot = "MssqlCopilot",
 }
 
 export enum TelemetryActions {
@@ -79,6 +80,14 @@ export enum TelemetryActions {
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
     LoadFromConnectionString = "LoadFromConnectionString",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
+    ExplainQuery = "ExplainQuery",
+    RewriteQuery = "RewriteQuery",
+    AnalyzeQueryPerformance = "AnalyzeQueryPerformance",
+    Error = "Error",
+    ToolCall = "ToolCall",
+    Feedback = "Feedback",
+    ChatWithDatabase = "ChatWithDatabase",
+    StartConversation = "StartConversation",
 }
 
 /**
