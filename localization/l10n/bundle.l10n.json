@@ -1060,6 +1060,7 @@
   "Execute": "Execute",
   "Alter": "Alter",
   "Connection Dialog": "Connection Dialog",
+  "Signing in to Azure...": "Signing in to Azure...",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",

@@ -605,6 +605,7 @@ export class ObjectExplorer {
     public static ScriptDeleteLabel = l10n.t("Delete");
     public static ScriptExecuteLabel = l10n.t("Execute");
     public static ScriptAlterLabel = l10n.t("Alter");
+    public static AzureSignInMessage = l10n.t("Signing in to Azure...");
 }
 
 export class ConnectionDialog {
