@@ -2542,6 +2542,9 @@
     <trans-unit id="mssql.connection.id">
       <source xml:lang="en">The unique identifier for this connection profile.</source>
     </trans-unit>
+    <trans-unit id="mssql.legacySetting.deprecationMessage">
+      <source xml:lang="en">This setting will be removed in a future release.</source>
+    </trans-unit>
     <trans-unit id="mssql.toggleSqlCmd">
       <source xml:lang="en">Toggle SQLCMD Mode</source>
     </trans-unit>
@@ -2553,6 +2556,12 @@
     </trans-unit>
     <trans-unit id="mssql.chooseDatabase">
       <source xml:lang="en">Use Database</source>
+    </trans-unit>
+    <trans-unit id="mssql.useLegacyConnectionExperience.description">
+      <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
+    </trans-unit>
+    <trans-unit id="mssql.useLegacyQueryResultExperience.description">
+      <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
