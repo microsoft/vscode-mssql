@@ -526,6 +526,9 @@ export class ObjectExplorerService {
             TelemetryViews.ObjectExplorer,
             TelemetryActions.CreateSession,
             undefined,
+            {
+                connectionType: connectionInfo?.authenticationType ?? "newConnection",
+            },
             undefined,
         );
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
@@ -564,7 +567,9 @@ export class ObjectExplorerService {
                     sessionCreationResult,
                     connectionProfile,
                 );
-                createSessionActivity.end(ActivityStatus.Succeeded);
+                createSessionActivity.end(ActivityStatus.Succeeded, {
+                    connectionType: connectionProfile.authenticationType,
+                });
                 return successResponse;
             } else {
                 this._logger.error(
