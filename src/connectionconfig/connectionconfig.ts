@@ -19,9 +19,10 @@ import { getConnectionDisplayName } from "../models/connectionInfo";
  */
 export class ConnectionConfig implements IConnectionConfig {
     private _logger: Logger;
+    private _hasDisplayedMissingIdError: boolean = false;
 
-    initialized: Deferred<void> = new Deferred<void>();
-    RootGroupName: string = "ROOT";
+    public initialized: Deferred<void> = new Deferred<void>();
+    public readonly RootGroupName: string = "ROOT";
 
     /**
      * Constructor.
@@ -167,19 +168,30 @@ export class ConnectionConfig implements IConnectionConfig {
             // Read from workspace settings
             let workspaceProfiles = this.getProfilesFromSettings(false);
 
-            // We don't currently auto-update connections in workspace/workspace folder config,
-            // so alert the user if any of those are missing their ID property that they need manual updating.
+            const middingIdConns: IConnectionProfile[] = [];
+
             workspaceProfiles = workspaceProfiles.filter((profile) => {
                 if (!profile.id) {
-                    this._vscodeWrapper.showErrorMessage(
-                        LocalizedConstants.Connection.missingConnectionIdError(
-                            getConnectionDisplayName(profile),
-                        ),
-                    );
+                    if (!this._hasDisplayedMissingIdError) {
+                        middingIdConns.push(profile);
+                    }
+
                     return false;
                 }
                 return true;
             });
+
+            if (middingIdConns.length > 0) {
+                // We don't currently auto-update connections in workspace/workspace folder config,
+                // so alert the user if any of those are missing their ID property that they need manual updating.
+
+                this._hasDisplayedMissingIdError = true;
+                this._vscodeWrapper.showErrorMessage(
+                    LocalizedConstants.Connection.missingConnectionIdsError(
+                        middingIdConns.map((c) => getConnectionDisplayName(c)),
+                    ),
+                );
+            }
 
             workspaceProfiles.sort(this.compareConnectionProfile);
             profiles = profiles.concat(workspaceProfiles);

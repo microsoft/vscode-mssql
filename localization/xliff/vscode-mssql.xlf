@@ -1847,6 +1847,10 @@
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
     </trans-unit>
+    <trans-unit id="++CODE++9f0bbf0f3fc1ec45ca02debcaf080ecd6f40e8a11bae6e0189136badee4946a7">
+      <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>
+      <note>{0} is the list of display names for the connections that have been ignored</note>
+    </trans-unit>
     <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
       <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
     </trans-unit>
@@ -1878,10 +1882,6 @@
     </trans-unit>
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++7ed1603bef6f521bbe5dd76c85ffc15cad08db22de5b458b03287f07c77e36f6">
-      <source xml:lang="en">The workspace or workspace folder connection &apos;{0}&apos; is missing the &apos;id&apos; property and is being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it.</source>
-      <note>{0} is the display name for the connection that has been ignored</note>
     </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>

@@ -261,15 +261,24 @@ suite("ConnectionConfig Tests", () => {
         });
 
         test("getConnections filters out workspace connections that are missing IDs", async () => {
-            const testConnProfile = {
-                id: undefined, // missing ID won't get automatically populated for workspace connections
-                groupId: rootGroupId,
-                server: "TestServer",
-                authenticationType: "Integrated",
-                profileName: "Test Profile",
-            } as IConnectionProfile;
+            const testConnProfiles = [
+                {
+                    id: undefined, // missing ID won't get automatically populated for workspace connections
+                    groupId: rootGroupId,
+                    server: "TestServer",
+                    authenticationType: "Integrated",
+                    profileName: "Test Profile One",
+                } as IConnectionProfile,
+                {
+                    id: undefined, // missing ID won't get automatically populated for workspace connections
+                    groupId: rootGroupId,
+                    server: "TestServer",
+                    authenticationType: "Integrated",
+                    profileName: "Test Profile Two",
+                } as IConnectionProfile,
+            ];
 
-            mockWorkspaceConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
+            mockWorkspaceConfigData.set(Constants.connectionsArrayName, testConnProfiles);
 
             mockVscodeWrapper
                 .setup((x) => x.showErrorMessage(TypeMoq.It.isAny()))
@@ -288,7 +297,14 @@ suite("ConnectionConfig Tests", () => {
             );
 
             mockVscodeWrapper.verify(
-                (v) => v.showErrorMessage(TypeMoq.It.isAny()),
+                (v) =>
+                    v.showErrorMessage(
+                        TypeMoq.It.is(
+                            (msg) =>
+                                msg.includes("Test Profile One") &&
+                                msg.includes("Test Profile Two"),
+                        ),
+                    ),
                 TypeMoq.Times.once(),
             );
         });
