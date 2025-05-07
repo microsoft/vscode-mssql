@@ -207,8 +207,8 @@ export class ConnectionCredentials implements IConnectionInfo {
             type: QuestionTypes.confirm,
             name: LocalizedConstants.msgSavePassword,
             message: LocalizedConstants.msgSavePassword,
-            shouldPrompt: (answers) => {
-                if (credentials.connectionString) {
+            shouldPrompt: (_answers) => {
+                if (credentials.connectionString || !shouldSaveUpdates) {
                     return false;
                 }
 
