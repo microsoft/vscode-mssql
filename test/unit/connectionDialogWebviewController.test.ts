@@ -46,6 +46,7 @@ import { stubPromptForAzureSubscriptionFilter } from "./azureHelperStubs";
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
 
+    let controller: ConnectionDialogWebviewController;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let mainController: MainController;
@@ -53,7 +54,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let connectionStore: TypeMoq.IMock<ConnectionStore>;
     let connectionUi: TypeMoq.IMock<ConnectionUI>;
     let mockObjectExplorerProvider: TypeMoq.IMock<ObjectExplorerProvider>;
-    let controller: ConnectionDialogWebviewController;
     let azureAccountService: TypeMoq.IMock<AzureAccountService>;
     let serviceClientMock: TypeMoq.IMock<SqlToolsServerClient>;
 
