@@ -26,13 +26,9 @@ import {
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
-import { IAccount, ServiceOption } from "vscode-mssql";
+import { IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import {
-    CapabilitiesResult,
-    ConnectionCompleteParams,
-    GetCapabilitiesRequest,
-} from "../../src/models/contracts/connection";
+import { ConnectionCompleteParams } from "../../src/models/contracts/connection";
 import { stubTelemetry } from "./utils";
 import {
     stubConfirmVscodeAzureSignin,
@@ -41,10 +37,12 @@ import {
 } from "./azureHelperStubs";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { mockGetCapabilitiesRequest } from "./mocks";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
 
+    let controller: ConnectionDialogWebviewController;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let mainController: MainController;
@@ -52,7 +50,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let connectionStore: TypeMoq.IMock<ConnectionStore>;
     let connectionUi: TypeMoq.IMock<ConnectionUI>;
     let mockObjectExplorerProvider: TypeMoq.IMock<ObjectExplorerProvider>;
-    let controller: ConnectionDialogWebviewController;
     let azureAccountService: TypeMoq.IMock<AzureAccountService>;
     let serviceClientMock: TypeMoq.IMock<SqlToolsServerClient>;
 
@@ -131,89 +128,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 ]),
             );
 
-        serviceClientMock
-            .setup((s) =>
-                s.sendRequest(TypeMoq.It.isValue(GetCapabilitiesRequest.type), TypeMoq.It.isAny()),
-            )
-            .returns(() =>
-                Promise.resolve({
-                    capabilities: {
-                        connectionProvider: {
-                            groupDisplayNames: {
-                                group1: "Group 1",
-                                group2: "Group 2",
-                            },
-                            options: [
-                                {
-                                    name: "server",
-                                    displayName: "Server",
-                                    isRequired: true,
-                                    valueType: "string",
-                                },
-                                {
-                                    name: "user",
-                                    displayName: "User",
-                                    isRequired: false,
-                                    valueType: "string",
-                                },
-                                {
-                                    name: "password",
-                                    displayName: "Password",
-                                    isRequired: false,
-                                    valueType: "password",
-                                },
-                                {
-                                    name: "trustServerCertificate",
-                                    displayName: "Trust Server Certificate",
-                                    isRequired: false,
-                                    valueType: "boolean",
-                                },
-                                {
-                                    name: "authenticationType",
-                                    displayName: "Authentication Type",
-                                    isRequired: false,
-                                    valueType: "category",
-                                    categoryValues: [
-                                        AuthenticationType.SqlLogin,
-                                        AuthenticationType.Integrated,
-                                        AuthenticationType.AzureMFA,
-                                    ],
-                                },
-                                {
-                                    name: "savePassword",
-                                    displayName: "Save Password",
-                                    isRequired: false,
-                                    valueType: "boolean",
-                                },
-                                {
-                                    name: "accountId",
-                                    displayName: "Account Id",
-                                    isRequired: false,
-                                    valueType: "string",
-                                },
-                                {
-                                    name: "tenantId",
-                                    displayName: "Tenant Id",
-                                    isRequired: false,
-                                    valueType: "string",
-                                },
-                                {
-                                    name: "database",
-                                    displayName: "Database",
-                                    isRequired: false,
-                                    valueType: "string",
-                                },
-                                {
-                                    name: "encrypt",
-                                    displayName: "Encrypt",
-                                    isRequired: false,
-                                    valueType: "boolean",
-                                },
-                            ] as ServiceOption[],
-                        },
-                    },
-                } as unknown as CapabilitiesResult),
-            );
+        mockGetCapabilitiesRequest(serviceClientMock);
 
         mainController = new MainController(
             mockContext.object,
@@ -333,7 +248,38 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "should be ready to connect when launched with a profile to edit",
             ).to.be.true;
         });
+
+        test("should initialize correctly when editing connection with password", async () => {
+            const editedConnection = {
+                profileName: "Test Server to Edit",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.SqlLogin,
+                user: "testUser",
+                password: "testPassword",
+            } as IConnectionDialogProfile;
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext.object,
+                mockVscodeWrapper.object,
+                mainController,
+                mockObjectExplorerProvider.object,
+                editedConnection,
+            );
+            await controller.initialized;
+
+            expect(controller["_connectionBeingEdited"]).to.deep.equal(
+                editedConnection,
+                "Form state should be the same as the connection being edited",
+            );
+
+            expect(
+                controller.state.readyToConnect,
+                "should be ready to connect when launched with a profile to edit",
+            ).to.be.true;
+        });
     });
+
     suite("Reducers", () => {
         suite("setConnectionInputType", () => {
             test("Should set connection input type correctly for Parameters", async () => {

@@ -123,6 +123,7 @@ function createTestConnectionManager(
         statusView,
         prompterMock.object,
         false,
+        undefined,
         serviceClient,
         wrapper,
         connectionStore,

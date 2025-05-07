@@ -10,6 +10,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as vscodeMssql from "vscode-mssql";
 import { TreeNodeType } from "./nodes/connectTreeNode";
+import * as vscode from "vscode";
 
 export class ObjectExplorerUtils {
     public static readonly rootPath: string = path.join(__dirname, "objectTypes");
@@ -19,8 +20,9 @@ export class ObjectExplorerUtils {
      * @param nodeType The type of node to get the icon for
      * @returns The path to the icon for the node type
      */
-    public static iconPath(nodeType: string): string {
-        return path.join(ObjectExplorerUtils.rootPath, `${nodeType}.svg`);
+    public static iconPath(nodeType: string): vscode.Uri | undefined {
+        const fullPath = path.join(ObjectExplorerUtils.rootPath, `${nodeType}.svg`);
+        return vscode.Uri.file(fullPath);
     }
 
     public static getNodeUri(node: TreeNodeType): string {
