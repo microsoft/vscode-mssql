@@ -42,10 +42,15 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
 import providerSettings from "../azure/providerSettings";
 import { IConnectionInfo } from "vscode-mssql";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { IAccount } from "../models/contracts/azure";
 import * as AzureConstants from "../azure/constants";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import {
+    ActivityObject,
+    ActivityStatus,
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 import {
     GetSessionIdRequest,
     GetSessionIdResponse,
@@ -360,19 +365,35 @@ export class ObjectExplorerService {
      * @returns The root node children
      */
     private async getRootNodes(): Promise<vscode.TreeItem[]> {
+        const getConnectionActivity = startActivity(
+            TelemetryViews.ObjectExplorer,
+            TelemetryActions.ExpandNode,
+            undefined,
+            {
+                nodeType: "root",
+            },
+        );
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
 
         // if there are no saved connections, show the add connection node
         if (savedConnections.length === 0) {
+            getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
+                childrenCount: 0,
+            });
             return this.getAddConnectionNode();
         }
 
+        let result: TreeNodeInfo[] = [];
         if (this._rootTreeNodeArray) {
-            return this.sortByServerName(this._rootTreeNodeArray);
+            result = this.sortByServerName(this._rootTreeNodeArray);
         } else {
             this._rootTreeNodeArray = await this.getSavedConnectionNodes();
-            return this.sortByServerName(this._rootTreeNodeArray);
+            result = this.sortByServerName(this._rootTreeNodeArray);
         }
+        getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
+            nodeCount: result.length,
+        });
+        return result;
     }
 
     /**
@@ -483,6 +504,12 @@ export class ObjectExplorerService {
     public async createSession(
         connectionInfo?: IConnectionInfo,
     ): Promise<CreateSessionResult | undefined> {
+        const createSessionActivity = startActivity(
+            TelemetryViews.ObjectExplorer,
+            TelemetryActions.CreateSession,
+            undefined,
+            undefined,
+        );
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
 
         if (!connectionProfile) {
@@ -511,12 +538,19 @@ export class ObjectExplorerService {
         if (createSessionResponse) {
             const sessionCreationResult = await sessionCreatedResponse;
             if (sessionCreationResult.success) {
-                return this.handleSessionCreationSuccess(sessionCreationResult, connectionProfile);
+                const successResponse = await this.handleSessionCreationSuccess(
+                    sessionCreationResult,
+                    connectionProfile,
+                );
+                createSessionActivity.end(ActivityStatus.Succeeded);
+                return successResponse;
             } else {
                 const shouldReconnect = await this.handleSessionCreationFailure(
                     sessionCreationResult,
                     connectionProfile,
+                    createSessionActivity,
                 );
+                createSessionActivity.endFailed();
                 return {
                     sessionId: undefined,
                     connectionNode: undefined,
@@ -705,10 +739,19 @@ export class ObjectExplorerService {
     private async handleSessionCreationFailure(
         failureResponse: SessionCreatedParameters,
         connectionProfile: IConnectionProfile,
+        telemetryActivty: ActivityObject,
     ): Promise<boolean> {
         let error = LocalizedConstants.StatusBar.connectErrorLabel;
         let errorNumber: number;
         if (failureResponse.errorNumber) {
+            telemetryActivty.update(
+                {
+                    connectionType: connectionProfile.authenticationType,
+                },
+                {
+                    errorNumber: failureResponse.errorNumber,
+                },
+            );
             errorNumber = failureResponse.errorNumber;
         }
         if (failureResponse.errorMessage) {
@@ -722,6 +765,11 @@ export class ObjectExplorerService {
                         resolve(updatedProfile);
                     },
                 );
+            });
+            telemetryActivty.update({
+                connectionType: connectionProfile.authenticationType,
+                errorHandled: "trustServerCertificate",
+                isFixed: fixedProfile ? "true" : "false",
             });
             if (fixedProfile) {
                 return true;
@@ -738,6 +786,11 @@ export class ObjectExplorerService {
                         connectionProfile,
                         failureResponse,
                     );
+                telemetryActivty.update({
+                    connectionType: connectionProfile.authenticationType,
+                    errorHandled: "firewallRule",
+                    isFixed: isFirewallAdded ? "true" : "false",
+                });
                 if (isFirewallAdded) {
                     return true;
                 }

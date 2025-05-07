@@ -78,6 +78,7 @@ export enum TelemetryActions {
     LoadFromConnectionString = "LoadFromConnectionString",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
     ScriptNode = "ScriptNode",
+    CreateSession = "CreateSession",
 }
 
 /**
