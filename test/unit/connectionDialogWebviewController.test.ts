@@ -249,7 +249,38 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "should be ready to connect when launched with a profile to edit",
             ).to.be.true;
         });
+
+        test("should initialize correctly when editing connection with password", async () => {
+            const editedConnection = {
+                profileName: "Test Server to Edit",
+                server: "SavedServer",
+                database: "SavedDatabase",
+                authenticationType: AuthenticationType.SqlLogin,
+                user: "testUser",
+                password: "testPassword",
+            } as IConnectionDialogProfile;
+
+            controller = new ConnectionDialogWebviewController(
+                mockContext.object,
+                mockVscodeWrapper.object,
+                mainController,
+                mockObjectExplorerProvider.object,
+                editedConnection,
+            );
+            await controller.initialized;
+
+            expect(controller["_connectionBeingEdited"]).to.deep.equal(
+                editedConnection,
+                "Form state should be the same as the connection being edited",
+            );
+
+            expect(
+                controller.state.readyToConnect,
+                "should be ready to connect when launched with a profile to edit",
+            ).to.be.true;
+        });
     });
+
     suite("Reducers", () => {
         suite("setConnectionInputType", () => {
             test("Should set connection input type correctly for Parameters", async () => {
