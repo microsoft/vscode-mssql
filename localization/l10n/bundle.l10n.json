@@ -612,20 +612,8 @@
     ]
   },
   "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
-  "{0} (Preview)/{0} is the editor title": {
-    "message": "{0} (Preview)",
-    "comment": [
-      "{0} is the editor title"
-    ]
-  },
-  "Object Explorer Filter (Preview)": "Object Explorer Filter (Preview)",
+  "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
-  "{0} (Preview)/{0} is the file name": {
-    "message": "{0} (Preview)",
-    "comment": [
-      "{0} is the file name"
-    ]
-  },
   "Remind Me Later": "Remind Me Later",
   "Don't Show Again": "Don't Show Again",
   "Learn More": "Learn More",
@@ -1071,7 +1059,8 @@
   "Update": "Update",
   "Execute": "Execute",
   "Alter": "Alter",
-  "Connection Dialog (Preview)": "Connection Dialog (Preview)",
+  "Connection Dialog": "Connection Dialog",
+  "Signing in to Azure...": "Signing in to Azure...",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",
@@ -1097,6 +1086,15 @@
       "{0} is the connection name"
     ]
   },
+  "Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.": "Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+  "Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts./{0} is the account display name{1} is the tenant id": {
+    "message": "Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+    "comment": [
+      "{0} is the account display name",
+      "{1} is the tenant id"
+    ]
+  },
+  "Clear cache and refresh token": "Clear cache and refresh token",
   "Add Firewall Rule to {0}/{0} is the server name": {
     "message": "Add Firewall Rule to {0}",
     "comment": [
@@ -1185,10 +1183,30 @@
   "Loading Schema Designer Model...": "Loading Schema Designer Model...",
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",
+  "Schema Designer": "Schema Designer",
   "Connect to MSSQL": "Connect to MSSQL",
   "Click to connect to a database": "Click to connect to a database",
   "Connecting": "Connecting",
   "Connection error": "Connection error",
+  "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}/{0} is the list of display names for the connections that have been ignored": {
+    "message": "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
+    "comment": [
+      "{0} is the list of display names for the connections that have been ignored"
+    ]
+  },
+  "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it./{0} is the connection ID for the connection that has been ignored": {
+    "message": "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
+    "comment": [
+      "{0} is the connection ID for the connection that has been ignored"
+    ]
+  },
+  "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}/{0} is the connection id{1} is the error message": {
+    "message": "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
+    "comment": [
+      "{0} is the connection id",
+      "{1} is the error message"
+    ]
+  },
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

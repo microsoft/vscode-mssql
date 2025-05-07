@@ -52,7 +52,7 @@ export class ConnectionUI {
         private _connectionStore: ConnectionStore,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
-        private _isRichExperiencesEnabled: boolean = constants.isRichExperiencesEnabledDefault,
+        private _useLegacyConnectionExperience: boolean = false,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!this._vscodeWrapper) {
@@ -522,26 +522,37 @@ export class ConnectionUI {
     /**
      * Calls the create profile workflow
      * @param validate whether the profile should be connected to and validated before saving
-     * @returns undefined if profile creation failed
+     * @returns undefined if profile creation failed or was cancelled, or if the Connection Dialog is getting used
      */
     public async createAndSaveProfile(
         validate: boolean = true,
     ): Promise<IConnectionProfile | undefined> {
-        let profile = await this.promptForCreateProfile();
-        if (profile) {
-            let savedProfile = validate
-                ? await this.validateAndSaveProfile(profile)
-                : await this.saveProfile(profile);
-            if (savedProfile) {
-                if (validate) {
-                    this.vscodeWrapper.showInformationMessage(
-                        LocalizedConstants.msgProfileCreatedAndConnected,
-                    );
-                } else {
-                    this.vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileCreated);
+        if (!this._useLegacyConnectionExperience) {
+            // Opening the Connection Dialog is considering the end of the flow regardless of whether they create a new connection,
+            // so undefined is returned.
+            // It's considered the end of the flow because opening a complex dialog in the middle of a flow then continuing is disorienting.
+            // If they want to use their new connection, they can execute their query again.
+            vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
+            return undefined;
+        } else {
+            let profile = await this.promptForCreateProfile();
+            if (profile) {
+                let savedProfile = validate
+                    ? await this.validateAndSaveProfile(profile)
+                    : await this.saveProfile(profile);
+                if (savedProfile) {
+                    if (validate) {
+                        this.vscodeWrapper.showInformationMessage(
+                            LocalizedConstants.msgProfileCreatedAndConnected,
+                        );
+                    } else {
+                        this.vscodeWrapper.showInformationMessage(
+                            LocalizedConstants.msgProfileCreated,
+                        );
+                    }
                 }
+                return savedProfile;
             }
-            return savedProfile;
         }
     }
 
@@ -616,7 +627,7 @@ export class ConnectionUI {
         profile: IConnectionInfo,
         connectionResponse: ConnectionCompleteParams | SessionCreatedParameters,
     ): Promise<boolean> {
-        if (this._isRichExperiencesEnabled) {
+        if (!this._useLegacyConnectionExperience) {
             if (connectionResponse.errorNumber !== constants.errorFirewallRule) {
                 Utils.logDebug(
                     `handleFirewallError called with non-firewall-error response; error number: '${connectionResponse.errorNumber}'`,
@@ -662,7 +673,10 @@ export class ConnectionUI {
                 this.connectionManager.accountService.setAccount(account!);
             }
 
-            const handleResponse = await this.connectionManager.firewallService.handleFirewallRule(connectionResponse.errorNumber, connectionResponse.errorMessage);
+            const handleResponse = await this.connectionManager.firewallService.handleFirewallRule(
+                connectionResponse.errorNumber,
+                connectionResponse.errorMessage,
+            );
 
             let success = handleResponse.result;
 

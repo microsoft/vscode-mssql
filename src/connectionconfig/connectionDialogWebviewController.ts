@@ -64,6 +64,7 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
 import { errorFirewallRule, errorSSLCertificateValidationFailed } from "../constants/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
+import * as Utils from "../models/utils";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -140,6 +141,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryActions.Initialize,
                     err,
                     true, // includeErrorMessage
+                    undefined, // errorCode,
+                    "catchAll", // errorType
                 );
                 this.initialized.reject(getErrorMessage(err));
             });
@@ -159,7 +162,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         };
 
         this.state.connectionComponents.groupedAdvancedOptions = groupAdvancedOptions(
-            this.state.formComponents as any,
+            this.state.formComponents as Record<
+                keyof IConnectionDialogProfile,
+                ConnectionDialogFormItemSpec
+            >, // cast away the Partial type
             this.state.connectionComponents,
         );
 
@@ -180,6 +186,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 TelemetryActions.Initialize,
                 err,
                 false, // includeErrorMessage
+                undefined, // errorCode,
+                "loadSavedConnections", // errorType
             );
         }
 
@@ -196,6 +204,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryActions.Initialize,
                     err,
                     false, // includeErrorMessage
+                    undefined, // errorCode,
+                    "loadConnectionToEdit", // errorType
                 );
             }
         }
@@ -264,7 +274,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     err,
                     false, // includeErrorMessage
                     undefined, // errorCode
-                    undefined, // errorType
+                    err.Name, // errorType
                     {
                         failure: err.Name,
                     },
@@ -285,8 +295,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("filterAzureSubscriptions", async (state) => {
-            await promptForAzureSubscriptionFilter(state);
-            await this.loadAllAzureServers(state);
+            try {
+                if (await promptForAzureSubscriptionFilter(state)) {
+                    await this.loadAllAzureServers(state);
+                }
+            } catch (err) {
+                this.state.formError = getErrorMessage(err);
+
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.FilterAzureSubscriptions,
+                    err,
+                    false, // includeErrorMessage
+                );
+            }
 
             return state;
         });
@@ -561,63 +583,43 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             },
         );
 
+        const self = this;
+
+        function processConnections(
+            conns: IConnectionProfileWithSource[],
+            connType: "recent" | "saved",
+        ) {
+            return conns
+                .map((conn) => {
+                    try {
+                        return self.initializeConnectionForDialog(conn);
+                    } catch (err) {
+                        console.error(
+                            `Error initializing ${connType} connection: ${getErrorMessage(err)}`,
+                        );
+
+                        sendErrorEvent(
+                            TelemetryViews.ConnectionDialog,
+                            TelemetryActions.LoadConnections,
+                            err,
+                            false, // includeErrorMessage
+                            undefined, // errorCode
+                            undefined, // errorType
+                            {
+                                connectionType: connType,
+                                authType: conn.authenticationType,
+                            },
+                        );
+
+                        return Promise.resolve(undefined);
+                    }
+                })
+                .filter((c) => c !== undefined);
+        }
+
         return {
-            recentConnections: await Promise.all(
-                recentConnections
-                    .map((conn) => {
-                        try {
-                            return this.initializeConnectionForDialog(conn);
-                        } catch (ex) {
-                            console.error(
-                                "Error initializing recent connection: " + getErrorMessage(ex),
-                            );
-
-                            sendErrorEvent(
-                                TelemetryViews.ConnectionDialog,
-                                TelemetryActions.LoadConnections,
-                                ex,
-                                false, // includeErrorMessage
-                                undefined, // errorCode
-                                undefined, // errorType
-                                {
-                                    connectionType: "recent",
-                                    authType: conn.authenticationType,
-                                },
-                            );
-
-                            return Promise.resolve(undefined);
-                        }
-                    })
-                    .filter((c) => c !== undefined),
-            ),
-            savedConnections: await Promise.all(
-                savedConnections
-                    .map((conn) => {
-                        try {
-                            return this.initializeConnectionForDialog(conn);
-                        } catch (ex) {
-                            console.error(
-                                "Error initializing saved connection: " + getErrorMessage(ex),
-                            );
-
-                            sendErrorEvent(
-                                TelemetryViews.ConnectionDialog,
-                                TelemetryActions.LoadConnections,
-                                ex,
-                                false, // includeErrorMessage
-                                undefined, // errorCode
-                                undefined, // errorType
-                                {
-                                    connectionType: "saved",
-                                    authType: conn.authenticationType,
-                                },
-                            );
-
-                            return Promise.resolve(undefined);
-                        }
-                    })
-                    .filter((c) => c !== undefined),
-            ),
+            recentConnections: await Promise.all(processConnections(recentConnections, "recent")),
+            savedConnections: await Promise.all(processConnections(savedConnections, "saved")),
         };
     }
 
@@ -711,7 +713,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             // all properties are set when converting from a ConnectionDetails object,
             // so we want to clean the default undefined properties before saving.
-            cleanedConnection = this.removeUndefinedProperties(
+            cleanedConnection = ConnectionCredentials.removeUndefinedProperties(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 cleanedConnection as any,
             );
@@ -754,24 +756,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return state;
     }
 
-    private removeUndefinedProperties(connProfile: IConnectionProfile): IConnectionProfile {
-        // TODO: ideally this compares against the default values acquired from a source of truth (e.g. STS),
-        // so that it can clean up more than just undefined properties.
-
-        const output = Object.assign({}, connProfile);
-        for (const key of Object.keys(output)) {
-            if (
-                output[key] === undefined ||
-                // eslint-disable-next-line no-restricted-syntax
-                output[key] === null
-            ) {
-                delete output[key];
-            }
-        }
-
-        return output;
-    }
-
     private async handleConnectionErrorCodes(
         result: ConnectionCompleteParams,
         state: ConnectionDialogWebviewState,
@@ -803,7 +787,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     new Error(result.errorMessage),
                     true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
                     undefined, // errorCode
-                    undefined, // errorType
+                    "parseIP", // errorType
                 );
 
                 // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
@@ -882,46 +866,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connection: IConnectionInfo,
     ): Promise<IConnectionDialogProfile> {
         // Load the password if it's saved
-        const isConnectionStringConnection =
-            connection.connectionString !== undefined && connection.connectionString !== "";
-        if (!isConnectionStringConnection) {
-            const password =
-                await this._mainController.connectionManager.connectionStore.lookupPassword(
-                    connection,
-                    isConnectionStringConnection,
-                );
-            connection.password = password;
-        } else {
-            // If the connection is a connection string connection with SQL Auth:
-            //   * the full connection string is stored as the "password" in the credential store
-            //   * we need to extract the password from the connection string
-            // If the connection is a connection string connection with a different auth type, then there's nothing in the credential store.
-
-            const connectionString =
-                await this._mainController.connectionManager.connectionStore.lookupPassword(
-                    connection,
-                    isConnectionStringConnection,
-                );
-
-            if (connectionString) {
-                const passwordIndex = connectionString.toLowerCase().indexOf("password=");
-
-                if (passwordIndex !== -1) {
-                    // extract password from connection string; found between 'Password=' and the next ';'
-                    const passwordStart = passwordIndex + "password=".length;
-                    const passwordEnd = connectionString.indexOf(";", passwordStart);
-                    if (passwordEnd !== -1) {
-                        connection.password = connectionString.substring(
-                            passwordStart,
-                            passwordEnd,
-                        );
-                    }
-
-                    // clear the connection string from the IConnectionDialogProfile so that the ugly connection string key
-                    // that's used to look up the actual connection string (with password) isn't displayed
-                    connection.connectionString = "";
-                }
+        if (Utils.isEmpty(connection.connectionString)) {
+            if (!connection.password) {
+                // look up password in credential store if one isn't already set
+                const password =
+                    await this._mainController.connectionManager.connectionStore.lookupPassword(
+                        connection,
+                        false /* isConnectionString */,
+                    );
+                connection.password = password;
             }
+        } else {
+            this.logger.logDebug(
+                "Connection string connection found in Connection Dialog initialization; should have been converted.",
+            );
         }
 
         return connection;

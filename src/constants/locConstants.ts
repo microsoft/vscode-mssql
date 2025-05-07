@@ -605,10 +605,11 @@ export class ObjectExplorer {
     public static ScriptDeleteLabel = l10n.t("Delete");
     public static ScriptExecuteLabel = l10n.t("Execute");
     public static ScriptAlterLabel = l10n.t("Alter");
+    public static AzureSignInMessage = l10n.t("Signing in to Azure...");
 }
 
 export class ConnectionDialog {
-    public static connectionDialog = l10n.t("Connection Dialog (Preview)");
+    public static connectionDialog = l10n.t("Connection Dialog");
     public static azureAccount = l10n.t("Azure Account");
     public static azureAccountIsRequired = l10n.t("Azure Account is required");
     public static selectAnAccount = l10n.t("Select an account");
@@ -640,6 +641,20 @@ export class ConnectionDialog {
             comment: ["{0} is the connection name"],
         });
     };
+    public static multipleMatchingTokensError(accountDisplayName?: string, tenantId?: string) {
+        if (!accountDisplayName || !tenantId) {
+            return l10n.t(
+                "Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+            );
+        }
+        return l10n.t({
+            message:
+                "Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+            args: [accountDisplayName, tenantId],
+            comment: ["{0} is the account display name", "{1} is the tenant id"],
+        });
+    }
+    public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
 }
 
 export class FirewallRule {
@@ -860,6 +875,7 @@ export class SchemaDesigner {
     );
     public static SaveAs = l10n.t("Save As");
     public static Save = l10n.t("Save");
+    public static SchemaDesigner = l10n.t("Schema Designer");
 }
 
 export class StatusBar {
@@ -867,4 +883,35 @@ export class StatusBar {
     public static notConnectedTooltip = l10n.t("Click to connect to a database");
     public static connectingLabel = l10n.t("Connecting");
     public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
+}
+
+export class Connection {
+    public static missingConnectionIdsError = (connectionDisplayNames: string[]) => {
+        return l10n.t({
+            message:
+                "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
+            args: [connectionDisplayNames.join("\n")],
+            comment: [
+                "{0} is the list of display names for the connections that have been ignored",
+            ],
+        });
+    };
+
+    public static missingConnectionInformation = (connectionId: string) => {
+        return l10n.t({
+            message:
+                "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
+            args: [connectionId],
+            comment: ["{0} is the connection ID for the connection that has been ignored"],
+        });
+    };
+
+    public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
+        return l10n.t({
+            message:
+                "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
+            args: [connectionId, errorMessage],
+            comment: ["{0} is the connection id", "{1} is the error message"],
+        });
+    };
 }
