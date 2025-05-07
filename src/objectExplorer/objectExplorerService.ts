@@ -232,14 +232,16 @@ export class ObjectExplorerService {
 
             if (response) {
                 const result = await expandResponse;
-                this._logger.verbose(`Expand node response: ${JSON.stringify(result)}`);
+                this._logger.verbose(
+                    `Expand node response: ${JSON.stringify(result)} for sessionId ${sessionId}`,
+                );
                 if (!result) {
                     return undefined;
                 }
 
                 if (result.nodes && !result.errorMessage) {
                     this._logger.verbose(
-                        `Received ${result.nodes.length} children for node ${node.label}`,
+                        `Received ${result.nodes.length} children for node ${node.label} for sessionId ${sessionId}`,
                     );
                     // successfully received children from SQL Tools Service
                     const children = result.nodes.map((n) =>
@@ -258,7 +260,9 @@ export class ObjectExplorerService {
                 } else {
                     // failure to expand node; display error
                     if (result.errorMessage) {
-                        this._logger.error(`Expand node failed: ${result.errorMessage}`);
+                        this._logger.error(
+                            `Expand node failed: ${result.errorMessage} for sessionId ${sessionId}`,
+                        );
                         this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
                     }
                     const errorNode = new ExpandErrorNode(node, result.errorMessage);
@@ -269,7 +273,7 @@ export class ObjectExplorerService {
                 return response;
             } else {
                 this._logger.error(
-                    `Expand node failed: Didn't receive a response from SQL Tools Service`,
+                    `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
                 );
                 await this._connectionManager.vscodeWrapper.showErrorMessage(
                     LocalizedConstants.msgUnableToExpand,
@@ -387,6 +391,7 @@ export class ObjectExplorerService {
 
         // if there are no saved connections, show the add connection node
         if (savedConnections.length === 0) {
+            this._logger.verbose("No saved connections found. Showing add connection node.");
             getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
                 childrenCount: 0,
             });
@@ -395,9 +400,12 @@ export class ObjectExplorerService {
 
         let result: TreeNodeInfo[] = [];
         if (this._rootTreeNodeArray) {
+            this._logger.verbose("Using cached root tree node array.");
             result = this.sortByServerName(this._rootTreeNodeArray);
         } else {
+            this._logger.verbose("Reading saved connections from connection store.");
             this._rootTreeNodeArray = await this.getSavedConnectionNodes();
+            this._logger.verbose(`Found ${this._rootTreeNodeArray.length} saved connections.`);
             result = this.sortByServerName(this._rootTreeNodeArray);
         }
         getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
@@ -776,6 +784,7 @@ export class ObjectExplorerService {
             error += `: ${failureResponse.errorMessage}`;
         }
         if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
+            this._logger.verbose("Fixing SSL trust server certificate error.");
             const fixedProfile: IConnectionProfile = await new Promise((resolve) => {
                 void this._connectionManager.showInstructionTextAsWarning(
                     connectionProfile,
@@ -799,6 +808,9 @@ export class ObjectExplorerService {
                     failureResponse.errorMessage,
                 );
             if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
+                this._logger.verbose(
+                    `Firewall rule added for IP address ${handleFirewallResult.ipAddress}`,
+                );
                 const isFirewallAdded =
                     await this._connectionManager.connectionUI.handleFirewallError(
                         connectionProfile,
@@ -810,17 +822,25 @@ export class ObjectExplorerService {
                     isFixed: isFirewallAdded ? "true" : "false",
                 });
                 if (isFirewallAdded) {
-                    return true;
+                    this._logger.verbose(
+                        `Firewall rule added for IP address ${handleFirewallResult.ipAddress}`,
+                    );
+                } else {
+                    this._logger.error(
+                        `Firewall rule not added for IP address ${handleFirewallResult.ipAddress}`,
+                    );
                 }
+                return isFirewallAdded;
             }
         } else if (
             connectionProfile.authenticationType === Constants.azureMfa &&
             this.needsAccountRefresh(failureResponse, connectionProfile.user)
         ) {
+            this._logger.verbose(`Refreshing account token for ${connectionProfile.accountId}}`);
             let account = this._connectionManager.accountStore.getAccount(
                 connectionProfile.accountId,
             );
-            this._logger.verbose(`Refreshing account token for ${account.displayInfo.userId}`);
+
             const tokenAdded = this.refreshAccount(account, connectionProfile);
             telemetryActivty.update({
                 connectionType: connectionProfile.authenticationType,
@@ -828,7 +848,11 @@ export class ObjectExplorerService {
                 isFixed: tokenAdded ? "true" : "false",
             });
             if (!tokenAdded) {
-                this._logger.error(`Token refresh failed for ${account.displayInfo.userId}`);
+                this._logger.error(`Token refresh failed for ${connectionProfile.accountId}`);
+            } else {
+                this._logger.verbose(
+                    `Token refreshed successfully for ${connectionProfile.accountId}`,
+                );
             }
             return tokenAdded;
         } else {
