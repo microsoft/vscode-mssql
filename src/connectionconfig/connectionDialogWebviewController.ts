@@ -867,12 +867,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ): Promise<IConnectionDialogProfile> {
         // Load the password if it's saved
         if (Utils.isEmpty(connection.connectionString)) {
-            const password =
-                await this._mainController.connectionManager.connectionStore.lookupPassword(
-                    connection,
-                    false /* isConnectionString */,
-                );
-            connection.password = password;
+            if (!connection.password) {
+                // look up password in credential store if one isn't already set
+                const password =
+                    await this._mainController.connectionManager.connectionStore.lookupPassword(
+                        connection,
+                        false /* isConnectionString */,
+                    );
+                connection.password = password;
+            }
         } else {
             this.logger.logDebug(
                 "Connection string connection found in Connection Dialog initialization; should have been converted.",
