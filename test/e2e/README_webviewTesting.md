@@ -36,7 +36,7 @@ $env:NODE_OPTIONS="--max-old-space-size=8192"
 ```
 then rerun the instrumentation
 
-After the code is instrumented run the tests using
+After the code is instrumented, run the tests using
 ```shell
 npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
 ```

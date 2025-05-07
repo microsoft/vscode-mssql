@@ -16,17 +16,22 @@ export async function addDatabaseConnection(
     savePassword: string,
     profileName: string,
 ): Promise<void> {
-    const addConnectionButton = await vsCodePage.locator('div[aria-label="Add Connection"]');
-    let isConnectionButtonVisible = await addConnectionButton.isVisible();
-    if (!isConnectionButtonVisible) {
+    const objectExplorer = vsCodePage.locator('[role="tree"][aria-label="Connections"]');
+    const addConnectionButton = await vsCodePage.locator(
+        '[class*="action-label codicon codicon-add"][aria-label*="Add Connection"]',
+    );
+    let isOEVisible = await objectExplorer.isVisible();
+    if (!isOEVisible) {
         await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
     }
-
+    await objectExplorer.click();
     await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
     await addConnectionButton.click();
 
-    await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
-
+    await vsCodePage.locator('input[aria-label="input"]').waitFor({
+        state: "visible",
+        timeout: 10 * 1000,
+    });
     await vsCodePage.fill('input[aria-label="input"]', `${serverName}`);
     await vsCodePage.keyboard.press("Enter");
 

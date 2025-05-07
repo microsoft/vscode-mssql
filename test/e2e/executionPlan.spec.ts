@@ -35,7 +35,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         // Press Enter in the VS Code page
         await vsCodePage.keyboard.press("Enter");
 
-        iframe = await getWebviewByTitle(vsCodePage, "plan.sqlplan (Preview)");
+        iframe = await getWebviewByTitle(vsCodePage, "plan.sqlplan");
 
         // Wait for plan to load
         const queryCostElementLocator = iframe.getByText(
@@ -331,7 +331,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 });
 
 export async function refocusQueryPlanTab(page: Page) {
-    const queryPlanTab = page.locator('div[role="tab"][aria-label="plan.sqlplan (Preview)"]');
+    const queryPlanTab = page.locator('div[role="tab"][aria-label="plan.sqlplan"]');
     await queryPlanTab.focus();
     await page.keyboard.press("Enter");
 }

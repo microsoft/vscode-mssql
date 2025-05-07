@@ -612,20 +612,8 @@
     ]
   },
   "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
-  "{0} (Preview)/{0} is the editor title": {
-    "message": "{0} (Preview)",
-    "comment": [
-      "{0} is the editor title"
-    ]
-  },
-  "Object Explorer Filter (Preview)": "Object Explorer Filter (Preview)",
+  "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
-  "{0} (Preview)/{0} is the file name": {
-    "message": "{0} (Preview)",
-    "comment": [
-      "{0} is the file name"
-    ]
-  },
   "Remind Me Later": "Remind Me Later",
   "Don't Show Again": "Don't Show Again",
   "Learn More": "Learn More",
@@ -1071,7 +1059,8 @@
   "Update": "Update",
   "Execute": "Execute",
   "Alter": "Alter",
-  "Connection Dialog (Preview)": "Connection Dialog (Preview)",
+  "Connection Dialog": "Connection Dialog",
+  "Signing in to Azure...": "Signing in to Azure...",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",
@@ -1194,6 +1183,13 @@
   "Loading Schema Designer Model...": "Loading Schema Designer Model...",
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",
+  "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}/{0} is the connection id{1} is the error message": {
+    "message": "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
+    "comment": [
+      "{0} is the connection id",
+      "{1} is the error message"
+    ]
+  },
   "Schema Designer": "Schema Designer",
   "Connect to MSSQL": "Connect to MSSQL",
   "Click to connect to a database": "Click to connect to a database",

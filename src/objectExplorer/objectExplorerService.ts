@@ -147,9 +147,7 @@ export class ObjectExplorerService {
      * @param profile The connection profile to reconnect.
      */
     private async reconnectProfile(profile: IConnectionProfile): Promise<void> {
-        const node = this._rootTreeNodeArray.find((n) =>
-            Utils.isSameConnectionInfo(n.connectionProfile, profile),
-        ) as ConnectionNode;
+        const node = this.getConnectionNodeFromProfile(profile);
         if (node) {
             node.updateConnectionProfile(profile);
             this.cleanNodeChildren(node);
@@ -621,7 +619,8 @@ export class ObjectExplorerService {
                 await this._connectionManager.connectionUI.saveProfile(
                     connectionProfile as IConnectionProfile,
                 );
-                if (!azureController.isAccountInCache(account)) {
+                const isAccountCache = await azureController.isAccountInCache(account);
+                if (!isAccountCache) {
                     needsRefresh = true;
                 }
             }
@@ -652,9 +651,7 @@ export class ObjectExplorerService {
             return;
         }
 
-        let connectionNode = this._rootTreeNodeArray.find((node) =>
-            Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
-        ) as ConnectionNode;
+        let connectionNode = this.getConnectionNodeFromProfile(connectionProfile);
 
         let isNewConnection = false;
         if (!connectionNode) {
@@ -690,9 +687,7 @@ export class ObjectExplorerService {
 
         return {
             sessionId: successResponse.sessionId,
-            connectionNode: this._rootTreeNodeArray.find((node) =>
-                Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
-            ) as ConnectionNode,
+            connectionNode: this.getConnectionNodeFromProfile(connectionProfile),
         };
     }
 
@@ -715,15 +710,15 @@ export class ObjectExplorerService {
             error += `: ${failureResponse.errorMessage}`;
         }
         if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
-            const fixedProfile: IConnectionProfile = await new Promise((resolve) => {
-                void this._connectionManager.showInstructionTextAsWarning(
-                    connectionProfile,
-                    async (updatedProfile) => {
-                        resolve(updatedProfile);
-                    },
-                );
-            });
+            const fixedProfile: IConnectionProfile = (await this._connectionManager.handleSSLError(
+                undefined,
+                connectionProfile,
+            )) as IConnectionProfile;
             if (fixedProfile) {
+                const connectionNode = this.getConnectionNodeFromProfile(fixedProfile);
+                if (connectionNode) {
+                    connectionNode.updateConnectionProfile(fixedProfile);
+                }
                 return true;
             }
         } else if (ObjectExplorerUtils.isFirewallError(failureResponse.errorNumber)) {
@@ -749,8 +744,7 @@ export class ObjectExplorerService {
             let account = this._connectionManager.accountStore.getAccount(
                 connectionProfile.accountId,
             );
-            await this.refreshAccount(account, connectionProfile);
-            return true;
+            return this.refreshAccount(account, connectionProfile);
         } else {
             this._connectionManager.vscodeWrapper.showErrorMessage(error);
         }
@@ -761,44 +755,72 @@ export class ObjectExplorerService {
      * Refreshes the account token for the given connection credentials.
      * @param account The account to refresh.
      * @param connectionCredentials The connection credentials to refresh.
+     * @returns True if the refresh was successful, false if it was cancelled or failed.
      */
     private async refreshAccount(
         account: IAccount,
         connectionCredentials: ConnectionCredentials,
-    ): Promise<void> {
-        let azureController = this._connectionManager.azureController;
-        let profile = new ConnectionProfile(connectionCredentials);
-        let azureAccountToken = await azureController.refreshAccessToken(
-            account,
-            this._connectionManager.accountStore,
-            connectionCredentials.tenantId,
-            providerSettings.resources.databaseResource,
-        );
-        if (!azureAccountToken) {
-            this._client.logger.verbose(
-                "Access token could not be refreshed for connection profile.",
+    ): Promise<boolean> {
+        const refreshTask = async () => {
+            let azureController = this._connectionManager.azureController;
+            let profile = new ConnectionProfile(connectionCredentials);
+            let azureAccountToken = await azureController.refreshAccessToken(
+                account,
+                this._connectionManager.accountStore,
+                connectionCredentials.tenantId,
+                providerSettings.resources.databaseResource,
             );
-            let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-            await this._connectionManager.vscodeWrapper
-                .showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel)
-                .then(async (result) => {
-                    if (result === LocalizedConstants.refreshTokenLabel) {
-                        let updatedProfile = await azureController.populateAccountProperties(
-                            profile,
-                            this._connectionManager.accountStore,
-                            providerSettings.resources.databaseResource,
-                        );
-                        connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
-                        connectionCredentials.expiresOn = updatedProfile.expiresOn;
-                    } else {
-                        this._client.logger.error("Credentials not refreshed by user.");
-                        return undefined;
+            if (!azureAccountToken) {
+                this._client.logger.verbose(
+                    "Access token could not be refreshed for connection profile.",
+                );
+                let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
+                await this._connectionManager.vscodeWrapper
+                    .showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel)
+                    .then(async (result) => {
+                        if (result === LocalizedConstants.refreshTokenLabel) {
+                            let updatedProfile = await azureController.populateAccountProperties(
+                                profile,
+                                this._connectionManager.accountStore,
+                                providerSettings.resources.databaseResource,
+                            );
+                            connectionCredentials.azureAccountToken =
+                                updatedProfile.azureAccountToken;
+                            connectionCredentials.expiresOn = updatedProfile.expiresOn;
+                        } else {
+                            this._client.logger.error("Credentials not refreshed by user.");
+                            return undefined;
+                        }
+                    });
+            } else {
+                connectionCredentials.azureAccountToken = azureAccountToken.token;
+                connectionCredentials.expiresOn = azureAccountToken.expiresOn;
+            }
+        };
+
+        return await new Promise<boolean>((resolve, reject) => {
+            vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: LocalizedConstants.ObjectExplorer.AzureSignInMessage,
+                    cancellable: true,
+                },
+                async (progress, token) => {
+                    token.onCancellationRequested(() => {
+                        this._client.logger.verbose("Azure sign in cancelled by user.");
+                        resolve(false);
+                    });
+                    try {
+                        await refreshTask();
+                        resolve(true);
+                    } catch (error) {
+                        this._client.logger.error("Error refreshing account: " + error);
+                        this._connectionManager.vscodeWrapper.showErrorMessage(error.message);
+                        resolve(false);
                     }
-                });
-        } else {
-            connectionCredentials.azureAccountToken = azureAccountToken.token;
-            connectionCredentials.expiresOn = azureAccountToken.expiresOn;
-        }
+                },
+            );
+        });
     }
 
     /**
@@ -936,6 +958,19 @@ export class ObjectExplorerService {
             this._client.logger.error("Node does not have a session ID");
             return ObjectExplorerUtils.getNodeUri(node); // TODO: can this removed entirely?  ideally, every node has a session ID associated with it
         }
+    }
+
+    /**
+     * Gets the connection node from the profile.
+     * @param connectionProfile The connection profile to get the node for
+     * @returns The connection node for the profile, or undefined if not found.
+     */
+    private getConnectionNodeFromProfile(
+        connectionProfile: IConnectionProfile,
+    ): ConnectionNode | undefined {
+        return this._rootTreeNodeArray.find((node) =>
+            Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
+        ) as ConnectionNode;
     }
 
     /**

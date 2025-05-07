@@ -1,4 +1,0 @@
-{
-    "mssql.enableRichExperiences": false,
-    "mssql.autoDisableNonTSqlLanguageService": false
-}

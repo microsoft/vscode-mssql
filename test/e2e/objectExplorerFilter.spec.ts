@@ -230,7 +230,7 @@ test.describe("MSSQL Extension - Object Explorer Filter", async () => {
 });
 
 export async function refocusFilterTab(page: Page) {
-    const filterTab = page.locator('[aria-label="Object Explorer Filter (Preview)"]');
+    const filterTab = page.locator('[aria-label="Object Explorer Filter"]');
     await filterTab.click();
 }
 
@@ -246,12 +246,12 @@ export async function openObjectExplorerFilter(
     treeItemLocator: Locator,
 ): Promise<FrameLocator> {
     await refocusTreeItem(treeItemLocator);
-    const filterButton = page.locator('[role="button"][aria-label="Filter (Preview)"]').nth(3);
+    const filterButton = page.locator('[role="button"][aria-label="Filter"]').nth(3);
 
     await filterButton.waitFor({ state: "attached" });
     await filterButton.click();
 
-    const iframe = await getWebviewByTitle(page, "Object Explorer Filter (Preview)");
+    const iframe = await getWebviewByTitle(page, "Object Explorer Filter");
 
     const filterHeader = iframe.getByText("Filter Settings");
     await filterHeader.waitFor({ state: "visible" });

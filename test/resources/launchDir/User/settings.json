@@ -1,6 +1,6 @@
 {
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt": false,
-    "mssql.enableRichExperiences": true,
-    "mssql.enableNewConnectionFeature": false,
+    "mssql.useLegacyQueryResultExperience": true,
+    "mssql.useLegacyConnectionExperience": true,
     "mssql.autoDisableNonTSqlLanguageService": false
 }
