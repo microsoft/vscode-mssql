@@ -171,14 +171,12 @@ export default class MainController implements vscode.Disposable {
         return this.configuration.get(Constants.configEnableRichExperiences);
     }
 
-    public get useLegacyConnectionUx(): boolean {
-        // undocumented flag, so defualt to false if not set
-        return this.configuration.get(Constants.configUseLegacyConnectionExperience) || false;
+    public get useLegacyConnectionExperience(): boolean {
+        return this.configuration.get(Constants.configUseLegacyConnectionExperience);
     }
 
     public get useLegacyQueryResultExperience(): boolean {
-        // undocumented flag, so defualt to false if not set
-        return this.configuration.get(Constants.configUseLegacyQueryResultExperience) || false;
+        return this.configuration.get(Constants.configUseLegacyQueryResultExperience);
     }
 
     /**
@@ -693,7 +691,7 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._statusview,
             this._prompter,
-            this.isRichExperiencesEnabled,
+            this.useLegacyConnectionExperience,
         );
 
         void this.showOnLaunchPrompts();
@@ -711,7 +709,7 @@ export default class MainController implements vscode.Disposable {
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
-            useLegacyConnections: this.useLegacyConnectionUx.toString(),
+            useLegacyConnections: this.useLegacyConnectionExperience.toString(),
             useLegacyQueryResults: this.useLegacyQueryResultExperience.toString(),
         });
 
@@ -831,7 +829,7 @@ export default class MainController implements vscode.Disposable {
         this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
-            if (this.useLegacyConnectionUx) {
+            if (this.useLegacyConnectionExperience) {
                 await self.createObjectExplorerSession();
             } else {
                 let connectionInfo: IConnectionInfo | undefined = undefined;
