@@ -79,7 +79,7 @@ suite("Connection UI tests", () => {
             connectionStore.object,
             mockAccountStore,
             prompter.object,
-            false,
+            true, // legacyConnectionExperience
             vscodeWrapper.object,
         );
     });

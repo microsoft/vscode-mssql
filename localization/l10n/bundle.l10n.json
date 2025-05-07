@@ -612,20 +612,8 @@
     ]
   },
   "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
-  "{0} (Preview)/{0} is the editor title": {
-    "message": "{0} (Preview)",
-    "comment": [
-      "{0} is the editor title"
-    ]
-  },
-  "Object Explorer Filter (Preview)": "Object Explorer Filter (Preview)",
+  "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
-  "{0} (Preview)/{0} is the file name": {
-    "message": "{0} (Preview)",
-    "comment": [
-      "{0} is the file name"
-    ]
-  },
   "Remind Me Later": "Remind Me Later",
   "Don't Show Again": "Don't Show Again",
   "Learn More": "Learn More",
@@ -1071,8 +1059,8 @@
   "Update": "Update",
   "Execute": "Execute",
   "Alter": "Alter",
+  "Connection Dialog": "Connection Dialog",
   "Signing in to Azure...": "Signing in to Azure...",
-  "Connection Dialog (Preview)": "Connection Dialog (Preview)",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",

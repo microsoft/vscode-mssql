@@ -609,7 +609,7 @@ export class ObjectExplorer {
 }
 
 export class ConnectionDialog {
-    public static connectionDialog = l10n.t("Connection Dialog (Preview)");
+    public static connectionDialog = l10n.t("Connection Dialog");
     public static azureAccount = l10n.t("Azure Account");
     public static azureAccountIsRequired = l10n.t("Azure Account is required");
     public static selectAnAccount = l10n.t("Select an account");

@@ -444,8 +444,8 @@
     <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
       <source xml:lang="en">Connecting...</source>
     </trans-unit>
-    <trans-unit id="++CODE++f82e876fbb96757b5e0ff7d062baaaf01763104fc6bba89647cc06e4e327b648">
-      <source xml:lang="en">Connection Dialog (Preview)</source>
+    <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
+      <source xml:lang="en">Connection Dialog</source>
     </trans-unit>
     <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
       <source xml:lang="en">Connection Error</source>
@@ -1238,8 +1238,8 @@
     <trans-unit id="++CODE++565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3">
       <source xml:lang="en">OK</source>
     </trans-unit>
-    <trans-unit id="++CODE++e1d42d9f427d5f4d009777176781c6c5cd131a4abc0f3dd3beac983b29e3efdb">
-      <source xml:lang="en">Object Explorer Filter (Preview)</source>
+    <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
+      <source xml:lang="en">Object Explorer Filter</source>
     </trans-unit>
     <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
       <source xml:lang="en">Object Type</source>
@@ -2048,14 +2048,6 @@
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
     </trans-unit>
-    <trans-unit id="++CODE++4a9d0c2a08911dce1aca48e9c47c363c83764394e17d9cb2484206ecf8c702c8">
-      <source xml:lang="en">{0} (Preview)</source>
-      <note>{0} is the file name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++1ab2969df504b0957aad86e66ea727c14d87ed01cc5039a8941d050884da2b78">
-      <source xml:lang="en">{0} (Preview)</source>
-      <note>{0} is the editor title</note>
-    </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
     </trans-unit>
@@ -2126,8 +2118,8 @@
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
-    <trans-unit id="mssql.addObjectExplorerPreview">
-      <source xml:lang="en">Add Connection (Preview)</source>
+    <trans-unit id="mssql.addObjectExplorerLegacy">
+      <source xml:lang="en">Add Connection (Legacy)</source>
     </trans-unit>
     <trans-unit id="mssql.addAadAccount">
       <source xml:lang="en">Add Microsoft Entra Account</source>
@@ -2229,7 +2221,7 @@
       <source xml:lang="en">Do not show prompts to enable UI-based features</source>
     </trans-unit>
     <trans-unit id="mssql.editConnection">
-      <source xml:lang="en">Edit Connection (Preview)</source>
+      <source xml:lang="en">Edit Connection</source>
     </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Edit Table</source>
@@ -2324,14 +2316,11 @@
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
-    <trans-unit id="mssql.enableNewQueryResultFeature.description">
-      <source xml:lang="en">Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
-    </trans-unit>
     <trans-unit id="mssql.enableSqlAuthenticationProvider">
       <source xml:lang="en">Enables use of the Sql Authentication Provider for &apos;Microsoft Entra Id Interactive&apos; authentication mode when user selects &apos;AzureMFA&apos; authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for &apos;MSAL&apos; Authentication Library. Please restart Visual Studio Code after changing this option.</source>
     </trans-unit>
     <trans-unit id="mssql.showExecutionPlanInResults">
-      <source xml:lang="en">Estimated Plan (Preview)</source>
+      <source xml:lang="en">Estimated Plan</source>
     </trans-unit>
     <trans-unit id="mssql.runCurrentStatement">
       <source xml:lang="en">Execute Current Statement</source>
@@ -2346,7 +2335,7 @@
       <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
     </trans-unit>
     <trans-unit id="mssql.filterNode">
-      <source xml:lang="en">Filter (Preview)</source>
+      <source xml:lang="en">Filter</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
       <source xml:lang="en">Filter your Object Explorer Tree</source>
@@ -2430,7 +2419,7 @@
       <source xml:lang="en">Query History</source>
     </trans-unit>
     <trans-unit id="extension.queryResult">
-      <source xml:lang="en">Query Results (Preview)</source>
+      <source xml:lang="en">Query Results</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.altText">
       <source xml:lang="en">Query editor and query results pane</source>
@@ -2576,6 +2565,9 @@
     <trans-unit id="mssql.connection.id">
       <source xml:lang="en">The unique identifier for this connection profile.</source>
     </trans-unit>
+    <trans-unit id="mssql.legacySetting.deprecationMessage">
+      <source xml:lang="en">This setting will be removed in a future release.</source>
+    </trans-unit>
     <trans-unit id="mssql.toggleSqlCmd">
       <source xml:lang="en">Toggle SQLCMD Mode</source>
     </trans-unit>
@@ -2587,6 +2579,12 @@
     </trans-unit>
     <trans-unit id="mssql.chooseDatabase">
       <source xml:lang="en">Use Database</source>
+    </trans-unit>
+    <trans-unit id="mssql.useLegacyConnectionExperience.description">
+      <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
+    </trans-unit>
+    <trans-unit id="mssql.useLegacyQueryResultExperience.description">
+      <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>

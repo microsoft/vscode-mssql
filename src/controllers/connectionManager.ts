@@ -120,7 +120,7 @@ export default class ConnectionManager {
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
-        private isRichExperiencesEnabled: boolean = Constants.isRichExperiencesEnabledDefault,
+        private _useLegacyConnectionExperience: boolean = false,
         private _logger?: Logger,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
@@ -168,7 +168,7 @@ export default class ConnectionManager {
                 this._connectionStore,
                 this._accountStore,
                 prompter,
-                isRichExperiencesEnabled,
+                _useLegacyConnectionExperience,
                 this.vscodeWrapper,
             );
         }
@@ -1095,7 +1095,7 @@ export default class ConnectionManager {
                 }
             } else if (
                 connection.errorNumber === Constants.errorFirewallRule &&
-                this.isRichExperiencesEnabled
+                !this._useLegacyConnectionExperience
             ) {
                 const addFirewallRuleController = new AddFirewallRuleWebviewController(
                     this.context,
