@@ -1,4 +1,1 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-CMD.exe /C "yarn precommit"
+yarn precommit
