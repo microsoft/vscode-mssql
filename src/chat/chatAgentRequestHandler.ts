@@ -22,6 +22,7 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
+import { getErrorMessage } from "../utils/utils";
 
 export interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -646,7 +647,7 @@ export const createSqlAgentRequestHandler = (
                 undefined,
                 {
                     correlationId: correlationId,
-                    errorMessage: (err as Error).message || "Unknown error",
+                    errorMessage: getErrorMessage(err),
                 },
             );
             console.error("Error in fallback language model call:", err);
