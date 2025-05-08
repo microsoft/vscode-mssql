@@ -331,7 +331,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 });
 
 export async function refocusQueryPlanTab(page: Page) {
-    const queryPlanTab = page.locator('div[role="tab"][aria-label="plan.sqlplan"]');
+    const queryPlanTab = page.locator('[role="tab"][aria-label="plan.sqlplan"]');
     await queryPlanTab.focus();
     await page.keyboard.press("Enter");
 }

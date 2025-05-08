@@ -66,7 +66,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     });
 
     test("Create table, insert data, and execute query", async () => {
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage, profileName);
 
         const createTestDB = "CREATE DATABASE TestDB;";
         await enterTextIntoQueryEditor(vsCodePage, createTestDB);
@@ -74,7 +74,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
 
         await resultWebview.locator("[id=messagepane]").waitFor({ state: "visible" });
 
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage, profileName);
 
         const sqlScript = `
 USE TestDB;
@@ -98,7 +98,7 @@ SELECT Name FROM TestTable;`;
     });
 
     test.afterAll(async () => {
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage, profileName);
         const dropTestDatabaseScript = `
 USE master
 ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE

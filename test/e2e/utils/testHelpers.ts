@@ -138,16 +138,12 @@ export async function addDatabaseConnectionThroughWebview(
     await clearNotifications(vsCodePage);
 }
 
-export async function openNewQueryEditor(
-    vsCodePage: Page,
-    profileName: string,
-    password: string,
-): Promise<void> {
+export async function openNewQueryEditor(vsCodePage: Page, profileName: string): Promise<void> {
     // check connection is loaded in OE
     const addedConnection = vsCodePage.locator(
         `[class*="tree-node-item"][aria-label="${profileName}"]`,
     );
-    await addedConnection.click({button: "right"});
+    await addedConnection.click({ button: "right" });
     await vsCodePage.locator('[class*="action-label"][aria-label*="New Query"]').click();
     await vsCodePage.keyboard.press("Enter");
 
