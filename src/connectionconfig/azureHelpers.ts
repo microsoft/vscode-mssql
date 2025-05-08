@@ -24,7 +24,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 
-export const azureSubscriptionFilterConfigKey = "azureResourceGroups.selectedSubscriptions";
+export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 
 //#region VS Code integration
 
@@ -71,11 +71,14 @@ export async function promptForAzureSubscriptionFilter(
             return false;
         }
 
-        const selectedSubs = await vscode.window.showQuickPick(getQuickPickItems(auth), {
-            canPickMany: true,
-            ignoreFocusOut: true,
-            placeHolder: l10n.t("Select subscriptions"),
-        });
+        const selectedSubs = await vscode.window.showQuickPick(
+            getSubscriptionQuickPickItems(auth),
+            {
+                canPickMany: true,
+                ignoreFocusOut: true,
+                placeHolder: l10n.t("Select subscriptions"),
+            },
+        );
 
         if (!selectedSubs) {
             return false;
@@ -100,7 +103,7 @@ export interface SubscriptionPickItem extends vscode.QuickPickItem {
     subscriptionId: string;
 }
 
-export async function getQuickPickItems(
+export async function getSubscriptionQuickPickItems(
     auth: VSCodeAzureSubscriptionProvider,
 ): Promise<SubscriptionPickItem[]> {
     const allSubs = await auth.getSubscriptions(

@@ -180,7 +180,7 @@
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.",
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",
     "mssql.userFeedback": "Give Feedback",
-    "mssql.selectedSubscriptions": "Selected Subscriptions",
+    "mssql.selectedAzureSubscriptions": "Selected Azure Subscriptions",
     "mssql.designSchema": "Design Schema (Preview)",
     "mssql.walkthroughs.getStarted.title": "Get Started with MSSQL for Visual Studio Code",
     "mssql.walkthroughs.getStarted.description": "Your first steps for connecting to and developing with a SQL database",

@@ -1122,13 +1122,12 @@
                     "description": "%mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description%",
                     "scope": "application"
                 },
-                "azureResourceGroups.selectedSubscriptions": {
+                "mssql.selectedAzureSubscriptions": {
                     "type": "array",
-                    "description": "%mssql.selectedSubscriptions%",
+                    "description": "%mssql.selectedAzureSubscriptions%",
                     "items": {
                         "type": "string"
-                    },
-                    "$comment": "This setting must be registered in case the user does not have the Azure Resource Groups extension installed.  All extensions using this configuration must register this setting."
+                    }
                 },
                 "mssql.azureActiveDirectory": {
                     "type": "string",
