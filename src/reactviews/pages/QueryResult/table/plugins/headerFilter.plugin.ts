@@ -142,6 +142,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
             this._eventManager.addEventListener(sortButton, "click", async (e: Event) => {
                 e.stopPropagation();
                 e.preventDefault();
+                if (!this.enabled) {
+                    await this.webviewState.extensionRpc.call("showFilterDisabledMessage", {});
+                    return;
+                }
                 this.columnDef = jQuery(sortButton).data("column"); //TODO: fix, shouldn't assign in the event handler
                 let columnFilterState: ColumnFilterState = {
                     columnDef: this.columnDef.id!,
@@ -337,23 +341,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
         jQuery(document).on("click", `#close-popup-${this.columnDef.id}`, () => {
             closePopup($popup);
             this.activePopup = null;
-        });
-
-        // Sorting button click handlers
-        jQuery(document).on("click", "#sort-ascending", (_e: JQuery.ClickEvent) => {
-            void this.handleMenuItemClick("sort-asc", this.columnDef);
-            closePopup($popup);
-            this.activePopup = null;
-            this.grid.setSortColumn(this.columnDef.id!, true);
-            this.columnDef.sorted = SortProperties.ASC;
-        });
-
-        jQuery(document).on("click", "#sort-descending", (_e: JQuery.ClickEvent) => {
-            void this.handleMenuItemClick("sort-desc", this.columnDef);
-            closePopup($popup);
-            this.activePopup = null;
-            this.grid.setSortColumn(this.columnDef.id!, false);
-            this.columnDef.sorted = SortProperties.DESC;
         });
 
         jQuery(document).on("click", `#apply-${this.columnDef.id}`, async () => {
@@ -644,10 +631,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private async handleMenuItemClick(command: SortDirection, columnDef: Slick.Column<T>) {
-        if (!this.enabled) {
-            await this.webviewState.extensionRpc.call("showFilterDisabledMessage", {});
-            return;
-        }
         const dataView = this.grid.getData();
         if (command === "sort-asc" || command === "sort-desc") {
             this.grid.setSortColumn(columnDef.id as string, command === "sort-asc");
