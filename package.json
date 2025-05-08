@@ -1631,6 +1631,11 @@
                     "default": true,
                     "description": "%mssql.resultsGrid.autoSizeColumns%"
                 },
+                "mssql.resultsGrid.inMemoryDataProcessingThreshold": {
+                    "type": "number",
+                    "default": 5000,
+                    "description": "%mssql.resultsGrid.inMemoryDataProcessingThreshold%"
+                },
                 "mssql.query.displayBitAsNumber": {
                     "type": "boolean",
                     "default": true,

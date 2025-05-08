@@ -561,6 +561,9 @@ export let openQueryResultsInTabByDefaultPrompt = l10n.t(
 );
 export let alwaysShowInNewTab = l10n.t("Always show in new tab");
 export let keepInQueryPane = l10n.t("Keep in query pane");
+export let inMemoryDataProcessingThresholdExceeded = l10n.t(
+    "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: 'mssql.resultsGrid.inMemoryDataProcessingThreshold'",
+);
 
 export function enableRichExperiencesPrompt(learnMoreUrl: string) {
     return l10n.t({

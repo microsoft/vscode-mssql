@@ -216,6 +216,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private async showFilter(filterButton: HTMLElement) {
+        if (!this.enabled) {
+            await this.webviewState.extensionRpc.call("showFilterDisabledMessage", {});
+            return;
+        }
         let $menuButton: JQuery<HTMLElement> | undefined;
         const target = withNullAsUndefined(filterButton);
         if (target) {
@@ -640,6 +644,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private async handleMenuItemClick(command: SortDirection, columnDef: Slick.Column<T>) {
+        if (!this.enabled) {
+            await this.webviewState.extensionRpc.call("showFilterDisabledMessage", {});
+            return;
+        }
         const dataView = this.grid.getData();
         if (command === "sort-asc" || command === "sort-desc") {
             this.grid.setSortColumn(columnDef.id as string, command === "sort-asc");

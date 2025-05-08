@@ -38,6 +38,8 @@ declare global {
     }
 }
 
+const IN_MEMORY_DATA_PROCESSING_THRESHOLD = 5000;
+
 export interface ResultGridProps {
     loadFunc: (offset: number, count: number) => Thenable<any[]>;
     resultSetSummary?: ResultSetSummary;
@@ -125,6 +127,15 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         const setupState = async () => {
             await table.setupFilterState();
             await table.restoreColumnWidths();
+            if (context.state.inMemoryDataProcessingThreshold) {
+                table.headerFilter.enabled =
+                    table.grid.getDataLength() < context.state.inMemoryDataProcessingThreshold;
+            } else {
+                console.debug("Using default inMemoryDataProcessingThreshold");
+                table.headerFilter.enabled =
+                    table.grid.getDataLength() < IN_MEMORY_DATA_PROCESSING_THRESHOLD;
+            }
+
             table.rerenderGrid();
         };
         const DEFAULT_FONT_SIZE = 12;
@@ -242,6 +253,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             },
             {
                 inMemoryDataProcessing: true,
+                inMemoryDataCountThreshold: context.state.inMemoryDataProcessingThreshold
+                    ? context.state.inMemoryDataProcessingThreshold
+                    : IN_MEMORY_DATA_PROCESSING_THRESHOLD,
             },
             undefined,
             undefined,
