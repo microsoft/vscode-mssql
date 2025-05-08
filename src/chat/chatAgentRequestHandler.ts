@@ -16,7 +16,13 @@ import {
     MessageRole,
     MessageType,
 } from "../models/contracts/copilot";
-import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import {
+    ActivityObject,
+    ActivityStatus,
+    TelemetryActions,
+    TelemetryViews,
+} from "../sharedInterfaces/telemetry";
+import { getErrorMessage } from "../utils/utils";
 
 export interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -203,6 +209,9 @@ export const createSqlAgentRequestHandler = (
 
         try {
             if (!model) {
+                activity.endFailed(new Error("No chat model found."), true, undefined, undefined, {
+                    correlationId: correlationId,
+                });
                 stream.markdown("No model found.");
                 return { metadata: { command: "", correlationId: correlationId } };
             }
@@ -218,7 +227,18 @@ export const createSqlAgentRequestHandler = (
             }
 
             if (!connectionUri) {
-                await sendToDefaultLanguageModel(prompt, model, stream, token);
+                activity.update({
+                    correlationId: correlationId,
+                    message: "No connection URI found. Sending prompt to default language model.",
+                });
+                await sendToDefaultLanguageModel(
+                    prompt,
+                    model,
+                    stream,
+                    token,
+                    activity,
+                    correlationId,
+                );
                 return { metadata: { command: "", correlationId: correlationId } };
             }
 
@@ -228,15 +248,20 @@ export const createSqlAgentRequestHandler = (
                 prompt,
             );
             if (!success) {
-                activity.endFailed(
-                    new Error("Failed to start conversation."),
-                    true,
-                    undefined,
-                    undefined,
-                    { correlationId: correlationId },
-                );
+                activity.update({
+                    correlationId: correlationId,
+                    message:
+                        "Failed to start conversation. Sending prompt to default language model.",
+                });
 
-                await sendToDefaultLanguageModel(prompt, model, stream, token);
+                await sendToDefaultLanguageModel(
+                    prompt,
+                    model,
+                    stream,
+                    token,
+                    activity,
+                    correlationId,
+                );
                 return { metadata: { command: "", correlationId: correlationId } };
             }
 
@@ -580,6 +605,8 @@ export const createSqlAgentRequestHandler = (
         model: vscode.LanguageModelChat,
         stream: vscode.ChatResponseStream,
         token: vscode.CancellationToken,
+        activity: ActivityObject,
+        correlationId: string,
     ): Promise<void> {
         try {
             stream.progress(`Using ${model.name} to process your request...`);
@@ -600,11 +627,29 @@ export const createSqlAgentRequestHandler = (
             }
 
             if (replyText) {
+                activity.end(ActivityStatus.Succeeded, {
+                    correlationId: correlationId,
+                    message: "The default language model succeeded.",
+                });
                 stream.markdown(replyText);
             } else {
+                activity.end(ActivityStatus.Succeeded, {
+                    correlationId: correlationId,
+                    message: "The default language model did not return any output.",
+                });
                 stream.markdown("The language model did not return any output.");
             }
         } catch (err) {
+            activity.endFailed(
+                new Error("Fallback to default language model call failed."),
+                true,
+                undefined,
+                undefined,
+                {
+                    correlationId: correlationId,
+                    errorMessage: getErrorMessage(err),
+                },
+            );
             console.error("Error in fallback language model call:", err);
             stream.markdown("An error occurred while processing your request.");
         }
