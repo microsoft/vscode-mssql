@@ -6,20 +6,13 @@
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import { expect } from "chai";
-import {
-    createSqlAgentRequestHandler,
-    // ISqlChatResult,
-} from "../../src/chat/chatAgentRequestHandler";
+import { createSqlAgentRequestHandler } from "../../src/chat/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Utils from "../../src/models/utils";
 import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
-import {
-    GetNextMessageResponse,
-    // LanguageModelRequestMessage,
-    MessageType,
-} from "../../src/models/contracts/copilot";
+import { GetNextMessageResponse, MessageType } from "../../src/models/contracts/copilot";
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
 
 suite("Chat Agent Request Handler Tests", () => {
