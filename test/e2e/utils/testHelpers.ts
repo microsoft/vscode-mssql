@@ -17,7 +17,7 @@ export async function addDatabaseConnection(
     profileName: string,
 ): Promise<void> {
     const objectExplorer = vsCodePage.locator('[role="tree"][aria-label="Connections"]');
-    const addConnectionButton = await vsCodePage.locator(
+    const addConnectionButton = vsCodePage.locator(
         '[class*="action-label codicon codicon-add"][aria-label*="Add Connection"]',
     );
     let isOEVisible = await objectExplorer.isVisible();
@@ -28,34 +28,34 @@ export async function addDatabaseConnection(
     await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
     await addConnectionButton.click();
 
-    await vsCodePage.locator('input[aria-label="input"]').waitFor({
+    await vsCodePage.locator('input[aria-describedby="quickInput_message"]').waitFor({
         state: "visible",
         timeout: 10 * 1000,
     });
-    await vsCodePage.fill('input[aria-label="input"]', `${serverName}`);
+    await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${serverName}`);
     await vsCodePage.keyboard.press("Enter");
 
     if (databaseName) {
-        await vsCodePage.fill('input[aria-label="input"]', `${databaseName}`);
+        await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${databaseName}`);
     }
     await vsCodePage.keyboard.press("Enter");
 
-    await vsCodePage.fill('input[aria-label="input"]', `${authType}`);
+    await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${authType}`);
     await vsCodePage.keyboard.press("Enter");
 
     if (authType === "SQL Login") {
-        await vsCodePage.fill('input[aria-label="input"]', `${userName}`);
+        await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${userName}`);
         await vsCodePage.keyboard.press("Enter");
 
-        await vsCodePage.fill('input[aria-label="input"]', `${password}`);
+        await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${password}`);
         await vsCodePage.keyboard.press("Enter");
 
-        await vsCodePage.fill('input[aria-label="input"]', `${savePassword}`);
+        await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${savePassword}`);
         await vsCodePage.keyboard.press("Enter");
     }
 
     if (profileName) {
-        await vsCodePage.fill('input[aria-label="input"]', `${profileName}`);
+        await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${profileName}`);
     }
     await vsCodePage.keyboard.press("Enter");
 
@@ -143,21 +143,17 @@ export async function openNewQueryEditor(
     profileName: string,
     password: string,
 ): Promise<void> {
-    await vsCodePage.keyboard.press("Control+P");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(">MS SQL: New Query");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.press("Enter");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(profileName);
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.press("Enter");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(password);
+    // check connection is loaded in OE
+    const addedConnection = vsCodePage.locator(
+        `[class*="tree-node-item"][aria-label="${profileName}"]`,
+    );
+    await addedConnection.click({button: "right"});
+    await vsCodePage.locator('[class*="action-label"][aria-label*="New Query"]').click();
     await vsCodePage.keyboard.press("Enter");
 
     await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
-    await vsCodePage.keyboard.press("Escape");
+    const queryEditor = vsCodePage.locator('textarea[class="inputarea monaco-mouse-cursor-text"]');
+    await queryEditor.waitFor({ state: "visible" });
 }
 
 export async function disconnect(vsCodePage: Page): Promise<void> {
@@ -176,7 +172,7 @@ export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): 
 }
 
 export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promise<void> {
-    const commandPaletteInput = vsCodePage.locator('input[aria-label="input"]');
+    const commandPaletteInput = vsCodePage.locator('input[aria-describedby="quickInput_message"]');
     await expect(commandPaletteInput).toBeVisible();
 }
 
@@ -190,7 +186,7 @@ export async function waitForConnectionToShowInObjectExplorer(
 ): Promise<void> {
     if (!profileName) return;
     // check connection is loaded in OE
-    const addedConnection = await vsCodePage.locator(
+    const addedConnection = vsCodePage.locator(
         `[class*="tree-node-item"][aria-label="${profileName}"]`,
     );
     await addedConnection.waitFor({ state: "visible", timeout: 120 * 1000 });
