@@ -1818,6 +1818,10 @@
     <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
       <source xml:lang="en">The columns of the index.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
+      <source xml:lang="en">The connection with ID &apos;{0}&apos; does not have the &apos;server&apos; property set and is being ignored.  Please set the &apos;server&apos; property on this connection in order to use it.</source>
+      <note>{0} is the connection ID for the connection that has been ignored</note>
+    </trans-unit>
     <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
       <source xml:lang="en">The description of the check constraint.</source>
     </trans-unit>
@@ -1842,6 +1846,10 @@
       <source xml:lang="en">The first value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9f0bbf0f3fc1ec45ca02debcaf080ecd6f40e8a11bae6e0189136badee4946a7">
+      <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>
+      <note>{0} is the list of display names for the connections that have been ignored</note>
     </trans-unit>
     <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
       <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>

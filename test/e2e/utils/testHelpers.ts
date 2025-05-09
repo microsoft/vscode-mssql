@@ -28,34 +28,34 @@ export async function addDatabaseConnection(
     await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
     await addConnectionButton.click();
 
-    await vsCodePage.locator('input[aria-describedby="quickInput_message"]').waitFor({
+    await vsCodePage.locator('input[aria-controls="quickInput_list"]').waitFor({
         state: "visible",
         timeout: 10 * 1000,
     });
-    await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${serverName}`);
+    await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${serverName}`);
     await vsCodePage.keyboard.press("Enter");
 
     if (databaseName) {
-        await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${databaseName}`);
+        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${databaseName}`);
     }
     await vsCodePage.keyboard.press("Enter");
 
-    await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${authType}`);
+    await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${authType}`);
     await vsCodePage.keyboard.press("Enter");
 
     if (authType === "SQL Login") {
-        await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${userName}`);
+        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${userName}`);
         await vsCodePage.keyboard.press("Enter");
 
-        await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${password}`);
+        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${password}`);
         await vsCodePage.keyboard.press("Enter");
 
-        await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${savePassword}`);
+        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${savePassword}`);
         await vsCodePage.keyboard.press("Enter");
     }
 
     if (profileName) {
-        await vsCodePage.fill('input[aria-describedby="quickInput_message"]', `${profileName}`);
+        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${profileName}`);
     }
     await vsCodePage.keyboard.press("Enter");
 
@@ -168,7 +168,7 @@ export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): 
 }
 
 export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promise<void> {
-    const commandPaletteInput = vsCodePage.locator('input[aria-describedby="quickInput_message"]');
+    const commandPaletteInput = vsCodePage.locator('input[aria-controls="quickInput_list"]');
     await expect(commandPaletteInput).toBeVisible();
 }
 

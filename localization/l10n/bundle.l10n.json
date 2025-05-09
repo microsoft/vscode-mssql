@@ -1059,8 +1059,8 @@
   "Update": "Update",
   "Execute": "Execute",
   "Alter": "Alter",
-  "Connection Dialog": "Connection Dialog",
   "Signing in to Azure...": "Signing in to Azure...",
+  "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",
@@ -1183,6 +1183,23 @@
   "Loading Schema Designer Model...": "Loading Schema Designer Model...",
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",
+  "Schema Designer": "Schema Designer",
+  "Connect to MSSQL": "Connect to MSSQL",
+  "Click to connect to a database": "Click to connect to a database",
+  "Connecting": "Connecting",
+  "Connection error": "Connection error",
+  "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}/{0} is the list of display names for the connections that have been ignored": {
+    "message": "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
+    "comment": [
+      "{0} is the list of display names for the connections that have been ignored"
+    ]
+  },
+  "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it./{0} is the connection ID for the connection that has been ignored": {
+    "message": "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
+    "comment": [
+      "{0} is the connection ID for the connection that has been ignored"
+    ]
+  },
   "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}/{0} is the connection id{1} is the error message": {
     "message": "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
     "comment": [
@@ -1190,11 +1207,6 @@
       "{1} is the error message"
     ]
   },
-  "Schema Designer": "Schema Designer",
-  "Connect to MSSQL": "Connect to MSSQL",
-  "Click to connect to a database": "Click to connect to a database",
-  "Connecting": "Connecting",
-  "Connection error": "Connection error",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

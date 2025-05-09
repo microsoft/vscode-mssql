@@ -886,6 +886,26 @@ export class StatusBar {
 }
 
 export class Connection {
+    public static missingConnectionIdsError = (connectionDisplayNames: string[]) => {
+        return l10n.t({
+            message:
+                "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
+            args: [connectionDisplayNames.join("\n")],
+            comment: [
+                "{0} is the list of display names for the connections that have been ignored",
+            ],
+        });
+    };
+
+    public static missingConnectionInformation = (connectionId: string) => {
+        return l10n.t({
+            message:
+                "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
+            args: [connectionId],
+            comment: ["{0} is the connection ID for the connection that has been ignored"],
+        });
+    };
+
     public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
         return l10n.t({
             message:
