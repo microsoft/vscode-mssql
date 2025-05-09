@@ -23,6 +23,7 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
+import { Logger } from "../models/logger";
 
 export interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -46,6 +47,12 @@ export const createSqlAgentRequestHandler = (
         return () => `conversationUri${idCounter++}`;
     })();
 
+    const getLogger = (() => {
+        const logger = Logger.create(vscodeWrapper.outputChannel, "MssqlCopilot");
+
+        return () => logger;
+    })();
+
     const handler: vscode.ChatRequestHandler = async (
         request: vscode.ChatRequest,
         chatContext: vscode.ChatContext,
@@ -53,10 +60,11 @@ export const createSqlAgentRequestHandler = (
         token: vscode.CancellationToken,
     ): Promise<ISqlChatResult> => {
         const correlationId = Utils.generateGuid();
+        const logger = getLogger();
         let conversationUri = getNextConversationUri();
         let connectionUri = vscodeWrapper.activeTextEditorUri;
 
-        Utils.logDebug(
+        logger.logDebug(
             `Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`,
         );
 
@@ -126,7 +134,7 @@ export const createSqlAgentRequestHandler = (
                                     }
                                 }
                             } catch (error) {
-                                console.log("Error accessing tab properties:", error);
+                                logger.error("Error accessing tab properties:", error);
                             }
                         }
                     }
@@ -155,7 +163,7 @@ export const createSqlAgentRequestHandler = (
                             }
                         }
                     } catch (error) {
-                        console.log("Error accessing tab properties:", error);
+                        logger.error("Error accessing tab properties:", error);
                     }
                 }
             }
@@ -271,7 +279,7 @@ export const createSqlAgentRequestHandler = (
             let printTextout = false;
 
             while (continuePollingMessages) {
-                Utils.logDebug(`Continue polling messages for '${conversationUri}'`);
+                logger.logDebug(`Continue polling messages for '${conversationUri}'`);
 
                 // Default continuePollingMessages to true at the start of each loop
                 continuePollingMessages = true;
@@ -338,12 +346,12 @@ export const createSqlAgentRequestHandler = (
                             undefined,
                             { correlationId: correlationId },
                         );
-                        console.warn(`Unhandled message type: ${result.messageType}`);
+                        logger.warn(`Unhandled message type: ${result.messageType}`);
                         continuePollingMessages = false;
                         break;
                 }
 
-                Utils.logDebug(`Done processing message for '${conversationUri}'`);
+                logger.logDebug(`Done processing message for '${conversationUri}'`);
                 // Output reply text if needed
                 if (printTextout) {
                     stream.markdown(replyText);
@@ -351,7 +359,7 @@ export const createSqlAgentRequestHandler = (
                 }
             }
         } catch (err) {
-            handleError(err, stream, correlationId);
+            handleError(err, stream, correlationId, logger);
         }
 
         return { metadata: { command: "", correlationId: correlationId } };
@@ -572,8 +580,9 @@ export const createSqlAgentRequestHandler = (
         err: vscode.LanguageModelError,
         stream: vscode.ChatResponseStream,
         correlationId: string,
+        logger: Logger,
     ): void {
-        console.error("Language Model Error:", err.message, "Code:", err.code);
+        logger.error("Language Model Error:", err.message, "Code:", err.code);
 
         const errorMessages: Record<string, string> = {
             model_not_found:
@@ -659,17 +668,18 @@ export const createSqlAgentRequestHandler = (
         err: unknown,
         stream: vscode.ChatResponseStream,
         correlationId: string,
+        logger: Logger,
     ): void {
         if (err instanceof vscode.LanguageModelError) {
-            handleLanguageModelError(err, stream, correlationId);
+            handleLanguageModelError(err, stream, correlationId, logger);
         } else if (err instanceof Error) {
-            console.error("Unhandled Error:", {
+            logger.error("Unhandled Error:", {
                 message: err.message,
                 stack: err.stack,
             });
             stream.markdown("An error occurred: " + err.message);
         } else {
-            console.error("Unknown Error Type:", err);
+            logger.error("Unknown Error Type:", err);
             stream.markdown("An unknown error occurred. Please try again.");
         }
     }
