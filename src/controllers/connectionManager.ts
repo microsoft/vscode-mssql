@@ -1073,6 +1073,11 @@ export default class ConnectionManager {
         if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
             return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
         }
+        for (const connection of this._connectionCredentialsToServerInfoMap.keys()) {
+            if (Utils.isSameConnectionInfo(connection, connectionCredentials)) {
+                return this._connectionCredentialsToServerInfoMap.get(connection);
+            }
+        }
     }
 
     /**
@@ -1105,7 +1110,7 @@ export default class ConnectionManager {
                     }
                     return newResult;
                 } else {
-                    return true;
+                    return false;
                 }
             } else if (
                 connection.errorNumber === Constants.errorFirewallRule &&
