@@ -156,14 +156,15 @@ jobs:
       - name: Setup environment for smoke tests
         run: |
           echo "Setting up environment for smoke tests"
-          echo "PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)" >> $GITHUB_ENV
+          PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)"
+          echo "PASSWORD=$PASSWORD" >> $GITHUB_ENV
           sudo cp build/mssql.init /etc/init.d/mssql-server
           sudo chmod +x /etc/init.d/mssql-server
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
           sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list)"
           sudo apt-get update
           sudo apt-get install -y mssql-server
-          sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD=${{ env.PASSWORD }} /opt/mssql/bin/mssql-conf setup || true
+          sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD="$PASSWORD" MSSQL_LCID=1033 /opt/mssql/bin/mssql-conf setup || true
           sudo service mssql-server start
         working-directory: ./pr
 
