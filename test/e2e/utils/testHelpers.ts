@@ -24,30 +24,30 @@ export async function addDatabaseConnection(
     await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
     await addConnectionButton.click();
 
-    await vsCodePage.fill('input[aria-label="input"]', `${serverName}`);
+    await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${serverName}`);
     await vsCodePage.keyboard.press("Enter");
 
     if (databaseName) {
-        await vsCodePage.fill('input[aria-label="input"]', `${databaseName}`);
+        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${databaseName}`);
     }
     await vsCodePage.keyboard.press("Enter");
 
-    await vsCodePage.fill('input[aria-label="input"]', `${authType}`);
+    await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${authType}`);
     await vsCodePage.keyboard.press("Enter");
 
     if (authType === "SQL Login") {
-        await vsCodePage.fill('input[aria-label="input"]', `${userName}`);
+        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${userName}`);
         await vsCodePage.keyboard.press("Enter");
 
-        await vsCodePage.fill('input[aria-label="input"]', `${password}`);
+        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${password}`);
         await vsCodePage.keyboard.press("Enter");
 
-        await vsCodePage.fill('input[aria-label="input"]', `${savePassword}`);
+        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${savePassword}`);
         await vsCodePage.keyboard.press("Enter");
     }
 
     if (profileName) {
-        await vsCodePage.fill('input[aria-label="input"]', `${profileName}`);
+        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${profileName}`);
     }
     await vsCodePage.keyboard.press("Enter");
 
@@ -102,7 +102,7 @@ export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): 
 }
 
 export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promise<void> {
-    const commandPaletteInput = vsCodePage.locator('input[aria-label="input"]');
+    const commandPaletteInput = vsCodePage.locator('input[aria-controls="quickInput_list"]');
     await expect(commandPaletteInput).toBeVisible();
 }
 
