@@ -127,7 +127,7 @@ jobs:
 
       - name: Run unit tests for PR branch
         run: |
-          cd main
+          cd pr
           DISPLAY=:10 yarn test
 
       - name: PR Unit Test Report
@@ -143,7 +143,7 @@ jobs:
       - name: Run unit tests for main branch # for calculating coverage comparison
         continue-on-error: true
         run: |
-          cd pr
+          cd main
           DISPLAY=:10 yarn test
 
       - name: Build mappings for React Webviews
@@ -189,6 +189,16 @@ jobs:
           path: ./pr/test-results/**/
           retention-days: 7
 
+      - name: Smoke Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+            name: 'Smoke Test Report'
+            path: ./test-reports/**/smoke-results.xml
+            reporter: jest-junit
+            badge-title: 'smoke-tests'
+            working-directory: ./pr
+
       - name: Run smoke tests for main branch # for calculating coverage comparison
         continue-on-error: true
         run: |
@@ -201,16 +211,6 @@ jobs:
           PROFILE_NAME=test-server
           cd main
           DISPLAY=:10 yarn smoketest
-
-      - name: Smoke Test Report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
-        with:
-            name: 'Smoke Test Report'
-            path: ./test-reports/**/smoke-results.xml
-            reporter: jest-junit
-            badge-title: 'smoke-tests'
-            working-directory: ./pr
 
       - name: Merge Smoke and Unit Test Coverage Reports
         run: |
