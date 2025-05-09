@@ -76,7 +76,6 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     });
 
     test("Insert data", async () => {
-
         await openNewQueryEditor(vsCodePage, profileName);
 
         const sqlScript = `
