@@ -1866,6 +1866,18 @@ export default class MainController implements vscode.Disposable {
             // from the object explorer context menu
             const editor = await this._untitledSqlDocumentService.newQuery(content);
             const uri = editor.document.uri.toString(true);
+
+            // if the command came from the command palette, add connection from the selected OE node
+            if (!node) {
+                // grab the selected node from the object explorer, if any
+                const selectedNode = this.objectExplorerTree.selection?.[0];
+                // only use OE node as context if it's already connected (has a sessionId)
+                // we don't want to unexpectedly establish a new connection
+                if (selectedNode && selectedNode.sessionId) {
+                    node = selectedNode;
+                }
+            }
+
             if (node) {
                 // connect to the node if the command came from the context
                 const connectionCreds = node.connectionProfile;
