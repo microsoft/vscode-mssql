@@ -65,7 +65,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
             .first();
     });
 
-    test("Create table, insert data, and execute query", async () => {
+    test("Create table", async () => {
         await openNewQueryEditor(vsCodePage, profileName);
 
         const createTestDB = "CREATE DATABASE TestDB;";
@@ -73,6 +73,9 @@ test.describe("MSSQL Extension - Query Execution", async () => {
         await executeQuery(vsCodePage);
 
         await resultWebview.locator("[id=messagepane]").waitFor({ state: "visible" });
+    });
+
+    test("Insert data", async () => {
 
         await openNewQueryEditor(vsCodePage, profileName);
 
