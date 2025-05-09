@@ -125,11 +125,9 @@ jobs:
           vsix_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
           echo "vsix_text_color=$vsix_text_color" >> $GITHUB_ENV
 
-      - name: Run unit tests
+      - name: Run unit tests for PR branch
         run: |
-          cd main
-          DISPLAY=:10 yarn test
-          cd ../pr
+          cd pr
           DISPLAY=:10 yarn test
 
       - name: PR Unit Test Report
@@ -141,6 +139,12 @@ jobs:
           reporter: jest-junit
           working-directory: ./pr
           badge-title: 'unit-tests'
+
+      - name: Run unit tests for main branch # for calculating coverage comparison
+        continue-on-error: true
+        run: |
+          cd main
+          DISPLAY=:10 yarn test
 
       - name: Build mappings for React Webviews
         run: |
@@ -163,7 +167,7 @@ jobs:
           sudo service mssql-server start
         working-directory: ./pr
 
-      - name: Run smoke tests
+      - name: Run smoke tests for PR branch
         run: |
           VS_CODE_VERSION=stable
           SERVER_NAME=localhost
@@ -194,6 +198,19 @@ jobs:
             reporter: jest-junit
             badge-title: 'smoke-tests'
             working-directory: ./pr
+
+      - name: Run smoke tests for main branch # for calculating coverage comparison
+        continue-on-error: true
+        run: |
+          VS_CODE_VERSION=stable
+          SERVER_NAME=localhost
+          AUTHENTICATION_TYPE="SQL Login"
+          USER_NAME=sa
+          PASSWORD=${{ env.PASSWORD }}
+          SAVE_PASSWORD=No
+          PROFILE_NAME=test-server
+          cd main
+          DISPLAY=:10 yarn smoketest
 
       - name: Merge Smoke and Unit Test Coverage Reports
         run: |

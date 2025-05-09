@@ -481,7 +481,7 @@
                 },
                 {
                     "command": "mssql.designSchema",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableSchemaDesigner",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences",
                     "group": "2_MSSQL_serverDbActions@1"
                 },
                 {
@@ -688,7 +688,7 @@
                 },
                 {
                     "command": "mssql.designSchema",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableSchemaDesigner"
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences"
                 }
             ],
             "webview/context": [
