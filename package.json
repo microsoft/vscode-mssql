@@ -1634,7 +1634,8 @@
                 "mssql.resultsGrid.inMemoryDataProcessingThreshold": {
                     "type": "number",
                     "default": 5000,
-                    "description": "%mssql.resultsGrid.inMemoryDataProcessingThreshold%"
+                    "description": "%mssql.resultsGrid.inMemoryDataProcessingThreshold%",
+                    "minimum": 1
                 },
                 "mssql.query.displayBitAsNumber": {
                     "type": "boolean",
