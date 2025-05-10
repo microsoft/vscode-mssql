@@ -2477,8 +2477,8 @@
     <trans-unit id="mssql.scriptSelect">
       <source xml:lang="en">Select Top 1000</source>
     </trans-unit>
-    <trans-unit id="mssql.selectedSubscriptions">
-      <source xml:lang="en">Selected Subscriptions</source>
+    <trans-unit id="mssql.selectedAzureSubscriptions">
+      <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
     </trans-unit>
     <trans-unit id="mssql.resultsFontFamily">
       <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
