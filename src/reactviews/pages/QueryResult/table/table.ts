@@ -66,6 +66,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     private _container: HTMLElement;
     protected _tableContainer: HTMLElement;
     private selectionModel: CellSelectionModel<T>;
+    public headerFilter: HeaderFilter<T>;
 
     constructor(
         parent: HTMLElement,
@@ -142,14 +143,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this._container.appendChild(this._tableContainer);
         this.styleElement = DOM.createStyleSheet(this._container);
         this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
-        this.registerPlugin(
-            new HeaderFilter(
-                webViewState.themeKind,
-                this.queryResultContext,
-                this.webViewState,
-                gridId,
-            ),
+        this.headerFilter = new HeaderFilter(
+            webViewState.themeKind,
+            this.queryResultContext,
+            this.webViewState,
+            gridId,
         );
+        this.registerPlugin(this.headerFilter);
         this.registerPlugin(
             new ContextMenu(
                 this.uri,

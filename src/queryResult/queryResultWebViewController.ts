@@ -81,6 +81,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                             fontFamily: this.getFontFamilyConfig(),
                         },
                         autoSizeColumns: this.getAutoSizeColumnsConfig(),
+                        inMemoryDataProcessingThreshold:
+                            this.getInMemoryDataProcessingThresholdConfig(),
                     };
                 }
             });
@@ -116,6 +118,14 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 if (e.affectsConfiguration("mssql.resultsGrid.autoSizeColumns")) {
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.autoSizeColumns = this.getAutoSizeColumnsConfig();
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                }
+                if (e.affectsConfiguration("mssql.resultsGrid.inMemoryDataProcessingThreshold")) {
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.inMemoryDataProcessingThreshold = this.vscodeWrapper
+                            .getConfiguration(Constants.extensionName)
+                            .get(Constants.configInMemoryDataProcessingThreshold);
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
@@ -198,6 +208,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.registerRequestHandler("getWebviewLocation", async () => {
             return qr.QueryResultWebviewLocation.Panel;
         });
+        this.registerRequestHandler("showFilterDisabledMessage", () => {
+            this.vscodeWrapper.showInformationMessage(
+                LocalizedConstants.inMemoryDataProcessingThresholdExceeded,
+            );
+        });
         registerCommonRequestHandlers(this, this._correlationId);
     }
 
@@ -253,6 +268,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 fontFamily: this.getFontFamilyConfig(),
             },
             autoSizeColumns: this.getAutoSizeColumnsConfig(),
+            inMemoryDataProcessingThreshold: this.getInMemoryDataProcessingThresholdConfig(),
         };
         this._queryResultStateMap.set(uri, currentState);
     }
@@ -261,6 +277,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this.vscodeWrapper
             .getConfiguration(Constants.extensionName)
             .get(Constants.configAutoColumnSizing);
+    }
+
+    public getInMemoryDataProcessingThresholdConfig(): number {
+        return this.vscodeWrapper
+            .getConfiguration(Constants.extensionName)
+            .get(Constants.configInMemoryDataProcessingThreshold);
     }
 
     public getFontSizeConfig(): number {
