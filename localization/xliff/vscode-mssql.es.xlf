@@ -3273,9 +3273,9 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">Seleccionar los primeros 1000</target>
       </trans-unit>
-      <trans-unit id="mssql.selectedSubscriptions">
-        <source xml:lang="en">Selected Subscriptions</source>
-        <target state="translated">Suscripciones seleccionadas</target>
+      <trans-unit id="mssql.selectedAzureSubscriptions">
+        <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
+        <target state="new">Selected Azure subscriptions for browsing and managing servers and databases</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
