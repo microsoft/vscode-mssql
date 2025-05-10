@@ -154,8 +154,6 @@ export function getConnectionDisplayString(creds: IConnectionInfo): string {
         .getConfiguration(Constants.extensionConfigSectionName)
         .get(Constants.configStatusBarConnectionInfoMaxLength);
 
-    statusBarConnectionInfoMaxLength ||= Constants.maxDisplayedStatusTextLength;
-
     // Limit the maximum length of displayed text
     if (
         statusBarConnectionInfoMaxLength >= 0 &&
