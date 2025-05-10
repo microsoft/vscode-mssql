@@ -170,6 +170,8 @@ jobs:
           LANGUAGE_CHOICE="1"
           echo -e "$LANGUAGE_CHOICE" | sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD="$PASSWORD" /opt/mssql/bin/mssql-conf setup || true
           sudo service mssql-server start
+          sudo apt-get install -y mssql-tools unixodbc-dev
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "$PASSWORD" -Q "SELECT @@VERSION"
         working-directory: ./pr
 
       - name: Run smoke tests for PR branch
