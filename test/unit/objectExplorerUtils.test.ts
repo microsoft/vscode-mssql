@@ -179,6 +179,7 @@ suite("Object Explorer Utils Tests", () => {
             undefined,
             undefined,
             undefined,
+            profile,
             undefined,
             undefined,
             undefined,
@@ -206,20 +207,20 @@ suite("Object Explorer Utils Tests", () => {
             user: "testUser",
             profileName: "testProfile",
             id: "id",
-        };
+        } as IConnectionProfile;
 
         const parentNode = new TreeNodeInfo(
             "parent",
-            { type: "parentType", filterable: false, hasFilters: false },
+            { type: "parentType", subType: "", filterable: false, hasFilters: false },
             vscode.TreeItemCollapsibleState.None,
-            "parentPath",
-            "parentStatus",
-            "parentType",
-            "parentSession",
+            undefined,
+            undefined,
+            undefined,
+            undefined,
             profile,
-            null,
-            [],
-            "parentSubType",
+            undefined,
+            undefined,
+            undefined,
         );
 
         // Create a mock node that is not TreeNodeInfo but has a parentNode property
@@ -237,6 +238,60 @@ suite("Object Explorer Utils Tests", () => {
         // Verify
         assert(getNodeUriFromProfileStub.calledOnceWith(profile));
         assert.strictEqual(result, "testParentUri");
+    });
+
+    test("should return connection string without password if present", () => {
+        // Setup
+        const profile: IConnectionProfile = {
+            connectionString: "Server=myServer;Database=myDb;User Id=myUser;Password=myPassword;",
+            server: "server",
+            database: "database",
+            authenticationType: Constants.sqlAuthentication,
+            user: "user",
+            profileName: "profile",
+            id: "id",
+        } as IConnectionProfile;
+
+        // Execute
+        const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
+
+        // Verify - should include all parts except the password
+        assert.strictEqual(result, "Server=myServer;Database=myDb;User Id=myUser;");
+    });
+
+    test("should create URI for SQL authentication without connection string", () => {
+        // Setup
+        const profile: IConnectionProfile = {
+            server: "testServer",
+            database: "testDB",
+            authenticationType: Constants.sqlAuthentication,
+            user: "testUser",
+            profileName: "testProfile",
+            id: "id",
+        } as IConnectionProfile;
+
+        // Execute
+        const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
+
+        // Verify
+        assert.strictEqual(result, "testServer_testDB_testUser_testProfile");
+    });
+
+    test("should create URI for Windows authentication without connection string", () => {
+        // Setup
+        const profile: IConnectionProfile = {
+            server: "testServer",
+            database: "testDB",
+            authenticationType: "Windows Authentication", // Not SQL auth
+            profileName: "testProfile",
+            id: "id",
+        } as IConnectionProfile;
+
+        // Execute
+        const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
+
+        // Verify
+        assert.strictEqual(result, "testServer_testDB_testProfile");
     });
 
     test("Test getDatabaseName", () => {
