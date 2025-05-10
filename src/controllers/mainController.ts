@@ -1858,72 +1858,128 @@ export default class MainController implements vscode.Disposable {
         await vscode.env.openExternal(vscode.Uri.parse(Constants.gettingStartedGuideLink));
     }
 
-    /**
-     * Opens a new query and creates new connection
-     */
-    public async onNewQuery(node?: TreeNodeInfo, content?: string): Promise<boolean> {
-        if (this.canRunCommand()) {
-            // from the object explorer context menu
-            const editor = await this._untitledSqlDocumentService.newQuery(content);
-            const uri = editor.document.uri.toString(true);
-            if (node) {
-                // connect to the node if the command came from the context
-                const connectionCreds = node.connectionProfile;
-                // if the node isn't connected
-                if (!node.sessionId) {
-                    // connect it first
-                    await this.createObjectExplorerSession(node.connectionProfile);
-                }
-                this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
-                // connection string based credential
-                if (connectionCreds.connectionString) {
-                    if ((connectionCreds as IConnectionProfile).savePassword) {
-                        // look up connection string
-                        let connectionString =
-                            await this._connectionMgr.connectionStore.lookupPassword(
-                                connectionCreds,
-                                true,
-                            );
-                        connectionCreds.connectionString = connectionString;
-                    }
-                }
-                await this.connectionManager.connect(uri, connectionCreds);
-                this._statusview.sqlCmdModeChanged(uri, false);
-                await this.connectionManager.connectionStore.removeRecentlyUsed(
-                    <IConnectionProfile>connectionCreds,
+    private async newQueryFromProfile(
+        newDocUri: string,
+        connectionProfile: IConnectionInfo,
+        sessionId: string,
+        source: string,
+        createObjectExplorerSession: boolean,
+    ) {
+        // connect to the node if the command came from the context
+        const connectionCreds = connectionProfile;
+        // if the node isn't connected
+        if (createObjectExplorerSession && !sessionId) {
+            // connect it first
+            await this.createObjectExplorerSession(connectionProfile);
+        }
+        this._statusview.languageFlavorChanged(newDocUri, Constants.mssqlProviderName);
+        // connection string based credential
+        if (connectionCreds.connectionString) {
+            if ((connectionCreds as IConnectionProfile).savePassword) {
+                // look up connection string
+                let connectionString = await this._connectionMgr.connectionStore.lookupPassword(
+                    connectionCreds,
+                    true,
                 );
-                sendActionEvent(
-                    TelemetryViews.ObjectExplorer,
-                    TelemetryActions.NewQuery,
-                    {
-                        nodeType: node.nodeType,
-                    },
-                    undefined,
-                    node.connectionProfile as IConnectionProfile,
-                    this._connectionMgr.getServerInfo(node.connectionProfile),
-                );
-                return true;
-            } else {
-                // new query command
-                const credentials = await this._connectionMgr.onNewConnection();
-
-                // initiate a new OE with same connection
-                if (credentials) {
-                    await this.createObjectExplorerSession(credentials);
-                }
-                this._statusview.sqlCmdModeChanged(uri, false);
-                sendActionEvent(
-                    TelemetryViews.CommandPalette,
-                    TelemetryActions.NewQuery,
-                    undefined,
-                    undefined,
-                    credentials as IConnectionProfile,
-                    this._connectionMgr.getServerInfo(credentials),
-                );
-                return true;
+                connectionCreds.connectionString = connectionString;
             }
         }
-        return false;
+        await this.connectionManager.connect(newDocUri, connectionCreds);
+        this._statusview.sqlCmdModeChanged(newDocUri, false);
+        await this.connectionManager.connectionStore.removeRecentlyUsed(
+            <IConnectionProfile>connectionCreds,
+        );
+        sendActionEvent(
+            TelemetryViews.ObjectExplorer,
+            TelemetryActions.NewQuery,
+            {
+                nodeType: source,
+            },
+            undefined, // additionalMeasurements
+            connectionProfile as IConnectionProfile,
+            this._connectionMgr.getServerInfo(connectionProfile),
+        );
+        return true;
+    }
+
+    private async newQueryFromPrompt(newDocUri: string) {
+        // new query command
+        const credentials = await this._connectionMgr.onNewConnection();
+
+        // initiate a new OE with same connection
+        if (credentials) {
+            await this.createObjectExplorerSession(credentials);
+        }
+        this._statusview.sqlCmdModeChanged(newDocUri, false);
+        sendActionEvent(
+            TelemetryViews.CommandPalette,
+            TelemetryActions.NewQuery,
+            undefined,
+            undefined,
+            credentials as IConnectionProfile,
+            this._connectionMgr.getServerInfo(credentials),
+        );
+        return true;
+    }
+
+    /**
+     * Opens a new query and creates new connection. Connection precedence is:
+     * 1. User right-clicked on an OE node and selected "New Query": use that node's connection profile
+     * 2. User triggered "New Query" from command palette and the active document has a connection: copy that to the new document
+     * 3. User triggered "New Query" from command palette while they have a connected OE node selected: use that node's connection profile
+     * 4. User triggered "New Query" from command palette and there's no reasonable context: prompt for connection to use
+     */
+    public async onNewQuery(node?: TreeNodeInfo, content?: string): Promise<boolean> {
+        if (!this.canRunCommand()) {
+            return;
+        }
+
+        const currentDocUri = vscode.window.activeTextEditor
+            ? vscode.window.activeTextEditor.document.uri.toString(true)
+            : undefined;
+        const newEditor = await this._untitledSqlDocumentService.newQuery(content);
+        const newDocUri = newEditor.document.uri.toString(true);
+
+        // Case 1: User right-clicked on an OE node and selected "New Query"
+        if (node) {
+            return await this.newQueryFromProfile(
+                newDocUri,
+                node.connectionProfile,
+                node.sessionId,
+                node.nodeType,
+                true, // createObjectExplorerSession
+            );
+        }
+
+        // Case 2: User triggered "New Query" from command palette and the active document has a connection
+        if (currentDocUri) {
+            const connectionInfo = this._connectionMgr.getConnectionInfo(currentDocUri);
+
+            if (connectionInfo) {
+                return await this.newQueryFromProfile(
+                    newDocUri,
+                    connectionInfo.credentials,
+                    undefined, // sessionId
+                    "previousEditor",
+                    false, //createObjectExplorerSession
+                );
+            }
+        }
+
+        // Case 3: User triggered "New Query" from command palette while they have a connected OE node selected
+        const selectedNode = this.objectExplorerTree.selection?.[0];
+        if (selectedNode && selectedNode.sessionId) {
+            return await this.newQueryFromProfile(
+                newDocUri,
+                selectedNode.connectionProfile,
+                selectedNode.sessionId,
+                selectedNode.nodeType,
+                true, // createObjectExplorerSession
+            );
+        }
+
+        // Case 4: User triggered "New Query" from command palette and there's nowhere to get connection context from
+        return await this.newQueryFromPrompt(newDocUri);
     }
 
     public async onSchemaCompare(node?: any): Promise<void> {
