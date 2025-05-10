@@ -3273,9 +3273,9 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">상위 1,000개 선택</target>
       </trans-unit>
-      <trans-unit id="mssql.selectedSubscriptions">
-        <source xml:lang="en">Selected Subscriptions</source>
-        <target state="translated">선택된 구독</target>
+      <trans-unit id="mssql.selectedAzureSubscriptions">
+        <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
+        <target state="new">Selected Azure subscriptions for browsing and managing servers and databases</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
