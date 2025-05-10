@@ -33,7 +33,6 @@ import {
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
-    azureSubscriptionFilterConfigKey,
     confirmVscodeAzureSignin,
     fetchServersFromAzure,
     getAccounts,
@@ -62,7 +61,11 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import { errorFirewallRule, errorSSLCertificateValidationFailed } from "../constants/constants";
+import {
+    configSelectedAzureSubscriptions,
+    errorFirewallRule,
+    errorSSLCertificateValidationFailed,
+} from "../constants/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
 
@@ -1055,7 +1058,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const shouldUseFilter =
                 vscode.workspace
                     .getConfiguration()
-                    .get<string[] | undefined>(azureSubscriptionFilterConfigKey) !== undefined;
+                    .get<string[] | undefined>(configSelectedAzureSubscriptions) !== undefined;
 
             endActivity = startActivity(
                 TelemetryViews.ConnectionDialog,

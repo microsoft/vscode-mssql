@@ -203,6 +203,7 @@ export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
+export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
