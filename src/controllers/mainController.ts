@@ -1863,11 +1863,12 @@ export default class MainController implements vscode.Disposable {
         connectionProfile: IConnectionInfo,
         sessionId: string,
         source: string,
+        createObjectExplorerSession: boolean,
     ) {
         // connect to the node if the command came from the context
         const connectionCreds = connectionProfile;
         // if the node isn't connected
-        if (!sessionId) {
+        if (createObjectExplorerSession && !sessionId) {
             // connect it first
             await this.createObjectExplorerSession(connectionProfile);
         }
@@ -1946,6 +1947,7 @@ export default class MainController implements vscode.Disposable {
                 node.connectionProfile,
                 node.sessionId,
                 node.nodeType,
+                true, // createObjectExplorerSession
             );
         }
 
@@ -1957,8 +1959,9 @@ export default class MainController implements vscode.Disposable {
                 return await this.newQueryFromProfile(
                     newDocUri,
                     connectionInfo.credentials,
-                    undefined /* sessionId */,
+                    undefined, // sessionId
                     "previousEditor",
+                    false, //createObjectExplorerSession
                 );
             }
         }
@@ -1971,10 +1974,11 @@ export default class MainController implements vscode.Disposable {
                 selectedNode.connectionProfile,
                 selectedNode.sessionId,
                 selectedNode.nodeType,
+                true, // createObjectExplorerSession
             );
         }
 
-        // Case 4: User triggered "New Query" from command palette and there's no reasonable context
+        // Case 4: User triggered "New Query" from command palette and there's nowhere to get connection context from
         return await this.newQueryFromPrompt(newDocUri);
     }
 
