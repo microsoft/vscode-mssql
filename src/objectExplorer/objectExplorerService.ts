@@ -234,6 +234,7 @@ export class ObjectExplorerService {
                     `Expand node response: ${JSON.stringify(result)} for sessionId ${sessionId}`,
                 );
                 if (!result) {
+                    promise.resolve(undefined);
                     return undefined;
                 }
 
@@ -261,7 +262,7 @@ export class ObjectExplorerService {
                         this._logger.error(
                             `Expand node failed: ${result.errorMessage} for sessionId ${sessionId}`,
                         );
-                        this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
+                        this._vscodeWrapper.showErrorMessage(result.errorMessage);
                     }
                     const errorNode = new ExpandErrorNode(node, result.errorMessage);
                     this._treeNodeToChildrenMap.set(node, [errorNode]);
@@ -273,9 +274,7 @@ export class ObjectExplorerService {
                 this._logger.error(
                     `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
                 );
-                await this._connectionManager.vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.msgUnableToExpand,
-                );
+                await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
                 promise.resolve(undefined);
                 return undefined;
             }
@@ -288,13 +287,13 @@ export class ObjectExplorerService {
      * Clean all children of the node
      * @param node Node to cleanup
      */
-    private cleanNodeChildren(node: vscode.TreeItem): void {
+    public cleanNodeChildren(node: vscode.TreeItem): void {
         if (this._treeNodeToChildrenMap.has(node)) {
             let stack = this._treeNodeToChildrenMap.get(node);
             while (stack.length > 0) {
                 let child = stack.pop();
                 if (this._treeNodeToChildrenMap.has(child)) {
-                    stack.concat(this._treeNodeToChildrenMap.get(child));
+                    stack.push(...this._treeNodeToChildrenMap.get(child));
                 }
                 this._treeNodeToChildrenMap.delete(child);
             }
@@ -1044,7 +1043,7 @@ export class ObjectExplorerService {
 
         if (response && response.success) {
             if (response.sessionId !== node.sessionId) {
-                this._client.logger.error("Session ID mismatch in closeSession() response");
+                this._logger.error("Session ID mismatch in closeSession() response");
             }
 
             const nodeUri = this.getNodeIdentifier(node);
@@ -1065,7 +1064,7 @@ export class ObjectExplorerService {
         if (node.sessionId) {
             return node.sessionId;
         } else {
-            this._client.logger.error("Node does not have a session ID");
+            this._logger.error("Node does not have a session ID");
             return ObjectExplorerUtils.getNodeUri(node); // TODO: can this removed entirely?  ideally, every node has a session ID associated with it
         }
     }
@@ -1081,16 +1080,6 @@ export class ObjectExplorerService {
         return this._rootTreeNodeArray.find((node) =>
             Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
         ) as ConnectionNode;
-    }
-
-    /**
-     * Deletes the children of a node from the tree node to children map.
-     * @param node The node to delete the children for
-     */
-    public deleteChildren(node: TreeNodeInfo): void {
-        if (this._treeNodeToChildrenMap.has(node)) {
-            this._treeNodeToChildrenMap.delete(node);
-        }
     }
 
     public get rootNodeConnections(): IConnectionInfo[] {
