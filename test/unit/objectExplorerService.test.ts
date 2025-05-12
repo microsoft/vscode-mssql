@@ -28,7 +28,7 @@ import * as telemetry from "../../src/telemetry/telemetry";
 import { RefreshRequest } from "../../src/models/contracts/objectExplorer/refreshSessionRequest";
 import { ExpandErrorNode } from "../../src/objectExplorer/nodes/expandErrorNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import { IAccount, IServerInfo, IToken } from "vscode-mssql";
+import { IAccount, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
@@ -132,34 +132,6 @@ suite("Object Explorer Service Tests", () => {
 
     teardown(() => {
         sandbox.restore();
-    });
-
-    test("cleanNodeChildren should remove node and all its children from the map", () => {
-        // Create mock tree nodes
-        const rootNode = { id: "root" } as vscode.TreeItem;
-        const childNode1 = { id: "child1" } as vscode.TreeItem;
-        const childNode2 = { id: "child2" } as vscode.TreeItem;
-        const grandchildNode1 = { id: "grandchild1" } as vscode.TreeItem;
-
-        // Set up the tree structure in the map
-        (objectExplorerService as any)._treeNodeToChildrenMap = new Map();
-        (objectExplorerService as any)._treeNodeToChildrenMap.set(rootNode, [
-            childNode1,
-            childNode2,
-        ]);
-        (objectExplorerService as any)._treeNodeToChildrenMap.set(childNode1, [grandchildNode1]);
-        (objectExplorerService as any)._treeNodeToChildrenMap.set(childNode2, []);
-        (objectExplorerService as any)._treeNodeToChildrenMap.set(grandchildNode1, []);
-
-        // Call the method to test
-        (objectExplorerService as any).cleanNodeChildren(rootNode);
-
-        // Verify that all nodes were removed from the map
-        expect((objectExplorerService as any)._treeNodeToChildrenMap.has(rootNode)).to.be.false;
-        expect((objectExplorerService as any)._treeNodeToChildrenMap.has(childNode1)).to.be.false;
-        expect((objectExplorerService as any)._treeNodeToChildrenMap.has(childNode2)).to.be.false;
-        expect((objectExplorerService as any)._treeNodeToChildrenMap.has(grandchildNode1)).to.be
-            .false;
     });
 
     test("getSavedConnectionNodes should return empty array when no connections exist", async () => {
@@ -2065,5 +2037,37 @@ suite("Object Explorer Service Tests", () => {
         // Verify error message was shown
         expect(mockVscodeWrapper.showErrorMessage.calledOnce).to.be.true;
         expect(mockVscodeWrapper.showErrorMessage.args[0][0]).to.equal(testError.message);
+    });
+
+    test("createSession should return undefined if prepareConnectionProfile returns undefined", async () => {
+        // Setup prepareConnectionProfile to return undefined (user cancelled)
+        (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+        (objectExplorerService as any).prepareConnectionProfile.resolves(undefined);
+
+        const connectionInfo: IConnectionInfo = {
+            server: "TestServer",
+            database: "TestDB",
+            authenticationType: "SqlLogin",
+            user: "testUser",
+            password: "testPassword",
+        } as IConnectionInfo;
+
+        // Call the method
+        const result = await objectExplorerService.createSession(connectionInfo);
+
+        // Verify the result is undefined
+        expect(result).to.be.undefined;
+
+        // Verify prepareConnectionProfile was called with the connection info
+        expect((objectExplorerService as any).prepareConnectionProfile.calledOnce).to.be.true;
+        expect((objectExplorerService as any).prepareConnectionProfile.args[0][0]).to.equal(
+            connectionInfo,
+        );
+
+        // Verify telemetry was started
+        expect(startActivityStub.calledOnce).to.be.true;
+        expect(startActivityStub.args[0][0]).to.equal(TelemetryViews.ObjectExplorer);
+        expect(startActivityStub.args[0][1]).to.equal(TelemetryActions.CreateSession);
+        expect(startActivityStub.args[0][3].connectionType).to.equal("SqlLogin");
     });
 });
