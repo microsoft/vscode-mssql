@@ -560,7 +560,6 @@ export class SqlOutputContentProvider {
         }
 
         // Switch the spinner to canceling, which will be reset when the query execute sends back its completed event
-        console.log(`Canceling query for URI: ${queryRunner.uri}`);
         this._statusView.cancelingQuery(queryRunner.uri);
 
         // Cancel the query

@@ -159,6 +159,7 @@ export default class QueryRunner {
     // PUBLIC METHODS ======================================================
 
     public async cancel(): Promise<QueryCancelResult> {
+        this.logger.verbose("Send request to cancel query for URI: " + this._ownerUri);
         // Make the request to cancel the query
         let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
         let queryCancelResult = await this._client.sendRequest(
