@@ -612,20 +612,8 @@
     ]
   },
   "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
-  "{0} (Preview)/{0} is the editor title": {
-    "message": "{0} (Preview)",
-    "comment": [
-      "{0} is the editor title"
-    ]
-  },
-  "Object Explorer Filter (Preview)": "Object Explorer Filter (Preview)",
+  "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
-  "{0} (Preview)/{0} is the file name": {
-    "message": "{0} (Preview)",
-    "comment": [
-      "{0} is the file name"
-    ]
-  },
   "Remind Me Later": "Remind Me Later",
   "Don't Show Again": "Don't Show Again",
   "Learn More": "Learn More",
@@ -1042,6 +1030,7 @@
   "Do you want to always display query results in a new tab instead of the query pane?": "Do you want to always display query results in a new tab instead of the query pane?",
   "Always show in new tab": "Always show in new tab",
   "Keep in query pane": "Keep in query pane",
+  "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold": "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold",
   "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})/{0} is a url to learn more about the new features": {
     "message": "The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})",
     "comment": [
@@ -1072,7 +1061,8 @@
   "Update": "Update",
   "Execute": "Execute",
   "Alter": "Alter",
-  "Connection Dialog (Preview)": "Connection Dialog (Preview)",
+  "Signing in to Azure...": "Signing in to Azure...",
+  "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",
@@ -1200,6 +1190,25 @@
   "Click to connect to a database": "Click to connect to a database",
   "Connecting": "Connecting",
   "Connection error": "Connection error",
+  "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}/{0} is the list of display names for the connections that have been ignored": {
+    "message": "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
+    "comment": [
+      "{0} is the list of display names for the connections that have been ignored"
+    ]
+  },
+  "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it./{0} is the connection ID for the connection that has been ignored": {
+    "message": "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
+    "comment": [
+      "{0} is the connection ID for the connection that has been ignored"
+    ]
+  },
+  "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}/{0} is the connection id{1} is the error message": {
+    "message": "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
+    "comment": [
+      "{0} is the connection id",
+      "{1} is the error message"
+    ]
+  },
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

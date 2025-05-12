@@ -240,33 +240,40 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should setup theming and handle theme change", () => {
-        (vscode.window.onDidChangeActiveColorTheme as any) = sandbox.stub();
-        const onDidThemeChange = vscode.window.onDidChangeActiveColorTheme as Sinon.SinonStub;
-        const themeChangedCallback = sandbox.stub();
-        onDidThemeChange.callsFake((callback) => {
-            themeChangedCallback.callsFake(callback);
-        });
-        (controller as any).initializeBase();
+        const originalOnChangeActiveColorTheme = vscode.window.onDidChangeActiveColorTheme;
 
-        assert.ok(
-            controller._webview.postMessage.calledWith({
-                type: "notification",
-                method: "onDidChangeTheme",
-                params: 2,
-            }),
-            "Theme is not sent correctly",
-        );
+        try {
+            (vscode.window.onDidChangeActiveColorTheme as any) = sandbox.stub();
 
-        themeChangedCallback({ kind: 3 });
+            const onDidThemeChange = vscode.window.onDidChangeActiveColorTheme as Sinon.SinonStub;
+            const themeChangedCallback = sandbox.stub();
+            onDidThemeChange.callsFake((callback) => {
+                themeChangedCallback.callsFake(callback);
+            });
+            (controller as any).initializeBase();
 
-        assert.ok(
-            controller._webview.postMessage.calledWith({
-                type: "notification",
-                method: "onDidChangeTheme",
-                params: 3,
-            }),
-            "Theme is not updated correctly",
-        );
+            assert.ok(
+                controller._webview.postMessage.calledWith({
+                    type: "notification",
+                    method: "onDidChangeTheme",
+                    params: 2,
+                }),
+                "Theme is not sent correctly",
+            );
+
+            themeChangedCallback({ kind: 3 });
+
+            assert.ok(
+                controller._webview.postMessage.calledWith({
+                    type: "notification",
+                    method: "onDidChangeTheme",
+                    params: 3,
+                }),
+                "Theme is not updated correctly",
+            );
+        } finally {
+            (vscode.window.onDidChangeActiveColorTheme as any) = originalOnChangeActiveColorTheme;
+        }
     });
 
     test("Should generate correct HTML content", () => {

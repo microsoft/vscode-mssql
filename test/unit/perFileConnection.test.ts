@@ -122,11 +122,12 @@ function createTestConnectionManager(
         TestExtensionContext.object,
         statusView,
         prompterMock.object,
-        false,
+        true, // useLegacyConnectionExperience
+        undefined, // logger
         serviceClient,
         wrapper,
         connectionStore,
-        undefined,
+        undefined, // credentialStore
         connectionUI,
     );
 }

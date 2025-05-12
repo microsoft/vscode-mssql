@@ -59,7 +59,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         void this.initialize();
 
-        if (this.isRichExperiencesEnabled) {
+        if (
+            !this.vscodeWrapper
+                .getConfiguration()
+                .get(Constants.configUseLegacyQueryResultExperience)
+        ) {
             vscode.window.onDidChangeActiveTextEditor((editor) => {
                 const uri = editor?.document?.uri?.toString(true);
                 if (uri && this._queryResultStateMap.has(uri)) {
@@ -77,6 +81,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                             fontFamily: this.getFontFamilyConfig(),
                         },
                         autoSizeColumns: this.getAutoSizeColumnsConfig(),
+                        inMemoryDataProcessingThreshold:
+                            this.getInMemoryDataProcessingThresholdConfig(),
                     };
                 }
             });
@@ -115,16 +121,20 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
+                if (e.affectsConfiguration("mssql.resultsGrid.inMemoryDataProcessingThreshold")) {
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.inMemoryDataProcessingThreshold = this.vscodeWrapper
+                            .getConfiguration(Constants.extensionName)
+                            .get(Constants.configInMemoryDataProcessingThreshold);
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                }
             });
         }
     }
 
     private async initialize() {
         this.registerRpcHandlers();
-    }
-
-    private get isRichExperiencesEnabled(): boolean {
-        return this.vscodeWrapper.getConfiguration().get(Constants.configEnableRichExperiences);
     }
 
     private get isOpenQueryResultsInTabByDefaultEnabled(): boolean {
@@ -198,6 +208,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.registerRequestHandler("getWebviewLocation", async () => {
             return qr.QueryResultWebviewLocation.Panel;
         });
+        this.registerRequestHandler("showFilterDisabledMessage", () => {
+            this.vscodeWrapper.showInformationMessage(
+                LocalizedConstants.inMemoryDataProcessingThresholdExceeded,
+            );
+        });
         registerCommonRequestHandlers(this, this._correlationId);
     }
 
@@ -253,6 +268,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 fontFamily: this.getFontFamilyConfig(),
             },
             autoSizeColumns: this.getAutoSizeColumnsConfig(),
+            inMemoryDataProcessingThreshold: this.getInMemoryDataProcessingThresholdConfig(),
         };
         this._queryResultStateMap.set(uri, currentState);
     }
@@ -261,6 +277,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this.vscodeWrapper
             .getConfiguration(Constants.extensionName)
             .get(Constants.configAutoColumnSizing);
+    }
+
+    public getInMemoryDataProcessingThresholdConfig(): number {
+        return this.vscodeWrapper
+            .getConfiguration(Constants.extensionName)
+            .get(Constants.configInMemoryDataProcessingThreshold);
     }
 
     public getFontSizeConfig(): number {

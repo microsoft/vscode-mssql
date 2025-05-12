@@ -19,9 +19,10 @@ import { getConnectionDisplayName } from "../models/connectionInfo";
  */
 export class ConnectionConfig implements IConnectionConfig {
     private _logger: Logger;
+    private _hasDisplayedMissingIdError: boolean = false;
 
-    initialized: Deferred<void> = new Deferred<void>();
-    RootGroupName: string = "ROOT";
+    public initialized: Deferred<void> = new Deferred<void>();
+    public readonly RootGroupName: string = "ROOT";
 
     /**
      * Constructor.
@@ -87,6 +88,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         for (const profile of profiles) {
             if (this.populateMissingIds(profile)) {
+                madeChanges = true;
                 this._logger.logDebug(
                     `Adding missing group ID or connection ID to connection '${getConnectionDisplayName(profile)}'`,
                 );
@@ -165,6 +167,32 @@ export class ConnectionConfig implements IConnectionConfig {
         if (getWorkspaceConnections) {
             // Read from workspace settings
             let workspaceProfiles = this.getProfilesFromSettings(false);
+
+            const middingIdConns: IConnectionProfile[] = [];
+
+            workspaceProfiles = workspaceProfiles.filter((profile) => {
+                if (!profile.id) {
+                    if (!this._hasDisplayedMissingIdError) {
+                        middingIdConns.push(profile);
+                    }
+
+                    return false;
+                }
+                return true;
+            });
+
+            if (middingIdConns.length > 0) {
+                // We don't currently auto-update connections in workspace/workspace folder config,
+                // so alert the user if any of those are missing their ID property that they need manual updating.
+
+                this._hasDisplayedMissingIdError = true;
+                this._vscodeWrapper.showErrorMessage(
+                    LocalizedConstants.Connection.missingConnectionIdsError(
+                        middingIdConns.map((c) => getConnectionDisplayName(c)),
+                    ),
+                );
+            }
+
             workspaceProfiles.sort(this.compareConnectionProfile);
             profiles = profiles.concat(workspaceProfiles);
         }
@@ -172,10 +200,19 @@ export class ConnectionConfig implements IConnectionConfig {
         if (profiles.length > 0) {
             profiles = profiles.filter((conn) => {
                 // filter any connection missing a connection string and server name or the sample that's shown by default
-                return (
-                    conn.connectionString ||
-                    (!!conn.server && conn.server !== LocalizedConstants.SampleServerName)
-                );
+                if (
+                    !(
+                        conn.connectionString ||
+                        (!!conn.server && conn.server !== LocalizedConstants.SampleServerName)
+                    )
+                ) {
+                    this._vscodeWrapper.showErrorMessage(
+                        LocalizedConstants.Connection.missingConnectionInformation(conn.id),
+                    );
+
+                    return false;
+                }
+                return true;
             });
         }
 
@@ -183,7 +220,8 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     /**
-     * Remove an existing connection from the connection config.
+     * Remove an existing connection from the connection config if it exists.
+     * @returns true if the connection was removed, false if the connection wasn't found.
      */
     public async removeConnection(profile: IConnectionProfile): Promise<boolean> {
         let profiles = this.getProfilesFromSettings();

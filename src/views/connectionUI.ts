@@ -52,7 +52,7 @@ export class ConnectionUI {
         private _connectionStore: ConnectionStore,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
-        private _isRichExperiencesEnabled: boolean = constants.isRichExperiencesEnabledDefault,
+        private _useLegacyConnectionExperience: boolean = false,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!this._vscodeWrapper) {
@@ -355,38 +355,31 @@ export class ConnectionUI {
         });
     }
 
-    public createProfileWithDifferentCredentials(
+    public async createProfileWithDifferentCredentials(
         connection: IConnectionInfo,
     ): Promise<IConnectionInfo> {
-        return new Promise<IConnectionInfo>((resolve, reject) => {
-            this.promptForRetryConnectWithDifferentCredentials().then((result) => {
-                if (result) {
-                    let connectionWithoutCredentials = Object.assign({}, connection, {
-                        user: "",
-                        password: "",
-                        emptyPasswordInput: false,
-                    });
-                    ConnectionCredentials.ensureRequiredPropertiesSet(
-                        connectionWithoutCredentials, // connection profile
-                        true, // isProfile
-                        false, // isPasswordRequired
-                        true, // wasPasswordEmptyInConfigFile
-                        this._prompter,
-                        this._connectionStore,
-                        connection,
-                    ).then(
-                        (connectionResult) => {
-                            resolve(connectionResult);
-                        },
-                        (error) => {
-                            reject(error);
-                        },
-                    );
-                } else {
-                    resolve(undefined);
-                }
-            });
+        const retryResult = await this.promptForRetryConnectWithDifferentCredentials();
+
+        if (!retryResult) {
+            return undefined;
+        }
+
+        let connectionWithoutCredentials = Object.assign({}, connection, {
+            user: "",
+            password: "",
+            emptyPasswordInput: false,
         });
+
+        return await ConnectionCredentials.ensureRequiredPropertiesSet(
+            connectionWithoutCredentials, // connection profile
+            true, // isProfile
+            false, // isPasswordRequired
+            true, // wasPasswordEmptyInConfigFile
+            this._prompter,
+            this._connectionStore,
+            connection,
+            false // shouldSaveUpdates
+        );
     }
 
     private handleSelectedConnection(
@@ -400,7 +393,7 @@ export class ConnectionUI {
                     connectFunc = this.createAndSaveProfile();
                 } else {
                     // user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
-                    connectFunc = this.fillOrPromptForMissingInfo(selection);
+                    connectFunc = this.fillOrPromptForMissingInfo(selection, false /* shouldSaveUpdates */);
                 }
 
                 connectFunc.then(
@@ -527,7 +520,7 @@ export class ConnectionUI {
     public async createAndSaveProfile(
         validate: boolean = true,
     ): Promise<IConnectionProfile | undefined> {
-        if (this._isRichExperiencesEnabled) {
+        if (!this._useLegacyConnectionExperience) {
             // Opening the Connection Dialog is considering the end of the flow regardless of whether they create a new connection,
             // so undefined is returned.
             // It's considered the end of the flow because opening a complex dialog in the middle of a flow then continuing is disorienting.
@@ -627,7 +620,7 @@ export class ConnectionUI {
         profile: IConnectionInfo,
         connectionResponse: ConnectionCompleteParams | SessionCreatedParameters,
     ): Promise<boolean> {
-        if (this._isRichExperiencesEnabled) {
+        if (!this._useLegacyConnectionExperience) {
             if (connectionResponse.errorNumber !== constants.errorFirewallRule) {
                 Utils.logDebug(
                     `handleFirewallError called with non-firewall-error response; error number: '${connectionResponse.errorNumber}'`,
@@ -908,24 +901,19 @@ export class ConnectionUI {
         }
     }
 
-    private promptForRetryConnectWithDifferentCredentials(): PromiseLike<boolean> {
+    private async promptForRetryConnectWithDifferentCredentials(): Promise<boolean> {
         // Ask if the user would like to fix the profile
-        return this._vscodeWrapper
-            .showErrorMessage(
-                LocalizedConstants.msgPromptRetryConnectionDifferentCredentials,
-                LocalizedConstants.retryLabel,
-            )
-            .then((result) => {
-                if (result === LocalizedConstants.retryLabel) {
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+        const result = await this._vscodeWrapper.showErrorMessage(
+            LocalizedConstants.msgPromptRetryConnectionDifferentCredentials,
+            LocalizedConstants.retryLabel,
+        );
+
+        return result === LocalizedConstants.retryLabel;
     }
 
     private fillOrPromptForMissingInfo(
         selection: IConnectionCredentialsQuickPickItem,
+        shouldSaveUpdates: boolean = true
     ): Promise<IConnectionInfo> {
         // If a connection string is present, don't prompt for any other info
         if (selection.connectionCreds.connectionString) {
@@ -945,6 +933,8 @@ export class ConnectionUI {
                 passwordEmptyInConfigFile,
                 this._prompter,
                 this._connectionStore,
+                undefined, // defaultProfileValues
+                shouldSaveUpdates
             );
         });
     }

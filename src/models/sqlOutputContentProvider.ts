@@ -184,7 +184,7 @@ export class SqlOutputContentProvider {
             title,
             async (queryRunner: QueryRunner) => {
                 if (queryRunner) {
-                    if (this.shouldUseOldResultPane) {
+                    if (this.useLegacyQueryResults) {
                         // if the panel isn't active and exists
                         if (this._panels.get(uri).isActive === false) {
                             this._panels.get(uri).revealToForeground(uri);
@@ -222,18 +222,12 @@ export class SqlOutputContentProvider {
             .get(Constants.configOpenQueryResultsInTabByDefault);
     }
 
-    private get isRichExperiencesEnabled(): boolean {
-        return this._vscodeWrapper.getConfiguration().get(Constants.configEnableRichExperiences);
-    }
-
-    private get isNewQueryResultFeatureEnabled(): boolean {
-        return this._vscodeWrapper
-            .getConfiguration()
-            .get(Constants.configEnableNewQueryResultFeature);
-    }
-
-    private get shouldUseOldResultPane(): boolean {
-        return !this.isRichExperiencesEnabled || !this.isNewQueryResultFeatureEnabled;
+    private get useLegacyQueryResults(): boolean {
+        return (
+            this._vscodeWrapper
+                .getConfiguration()
+                .get(Constants.configUseLegacyQueryResultExperience) || false
+        );
     }
 
     private async runQueryCallback(
@@ -248,7 +242,7 @@ export class SqlOutputContentProvider {
             uri,
             title,
         );
-        if (this.shouldUseOldResultPane) {
+        if (this.useLegacyQueryResults) {
             if (this._panels.has(uri)) {
                 let panelController = this._panels.get(uri);
                 if (panelController.isDisposed) {
@@ -376,7 +370,7 @@ export class SqlOutputContentProvider {
             this.logger.verbose(`Creating a new query runner for URI: ${uri}`);
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
             queryRunner.eventEmitter.on("start", async (panelUri) => {
-                if (this.shouldUseOldResultPane) {
+                if (this.useLegacyQueryResults) {
                     this._panels.get(queryRunner.uri).proxy.sendEvent("start", panelUri);
                     sendActionEvent(TelemetryViews.ResultsGrid, TelemetryActions.OpenQueryResult);
                 } else {
@@ -410,7 +404,7 @@ export class SqlOutputContentProvider {
                 }
             });
             queryRunner.eventEmitter.on("resultSet", async (resultSet: ResultSetSummary) => {
-                if (this.shouldUseOldResultPane) {
+                if (this.useLegacyQueryResults) {
                     this._panels.get(queryRunner.uri).proxy.sendEvent("resultSet", resultSet);
                 } else {
                     this._queryResultWebviewController.addResultSetSummary(
@@ -443,7 +437,7 @@ export class SqlOutputContentProvider {
                         uri: queryRunner.uri,
                     },
                 };
-                if (this.shouldUseOldResultPane) {
+                if (this.useLegacyQueryResults) {
                     this._panels.get(queryRunner.uri).proxy.sendEvent("message", message);
                 } else {
                     this._queryResultWebviewController
@@ -461,7 +455,7 @@ export class SqlOutputContentProvider {
                 }
             });
             queryRunner.eventEmitter.on("message", async (message) => {
-                if (this.shouldUseOldResultPane) {
+                if (this.useLegacyQueryResults) {
                     this._panels.get(queryRunner.uri).proxy.sendEvent("message", message);
                 } else {
                     this._queryResultWebviewController
@@ -497,7 +491,7 @@ export class SqlOutputContentProvider {
                             hasError,
                         );
                     }
-                    if (this.shouldUseOldResultPane) {
+                    if (this.useLegacyQueryResults) {
                         this._panels
                             .get(queryRunner.uri)
                             .proxy.sendEvent("complete", totalMilliseconds);

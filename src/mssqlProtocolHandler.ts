@@ -5,9 +5,10 @@
 
 import * as vscode from "vscode";
 import * as Utils from "./models/utils";
-import { IConnectionInfo } from "vscode-mssql";
+import { AuthenticationType, IConnectionInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "./languageservice/serviceclient";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "./models/contracts/connection";
+import { IConnectionProfile } from "./models/interfaces";
 
 enum Command {
     connect = "/connect",
@@ -16,7 +17,7 @@ enum Command {
 
 interface ConnectionOptionProperty {
     name: keyof IConnectionInfo;
-    type: "string" | "number" | "boolean" | "category";
+    type: "string" | "number" | "boolean" | "category" | "password";
 }
 
 /**
@@ -33,7 +34,7 @@ export class MssqlProtocolHandler {
      * @param uri - The URI to handle.
      * @returns The connection information or undefined if not applicable.
      */
-    public handleUri(uri: vscode.Uri): Promise<IConnectionInfo | undefined> {
+    public handleUri(uri: vscode.Uri): Promise<IConnectionProfile | undefined> {
         Utils.logDebug(`[MssqlProtocolHandler][handleUri] URI: ${uri.toString()}`);
 
         switch (uri.path) {
@@ -60,7 +61,7 @@ export class MssqlProtocolHandler {
      * @param uri - The URI containing connection information.
      * @returns The connection information or undefined if not applicable.
      */
-    private connect(uri: vscode.Uri): Promise<IConnectionInfo | undefined> {
+    private connect(uri: vscode.Uri): Promise<IConnectionProfile | undefined> {
         return this.readProfileFromArgs(uri.query);
     }
 
@@ -70,7 +71,7 @@ export class MssqlProtocolHandler {
      * @param query - The query string containing connection information.
      * @returns The connection information object or undefined if the query is empty.
      */
-    private async readProfileFromArgs(query: string): Promise<IConnectionInfo | undefined> {
+    private async readProfileFromArgs(query: string): Promise<IConnectionProfile | undefined> {
         if (!query) {
             return undefined;
         }
@@ -92,13 +93,13 @@ export class MssqlProtocolHandler {
         const connectionString = args.get("connectionString");
         if (connectionString) {
             connectionInfo["connectionString"] = connectionString;
-            return connectionInfo as IConnectionInfo;
+            return connectionInfo as IConnectionProfile;
         }
 
         const connectionOptionProperties: ConnectionOptionProperty[] = connectionOptions.map(
             (option) =>
                 ({
-                    name: option.name as keyof IConnectionInfo,
+                    name: option.name as keyof IConnectionProfile,
                     type: option.valueType,
                 }) as ConnectionOptionProperty,
         );
@@ -114,6 +115,7 @@ export class MssqlProtocolHandler {
             switch (property.type) {
                 case "string":
                 case "category":
+                case "password":
                     connectionInfo[propName] = propValue;
                     break;
 
@@ -133,6 +135,10 @@ export class MssqlProtocolHandler {
             }
         }
 
-        return connectionInfo as IConnectionInfo;
+        const result = connectionInfo as IConnectionProfile;
+        result.authenticationType ??= AuthenticationType.SqlLogin;
+        result.savePassword ??= !!result.password; // propose saving password if one is provided
+
+        return result;
     }
 }

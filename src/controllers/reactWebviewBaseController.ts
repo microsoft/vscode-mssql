@@ -112,7 +112,9 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     }
 
     protected initializeBase() {
-        this.state = this._initialData;
+        if (!this.state) {
+            this.state = this._initialData;
+        }
         this._registerDefaultRequestHandlers();
         this.setupTheming();
     }

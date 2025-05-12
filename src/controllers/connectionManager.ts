@@ -37,6 +37,8 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import * as events from "events";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
+import { getErrorMessage } from "../utils/utils";
+import { Logger } from "../models/logger";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -112,11 +114,14 @@ export default class ConnectionManager {
 
     private _event: events.EventEmitter = new events.EventEmitter();
 
+    public initialized: Deferred<void> = new Deferred<void>();
+
     constructor(
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
-        private isRichExperiencesEnabled: boolean = Constants.isRichExperiencesEnabledDefault,
+        private _useLegacyConnectionExperience: boolean = false,
+        private _logger?: Logger,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
         private _connectionStore?: ConnectionStore,
@@ -132,6 +137,7 @@ export default class ConnectionManager {
             string,
             Deferred<ConnectionContracts.ConnectionCompleteParams>
         >();
+
         if (!this.client) {
             this.client = SqlToolsServerClient.instance;
         }
@@ -139,20 +145,20 @@ export default class ConnectionManager {
             this.vscodeWrapper = new VscodeWrapper();
         }
 
+        if (!this._logger) {
+            this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionManager");
+        }
+
         if (!this._credentialStore) {
             this._credentialStore = new CredentialStore(context);
         }
 
         if (!this._connectionStore) {
-            this._connectionStore = new ConnectionStore(
-                context,
-                this.client?.logger,
-                this._credentialStore,
-            );
+            this._connectionStore = new ConnectionStore(context, this._credentialStore);
         }
 
         if (!this._accountStore) {
-            this._accountStore = new AccountStore(context, this.client?.logger);
+            this._accountStore = new AccountStore(context, this._logger);
         }
 
         if (!this._connectionUI) {
@@ -162,7 +168,7 @@ export default class ConnectionManager {
                 this._connectionStore,
                 this._accountStore,
                 prompter,
-                isRichExperiencesEnabled,
+                _useLegacyConnectionExperience,
                 this.vscodeWrapper,
             );
         }
@@ -208,10 +214,15 @@ export default class ConnectionManager {
                 this.handleNonTSqlNotification(),
             );
         }
+
+        void this.initialize();
     }
 
-    public get initialized(): Deferred<void> {
-        return this.connectionStore.initialized;
+    private async initialize(): Promise<void> {
+        await this.connectionStore.initialized;
+        await this.migrateLegacyConnectionProfiles();
+
+        this.initialized.resolve();
     }
 
     /**
@@ -798,6 +809,11 @@ export default class ConnectionManager {
     ): Promise<IConnectionInfo | undefined> {
         let updatedConn: IConnectionInfo | undefined;
         await this.showInstructionTextAsWarning(profile, async (updatedConnection) => {
+            // If the operation was cancelled, we return undefined indicating that the connection was not fixed.
+            if (!updatedConnection) {
+                this.failedUriToSSLMap.delete(uri);
+                return;
+            }
             vscode.commands.executeCommand(
                 Constants.cmdConnectObjectExplorerProfile,
                 updatedConnection,
@@ -1035,7 +1051,16 @@ export default class ConnectionManager {
             await this.disconnect(fileUri);
             // connect to the server/database
             const result = await this.connect(fileUri, connectionCreds);
-            await this.handleConnectionResult(result, fileUri, connectionCreds);
+
+            const connectionOutcome = await this.handleConnectionResult(
+                result,
+                fileUri,
+                connectionCreds,
+            );
+            if (!connectionOutcome) {
+                // connection failed, return undefined
+                return undefined;
+            }
         }
         return connectionCreds;
     }
@@ -1047,6 +1072,11 @@ export default class ConnectionManager {
     public getServerInfo(connectionCredentials: IConnectionInfo): IServerInfo {
         if (this._connectionCredentialsToServerInfoMap.has(connectionCredentials)) {
             return this._connectionCredentialsToServerInfoMap.get(connectionCredentials);
+        }
+        for (const connection of this._connectionCredentialsToServerInfoMap.keys()) {
+            if (Utils.isSameConnectionInfo(connection, connectionCredentials)) {
+                return this._connectionCredentialsToServerInfoMap.get(connection);
+            }
         }
     }
 
@@ -1080,11 +1110,11 @@ export default class ConnectionManager {
                     }
                     return newResult;
                 } else {
-                    return true;
+                    return false;
                 }
             } else if (
                 connection.errorNumber === Constants.errorFirewallRule &&
-                this.isRichExperiencesEnabled
+                !this._useLegacyConnectionExperience
             ) {
                 const addFirewallRuleController = new AddFirewallRuleWebviewController(
                     this.context,
@@ -1100,7 +1130,17 @@ export default class ConnectionManager {
                 const wasCreated = await addFirewallRuleController.dialogResult;
 
                 if (wasCreated === true /** dialog closed is undefined */) {
-                    await this.connect(fileUri, connection.credentials);
+                    return await this.connect(fileUri, connection.credentials);
+                } else {
+                    return false;
+                }
+            } else if (connection.errorNumber === Constants.errorSSLCertificateValidationFailed) {
+                const updatedConnection = await this.handleSSLError(
+                    fileUri,
+                    connectionCreds as IConnectionProfile,
+                );
+                if (updatedConnection) {
+                    return await this.connect(fileUri, updatedConnection);
                 } else {
                     return false;
                 }
@@ -1223,6 +1263,28 @@ export default class ConnectionManager {
 
         if (connectionCreds.authenticationType === Constants.azureMfa) {
             await this.confirmEntraTokenValidity(connectionCreds);
+        }
+
+        if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
+            // show password prompt if SQL Login and password isn't saved
+            let password = connectionCreds.password;
+            if (Utils.isEmpty(password)) {
+                if ((connectionCreds as IConnectionProfile).savePassword) {
+                    password = await this.connectionStore.lookupPassword(connectionCreds);
+                }
+
+                if (!password) {
+                    password = await this.connectionUI.promptForPassword();
+                    if (!password) {
+                        return undefined;
+                    }
+                }
+
+                if (connectionCreds.authenticationType !== Constants.azureMfa) {
+                    connectionCreds.azureAccountToken = undefined;
+                }
+                connectionCreds.password = password;
+            }
         }
 
         let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
@@ -1581,5 +1643,112 @@ export default class ConnectionManager {
     public onClearTokenCache(): void {
         this.azureController.clearTokenCache();
         this.vscodeWrapper.showInformationMessage(LocalizedConstants.clearedAzureTokenCache);
+    }
+
+    private async migrateLegacyConnectionProfiles(): Promise<void> {
+        this._logger.logDebug("Beginning migration of legacy connections");
+
+        const connections: IConnectionProfile[] =
+            await this.connectionStore.readAllConnections(false);
+        const tally = {
+            migrated: 0,
+            notNeeded: 0,
+            error: 0,
+        };
+
+        for (const connection of connections) {
+            const result = await this.migrateLegacyConnection(connection);
+
+            tally[result] = (tally[result] || 0) + 1;
+        }
+
+        if (tally.migrated > 0) {
+            this._logger.verbose(
+                `Completed migration of legacy Connection String connections. (${tally.migrated} migrated, ${tally.notNeeded} not needed, ${tally.error} errored)`,
+            );
+        } else {
+            this._logger.verbose(
+                `No legacy Connection String connections found to migrate. (${tally.notNeeded} not needed, ${tally.error} errored)`,
+            );
+        }
+
+        sendActionEvent(
+            TelemetryViews.General,
+            TelemetryActions.MigrateLegacyConnections,
+            {}, // properties
+            {
+                ...tally,
+            },
+        );
+    }
+
+    private async migrateLegacyConnection(
+        profile: IConnectionProfile,
+    ): Promise<"notNeeded" | "migrated" | "error"> {
+        try {
+            if (Utils.isEmpty(profile.connectionString)) {
+                return "notNeeded"; // Not a connection string profile; skip
+            }
+
+            let connectionString = profile.connectionString;
+
+            // Get the real connection string from credentials store if necessary
+            if (connectionString.includes(ConnectionStore.CRED_CONNECTION_STRING_PREFIX)) {
+                const retrievedString = await this.connectionStore.lookupPassword(profile, true);
+                connectionString = retrievedString ?? connectionString;
+            }
+
+            // merge profile from connection string with existing profile
+            const connDetails = await this.parseConnectionString(connectionString);
+            const profileFromString = ConnectionCredentials.removeUndefinedProperties(
+                ConnectionCredentials.createConnectionInfo(connDetails),
+            );
+
+            const newProfile: IConnectionProfile = {
+                ...profileFromString,
+                ...profile,
+            };
+
+            const passwordIndex = connectionString.toLowerCase().indexOf("password=");
+
+            if (passwordIndex !== -1) {
+                // extract password from connection string
+                const passwordStart = passwordIndex + "password=".length;
+                const passwordEnd = connectionString.indexOf(";", passwordStart);
+
+                newProfile.password = connectionString.substring(
+                    passwordStart,
+                    passwordEnd === -1 ? undefined : passwordEnd, // if no further semicolon found, password must be the last item in the connection string
+                );
+
+                newProfile.savePassword = true;
+            }
+
+            // clear the old connection string from the profile as it no longer has useful information
+            newProfile.connectionString = "";
+
+            await this.connectionStore.saveProfile(newProfile);
+            return "migrated";
+        } catch (err) {
+            this._logger.error(
+                `Error migrating legacy connection with ID ${profile.id}: ${getErrorMessage(err)}`,
+            );
+
+            this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.Connection.errorMigratingLegacyConnection(
+                    profile.id,
+                    getErrorMessage(err),
+                ),
+            );
+
+            sendErrorEvent(
+                TelemetryViews.General,
+                TelemetryActions.MigrateLegacyConnections,
+                err,
+                false, // includeErrorMessage
+            );
+
+            return "error";
+        }
     }
 }
