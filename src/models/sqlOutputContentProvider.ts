@@ -544,7 +544,7 @@ export class SqlOutputContentProvider {
     public cancelQuery(input: QueryRunner | string): void {
         let self = this;
         let queryRunner: QueryRunner;
-
+        this.logger.verbose(`Canceling query for URI: ${input}`);
         if (typeof input === "string") {
             if (this._queryResultsMap.has(input)) {
                 // Option 1: The string is a results URI (the results tab has focus)
@@ -564,8 +564,9 @@ export class SqlOutputContentProvider {
 
         // Cancel the query
         queryRunner.cancel().then(
-            (success) => undefined,
+            (success) => this.logger.verbose(`Query cancel success: ${success}`),
             (error) => {
+                this.logger.verbose(`Query cancel error: ${error.message}`);
                 // On error, show error message
                 self._vscodeWrapper.showErrorMessage(
                     LocalizedConstants.msgCancelQueryFailed(error.message),
