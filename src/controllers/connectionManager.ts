@@ -1265,6 +1265,28 @@ export default class ConnectionManager {
             await this.confirmEntraTokenValidity(connectionCreds);
         }
 
+        if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
+            // show password prompt if SQL Login and password isn't saved
+            let password = connectionCreds.password;
+            if (Utils.isEmpty(password)) {
+                if ((connectionCreds as IConnectionProfile).savePassword) {
+                    password = await this.connectionStore.lookupPassword(connectionCreds);
+                }
+
+                if (!password) {
+                    password = await this.connectionUI.promptForPassword();
+                    if (!password) {
+                        return undefined;
+                    }
+                }
+
+                if (connectionCreds.authenticationType !== Constants.azureMfa) {
+                    connectionCreds.azureAccountToken = undefined;
+                }
+                connectionCreds.password = password;
+            }
+        }
+
         let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
             if (
                 connectionCreds.connectionString?.includes(ConnectionStore.CRED_PREFIX) &&
