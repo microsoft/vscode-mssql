@@ -76,6 +76,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     executionPlanState: ExecutionPlanState;
     fontSettings: FontSettings;
     autoSizeColumns?: boolean;
+    inMemoryDataProcessingThreshold?: number;
 }
 
 export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
