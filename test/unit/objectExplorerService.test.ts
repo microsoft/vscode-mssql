@@ -19,6 +19,7 @@ import { CloseSessionRequest } from "../../src/models/contracts/objectExplorer/c
 import { Deferred } from "../../src/protocol";
 import { ExpandRequest } from "../../src/models/contracts/objectExplorer/expandNodeRequest";
 import {
+    ActivityObject,
     ActivityStatus,
     TelemetryActions,
     TelemetryViews,
@@ -27,12 +28,17 @@ import * as telemetry from "../../src/telemetry/telemetry";
 import { RefreshRequest } from "../../src/models/contracts/objectExplorer/refreshSessionRequest";
 import { ExpandErrorNode } from "../../src/objectExplorer/nodes/expandErrorNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import { IAccount, IServerInfo } from "vscode-mssql";
+import { IAccount, IServerInfo, IToken } from "vscode-mssql";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
 import { AccountStore } from "../../src/azure/accountStore";
 import { AzureController } from "../../src/azure/azureController";
+import { SessionCreatedParameters } from "../../src/models/contracts/objectExplorer/createSessionRequest";
+import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import { FirewallService } from "../../src/firewall/firewallService";
+import { ConnectionCredentials } from "../../src/models/connectionCredentials";
+import providerSettings from "../../src/azure/providerSettings";
 
 suite("Object Explorer Service Tests", () => {
     let objectExplorerService: ObjectExplorerService;
@@ -46,6 +52,8 @@ suite("Object Explorer Service Tests", () => {
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
     let mockAzureController: sinon.SinonStubbedInstance<AzureController>;
+    let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
+    let mockWithProgress: sinon.SinonStub;
 
     let mockLogger: sinon.SinonStubbedInstance<Logger>;
     let startActivityStub: sinon.SinonStub;
@@ -75,7 +83,23 @@ suite("Object Explorer Service Tests", () => {
         mockAzureController = sandbox.createStubInstance(AzureController);
         mockAzureController.isAccountInCache = sandbox.stub();
         mockAzureController.isSqlAuthProviderEnabled = sandbox.stub();
+        mockAzureController.refreshAccessToken = sandbox.stub();
+        mockAzureController.populateAccountProperties = sandbox.stub();
         mockConnectionManager.azureController = mockAzureController;
+        mockFirewallService = sandbox.createStubInstance(FirewallService);
+        (mockConnectionManager as any)._firewallService = mockFirewallService;
+
+        mockWithProgress = sandbox.stub(vscode.window, "withProgress");
+        mockWithProgress.callsFake((options, task) => {
+            const mockProgress = {
+                report: sandbox.stub(),
+            };
+            const mockToken = {
+                onCancellationRequested: sandbox.stub(),
+            };
+
+            return task(mockProgress, mockToken);
+        });
 
         // Mock Telemetry
         endStub = sandbox.stub();
@@ -93,6 +117,8 @@ suite("Object Explorer Service Tests", () => {
         // Mock the Logger.create static method
         mockLogger = sandbox.createStubInstance(Logger);
         sandbox.stub(Logger, "create").returns(mockLogger);
+        mockLogger.verbose = sandbox.stub();
+        mockLogger.error = sandbox.stub();
 
         // Mock Utils
         mockGenerateGuidStub = sandbox.stub(Utils, "generateGuid").returns("mock-guid-12345");
@@ -1306,5 +1332,738 @@ suite("Object Explorer Service Tests", () => {
 
         // Verify refreshAccount was NOT called since token already exists
         expect((objectExplorerService as any).refreshAccount.called).to.be.false;
+    });
+
+    function createMockSuccessResponse(success: boolean = true): SessionCreatedParameters {
+        return {
+            success: success,
+            sessionId: "test-session-id",
+            rootNode: {
+                nodePath: "/",
+                nodeType: "Server",
+                nodeSubType: "",
+                label: "TestServer",
+                isLeaf: false,
+                nodeStatus: "Connected",
+                errorMessage: "",
+                metadata: null,
+            },
+            errorNumber: undefined,
+            errorMessage: "",
+        };
+    }
+
+    test("handleSessionCreationSuccess should return undefined when success is false", async () => {
+        (objectExplorerService as any)._rootTreeNodeArray = [];
+        // Create a failed success response
+        const failedResponse = createMockSuccessResponse(false);
+        const connectionProfile = createMockConnectionProfile();
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationSuccess(
+            failedResponse,
+            connectionProfile,
+        );
+
+        // Verify the result is undefined
+        expect(result).to.be.undefined;
+
+        // Verify the root tree node array is still empty
+        expect((objectExplorerService as any)._rootTreeNodeArray).to.be.an("array").that.is.empty;
+    });
+
+    test("handleSessionCreationSuccess should create a new connection node when none exists", async () => {
+        mockConnectionManager.connect = sandbox.stub();
+        (objectExplorerService as any).addConnectionNodeAtRightPosition = sandbox.stub();
+        (objectExplorerService as any)._rootTreeNodeArray = [];
+        // Create a successful response
+        const successResponse = createMockSuccessResponse();
+        const connectionProfile = createMockConnectionProfile();
+
+        // Stub getConnectionNodeFromProfile to return undefined (no existing node)
+        sandbox
+            .stub(objectExplorerService as any, "getConnectionNodeFromProfile")
+            .onFirstCall()
+            .returns(undefined)
+            .onSecondCall()
+            .callsFake((profile) => {
+                // Return the newly created node on second call
+                return (objectExplorerService as any)._rootTreeNodeArray.find(
+                    (n: ConnectionNode) => n.connectionProfile.id === profile.id,
+                );
+            });
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationSuccess(
+            successResponse,
+            connectionProfile,
+        );
+
+        // Verify the result
+        expect(result).to.exist;
+        expect(result.sessionId).to.equal("test-session-id");
+        expect(result.connectionNode).to.exist;
+
+        // Verify a new connection node was created and added to the root tree node array
+        expect((objectExplorerService as any)._rootTreeNodeArray.length).to.equal(1);
+        const newNode: ConnectionNode = (objectExplorerService as any)._rootTreeNodeArray[0];
+        expect(newNode).to.be.instanceOf(ConnectionNode);
+        expect(newNode.connectionProfile).to.deep.equal(connectionProfile);
+
+        // Verify updateToConnectedState was called on the new node
+        expect(newNode.nodeStatus).to.be.equal("Connected");
+
+        // Verify connect was called
+        expect(mockConnectionManager.connect.calledOnce).to.be.true;
+        expect(mockConnectionManager.connect.args[0][0]).to.equal(`test-session-id`);
+        expect(mockConnectionManager.connect.args[0][1]).to.deep.equal(connectionProfile);
+
+        // Verify addConnectionNodeAtRightPosition was called
+        expect((objectExplorerService as any).addConnectionNodeAtRightPosition.calledOnce).to.be
+            .true;
+        expect((objectExplorerService as any).addConnectionNodeAtRightPosition.args[0][0]).to.equal(
+            newNode,
+        );
+    });
+
+    test("handleSessionCreationSuccess should update existing connection node", async () => {
+        (objectExplorerService as any).addConnectionNodeAtRightPosition = sandbox.stub();
+
+        // Create a successful response
+        const successResponse = createMockSuccessResponse();
+        const connectionProfile = createMockConnectionProfile();
+
+        // Create an existing node
+        const existingNode = new ConnectionNode(connectionProfile);
+        (objectExplorerService as any)._rootTreeNodeArray = [existingNode];
+
+        // Spy on the node's methods
+        const updateProfileSpy = sandbox.stub();
+        existingNode.updateConnectionProfile = updateProfileSpy;
+        const updateStateSpy = sandbox.stub();
+        existingNode.updateToConnectedState = updateStateSpy;
+
+        // Stub getConnectionNodeFromProfile to return the existing node
+        sandbox
+            .stub(objectExplorerService as any, "getConnectionNodeFromProfile")
+            .returns(existingNode);
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationSuccess(
+            successResponse,
+            connectionProfile,
+        );
+
+        // Verify the result
+        expect(result).to.exist;
+        expect(result.sessionId).to.equal("test-session-id");
+        expect(result.connectionNode).to.equal(existingNode);
+
+        // Verify no new node was created - array still has only one node
+        expect((objectExplorerService as any)._rootTreeNodeArray.length).to.equal(1);
+
+        // Verify updateConnectionProfile was called on the existing node
+        expect(updateProfileSpy.calledOnce).to.be.true;
+        expect(updateProfileSpy.args[0][0]).to.equal(connectionProfile);
+
+        // Verify updateToConnectedState was called
+        expect(updateStateSpy.calledOnce).to.be.true;
+        expect(updateStateSpy.args[0][0].nodeInfo).to.equal(successResponse.rootNode);
+        expect(updateStateSpy.args[0][0].sessionId).to.equal(successResponse.sessionId);
+        expect(updateStateSpy.args[0][0].connectionProfile).to.equal(connectionProfile);
+
+        // Verify addConnectionNodeAtRightPosition was NOT called (not a new connection)
+        expect((objectExplorerService as any).addConnectionNodeAtRightPosition.called).to.be.false;
+    });
+
+    // Helper function to create a mock failure response
+    function createMockFailureResponse(
+        options: {
+            errorNumber?: number;
+            errorMessage?: string;
+        } = {},
+    ): SessionCreatedParameters {
+        return {
+            success: false,
+            sessionId: "",
+            rootNode: null,
+            errorNumber: options.errorNumber,
+            errorMessage: options.errorMessage || "",
+        } as SessionCreatedParameters;
+    }
+
+    function createMockActivityObject(): ActivityObject {
+        return {
+            end: sandbox.stub(),
+            endFailed: sandbox.stub(),
+            update: sandbox.stub(),
+            correlationId: "test-correlation-id",
+            startTime: performance.now(),
+        };
+    }
+
+    // Helper function to create a mock connection profile
+    function createMockConnectionProfile(
+        options: {
+            id?: string;
+            authenticationType?: string;
+            accountId?: string;
+            user?: string;
+            tenantId?: string;
+        } = {},
+    ): IConnectionProfile {
+        return {
+            id: options.id || "test-id",
+            server: "TestServer",
+            database: "TestDB",
+            authenticationType: options.authenticationType || "SqlLogin",
+            user: options.user ?? "testUser",
+            password: "testPassword",
+            savePassword: true,
+            accountId: options.accountId,
+            tenantId: options.tenantId,
+        } as IConnectionProfile;
+    }
+
+    // Helper function to create a mock account
+    function createMockAccount(id: string = "account-id"): IAccount {
+        return {
+            key: {
+                id: id,
+                providerId: "azure",
+            },
+            displayInfo: {
+                displayName: "Test User",
+                email: "test@example.com",
+                userId: id,
+            },
+        } as IAccount;
+    }
+
+    test("handleSessionCreationFailure should handle basic error without error number", async () => {
+        mockVscodeWrapper.showErrorMessage = sandbox.stub();
+        // Create a failure response with just an error message
+        const failureResponse = createMockFailureResponse({
+            errorMessage: "Connection failed",
+        });
+
+        const connectionProfile = createMockConnectionProfile();
+        const telemetryActivity = createMockActivityObject();
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationFailure(
+            failureResponse,
+            connectionProfile,
+            telemetryActivity,
+        );
+
+        // Verify the result is false (no retry)
+        expect(result).to.be.false;
+
+        // Verify telemetry was NOT updated (no error number)
+        expect((telemetryActivity.update as sinon.SinonStub<any[], any>).called).to.be.false;
+
+        // Verify error was logged
+        expect(mockLogger.error.calledOnce).to.be.true;
+        expect(mockLogger.error.args[0][0]).to.include("Session creation failed");
+        expect(mockLogger.error.args[0][0]).to.include("Connection failed");
+
+        // Verify error message was shown to user
+        expect(mockVscodeWrapper.showErrorMessage.calledOnce).to.be.true;
+        expect(mockVscodeWrapper.showErrorMessage.args[0][0]).to.include("Connection failed");
+    });
+
+    test("handleSessionCreationFailure should update telemetry when error number is present", async () => {
+        // Create a failure response with error number and message
+        const failureResponse = createMockFailureResponse({
+            errorNumber: 12345,
+            errorMessage: "Connection failed",
+        });
+
+        const connectionProfile = createMockConnectionProfile({
+            authenticationType: "SqlLogin",
+        });
+        const telemetryActivity = createMockActivityObject();
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationFailure(
+            failureResponse,
+            connectionProfile,
+            telemetryActivity,
+        );
+
+        // Verify the result is false (no retry)
+        expect(result).to.be.false;
+
+        const updateStub = telemetryActivity.update as sinon.SinonStub<any[], any>;
+
+        // Verify telemetry was updated with error number
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.args[0][0].connectionType).to.equal("SqlLogin");
+        expect(updateStub.args[0][1].errorNumber).to.equal(12345);
+    });
+
+    test("handleSessionCreationFailure should handle SSL certificate validation error", async () => {
+        (objectExplorerService as any).getConnectionNodeFromProfile = sandbox.stub();
+        // Create a failure response with SSL certificate validation error
+        const failureResponse = createMockFailureResponse({
+            errorNumber: Constants.errorSSLCertificateValidationFailed,
+            errorMessage: "SSL certificate validation failed",
+        });
+
+        const connectionProfile = createMockConnectionProfile();
+        const telemetryActivity = createMockActivityObject();
+        const updateStub = telemetryActivity.update as sinon.SinonStub<any[], any>;
+
+        // Setup fixed profile from handleSSLError
+        const fixedProfile = createMockConnectionProfile();
+        fixedProfile.trustServerCertificate = true;
+
+        mockConnectionManager.handleSSLError.resolves(fixedProfile);
+
+        // Set up a mock connection node to be returned for the fixed profile
+        const mockConnectionNode = {
+            updateConnectionProfile: sandbox.stub(),
+        };
+
+        (objectExplorerService as any).getConnectionNodeFromProfile
+            .withArgs(fixedProfile)
+            .returns(mockConnectionNode);
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationFailure(
+            failureResponse,
+            connectionProfile,
+            telemetryActivity,
+        );
+
+        // Verify the result is true (retry)
+        expect(result).to.be.true;
+
+        // Verify SSL error was handled
+        expect(mockLogger.verbose.calledWith("Fixing SSL trust server certificate error.")).to.be
+            .true;
+        expect(mockConnectionManager.handleSSLError.calledOnce).to.be.true;
+        expect(mockConnectionManager.handleSSLError.args[0][1]).to.equal(connectionProfile);
+
+        // Verify telemetry was updated for SSL error
+        expect(updateStub.calledTwice).to.be.true;
+        expect(updateStub.args[1][0].errorHandled).to.equal("trustServerCertificate");
+        expect(updateStub.args[1][0].isFixed).to.equal("true");
+
+        // Verify connection node was updated
+        expect(mockConnectionNode.updateConnectionProfile.calledOnce).to.be.true;
+        expect(mockConnectionNode.updateConnectionProfile.args[0][0]).to.equal(fixedProfile);
+    });
+
+    test("handleSessionCreationFailure should return false if SSL error handling returns no profile", async () => {
+        // Create a failure response with SSL certificate validation error
+        const failureResponse = createMockFailureResponse({
+            errorNumber: Constants.errorSSLCertificateValidationFailed,
+            errorMessage: "SSL certificate validation failed",
+        });
+
+        const connectionProfile = createMockConnectionProfile();
+        const telemetryActivity = createMockActivityObject();
+        const updateStub = telemetryActivity.update as sinon.SinonStub<any[], any>;
+
+        // Setup handleSSLError to return undefined (user canceled)
+        mockConnectionManager.handleSSLError.resolves(undefined);
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationFailure(
+            failureResponse,
+            connectionProfile,
+            telemetryActivity,
+        );
+
+        // Verify the result is false (no retry)
+        expect(result).to.be.false;
+
+        // Verify SSL error was handled
+        expect(mockLogger.verbose.calledWith("Fixing SSL trust server certificate error.")).to.be
+            .true;
+        expect(mockConnectionManager.handleSSLError.calledOnce).to.be.true;
+
+        // Verify telemetry was updated for SSL error
+        expect(updateStub.calledTwice).to.be.true;
+        expect(updateStub.args[1][0].errorHandled).to.equal("trustServerCertificate");
+        expect(updateStub.args[1][0].isFixed).to.equal("false");
+    });
+
+    test("handleSessionCreationFailure should handle firewall error", async () => {
+        // Modify isFirewallError to return true for this test
+        sandbox.stub(ObjectExplorerUtils, "isFirewallError");
+
+        (ObjectExplorerUtils.isFirewallError as sinon.SinonStub).returns(true);
+
+        // Create a failure response with firewall error
+        const failureResponse = createMockFailureResponse({
+            errorNumber: Constants.errorFirewallRule,
+            errorMessage: "Firewall rule error",
+        });
+
+        const connectionProfile = createMockConnectionProfile();
+        const telemetryActivity = createMockActivityObject();
+        const updateStub = telemetryActivity.update as sinon.SinonStub<any[], any>;
+
+        // Setup handleFirewallRule to return success
+        mockFirewallService.handleFirewallRule.resolves({
+            result: true,
+            ipAddress: "192.168.1.1",
+        });
+
+        // Setup connection UI to handle firewall error successfully
+        mockConnectionUI.handleFirewallError.resolves(true);
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationFailure(
+            failureResponse,
+            connectionProfile,
+            telemetryActivity,
+        );
+
+        // Verify the result is true (retry)
+        expect(result).to.be.true;
+
+        // Verify firewall error was handled
+        expect(mockFirewallService.handleFirewallRule.calledOnce).to.be.true;
+        expect(mockFirewallService.handleFirewallRule.args[0][0]).to.equal(
+            Constants.errorFirewallRule,
+        );
+        expect(mockFirewallService.handleFirewallRule.args[0][1]).to.equal("Firewall rule error");
+
+        // Verify connection UI handled firewall error
+        expect(mockConnectionUI.handleFirewallError.calledOnce).to.be.true;
+        expect(mockConnectionUI.handleFirewallError.args[0][0]).to.equal(connectionProfile);
+        expect(mockConnectionUI.handleFirewallError.args[0][1]).to.equal(failureResponse);
+
+        // Verify telemetry was updated for firewall error
+        expect(updateStub.calledTwice).to.be.true;
+        expect(updateStub.args[1][0].errorHandled).to.equal("firewallRule");
+        expect(updateStub.args[1][0].isFixed).to.equal("true");
+
+        // Verify success was logged
+        expect(mockLogger.verbose.calledWith("Firewall rule added for IP address 192.168.1.1")).to
+            .be.true;
+    });
+
+    test("handleSessionCreationFailure should return false if firewall rule was not fixed", async () => {
+        // Modify isFirewallError to return true for this test
+        sandbox.stub(ObjectExplorerUtils, "isFirewallError");
+        (ObjectExplorerUtils.isFirewallError as sinon.SinonStub).returns(true);
+
+        // Create a failure response with firewall error
+        const failureResponse = createMockFailureResponse({
+            errorNumber: Constants.errorFirewallRule,
+            errorMessage: "Firewall rule error",
+        });
+
+        const connectionProfile = createMockConnectionProfile();
+        const telemetryActivity = createMockActivityObject();
+        const updateStub = telemetryActivity.update as sinon.SinonStub<any[], any>;
+
+        // Setup handleFirewallRule to return success with IP address
+        mockFirewallService.handleFirewallRule.resolves({
+            result: true,
+            ipAddress: "192.168.1.1",
+        });
+
+        // Setup connection UI to handle firewall error unsuccessfully
+        mockConnectionUI.handleFirewallError.resolves(false);
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationFailure(
+            failureResponse,
+            connectionProfile,
+            telemetryActivity,
+        );
+
+        // Verify the result is false (no retry)
+        expect(result).to.be.false;
+
+        // Verify error was logged
+        expect(mockLogger.error.calledWith("Firewall rule not added for IP address 192.168.1.1")).to
+            .be.true;
+
+        // Verify telemetry was updated for firewall error
+        expect(updateStub.calledTwice).to.be.true;
+        expect(updateStub.args[1][0].errorHandled).to.equal("firewallRule");
+        expect(updateStub.args[1][0].isFixed).to.equal("false");
+    });
+
+    test("handleSessionCreationFailure should skip firewall handling if handleFirewallRule returns no result", async () => {
+        // Modify isFirewallError to return true for this test
+        sandbox.stub(ObjectExplorerUtils, "isFirewallError");
+        (ObjectExplorerUtils.isFirewallError as sinon.SinonStub).returns(true);
+
+        // Create a failure response with firewall error
+        const failureResponse = createMockFailureResponse({
+            errorNumber: Constants.errorFirewallRule,
+            errorMessage: "Firewall rule error",
+        });
+
+        const connectionProfile = createMockConnectionProfile();
+        const telemetryActivity = createMockActivityObject();
+
+        // Setup handleFirewallRule to return no result
+        mockFirewallService.handleFirewallRule.resolves({
+            result: false,
+            ipAddress: undefined,
+        });
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationFailure(
+            failureResponse,
+            connectionProfile,
+            telemetryActivity,
+        );
+
+        // Verify the result is false (no retry)
+        expect(result).to.be.false;
+
+        // Verify connection UI was NOT called
+        expect(mockConnectionUI.handleFirewallError.called).to.be.false;
+    });
+
+    test("handleSessionCreationFailure should handle Azure MFA authentication error needing refresh", async () => {
+        // Modify needsAccountRefresh to return true for this test
+        (objectExplorerService as any).needsAccountRefresh = sandbox.stub();
+        (objectExplorerService as any).needsAccountRefresh.returns(true);
+
+        // Create a failure response
+        const failureResponse = createMockFailureResponse({
+            errorNumber: 12345,
+            errorMessage: "Azure authentication error",
+        });
+
+        const connectionProfile = createMockConnectionProfile({
+            authenticationType: Constants.azureMfa,
+            accountId: "azure-account-id",
+            user: "test-user",
+        });
+        const telemetryActivity = createMockActivityObject();
+        const updateStub = telemetryActivity.update as sinon.SinonStub<any[], any>;
+
+        // Create a mock account
+        const mockAccount = createMockAccount("azure-account-id");
+
+        // Setup account store to return the mock account
+        mockAccountStore.getAccount.withArgs("azure-account-id").returns(mockAccount);
+
+        // Setup refreshAccount to return success
+        sandbox.stub(objectExplorerService as any, "refreshAccount").resolves(true);
+
+        // Call the method
+        const result = await (objectExplorerService as any).handleSessionCreationFailure(
+            failureResponse,
+            connectionProfile,
+            telemetryActivity,
+        );
+
+        // Verify the result is true (retry)
+        expect(result).to.be.true;
+
+        // Verify needsAccountRefresh was called
+        expect((objectExplorerService as any).needsAccountRefresh.calledOnce).to.be.true;
+        expect((objectExplorerService as any).needsAccountRefresh.args[0][0]).to.equal(
+            failureResponse,
+        );
+        expect((objectExplorerService as any).needsAccountRefresh.args[0][1]).to.equal("test-user");
+
+        // Verify account refresh was initiated
+        expect((objectExplorerService as any).refreshAccount.calledOnce).to.be.true;
+        expect((objectExplorerService as any).refreshAccount.args[0][0]).to.equal(mockAccount);
+        expect((objectExplorerService as any).refreshAccount.args[0][1]).to.equal(
+            connectionProfile,
+        );
+
+        // Verify telemetry was updated
+        expect(updateStub.calledTwice).to.be.true;
+        expect(updateStub.args[1][0].errorHandled).to.equal("refreshAccount");
+        expect(updateStub.args[1][0].isFixed).to.equal("true");
+
+        // Verify success was logged
+        expect(mockLogger.verbose.calledWith(`Token refreshed successfully for azure-account-id`))
+            .to.be.true;
+    });
+
+    test("refreshAccount should refresh token successfully", async () => {
+        // Create mock account and connection credentials
+        const mockAccount = createMockAccount();
+        const mockConnectionCredentials = createMockConnectionProfile({
+            tenantId: "tenant-id",
+        }) as ConnectionCredentials;
+
+        // Setup Azure controller to return a token
+        mockAzureController.refreshAccessToken.resolves({
+            token: "new-access-token",
+            expiresOn: 10000, // 1 hour from now
+        } as IToken);
+
+        // Call the method
+        const result = await (objectExplorerService as any).refreshAccount(
+            mockAccount,
+            mockConnectionCredentials,
+        );
+
+        // Verify the result is true (success)
+        expect(result).to.be.true;
+
+        // Verify Azure controller was called with correct parameters
+        expect(mockAzureController.refreshAccessToken.calledOnce).to.be.true;
+        expect(mockAzureController.refreshAccessToken.args[0][0]).to.equal(mockAccount);
+        expect(mockAzureController.refreshAccessToken.args[0][1]).to.equal(mockAccountStore);
+        expect(mockAzureController.refreshAccessToken.args[0][2]).to.equal("tenant-id");
+        expect(mockAzureController.refreshAccessToken.args[0][3]).to.equal(
+            providerSettings.resources.databaseResource,
+        );
+
+        // Verify connection credentials were updated with new token
+        expect(mockConnectionCredentials.azureAccountToken).to.equal("new-access-token");
+        expect(mockConnectionCredentials.expiresOn).to.exist;
+
+        // Verify withProgress was called with correct title
+        expect(mockWithProgress.calledOnce).to.be.true;
+        expect(mockWithProgress.args[0][0].title).to.equal(
+            LocalizedConstants.ObjectExplorer.AzureSignInMessage,
+        );
+    });
+
+    test("refreshAccount should show error message if token refresh fails", async () => {
+        // Create mock account and connection credentials
+        const mockAccount = createMockAccount();
+        const mockConnectionCredentials = createMockConnectionProfile() as ConnectionCredentials;
+
+        // Setup Azure controller to return no token
+        mockAzureController.refreshAccessToken.resolves(undefined);
+
+        // Setup showErrorMessage to return a button click
+        mockVscodeWrapper.showErrorMessage.resolves(LocalizedConstants.refreshTokenLabel);
+
+        // Setup populateAccountProperties to return a profile with a token
+        mockAzureController.populateAccountProperties.resolves({
+            azureAccountToken: "populated-access-token",
+            expiresOn: 1000, // 1 hour from now
+        } as IConnectionProfile);
+
+        // Call the method
+        const result = await (objectExplorerService as any).refreshAccount(
+            mockAccount,
+            mockConnectionCredentials,
+        );
+
+        // Verify the result is true (success)
+        expect(result).to.be.true;
+
+        // Verify Azure controller was called
+        expect(mockAzureController.refreshAccessToken.calledOnce).to.be.true;
+
+        // Verify error message was shown
+        expect(mockVscodeWrapper.showErrorMessage.calledOnce).to.be.true;
+        expect(mockVscodeWrapper.showErrorMessage.args[0][0]).to.equal(
+            LocalizedConstants.msgAccountRefreshFailed,
+        );
+        expect(mockVscodeWrapper.showErrorMessage.args[0][1]).to.equal(
+            LocalizedConstants.refreshTokenLabel,
+        );
+
+        // Verify populateAccountProperties was called since refresh button was clicked
+        expect(mockAzureController.populateAccountProperties.calledOnce).to.be.true;
+
+        // Verify connection credentials were updated with populated token
+        expect(mockConnectionCredentials.azureAccountToken).to.equal("populated-access-token");
+        expect(mockConnectionCredentials.expiresOn).to.exist;
+    });
+
+    test("refreshAccount should handle user cancellation of refresh", async () => {
+        // Create mock account and connection credentials
+        const mockAccount = createMockAccount();
+        const mockConnectionCredentials = createMockConnectionProfile() as ConnectionCredentials;
+
+        // Setup Azure controller to return no token
+        mockAzureController.refreshAccessToken.resolves(undefined);
+
+        // Setup showErrorMessage to return undefined (user closed dialog)
+        mockVscodeWrapper.showErrorMessage.resolves(undefined);
+
+        // Call the method
+        const result = await (objectExplorerService as any).refreshAccount(
+            mockAccount,
+            mockConnectionCredentials,
+        );
+
+        // Verify the result is true (success) - the method still resolves true even if user cancels
+        expect(result).to.be.true;
+
+        // Verify error was logged
+        expect((mockLogger.error as sinon.SinonStub).calledOnce).to.be.true;
+
+        // Verify populateAccountProperties was NOT called since user didn't click refresh
+        expect(mockAzureController.populateAccountProperties.called).to.be.false;
+    });
+
+    test("refreshAccount should handle progress cancellation", async () => {
+        // Create mock account and connection credentials
+        const mockAccount = createMockAccount();
+        const mockConnectionCredentials = createMockConnectionProfile() as ConnectionCredentials;
+
+        mockVscodeWrapper.showErrorMessage.resolves(LocalizedConstants.refreshTokenLabel);
+
+        // Modify withProgress to simulate cancellation
+        mockWithProgress.restore(); // Restore the original stub
+        mockWithProgress = sandbox.stub(vscode.window, "withProgress");
+        mockWithProgress.callsFake((options, task) => {
+            const mockProgress = {
+                report: sandbox.stub(),
+            };
+            const mockToken = {
+                onCancellationRequested: (callback: () => void) => {
+                    // Immediately trigger cancellation
+                    callback();
+                    return { dispose: sandbox.stub() };
+                },
+            };
+
+            return task(mockProgress, mockToken);
+        });
+
+        // Call the method
+        const result = await (objectExplorerService as any).refreshAccount(
+            mockAccount,
+            mockConnectionCredentials,
+        );
+
+        // Verify the result is false (cancelled)
+        expect(result).to.be.false;
+
+        // Verify cancellation was logged
+        expect(mockLogger.verbose.calledWith("Azure sign in cancelled by user.")).to.be.true;
+    });
+
+    test("refreshAccount should handle errors during refresh", async () => {
+        // Create mock account and connection credentials
+        const mockAccount = createMockAccount();
+        const mockConnectionCredentials = createMockConnectionProfile() as ConnectionCredentials;
+
+        // Setup Azure controller to throw an error
+        const testError = new Error("Test refresh error");
+        mockAzureController.refreshAccessToken.rejects(testError);
+
+        // Call the method
+        const result = await (objectExplorerService as any).refreshAccount(
+            mockAccount,
+            mockConnectionCredentials,
+        );
+
+        // Verify the result is false (error)
+        expect(result).to.be.false;
+
+        // Verify error was logged
+        expect(mockLogger.error.calledWith("Error refreshing account: " + testError)).to.be.true;
+
+        // Verify error message was shown
+        expect(mockVscodeWrapper.showErrorMessage.calledOnce).to.be.true;
+        expect(mockVscodeWrapper.showErrorMessage.args[0][0]).to.equal(testError.message);
     });
 });

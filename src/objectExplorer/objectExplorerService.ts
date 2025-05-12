@@ -855,7 +855,7 @@ export class ObjectExplorerService {
             return tokenAdded;
         } else {
             this._logger.error("Session creation failed: " + error);
-            this._connectionManager.vscodeWrapper.showErrorMessage(error);
+            this._vscodeWrapper.showErrorMessage(error);
         }
         return false;
     }
@@ -880,27 +880,26 @@ export class ObjectExplorerService {
                 providerSettings.resources.databaseResource,
             );
             if (!azureAccountToken) {
-                this._client.logger.verbose(
-                    "Access token could not be refreshed for connection profile.",
-                );
+                this._logger.verbose("Access token could not be refreshed for connection profile.");
                 let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-                await this._connectionManager.vscodeWrapper
-                    .showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel)
-                    .then(async (result) => {
-                        if (result === LocalizedConstants.refreshTokenLabel) {
-                            let updatedProfile = await azureController.populateAccountProperties(
-                                profile,
-                                this._connectionManager.accountStore,
-                                providerSettings.resources.databaseResource,
-                            );
-                            connectionCredentials.azureAccountToken =
-                                updatedProfile.azureAccountToken;
-                            connectionCredentials.expiresOn = updatedProfile.expiresOn;
-                        } else {
-                            this._client.logger.error("Credentials not refreshed by user.");
-                            return undefined;
-                        }
-                    });
+
+                const response = await this._vscodeWrapper.showErrorMessage(
+                    errorMessage,
+                    LocalizedConstants.refreshTokenLabel,
+                );
+
+                if (response === LocalizedConstants.refreshTokenLabel) {
+                    let updatedProfile = await azureController.populateAccountProperties(
+                        profile,
+                        this._connectionManager.accountStore,
+                        providerSettings.resources.databaseResource,
+                    );
+                    connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
+                    connectionCredentials.expiresOn = updatedProfile.expiresOn;
+                } else {
+                    this._logger.error("Credentials not refreshed by user.");
+                    return undefined;
+                }
             } else {
                 connectionCredentials.azureAccountToken = azureAccountToken.token;
                 connectionCredentials.expiresOn = azureAccountToken.expiresOn;
@@ -916,15 +915,15 @@ export class ObjectExplorerService {
                 },
                 async (progress, token) => {
                     token.onCancellationRequested(() => {
-                        this._client.logger.verbose("Azure sign in cancelled by user.");
+                        this._logger.verbose("Azure sign in cancelled by user.");
                         resolve(false);
                     });
                     try {
                         await refreshTask();
                         resolve(true);
                     } catch (error) {
-                        this._client.logger.error("Error refreshing account: " + error);
-                        this._connectionManager.vscodeWrapper.showErrorMessage(error.message);
+                        this._logger.error("Error refreshing account: " + error);
+                        this._vscodeWrapper.showErrorMessage(error.message);
                         resolve(false);
                     }
                 },
