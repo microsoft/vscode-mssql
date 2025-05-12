@@ -1403,6 +1403,9 @@
     <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
       <source xml:lang="en">Query Plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++70e130053d5cc32db21828d00d7074434b6f8fbabb7fb0169014d2ee1714b5af">
+      <source xml:lang="en">Query Results</source>
+    </trans-unit>
     <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
       <source xml:lang="en">Query executed</source>
     </trans-unit>
