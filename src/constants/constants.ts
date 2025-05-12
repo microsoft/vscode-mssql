@@ -201,6 +201,7 @@ export const configUseLegacyQueryResultExperience = "mssql.useLegacyQueryResultE
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
+export const configInMemoryDataProcessingThreshold = "resultsGrid.inMemoryDataProcessingThreshold";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
