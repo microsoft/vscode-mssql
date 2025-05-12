@@ -175,6 +175,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mssql-tools
           /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "$PASSWORD" -Q "SELECT @@VERSION"
+          export PROFILE_NAME=test-server
         working-directory: ./pr
 
       - name: Run smoke tests for PR branch
