@@ -4,14 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import Sinon from "sinon";
-import {
-    AzureSubscription,
-    AzureTenant,
-    VSCodeAzureSubscriptionProvider,
-} from "@microsoft/vscode-azext-azureauth";
+import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { AzureSqlServerInfo } from "../../src/sharedInterfaces/connectionDialog";
+import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 
 export const mockSubscriptions = [
     {
@@ -45,7 +42,7 @@ export function stubConfirmVscodeAzureSignin(sandbox: sinon.SinonSandbox) {
     return sandbox.stub(AzureHelpers, "confirmVscodeAzureSignin").resolves({
         getSubscriptions: () => Promise.resolve(mockSubscriptions),
         getTenants: () => Promise.resolve(mockTenants),
-    } as unknown as VSCodeAzureSubscriptionProvider);
+    } as unknown as MssqlVSCodeAzureSubscriptionProvider);
 }
 
 export function stubFetchServersFromAzure(sandbox: sinon.SinonSandbox) {
