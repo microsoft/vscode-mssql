@@ -23,7 +23,6 @@ export class ScriptingService {
         this._client = this._connectionManager.client;
         this._client.onNotification(ScriptingProgressNotification.type, (params) => {
             this._client.logger.verbose(JSON.stringify(params));
-            vscode.window.showErrorMessage(JSON.stringify(params));
             if (params.errorMessage) {
                 const errorText = `Scripting progress error: ${params.errorMessage} - ${params.errorDetails}`;
                 this._client.logger.error(errorText);
