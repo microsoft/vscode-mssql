@@ -1415,6 +1415,10 @@ Error:
         <source xml:lang="en">Max Length</source>
         <target state="translated">最大長</target>
       </trans-unit>
+      <trans-unit id="++CODE++3cb29430462001e8edb74afebb929c2e967e7eac89679c4d549a8305ec4a2fe7">
+        <source xml:lang="en">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</source>
+        <target state="new">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</target>
+      </trans-unit>
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
         <target state="translated">最大化</target>
@@ -2883,6 +2887,10 @@ Error:
         <source xml:lang="en">Connections</source>
         <target state="translated">接続</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
+        <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
+        <target state="new">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</target>
+      </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
         <target state="translated">すべてコピー</target>
@@ -3273,9 +3281,9 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">上位 1000 を選択する</target>
       </trans-unit>
-      <trans-unit id="mssql.selectedSubscriptions">
-        <source xml:lang="en">Selected Subscriptions</source>
-        <target state="translated">選択したサブスクリプション</target>
+      <trans-unit id="mssql.selectedAzureSubscriptions">
+        <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
+        <target state="new">Selected Azure subscriptions for browsing and managing servers and databases</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
