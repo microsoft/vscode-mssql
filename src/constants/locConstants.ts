@@ -118,6 +118,7 @@ export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
 export let azureLogChannelName = l10n.t("Azure Logs");
+export let queryResultChannelName = l10n.t("Query Results");
 export let azureConsentDialogOpen = l10n.t("Open");
 export let azureConsentDialogIgnore = l10n.t("Ignore Tenant");
 export function azureConsentDialogBody(tenantName: string, tenantId: string, resource: string) {

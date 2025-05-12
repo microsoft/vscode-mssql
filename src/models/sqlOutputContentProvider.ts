@@ -19,6 +19,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { Logger } from "./logger";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -48,6 +49,7 @@ export class SqlOutputContentProvider {
     private _queryResultWebviewController: QueryResultWebviewController;
     private _executionPlanOptions: ExecutionPlanOptions = {};
     private _lastSendMessageTime: number;
+    protected logger: Logger;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(
@@ -58,6 +60,12 @@ export class SqlOutputContentProvider {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
+        // Setup Logger
+
+        let channel = this._vscodeWrapper.createOutputChannel(
+            LocalizedConstants.queryResultChannelName,
+        );
+        this.logger = Logger.create(channel);
     }
 
     public setQueryResultWebviewController(
@@ -340,9 +348,16 @@ export class SqlOutputContentProvider {
     public createQueryRunner(statusView: StatusView, uri: string, title: string): QueryRunner {
         // Reuse existing query runner if it exists
         let queryRunner: QueryRunner;
+        let queryRunnerState: QueryRunnerState;
 
         if (this._queryResultsMap.has(uri)) {
-            let existingRunner: QueryRunner = this._queryResultsMap.get(uri).queryRunner;
+            this.logger.verbose(`Reusing query runner for URI: ${uri}`);
+            queryRunnerState = this._queryResultsMap.get(uri);
+            // If the query runner is flagged for deletion, we need to reset it before reusing
+            if (queryRunnerState.flaggedForDeletion) {
+                queryRunnerState.flaggedForDeletion = false;
+            }
+            let existingRunner: QueryRunner = queryRunnerState.queryRunner;
 
             // If the query is already in progress, don't attempt to send it
             if (existingRunner.isExecutingQuery) {
@@ -358,12 +373,16 @@ export class SqlOutputContentProvider {
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
+            this.logger.verbose(`Creating a new query runner for URI: ${uri}`);
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
             queryRunner.eventEmitter.on("start", async (panelUri) => {
                 if (this.shouldUseOldResultPane) {
                     this._panels.get(queryRunner.uri).proxy.sendEvent("start", panelUri);
                     sendActionEvent(TelemetryViews.ResultsGrid, TelemetryActions.OpenQueryResult);
                 } else {
+                    this.logger.verbose(
+                        `Creating a new query result webview for URI: ${queryRunner.uri}`,
+                    );
                     this._lastSendMessageTime = Date.now();
                     this._queryResultWebviewController.addQueryResultState(
                         queryRunner.uri,
@@ -402,6 +421,9 @@ export class SqlOutputContentProvider {
                 }
             });
             queryRunner.eventEmitter.on("batchStart", async (batch) => {
+                this.logger.verbose(
+                    `Batch start event received for URI: ${queryRunner.uri} with batchId: ${batch.batchId}`,
+                );
                 let time = new Date().toLocaleTimeString();
                 if (batch.executionElapsed && batch.executionEnd) {
                     time = new Date(batch.executionStart).toLocaleTimeString();
@@ -464,6 +486,9 @@ export class SqlOutputContentProvider {
             queryRunner.eventEmitter.on(
                 "complete",
                 async (totalMilliseconds, hasError, isRefresh?) => {
+                    this.logger.verbose(
+                        `Query complete event received for URI: ${queryRunner.uri}`,
+                    );
                     if (!isRefresh) {
                         // only update query history with new queries
                         this._vscodeWrapper.executeCommand(
@@ -535,6 +560,7 @@ export class SqlOutputContentProvider {
         }
 
         // Switch the spinner to canceling, which will be reset when the query execute sends back its completed event
+        console.log(`Canceling query for URI: ${queryRunner.uri}`);
         this._statusView.cancelingQuery(queryRunner.uri);
 
         // Cancel the query
@@ -628,9 +654,15 @@ export class SqlOutputContentProvider {
 
                 if (queryRunnerState.queryRunner.isExecutingQuery) {
                     // We need to cancel it, which will dispose it
+                    this.logger.verbose(
+                        `Canceling query for URI: ${uri} as it is flagged for deletion.`,
+                    );
                     this.cancelQuery(queryRunnerState.queryRunner);
                 } else {
                     // We need to explicitly dispose the query
+                    this.logger.verbose(
+                        `Disposing query for URI: ${uri} as it is flagged for deletion.`,
+                    );
                     void queryRunnerState.queryRunner.dispose();
                 }
             } else {

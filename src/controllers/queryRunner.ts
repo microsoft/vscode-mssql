@@ -45,6 +45,7 @@ import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { Logger } from "../models/logger";
 
 export interface IResultSet {
     columns: string[];
@@ -68,6 +69,7 @@ export default class QueryRunner {
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
     private static _runningQueries = [];
+    protected logger: Logger;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -90,6 +92,13 @@ export default class QueryRunner {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
+
+        // Setup Logger
+
+        let channel = this._vscodeWrapper.createOutputChannel(
+            LocalizedConstants.queryResultChannelName,
+        );
+        this.logger = Logger.create(channel);
 
         // Store the state
         this._isExecuting = false;
@@ -175,6 +184,7 @@ export default class QueryRunner {
                     line: line,
                     column: column,
                 };
+                this.logger.verbose("Send request to execute query for URI: " + this._ownerUri);
 
                 // Send the request to execute the query
                 await this._client
@@ -190,6 +200,7 @@ export default class QueryRunner {
         executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
+        this.logger.verbose(`Starting to run query for URI: ${this._ownerUri}`);
         await this.doRunQuery(selection, async (onSuccess, onError) => {
             // Put together the request
             let queryDetails: QueryExecuteParams = {
@@ -239,6 +250,8 @@ export default class QueryRunner {
 
         let onSuccess = (result) => {
             // The query has started, so lets fire up the result pane
+            this.logger.verbose(`Query started successfully for URI: ${this._ownerUri}`);
+
             QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).fsPath);
             vscode.commands.executeCommand(
                 "setContext",
