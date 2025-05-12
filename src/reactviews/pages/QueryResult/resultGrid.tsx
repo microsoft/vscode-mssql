@@ -125,6 +125,9 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         const setupState = async () => {
             await table.setupFilterState();
             await table.restoreColumnWidths();
+            table.headerFilter.enabled =
+                table.grid.getDataLength() < context.state.inMemoryDataProcessingThreshold!;
+
             table.rerenderGrid();
         };
         const DEFAULT_FONT_SIZE = 12;
@@ -242,6 +245,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             },
             {
                 inMemoryDataProcessing: true,
+                inMemoryDataCountThreshold: context.state.inMemoryDataProcessingThreshold,
             },
             undefined,
             undefined,
