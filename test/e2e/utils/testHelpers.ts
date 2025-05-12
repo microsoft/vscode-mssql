@@ -16,6 +16,8 @@ export async function addDatabaseConnection(
     savePassword: string,
     profileName: string,
 ): Promise<void> {
+    console.log("Connection Profile: ", serverName, databaseName, authType, userName, profileName);
+
     const objectExplorer = vsCodePage.locator('[role="tree"][aria-label="Connections"]');
     const addConnectionButton = vsCodePage.locator(
         '[class*="action-label codicon codicon-add"][aria-label*="Add Connection"]',
