@@ -170,13 +170,13 @@ jobs:
 
       - name: Run smoke tests for PR branch
         run: |
-          export VS_CODE_VERSION=stable
-          export SERVER_NAME=localhost,1433
-          export AUTHENTICATION_TYPE="SQL Login"
-          export USER_NAME=sa
-          export PASSWORD=${{ env.PASSWORD }}
-          export SAVE_PASSWORD=No
-          export PROFILE_NAME=test-server
+          VS_CODE_VERSION=stable
+          SERVER_NAME=localhost
+          AUTHENTICATION_TYPE="SQL Login"
+          USER_NAME=sa
+          PASSWORD=${{ env.PASSWORD }}
+          SAVE_PASSWORD=No
+          PROFILE_NAME=test-server
           cd pr
           DISPLAY=:10 yarn smoketest
           cd ../main
