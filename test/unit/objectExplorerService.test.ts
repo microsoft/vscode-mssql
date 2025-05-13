@@ -5,7 +5,10 @@
 
 import * as vscode from "vscode";
 import * as sinon from "sinon";
-import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
+import {
+    CreateSessionResult,
+    ObjectExplorerService,
+} from "../../src/objectExplorer/objectExplorerService";
 import { expect } from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager from "../../src/controllers/connectionManager";
@@ -34,11 +37,19 @@ import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
 import { AccountStore } from "../../src/azure/accountStore";
 import { AzureController } from "../../src/azure/azureController";
-import { SessionCreatedParameters } from "../../src/models/contracts/objectExplorer/createSessionRequest";
+import {
+    CreateSessionRequest,
+    CreateSessionResponse,
+    SessionCreatedParameters,
+} from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import providerSettings from "../../src/azure/providerSettings";
+import {
+    GetSessionIdRequest,
+    GetSessionIdResponse,
+} from "../../src/models/contracts/objectExplorer/getSessionIdRequest";
 
 suite("OE Service Tests", () => {
     suite("getSavedConnectionNodes", () => {
@@ -2112,6 +2123,608 @@ suite("OE Service Tests", () => {
 
             // Verify the result
             expect(result).to.equal("session1");
+        });
+    });
+
+    suite("ObjectExplorerService - createSession Tests", () => {
+        let sandbox: sinon.SinonSandbox;
+        let objectExplorerService: ObjectExplorerService;
+        let endStub: sinon.SinonStub;
+        let endFailedStub: sinon.SinonStub;
+        let startActivityStub: sinon.SinonStub;
+        let mockActivity: ActivityObject;
+        let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+        let mockLogger: sinon.SinonStubbedInstance<Logger>;
+
+        setup(() => {
+            sandbox = sinon.createSandbox();
+            const mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+            const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+            mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+            mockConnectionManager.client = mockClient;
+            endStub = sandbox.stub();
+            endFailedStub = sandbox.stub();
+            mockActivity = {
+                end: endStub,
+                endFailed: endFailedStub,
+                correlationId: "",
+                startTime: 0,
+                update: sandbox.stub(),
+            };
+            startActivityStub = sandbox.stub(telemetry, "startActivity").returns(mockActivity);
+            mockLogger = sandbox.createStubInstance(Logger);
+            sandbox.stub(Logger, "create").returns(mockLogger);
+            objectExplorerService = new ObjectExplorerService(
+                mockVscodeWrapper,
+                mockConnectionManager,
+                () => {},
+            );
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        test("createSession should return undefined if prepareConnectionProfile returns undefined", async () => {
+            // Setup prepareConnectionProfile to return undefined (user cancelled)
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(undefined);
+
+            const connectionInfo: IConnectionInfo = {
+                server: "TestServer",
+                database: "TestDB",
+                authenticationType: "SqlLogin",
+                user: "testUser",
+                password: "testPassword",
+            } as IConnectionInfo;
+
+            // Call the method
+            const result = await objectExplorerService.createSession(connectionInfo);
+
+            // Verify the result is undefined
+            expect(result).to.be.undefined;
+
+            // Verify prepareConnectionProfile was called with the connection info
+            expect((objectExplorerService as any).prepareConnectionProfile.calledOnce).to.be.true;
+            expect((objectExplorerService as any).prepareConnectionProfile.args[0][0]).to.equal(
+                connectionInfo,
+            );
+
+            // Verify telemetry was started
+            expect(startActivityStub.calledOnce).to.be.true;
+            expect(startActivityStub.args[0][0]).to.equal(TelemetryViews.ObjectExplorer);
+            expect(startActivityStub.args[0][1]).to.equal(TelemetryActions.CreateSession);
+            expect(startActivityStub.args[0][3].connectionType).to.equal("SqlLogin");
+        });
+
+        test("createSession should call client to get session ID and create session", async () => {
+            // Setup prepareConnectionProfile to return a profile
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            const connectionProfile = createMockConnectionProfile();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(connectionProfile);
+
+            // Setup client to return session ID and create session
+            const sessionIdResponse: GetSessionIdResponse = { sessionId: "test-session-id" };
+            mockClient.sendRequest
+                .withArgs(GetSessionIdRequest.type, sinon.match.any)
+                .resolves(sessionIdResponse);
+
+            const createSessionResponse: CreateSessionResponse = {
+                sessionId: "test-session-id",
+            };
+            mockClient.sendRequest
+                .withArgs(CreateSessionRequest.type, sinon.match.any)
+                .resolves(createSessionResponse);
+
+            (objectExplorerService as any).handleSessionCreationSuccess = sandbox.stub();
+            const sessionCreationSuccessResponse = {
+                sessionId: "test-session-id",
+                connectionNode: { label: "TestServer" } as any,
+            };
+            (objectExplorerService as any).handleSessionCreationSuccess.resolves(
+                sessionCreationSuccessResponse,
+            );
+
+            const createConnectionStub = sandbox.stub(
+                ConnectionCredentials,
+                "createConnectionDetails",
+            );
+
+            // Call the method
+            const resultPromise = objectExplorerService.createSession();
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            const promise = (objectExplorerService as any)._pendingSessionCreations.get(
+                "test-session-id",
+            );
+            const sessionCreatedParameters: SessionCreatedParameters = {
+                sessionId: "test-session-id",
+                success: true,
+                errorMessage: "",
+                errorNumber: undefined,
+                rootNode: { label: "TestServer" } as any,
+            };
+            if (promise) {
+                promise.resolve(sessionCreatedParameters);
+            }
+
+            const result = await resultPromise;
+
+            // Verify the result
+            expect(result).to.equal(sessionCreationSuccessResponse);
+
+            // Verify telemetry was started and ended with success
+            expect(startActivityStub.calledOnce).to.be.true;
+            expect(endStub.calledOnce).to.be.true;
+            expect(endStub.args[0][0]).to.equal(ActivityStatus.Succeeded);
+            expect(endStub.args[0][1].connectionType).to.equal(
+                connectionProfile.authenticationType,
+            );
+
+            // Verify client requests were sent
+            expect(mockClient.sendRequest.calledTwice).to.be.true;
+            expect(mockClient.sendRequest.firstCall.args[0]).to.equal(GetSessionIdRequest.type);
+            expect(mockClient.sendRequest.secondCall.args[0]).to.equal(CreateSessionRequest.type);
+
+            // Verify connection details were created and passed to the requests
+            expect(createConnectionStub.calledOnce).to.be.true;
+            expect(createConnectionStub.args[0][0]).to.equal(connectionProfile);
+
+            // Verify pending session creation was set up and cleaned up
+            expect((objectExplorerService as any)._pendingSessionCreations.size).to.equal(0);
+        });
+
+        test("createSession should handle successful session creation", async () => {
+            // Setup prepareConnectionProfile to return a profile
+            const connectionProfile = createMockConnectionProfile();
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(connectionProfile);
+
+            // Setup client to return session ID and create session
+            const sessionIdResponse: GetSessionIdResponse = { sessionId: "test-session-id" };
+            mockClient.sendRequest
+                .withArgs(GetSessionIdRequest.type, sinon.match.any)
+                .resolves(sessionIdResponse);
+
+            const createSessionResponse: CreateSessionResponse = {
+                sessionId: "test-session-id",
+            };
+            mockClient.sendRequest
+                .withArgs(CreateSessionRequest.type, sinon.match.any)
+                .resolves(createSessionResponse);
+
+            // Setup successful session creation result
+            const successResult: CreateSessionResult = {
+                sessionId: "test-session-id",
+                connectionNode: { label: "TestServer" } as any,
+            };
+            (objectExplorerService as any).handleSessionCreationSuccess = sandbox.stub();
+            (objectExplorerService as any).handleSessionCreationSuccess.resolves(successResult);
+
+            // Call the method
+            const resultPromise = objectExplorerService.createSession();
+
+            // Simulate session created notification
+            const sessionCreatedResponse = {
+                sessionId: "test-session-id",
+                success: true,
+                errorMessage: "",
+                errorNumber: undefined,
+                rootNode: { label: "TestServer" } as any,
+            };
+
+            // Wait a bit for the promise to be set up
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            // Get the deferred object and resolve it
+            const pendingSession = (objectExplorerService as any)._pendingSessionCreations.get(
+                "test-session-id",
+            );
+            expect(pendingSession).to.exist;
+            pendingSession.resolve(sessionCreatedResponse);
+
+            // Wait for the result
+            const result = await resultPromise;
+
+            // Verify the result
+            expect(result).to.equal(successResult);
+
+            // Verify success was logged
+            expect(
+                mockLogger.verbose.calledWith(
+                    `Session created successfully for with session ID test-session-id`,
+                ),
+            ).to.be.true;
+
+            // Verify handleSessionCreationSuccess was called with the correct parameters
+            expect((objectExplorerService as any).handleSessionCreationSuccess.calledOnce).to.be
+                .true;
+            expect((objectExplorerService as any).handleSessionCreationSuccess.args[0][0]).to.equal(
+                sessionCreatedResponse,
+            );
+            expect((objectExplorerService as any).handleSessionCreationSuccess.args[0][1]).to.equal(
+                connectionProfile,
+            );
+        });
+
+        test("createSession should handle session creation failure", async () => {
+            // Setup prepareConnectionProfile to return a profile
+            const connectionProfile = createMockConnectionProfile();
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(connectionProfile);
+
+            // Setup client to return session ID and create session
+            const sessionIdResponse: GetSessionIdResponse = { sessionId: "test-session-id" };
+            mockClient.sendRequest
+                .withArgs(GetSessionIdRequest.type, sinon.match.any)
+                .resolves(sessionIdResponse);
+
+            const createSessionResponse: CreateSessionResponse = {
+                sessionId: "test-session-id",
+            };
+            mockClient.sendRequest
+                .withArgs(CreateSessionRequest.type, sinon.match.any)
+                .resolves(createSessionResponse);
+
+            // Setup handleSessionCreationFailure to return true (should retry)
+            (objectExplorerService as any).handleSessionCreationFailure = sandbox.stub();
+            (objectExplorerService as any).handleSessionCreationFailure.resolves(true);
+
+            // Call the method
+            const resultPromise = objectExplorerService.createSession();
+
+            // Simulate session created notification with failure
+            const failureResponse = {
+                sessionId: "test-session-id",
+                success: false,
+                errorMessage: "Authentication failed",
+                errorNumber: 12345,
+                rootNode: { label: "TestServer" } as any,
+            };
+
+            // Wait a bit for the promise to be set up
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            // Get the deferred object and resolve it with failure
+            const pendingSession = (objectExplorerService as any)._pendingSessionCreations.get(
+                "test-session-id",
+            );
+            expect(pendingSession).to.exist;
+            pendingSession.resolve(failureResponse);
+
+            // Wait for the result
+            const result = await resultPromise;
+
+            // Verify the result includes retry flag
+            expect(result).to.deep.equal({
+                sessionId: undefined,
+                connectionNode: undefined,
+                shouldRetryOnFailure: true,
+            });
+
+            // Verify failure was logged
+            expect(
+                mockLogger.error.calledWith(
+                    `Session creation failed with error: Authentication failed`,
+                ),
+            ).to.be.true;
+
+            // Verify handleSessionCreationFailure was called with the correct parameters
+            expect((objectExplorerService as any).handleSessionCreationFailure.calledOnce).to.be
+                .true;
+            expect((objectExplorerService as any).handleSessionCreationFailure.args[0][0]).to.equal(
+                failureResponse,
+            );
+            expect((objectExplorerService as any).handleSessionCreationFailure.args[0][1]).to.equal(
+                connectionProfile,
+            );
+            expect((objectExplorerService as any).handleSessionCreationFailure.args[0][2]).to.equal(
+                mockActivity,
+            );
+
+            // Verify telemetry recorded failure
+            expect(endFailedStub.calledOnce).to.be.true;
+        });
+
+        test("createSession should handle session creation failure without retry", async () => {
+            // Setup prepareConnectionProfile to return a profile
+            const connectionProfile = createMockConnectionProfile();
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(connectionProfile);
+
+            // Setup client to return session ID and create session
+            const sessionIdResponse: GetSessionIdResponse = { sessionId: "test-session-id" };
+            mockClient.sendRequest
+                .withArgs(GetSessionIdRequest.type, sinon.match.any)
+                .resolves(sessionIdResponse);
+
+            const createSessionResponse: CreateSessionResponse = {
+                sessionId: "test-session-id",
+            };
+            mockClient.sendRequest
+                .withArgs(CreateSessionRequest.type, sinon.match.any)
+                .resolves(createSessionResponse);
+
+            // Setup handleSessionCreationFailure to return false (should not retry)
+            (objectExplorerService as any).handleSessionCreationFailure = sandbox.stub();
+            (objectExplorerService as any).handleSessionCreationFailure.resolves(false);
+
+            // Call the method
+            const resultPromise = objectExplorerService.createSession();
+
+            // Simulate session created notification with failure
+            const failureResponse = {
+                sessionId: "test-session-id",
+                success: false,
+                errorMessage: "Authentication failed",
+                errorNumber: 12345,
+                rootNode: { label: "TestServer" } as any,
+            };
+
+            // Wait a bit for the promise to be set up
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            // Get the deferred object and resolve it with failure
+            const pendingSession = (objectExplorerService as any)._pendingSessionCreations.get(
+                "test-session-id",
+            );
+            expect(pendingSession).to.exist;
+            pendingSession.resolve(failureResponse);
+
+            // Wait for the result
+            const result = await resultPromise;
+
+            // Verify the result includes retry flag as false
+            expect(result).to.deep.equal({
+                sessionId: undefined,
+                connectionNode: undefined,
+                shouldRetryOnFailure: false,
+            });
+        });
+
+        test("createSession should return undefined if CreateSessionResponse is false", async () => {
+            // Setup prepareConnectionProfile to return a profile
+            const connectionProfile = createMockConnectionProfile();
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(connectionProfile);
+
+            // Setup client to return session ID but fail to create session
+            const sessionIdResponse: GetSessionIdResponse = { sessionId: "test-session-id" };
+            mockClient.sendRequest
+                .withArgs(GetSessionIdRequest.type, sinon.match.any)
+                .resolves(sessionIdResponse);
+
+            const createSessionResponse: CreateSessionResponse = undefined;
+            mockClient.sendRequest
+                .withArgs(CreateSessionRequest.type, sinon.match.any)
+                .resolves(createSessionResponse);
+
+            (objectExplorerService as any).handleSessionCreationSuccess = sandbox.stub();
+            (objectExplorerService as any).handleSessionCreationFailure = sandbox.stub();
+
+            // Call the method
+            const result = await objectExplorerService.createSession();
+
+            // Verify the result is undefined
+            expect(result).to.be.undefined;
+
+            // Verify client requests were sent
+            expect(mockClient.sendRequest.calledTwice).to.be.true;
+
+            // Verify session creation handlers were not called
+            expect((objectExplorerService as any).handleSessionCreationSuccess.called).to.be.false;
+            expect((objectExplorerService as any).handleSessionCreationFailure.called).to.be.false;
+        });
+
+        test("createSession should generate telemetry with correct connection type", async () => {
+            // Test with provided connection info
+            const connectionInfo: IConnectionInfo = {
+                server: "TestServer",
+                database: "TestDB",
+                authenticationType: "AzureMFA",
+                user: "testUser",
+                password: "testPassword",
+            } as IConnectionInfo;
+
+            // Setup to return undefined to end the test early
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(undefined);
+
+            // Call the method
+            await objectExplorerService.createSession(connectionInfo);
+
+            // Verify telemetry was started with correct connection type
+            expect(startActivityStub.calledOnce).to.be.true;
+            expect(startActivityStub.args[0][3].connectionType).to.equal("AzureMFA");
+
+            // Reset stubs
+            startActivityStub.resetHistory();
+            (objectExplorerService as any).prepareConnectionProfile.resetHistory();
+
+            // Test with undefined connection info (new connection)
+            await objectExplorerService.createSession(undefined);
+
+            // Verify telemetry was started with 'newConnection'
+            expect(startActivityStub.calledOnce).to.be.true;
+            expect(startActivityStub.args[0][3].connectionType).to.equal("newConnection");
+        });
+
+        test("createSession should handle client request errors gracefully", async () => {
+            // Setup prepareConnectionProfile to return a profile
+            const connectionProfile = createMockConnectionProfile();
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(connectionProfile);
+
+            // Setup client to throw an error on sendRequest
+            const testError = new Error("Client request failed");
+            mockClient.sendRequest
+                .withArgs(GetSessionIdRequest.type, sinon.match.any)
+                .rejects(testError);
+
+            // Call the method and expect it to throw
+            try {
+                await objectExplorerService.createSession();
+                // If we get here, the test failed
+                expect.fail("Method should have thrown an error");
+            } catch (error) {
+                // Verify the error was propagated
+                expect(error).to.equal(testError);
+            }
+        });
+
+        test("createSession should handle unexpected session creation notification", async () => {
+            // Setup prepareConnectionProfile to return a profile
+            const connectionProfile = createMockConnectionProfile();
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(connectionProfile);
+
+            // Setup client to return session ID and create session
+            const sessionIdResponse: GetSessionIdResponse = { sessionId: "test-session-id" };
+            mockClient.sendRequest
+                .withArgs(GetSessionIdRequest.type, sinon.match.any)
+                .resolves(sessionIdResponse);
+
+            const createSessionResponse: CreateSessionResponse = {
+                sessionId: "test-session-id",
+            };
+            mockClient.sendRequest
+                .withArgs(CreateSessionRequest.type, sinon.match.any)
+                .resolves(createSessionResponse);
+            (objectExplorerService as any).handleSessionCreationSuccess = sandbox.stub();
+            (objectExplorerService as any).handleSessionCreationFailure = sandbox.stub();
+            // Call the method
+            const resultPromise = objectExplorerService.createSession();
+
+            // Simulate session created notification with wrong session ID
+            const wrongSessionResponse = {
+                sessionId: "wrong-session-id",
+                success: true,
+                errorMessage: "",
+                errorNumber: undefined,
+                rootNode: { label: "TestServer" } as any,
+            };
+
+            // Wait a bit for the promise to be set up
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            // Get the deferred object for the correct session ID
+            const pendingSession = (objectExplorerService as any)._pendingSessionCreations.get(
+                "test-session-id",
+            );
+            expect(pendingSession).to.exist;
+
+            // Create and resolve a deferred for the wrong session ID
+            const wrongPendingSession = new Deferred<SessionCreatedParameters>();
+            (objectExplorerService as any)._pendingSessionCreations.set(
+                "wrong-session-id",
+                wrongPendingSession,
+            );
+            wrongPendingSession.resolve(wrongSessionResponse);
+
+            // Resolve the correct session
+            const correctSessionResponse = {
+                sessionId: "test-session-id",
+                success: true,
+                errorMessage: "",
+                errorNumber: undefined,
+                rootNode: { label: "TestServer" } as any,
+            };
+            pendingSession.resolve(correctSessionResponse);
+
+            // Setup handleSessionCreationSuccess to return a result
+            const successResult: CreateSessionResult = {
+                sessionId: "test-session-id",
+                connectionNode: { label: "TestServer" } as any,
+            };
+            (objectExplorerService as any).handleSessionCreationSuccess.resolves(successResult);
+
+            // Wait for the result
+            const result = await resultPromise;
+
+            // Verify the result
+            expect(result).to.equal(successResult);
+
+            // Verify only the correct session was cleaned up
+            expect((objectExplorerService as any)._pendingSessionCreations.has("test-session-id"))
+                .to.be.false;
+            expect((objectExplorerService as any)._pendingSessionCreations.has("wrong-session-id"))
+                .to.be.true;
+        });
+
+        test("createSession should use new connection profile when none is provided", async () => {
+            // Setup prepareConnectionProfile to create and return a new profile
+            const newConnectionProfile = createMockConnectionProfile({
+                id: "new-profile-id",
+                authenticationType: "SqlLogin",
+            });
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(newConnectionProfile);
+
+            // Setup client to return session ID and create session
+            const sessionIdResponse: GetSessionIdResponse = { sessionId: "test-session-id" };
+            mockClient.sendRequest
+                .withArgs(GetSessionIdRequest.type, sinon.match.any)
+                .resolves(sessionIdResponse);
+
+            const createSessionResponse: CreateSessionResponse = {
+                sessionId: "test-session-id",
+            };
+            mockClient.sendRequest
+                .withArgs(CreateSessionRequest.type, sinon.match.any)
+                .resolves(createSessionResponse);
+
+            // Setup successful session creation
+            const successResult: CreateSessionResult = {
+                sessionId: "test-session-id",
+                connectionNode: { label: "TestServer" } as any,
+            };
+            (objectExplorerService as any).handleSessionCreationSuccess = sandbox.stub();
+            (objectExplorerService as any).handleSessionCreationSuccess.resolves(successResult);
+
+            const createConnectionDetails = sandbox.stub(
+                ConnectionCredentials,
+                "createConnectionDetails",
+            );
+
+            // Call the method without connection info
+            const resultPromise = objectExplorerService.createSession();
+
+            // Simulate session created notification
+            const sessionCreatedResponse = {
+                sessionId: "test-session-id",
+                success: true,
+                errorMessage: "",
+                errorNumber: undefined,
+                rootNode: { label: "TestServer" } as any,
+            };
+
+            // Wait a bit for the promise to be set up
+            await new Promise((resolve) => setTimeout(resolve, 10));
+
+            // Get the deferred object and resolve it
+            const pendingSession = (objectExplorerService as any)._pendingSessionCreations.get(
+                "test-session-id",
+            );
+            expect(pendingSession).to.exist;
+            pendingSession.resolve(sessionCreatedResponse);
+
+            // Wait for the result
+            const result = await resultPromise;
+
+            // Verify the result
+            expect(result).to.equal(successResult);
+
+            // Verify prepareConnectionProfile was called with undefined
+            expect((objectExplorerService as any).prepareConnectionProfile.calledOnce).to.be.true;
+            expect((objectExplorerService as any).prepareConnectionProfile.args[0][0]).to.be
+                .undefined;
+
+            // Verify connection details were created with the new profile
+            expect(createConnectionDetails.calledOnce).to.be.true;
+            expect(createConnectionDetails.args[0][0]).to.equal(newConnectionProfile);
+
+            // Verify telemetry was updated with the new authentication type
+            expect(endStub.calledOnce).to.be.true;
+            expect(endStub.args[0][1].connectionType).to.equal("SqlLogin");
         });
     });
 });
