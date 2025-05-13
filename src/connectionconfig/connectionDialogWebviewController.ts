@@ -922,15 +922,29 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             id: "azureSignIn",
             callback: async () => {
                 const account = await this._mainController.azureAccountService.addAccount();
+                this.logger.verbose(
+                    `Added Azure account '${account.displayInfo}', ${account.key.id}`,
+                );
+
                 const accountsComponent = this.getFormComponent(this.state, "accountId");
-                if (accountsComponent) {
-                    accountsComponent.options = await getAccounts(
-                        this._mainController.azureAccountService,
-                    );
-                    this.state.connectionProfile.accountId = account.key.id;
-                    this.updateState();
-                    await this.handleAzureMFAEdits("accountId");
+
+                if (!accountsComponent) {
+                    this.logger.error("Account component not found");
+                    return;
                 }
+
+                accountsComponent.options = await getAccounts(
+                    this._mainController.azureAccountService,
+                );
+
+                this.state.connectionProfile.accountId = account.key.id;
+
+                this.logger.verbose(
+                    `Read ${accountsComponent.options.length} Azure accounts, selecting '${account.key.id}'`,
+                );
+
+                this.updateState();
+                await this.handleAzureMFAEdits("accountId");
             },
         });
 
