@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as Utils from "../models/utils";
 import { CopilotService } from "../services/copilotService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import * as Constants from "../constants/constants";
 import {
     GetNextMessageResponse,
@@ -291,6 +291,7 @@ export const createSqlAgentRequestHandler = (
                     conversationUri,
                     replyText,
                     copilotService,
+                    correlationId,
                 );
 
                 // Reset for the next iteration
@@ -366,8 +367,19 @@ export const createSqlAgentRequestHandler = (
         conversationUri: string,
         replyText: string,
         copilotService: CopilotService,
+        correlationId: string,
     ): Promise<GetNextMessageResponse> {
         if (sqlTools.length === 0) {
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error("No tools to process."),
+                true,
+                undefined,
+                undefined,
+                { correlationId: correlationId },
+            );
+
             console.error("No tools to process.");
             throw new Error(loc.noToolsToProcess);
         }
@@ -554,11 +566,25 @@ export const createSqlAgentRequestHandler = (
         try {
             sqlToolParameters = JSON.stringify(part.input);
         } catch (err) {
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error(
+                    `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
+                ),
+                true,
+                undefined,
+                undefined,
+                {
+                    correlationId: correlationId,
+                },
+            );
+
             console.error(
-                `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${(err as Error).message})`,
+                `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
             );
             throw new Error(
-                loc.gotInvalidToolUseParameters(JSON.stringify(part.input), (err as Error).message),
+                loc.gotInvalidToolUseParameters(JSON.stringify(part.input), getErrorMessage(err)),
             );
         }
 
@@ -666,13 +692,39 @@ export const createSqlAgentRequestHandler = (
         if (err instanceof vscode.LanguageModelError) {
             handleLanguageModelError(err, stream, correlationId);
         } else if (err instanceof Error) {
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error(`An error occurred with: ${getErrorMessage(err)}`),
+                true,
+                undefined,
+                undefined,
+                {
+                    correlationId: correlationId,
+                },
+            );
+
             console.error("Unhandled Error:", {
                 message: err.message,
                 stack: err.stack,
             });
+
             stream.markdown(loc.errorOccurredWith(err.message));
         } else {
-            console.error("Unknown Error Type:", err);
+            console.error("Unknown Error Type:", getErrorMessage(err));
+
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error(`Unknown Error Type: ${getErrorMessage(err)}`),
+                true,
+                undefined,
+                undefined,
+                {
+                    correlationId: correlationId,
+                },
+            );
+
             stream.markdown(loc.unknownErrorOccurred);
         }
     }
