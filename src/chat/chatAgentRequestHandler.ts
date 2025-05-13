@@ -572,7 +572,7 @@ export const createSqlAgentRequestHandler = (
                 new Error(
                     `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
                 ),
-                true,
+                false,
                 undefined,
                 undefined,
                 {
@@ -618,13 +618,17 @@ export const createSqlAgentRequestHandler = (
 
         const errorMessage = errorMessages[err.code] || loc.unexpectedError;
 
-        sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
-            errorCode: err.code || "Unknown",
-            errorName: err.name || "Unknown",
-            errorMessage: errorMessage,
-            originalErrorMessage: err.message || "",
-            correlationId: correlationId,
-        });
+        sendErrorEvent(
+            TelemetryViews.MssqlCopilot,
+            TelemetryActions.Error,
+            new Error(getErrorMessage(err)),
+            false,
+            err.code || "Unknown",
+            err.name || "Unknown",
+            {
+                correlationId: correlationId,
+            },
+        );
 
         stream.markdown(errorMessage);
     }
@@ -669,16 +673,10 @@ export const createSqlAgentRequestHandler = (
                 stream.markdown(loc.languageModelDidNotReturnAnyOutput);
             }
         } catch (err) {
-            activity.endFailed(
-                new Error("Fallback to default language model call failed."),
-                true,
-                undefined,
-                undefined,
-                {
-                    correlationId: correlationId,
-                    errorMessage: getErrorMessage(err),
-                },
-            );
+            activity.endFailed(new Error(getErrorMessage(err)), false, undefined, undefined, {
+                correlationId: correlationId,
+                errorMessage: "Fallback to default language model call failed.",
+            });
             console.error("Error in fallback language model call:", err);
             stream.markdown(loc.errorOccurredWhileProcessingRequest);
         }
@@ -696,7 +694,7 @@ export const createSqlAgentRequestHandler = (
                 TelemetryViews.MssqlCopilot,
                 TelemetryActions.Error,
                 new Error(`An error occurred with: ${getErrorMessage(err)}`),
-                true,
+                false,
                 undefined,
                 undefined,
                 {
@@ -717,7 +715,7 @@ export const createSqlAgentRequestHandler = (
                 TelemetryViews.MssqlCopilot,
                 TelemetryActions.Error,
                 new Error(`Unknown Error Type: ${getErrorMessage(err)}`),
-                true,
+                false,
                 undefined,
                 undefined,
                 {
