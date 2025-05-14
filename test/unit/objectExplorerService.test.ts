@@ -2727,6 +2727,297 @@ suite("OE Service Tests", () => {
             expect(endStub.args[0][1].connectionType).to.equal("SqlLogin");
         });
     });
+
+    suite("getRootNodes test", () => {
+        let sandbox: sinon.SinonSandbox;
+        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+        let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+        let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+        let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
+        let endStub: sinon.SinonStub;
+        let endFailedStub: sinon.SinonStub;
+        let startActivityStub: sinon.SinonStub;
+        let mockLogger: sinon.SinonStubbedInstance<Logger>;
+        let objectExplorerService: ObjectExplorerService;
+
+        setup(() => {
+            sandbox = sinon.createSandbox();
+            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+            mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+            mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+            mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionManager.connectionStore = mockConnectionStore;
+            mockConnectionManager.client = mockClient;
+            endStub = sandbox.stub();
+            endFailedStub = sandbox.stub();
+            startActivityStub = sandbox.stub(telemetry, "startActivity").returns({
+                end: endStub,
+                endFailed: endFailedStub,
+                correlationId: "",
+                startTime: 0,
+                update: sandbox.stub(),
+            });
+            mockLogger = sandbox.createStubInstance(Logger);
+            sandbox.stub(Logger, "create").returns(mockLogger);
+            objectExplorerService = new ObjectExplorerService(
+                mockVscodeWrapper,
+                mockConnectionManager,
+                () => {},
+            );
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        function createMockTreeNodes(count: number): ConnectionNode[] {
+            const nodes: ConnectionNode[] = [];
+            for (let i = 0; i < count; i++) {
+                nodes.push(
+                    new ConnectionNode({
+                        profileName: `profile${i}`,
+                    } as IConnectionProfile),
+                );
+            }
+            return nodes;
+        }
+
+        function createMockConnectionProfiles(count: number): IConnectionProfileWithSource[] {
+            const profiles: IConnectionProfileWithSource[] = [];
+            for (let i = 0; i < count; i++) {
+                profiles.push({
+                    id: `conn${i}`,
+                    server: `server${i}`,
+                    database: `db${i}`,
+                    authenticationType: "SqlLogin",
+                    user: "",
+                    password: "",
+                    savePassword: false,
+                    groupId: "",
+                } as IConnectionProfileWithSource);
+            }
+            return profiles;
+        }
+
+        test("getRootNodes should return AddConnectionNode when no saved connections exist", async () => {
+            // Setup connection store to return empty array
+            mockConnectionStore.readAllConnections.resolves([]);
+
+            // Setup getAddConnectionNode to return a mock node
+            const mockAddConnectionNode = [{ label: "Add Connection" }];
+            (objectExplorerService as any).getAddConnectionNode = sandbox.stub();
+            (objectExplorerService as any).getAddConnectionNode.returns(mockAddConnectionNode);
+
+            // Call the method
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            // Verify the result
+            expect(result).to.equal(mockAddConnectionNode);
+
+            // Verify connection store was called
+            expect(mockConnectionStore.readAllConnections.calledOnce).to.be.true;
+
+            // Verify getAddConnectionNode was called
+            expect((objectExplorerService as any).getAddConnectionNode.calledOnce).to.be.true;
+
+            // Verify telemetry was tracked
+            expect(startActivityStub.calledOnce).to.be.true;
+            expect(startActivityStub.args[0][0]).to.equal(TelemetryViews.ObjectExplorer);
+            expect(startActivityStub.args[0][1]).to.equal(TelemetryActions.ExpandNode);
+            expect(startActivityStub.args[0][3].nodeType).to.equal("root");
+
+            // Verify activity ended with success
+            expect(endStub.calledOnce).to.be.true;
+            expect(endStub.args[0][0]).to.equal(ActivityStatus.Succeeded);
+            expect(endStub.args[0][2].childrenCount).to.equal(0);
+
+            // Verify logging
+            expect(
+                mockLogger.verbose.calledWith(
+                    "No saved connections found. Showing add connection node.",
+                ),
+            ).to.be.true;
+        });
+
+        test("getRootNodes should use cached root tree node array if available", async () => {
+            (objectExplorerService as any).getSavedConnectionNodes = sandbox.stub();
+            (objectExplorerService as any).sortByServerName = sandbox.stub();
+            // Setup connection store to return connections (not empty)
+            mockConnectionStore.readAllConnections.resolves(createMockConnectionProfiles(3));
+
+            // Set up a cached root tree node array
+            const cachedNodes = createMockTreeNodes(3);
+            (objectExplorerService as any).sortByServerName.returns(cachedNodes);
+            (objectExplorerService as any)._rootTreeNodeArray = cachedNodes;
+
+            // Call the method
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            // Verify the result
+            expect(result).to.equal(cachedNodes);
+
+            // Verify connection store was called
+            expect(mockConnectionStore.readAllConnections.calledOnce).to.be.true;
+            // Verify getSavedConnectionNodes was NOT called (used cache)
+            expect((objectExplorerService as any).getSavedConnectionNodes.called).to.be.false;
+
+            // Verify sortByServerName was called
+            expect((objectExplorerService as any).sortByServerName.calledOnce).to.be.true;
+            expect((objectExplorerService as any).sortByServerName.args[0][0]).to.equal(
+                cachedNodes,
+            );
+
+            // Verify telemetry ended with correct node count
+            expect(endStub.calledOnce).to.be.true;
+            expect(endStub.args[0][2].nodeCount).to.equal(3);
+
+            // Verify logging
+            expect(mockLogger.verbose.calledWith("Using cached root tree node array.")).to.be.true;
+        });
+
+        test("getRootNodes should fetch saved connection nodes if no cache exists", async () => {
+            // Setup connection store to return connections (not empty)
+            mockConnectionStore.readAllConnections.resolves(createMockConnectionProfiles(2));
+
+            // Clear any cached root tree node array
+            (objectExplorerService as any)._rootTreeNodeArray = null;
+
+            // Setup getSavedConnectionNodes to return nodes
+            const savedNodes = createMockTreeNodes(2);
+            (objectExplorerService as any).getSavedConnectionNodes = sandbox.stub();
+            (objectExplorerService as any).getSavedConnectionNodes.resolves(savedNodes);
+
+            // Call the method
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            // Verify the result
+            expect(result).to.equal(savedNodes);
+
+            // Verify connection store was called
+            expect(mockConnectionStore.readAllConnections.calledOnce).to.be.true;
+
+            // Verify getSavedConnectionNodes was called
+            expect((objectExplorerService as any).getSavedConnectionNodes.calledOnce).to.be.true;
+
+            // Verify cache was updated
+            expect((objectExplorerService as any)._rootTreeNodeArray).to.equal(savedNodes);
+
+            // Verify telemetry ended with correct node count
+            expect(endStub.calledOnce).to.be.true;
+            expect(endStub.args[0][2].nodeCount).to.equal(2);
+
+            // Verify logging
+            expect(
+                mockLogger.verbose.calledWith("Reading saved connections from connection store."),
+            ).to.be.true;
+            expect(mockLogger.verbose.calledWith("Found 2 saved connections.")).to.be.true;
+        });
+
+        test("getRootNodes should handle error in connection store", async () => {
+            // Setup connection store to throw error
+            const testError = new Error("Failed to read connections");
+            mockConnectionStore.readAllConnections.rejects(testError);
+
+            // Call the method and expect it to throw
+            try {
+                await (objectExplorerService as any).getRootNodes();
+                // If we get here, the test failed
+                expect.fail("Method should have thrown an error");
+            } catch (error) {
+                // Verify the error is passed through
+                expect(error).to.equal(testError);
+
+                // Verify telemetry was started but not ended
+                expect(startActivityStub.calledOnce).to.be.true;
+                expect(endStub.called).to.be.false;
+                expect(endFailedStub.called).to.be.false; // We're letting the error propagate
+            }
+        });
+
+        test("getRootNodes should handle error in getSavedConnectionNodes", async () => {
+            // Setup connection store to return connections (not empty)
+            mockConnectionStore.readAllConnections.resolves(createMockConnectionProfiles(1));
+
+            // Clear cached root tree node array
+            (objectExplorerService as any)._rootTreeNodeArray = null;
+
+            // Setup getSavedConnectionNodes to throw error
+            const testError = new Error("Failed to get saved connection nodes");
+            (objectExplorerService as any).getSavedConnectionNodes = sandbox.stub();
+            (objectExplorerService as any).getSavedConnectionNodes.rejects(testError);
+
+            // Call the method and expect it to throw
+            try {
+                await (objectExplorerService as any).getRootNodes();
+                // If we get here, the test failed
+                expect.fail("Method should have thrown an error");
+            } catch (error) {
+                // Verify the error is passed through
+                expect(error).to.equal(testError);
+
+                // Verify caching behavior - cache should not be updated on error
+                expect((objectExplorerService as any)._rootTreeNodeArray).to.be.null;
+            }
+        });
+
+        test("getRootNodes should start with checking saved connections even when cache exists", async () => {
+            // Setup connection store to return empty array (which should lead to add connection node)
+            mockConnectionStore.readAllConnections.resolves([]);
+
+            // Set a cached root tree node array that would be used if we didn't check saved connections first
+            const cachedNodes = createMockTreeNodes(2);
+            (objectExplorerService as any)._rootTreeNodeArray = cachedNodes;
+
+            // Setup getAddConnectionNode to return a mock node
+            const mockAddConnectionNode = [{ label: "Add Connection" }];
+            (objectExplorerService as any).getAddConnectionNode = sandbox.stub();
+            (objectExplorerService as any).getAddConnectionNode.returns(mockAddConnectionNode);
+            // Call the method
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            // Verify the result - should be the add connection node, not the cached nodes
+            expect(result).to.equal(mockAddConnectionNode);
+
+            // Verify connection store was called
+            expect(mockConnectionStore.readAllConnections.calledOnce).to.be.true;
+
+            // Verify getAddConnectionNode was called
+            expect((objectExplorerService as any).getAddConnectionNode.calledOnce).to.be.true;
+
+            // Verify logging
+            expect(
+                mockLogger.verbose.calledWith(
+                    "No saved connections found. Showing add connection node.",
+                ),
+            ).to.be.true;
+        });
+
+        test("getRootNodes should update _rootTreeNodeArray cache when fetching from connection store", async () => {
+            // Setup connection store to return connections
+            mockConnectionStore.readAllConnections.resolves(createMockConnectionProfiles(2));
+
+            // Clear cached root tree node array
+            (objectExplorerService as any)._rootTreeNodeArray = null;
+
+            // Setup getSavedConnectionNodes to return nodes
+            const savedNodes = createMockTreeNodes(2);
+            (objectExplorerService as any).getSavedConnectionNodes = sandbox.stub();
+            (objectExplorerService as any).getSavedConnectionNodes.resolves(savedNodes);
+
+            // Call the method
+            await (objectExplorerService as any).getRootNodes();
+
+            // Verify cache was updated
+            expect((objectExplorerService as any)._rootTreeNodeArray).to.equal(savedNodes);
+
+            // Call the method again
+            (objectExplorerService as any).getSavedConnectionNodes.resetHistory();
+            await (objectExplorerService as any).getRootNodes();
+
+            // Verify getSavedConnectionNodes was NOT called again (using cache)
+            expect((objectExplorerService as any).getSavedConnectionNodes.called).to.be.false;
+        });
+    });
 });
 
 suite("Object Explorer Service Tests", () => {
@@ -2749,9 +3040,6 @@ suite("Object Explorer Service Tests", () => {
     let mockRefreshCallback: sinon.SinonStub;
     let endStub: sinon.SinonStub;
     let endFailedStub: sinon.SinonStub;
-    let sendActionEventStub: sinon.SinonStub;
-
-    let mockGenerateGuidStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -2800,7 +3088,6 @@ suite("Object Explorer Service Tests", () => {
             startTime: 0,
             update: sandbox.stub(),
         });
-        sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
         mockRefreshCallback = sandbox.stub();
 
         // Mock the Logger.create static method
@@ -2808,9 +3095,6 @@ suite("Object Explorer Service Tests", () => {
         sandbox.stub(Logger, "create").returns(mockLogger);
         mockLogger.verbose = sandbox.stub();
         mockLogger.error = sandbox.stub();
-
-        // Mock Utils
-        mockGenerateGuidStub = sandbox.stub(Utils, "generateGuid").returns("mock-guid-12345");
 
         objectExplorerService = new ObjectExplorerService(
             mockVscodeWrapper,
