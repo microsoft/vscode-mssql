@@ -115,7 +115,7 @@ export async function createExecutionPlanGraphs(
                 e,
                 true, // includeErrorMessage
             );
-            return;
+            return state;
         }
     }
 
