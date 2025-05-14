@@ -104,7 +104,7 @@ export async function createExecutionPlanGraphs(
             );
             newState.loadState = ApiStatus.Loaded;
         } catch (e) {
-            // malformed xml
+            // Errors out on first instance of malformed xml
             newState.loadState = ApiStatus.Error;
             newState.errorMessage = getErrorMessage(e);
             state.executionPlanState = newState;
@@ -113,7 +113,7 @@ export async function createExecutionPlanGraphs(
                 TelemetryViews.ExecutionPlan,
                 TelemetryActions.OpenExecutionPlan,
                 e,
-                false,
+                true, // includeErrorMessage
             );
             return;
         }
