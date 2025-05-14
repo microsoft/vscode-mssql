@@ -575,11 +575,7 @@ export const createSqlAgentRequestHandler = (
             result.tools,
             correlationId,
         );
-        if (replyText) {
-            stream.markdown(replyText);
-        } else {
-            stream.markdown("The language model did not return any output.");
-        }
+
         return {
             text: replyText,
             tools: toolsCalled,
