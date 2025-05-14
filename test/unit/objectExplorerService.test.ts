@@ -93,8 +93,11 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getSavedConnectionNodes();
 
             // Verify the result is an empty array
-            expect(result).to.be.an("array").that.is.empty;
-            expect(mockConnectionStore.readAllConnections.calledOnce).to.be.true;
+            expect(result, "Result should be an empty array").to.be.an("array").that.is.empty;
+            expect(
+                mockConnectionStore.readAllConnections.calledOnce,
+                "readAllConnections should be called once",
+            ).to.be.true;
         });
 
         test("getSavedConnectionNodes should transform connections to ConnectionNode objects", async () => {
@@ -129,9 +132,15 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getSavedConnectionNodes();
 
             // Verify the result
-            expect(result).to.be.an("array").with.lengthOf(2);
-            expect(result[0]).to.be.instanceOf(ConnectionNode);
-            expect(result[1]).to.be.instanceOf(ConnectionNode);
+            expect(result, "Result should be an array with length 2")
+                .to.be.an("array")
+                .with.lengthOf(2);
+            expect(result[0], "First result should be a ConnectionNode").to.be.instanceOf(
+                ConnectionNode,
+            );
+            expect(result[1], "Second result should be a ConnectionNode").to.be.instanceOf(
+                ConnectionNode,
+            );
         });
 
         test("getSavedConnectionNodes should filter out duplicate connections", async () => {
@@ -176,18 +185,21 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getSavedConnectionNodes();
 
             // Verify the result - should have filtered duplicates
-            expect(result).to.be.an("array").with.lengthOf(2);
+            expect(result, "Result should be an array with length 2")
+                .to.be.an("array")
+                .with.lengthOf(2);
 
             // Verify the map was used properly - only unique IDs should remain
             const resultIds = new Set(
                 result.map((node: ConnectionNode) => node.connectionProfile.id),
             );
-            expect(resultIds.size).to.equal(2);
-            expect(resultIds.has("conn1")).to.be.true;
-            expect(resultIds.has("conn2")).to.be.true;
+            expect(resultIds.size, "Result IDs size should be 2").to.equal(2);
+            expect(resultIds.has("conn1"), "Result IDs should contain conn1").to.be.true;
+            expect(resultIds.has("conn2"), "Result IDs should contain conn2").to.be.true;
 
             // Verify the logger was called for the duplicate
-            expect(mockLogger.verbose.calledOnce).to.be.true;
+            expect(mockLogger.verbose.calledOnce, "Logger should be called once for duplicate").to
+                .be.true;
             expect(mockLogger.verbose.firstCall.args[0]).to.include(
                 "Duplicate connection ID found: conn1",
             );
@@ -230,7 +242,7 @@ suite("OE Service Tests", () => {
             const result = objectExplorerService.rootNodeConnections;
 
             // Verify the result is an empty array
-            expect(result).to.be.an("array").that.is.empty;
+            expect(result, "Result should be an empty array").to.be.an("array").that.is.empty;
         });
 
         test("rootNodeConnections should return connection profiles from root nodes", () => {
@@ -271,9 +283,15 @@ suite("OE Service Tests", () => {
             const result = objectExplorerService.rootNodeConnections;
 
             // Verify the result
-            expect(result).to.be.an("array").with.lengthOf(2);
-            expect(result[0]).to.deep.equal(mockProfiles[0]);
-            expect(result[1]).to.deep.equal(mockProfiles[1]);
+            expect(result, "Result should be an array with length 2")
+                .to.be.an("array")
+                .with.lengthOf(2);
+            expect(result[0], "First result should match mock profile 0").to.deep.equal(
+                mockProfiles[0],
+            );
+            expect(result[1], "Second result should match mock profile 1").to.deep.equal(
+                mockProfiles[1],
+            );
         });
     });
 
@@ -388,52 +406,75 @@ suite("OE Service Tests", () => {
             const pendingExpand = (objectExplorerService as any)._pendingExpands.get(
                 pendingExpandKey,
             );
-            expect(pendingExpand).to.exist;
+            expect(pendingExpand, "Pending expand should exist").to.exist;
             pendingExpand.resolve(mockExpandResponse);
 
             // Wait for the expandNode promise to resolve
             const result = await expandPromise;
 
             // Verify the result
-            expect(result).to.be.true;
+            expect(result, "Expand node should return true").to.be.true;
 
             // Verify telemetry was started correctly
-            expect(startActivityStub.calledOnce).to.be.true;
-            expect(startActivityStub.args[0][0]).to.equal(TelemetryViews.ObjectExplorer);
-            expect(startActivityStub.args[0][1]).to.equal(TelemetryActions.ExpandNode);
+            expect(startActivityStub.calledOnce, "Telemetry should be started once").to.be.true;
+            expect(
+                startActivityStub.args[0][0],
+                "Telemetry view should be ObjectExplorer",
+            ).to.equal(TelemetryViews.ObjectExplorer);
+            expect(startActivityStub.args[0][1], "Telemetry action should be ExpandNode").to.equal(
+                TelemetryActions.ExpandNode,
+            );
 
             // Verify logging
-            expect(mockLogger.verbose.called).to.be.true;
+            expect(mockLogger.verbose.called, "Logger should be called once for verbose").to.be
+                .true;
 
             // Verify the request was sent correctly
-            expect(mockClient.sendRequest.calledOnce).to.be.true;
-            expect(mockClient.sendRequest.args[0][0]).to.equal(ExpandRequest.type);
-            expect(mockClient.sendRequest.args[0][1]).to.deep.equal({
-                sessionId: mockSessionId,
-                nodePath: mockNode.nodePath,
-                filters: mockNode.filters,
-            });
+            expect(mockClient.sendRequest.calledOnce, "Send request should be called once").to.be
+                .true;
+            expect(
+                mockClient.sendRequest.args[0][0],
+                "Request type should be ExpandRequest",
+            ).to.equal(ExpandRequest.type);
+            expect(mockClient.sendRequest.args[0][1], "Request payload should match").to.deep.equal(
+                {
+                    sessionId: mockSessionId,
+                    nodePath: mockNode.nodePath,
+                    filters: mockNode.filters,
+                },
+            );
 
             // Verify the children were mapped correctly
             const mappedChildren = (objectExplorerService as any)._treeNodeToChildrenMap.get(
                 mockNode,
             );
-            expect(mappedChildren).to.exist;
-            expect(mappedChildren.length).to.equal(2);
-            expect(mappedChildren[0].label).to.equal("child1");
-            expect(mappedChildren[1].label).to.equal("child2");
+            expect(mappedChildren, "Mapped children should exist").to.exist;
+            expect(mappedChildren.length, "Mapped children length should be 2").to.equal(2);
+            expect(mappedChildren[0].label, "First mapped child label should be child1").to.equal(
+                "child1",
+            );
+            expect(mappedChildren[1].label, "Second mapped child label should be child2").to.equal(
+                "child2",
+            );
 
             // Verify telemetry was ended correctly
-            expect(endStub.calledOnce).to.be.true;
-            expect(endStub.args[0][0]).to.equal(ActivityStatus.Succeeded);
-            expect(endStub.args[0][2].childrenCount).to.equal(2);
+            expect(endStub.calledOnce, "Telemetry should be ended once").to.be.true;
+            expect(endStub.args[0][0], "Telemetry status should be Succeeded").to.equal(
+                ActivityStatus.Succeeded,
+            );
+            expect(
+                endStub.args[0][2].childrenCount,
+                "Telemetry children count should be 2",
+            ).to.equal(2);
 
             // Verify the promise was resolved with the children
             const resolvedChildren = await mockPromise;
-            expect(resolvedChildren).to.equal(mappedChildren);
+            expect(resolvedChildren, "Resolved children should match mapped children").to.equal(
+                mappedChildren,
+            );
 
             // Verify shouldRefresh was reset
-            expect(mockNode.shouldRefresh).to.be.false;
+            expect(mockNode.shouldRefresh, "Node shouldRefresh should be false").to.be.false;
         });
 
         test("expandNode should use RefreshRequest if node.shouldRefresh is true", async () => {
@@ -497,21 +538,25 @@ suite("OE Service Tests", () => {
             const pendingExpand = (objectExplorerService as any)._pendingExpands.get(
                 pendingExpandKey,
             );
-            expect(pendingExpand).to.exist;
+            expect(pendingExpand, "Pending expand should exist").to.exist;
             pendingExpand.resolve(mockRefreshResponse);
 
             // Wait for the expandNode promise to resolve
             const result = await expandPromise;
 
             // Verify the result
-            expect(result).to.be.true;
+            expect(result, "Expand node should return true").to.be.true;
 
             // Verify the RefreshRequest was used instead of ExpandRequest
-            expect(mockClient.sendRequest.calledOnce).to.be.true;
-            expect(mockClient.sendRequest.args[0][0]).to.equal(RefreshRequest.type);
+            expect(mockClient.sendRequest.calledOnce, "Send request should be called once").to.be
+                .true;
+            expect(
+                mockClient.sendRequest.args[0][0],
+                "Request type should be RefreshRequest",
+            ).to.equal(RefreshRequest.type);
 
             // Verify shouldRefresh was reset to false
-            expect(mockNode.shouldRefresh).to.be.false;
+            expect(mockNode.shouldRefresh, "Node shouldRefresh should be false").to.be.false;
         });
 
         test("expandNode should handle error response from SQL Tools Service", async () => {
@@ -565,40 +610,64 @@ suite("OE Service Tests", () => {
             const pendingExpand = (objectExplorerService as any)._pendingExpands.get(
                 pendingExpandKey,
             );
-            expect(pendingExpand).to.exist;
+            expect(pendingExpand, "Pending expand should exist").to.exist;
             pendingExpand.resolve(mockExpandResponse);
 
             // Wait for the expandNode promise to resolve
             const result = await expandPromise;
 
             // Verify the result (should still be true because we received a response)
-            expect(result).to.be.true;
+            expect(result, "Expand node should return true").to.be.true;
 
             // Verify error was logged
-            expect(mockLogger.error.called).to.be.true;
-            expect(mockLogger.error.args[0][0]).to.include(mockErrorMessage);
+            expect(mockLogger.error.called, "Error should be logged").to.be.true;
+            expect(
+                mockLogger.error.args[0][0],
+                "Error message should include mock error message",
+            ).to.include(mockErrorMessage);
 
             // Verify error message was shown to user
-            expect(mockVscodeWrapper.showErrorMessage.calledOnce).to.be.true;
-            expect(mockVscodeWrapper.showErrorMessage.args[0][0]).to.equal(mockErrorMessage);
+            expect(
+                mockVscodeWrapper.showErrorMessage.calledOnce,
+                "Error message should be shown to user",
+            ).to.be.true;
+            expect(
+                mockVscodeWrapper.showErrorMessage.args[0][0],
+                "Error message should be mock error message",
+            ).to.equal(mockErrorMessage);
 
             // Verify an error node was created and set as the only child
             const mappedChildren = (objectExplorerService as any)._treeNodeToChildrenMap.get(
                 mockNode,
             );
-            expect(mappedChildren).to.exist;
-            expect(mappedChildren.length).to.equal(1);
-            expect(mappedChildren[0]).to.be.instanceOf(ExpandErrorNode);
-            expect((mappedChildren[0] as ExpandErrorNode).tooltip).to.equal(mockErrorMessage);
+            expect(mappedChildren, "Mapped children should exist").to.exist;
+            expect(mappedChildren.length, "Mapped children length should be 1").to.equal(1);
+            expect(
+                mappedChildren[0],
+                "First mapped child should be an ExpandErrorNode",
+            ).to.be.instanceOf(ExpandErrorNode);
+            expect(
+                (mappedChildren[0] as ExpandErrorNode).tooltip,
+                "First mapped child tooltip should be mock error message",
+            ).to.equal(mockErrorMessage);
 
             // Verify telemetry was ended with failure
-            expect(endFailedStub.calledOnce).to.be.true;
-            expect(endFailedStub.args[0][0].message).to.equal(mockErrorMessage);
+            expect(endFailedStub.calledOnce, "Telemetry should be ended with failure").to.be.true;
+            expect(
+                endFailedStub.args[0][0].message,
+                "Telemetry message should be mock error message",
+            ).to.equal(mockErrorMessage);
 
             // Verify the promise was resolved with the error node
             const resolvedChildren = await mockPromise;
-            expect(resolvedChildren[0]).to.be.instanceOf(ExpandErrorNode);
-            expect((resolvedChildren[0] as ExpandErrorNode).tooltip).to.equal(mockErrorMessage);
+            expect(
+                resolvedChildren[0],
+                "Resolved child should be an ExpandErrorNode",
+            ).to.be.instanceOf(ExpandErrorNode);
+            expect(
+                (resolvedChildren[0] as ExpandErrorNode).tooltip,
+                "Resolved child tooltip should be mock error message",
+            ).to.equal(mockErrorMessage);
         });
 
         test("expandNode should handle null response from SQL Tools Service", async () => {
@@ -644,18 +713,18 @@ suite("OE Service Tests", () => {
             const pendingExpand = (objectExplorerService as any)._pendingExpands.get(
                 pendingExpandKey,
             );
-            expect(pendingExpand).to.exist;
+            expect(pendingExpand, "Pending expand should exist").to.exist;
             pendingExpand.resolve(undefined);
 
             // Wait for the expandNode promise to resolve
             const result = await expandPromise;
 
             // Verify the result (should be undefined)
-            expect(result).to.be.undefined;
+            expect(result, "Result should be undefined").to.be.undefined;
 
             // Verify the promise was resolved with undefined
             const resolvedChildren = await mockPromise;
-            expect(resolvedChildren).to.be.undefined;
+            expect(resolvedChildren, "Resolved children should be undefined").to.be.undefined;
         });
 
         test("expandNode should handle false response from SQL Tools client", async () => {
@@ -694,17 +763,21 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result (should be undefined)
-            expect(result).to.be.undefined;
+            expect(result, "Result should be undefined").to.be.undefined;
 
             // Verify error message was shown to user
-            expect(mockVscodeWrapper.showErrorMessage.calledOnce).to.be.true;
-            expect(mockVscodeWrapper.showErrorMessage.args[0][0]).to.equal(
-                LocalizedConstants.msgUnableToExpand,
-            );
+            expect(
+                mockVscodeWrapper.showErrorMessage.calledOnce,
+                "Error message should be shown to user",
+            ).to.be.true;
+            expect(
+                mockVscodeWrapper.showErrorMessage.args[0][0],
+                "Error message should be mock error message",
+            ).to.equal(LocalizedConstants.msgUnableToExpand);
 
             // Verify the promise was resolved with undefined
             const resolvedChildren = await mockPromise;
-            expect(resolvedChildren).to.be.undefined;
+            expect(resolvedChildren, "Resolved children should be undefined").to.be.undefined;
         });
 
         test("expandNode should handle exception from SQL Tools client", async () => {
@@ -741,7 +814,7 @@ suite("OE Service Tests", () => {
                 // Call the method to test
                 await objectExplorerService.expandNode(mockNode, mockSessionId, mockPromise);
             } catch (e) {
-                expect(e).to.equal(testError);
+                expect(e, "Error should be test error").to.equal(testError);
             }
         });
     });
@@ -807,15 +880,24 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).prepareConnectionProfile(undefined);
 
             // Verify the result matches the mock profile
-            expect(result).to.deep.equal(mockProfile);
+            expect(result, "Result should match mock profile").to.deep.equal(mockProfile);
 
             // Verify connection UI was called
-            expect(mockConnectionUI.createAndSaveProfile.calledOnce).to.be.true;
+            expect(
+                mockConnectionUI.createAndSaveProfile.calledOnce,
+                "Connection UI should be called once",
+            ).to.be.true;
 
             // Verify telemetry was sent
-            expect(sendActionEventStub.calledOnce).to.be.true;
-            expect(sendActionEventStub.args[0][0]).to.equal(TelemetryViews.ObjectExplorer);
-            expect(sendActionEventStub.args[0][1]).to.equal(TelemetryActions.CreateConnection);
+            expect(sendActionEventStub.calledOnce, "Telemetry should be sent once").to.be.true;
+            expect(
+                sendActionEventStub.args[0][0],
+                "Telemetry view should be ObjectExplorer",
+            ).to.equal(TelemetryViews.ObjectExplorer);
+            expect(
+                sendActionEventStub.args[0][1],
+                "Telemetry action should be CreateConnection",
+            ).to.equal(TelemetryActions.CreateConnection);
         });
 
         test("prepareConnectionProfile should return undefined if user cancels profile creation", async () => {
@@ -826,10 +908,13 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).prepareConnectionProfile(undefined);
 
             // Verify the result is undefined
-            expect(result).to.be.undefined;
+            expect(result, "Result should be undefined").to.be.undefined;
 
             // Verify connection UI was called
-            expect(mockConnectionUI.createAndSaveProfile.calledOnce).to.be.true;
+            expect(
+                mockConnectionUI.createAndSaveProfile.calledOnce,
+                "Connection UI should be called once",
+            ).to.be.true;
         });
 
         test("prepareConnectionProfile should generate a GUID if id is missing", async () => {
@@ -851,10 +936,11 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result has the generated GUID
-            expect(result.id).to.equal("mock-guid-12345");
+            expect(result.id, "Result ID should be mock-guid-12345").to.equal("mock-guid-12345");
 
             // Verify Utils.generateGuid was called
-            expect(mockGenerateGuidStub.calledOnce).to.be.true;
+            expect(mockGenerateGuidStub.calledOnce, "Utils.generateGuid should be called once").to
+                .be.true;
         });
 
         test("prepareConnectionProfile should handle connection string with savePassword=true", async () => {
@@ -878,12 +964,24 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result has the updated connection string
-            expect(result.connectionString).to.equal(expectedConnectionString);
+            expect(
+                result.connectionString,
+                "Result connection string should match expected",
+            ).to.equal(expectedConnectionString);
 
             // Verify connection store was called with correct parameters
-            expect(mockConnectionStore.lookupPassword.calledOnce).to.be.true;
-            expect(mockConnectionStore.lookupPassword.args[0][0]).to.equal(mockProfile);
-            expect(mockConnectionStore.lookupPassword.args[0][1]).to.be.true; // isConnectionString = true
+            expect(
+                mockConnectionStore.lookupPassword.calledOnce,
+                "Connection store should be called once",
+            ).to.be.true;
+            expect(
+                mockConnectionStore.lookupPassword.args[0][0],
+                "Connection store should be called with mock profile",
+            ).to.equal(mockProfile);
+            expect(
+                mockConnectionStore.lookupPassword.args[0][1],
+                "Connection store should be called with isConnectionString = true",
+            ).to.be.true; // isConnectionString = true
         });
 
         test("prepareConnectionProfile should return undefined for connection string with savePassword=false", async () => {
@@ -902,10 +1000,13 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is undefined
-            expect(result).to.be.undefined;
+            expect(result, "Result should be undefined").to.be.undefined;
 
             // Verify connection store was NOT called
-            expect(mockConnectionStore.lookupPassword.called).to.be.false;
+            expect(
+                mockConnectionStore.lookupPassword.called,
+                "Connection store should not be called",
+            ).to.be.false;
         });
 
         test("prepareConnectionProfile should handle SQL Login with saved password", async () => {
@@ -930,15 +1031,29 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result has the saved password
-            expect(result.password).to.equal(savedPassword);
+            expect(result.password, "Result password should match saved password").to.equal(
+                savedPassword,
+            );
 
             // Verify connection store was called with correct parameters
-            expect(mockConnectionStore.lookupPassword.calledOnce).to.be.true;
-            expect(mockConnectionStore.lookupPassword.args[0][0]).to.equal(mockProfile);
-            expect(mockConnectionStore.lookupPassword.args[0][1]).to.be.undefined; // isConnectionString = undefined
+            expect(
+                mockConnectionStore.lookupPassword.calledOnce,
+                "Connection store should be called once",
+            ).to.be.true;
+            expect(
+                mockConnectionStore.lookupPassword.args[0][0],
+                "Connection store should be called with mock profile",
+            ).to.equal(mockProfile);
+            expect(
+                mockConnectionStore.lookupPassword.args[0][1],
+                "Connection store should be called with isConnectionString = true",
+            ).to.be.undefined; // isConnectionString = undefined
 
             // Verify user was NOT prompted for password
-            expect(mockConnectionUI.promptForPassword.called).to.be.false;
+            expect(
+                mockConnectionUI.promptForPassword.called,
+                "Connection UI should not prompt for password",
+            ).to.be.false;
         });
 
         test("prepareConnectionProfile should prompt for password for SQL Login with no saved password", async () => {
@@ -966,16 +1081,22 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result has the prompted password
-            expect(result.password).to.equal(promptedPassword);
+            expect(result.password, "Result password should match prompted password").to.equal(
+                promptedPassword,
+            );
 
             // Verify connection store was NOT called (since savePassword=false)
             expect(mockConnectionStore.lookupPassword.called).to.be.false;
 
             // Verify user was prompted for password
-            expect(mockConnectionUI.promptForPassword.calledOnce).to.be.true;
+            expect(
+                mockConnectionUI.promptForPassword.calledOnce,
+                "Connection UI should prompt for password once",
+            ).to.be.true;
 
             // Verify Azure account token was cleared
-            expect(result.azureAccountToken).to.be.undefined;
+            expect(result.azureAccountToken, "Result Azure account token should be undefined").to.be
+                .undefined;
         });
 
         test("prepareConnectionProfile should return undefined if user cancels password prompt", async () => {
@@ -999,10 +1120,13 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is undefined
-            expect(result).to.be.undefined;
+            expect(result, "Result should be undefined").to.be.undefined;
 
             // Verify user was prompted for password
-            expect(mockConnectionUI.promptForPassword.calledOnce).to.be.true;
+            expect(
+                mockConnectionUI.promptForPassword.calledOnce,
+                "Connection UI should prompt for password once",
+            ).to.be.true;
         });
 
         test("prepareConnectionProfile should handle Windows Authentication (Integrated)", async () => {
@@ -1023,16 +1147,23 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is correct
-            expect(result).to.exist;
-            expect(result.id).to.equal("test-id");
-            expect(result.server).to.equal("testServer");
+            expect(result, "Result should exist").to.exist;
+            expect(result.id, "Result ID should match").to.equal("test-id");
+            expect(result.server, "Result server should match").to.equal("testServer");
 
             // Verify Azure account token was cleared
-            expect(result.azureAccountToken).to.be.undefined;
+            expect(result.azureAccountToken, "Result Azure account token should be undefined").to.be
+                .undefined;
 
             // Verify password lookup and prompts were NOT called
-            expect(mockConnectionStore.lookupPassword.called).to.be.false;
-            expect(mockConnectionUI.promptForPassword.called).to.be.false;
+            expect(
+                mockConnectionStore.lookupPassword.called,
+                "Connection store should not be called",
+            ).to.be.false;
+            expect(
+                mockConnectionUI.promptForPassword.called,
+                "Connection UI should not prompt for password",
+            ).to.be.false;
         });
 
         test("prepareConnectionProfile should handle Azure MFA with account in cache", async () => {
@@ -1069,26 +1200,44 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is correct
-            expect(result).to.exist;
-            expect(result.id).to.equal("test-id");
-            expect(result.server).to.equal("testServer");
-            expect(result.user).to.equal("Test User");
-            expect(result.email).to.equal("test@example.com");
-            expect(result.azureAccountToken).to.equal("existing-token");
+            expect(result, "Result should exist").to.exist;
+            expect(result.id, "Result ID should match").to.equal("test-id");
+            expect(result.server, "Result server should match").to.equal("testServer");
+            expect(result.user, "Result user should match").to.equal("Test User");
+            expect(result.email, "Result email should match").to.equal("test@example.com");
+            expect(result.azureAccountToken, "Result Azure account token should match").to.equal(
+                "existing-token",
+            );
 
             // Verify account store was called
-            expect(mockAccountStore.getAccount.calledOnce).to.be.true;
+            expect(mockAccountStore.getAccount.calledOnce, "Account store should be called once").to
+                .be.true;
 
             // Verify Azure controller methods were called
-            expect(mockAzureController.isSqlAuthProviderEnabled.calledOnce).to.be.true;
-            expect(mockAzureController.isAccountInCache.calledOnce).to.be.true;
+            expect(
+                mockAzureController.isSqlAuthProviderEnabled.calledOnce,
+                "Azure controller should check SQL auth provider",
+            ).to.be.true;
+            expect(
+                mockAzureController.isAccountInCache.calledOnce,
+                "Azure controller should check account in cache",
+            ).to.be.true;
 
             // Verify profile was saved after updating user/email
-            expect(mockConnectionUI.saveProfile.calledOnce).to.be.true;
-            expect(mockConnectionUI.saveProfile.args[0][0]).to.equal(result);
+            expect(
+                mockConnectionUI.saveProfile.calledOnce,
+                "Connection UI should save profile once",
+            ).to.be.true;
+            expect(
+                mockConnectionUI.saveProfile.args[0][0],
+                "Saved profile should match result",
+            ).to.equal(result);
 
             // Verify refreshAccount was NOT called (no refresh needed)
-            expect((objectExplorerService as any).refreshAccount.called).to.be.false;
+            expect(
+                (objectExplorerService as any).refreshAccount.called,
+                "Refresh account should not be called",
+            ).to.be.false;
         });
 
         test("prepareConnectionProfile should refresh account for Azure MFA with account not in cache", async () => {
@@ -1126,16 +1275,25 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is correct
-            expect(result).to.exist;
-            expect(result.id).to.equal("test-id");
-            expect(result.server).to.equal("testServer");
-            expect(result.user).to.equal("Test User");
-            expect(result.email).to.equal("test@example.com");
+            expect(result, "Result should exist").to.exist;
+            expect(result.id, "Result ID should match").to.equal("test-id");
+            expect(result.server, "Result server should match").to.equal("testServer");
+            expect(result.user, "Result user should match").to.equal("Test User");
+            expect(result.email, "Result email should match").to.equal("test@example.com");
 
             // Verify refreshAccount was called since account not in cache
-            expect((objectExplorerService as any).refreshAccount.calledOnce).to.be.true;
-            expect((objectExplorerService as any).refreshAccount.args[0][0]).to.equal(mockAccount);
-            expect((objectExplorerService as any).refreshAccount.args[0][1]).to.equal(result);
+            expect(
+                (objectExplorerService as any).refreshAccount.calledOnce,
+                "Refresh account should be called once",
+            ).to.be.true;
+            expect(
+                (objectExplorerService as any).refreshAccount.args[0][0],
+                "Refresh account should be called with mock account",
+            ).to.equal(mockAccount);
+            expect(
+                (objectExplorerService as any).refreshAccount.args[0][1],
+                "Refresh account should be called with result",
+            ).to.equal(result);
         });
 
         test("prepareConnectionProfile should refresh account for Azure MFA when account not found", async () => {
@@ -1163,14 +1321,23 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is correct
-            expect(result).to.exist;
-            expect(result.id).to.equal("test-id");
-            expect(result.server).to.equal("testServer");
+            expect(result, "Result should exist").to.exist;
+            expect(result.id, "Result ID should match").to.equal("test-id");
+            expect(result.server, "Result server should match").to.equal("testServer");
 
             // Verify refreshAccount was called with undefined account
-            expect((objectExplorerService as any).refreshAccount.calledOnce).to.be.true;
-            expect((objectExplorerService as any).refreshAccount.args[0][0]).to.be.undefined;
-            expect((objectExplorerService as any).refreshAccount.args[0][1]).to.equal(result);
+            expect(
+                (objectExplorerService as any).refreshAccount.calledOnce,
+                "Refresh account should be called once",
+            ).to.be.true;
+            expect(
+                (objectExplorerService as any).refreshAccount.args[0][0],
+                "Refresh account should be called with undefined account",
+            ).to.be.undefined;
+            expect(
+                (objectExplorerService as any).refreshAccount.args[0][1],
+                "Refresh account should be called with result",
+            ).to.equal(result);
         });
 
         test("prepareConnectionProfile should handle Azure MFA when SQL auth provider disabled", async () => {
@@ -1207,19 +1374,23 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is correct
-            expect(result).to.exist;
-            expect(result.id).to.equal("test-id");
-            expect(result.server).to.equal("testServer");
+            expect(result, "Result should exist").to.exist;
+            expect(result.id, "Result ID should match").to.equal("test-id");
+            expect(result.server, "Result server should match").to.equal("testServer");
 
             // User and email should NOT be set since SQL auth provider is disabled
-            expect(result.user).to.be.undefined;
-            expect(result.email).to.be.undefined;
+            expect(result.user, "Result user should be undefined").to.be.undefined;
+            expect(result.email, "Result email should be undefined").to.be.undefined;
 
             // Verify saveProfile was NOT called
-            expect(mockConnectionUI.saveProfile.called).to.be.false;
+            expect(mockConnectionUI.saveProfile.called, "Connection UI should not save profile").to
+                .be.false;
 
             // Verify refreshAccount was called
-            expect((objectExplorerService as any).refreshAccount.calledOnce).to.be.true;
+            expect(
+                (objectExplorerService as any).refreshAccount.calledOnce,
+                "Refresh account should be called once",
+            ).to.be.true;
         });
 
         test("prepareConnectionProfile should not refresh Azure MFA account if token exists", async () => {
@@ -1256,13 +1427,18 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is correct
-            expect(result).to.exist;
-            expect(result.id).to.equal("test-id");
-            expect(result.server).to.equal("testServer");
-            expect(result.azureAccountToken).to.equal("existing-token");
+            expect(result, "Result should exist").to.exist;
+            expect(result.id, "Result ID should match").to.equal("test-id");
+            expect(result.server, "Result server should match").to.equal("testServer");
+            expect(result.azureAccountToken, "Result azure account token should match").to.equal(
+                "existing-token",
+            );
 
             // Verify refreshAccount was NOT called since token already exists
-            expect((objectExplorerService as any).refreshAccount.called).to.be.false;
+            expect(
+                (objectExplorerService as any).refreshAccount.called,
+                "Refresh account should not be called",
+            ).to.be.false;
         });
     });
 
@@ -1332,19 +1508,31 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is false (no retry)
-            expect(result).to.be.false;
+            expect(result, "Result should be false").to.be.false;
 
             // Verify telemetry was NOT updated (no error number)
-            expect((mockActivityObject.update as sinon.SinonStub<any[], any>).called).to.be.false;
+            expect(
+                (mockActivityObject.update as sinon.SinonStub<any[], any>).called,
+                "Telemetry should not be updated",
+            ).to.be.false;
 
             // Verify error was logged
-            expect(mockLogger.error.calledOnce).to.be.true;
-            expect(mockLogger.error.args[0][0]).to.include("Session creation failed");
+            expect(mockLogger.error.calledOnce, "Error should be logged").to.be.true;
+            expect(
+                mockLogger.error.args[0][0],
+                "Error message should include session creation failed",
+            ).to.include("Session creation failed");
             expect(mockLogger.error.args[0][0]).to.include("Connection failed");
 
             // Verify error message was shown to user
-            expect(mockVscodeWrapper.showErrorMessage.calledOnce).to.be.true;
-            expect(mockVscodeWrapper.showErrorMessage.args[0][0]).to.include("Connection failed");
+            expect(
+                mockVscodeWrapper.showErrorMessage.calledOnce,
+                "Error message should be shown to user",
+            ).to.be.true;
+            expect(
+                mockVscodeWrapper.showErrorMessage.args[0][0],
+                "Error message should include connection failed",
+            ).to.include("Connection failed");
         });
 
         test("handleSessionCreationFailure should update telemetry when error number is present", async () => {
@@ -1366,14 +1554,16 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is false (no retry)
-            expect(result).to.be.false;
+            expect(result, "Result should be false").to.be.false;
 
             const updateStub = mockActivityObject.update as sinon.SinonStub<any[], any>;
 
             // Verify telemetry was updated with error number
-            expect(updateStub.calledOnce).to.be.true;
-            expect(updateStub.args[0][0].connectionType).to.equal("SqlLogin");
-            expect(updateStub.args[0][1].errorNumber).to.equal(12345);
+            expect(updateStub.calledOnce, "Telemetry should be updated once").to.be.true;
+            expect(updateStub.args[0][0].connectionType, "Connection type should match").to.equal(
+                "SqlLogin",
+            );
+            expect(updateStub.args[0][1].errorNumber, "Error number should match").to.equal(12345);
         });
 
         test("handleSessionCreationFailure should handle SSL certificate validation error", async () => {
@@ -1410,22 +1600,39 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is true (retry)
-            expect(result).to.be.true;
+            expect(result, "Result should be true").to.be.true;
 
             // Verify SSL error was handled
-            expect(mockLogger.verbose.calledWith("Fixing SSL trust server certificate error.")).to
-                .be.true;
-            expect(mockConnectionManager.handleSSLError.calledOnce).to.be.true;
-            expect(mockConnectionManager.handleSSLError.args[0][1]).to.equal(connectionProfile);
+            expect(
+                mockLogger.verbose.calledWith("Fixing SSL trust server certificate error."),
+                "Verbose log should indicate SSL error fix",
+            ).to.be.true;
+            expect(
+                mockConnectionManager.handleSSLError.calledOnce,
+                "Handle SSL error should be called once",
+            ).to.be.true;
+            expect(
+                mockConnectionManager.handleSSLError.args[0][1],
+                "Connection profile should match",
+            ).to.equal(connectionProfile);
 
             // Verify telemetry was updated for SSL error
-            expect(updateStub.calledTwice).to.be.true;
-            expect(updateStub.args[1][0].errorHandled).to.equal("trustServerCertificate");
-            expect(updateStub.args[1][0].isFixed).to.equal("true");
+            expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
+            expect(
+                updateStub.args[1][0].errorHandled,
+                "Error handled should be trustServerCertificate",
+            ).to.equal("trustServerCertificate");
+            expect(updateStub.args[1][0].isFixed, "Is fixed should be true").to.equal("true");
 
             // Verify connection node was updated
-            expect(mockConnectionNode.updateConnectionProfile.calledOnce).to.be.true;
-            expect(mockConnectionNode.updateConnectionProfile.args[0][0]).to.equal(fixedProfile);
+            expect(
+                mockConnectionNode.updateConnectionProfile.calledOnce,
+                "Connection node should be updated once",
+            ).to.be.true;
+            expect(
+                mockConnectionNode.updateConnectionProfile.args[0][0],
+                "Connection profile should match",
+            ).to.equal(fixedProfile);
         });
 
         test("handleSessionCreationFailure should return false if SSL error handling returns no profile", async () => {
@@ -1450,17 +1657,25 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is false (no retry)
-            expect(result).to.be.false;
+            expect(result, "Result should be false").to.be.false;
 
             // Verify SSL error was handled
-            expect(mockLogger.verbose.calledWith("Fixing SSL trust server certificate error.")).to
-                .be.true;
-            expect(mockConnectionManager.handleSSLError.calledOnce).to.be.true;
+            expect(
+                mockLogger.verbose.calledWith("Fixing SSL trust server certificate error."),
+                "Verbose log should indicate SSL error fix",
+            ).to.be.true;
+            expect(
+                mockConnectionManager.handleSSLError.calledOnce,
+                "Handle SSL error should be called once",
+            ).to.be.true;
 
             // Verify telemetry was updated for SSL error
-            expect(updateStub.calledTwice).to.be.true;
-            expect(updateStub.args[1][0].errorHandled).to.equal("trustServerCertificate");
-            expect(updateStub.args[1][0].isFixed).to.equal("false");
+            expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
+            expect(
+                updateStub.args[1][0].errorHandled,
+                "Error handled should be trustServerCertificate",
+            ).to.equal("trustServerCertificate");
+            expect(updateStub.args[1][0].isFixed, "Is fixed should be false").to.equal("false");
         });
 
         test("handleSessionCreationFailure should handle firewall error", async () => {
@@ -1496,30 +1711,49 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is true (retry)
-            expect(result).to.be.true;
+            expect(result, "Result should be true").to.be.true;
 
             // Verify firewall error was handled
-            expect(mockFirewallService.handleFirewallRule.calledOnce).to.be.true;
-            expect(mockFirewallService.handleFirewallRule.args[0][0]).to.equal(
-                Constants.errorFirewallRule,
-            );
-            expect(mockFirewallService.handleFirewallRule.args[0][1]).to.equal(
-                "Firewall rule error",
-            );
+            expect(
+                mockFirewallService.handleFirewallRule.calledOnce,
+                "Handle firewall rule should be called once",
+            ).to.be.true;
+            expect(
+                mockFirewallService.handleFirewallRule.args[0][0],
+                "Error number should match",
+            ).to.equal(Constants.errorFirewallRule);
+            expect(
+                mockFirewallService.handleFirewallRule.args[0][1],
+                "Error message should match",
+            ).to.equal("Firewall rule error");
 
             // Verify connection UI handled firewall error
-            expect(mockConnectionUI.handleFirewallError.calledOnce).to.be.true;
-            expect(mockConnectionUI.handleFirewallError.args[0][0]).to.equal(connectionProfile);
-            expect(mockConnectionUI.handleFirewallError.args[0][1]).to.equal(failureResponse);
+            expect(
+                mockConnectionUI.handleFirewallError.calledOnce,
+                "Handle firewall error should be called once",
+            ).to.be.true;
+            expect(
+                mockConnectionUI.handleFirewallError.args[0][0],
+                "Connection profile should match",
+            ).to.equal(connectionProfile);
+            expect(
+                mockConnectionUI.handleFirewallError.args[0][1],
+                "Failure response should match",
+            ).to.equal(failureResponse);
 
             // Verify telemetry was updated for firewall error
-            expect(updateStub.calledTwice).to.be.true;
-            expect(updateStub.args[1][0].errorHandled).to.equal("firewallRule");
-            expect(updateStub.args[1][0].isFixed).to.equal("true");
+            expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
+            expect(
+                updateStub.args[1][0].errorHandled,
+                "Error handled should be firewallRule",
+            ).to.equal("firewallRule");
+            expect(updateStub.args[1][0].isFixed, "Is fixed should be true").to.equal("true");
 
             // Verify success was logged
-            expect(mockLogger.verbose.calledWith("Firewall rule added for IP address 192.168.1.1"))
-                .to.be.true;
+            expect(
+                mockLogger.verbose.calledWith("Firewall rule added for IP address 192.168.1.1"),
+                "Verbose log should indicate firewall rule added",
+            ).to.be.true;
         });
 
         test("handleSessionCreationFailure should return false if firewall rule was not fixed", async () => {
@@ -1553,17 +1787,21 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is false (no retry)
-            expect(result).to.be.false;
+            expect(result, "Result should be false").to.be.false;
 
             // Verify error was logged
             expect(
                 mockLogger.error.calledWith("Firewall rule not added for IP address 192.168.1.1"),
+                "Verbose log should indicate firewall rule not added",
             ).to.be.true;
 
             // Verify telemetry was updated for firewall error
-            expect(updateStub.calledTwice).to.be.true;
-            expect(updateStub.args[1][0].errorHandled).to.equal("firewallRule");
-            expect(updateStub.args[1][0].isFixed).to.equal("false");
+            expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
+            expect(
+                updateStub.args[1][0].errorHandled,
+                "Error handled should be firewallRule",
+            ).to.equal("firewallRule");
+            expect(updateStub.args[1][0].isFixed, "Is fixed should be false").to.equal("false");
         });
 
         test("handleSessionCreationFailure should skip firewall handling if handleFirewallRule returns no result", async () => {
@@ -1593,10 +1831,13 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is false (no retry)
-            expect(result).to.be.false;
+            expect(result, "Result should be false").to.be.false;
 
             // Verify connection UI was NOT called
-            expect(mockConnectionUI.handleFirewallError.called).to.be.false;
+            expect(
+                mockConnectionUI.handleFirewallError.called,
+                "Handle firewall error should not be called",
+            ).to.be.false;
         });
 
         test("handleSessionCreationFailure should handle Azure MFA authentication error needing refresh", async () => {
@@ -1634,32 +1875,48 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is true (retry)
-            expect(result).to.be.true;
+            expect(result, "Result should be true").to.be.true;
 
             // Verify needsAccountRefresh was called
-            expect((objectExplorerService as any).needsAccountRefresh.calledOnce).to.be.true;
-            expect((objectExplorerService as any).needsAccountRefresh.args[0][0]).to.equal(
-                failureResponse,
-            );
-            expect((objectExplorerService as any).needsAccountRefresh.args[0][1]).to.equal(
-                "test-user",
-            );
+            expect(
+                (objectExplorerService as any).needsAccountRefresh.calledOnce,
+                "Needs account refresh should be called once",
+            ).to.be.true;
+            expect(
+                (objectExplorerService as any).needsAccountRefresh.args[0][0],
+                "Failure response should match",
+            ).to.equal(failureResponse);
+            expect(
+                (objectExplorerService as any).needsAccountRefresh.args[0][1],
+                "User should match",
+            ).to.equal("test-user");
 
             // Verify account refresh was initiated
-            expect((objectExplorerService as any).refreshAccount.calledOnce).to.be.true;
-            expect((objectExplorerService as any).refreshAccount.args[0][0]).to.equal(mockAccount);
-            expect((objectExplorerService as any).refreshAccount.args[0][1]).to.equal(
-                connectionProfile,
-            );
+            expect(
+                (objectExplorerService as any).refreshAccount.calledOnce,
+                "Refresh account should be called once",
+            ).to.be.true;
+            expect(
+                (objectExplorerService as any).refreshAccount.args[0][0],
+                "Mock account should match",
+            ).to.equal(mockAccount);
+            expect(
+                (objectExplorerService as any).refreshAccount.args[0][1],
+                "Connection profile should match",
+            ).to.equal(connectionProfile);
 
             // Verify telemetry was updated
-            expect(updateStub.calledTwice).to.be.true;
-            expect(updateStub.args[1][0].errorHandled).to.equal("refreshAccount");
-            expect(updateStub.args[1][0].isFixed).to.equal("true");
+            expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
+            expect(
+                updateStub.args[1][0].errorHandled,
+                "Error handled should be refreshAccount",
+            ).to.equal("refreshAccount");
+            expect(updateStub.args[1][0].isFixed, "Is fixed should be true").to.equal("true");
 
             // Verify success was logged
             expect(
                 mockLogger.verbose.calledWith(`Token refreshed successfully for azure-account-id`),
+                "Verbose log should indicate token refreshed successfully",
             ).to.be.true;
         });
     });
@@ -1709,11 +1966,13 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is undefined
-            expect(result).to.be.undefined;
+            expect(result, "Result should be undefined").to.be.undefined;
 
             // Verify the root tree node array is still empty
-            expect((objectExplorerService as any)._rootTreeNodeArray).to.be.an("array").that.is
-                .empty;
+            expect(
+                (objectExplorerService as any)._rootTreeNodeArray,
+                "Root tree node array should be empty",
+            ).to.be.an("array").that.is.empty;
         });
 
         test("handleSessionCreationSuccess should create a new connection node when none exists", async () => {
@@ -1744,29 +2003,50 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result
-            expect(result).to.exist;
-            expect(result.sessionId).to.equal("test-session-id");
-            expect(result.connectionNode).to.exist;
+            expect(result, "Result should exist").to.exist;
+            expect(result.sessionId, "Session ID should be test-session-id").to.equal(
+                "test-session-id",
+            );
+            expect(result.connectionNode, "Connection node should exist").to.exist;
 
             // Verify a new connection node was created and added to the root tree node array
-            expect((objectExplorerService as any)._rootTreeNodeArray.length).to.equal(1);
+            expect(
+                (objectExplorerService as any)._rootTreeNodeArray.length,
+                "Root tree node array should have length 1",
+            ).to.equal(1);
             const newNode: ConnectionNode = (objectExplorerService as any)._rootTreeNodeArray[0];
-            expect(newNode).to.be.instanceOf(ConnectionNode);
-            expect(newNode.connectionProfile).to.deep.equal(connectionProfile);
+            expect(newNode, "New node should be an instance of ConnectionNode").to.be.instanceOf(
+                ConnectionNode,
+            );
+            expect(newNode.connectionProfile, "Connection profile should match").to.deep.equal(
+                connectionProfile,
+            );
 
             // Verify updateToConnectedState was called on the new node
-            expect(newNode.nodeStatus).to.be.equal("Connected");
+            expect(newNode.nodeStatus, "New node status should be Connected").to.be.equal(
+                "Connected",
+            );
 
             // Verify connect was called
-            expect(mockConnectionManager.connect.calledOnce).to.be.true;
-            expect(mockConnectionManager.connect.args[0][0]).to.equal(`test-session-id`);
-            expect(mockConnectionManager.connect.args[0][1]).to.deep.equal(connectionProfile);
-
-            // Verify addConnectionNodeAtRightPosition was called
-            expect((objectExplorerService as any).addConnectionNodeAtRightPosition.calledOnce).to.be
+            expect(mockConnectionManager.connect.calledOnce, "Connect should be called once").to.be
                 .true;
             expect(
+                mockConnectionManager.connect.args[0][0],
+                "Session ID should be test-session-id",
+            ).to.equal(`test-session-id`);
+            expect(
+                mockConnectionManager.connect.args[0][1],
+                "Connection profile should match",
+            ).to.deep.equal(connectionProfile);
+
+            // Verify addConnectionNodeAtRightPosition was called
+            expect(
+                (objectExplorerService as any).addConnectionNodeAtRightPosition.calledOnce,
+                "Add connection node at right position should be called once",
+            ).to.be.true;
+            expect(
                 (objectExplorerService as any).addConnectionNodeAtRightPosition.args[0][0],
+                "New node should be added to the root tree node array",
             ).to.equal(newNode);
         });
 
@@ -1799,26 +2079,44 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result
-            expect(result).to.exist;
-            expect(result.sessionId).to.equal("test-session-id");
-            expect(result.connectionNode).to.equal(existingNode);
+            expect(result, "Result should exist").to.exist;
+            expect(result.sessionId, "Session ID should be test-session-id").to.equal(
+                "test-session-id",
+            );
+            expect(result.connectionNode, "Connection node should exist").to.equal(existingNode);
 
             // Verify no new node was created - array still has only one node
-            expect((objectExplorerService as any)._rootTreeNodeArray.length).to.equal(1);
+            expect(
+                (objectExplorerService as any)._rootTreeNodeArray.length,
+                "Root tree node array should have length 1",
+            ).to.equal(1);
 
             // Verify updateConnectionProfile was called on the existing node
-            expect(updateProfileSpy.calledOnce).to.be.true;
-            expect(updateProfileSpy.args[0][0]).to.equal(connectionProfile);
+            expect(updateProfileSpy.calledOnce, "Update connection profile should be called once")
+                .to.be.true;
+            expect(updateProfileSpy.args[0][0], "Connection profile should match").to.equal(
+                connectionProfile,
+            );
 
             // Verify updateToConnectedState was called
-            expect(updateStateSpy.calledOnce).to.be.true;
-            expect(updateStateSpy.args[0][0].nodeInfo).to.equal(successResponse.rootNode);
-            expect(updateStateSpy.args[0][0].sessionId).to.equal(successResponse.sessionId);
-            expect(updateStateSpy.args[0][0].connectionProfile).to.equal(connectionProfile);
+            expect(updateStateSpy.calledOnce, "Update to connected state should be called once").to
+                .be.true;
+            expect(updateStateSpy.args[0][0].nodeInfo, "Node info should match").to.equal(
+                successResponse.rootNode,
+            );
+            expect(updateStateSpy.args[0][0].sessionId, "Session ID should match").to.equal(
+                successResponse.sessionId,
+            );
+            expect(
+                updateStateSpy.args[0][0].connectionProfile,
+                "Connection profile should match",
+            ).to.equal(connectionProfile);
 
             // Verify addConnectionNodeAtRightPosition was NOT called (not a new connection)
-            expect((objectExplorerService as any).addConnectionNodeAtRightPosition.called).to.be
-                .false;
+            expect(
+                (objectExplorerService as any).addConnectionNodeAtRightPosition.called,
+                "Add connection node at right position should NOT be called",
+            ).to.be.false;
         });
     });
 
@@ -1903,24 +2201,40 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is true (success)
-            expect(result).to.be.true;
+            expect(result, "Refresh account should return true").to.be.true;
 
             // Verify Azure controller was called with correct parameters
-            expect(mockAzureController.refreshAccessToken.calledOnce).to.be.true;
-            expect(mockAzureController.refreshAccessToken.args[0][0]).to.equal(mockAccount);
-            expect(mockAzureController.refreshAccessToken.args[0][1]).to.equal(mockAccountStore);
-            expect(mockAzureController.refreshAccessToken.args[0][2]).to.equal("tenant-id");
-            expect(mockAzureController.refreshAccessToken.args[0][3]).to.equal(
-                providerSettings.resources.databaseResource,
-            );
+            expect(
+                mockAzureController.refreshAccessToken.calledOnce,
+                "Azure controller should be called once",
+            ).to.be.true;
+            expect(
+                mockAzureController.refreshAccessToken.args[0][0],
+                "Mock account should match",
+            ).to.equal(mockAccount);
+            expect(
+                mockAzureController.refreshAccessToken.args[0][1],
+                "Mock account store should match",
+            ).to.equal(mockAccountStore);
+            expect(
+                mockAzureController.refreshAccessToken.args[0][2],
+                "Tenant ID should match",
+            ).to.equal("tenant-id");
+            expect(
+                mockAzureController.refreshAccessToken.args[0][3],
+                "Database resource should match",
+            ).to.equal(providerSettings.resources.databaseResource);
 
             // Verify connection credentials were updated with new token
-            expect(mockConnectionCredentials.azureAccountToken).to.equal("new-access-token");
-            expect(mockConnectionCredentials.expiresOn).to.exist;
+            expect(
+                mockConnectionCredentials.azureAccountToken,
+                "Azure account token should match",
+            ).to.equal("new-access-token");
+            expect(mockConnectionCredentials.expiresOn, "Expires on should exist").to.exist;
 
             // Verify withProgress was called with correct title
-            expect(mockWithProgress.calledOnce).to.be.true;
-            expect(mockWithProgress.args[0][0].title).to.equal(
+            expect(mockWithProgress.calledOnce, "withProgress should be called once").to.be.true;
+            expect(mockWithProgress.args[0][0].title, "withProgress title should match").to.equal(
                 LocalizedConstants.ObjectExplorer.AzureSignInMessage,
             );
         });
@@ -1950,26 +2264,40 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is true (success)
-            expect(result).to.be.true;
+            expect(result, "Refresh account should return true").to.be.true;
 
             // Verify Azure controller was called
-            expect(mockAzureController.refreshAccessToken.calledOnce).to.be.true;
+            expect(
+                mockAzureController.refreshAccessToken.calledOnce,
+                "Azure controller should be called once",
+            ).to.be.true;
 
             // Verify error message was shown
-            expect(mockVscodeWrapper.showErrorMessage.calledOnce).to.be.true;
-            expect(mockVscodeWrapper.showErrorMessage.args[0][0]).to.equal(
-                LocalizedConstants.msgAccountRefreshFailed,
-            );
-            expect(mockVscodeWrapper.showErrorMessage.args[0][1]).to.equal(
-                LocalizedConstants.refreshTokenLabel,
-            );
+            expect(
+                mockVscodeWrapper.showErrorMessage.calledOnce,
+                "Error message should be shown once",
+            ).to.be.true;
+            expect(
+                mockVscodeWrapper.showErrorMessage.args[0][0],
+                "Error message should match",
+            ).to.equal(LocalizedConstants.msgAccountRefreshFailed);
+            expect(
+                mockVscodeWrapper.showErrorMessage.args[0][1],
+                "Refresh token label should match",
+            ).to.equal(LocalizedConstants.refreshTokenLabel);
 
             // Verify populateAccountProperties was called since refresh button was clicked
-            expect(mockAzureController.populateAccountProperties.calledOnce).to.be.true;
+            expect(
+                mockAzureController.populateAccountProperties.calledOnce,
+                "Populate account properties should be called once",
+            ).to.be.true;
 
             // Verify connection credentials were updated with populated token
-            expect(mockConnectionCredentials.azureAccountToken).to.equal("populated-access-token");
-            expect(mockConnectionCredentials.expiresOn).to.exist;
+            expect(
+                mockConnectionCredentials.azureAccountToken,
+                "Azure account token should match",
+            ).to.equal("populated-access-token");
+            expect(mockConnectionCredentials.expiresOn, "Expires on should exist").to.exist;
         });
 
         test("refreshAccount should handle user cancellation of refresh", async () => {
@@ -1991,13 +2319,17 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is true (success) - the method still resolves true even if user cancels
-            expect(result).to.be.true;
+            expect(result, "Refresh account should return true").to.be.true;
 
             // Verify error was logged
-            expect((mockLogger.error as sinon.SinonStub).calledOnce).to.be.true;
+            expect((mockLogger.error as sinon.SinonStub).calledOnce, "Error should be logged").to.be
+                .true;
 
             // Verify populateAccountProperties was NOT called since user didn't click refresh
-            expect(mockAzureController.populateAccountProperties.called).to.be.false;
+            expect(
+                mockAzureController.populateAccountProperties.called,
+                "Populate account properties should not be called",
+            ).to.be.false;
         });
 
         test("refreshAccount should handle progress cancellation", async () => {
@@ -2033,10 +2365,13 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is false (cancelled)
-            expect(result).to.be.false;
+            expect(result, "Refresh account should return false").to.be.false;
 
             // Verify cancellation was logged
-            expect(mockLogger.verbose.calledWith("Azure sign in cancelled by user.")).to.be.true;
+            expect(
+                mockLogger.verbose.calledWith("Azure sign in cancelled by user."),
+                "Verbose log should indicate cancellation",
+            ).to.be.true;
         });
 
         test("refreshAccount should handle errors during refresh", async () => {
@@ -2056,15 +2391,23 @@ suite("OE Service Tests", () => {
             );
 
             // Verify the result is false (error)
-            expect(result).to.be.false;
+            expect(result, "Refresh account should return false").to.be.false;
 
             // Verify error was logged
-            expect(mockLogger.error.calledWith("Error refreshing account: " + testError)).to.be
-                .true;
+            expect(
+                mockLogger.error.calledWith("Error refreshing account: " + testError),
+                "Error should be logged",
+            ).to.be.true;
 
             // Verify error message was shown
-            expect(mockVscodeWrapper.showErrorMessage.calledOnce).to.be.true;
-            expect(mockVscodeWrapper.showErrorMessage.args[0][0]).to.equal(testError.message);
+            expect(
+                mockVscodeWrapper.showErrorMessage.calledOnce,
+                "Error message should be shown once",
+            ).to.be.true;
+            expect(
+                mockVscodeWrapper.showErrorMessage.args[0][0],
+                "Error message should match",
+            ).to.equal(testError.message);
         });
     });
 
@@ -2107,7 +2450,7 @@ suite("OE Service Tests", () => {
             const result = (objectExplorerService as any).getNodeIdentifier(mockNode);
 
             // Verify the result
-            expect(result).to.equal("server1_db1_profile1");
+            expect(result, "Node identifier should match").to.equal("server1_db1_profile1");
         });
 
         test("getNodeIdentifier should return the correct identifier for a node with a session", () => {
@@ -2122,7 +2465,7 @@ suite("OE Service Tests", () => {
             const result = (objectExplorerService as any).getNodeIdentifier(mockNode);
 
             // Verify the result
-            expect(result).to.equal("session1");
+            expect(result, "Node identifier should match").to.equal("session1");
         });
     });
 
@@ -2182,19 +2525,30 @@ suite("OE Service Tests", () => {
             const result = await objectExplorerService.createSession(connectionInfo);
 
             // Verify the result is undefined
-            expect(result).to.be.undefined;
+            expect(result, "Result should be undefined").to.be.undefined;
 
             // Verify prepareConnectionProfile was called with the connection info
-            expect((objectExplorerService as any).prepareConnectionProfile.calledOnce).to.be.true;
-            expect((objectExplorerService as any).prepareConnectionProfile.args[0][0]).to.equal(
-                connectionInfo,
-            );
+            expect(
+                (objectExplorerService as any).prepareConnectionProfile.calledOnce,
+                "Prepare connection profile should be called once",
+            ).to.be.true;
+            expect(
+                (objectExplorerService as any).prepareConnectionProfile.args[0][0],
+                "Prepare connection profile should be called with connection info",
+            ).to.equal(connectionInfo);
 
             // Verify telemetry was started
-            expect(startActivityStub.calledOnce).to.be.true;
-            expect(startActivityStub.args[0][0]).to.equal(TelemetryViews.ObjectExplorer);
-            expect(startActivityStub.args[0][1]).to.equal(TelemetryActions.CreateSession);
-            expect(startActivityStub.args[0][3].connectionType).to.equal("SqlLogin");
+            expect(startActivityStub.calledOnce, "Telemetry should be started once").to.be.true;
+            expect(startActivityStub.args[0][0], "Telemetry view should match").to.equal(
+                TelemetryViews.ObjectExplorer,
+            );
+            expect(startActivityStub.args[0][1], "Telemetry action should match").to.equal(
+                TelemetryActions.CreateSession,
+            );
+            expect(
+                startActivityStub.args[0][3].connectionType,
+                "Connection type should match",
+            ).to.equal("SqlLogin");
         });
 
         test("createSession should call client to get session ID and create session", async () => {
@@ -2250,27 +2604,44 @@ suite("OE Service Tests", () => {
             const result = await resultPromise;
 
             // Verify the result
-            expect(result).to.equal(sessionCreationSuccessResponse);
+            expect(result, "Result should match session creation success response").to.equal(
+                sessionCreationSuccessResponse,
+            );
 
             // Verify telemetry was started and ended with success
-            expect(startActivityStub.calledOnce).to.be.true;
-            expect(endStub.calledOnce).to.be.true;
-            expect(endStub.args[0][0]).to.equal(ActivityStatus.Succeeded);
-            expect(endStub.args[0][1].connectionType).to.equal(
+            expect(startActivityStub.calledOnce, "Telemetry should be started once").to.be.true;
+            expect(endStub.calledOnce, "Telemetry should be ended once").to.be.true;
+            expect(endStub.args[0][0], "Telemetry status should be succeeded").to.equal(
+                ActivityStatus.Succeeded,
+            );
+            expect(endStub.args[0][1].connectionType, "Connection type should match").to.equal(
                 connectionProfile.authenticationType,
             );
 
             // Verify client requests were sent
-            expect(mockClient.sendRequest.calledTwice).to.be.true;
-            expect(mockClient.sendRequest.firstCall.args[0]).to.equal(GetSessionIdRequest.type);
-            expect(mockClient.sendRequest.secondCall.args[0]).to.equal(CreateSessionRequest.type);
+            expect(mockClient.sendRequest.calledTwice, "Client should send two requests").to.be
+                .true;
+            expect(
+                mockClient.sendRequest.firstCall.args[0],
+                "First request type should match",
+            ).to.equal(GetSessionIdRequest.type);
+            expect(
+                mockClient.sendRequest.secondCall.args[0],
+                "Second request type should match",
+            ).to.equal(CreateSessionRequest.type);
 
             // Verify connection details were created and passed to the requests
-            expect(createConnectionStub.calledOnce).to.be.true;
-            expect(createConnectionStub.args[0][0]).to.equal(connectionProfile);
+            expect(createConnectionStub.calledOnce, "Connection details should be created once").to
+                .be.true;
+            expect(createConnectionStub.args[0][0], "Connection profile should match").to.equal(
+                connectionProfile,
+            );
 
             // Verify pending session creation was set up and cleaned up
-            expect((objectExplorerService as any)._pendingSessionCreations.size).to.equal(0);
+            expect(
+                (objectExplorerService as any)._pendingSessionCreations.size,
+                "Pending session creations should be empty",
+            ).to.equal(0);
         });
 
         test("createSession should handle successful session creation", async () => {
@@ -2319,31 +2690,38 @@ suite("OE Service Tests", () => {
             const pendingSession = (objectExplorerService as any)._pendingSessionCreations.get(
                 "test-session-id",
             );
-            expect(pendingSession).to.exist;
+            expect(pendingSession, "Pending session should exist").to.exist;
             pendingSession.resolve(sessionCreatedResponse);
 
             // Wait for the result
             const result = await resultPromise;
 
             // Verify the result
-            expect(result).to.equal(successResult);
+            expect(result, "Result should match session creation success response").to.equal(
+                successResult,
+            );
 
             // Verify success was logged
             expect(
                 mockLogger.verbose.calledWith(
                     `Session created successfully for with session ID test-session-id`,
                 ),
+                "Verbose logging should indicate session creation success",
             ).to.be.true;
 
             // Verify handleSessionCreationSuccess was called with the correct parameters
-            expect((objectExplorerService as any).handleSessionCreationSuccess.calledOnce).to.be
-                .true;
-            expect((objectExplorerService as any).handleSessionCreationSuccess.args[0][0]).to.equal(
-                sessionCreatedResponse,
-            );
-            expect((objectExplorerService as any).handleSessionCreationSuccess.args[0][1]).to.equal(
-                connectionProfile,
-            );
+            expect(
+                (objectExplorerService as any).handleSessionCreationSuccess.calledOnce,
+                "handleSessionCreationSuccess should be called once",
+            ).to.be.true;
+            expect(
+                (objectExplorerService as any).handleSessionCreationSuccess.args[0][0],
+                "Session created response should match",
+            ).to.equal(sessionCreatedResponse);
+            expect(
+                (objectExplorerService as any).handleSessionCreationSuccess.args[0][1],
+                "Connection profile should match",
+            ).to.equal(connectionProfile);
         });
 
         test("createSession should handle session creation failure", async () => {
@@ -2388,14 +2766,14 @@ suite("OE Service Tests", () => {
             const pendingSession = (objectExplorerService as any)._pendingSessionCreations.get(
                 "test-session-id",
             );
-            expect(pendingSession).to.exist;
+            expect(pendingSession, "Pending session should exist").to.exist;
             pendingSession.resolve(failureResponse);
 
             // Wait for the result
             const result = await resultPromise;
 
             // Verify the result includes retry flag
-            expect(result).to.deep.equal({
+            expect(result, "Result should include retry flag").to.deep.equal({
                 sessionId: undefined,
                 connectionNode: undefined,
                 shouldRetryOnFailure: true,
@@ -2406,23 +2784,30 @@ suite("OE Service Tests", () => {
                 mockLogger.error.calledWith(
                     `Session creation failed with error: Authentication failed`,
                 ),
+                "Error logging should indicate session creation failure",
             ).to.be.true;
 
             // Verify handleSessionCreationFailure was called with the correct parameters
-            expect((objectExplorerService as any).handleSessionCreationFailure.calledOnce).to.be
-                .true;
-            expect((objectExplorerService as any).handleSessionCreationFailure.args[0][0]).to.equal(
-                failureResponse,
-            );
-            expect((objectExplorerService as any).handleSessionCreationFailure.args[0][1]).to.equal(
-                connectionProfile,
-            );
-            expect((objectExplorerService as any).handleSessionCreationFailure.args[0][2]).to.equal(
-                mockActivity,
-            );
+            expect(
+                (objectExplorerService as any).handleSessionCreationFailure.calledOnce,
+                "handleSessionCreationFailure should be called once",
+            ).to.be.true;
+            expect(
+                (objectExplorerService as any).handleSessionCreationFailure.args[0][0],
+                "Session creation failure response should match",
+            ).to.equal(failureResponse);
+            expect(
+                (objectExplorerService as any).handleSessionCreationFailure.args[0][1],
+                "Connection profile should match",
+            ).to.equal(connectionProfile);
+            expect(
+                (objectExplorerService as any).handleSessionCreationFailure.args[0][2],
+                "Activity should match",
+            ).to.equal(mockActivity);
 
             // Verify telemetry recorded failure
-            expect(endFailedStub.calledOnce).to.be.true;
+            expect(endFailedStub.calledOnce, "Telemetry should record session creation failure").to
+                .be.true;
         });
 
         test("createSession should handle session creation failure without retry", async () => {
@@ -2467,14 +2852,14 @@ suite("OE Service Tests", () => {
             const pendingSession = (objectExplorerService as any)._pendingSessionCreations.get(
                 "test-session-id",
             );
-            expect(pendingSession).to.exist;
+            expect(pendingSession, "Pending session should exist").to.exist;
             pendingSession.resolve(failureResponse);
 
             // Wait for the result
             const result = await resultPromise;
 
             // Verify the result includes retry flag as false
-            expect(result).to.deep.equal({
+            expect(result, "Result should include retry flag").to.deep.equal({
                 sessionId: undefined,
                 connectionNode: undefined,
                 shouldRetryOnFailure: false,
@@ -2505,14 +2890,21 @@ suite("OE Service Tests", () => {
             const result = await objectExplorerService.createSession();
 
             // Verify the result is undefined
-            expect(result).to.be.undefined;
+            expect(result, "Result should be undefined").to.be.undefined;
 
             // Verify client requests were sent
-            expect(mockClient.sendRequest.calledTwice).to.be.true;
+            expect(mockClient.sendRequest.calledTwice, "Client requests should be sent twice").to.be
+                .true;
 
             // Verify session creation handlers were not called
-            expect((objectExplorerService as any).handleSessionCreationSuccess.called).to.be.false;
-            expect((objectExplorerService as any).handleSessionCreationFailure.called).to.be.false;
+            expect(
+                (objectExplorerService as any).handleSessionCreationSuccess.called,
+                "handleSessionCreationSuccess should not be called",
+            ).to.be.false;
+            expect(
+                (objectExplorerService as any).handleSessionCreationFailure.called,
+                "handleSessionCreationFailure should not be called",
+            ).to.be.false;
         });
 
         test("createSession should generate telemetry with correct connection type", async () => {
@@ -2533,8 +2925,14 @@ suite("OE Service Tests", () => {
             await objectExplorerService.createSession(connectionInfo);
 
             // Verify telemetry was started with correct connection type
-            expect(startActivityStub.calledOnce).to.be.true;
-            expect(startActivityStub.args[0][3].connectionType).to.equal("AzureMFA");
+            expect(
+                startActivityStub.calledOnce,
+                "Telemetry should be started with correct connection type",
+            ).to.be.true;
+            expect(
+                startActivityStub.args[0][3].connectionType,
+                "Connection type should match",
+            ).to.equal("AzureMFA");
 
             // Reset stubs
             startActivityStub.resetHistory();
@@ -2544,8 +2942,12 @@ suite("OE Service Tests", () => {
             await objectExplorerService.createSession(undefined);
 
             // Verify telemetry was started with 'newConnection'
-            expect(startActivityStub.calledOnce).to.be.true;
-            expect(startActivityStub.args[0][3].connectionType).to.equal("newConnection");
+            expect(startActivityStub.calledOnce, "Telemetry should be started with 'newConnection'")
+                .to.be.true;
+            expect(
+                startActivityStub.args[0][3].connectionType,
+                "Connection type should match",
+            ).to.equal("newConnection");
         });
 
         test("createSession should handle client request errors gracefully", async () => {
@@ -2567,7 +2969,7 @@ suite("OE Service Tests", () => {
                 expect.fail("Method should have thrown an error");
             } catch (error) {
                 // Verify the error was propagated
-                expect(error).to.equal(testError);
+                expect(error, "Error should match test error").to.equal(testError);
             }
         });
 
@@ -2610,7 +3012,7 @@ suite("OE Service Tests", () => {
             const pendingSession = (objectExplorerService as any)._pendingSessionCreations.get(
                 "test-session-id",
             );
-            expect(pendingSession).to.exist;
+            expect(pendingSession, "Pending session should exist").to.exist;
 
             // Create and resolve a deferred for the wrong session ID
             const wrongPendingSession = new Deferred<SessionCreatedParameters>();
@@ -2641,13 +3043,17 @@ suite("OE Service Tests", () => {
             const result = await resultPromise;
 
             // Verify the result
-            expect(result).to.equal(successResult);
+            expect(result, "Result should match success result").to.equal(successResult);
 
             // Verify only the correct session was cleaned up
-            expect((objectExplorerService as any)._pendingSessionCreations.has("test-session-id"))
-                .to.be.false;
-            expect((objectExplorerService as any)._pendingSessionCreations.has("wrong-session-id"))
-                .to.be.true;
+            expect(
+                (objectExplorerService as any)._pendingSessionCreations.has("test-session-id"),
+                "Pending session for test-session-id should be cleaned up",
+            ).to.be.false;
+            expect(
+                (objectExplorerService as any)._pendingSessionCreations.has("wrong-session-id"),
+                "Pending session for wrong-session-id should exist",
+            ).to.be.true;
         });
 
         test("createSession should use new connection profile when none is provided", async () => {
@@ -2704,7 +3110,7 @@ suite("OE Service Tests", () => {
             const pendingSession = (objectExplorerService as any)._pendingSessionCreations.get(
                 "test-session-id",
             );
-            expect(pendingSession).to.exist;
+            expect(pendingSession, "Pending session should exist").to.exist;
             pendingSession.resolve(sessionCreatedResponse);
 
             // Wait for the result
@@ -2714,17 +3120,29 @@ suite("OE Service Tests", () => {
             expect(result).to.equal(successResult);
 
             // Verify prepareConnectionProfile was called with undefined
-            expect((objectExplorerService as any).prepareConnectionProfile.calledOnce).to.be.true;
-            expect((objectExplorerService as any).prepareConnectionProfile.args[0][0]).to.be
-                .undefined;
+            expect(
+                (objectExplorerService as any).prepareConnectionProfile.calledOnce,
+                "prepareConnectionProfile should be called once",
+            ).to.be.true;
+            expect(
+                (objectExplorerService as any).prepareConnectionProfile.args[0][0],
+                "Connection profile should be undefined",
+            ).to.be.undefined;
 
             // Verify connection details were created with the new profile
-            expect(createConnectionDetails.calledOnce).to.be.true;
-            expect(createConnectionDetails.args[0][0]).to.equal(newConnectionProfile);
+            expect(createConnectionDetails.calledOnce, "Connection details should be created once")
+                .to.be.true;
+            expect(
+                createConnectionDetails.args[0][0],
+                "Connection details should match new profile",
+            ).to.equal(newConnectionProfile);
 
             // Verify telemetry was updated with the new authentication type
-            expect(endStub.calledOnce).to.be.true;
-            expect(endStub.args[0][1].connectionType).to.equal("SqlLogin");
+            expect(endStub.calledOnce, "Telemetry end should be called once").to.be.true;
+            expect(
+                endStub.args[0][1].connectionType,
+                "Connection type should be SqlLogin",
+            ).to.equal("SqlLogin");
         });
     });
 
@@ -2812,24 +3230,42 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify the result
-            expect(result).to.equal(mockAddConnectionNode);
+            expect(result, "Result should match mock add connection node").to.equal(
+                mockAddConnectionNode,
+            );
 
             // Verify connection store was called
-            expect(mockConnectionStore.readAllConnections.calledOnce).to.be.true;
+            expect(
+                mockConnectionStore.readAllConnections.calledOnce,
+                "Connection store should be called once",
+            ).to.be.true;
 
             // Verify getAddConnectionNode was called
             expect((objectExplorerService as any).getAddConnectionNode.calledOnce).to.be.true;
 
             // Verify telemetry was tracked
-            expect(startActivityStub.calledOnce).to.be.true;
-            expect(startActivityStub.args[0][0]).to.equal(TelemetryViews.ObjectExplorer);
-            expect(startActivityStub.args[0][1]).to.equal(TelemetryActions.ExpandNode);
-            expect(startActivityStub.args[0][3].nodeType).to.equal("root");
+            expect(startActivityStub.calledOnce, "Telemetry start should be called once").to.be
+                .true;
+            expect(
+                startActivityStub.args[0][0],
+                "Telemetry view should be ObjectExplorer",
+            ).to.equal(TelemetryViews.ObjectExplorer);
+            expect(startActivityStub.args[0][1], "Telemetry action should be ExpandNode").to.equal(
+                TelemetryActions.ExpandNode,
+            );
+            expect(startActivityStub.args[0][3].nodeType, "Node type should be root").to.equal(
+                "root",
+            );
 
             // Verify activity ended with success
-            expect(endStub.calledOnce).to.be.true;
-            expect(endStub.args[0][0]).to.equal(ActivityStatus.Succeeded);
-            expect(endStub.args[0][2].childrenCount).to.equal(0);
+            expect(endStub.calledOnce, "Telemetry end should be called once").to.be.true;
+            expect(endStub.args[0][0], "Telemetry end status should be Succeeded").to.equal(
+                ActivityStatus.Succeeded,
+            );
+            expect(
+                endStub.args[0][2].childrenCount,
+                "Telemetry end should have zero children",
+            ).to.equal(0);
 
             // Verify logging
             expect(
@@ -2854,22 +3290,34 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify the result
-            expect(result).to.equal(cachedNodes);
+            expect(result, "Result should match cached nodes").to.equal(cachedNodes);
 
             // Verify connection store was called
-            expect(mockConnectionStore.readAllConnections.calledOnce).to.be.true;
+            expect(
+                mockConnectionStore.readAllConnections.calledOnce,
+                "Connection store should be called once",
+            ).to.be.true;
             // Verify getSavedConnectionNodes was NOT called (used cache)
-            expect((objectExplorerService as any).getSavedConnectionNodes.called).to.be.false;
+            expect(
+                (objectExplorerService as any).getSavedConnectionNodes.called,
+                "getSavedConnectionNodes should not be called",
+            ).to.be.false;
 
             // Verify sortByServerName was called
-            expect((objectExplorerService as any).sortByServerName.calledOnce).to.be.true;
-            expect((objectExplorerService as any).sortByServerName.args[0][0]).to.equal(
-                cachedNodes,
-            );
+            expect(
+                (objectExplorerService as any).sortByServerName.calledOnce,
+                "sortByServerName should be called once",
+            ).to.be.true;
+            expect(
+                (objectExplorerService as any).sortByServerName.args[0][0],
+                "Sorted nodes should match cached nodes",
+            ).to.equal(cachedNodes);
 
             // Verify telemetry ended with correct node count
-            expect(endStub.calledOnce).to.be.true;
-            expect(endStub.args[0][2].nodeCount).to.equal(3);
+            expect(endStub.calledOnce, "Telemetry end should be called once").to.be.true;
+            expect(endStub.args[0][2].nodeCount, "Telemetry end node count should be 3").to.equal(
+                3,
+            );
 
             // Verify logging
             expect(mockLogger.verbose.calledWith("Using cached root tree node array.")).to.be.true;
@@ -2891,26 +3339,41 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify the result
-            expect(result).to.equal(savedNodes);
+            expect(result, "Result should match saved nodes").to.equal(savedNodes);
 
             // Verify connection store was called
-            expect(mockConnectionStore.readAllConnections.calledOnce).to.be.true;
+            expect(
+                mockConnectionStore.readAllConnections.calledOnce,
+                "Connection store should be called once",
+            ).to.be.true;
 
             // Verify getSavedConnectionNodes was called
-            expect((objectExplorerService as any).getSavedConnectionNodes.calledOnce).to.be.true;
+            expect(
+                (objectExplorerService as any).getSavedConnectionNodes.calledOnce,
+                "getSavedConnectionNodes should be called once",
+            ).to.be.true;
 
             // Verify cache was updated
-            expect((objectExplorerService as any)._rootTreeNodeArray).to.equal(savedNodes);
+            expect(
+                (objectExplorerService as any)._rootTreeNodeArray,
+                "Cache should be updated with saved nodes",
+            ).to.equal(savedNodes);
 
             // Verify telemetry ended with correct node count
-            expect(endStub.calledOnce).to.be.true;
-            expect(endStub.args[0][2].nodeCount).to.equal(2);
+            expect(endStub.calledOnce, "Telemetry end should be called once").to.be.true;
+            expect(endStub.args[0][2].nodeCount, "Telemetry end node count should be 2").to.equal(
+                2,
+            );
 
             // Verify logging
             expect(
                 mockLogger.verbose.calledWith("Reading saved connections from connection store."),
+                "Logging should indicate reading saved connections",
             ).to.be.true;
-            expect(mockLogger.verbose.calledWith("Found 2 saved connections.")).to.be.true;
+            expect(
+                mockLogger.verbose.calledWith("Found 2 saved connections."),
+                "Logging should indicate found saved connections",
+            ).to.be.true;
         });
 
         test("getRootNodes should handle error in connection store", async () => {
@@ -2925,12 +3388,14 @@ suite("OE Service Tests", () => {
                 expect.fail("Method should have thrown an error");
             } catch (error) {
                 // Verify the error is passed through
-                expect(error).to.equal(testError);
+                expect(error, "Error should be passed through").to.equal(testError);
 
                 // Verify telemetry was started but not ended
-                expect(startActivityStub.calledOnce).to.be.true;
-                expect(endStub.called).to.be.false;
-                expect(endFailedStub.called).to.be.false; // We're letting the error propagate
+                expect(startActivityStub.calledOnce, "Telemetry start should be called once").to.be
+                    .true;
+                expect(endStub.called, "Telemetry end should not be called").to.be.false;
+                expect(endFailedStub.called, "Telemetry end failed should not be called").to.be
+                    .false; // We're letting the error propagate
             }
         });
 
@@ -2953,10 +3418,13 @@ suite("OE Service Tests", () => {
                 expect.fail("Method should have thrown an error");
             } catch (error) {
                 // Verify the error is passed through
-                expect(error).to.equal(testError);
+                expect(error, "Error should be passed through").to.equal(testError);
 
                 // Verify caching behavior - cache should not be updated on error
-                expect((objectExplorerService as any)._rootTreeNodeArray).to.be.null;
+                expect(
+                    (objectExplorerService as any)._rootTreeNodeArray,
+                    "Cache should not be updated on error",
+                ).to.be.null;
             }
         });
 
@@ -2976,19 +3444,26 @@ suite("OE Service Tests", () => {
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify the result - should be the add connection node, not the cached nodes
-            expect(result).to.equal(mockAddConnectionNode);
+            expect(result, "Result should be add connection node").to.equal(mockAddConnectionNode);
 
             // Verify connection store was called
-            expect(mockConnectionStore.readAllConnections.calledOnce).to.be.true;
+            expect(
+                mockConnectionStore.readAllConnections.calledOnce,
+                "Connection store should be called once",
+            ).to.be.true;
 
             // Verify getAddConnectionNode was called
-            expect((objectExplorerService as any).getAddConnectionNode.calledOnce).to.be.true;
+            expect(
+                (objectExplorerService as any).getAddConnectionNode.calledOnce,
+                "getAddConnectionNode should be called once",
+            ).to.be.true;
 
             // Verify logging
             expect(
                 mockLogger.verbose.calledWith(
                     "No saved connections found. Showing add connection node.",
                 ),
+                "Logging should indicate no saved connections",
             ).to.be.true;
         });
 
@@ -3008,252 +3483,294 @@ suite("OE Service Tests", () => {
             await (objectExplorerService as any).getRootNodes();
 
             // Verify cache was updated
-            expect((objectExplorerService as any)._rootTreeNodeArray).to.equal(savedNodes);
+            expect(
+                (objectExplorerService as any)._rootTreeNodeArray,
+                "Cache should be updated with saved nodes",
+            ).to.equal(savedNodes);
 
             // Call the method again
             (objectExplorerService as any).getSavedConnectionNodes.resetHistory();
             await (objectExplorerService as any).getRootNodes();
 
             // Verify getSavedConnectionNodes was NOT called again (using cache)
-            expect((objectExplorerService as any).getSavedConnectionNodes.called).to.be.false;
+            expect(
+                (objectExplorerService as any).getSavedConnectionNodes.called,
+                "getSavedConnectionNodes should not be called again",
+            ).to.be.false;
         });
     });
-});
 
-suite("Object Explorer Service Tests", () => {
-    let objectExplorerService: ObjectExplorerService;
+    suite("Miscellaneous", () => {
+        let objectExplorerService: ObjectExplorerService;
 
-    let sandbox: sinon.SinonSandbox;
+        let sandbox: sinon.SinonSandbox;
 
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
-    let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
-    let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
-    let mockAzureController: sinon.SinonStubbedInstance<AzureController>;
-    let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
-    let mockWithProgress: sinon.SinonStub;
+        let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+        let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+        let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
+        let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
+        let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+        let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
+        let mockAzureController: sinon.SinonStubbedInstance<AzureController>;
+        let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
+        let mockWithProgress: sinon.SinonStub;
 
-    let mockLogger: sinon.SinonStubbedInstance<Logger>;
-    let startActivityStub: sinon.SinonStub;
-    let mockRefreshCallback: sinon.SinonStub;
-    let endStub: sinon.SinonStub;
-    let endFailedStub: sinon.SinonStub;
+        let mockLogger: sinon.SinonStubbedInstance<Logger>;
+        let startActivityStub: sinon.SinonStub;
+        let mockRefreshCallback: sinon.SinonStub;
+        let endStub: sinon.SinonStub;
+        let endFailedStub: sinon.SinonStub;
 
-    setup(() => {
-        sandbox = sinon.createSandbox();
-        // Create stubs for dependencies
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        mockVscodeWrapper.showErrorMessage = sandbox
-            .stub<[string, ...string[]], Thenable<string>>()
-            .resolves();
-        mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
-        mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
-        mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
-        mockConnectionManager.client = mockClient;
-        mockConnectionManager.connectionStore = mockConnectionStore;
-        mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
-        sandbox.stub(mockConnectionManager, "connectionUI").get(() => mockConnectionUI);
-        mockAccountStore = sandbox.createStubInstance(AccountStore);
-        sandbox.stub(mockConnectionManager, "accountStore").get(() => mockAccountStore);
-        mockAzureController = sandbox.createStubInstance(AzureController);
-        mockAzureController.isAccountInCache = sandbox.stub();
-        mockAzureController.isSqlAuthProviderEnabled = sandbox.stub();
-        mockAzureController.refreshAccessToken = sandbox.stub();
-        mockAzureController.populateAccountProperties = sandbox.stub();
-        mockConnectionManager.azureController = mockAzureController;
-        mockFirewallService = sandbox.createStubInstance(FirewallService);
-        (mockConnectionManager as any)._firewallService = mockFirewallService;
+        setup(() => {
+            sandbox = sinon.createSandbox();
+            // Create stubs for dependencies
+            mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+            mockVscodeWrapper.showErrorMessage = sandbox
+                .stub<[string, ...string[]], Thenable<string>>()
+                .resolves();
+            mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+            mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+            mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionManager.client = mockClient;
+            mockConnectionManager.connectionStore = mockConnectionStore;
+            mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
+            sandbox.stub(mockConnectionManager, "connectionUI").get(() => mockConnectionUI);
+            mockAccountStore = sandbox.createStubInstance(AccountStore);
+            sandbox.stub(mockConnectionManager, "accountStore").get(() => mockAccountStore);
+            mockAzureController = sandbox.createStubInstance(AzureController);
+            mockAzureController.isAccountInCache = sandbox.stub();
+            mockAzureController.isSqlAuthProviderEnabled = sandbox.stub();
+            mockAzureController.refreshAccessToken = sandbox.stub();
+            mockAzureController.populateAccountProperties = sandbox.stub();
+            mockConnectionManager.azureController = mockAzureController;
+            mockFirewallService = sandbox.createStubInstance(FirewallService);
+            (mockConnectionManager as any)._firewallService = mockFirewallService;
 
-        mockWithProgress = sandbox.stub(vscode.window, "withProgress");
-        mockWithProgress.callsFake((options, task) => {
-            const mockProgress = {
-                report: sandbox.stub(),
-            };
-            const mockToken = {
-                onCancellationRequested: sandbox.stub(),
-            };
+            mockWithProgress = sandbox.stub(vscode.window, "withProgress");
+            mockWithProgress.callsFake((options, task) => {
+                const mockProgress = {
+                    report: sandbox.stub(),
+                };
+                const mockToken = {
+                    onCancellationRequested: sandbox.stub(),
+                };
 
-            return task(mockProgress, mockToken);
+                return task(mockProgress, mockToken);
+            });
+
+            // Mock Telemetry
+            endStub = sandbox.stub();
+            endFailedStub = sandbox.stub();
+            startActivityStub = sandbox.stub(telemetry, "startActivity").returns({
+                end: endStub,
+                endFailed: endFailedStub,
+                correlationId: "",
+                startTime: 0,
+                update: sandbox.stub(),
+            });
+            mockRefreshCallback = sandbox.stub();
+
+            // Mock the Logger.create static method
+            mockLogger = sandbox.createStubInstance(Logger);
+            sandbox.stub(Logger, "create").returns(mockLogger);
+            mockLogger.verbose = sandbox.stub();
+            mockLogger.error = sandbox.stub();
+
+            objectExplorerService = new ObjectExplorerService(
+                mockVscodeWrapper,
+                mockConnectionManager,
+                mockRefreshCallback,
+            );
         });
 
-        // Mock Telemetry
-        endStub = sandbox.stub();
-        endFailedStub = sandbox.stub();
-        startActivityStub = sandbox.stub(telemetry, "startActivity").returns({
-            end: endStub,
-            endFailed: endFailedStub,
-            correlationId: "",
-            startTime: 0,
-            update: sandbox.stub(),
+        teardown(() => {
+            sandbox.restore();
         });
-        mockRefreshCallback = sandbox.stub();
 
-        // Mock the Logger.create static method
-        mockLogger = sandbox.createStubInstance(Logger);
-        sandbox.stub(Logger, "create").returns(mockLogger);
-        mockLogger.verbose = sandbox.stub();
-        mockLogger.error = sandbox.stub();
+        test("getConnectionNodeFromProfile should return the correct node for a given profile", () => {
+            // Create mock connection profiles
+            const mockProfiles: IConnectionProfileWithSource[] = [
+                {
+                    id: "conn1",
+                    server: "server1",
+                    database: "db1",
+                    authenticationType: "Integrated",
+                    user: "",
+                    password: "",
+                    savePassword: false,
+                    groupId: "",
+                } as IConnectionProfileWithSource,
+                {
+                    id: "conn2",
+                    server: "server2",
+                    database: "db1",
+                    authenticationType: "Integrated",
+                    user: "",
+                    password: "",
+                    savePassword: false,
+                    groupId: "",
+                } as IConnectionProfileWithSource,
+            ];
 
-        objectExplorerService = new ObjectExplorerService(
-            mockVscodeWrapper,
-            mockConnectionManager,
-            mockRefreshCallback,
-        );
-    });
+            // Create mock root nodes
+            const mockRootNodes: TreeNodeInfo[] = [
+                new ConnectionNode(mockProfiles[0]),
+                new ConnectionNode(mockProfiles[1]),
+            ];
 
-    teardown(() => {
-        sandbox.restore();
-    });
+            // Set up the root tree node array
+            (objectExplorerService as any)._rootTreeNodeArray = mockRootNodes;
 
-    test("getConnectionNodeFromProfile should return the correct node for a given profile", () => {
-        // Create mock connection profiles
-        const mockProfiles: IConnectionProfileWithSource[] = [
-            {
+            // Call the method with the first profile
+            const result = (objectExplorerService as any).getConnectionNodeFromProfile(
+                mockProfiles[0],
+            );
+
+            // Verify the result
+            expect(result, "Result should be a ConnectionNode").to.be.instanceOf(ConnectionNode);
+            expect(result.connectionProfile, "Connection profile should match").to.deep.equal(
+                mockProfiles[0],
+            );
+
+            // Call the method with a non-existent profile
+            const nonExistentProfile = {
+                id: "conn3",
+                server: "server3",
+                database: "db1",
+                authenticationType: "Integrated",
+                user: "",
+                password: "",
+                savePassword: false,
+                groupId: "",
+            } as IConnectionProfileWithSource;
+            const resultNonExistent = (objectExplorerService as any).getConnectionNodeFromProfile(
+                nonExistentProfile,
+            );
+
+            // Verify the result is undefined
+            expect(resultNonExistent, "Result should be undefined").to.be.undefined;
+        });
+
+        test("closeSession should call closeSession on client, disconnectNode and cleanNodeChildren", async () => {
+            // Create a mock node
+            const mockNode = new ConnectionNode({
                 id: "conn1",
                 server: "server1",
                 database: "db1",
                 authenticationType: "Integrated",
-                user: "",
-                password: "",
-                savePassword: false,
-                groupId: "",
-            } as IConnectionProfileWithSource,
-            {
-                id: "conn2",
-                server: "server2",
-                database: "db1",
-                authenticationType: "Integrated",
-                user: "",
-                password: "",
-                savePassword: false,
-                groupId: "",
-            } as IConnectionProfileWithSource,
-        ];
+            } as IConnectionProfile);
 
-        // Create mock root nodes
-        const mockRootNodes: TreeNodeInfo[] = [
-            new ConnectionNode(mockProfiles[0]),
-            new ConnectionNode(mockProfiles[1]),
-        ];
-
-        // Set up the root tree node array
-        (objectExplorerService as any)._rootTreeNodeArray = mockRootNodes;
-
-        // Call the method with the first profile
-        const result = (objectExplorerService as any).getConnectionNodeFromProfile(mockProfiles[0]);
-
-        // Verify the result
-        expect(result).to.be.instanceOf(ConnectionNode);
-        expect(result.connectionProfile).to.deep.equal(mockProfiles[0]);
-
-        // Call the method with a non-existent profile
-        const nonExistentProfile = {
-            id: "conn3",
-            server: "server3",
-            database: "db1",
-            authenticationType: "Integrated",
-            user: "",
-            password: "",
-            savePassword: false,
-            groupId: "",
-        } as IConnectionProfileWithSource;
-        const resultNonExistent = (objectExplorerService as any).getConnectionNodeFromProfile(
-            nonExistentProfile,
-        );
-
-        // Verify the result is undefined
-        expect(resultNonExistent).to.be.undefined;
-    });
-
-    test("closeSession should call closeSession on client, disconnectNode and cleanNodeChildren", async () => {
-        // Create a mock node
-        const mockNode = new ConnectionNode({
-            id: "conn1",
-            server: "server1",
-            database: "db1",
-            authenticationType: "Integrated",
-        } as IConnectionProfile);
-
-        const nodeChildren = [
-            {
-                id: "child1",
-                connectionProfile: {
+            const nodeChildren = [
+                {
                     id: "child1",
-                    server: "server1",
-                    database: "db1",
-                    authenticationType: "Integrated",
-                },
+                    connectionProfile: {
+                        id: "child1",
+                        server: "server1",
+                        database: "db1",
+                        authenticationType: "Integrated",
+                    },
+                    sessionId: "session1",
+                } as TreeNodeInfo,
+            ];
+
+            mockNode.sessionId = "session1";
+
+            (objectExplorerService as any)._rootTreeNodeArray = [mockNode];
+            (objectExplorerService as any)._treeNodeToChildrenMap = new Map();
+            (objectExplorerService as any)._treeNodeToChildrenMap.set(mockNode, nodeChildren);
+
+            // Set up the mock client to resolve
+            mockClient.sendRequest.resolves({
+                success: true,
                 sessionId: "session1",
-            } as TreeNodeInfo,
-        ];
+            });
 
-        mockNode.sessionId = "session1";
+            // Call the method
+            await objectExplorerService.closeSession(mockNode);
 
-        (objectExplorerService as any)._rootTreeNodeArray = [mockNode];
-        (objectExplorerService as any)._treeNodeToChildrenMap = new Map();
-        (objectExplorerService as any)._treeNodeToChildrenMap.set(mockNode, nodeChildren);
+            // Verify that the client closeSession method was called
+            expect(mockClient.sendRequest.calledOnce, "Client closeSession should be called once")
+                .to.be.true;
+            expect(
+                mockClient.sendRequest.firstCall.args[0],
+                "First argument should be CloseSessionRequest.type",
+            ).to.equal(CloseSessionRequest.type);
+            expect(
+                (mockClient.sendRequest.firstCall.args[1] as ConnectionNode).sessionId,
+                "Session ID should match",
+            ).to.equal("session1");
 
-        // Set up the mock client to resolve
-        mockClient.sendRequest.resolves({
-            success: true,
-            sessionId: "session1",
+            // Verify that disconnectNode was called
+            expect(
+                mockConnectionManager.disconnect.calledOnce,
+                "disconnectNode should be called once",
+            ).to.be.true;
+            expect(
+                mockConnectionManager.disconnect.firstCall.args[0],
+                "Session ID should match",
+            ).to.equal("session1");
+
+            // Verify that node and its children were removed from the map
+            expect(
+                (objectExplorerService as any)._treeNodeToChildrenMap.has(mockNode),
+                "Node should be removed from map",
+            ).to.be.false;
+            expect(
+                (objectExplorerService as any)._treeNodeToChildrenMap.has(nodeChildren[0]),
+                "Child node should be removed from map",
+            ).to.be.false;
+
+            // Root tree node array should still contain the node
+            expect(
+                (objectExplorerService as any)._rootTreeNodeArray,
+                "Root tree node array should still contain the node",
+            ).to.include(mockNode);
         });
 
-        // Call the method
-        await objectExplorerService.closeSession(mockNode);
+        test("createSession should return undefined if prepareConnectionProfile returns undefined", async () => {
+            // Setup prepareConnectionProfile to return undefined (user cancelled)
+            (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
+            (objectExplorerService as any).prepareConnectionProfile.resolves(undefined);
 
-        // Verify that the client closeSession method was called
-        expect(mockClient.sendRequest.calledOnce).to.be.true;
-        expect(mockClient.sendRequest.firstCall.args[0]).to.equal(CloseSessionRequest.type);
-        expect((mockClient.sendRequest.firstCall.args[1] as ConnectionNode).sessionId).to.equal(
-            "session1",
-        );
+            const connectionInfo: IConnectionInfo = {
+                server: "TestServer",
+                database: "TestDB",
+                authenticationType: "SqlLogin",
+                user: "testUser",
+                password: "testPassword",
+            } as IConnectionInfo;
 
-        // Verify that disconnectNode was called
-        expect(mockConnectionManager.disconnect.calledOnce).to.be.true;
-        expect(mockConnectionManager.disconnect.firstCall.args[0]).to.equal("session1");
+            // Call the method
+            const result = await objectExplorerService.createSession(connectionInfo);
 
-        // Verify that node and its children were removed from the map
-        expect((objectExplorerService as any)._treeNodeToChildrenMap.has(mockNode)).to.be.false;
-        expect((objectExplorerService as any)._treeNodeToChildrenMap.has(nodeChildren[0])).to.be
-            .false;
+            // Verify the result is undefined
+            expect(result, "Result should be undefined").to.be.undefined;
 
-        // Root tree node array should still contain the node
-        expect((objectExplorerService as any)._rootTreeNodeArray).to.include(mockNode);
-    });
+            // Verify prepareConnectionProfile was called with the connection info
+            expect(
+                (objectExplorerService as any).prepareConnectionProfile.calledOnce,
+                "prepareConnectionProfile should be called once",
+            ).to.be.true;
+            expect(
+                (objectExplorerService as any).prepareConnectionProfile.args[0][0],
+                "Connection info should match",
+            ).to.equal(connectionInfo);
 
-    test("createSession should return undefined if prepareConnectionProfile returns undefined", async () => {
-        // Setup prepareConnectionProfile to return undefined (user cancelled)
-        (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
-        (objectExplorerService as any).prepareConnectionProfile.resolves(undefined);
-
-        const connectionInfo: IConnectionInfo = {
-            server: "TestServer",
-            database: "TestDB",
-            authenticationType: "SqlLogin",
-            user: "testUser",
-            password: "testPassword",
-        } as IConnectionInfo;
-
-        // Call the method
-        const result = await objectExplorerService.createSession(connectionInfo);
-
-        // Verify the result is undefined
-        expect(result).to.be.undefined;
-
-        // Verify prepareConnectionProfile was called with the connection info
-        expect((objectExplorerService as any).prepareConnectionProfile.calledOnce).to.be.true;
-        expect((objectExplorerService as any).prepareConnectionProfile.args[0][0]).to.equal(
-            connectionInfo,
-        );
-
-        // Verify telemetry was started
-        expect(startActivityStub.calledOnce).to.be.true;
-        expect(startActivityStub.args[0][0]).to.equal(TelemetryViews.ObjectExplorer);
-        expect(startActivityStub.args[0][1]).to.equal(TelemetryActions.CreateSession);
-        expect(startActivityStub.args[0][3].connectionType).to.equal("SqlLogin");
+            // Verify telemetry was started
+            expect(startActivityStub.calledOnce, "Telemetry should be started once").to.be.true;
+            expect(
+                startActivityStub.args[0][0],
+                "First argument should be TelemetryViews.ObjectExplorer",
+            ).to.equal(TelemetryViews.ObjectExplorer);
+            expect(
+                startActivityStub.args[0][1],
+                "Second argument should be TelemetryActions.CreateSession",
+            ).to.equal(TelemetryActions.CreateSession);
+            expect(
+                startActivityStub.args[0][3].connectionType,
+                "Connection type should be SqlLogin",
+            ).to.equal("SqlLogin");
+        });
     });
 });
 
