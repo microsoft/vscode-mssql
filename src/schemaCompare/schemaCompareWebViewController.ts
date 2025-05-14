@@ -42,6 +42,7 @@ import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
+import { cmdAddObjectExplorer } from "../constants/constants";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -338,7 +339,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("openAddNewConnectionDialog", (state) => {
-            vscode.commands.executeCommand("mssql.addObjectExplorer");
+            vscode.commands.executeCommand(cmdAddObjectExplorer);
 
             return state;
         });
