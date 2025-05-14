@@ -338,7 +338,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("openAddNewConnectionDialog", (state) => {
-            vscode.commands.executeCommand("mssql.addObjectExplorerPreview");
+            vscode.commands.executeCommand("mssql.addObjectExplorer");
 
             return state;
         });
