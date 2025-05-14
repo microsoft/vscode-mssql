@@ -389,43 +389,110 @@ export const createSqlAgentRequestHandler = (
         context: vscode.ChatContext,
         referenceTexts: string[],
     ): vscode.LanguageModelChatMessage[] {
-        // Separate system messages from the requestMessages
-        const systemMessages = result.requestMessages
-            .filter((message: LanguageModelRequestMessage) => message.role === MessageRole.System)
+        // Get all messages from requestMessages
+        const requestMessages = result.requestMessages;
+
+        // Find the index of the first non-system message
+        const firstNonSystemIndex = requestMessages.findIndex(
+            (message: LanguageModelRequestMessage) => message.role !== MessageRole.System,
+        );
+
+        // Extract initial system messages (ones that appear before any user message)
+        const initialSystemMessages = requestMessages
+            .slice(0, firstNonSystemIndex === -1 ? requestMessages.length : firstNonSystemIndex)
             .map((message: LanguageModelRequestMessage) =>
                 vscode.LanguageModelChatMessage.Assistant(message.text),
             );
 
+        // Convert history messages with optional prefix marker
+        const historyPrefix = "[HISTORY] "; // Can be empty string if no marker is desired
         const historyMessages = context.history
             .map((historyItem) => {
                 if ("prompt" in historyItem) {
-                    return vscode.LanguageModelChatMessage.User(historyItem.prompt);
-                } else {
+                    // Handle user messages - simple text
+                    return vscode.LanguageModelChatMessage.User(historyPrefix + historyItem.prompt);
+                } else if ("response" in historyItem && Array.isArray(historyItem.response)) {
+                    // Extract content from assistant responses
                     const responseContent = historyItem.response
-                        .map((part) => ("content" in part ? part.content : ""))
+                        .filter((part) => part !== null && part !== undefined)
+                        .map((part) => {
+                            // Handle the specific nested object structure with part.value.value
+                            if (
+                                part &&
+                                typeof part.value === "object" &&
+                                part.value !== null &&
+                                typeof part.value.value === "string"
+                            ) {
+                                return part.value.value;
+                            }
+
+                            // Try accessing through value() function
+                            if (part && typeof part.value === "function") {
+                                try {
+                                    const fnResult = part.value();
+                                    // Additional check - if function returns an object with value property
+                                    if (
+                                        typeof fnResult === "object" &&
+                                        fnResult &&
+                                        typeof fnResult.value === "string"
+                                    ) {
+                                        return fnResult.value;
+                                    }
+                                    return typeof fnResult === "string" ? fnResult : "";
+                                } catch (e) {
+                                    console.error("Error accessing response value:", e);
+                                    return "";
+                                }
+                            }
+
+                            // Fallback to content property if present
+                            if (part && typeof part.content === "string") {
+                                return part.content;
+                            }
+
+                            return "";
+                        })
                         .join("");
+
                     return responseContent.trim()
-                        ? vscode.LanguageModelChatMessage.Assistant(responseContent)
+                        ? vscode.LanguageModelChatMessage.Assistant(historyPrefix + responseContent)
                         : undefined;
                 }
+                return undefined;
             })
             .filter((msg): msg is vscode.LanguageModelChatMessage => msg !== undefined);
 
-        // Include the reference messages
-        // TODO: should we cut off the reference message or send a warning if it is too long? (especially without selection)
+        // Include reference messages with optional marker
+        const referencePrefix = "[REFERENCE] "; // Can be empty string if no marker is desired
         const referenceMessages = referenceTexts
-            ? referenceTexts.map((text) => vscode.LanguageModelChatMessage.Assistant(text))
+            ? referenceTexts.map((text) =>
+                  vscode.LanguageModelChatMessage.Assistant(referencePrefix + text),
+              )
             : [];
 
-        //Get the new user messages (non-system messages from requestMessages)
-        const userMessages = result.requestMessages
-            .filter((message: LanguageModelRequestMessage) => message.role !== MessageRole.System)
-            .map((message: LanguageModelRequestMessage) =>
-                vscode.LanguageModelChatMessage.User(message.text),
-            );
+        // If there are no non-system messages
+        if (firstNonSystemIndex === -1) {
+            return [...initialSystemMessages, ...historyMessages, ...referenceMessages];
+        }
 
-        // Combine messages in appropriate order
-        return [...systemMessages, ...historyMessages, ...referenceMessages, ...userMessages];
+        // Process the remaining messages, preserving their original order
+        const remainingMessages = requestMessages
+            .slice(firstNonSystemIndex)
+            .map((message: LanguageModelRequestMessage) => {
+                if (message.role === MessageRole.System) {
+                    return vscode.LanguageModelChatMessage.Assistant(message.text);
+                } else {
+                    return vscode.LanguageModelChatMessage.User(message.text);
+                }
+            });
+
+        // Combine messages in the desired order
+        return [
+            ...initialSystemMessages,
+            ...historyMessages,
+            ...referenceMessages,
+            ...remainingMessages,
+        ];
     }
 
     function mapRequestTools(tools: LanguageModelChatTool[]): vscode.LanguageModelChatTool[] {
@@ -508,7 +575,11 @@ export const createSqlAgentRequestHandler = (
             result.tools,
             correlationId,
         );
-
+        if (replyText) {
+            stream.markdown(replyText);
+        } else {
+            stream.markdown("The language model did not return any output.");
+        }
         return {
             text: replyText,
             tools: toolsCalled,
