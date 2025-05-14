@@ -37,6 +37,7 @@ export async function saveExecutionPlan(
     if (saveUri) {
         // Write the content to the new file
         void vscode.workspace.fs.writeFile(saveUri, Buffer.from(payload.sqlPlanContent));
+        sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.SavePlan);
     }
 
     return state;
@@ -92,7 +93,10 @@ export async function createExecutionPlanGraphs(
     let newState = {
         ...state.executionPlanState,
     };
+
+    let erroredPlanCount = 0;
     const startTime = performance.now(); // timer for telemetry
+
     for (const plan of xmlPlans) {
         const planFile: ExecutionPlanGraphInfo = {
             graphFileContent: plan,
@@ -105,6 +109,7 @@ export async function createExecutionPlanGraphs(
             newState.loadState = ApiStatus.Loaded;
         } catch (e) {
             // malformed xml
+            erroredPlanCount++;
             newState.loadState = ApiStatus.Error;
             newState.errorMessage = getErrorMessage(e);
         }
@@ -118,6 +123,7 @@ export async function createExecutionPlanGraphs(
         },
         {
             numberOfPlans: state.executionPlanState.executionPlanGraphs.length,
+            erroredPlanCount: erroredPlanCount,
             loadTimeInMs: performance.now() - startTime,
         },
     );
