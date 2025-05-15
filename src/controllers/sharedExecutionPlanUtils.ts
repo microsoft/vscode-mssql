@@ -16,7 +16,7 @@ import * as vscode from "vscode";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { sqlPlanLanguageId } from "../constants/constants";
 import { executionPlanFileFilter } from "../constants/locConstants";
 
@@ -94,7 +94,6 @@ export async function createExecutionPlanGraphs(
         ...state.executionPlanState,
     };
 
-    let erroredPlanCount = 0;
     const startTime = performance.now(); // timer for telemetry
 
     for (const plan of xmlPlans) {
@@ -108,10 +107,18 @@ export async function createExecutionPlanGraphs(
             );
             newState.loadState = ApiStatus.Loaded;
         } catch (e) {
-            // malformed xml
-            erroredPlanCount++;
+            // Errors out on first instance of malformed xml
             newState.loadState = ApiStatus.Error;
             newState.errorMessage = getErrorMessage(e);
+            state.executionPlanState = newState;
+
+            sendErrorEvent(
+                TelemetryViews.ExecutionPlan,
+                TelemetryActions.OpenExecutionPlan,
+                e,
+                true, // includeErrorMessage
+            );
+            return state;
         }
     }
 
@@ -123,7 +130,6 @@ export async function createExecutionPlanGraphs(
         },
         {
             numberOfPlans: state.executionPlanState.executionPlanGraphs.length,
-            erroredPlanCount: erroredPlanCount,
             loadTimeInMs: performance.now() - startTime,
         },
     );
