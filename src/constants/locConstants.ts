@@ -929,6 +929,7 @@ export class Connection {
 export class MssqlChatAgent {
     public static noModelFound = l10n.t("No model found.");
     public static noToolsToProcess = l10n.t("No tools to process.");
+    public static notConnected = l10n.t("You are not connected to any database.");
     public static usingModel = (modelName: string, canSendRequest: boolean | undefined) => {
         return l10n.t({
             message: "Using {0} ({1})...",
