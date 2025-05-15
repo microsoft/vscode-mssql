@@ -2678,6 +2678,10 @@ Error:
         <source xml:lang="en">Yes</source>
         <target state="translated">Ja</target>
       </trans-unit>
+      <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
+        <source xml:lang="en">You are not connected to any database.</source>
+        <target state="new">You are not connected to any database.</target>
+      </trans-unit>
       <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
         <source xml:lang="en">You must review and accept the terms to proceed</source>
         <target state="translated">Sie müssen die Bedingungen überprüfen und akzeptieren, um fortzufahren.</target>
