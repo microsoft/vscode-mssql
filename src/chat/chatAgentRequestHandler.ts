@@ -235,6 +235,7 @@ export const createSqlAgentRequestHandler = (
                     correlationId: correlationId,
                     message: "No connection URI found. Sending prompt to default language model.",
                 });
+                stream.markdown("⚠️ " + loc.notConnected);
                 await sendToDefaultLanguageModel(
                     prompt,
                     model,
