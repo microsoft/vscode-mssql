@@ -288,6 +288,7 @@ export const createSqlAgentRequestHandler = (
 
                 // Process tool calls and get the result
                 const result = await processToolCalls(
+                    stream,
                     sqlTools,
                     conversationUri,
                     replyText,
@@ -363,7 +364,15 @@ export const createSqlAgentRequestHandler = (
         return { metadata: { command: "", correlationId: correlationId } };
     };
 
+    async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+        const timeout = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Operation timed out")), ms),
+        );
+        return Promise.race([promise, timeout]);
+    }
+
     async function processToolCalls(
+        stream: vscode.ChatResponseStream,
         sqlTools: { tool: LanguageModelChatTool; parameters: string }[],
         conversationUri: string,
         replyText: string,
@@ -387,19 +396,53 @@ export const createSqlAgentRequestHandler = (
 
         let result: GetNextMessageResponse;
         for (const toolCall of sqlTools) {
-            result = await copilotService.getNextMessage(
-                conversationUri,
-                replyText,
-                toolCall.tool,
-                toolCall.parameters,
-            );
+            try {
+                result = await withTimeout(
+                    copilotService.getNextMessage(
+                        conversationUri,
+                        replyText,
+                        toolCall.tool,
+                        toolCall.parameters,
+                    ),
+                    60000, // timeout in milliseconds
+                );
 
-            if (result.messageType === MessageType.Complete) {
-                break;
+                if (result.messageType === MessageType.Complete) {
+                    break;
+                }
+            } catch (error) {
+                console.error(`Tool call failed or timed out:`, error);
+
+                // Log telemetry for the unhandled error
+                sendErrorEvent(
+                    TelemetryViews.MssqlCopilot,
+                    TelemetryActions.Error,
+                    error instanceof Error ? error : new Error("Unknown tool call error"),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        correlationId: correlationId,
+                        toolName: toolCall?.tool?.functionName || "Unknown",
+                    },
+                );
+
+                // Gracefully warn the user in markdown
+                stream.markdown(
+                    "⚠️ This message couldn't be processed. If this issue persists, please check the logs and [open an issue](https://aka.ms/vscode-mssql-copilot-feedback) on GitHub for this Preview release.",
+                );
+
+                result = undefined;
+
+                break; // Exit the loop if a tool call fails or times out
             }
         }
 
-        return result!;
+        if (!result) {
+            throw new Error("All tool calls failed or timed out.");
+        }
+
+        return result;
     }
 
     function prepareRequestMessages(

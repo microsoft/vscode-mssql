@@ -88,6 +88,7 @@ export enum TelemetryActions {
     AnalyzeQueryPerformance = "AnalyzeQueryPerformance",
     Error = "Error",
     ToolCall = "ToolCall",
+    ToolCallFailure = "ToolCallFailure",
     Feedback = "Feedback",
     ChatWithDatabase = "ChatWithDatabase",
     StartConversation = "StartConversation",
