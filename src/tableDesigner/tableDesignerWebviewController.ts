@@ -11,7 +11,7 @@ import * as designer from "../sharedInterfaces/tableDesigner";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { copied, scriptCopiedToClipboard } from "../constants/locConstants";
 import { UserSurvey } from "../nps/userSurvey";
@@ -73,7 +73,18 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
 
     private async initialize() {
         if (!this._targetNode) {
-            await vscode.window.showErrorMessage("Unable to find object explorer node");
+            const errorMessage = "Unable to find object explorer node";
+            await vscode.window.showErrorMessage(errorMessage);
+
+            sendErrorEvent(
+                TelemetryViews.TableDesigner,
+                TelemetryActions.Initialize,
+                new Error(errorMessage),
+                true, //includeErrorMessage
+                undefined, // errorCode
+                "unableToFindObjectExplorerNode",
+            );
+
             return;
         }
 
@@ -103,12 +114,32 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             );
 
             if (!connectionString || connectionString === "") {
-                await vscode.window.showErrorMessage(
-                    "Unable to find connection string for the connection",
+                const errorMessage = "Unable to find connection string for the connection";
+
+                await vscode.window.showErrorMessage(errorMessage);
+
+                sendErrorEvent(
+                    TelemetryViews.TableDesigner,
+                    TelemetryActions.Initialize,
+                    new Error(errorMessage),
+                    true, //includeErrorMessage
+                    undefined, // errorCode
+                    "unableToFindConnectionString",
                 );
+
                 return;
             }
         } catch (e) {
+            const error = e instanceof Error ? e : new Error(getErrorMessage(e));
+
+            sendErrorEvent(
+                TelemetryViews.TableDesigner,
+                TelemetryActions.Initialize,
+                error,
+                false, //includeErrorMessage
+                undefined, // errorCode
+                "unableToFindConnectionString",
+            );
             await vscode.window.showErrorMessage(
                 "Unable to find connection string for the connection: " + getErrorMessage(e),
             );
@@ -240,7 +271,15 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
 
                 return afterEditState;
             } catch (e) {
-                vscode.window.showErrorMessage(e.message);
+                const error = e instanceof Error ? e : new Error(getErrorMessage(e));
+
+                sendErrorEvent(
+                    TelemetryViews.TableDesigner,
+                    TelemetryActions.Edit,
+                    error,
+                    false, //includeErrorMessage
+                );
+                vscode.window.showErrorMessage(getErrorMessage(e));
                 return state;
             }
         });

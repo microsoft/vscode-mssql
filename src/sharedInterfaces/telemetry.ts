@@ -92,6 +92,8 @@ export enum TelemetryActions {
     Feedback = "Feedback",
     ChatWithDatabase = "ChatWithDatabase",
     StartConversation = "StartConversation",
+    GetQueryResultState = "GetQueryResultState",
+    SavePlan = "SavePlan",
 }
 
 /**
