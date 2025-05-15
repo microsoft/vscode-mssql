@@ -2359,6 +2359,8 @@ export default class MainController implements vscode.Disposable {
             );
 
             executionPlanController.revealToForeground();
+
+            sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.Open);
         }
     };
 }
