@@ -9,7 +9,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { ReactWebviewViewController } from "../controllers/reactWebviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { randomUUID } from "crypto";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -331,7 +331,17 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         var res = this._queryResultStateMap.get(uri);
         if (!res) {
             // This should never happen
-            throw new Error(`No query result state found for uri ${uri}`);
+
+            const error = new Error(`No query result state found for uri ${uri}`);
+
+            sendErrorEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.GetQueryResultState,
+                error,
+                false, // includeErrorMessage
+            );
+
+            throw error;
         }
         return res;
     }
