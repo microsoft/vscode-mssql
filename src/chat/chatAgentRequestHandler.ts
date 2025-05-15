@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as Utils from "../models/utils";
 import { CopilotService } from "../services/copilotService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import * as Constants from "../constants/constants";
 import {
     GetNextMessageResponse,
@@ -23,6 +23,7 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
+import { MssqlChatAgent as loc } from "../constants/locConstants";
 
 export interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -212,7 +213,7 @@ export const createSqlAgentRequestHandler = (
                 activity.endFailed(new Error("No chat model found."), true, undefined, undefined, {
                     correlationId: correlationId,
                 });
-                stream.markdown("No model found.");
+                stream.markdown(loc.noModelFound);
                 return { metadata: { command: "", correlationId: correlationId } };
             }
 
@@ -222,7 +223,10 @@ export const createSqlAgentRequestHandler = (
                 .get(Constants.copilotDebugLogging, false);
             if (copilotDebugLogging) {
                 stream.progress(
-                    `Using ${model.name} (${context.languageModelAccessInformation.canSendRequest(model)})...`,
+                    loc.usingModel(
+                        model.name,
+                        context.languageModelAccessInformation.canSendRequest(model),
+                    ),
                 );
             }
 
@@ -287,6 +291,7 @@ export const createSqlAgentRequestHandler = (
                     conversationUri,
                     replyText,
                     copilotService,
+                    correlationId,
                 );
 
                 // Reset for the next iteration
@@ -362,9 +367,21 @@ export const createSqlAgentRequestHandler = (
         conversationUri: string,
         replyText: string,
         copilotService: CopilotService,
+        correlationId: string,
     ): Promise<GetNextMessageResponse> {
         if (sqlTools.length === 0) {
-            throw new Error("No tools to process.");
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error("No tools to process."),
+                true,
+                undefined,
+                undefined,
+                { correlationId: correlationId },
+            );
+
+            console.error("No tools to process.");
+            throw new Error(loc.noToolsToProcess);
         }
 
         let result: GetNextMessageResponse;
@@ -605,7 +622,7 @@ export const createSqlAgentRequestHandler = (
         const tool = resultTools.find((tool) => tool.functionName === part.name);
         if (!tool) {
             if (copilotDebugLogging) {
-                stream.markdown(`Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}.`);
+                stream.markdown(loc.toolLookupFor(part.name, JSON.stringify(part.input)));
             }
             return { sqlTool, sqlToolParameters };
         }
@@ -616,14 +633,31 @@ export const createSqlAgentRequestHandler = (
         try {
             sqlToolParameters = JSON.stringify(part.input);
         } catch (err) {
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error(
+                    `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
+                ),
+                false,
+                undefined,
+                undefined,
+                {
+                    correlationId: correlationId,
+                },
+            );
+
+            console.error(
+                `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
+            );
             throw new Error(
-                `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${(err as Error).message})`,
+                loc.gotInvalidToolUseParameters(JSON.stringify(part.input), getErrorMessage(err)),
             );
         }
 
         // Log tool call
         if (copilotDebugLogging) {
-            stream.progress(`Calling tool: ${tool.functionName} with ${sqlToolParameters}`);
+            stream.progress(loc.callingTool(tool.functionName, sqlToolParameters));
         }
 
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ToolCall, {
@@ -643,26 +677,25 @@ export const createSqlAgentRequestHandler = (
         console.error("Language Model Error:", err.message, "Code:", err.code);
 
         const errorMessages: Record<string, string> = {
-            model_not_found:
-                "The requested model could not be found. Please check model availability or try a different model.",
-            no_permission:
-                "Access denied. Please ensure you have the necessary permissions to use this tool or model.",
-            quote_limit_exceeded:
-                "Usage limits exceeded. Try again later, or consider optimizing your requests.",
-            off_topic: "I'm sorry, I can only assist with SQL-related questions.",
+            model_not_found: loc.modelNotFoundError,
+            no_permission: loc.noPermissionError,
+            quote_limit_exceeded: loc.quoteLimitExceededError,
+            off_topic: loc.offTopicError,
         };
 
-        const errorMessage =
-            errorMessages[err.code] ||
-            "An unexpected error occurred with the language model. Please try again.";
+        const errorMessage = errorMessages[err.code] || loc.unexpectedError;
 
-        sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
-            errorCode: err.code || "Unknown",
-            errorName: err.name || "Unknown",
-            errorMessage: errorMessage,
-            originalErrorMessage: err.message || "",
-            correlationId: correlationId,
-        });
+        sendErrorEvent(
+            TelemetryViews.MssqlCopilot,
+            TelemetryActions.Error,
+            new Error(getErrorMessage(err)),
+            false,
+            err.code || "Unknown",
+            err.name || "Unknown",
+            {
+                correlationId: correlationId,
+            },
+        );
 
         stream.markdown(errorMessage);
     }
@@ -676,7 +709,7 @@ export const createSqlAgentRequestHandler = (
         correlationId: string,
     ): Promise<void> {
         try {
-            stream.progress(`Using ${model.name} to process your request...`);
+            stream.progress(loc.usingModelToProcessRequest(model.name));
 
             const messages = [vscode.LanguageModelChatMessage.User(prompt.trim())];
             const options: vscode.LanguageModelChatRequestOptions = {
@@ -704,21 +737,15 @@ export const createSqlAgentRequestHandler = (
                     correlationId: correlationId,
                     message: "The default language model did not return any output.",
                 });
-                stream.markdown("The language model did not return any output.");
+                stream.markdown(loc.languageModelDidNotReturnAnyOutput);
             }
         } catch (err) {
-            activity.endFailed(
-                new Error("Fallback to default language model call failed."),
-                true,
-                undefined,
-                undefined,
-                {
-                    correlationId: correlationId,
-                    errorMessage: getErrorMessage(err),
-                },
-            );
+            activity.endFailed(new Error(getErrorMessage(err)), false, undefined, undefined, {
+                correlationId: correlationId,
+                errorMessage: "Fallback to default language model call failed.",
+            });
             console.error("Error in fallback language model call:", err);
-            stream.markdown("An error occurred while processing your request.");
+            stream.markdown(loc.errorOccurredWhileProcessingRequest);
         }
     }
 
@@ -730,14 +757,40 @@ export const createSqlAgentRequestHandler = (
         if (err instanceof vscode.LanguageModelError) {
             handleLanguageModelError(err, stream, correlationId);
         } else if (err instanceof Error) {
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error(`An error occurred with: ${getErrorMessage(err)}`),
+                false,
+                undefined,
+                undefined,
+                {
+                    correlationId: correlationId,
+                },
+            );
+
             console.error("Unhandled Error:", {
                 message: err.message,
                 stack: err.stack,
             });
-            stream.markdown("An error occurred: " + err.message);
+
+            stream.markdown(loc.errorOccurredWith(err.message));
         } else {
-            console.error("Unknown Error Type:", err);
-            stream.markdown("An unknown error occurred. Please try again.");
+            console.error("Unknown Error Type:", getErrorMessage(err));
+
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error(`Unknown Error Type: ${getErrorMessage(err)}`),
+                false,
+                undefined,
+                undefined,
+                {
+                    correlationId: correlationId,
+                },
+            );
+
+            stream.markdown(loc.unknownErrorOccurred);
         }
     }
 
