@@ -363,7 +363,7 @@ suite("Execution Plan Utilities", () => {
 
         sinon.assert.calledOnceWithExactly(getExecutionPlanStub, planFile);
 
-        assert.notEqual(result, undefined, "The resulting state should be defined");
+        assert.notDeepEqual(result, undefined, "The resulting state should be defined");
         assert.deepStrictEqual(
             result.executionPlanState.loadState,
             ApiStatus.Error,
