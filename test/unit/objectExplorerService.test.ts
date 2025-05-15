@@ -50,6 +50,7 @@ import {
     GetSessionIdRequest,
     GetSessionIdResponse,
 } from "../../src/models/contracts/objectExplorer/getSessionIdRequest";
+import { generateUUID } from "../e2e/baseFixtures";
 
 suite("OE Service Tests", () => {
     suite("getSavedConnectionNodes", () => {
@@ -162,7 +163,6 @@ suite("OE Service Tests", () => {
                     database: "db2",
                     authenticationType: "SqlLogin",
                     user: "user2",
-                    password: "pwd2",
                     savePassword: true,
                     groupId: "",
                 } as IConnectionProfileWithSource,
@@ -172,7 +172,6 @@ suite("OE Service Tests", () => {
                     database: "db2",
                     authenticationType: "SqlLogin",
                     user: "user2",
-                    password: "pwd2",
                     savePassword: true,
                     groupId: "",
                 } as IConnectionProfileWithSource,
@@ -1022,7 +1021,7 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             // Setup connection store to return a saved password
-            const savedPassword = "savedPassword123";
+            const savedPassword = generateUUID(); //random password
             mockConnectionStore.lookupPassword.resolves(savedPassword);
 
             // Call the method with the mock profile
@@ -1072,7 +1071,7 @@ suite("OE Service Tests", () => {
             mockConnectionStore.lookupPassword.resolves(undefined);
 
             // Setup connection UI to return a password when prompted
-            const promptedPassword = "promptedPassword123";
+            const promptedPassword = generateUUID();
             mockConnectionUI.promptForPassword.resolves(promptedPassword);
 
             // Call the method with the mock profile
