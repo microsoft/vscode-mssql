@@ -2711,6 +2711,11 @@ Error:
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">updatingIntelliSense</target>
       </trans-unit>
+      <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
+        <source xml:lang="en">{0} (Preview)</source>
+        <note>{0} is the database name</note>
+        <target state="new">{0} (Preview)</target>
+      </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (filtré)</target>
