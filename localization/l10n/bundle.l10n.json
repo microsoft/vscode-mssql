@@ -1216,6 +1216,7 @@
   },
   "No model found.": "No model found.",
   "No tools to process.": "No tools to process.",
+  "You are not connected to any database.": "You are not connected to any database.",
   "Using {0} ({1}).../{0} is the model name{1} is whether the model can send requests": {
     "message": "Using {0} ({1})...",
     "comment": [
