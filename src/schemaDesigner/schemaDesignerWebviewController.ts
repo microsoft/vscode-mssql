@@ -37,7 +37,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             "schemaDesigner",
             {},
             {
-                title: databaseName,
+                title: LocConstants.SchemaDesigner.tabTitle(databaseName),
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
