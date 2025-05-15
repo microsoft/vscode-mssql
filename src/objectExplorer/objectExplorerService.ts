@@ -234,6 +234,7 @@ export class ObjectExplorerService {
                     `Expand node response: ${JSON.stringify(result)} for sessionId ${sessionId}`,
                 );
                 if (!result) {
+                    promise.resolve(undefined);
                     return undefined;
                 }
 
@@ -261,7 +262,7 @@ export class ObjectExplorerService {
                         this._logger.error(
                             `Expand node failed: ${result.errorMessage} for sessionId ${sessionId}`,
                         );
-                        this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
+                        this._vscodeWrapper.showErrorMessage(result.errorMessage);
                     }
                     const errorNode = new ExpandErrorNode(node, result.errorMessage);
                     this._treeNodeToChildrenMap.set(node, [errorNode]);
@@ -273,9 +274,7 @@ export class ObjectExplorerService {
                 this._logger.error(
                     `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
                 );
-                await this._connectionManager.vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.msgUnableToExpand,
-                );
+                await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
                 promise.resolve(undefined);
                 return undefined;
             }
@@ -288,13 +287,13 @@ export class ObjectExplorerService {
      * Clean all children of the node
      * @param node Node to cleanup
      */
-    private cleanNodeChildren(node: vscode.TreeItem): void {
+    public cleanNodeChildren(node: vscode.TreeItem): void {
         if (this._treeNodeToChildrenMap.has(node)) {
             let stack = this._treeNodeToChildrenMap.get(node);
             while (stack.length > 0) {
                 let child = stack.pop();
                 if (this._treeNodeToChildrenMap.has(child)) {
-                    stack.concat(this._treeNodeToChildrenMap.get(child));
+                    stack.push(...this._treeNodeToChildrenMap.get(child));
                 }
                 this._treeNodeToChildrenMap.delete(child);
             }
@@ -856,7 +855,7 @@ export class ObjectExplorerService {
             return tokenAdded;
         } else {
             this._logger.error("Session creation failed: " + error);
-            this._connectionManager.vscodeWrapper.showErrorMessage(error);
+            this._vscodeWrapper.showErrorMessage(error);
         }
         return false;
     }
@@ -881,27 +880,26 @@ export class ObjectExplorerService {
                 providerSettings.resources.databaseResource,
             );
             if (!azureAccountToken) {
-                this._client.logger.verbose(
-                    "Access token could not be refreshed for connection profile.",
-                );
+                this._logger.verbose("Access token could not be refreshed for connection profile.");
                 let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-                await this._connectionManager.vscodeWrapper
-                    .showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel)
-                    .then(async (result) => {
-                        if (result === LocalizedConstants.refreshTokenLabel) {
-                            let updatedProfile = await azureController.populateAccountProperties(
-                                profile,
-                                this._connectionManager.accountStore,
-                                providerSettings.resources.databaseResource,
-                            );
-                            connectionCredentials.azureAccountToken =
-                                updatedProfile.azureAccountToken;
-                            connectionCredentials.expiresOn = updatedProfile.expiresOn;
-                        } else {
-                            this._client.logger.error("Credentials not refreshed by user.");
-                            return undefined;
-                        }
-                    });
+
+                const response = await this._vscodeWrapper.showErrorMessage(
+                    errorMessage,
+                    LocalizedConstants.refreshTokenLabel,
+                );
+
+                if (response === LocalizedConstants.refreshTokenLabel) {
+                    let updatedProfile = await azureController.populateAccountProperties(
+                        profile,
+                        this._connectionManager.accountStore,
+                        providerSettings.resources.databaseResource,
+                    );
+                    connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
+                    connectionCredentials.expiresOn = updatedProfile.expiresOn;
+                } else {
+                    this._logger.error("Credentials not refreshed by user.");
+                    return undefined;
+                }
             } else {
                 connectionCredentials.azureAccountToken = azureAccountToken.token;
                 connectionCredentials.expiresOn = azureAccountToken.expiresOn;
@@ -917,15 +915,15 @@ export class ObjectExplorerService {
                 },
                 async (progress, token) => {
                     token.onCancellationRequested(() => {
-                        this._client.logger.verbose("Azure sign in cancelled by user.");
+                        this._logger.verbose("Azure sign in cancelled by user.");
                         resolve(false);
                     });
                     try {
                         await refreshTask();
                         resolve(true);
                     } catch (error) {
-                        this._client.logger.error("Error refreshing account: " + error);
-                        this._connectionManager.vscodeWrapper.showErrorMessage(error.message);
+                        this._logger.error("Error refreshing account: " + error);
+                        this._vscodeWrapper.showErrorMessage(error.message);
                         resolve(false);
                     }
                 },
@@ -1044,7 +1042,7 @@ export class ObjectExplorerService {
 
         if (response && response.success) {
             if (response.sessionId !== node.sessionId) {
-                this._client.logger.error("Session ID mismatch in closeSession() response");
+                this._logger.error("Session ID mismatch in closeSession() response");
             }
 
             const nodeUri = this.getNodeIdentifier(node);
@@ -1065,7 +1063,7 @@ export class ObjectExplorerService {
         if (node.sessionId) {
             return node.sessionId;
         } else {
-            this._client.logger.error("Node does not have a session ID");
+            this._logger.error("Node does not have a session ID");
             return ObjectExplorerUtils.getNodeUri(node); // TODO: can this removed entirely?  ideally, every node has a session ID associated with it
         }
     }
@@ -1081,16 +1079,6 @@ export class ObjectExplorerService {
         return this._rootTreeNodeArray.find((node) =>
             Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
         ) as ConnectionNode;
-    }
-
-    /**
-     * Deletes the children of a node from the tree node to children map.
-     * @param node The node to delete the children for
-     */
-    public deleteChildren(node: TreeNodeInfo): void {
-        if (this._treeNodeToChildrenMap.has(node)) {
-            this._treeNodeToChildrenMap.delete(node);
-        }
     }
 
     public get rootNodeConnections(): IConnectionInfo[] {
