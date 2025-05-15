@@ -30,9 +30,9 @@
     "keywords": [
         "SQL",
         "MSSQL",
-        "SQL Server",
-        "Azure SQL Database",
         "SQL database in Fabric",
+        "Azure SQL Database",
+        "SQL Server",
         "multi-root ready"
     ],
     "activationEvents": [

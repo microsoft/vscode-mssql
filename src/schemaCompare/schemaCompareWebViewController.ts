@@ -1016,6 +1016,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             },
         );
 
+        if (payload.sourceEndpointInfo.endpointType === mssql.SchemaCompareEndpointType.Project) {
+            payload.sourceEndpointInfo.targetScripts = await this.getProjectScriptFiles(
+                payload.sourceEndpointInfo.projectFilePath,
+            );
+        }
+        if (payload.targetEndpointInfo.endpointType === mssql.SchemaCompareEndpointType.Project) {
+            payload.targetEndpointInfo.targetScripts = await this.getProjectScriptFiles(
+                payload.targetEndpointInfo.projectFilePath,
+            );
+        }
+
         const result = await compare(
             this.operationId,
             TaskExecutionMode.execute,
