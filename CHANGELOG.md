@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 1.32.0
+* Release date: May 19, 2025
+* Release status: GA
+### What’s new in 1.32.0
+* Introduced GitHub Copilot integration
+
 ## Version 1.31.1
 * Release date: May 2, 2025
 * Release status: GA
