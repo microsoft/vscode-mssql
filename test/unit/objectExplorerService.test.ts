@@ -120,7 +120,7 @@ suite("OE Service Tests", () => {
                     database: "db2",
                     authenticationType: "SqlLogin",
                     user: "user2",
-                    password: "pwd2",
+                    password: "",
                     savePassword: true,
                     groupId: "",
                 } as IConnectionProfileWithSource,
@@ -867,7 +867,7 @@ suite("OE Service Tests", () => {
                 database: "testDB",
                 authenticationType: "SqlLogin",
                 user: "testUser",
-                password: "testPassword",
+                password: generateUUID(),
                 savePassword: true,
             } as IConnectionProfile;
 
@@ -925,7 +925,7 @@ suite("OE Service Tests", () => {
                 database: "testDB",
                 authenticationType: "SqlLogin",
                 user: "testUser",
-                password: "testPassword",
+                password: generateUUID(),
                 savePassword: true,
             } as IConnectionProfile;
 
@@ -953,8 +953,7 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             // Setup connection store to return a connection string with password
-            const expectedConnectionString =
-                "Server=testServer;Database=testDB;Password=myPassword;";
+            const expectedConnectionString = `Server=testServer;Database=testDB;Password=${generateUUID()};`;
             mockConnectionStore.lookupPassword.resolves(expectedConnectionString);
 
             // Call the method with the mock profile
@@ -2517,7 +2516,7 @@ suite("OE Service Tests", () => {
                 database: "TestDB",
                 authenticationType: "SqlLogin",
                 user: "testUser",
-                password: "testPassword",
+                password: generateUUID(),
             } as IConnectionInfo;
 
             // Call the method
@@ -2913,7 +2912,7 @@ suite("OE Service Tests", () => {
                 database: "TestDB",
                 authenticationType: "AzureMFA",
                 user: "testUser",
-                password: "testPassword",
+                password: generateUUID(),
             } as IConnectionInfo;
 
             // Setup to return undefined to end the test early
@@ -3736,7 +3735,7 @@ suite("OE Service Tests", () => {
                 database: "TestDB",
                 authenticationType: "SqlLogin",
                 user: "testUser",
-                password: "testPassword",
+                password: generateUUID(),
             } as IConnectionInfo;
 
             // Call the method
@@ -3805,7 +3804,7 @@ function createMockConnectionProfile(
         database: "TestDB",
         authenticationType: options.authenticationType || "SqlLogin",
         user: options.user ?? "testUser",
-        password: "testPassword",
+        password: generateUUID(),
         savePassword: true,
         accountId: options.accountId,
         tenantId: options.tenantId,
