@@ -9,9 +9,22 @@ import { expect, assert } from "chai";
 import * as Constants from "../../src/constants/constants";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
-import { ObjectMetadata } from "vscode-mssql";
+import { ObjectMetadata, MetadataType } from "vscode-mssql";
+import * as vscode from "vscode";
+import { IConnectionProfile } from "../../src/models/interfaces";
+import * as sinon from "sinon";
 
 suite("Object Explorer Utils Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
     test("Test iconPath function", () => {
         const testObjects = ["Server", "Table", "StoredProcedure"];
         const expectedPaths = ["Server.svg", "Table.svg", "StoredProcedure.svg"];
@@ -125,6 +138,162 @@ suite("Object Explorer Utils Tests", () => {
         }
     });
 
+    test("should return empty string if profile is undefined", () => {
+        // Setup
+        const treeNode = new TreeNodeInfo(
+            "label",
+            { type: "type", subType: "", filterable: false, hasFilters: false },
+            vscode.TreeItemCollapsibleState.None,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+        );
+
+        // Execute
+        const result = ObjectExplorerUtils.getNodeUri(treeNode);
+
+        // Verify
+        assert.strictEqual(result, "");
+    });
+
+    test("should get URI from TreeNodeInfo", () => {
+        // Setup
+        const profile = {
+            server: "testServer",
+            database: "testDB",
+            authenticationType: Constants.sqlAuthentication,
+            user: "testUser",
+            profileName: "testProfile",
+            id: "id",
+        } as IConnectionProfile;
+        const treeNode = new TreeNodeInfo(
+            "label",
+            { type: "type", subType: "", filterable: false, hasFilters: false },
+            vscode.TreeItemCollapsibleState.None,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            profile,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+        );
+
+        const getNodeUriFromProfileStub = sandbox
+            .stub(ObjectExplorerUtils, "getNodeUriFromProfile")
+            .returns("testUri");
+
+        // Execute
+        const result = ObjectExplorerUtils.getNodeUri(treeNode);
+
+        // Verify
+        assert(getNodeUriFromProfileStub.calledOnceWith(profile));
+        assert.strictEqual(result, "testUri");
+    });
+
+    test("should get URI from parent node", () => {
+        // Setup
+        const profile: IConnectionProfile = {
+            server: "testServer",
+            database: "testDB",
+            authenticationType: Constants.sqlAuthentication,
+            user: "testUser",
+            profileName: "testProfile",
+            id: "id",
+        } as IConnectionProfile;
+
+        const parentNode = new TreeNodeInfo(
+            "parent",
+            { type: "parentType", subType: "", filterable: false, hasFilters: false },
+            vscode.TreeItemCollapsibleState.None,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            profile,
+            undefined,
+            undefined,
+            undefined,
+        );
+
+        // Create a mock node that is not TreeNodeInfo but has a parentNode property
+        const mockNode = {
+            parentNode: parentNode,
+        } as any; // Using 'as any' to bypass TypeScript's type checking
+
+        const getNodeUriFromProfileStub = sandbox
+            .stub(ObjectExplorerUtils, "getNodeUriFromProfile")
+            .returns("testParentUri");
+
+        // Execute
+        const result = ObjectExplorerUtils.getNodeUri(mockNode);
+
+        // Verify
+        assert(getNodeUriFromProfileStub.calledOnceWith(profile));
+        assert.strictEqual(result, "testParentUri");
+    });
+
+    test("should return connection string without password if present", () => {
+        // Setup
+        const profile: IConnectionProfile = {
+            connectionString: "Server=myServer;Database=myDb;User Id=myUser;Password=myPassword;",
+            server: "server",
+            database: "database",
+            authenticationType: Constants.sqlAuthentication,
+            user: "user",
+            profileName: "profile",
+            id: "id",
+        } as IConnectionProfile;
+
+        // Execute
+        const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
+
+        // Verify - should include all parts except the password
+        assert.strictEqual(result, "Server=myServer;Database=myDb;User Id=myUser;");
+    });
+
+    test("should create URI for SQL authentication without connection string", () => {
+        // Setup
+        const profile: IConnectionProfile = {
+            server: "testServer",
+            database: "testDB",
+            authenticationType: Constants.sqlAuthentication,
+            user: "testUser",
+            profileName: "testProfile",
+            id: "id",
+        } as IConnectionProfile;
+
+        // Execute
+        const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
+
+        // Verify
+        assert.strictEqual(result, "testServer_testDB_testUser_testProfile");
+    });
+
+    test("should create URI for Windows authentication without connection string", () => {
+        // Setup
+        const profile: IConnectionProfile = {
+            server: "testServer",
+            database: "testDB",
+            authenticationType: "Windows Authentication", // Not SQL auth
+            profileName: "testProfile",
+            id: "id",
+        } as IConnectionProfile;
+
+        // Execute
+        const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
+
+        // Verify
+        assert.strictEqual(result, "testServer_testDB_testProfile");
+    });
+
     test("Test getDatabaseName", () => {
         const testProfile = new ConnectionProfile();
         testProfile.server = "test_server";
@@ -215,5 +384,179 @@ suite("Object Explorer Utils Tests", () => {
             ObjectExplorerUtils.isFirewallError(firewallError),
             "Error should be a firewall error",
         );
+    });
+
+    suite("getQualifiedName Tests", () => {
+        test("should return properly formatted qualified name for Table", () => {
+            // Setup
+            const node = new TreeNodeInfo(
+                "CustomersTable",
+                { type: "Table", subType: "", filterable: false, hasFilters: false },
+                vscode.TreeItemCollapsibleState.None,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                    metadataTypeName: "Table",
+                    name: "Customers",
+                    schema: "dbo",
+                    metadataType: MetadataType.Table,
+                    urn: "",
+                } as ObjectMetadata,
+            );
+
+            // Execute
+            const result = ObjectExplorerUtils.getQualifiedName(node);
+
+            // Verify
+            assert.strictEqual(result, "[dbo].[Customers]");
+        });
+
+        test("should return properly formatted qualified name for StoredProcedure", () => {
+            // Setup
+            const node = new TreeNodeInfo(
+                "GetCustomersProc",
+                { type: "StoredProcedure", subType: "", filterable: false, hasFilters: false },
+                vscode.TreeItemCollapsibleState.None,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                    metadataTypeName: "StoredProcedure",
+                    name: "GetCustomers",
+                    schema: "dbo",
+                    metadataType: MetadataType.SProc,
+                    urn: "",
+                } as ObjectMetadata,
+            );
+
+            // Execute
+            const result = ObjectExplorerUtils.getQualifiedName(node);
+
+            // Verify
+            assert.strictEqual(result, "[dbo].[GetCustomers]");
+        });
+
+        test("should return properly formatted qualified name for View", () => {
+            // Setup
+            const node = new TreeNodeInfo(
+                "ActiveCustomersView",
+                { type: "View", subType: "", filterable: false, hasFilters: false },
+                vscode.TreeItemCollapsibleState.None,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                    metadataTypeName: "View",
+                    name: "ActiveCustomers",
+                    schema: "dbo",
+                    metadataType: MetadataType.View,
+                    urn: "",
+                },
+            );
+
+            // Execute
+            const result = ObjectExplorerUtils.getQualifiedName(node);
+
+            // Verify
+            assert.strictEqual(result, "[dbo].[ActiveCustomers]");
+        });
+
+        test("should return properly formatted qualified name for UserDefinedFunction", () => {
+            // Setup
+            const node = new TreeNodeInfo(
+                "CalculateDiscountFunction",
+                { type: "UserDefinedFunction", subType: "", filterable: false, hasFilters: false },
+                vscode.TreeItemCollapsibleState.None,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                    metadataTypeName: "UserDefinedFunction",
+                    name: "CalculateDiscount",
+                    schema: "dbo",
+                    metadataType: MetadataType.Function,
+                    urn: "",
+                },
+            );
+
+            // Execute
+            const result = ObjectExplorerUtils.getQualifiedName(node);
+
+            // Verify
+            assert.strictEqual(result, "[dbo].[CalculateDiscount]");
+        });
+
+        test("should return name with brackets for other metadata types", () => {
+            // Setup
+            const node = new TreeNodeInfo(
+                "master",
+                { type: "Database", subType: "", filterable: false, hasFilters: false },
+                vscode.TreeItemCollapsibleState.None,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                    metadataTypeName: "Database",
+                    name: "master",
+                    schema: "dbo",
+                    urn: "",
+                } as ObjectMetadata,
+            );
+
+            // Execute
+            const result = ObjectExplorerUtils.getQualifiedName(node);
+
+            // Verify
+            assert.strictEqual(result, "[master]");
+        });
+
+        test("should return empty string if node has no metadata", () => {
+            // Setup
+            const node = new TreeNodeInfo(
+                "label",
+                { type: "type", subType: "", filterable: false, hasFilters: false },
+                vscode.TreeItemCollapsibleState.None,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+            );
+
+            // Execute
+            const result = ObjectExplorerUtils.getQualifiedName(node);
+
+            // Verify
+            assert.strictEqual(result, "");
+        });
     });
 });

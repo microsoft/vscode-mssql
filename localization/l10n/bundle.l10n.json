@@ -1185,6 +1185,12 @@
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",
   "Schema Designer": "Schema Designer",
+  "{0} (Preview)/{0} is the database name": {
+    "message": "{0} (Preview)",
+    "comment": [
+      "{0} is the database name"
+    ]
+  },
   "Connect to MSSQL": "Connect to MSSQL",
   "Click to connect to a database": "Click to connect to a database",
   "Connecting": "Connecting",
@@ -1208,6 +1214,57 @@
       "{1} is the error message"
     ]
   },
+  "No model found.": "No model found.",
+  "No tools to process.": "No tools to process.",
+  "You are not connected to any database.": "You are not connected to any database.",
+  "Using {0} ({1}).../{0} is the model name{1} is whether the model can send requests": {
+    "message": "Using {0} ({1})...",
+    "comment": [
+      "{0} is the model name",
+      "{1} is whether the model can send requests"
+    ]
+  },
+  "Tool lookup for: {0} - {1}./{0} is the part name{1} is the part input": {
+    "message": "Tool lookup for: {0} - {1}.",
+    "comment": [
+      "{0} is the part name",
+      "{1} is the part input"
+    ]
+  },
+  "Got invalid tool use parameters: \"{0}\". ({1})/{0} is the part input{1} is the error message": {
+    "message": "Got invalid tool use parameters: \"{0}\". ({1})",
+    "comment": [
+      "{0} is the part input",
+      "{1} is the error message"
+    ]
+  },
+  "Calling tool: {0} with {1}./{0} is the tool function name{1} is the SQL tool parameters": {
+    "message": "Calling tool: {0} with {1}.",
+    "comment": [
+      "{0} is the tool function name",
+      "{1} is the SQL tool parameters"
+    ]
+  },
+  "The requested model could not be found. Please check model availability or try a different model.": "The requested model could not be found. Please check model availability or try a different model.",
+  "Access denied. Please ensure you have the necessary permissions to use this tool or model.": "Access denied. Please ensure you have the necessary permissions to use this tool or model.",
+  "Usage limits exceeded. Try again later, or consider optimizing your requests.": "Usage limits exceeded. Try again later, or consider optimizing your requests.",
+  "I'm sorry, I can only assist with SQL-related questions.": "I'm sorry, I can only assist with SQL-related questions.",
+  "An unexpected error occurred with the language model. Please try again.": "An unexpected error occurred with the language model. Please try again.",
+  "Using {0} to process your request.../{0} is the model name that will be processing the request": {
+    "message": "Using {0} to process your request...",
+    "comment": [
+      "{0} is the model name that will be processing the request"
+    ]
+  },
+  "The language model did not return any output.": "The language model did not return any output.",
+  "An error occurred while processing your request.": "An error occurred while processing your request.",
+  "An error occurred: {0}/{0} is the error message": {
+    "message": "An error occurred: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

@@ -879,6 +879,13 @@ export class SchemaDesigner {
     public static SaveAs = l10n.t("Save As");
     public static Save = l10n.t("Save");
     public static SchemaDesigner = l10n.t("Schema Designer");
+    public static tabTitle(databaseName: string) {
+        return l10n.t({
+            message: "{0} (Preview)",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    }
 }
 
 export class StatusBar {
@@ -917,4 +924,74 @@ export class Connection {
             comment: ["{0} is the connection id", "{1} is the error message"],
         });
     };
+}
+
+export class MssqlChatAgent {
+    public static noModelFound = l10n.t("No model found.");
+    public static noToolsToProcess = l10n.t("No tools to process.");
+    public static notConnected = l10n.t("You are not connected to any database.");
+    public static usingModel = (modelName: string, canSendRequest: boolean | undefined) => {
+        return l10n.t({
+            message: "Using {0} ({1})...",
+            args: [modelName, canSendRequest],
+            comment: ["{0} is the model name", "{1} is whether the model can send requests"],
+        });
+    };
+    public static toolLookupFor = (partName: string, partInput: string) => {
+        return l10n.t({
+            message: "Tool lookup for: {0} - {1}.",
+            args: [partName, partInput],
+            comment: ["{0} is the part name", "{1} is the part input"],
+        });
+    };
+    public static gotInvalidToolUseParameters = (partInput: string, errorMessage: string) => {
+        return l10n.t({
+            message: 'Got invalid tool use parameters: "{0}". ({1})',
+            args: [partInput, errorMessage],
+            comment: ["{0} is the part input", "{1} is the error message"],
+        });
+    };
+    public static callingTool = (toolFunctionName: string, sqlToolParameters: string) => {
+        return l10n.t({
+            message: "Calling tool: {0} with {1}.",
+            args: [toolFunctionName, sqlToolParameters],
+            comment: ["{0} is the tool function name", "{1} is the SQL tool parameters"],
+        });
+    };
+    public static modelNotFoundError = l10n.t(
+        "The requested model could not be found. Please check model availability or try a different model.",
+    );
+    public static noPermissionError = l10n.t(
+        "Access denied. Please ensure you have the necessary permissions to use this tool or model.",
+    );
+    public static quoteLimitExceededError = l10n.t(
+        "Usage limits exceeded. Try again later, or consider optimizing your requests.",
+    );
+    public static offTopicError = l10n.t(
+        "I'm sorry, I can only assist with SQL-related questions.",
+    );
+    public static unexpectedError = l10n.t(
+        "An unexpected error occurred with the language model. Please try again.",
+    );
+    public static usingModelToProcessRequest = (modelName: string) => {
+        return l10n.t({
+            message: "Using {0} to process your request...",
+            args: [modelName],
+            comment: ["{0} is the model name that will be processing the request"],
+        });
+    };
+    public static languageModelDidNotReturnAnyOutput = l10n.t(
+        "The language model did not return any output.",
+    );
+    public static errorOccurredWhileProcessingRequest = l10n.t(
+        "An error occurred while processing your request.",
+    );
+    public static errorOccurredWith = (errorMessage: string) => {
+        return l10n.t({
+            message: "An error occurred: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    };
+    public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
 }

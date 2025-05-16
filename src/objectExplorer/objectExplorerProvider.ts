@@ -95,7 +95,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public deleteChildrenCache(node: TreeNodeInfo): void {
-        this._objectExplorerService.deleteChildren(node);
+        this._objectExplorerService.cleanNodeChildren(node);
     }
 
     public get rootNodeConnections(): IConnectionInfo[] {
