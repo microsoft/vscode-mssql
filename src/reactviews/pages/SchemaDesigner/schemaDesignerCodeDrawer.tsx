@@ -11,7 +11,6 @@ import { locConstants } from "../../common/locConstants";
 import Editor from "@monaco-editor/react";
 import { resolveVscodeThemeType } from "../../common/utils";
 import eventBus from "./schemaDesignerEvents";
-import { ResizableBox } from "react-resizable";
 
 const useStyles = makeStyles({
     resizeHandle: {
@@ -57,32 +56,7 @@ export const SchemaDesignerCodeDrawer = () => {
     }, []);
 
     return (
-        <ResizableBox
-            width={Infinity}
-            height={isCodeDrawerOpen ? (isMaximized ? 9999999 : drawerHeight) : 0}
-            maxConstraints={[Infinity, Infinity]}
-            minConstraints={[Infinity, 10]}
-            resizeHandles={["n"]}
-            handle={<div className={classes.resizeHandle} />}
-            className={classes.resizePaneContainer}
-            onResizeStart={(_e, _div) => {
-                setIsMaximized(false);
-            }}
-            onResizeStop={(_e, div) => {
-                console.log("div", div);
-                const parentContainerHeight = div.node!.parentElement!.parentElement!.offsetHeight!;
-
-                const currentDivHeight = div.size.height;
-                if (currentDivHeight >= parentContainerHeight - 50) {
-                    console.log("maximized");
-                    console.log("drawerHeight", drawerHeight);
-                    setIsMaximized(true);
-                    setDrawerHeight(parentContainerHeight);
-                } else {
-                    console.log("DrawerHeight", div.size.height);
-                    setDrawerHeight(div.size.height);
-                }
-            }}>
+        <>
             <div className={classes.header}>
                 <Text size={400} weight="medium" style={{ marginLeft: "10px" }}>
                     {locConstants.schemaDesigner.viewCode}
@@ -142,6 +116,6 @@ export const SchemaDesignerCodeDrawer = () => {
                     readOnly: true,
                 }}
             />
-        </ResizableBox>
+        </>
     );
 };
