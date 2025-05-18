@@ -59,8 +59,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 const GraphContainer = ({ children }: { children: React.ReactNode }) => (
     <div
         style={{
-            maxHeight: "100%",
-            minHeight: "60%",
             flex: 1,
             width: "100%",
             display: "flex",
