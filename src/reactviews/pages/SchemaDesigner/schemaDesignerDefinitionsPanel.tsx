@@ -82,7 +82,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
             collapsible
             minSize={MINIMUMPANEL_SIZE}
             ref={panelRef}
-            onResize={(size, prevSize) => {
+            onResize={(size) => {
                 setCurrentPanelSize(size);
 
                 if (size === MAXIMUMPANEL_SIZE) {
@@ -97,7 +97,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
                 <Text weight="medium" style={{ marginLeft: "10px" }}>
                     {locConstants.schemaDesigner.definition}
                 </Text>
-                <Toolbar>
+                <Toolbar style={{ gap: "3px" }}>
                     <Button
                         size="small"
                         appearance="subtle"
@@ -116,17 +116,6 @@ export const SchemaDesignerDefinitionsPanel = () => {
                     <Button
                         size="small"
                         appearance="subtle"
-                        title={locConstants.schemaDesigner.close}
-                        icon={<FluentIcons.Dismiss12Regular />}
-                        onClick={() => {
-                            if (panelRef.current) {
-                                panelRef.current.collapse();
-                            }
-                        }}
-                    />
-                    <Button
-                        size="small"
-                        appearance="subtle"
                         onClick={() => {
                             if (panelRef.current?.getSize() === MAXIMUMPANEL_SIZE) {
                                 panelRef.current?.resize(DEFAULTPANEL_SIZE);
@@ -136,6 +125,17 @@ export const SchemaDesignerDefinitionsPanel = () => {
                         }}
                         title={expandCollapseButtonLabel}
                         icon={expandCollapseButtonIcon}
+                    />
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        title={locConstants.schemaDesigner.close}
+                        icon={<FluentIcons.Dismiss12Regular />}
+                        onClick={() => {
+                            if (panelRef.current) {
+                                panelRef.current.collapse();
+                            }
+                        }}
                     />
                 </Toolbar>
             </div>

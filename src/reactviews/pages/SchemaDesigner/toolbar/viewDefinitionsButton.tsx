@@ -12,9 +12,9 @@ export function ViewDefinitionsButton() {
     return (
         <Button
             size="small"
+            appearance="subtle"
             icon={<FluentIcons.Code16Filled />}
             title={locConstants.schemaDesigner.definition}
-            appearance="subtle"
             onClick={() => {
                 eventBus.emit("openCodeDrawer");
             }}>

@@ -18,13 +18,13 @@ export function AddTableButton() {
 
     return (
         <Button
+            appearance="subtle"
             icon={<FluentIcons.TableAdd16Regular />}
             onClick={() => {
                 eventBus.emit("newTable", context.extractSchema());
             }}
             size="small"
-            title={locConstants.schemaDesigner.addTable}
-            appearance="subtle">
+            title={locConstants.schemaDesigner.addTable}>
             {locConstants.schemaDesigner.addTable}
         </Button>
     );

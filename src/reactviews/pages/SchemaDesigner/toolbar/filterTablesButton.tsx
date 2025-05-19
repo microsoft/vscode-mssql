@@ -87,15 +87,15 @@ export function FilterTablesButton() {
 
     return (
         <Menu open={isFilterMenuOpen} onOpenChange={(_, data) => setIsFilterMenuOpen(data.open)}>
-            <MenuTrigger disableButtonEnhancement>
+            <MenuTrigger>
                 <Button
                     size="small"
+                    appearance="subtle"
                     icon={<FluentIcons.Filter16Regular />}
                     onClick={() => {
                         loadTables();
                         setIsFilterMenuOpen(!isFilterMenuOpen);
-                    }}
-                    appearance="subtle">
+                    }}>
                     {locConstants.schemaDesigner.filter}
                 </Button>
             </MenuTrigger>

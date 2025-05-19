@@ -25,24 +25,24 @@ export function UndoRedoButtons() {
         <>
             <Button
                 size="small"
+                appearance="subtle"
                 icon={<FluentIcons.ArrowUndo16Regular />}
                 onClick={() => {
                     eventBus.emit("undo");
                 }}
                 disabled={!isUndoEnabled}
-                title={"Undo"}
-                appearance="subtle">
+                title={"Undo"}>
                 {"Undo"}
             </Button>
             <Button
                 size="small"
+                appearance="subtle"
                 icon={<FluentIcons.ArrowRedo16Regular />}
                 onClick={() => {
                     eventBus.emit("redo");
                 }}
                 disabled={!isRedoEnabled}
-                title={"Redo"}
-                appearance="subtle">
+                title={"Redo"}>
                 {"Redo"}
             </Button>
         </>

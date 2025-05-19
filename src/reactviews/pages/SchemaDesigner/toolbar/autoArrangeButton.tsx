@@ -45,9 +45,9 @@ export function AutoArrangeButton() {
             <DialogTrigger>
                 <Button
                     size="small"
+                    appearance="subtle"
                     icon={<FluentIcons.Flowchart16Regular />}
-                    title={locConstants.schemaDesigner.autoArrange}
-                    appearance="subtle">
+                    title={locConstants.schemaDesigner.autoArrange}>
                     {locConstants.schemaDesigner.autoArrange}
                 </Button>
             </DialogTrigger>

@@ -111,9 +111,9 @@ export function ExportDiagramButton() {
             <MenuTrigger disableButtonEnhancement>
                 <Button
                     size="small"
+                    appearance="subtle"
                     icon={<FluentIcons.ArrowExportUp16Regular />}
-                    title={locConstants.schemaDesigner.export}
-                    appearance="subtle">
+                    title={locConstants.schemaDesigner.export}>
                     {locConstants.schemaDesigner.export}
                 </Button>
             </MenuTrigger>

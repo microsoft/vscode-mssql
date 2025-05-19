@@ -80,9 +80,9 @@ export function PublishChangesDialogButton() {
         return (
             <Button
                 size="small"
+                appearance="subtle"
                 icon={<FluentIcons.DatabaseArrowUp16Filled />}
                 title={locConstants.schemaDesigner.publishChanges}
-                appearance="subtle"
                 onClick={async () => {
                     setState({
                         ...state,
