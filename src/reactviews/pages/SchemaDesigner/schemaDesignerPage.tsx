@@ -8,7 +8,7 @@ import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
 import "./schemaDesigner.css";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
-import { SchemaDesignerCodeDrawer } from "./schemaDesignerCodeDrawer";
+import { SchemaDesignerDefinitionsPanel } from "./schemaDesignerDefinitionsPanel";
 import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
 import { makeStyles, Spinner } from "@fluentui/react-components";
@@ -34,16 +34,14 @@ export const SchemaDesignerPage = () => {
             <SchemaDesignerEditorDrawer />
             <MainLayout>
                 <PanelGroup direction="vertical">
-                    <Panel maxSize={75}>
+                    <Panel defaultSize={100}>
                         <GraphContainer>
                             <SchemaDesignerToolbar />
                             <SchemaDesignerFlow />
                         </GraphContainer>
                     </Panel>
                     <PanelResizeHandle className={classes.resizeHandle} />
-                    <Panel>
-                        <SchemaDesignerCodeDrawer />
-                    </Panel>
+                    <SchemaDesignerDefinitionsPanel />
                 </PanelGroup>
                 {!context.isInitialized && <LoadingOverlay />}
             </MainLayout>

@@ -16,7 +16,6 @@ import {
     makeStyles,
     MessageBar,
     Spinner,
-    ToolbarButton,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
@@ -79,7 +78,8 @@ export function PublishChangesDialogButton() {
      */
     const triggerButton = () => {
         return (
-            <ToolbarButton
+            <Button
+                size="small"
                 icon={<FluentIcons.DatabaseArrowUp16Filled />}
                 title={locConstants.schemaDesigner.publishChanges}
                 appearance="subtle"
@@ -120,7 +120,7 @@ export function PublishChangesDialogButton() {
                     }
                 }}>
                 {locConstants.schemaDesigner.publishChanges}
-            </ToolbarButton>
+            </Button>
         );
     };
 

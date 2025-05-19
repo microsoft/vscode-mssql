@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ToolbarButton } from "@fluentui/react-components";
+import { Button } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import eventBus from "../schemaDesignerEvents";
 import { useEffect, useState } from "react";
@@ -23,7 +23,8 @@ export function UndoRedoButtons() {
     }, []);
     return (
         <>
-            <ToolbarButton
+            <Button
+                size="small"
                 icon={<FluentIcons.ArrowUndo16Regular />}
                 onClick={() => {
                     eventBus.emit("undo");
@@ -32,8 +33,9 @@ export function UndoRedoButtons() {
                 title={"Undo"}
                 appearance="subtle">
                 {"Undo"}
-            </ToolbarButton>
-            <ToolbarButton
+            </Button>
+            <Button
+                size="small"
                 icon={<FluentIcons.ArrowRedo16Regular />}
                 onClick={() => {
                     eventBus.emit("redo");
@@ -42,7 +44,7 @@ export function UndoRedoButtons() {
                 title={"Redo"}
                 appearance="subtle">
                 {"Redo"}
-            </ToolbarButton>
+            </Button>
         </>
     );
 }

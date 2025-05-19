@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    Button,
     Menu,
     MenuItem,
     MenuList,
     MenuPopover,
     MenuTrigger,
-    ToolbarButton,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
@@ -109,12 +109,13 @@ export function ExportDiagramButton() {
     return (
         <Menu>
             <MenuTrigger disableButtonEnhancement>
-                <ToolbarButton
-                    icon={<FluentIcons.ArrowExportUp16Filled />}
+                <Button
+                    size="small"
+                    icon={<FluentIcons.ArrowExportUp16Regular />}
                     title={locConstants.schemaDesigner.export}
                     appearance="subtle">
                     {locConstants.schemaDesigner.export}
-                </ToolbarButton>
+                </Button>
             </MenuTrigger>
 
             <MenuPopover>
