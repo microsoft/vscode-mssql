@@ -1484,6 +1484,9 @@
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
     </trans-unit>
+    <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
+      <source xml:lang="en">Redo</source>
+    </trans-unit>
     <trans-unit id="++CODE++d49d10a2017dc4911588fbe91abdc783a6eb59caf6b52432ddae0399d838014d">
       <source xml:lang="en">Referenced column &apos;{0}&apos; not found</source>
       <note>{0} is the column name</note>
@@ -1980,6 +1983,9 @@
     </trans-unit>
     <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
       <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
+      <source xml:lang="en">Undo</source>
     </trans-unit>
     <trans-unit id="++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291">
       <source xml:lang="en">Update</source>
