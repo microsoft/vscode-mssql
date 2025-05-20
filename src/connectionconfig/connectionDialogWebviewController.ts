@@ -958,15 +958,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 (account) => account.displayInfo.userId === this.state.connectionProfile.accountId,
             );
             if (account) {
-                const session =
-                    await this._mainController.azureAccountService.getAccountSecurityToken(
-                        account,
-                        undefined,
+                let isTokenExpired = false;
+                try {
+                    const session =
+                        await this._mainController.azureAccountService.getAccountSecurityToken(
+                            account,
+                            undefined,
+                        );
+                    isTokenExpired = !AzureController.isTokenValid(
+                        session.token,
+                        session.expiresOn,
                     );
-                const isTokenExpired = !AzureController.isTokenValid(
-                    session.token,
-                    session.expiresOn,
-                );
+                } catch (err) {
+                    this.logger.verbose(
+                        `Error getting token or checking validity; forcing refresh. Error: ${getErrorMessage(err)}`,
+                    );
+                    isTokenExpired = true;
+                }
 
                 if (isTokenExpired) {
                     actionButtons.push({
