@@ -995,3 +995,13 @@ export class MssqlChatAgent {
     };
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
 }
+
+export class QueryEditor {
+    public static codeLensConnect = l10n.t("$(plug)  Connect to SQL Server");
+    public static codeLensChangeDatabase = (connectionName: string) =>
+        l10n.t({
+            message: `{0} ▾ (Click to change database)`,
+            args: [connectionName],
+            comment: ["{0} is the connection name"],
+        });
+}

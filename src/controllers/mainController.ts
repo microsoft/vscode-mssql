@@ -67,6 +67,7 @@ import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../chat/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
+import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 
 /**
  * The main controller class that initializes the extension
@@ -276,6 +277,14 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdDisableActualPlan, () => {
                 this.onToggleActualPlan(false);
             });
+
+            this._context.subscriptions.push(
+                vscode.languages.registerCodeLensProvider(
+                    { language: "sql" },
+                    new SqlCodeLensProvider(this._connectionMgr),
+                ),
+            );
+
             this.initializeObjectExplorer();
 
             this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
