@@ -7,6 +7,7 @@ import { Button } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import eventBus from "../schemaDesignerEvents";
 import { useEffect, useState } from "react";
+import { locConstants } from "../../../common/locConstants";
 
 export function UndoRedoButtons() {
     const [isUndoEnabled, setIsUndoEnabled] = useState(false);
@@ -31,8 +32,8 @@ export function UndoRedoButtons() {
                     eventBus.emit("undo");
                 }}
                 disabled={!isUndoEnabled}
-                title={"Undo"}>
-                {"Undo"}
+                title={locConstants.schemaDesigner.undo}>
+                {locConstants.schemaDesigner.undo}
             </Button>
             <Button
                 size="small"
@@ -42,8 +43,8 @@ export function UndoRedoButtons() {
                     eventBus.emit("redo");
                 }}
                 disabled={!isRedoEnabled}
-                title={"Redo"}>
-                {"Redo"}
+                title={locConstants.schemaDesigner.redo}>
+                {locConstants.schemaDesigner.redo}
             </Button>
         </>
     );

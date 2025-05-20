@@ -584,6 +584,8 @@ export class LocConstants {
             deleteConfirmationContent: l10n.t(
                 "Are you sure you want to delete the selected items?",
             ),
+            undo: l10n.t("Undo"),
+            redo: l10n.t("Redo"),
         };
     }
 
