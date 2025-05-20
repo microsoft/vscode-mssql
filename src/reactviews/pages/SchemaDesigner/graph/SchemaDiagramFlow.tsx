@@ -280,7 +280,7 @@ export const SchemaDesignerFlow = () => {
                         <DialogActions>
                             <DialogTrigger disableButtonEnhancement>
                                 <Button
-                                    appearance="primary"
+                                    appearance="secondary"
                                     onClick={() => {
                                         if (!deleteNodeConfirmationPromise.current) {
                                             return;
@@ -292,7 +292,7 @@ export const SchemaDesignerFlow = () => {
                             </DialogTrigger>
                             <DialogTrigger disableButtonEnhancement>
                                 <Button
-                                    appearance="secondary"
+                                    appearance="primary"
                                     onClick={() => {
                                         if (!deleteNodeConfirmationPromise.current) {
                                             return;
