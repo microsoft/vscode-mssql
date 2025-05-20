@@ -59,13 +59,13 @@ export function AutoArrangeButton() {
                     </DialogContent>
                     <DialogActions>
                         <DialogTrigger>
-                            <Button appearance="secondary" onClick={() => {}}>
-                                {locConstants.schemaDesigner.cancel}
+                            <Button appearance="primary" onClick={() => autoArrange()}>
+                                {locConstants.schemaDesigner.autoArrange}
                             </Button>
                         </DialogTrigger>
                         <DialogTrigger>
-                            <Button appearance="primary" onClick={() => autoArrange()}>
-                                {locConstants.schemaDesigner.autoArrange}
+                            <Button appearance="secondary" onClick={() => {}}>
+                                {locConstants.schemaDesigner.cancel}
                             </Button>
                         </DialogTrigger>
                     </DialogActions>

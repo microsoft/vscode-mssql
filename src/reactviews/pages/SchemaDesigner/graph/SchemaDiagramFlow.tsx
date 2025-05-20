@@ -280,18 +280,6 @@ export const SchemaDesignerFlow = () => {
                         <DialogActions>
                             <DialogTrigger disableButtonEnhancement>
                                 <Button
-                                    appearance="secondary"
-                                    onClick={() => {
-                                        if (!deleteNodeConfirmationPromise.current) {
-                                            return;
-                                        }
-                                        deleteNodeConfirmationPromise.current(false);
-                                    }}>
-                                    {locConstants.schemaDesigner.cancel}
-                                </Button>
-                            </DialogTrigger>
-                            <DialogTrigger disableButtonEnhancement>
-                                <Button
                                     appearance="primary"
                                     onClick={() => {
                                         if (!deleteNodeConfirmationPromise.current) {
@@ -300,6 +288,18 @@ export const SchemaDesignerFlow = () => {
                                         deleteNodeConfirmationPromise.current(true);
                                     }}>
                                     {locConstants.schemaDesigner.delete}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogTrigger disableButtonEnhancement>
+                                <Button
+                                    appearance="secondary"
+                                    onClick={() => {
+                                        if (!deleteNodeConfirmationPromise.current) {
+                                            return;
+                                        }
+                                        deleteNodeConfirmationPromise.current(false);
+                                    }}>
+                                    {locConstants.schemaDesigner.cancel}
                                 </Button>
                             </DialogTrigger>
                         </DialogActions>
