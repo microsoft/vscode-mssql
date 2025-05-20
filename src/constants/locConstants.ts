@@ -997,7 +997,7 @@ export class MssqlChatAgent {
 }
 
 export class QueryEditor {
-    public static codeLensConnect = l10n.t("$(plug)  Connect to SQL Server");
+    public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
     public static codeLensChangeDatabase = (connectionName: string) =>
         l10n.t({
             message: `{0} ▾ (Click to change database)`,
