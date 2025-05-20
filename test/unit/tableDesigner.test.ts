@@ -15,7 +15,6 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { TableDesignerService } from "../../src/services/tableDesignerService";
 import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import { info } from "console";
 
 suite("TableDesignerWebviewController tests", () => {
     let sandbox: sinon.SinonSandbox;
