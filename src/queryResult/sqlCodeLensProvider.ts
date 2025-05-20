@@ -23,7 +23,11 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
                 new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
                     title: QueryEditor.codeLensChangeDatabase(connectionName),
                     command: Constants.cmdChooseDatabase,
-                    arguments: [document.uri],
+                    arguments: [
+                        {
+                            source: "CodeLens",
+                        },
+                    ],
                 }),
             ];
         }
@@ -31,7 +35,11 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
             new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
                 title: QueryEditor.codeLensConnect,
                 command: Constants.cmdConnect,
-                arguments: [document.uri],
+                arguments: [
+                    {
+                        source: "CodeLens",
+                    },
+                ],
             }),
         ];
     }
