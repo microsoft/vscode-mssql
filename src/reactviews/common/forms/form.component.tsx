@@ -177,7 +177,9 @@ export const FormField = <
                             <Button
                                 key={idx + actionButton.id}
                                 appearance="outline"
-                                style={{ width: "auto", whiteSpace: "nowrap" }}
+                                style={{
+                                    width: "120px",
+                                }}
                                 onClick={() =>
                                     context?.formAction({
                                         propertyName: component.propertyName,
