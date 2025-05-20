@@ -4,6 +4,9 @@
     <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
       <source xml:lang="en"> is required.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d669b762b096faee047ad1fc9bcdfe9fe8a9e9d85b2947b46b54b3c8a16d48f0">
+      <source xml:lang="en">$(plug)  Connect to SQL Server</source>
+    </trans-unit>
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
@@ -2169,6 +2172,10 @@
       <source xml:lang="en">{0} {1} issues</source>
       <note>{0} is the tab name
 {1} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a65e8abff7bfedc0762e0ba182469a60e53114f72e4f7ce7fe3f5e314c87f852">
+      <source xml:lang="en">{0} ▾ (Click to change database)</source>
+      <note>{0} is the connection name</note>
     </trans-unit>
     <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
       <source xml:lang="en">{0}. {1}</source>
