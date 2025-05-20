@@ -155,7 +155,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
             this._mainController.connectionManager,
-            getAccounts(this._mainController.azureAccountService),
+            getAccounts(this._mainController.azureAccountService, this.logger),
             this.getAzureActionButtons(),
         );
 
@@ -299,7 +299,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("filterAzureSubscriptions", async (state) => {
             try {
-                if (await promptForAzureSubscriptionFilter(state)) {
+                if (await promptForAzureSubscriptionFilter(state, this.logger)) {
                     await this.loadAllAzureServers(state);
                 }
             } catch (err) {
@@ -514,6 +514,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const tenants = await getTenants(
                 this._mainController.azureAccountService,
                 this.state.connectionProfile.accountId,
+                this.logger,
             );
             if (tenants.length === 1) {
                 hiddenProperties.push("tenantId");
@@ -935,6 +936,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 accountsComponent.options = await getAccounts(
                     this._mainController.azureAccountService,
+                    this.logger,
                 );
 
                 this.state.connectionProfile.accountId = account.key.id;
@@ -1016,6 +1018,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 tenants = await getTenants(
                     this._mainController.azureAccountService,
                     this.state.connectionProfile.accountId,
+                    this.logger,
                 );
                 if (tenantComponent) {
                     tenantComponent.options = tenants;
@@ -1040,6 +1043,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 tenants = await getTenants(
                     this._mainController.azureAccountService,
                     this.state.connectionProfile.accountId,
+                    this.logger,
                 );
                 if (tenantComponent) {
                     tenantComponent.options = tenants;
