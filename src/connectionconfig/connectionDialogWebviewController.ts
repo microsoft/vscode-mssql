@@ -989,12 +989,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                                     this.state.connectionProfile.accountId,
                             );
                             if (account) {
-                                const session =
-                                    await this._mainController.azureAccountService.getAccountSecurityToken(
-                                        account,
-                                        undefined,
+                                try {
+                                    const session =
+                                        await this._mainController.azureAccountService.getAccountSecurityToken(
+                                            account,
+                                            undefined,
+                                        );
+                                    this.logger.log("Token refreshed", session.expiresOn);
+                                } catch (err) {
+                                    this.logger.error(
+                                        `Error refreshing token: ${getErrorMessage(err)}`,
                                     );
-                                this.logger.log("Token refreshed", session.expiresOn);
+                                }
                             }
                         },
                     });
