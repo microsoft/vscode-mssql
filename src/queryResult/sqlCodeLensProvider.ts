@@ -16,7 +16,6 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
         document: vscode.TextDocument,
         token: vscode.CancellationToken,
     ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
-        console.log("provideCodeLenses");
         const connection = this._connectionManager.getConnectionInfo(document.uri.toString());
         if (connection) {
             const connectionName = getConnectionDisplayString(connection.credentials);
@@ -41,11 +40,6 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
         codeLens: vscode.CodeLens,
         token: vscode.CancellationToken,
     ): vscode.CodeLens | Thenable<vscode.CodeLens> {
-        console.log("resolveCodeLens");
-        return new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
-            title: "Go",
-            command: "go.run",
-            arguments: [],
-        });
+        return undefined;
     }
 }
