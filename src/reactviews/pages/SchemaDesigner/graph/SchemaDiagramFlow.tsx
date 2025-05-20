@@ -285,9 +285,9 @@ export const SchemaDesignerFlow = () => {
                                         if (!deleteNodeConfirmationPromise.current) {
                                             return;
                                         }
-                                        deleteNodeConfirmationPromise.current(true);
+                                        deleteNodeConfirmationPromise.current(false);
                                     }}>
-                                    {locConstants.schemaDesigner.delete}
+                                    {locConstants.schemaDesigner.cancel}
                                 </Button>
                             </DialogTrigger>
                             <DialogTrigger disableButtonEnhancement>
@@ -297,9 +297,9 @@ export const SchemaDesignerFlow = () => {
                                         if (!deleteNodeConfirmationPromise.current) {
                                             return;
                                         }
-                                        deleteNodeConfirmationPromise.current(false);
+                                        deleteNodeConfirmationPromise.current(true);
                                     }}>
-                                    {locConstants.common.close}
+                                    {locConstants.schemaDesigner.delete}
                                 </Button>
                             </DialogTrigger>
                         </DialogActions>
