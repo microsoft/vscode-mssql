@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Toolbar, ToolbarDivider } from "@fluentui/react-components";
-import { ViewCodeDialogButton } from "./viewCodeDialogButton";
+import { ViewDefinitionsButton } from "./viewDefinitionsButton";
 import { ExportDiagramButton } from "./exportDiagramButton";
 import { FilterTablesButton } from "./filterTablesButton";
 import { AddTableButton } from "./addTableButton";
@@ -15,25 +15,27 @@ import { UndoRedoButtons } from "./undoRedoButton";
 
 export function SchemaDesignerToolbar() {
     return (
-        <Toolbar
-            size="small"
-            style={{
-                paddingTop: "5px",
-                paddingBottom: "5px",
-                width: "100%",
-                overflow: "hidden",
-                overflowX: "auto",
-            }}>
-            <PublishChangesDialogButton />
-            <ViewCodeDialogButton />
-            <ExportDiagramButton />
-            <ToolbarDivider />
-            <AddTableButton />
-            <UndoRedoButtons />
-            <AutoArrangeButton />
-            <DeleteNodesButton />
-            <ToolbarDivider />
-            <FilterTablesButton />
-        </Toolbar>
+        <div style={{ width: "100%", height: "30px", padding: "5px 0px" }}>
+            <Toolbar
+                size="small"
+                style={{
+                    width: "100%",
+                    overflow: "hidden",
+                    overflowX: "auto",
+                    gap: "3px",
+                    alignItems: "center",
+                }}>
+                <PublishChangesDialogButton />
+                <ViewDefinitionsButton />
+                <ExportDiagramButton />
+                <ToolbarDivider />
+                <AddTableButton />
+                <UndoRedoButtons />
+                <AutoArrangeButton />
+                <DeleteNodesButton />
+                <ToolbarDivider />
+                <FilterTablesButton />
+            </Toolbar>
+        </div>
     );
 }
