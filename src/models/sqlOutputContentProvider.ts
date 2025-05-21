@@ -176,7 +176,7 @@ export class SqlOutputContentProvider {
             title,
             async (queryRunner: QueryRunner) => {
                 if (queryRunner) {
-                    if (this.shouldUseOldResultPane) {
+                    if (this.useLegacyQueryResults) {
                         // if the panel isn't active and exists
                         if (this._panels.get(uri).isActive === false) {
                             this._panels.get(uri).revealToForeground(uri);
@@ -214,18 +214,12 @@ export class SqlOutputContentProvider {
             .get(Constants.configOpenQueryResultsInTabByDefault);
     }
 
-    private get isRichExperiencesEnabled(): boolean {
-        return this._vscodeWrapper.getConfiguration().get(Constants.configEnableRichExperiences);
-    }
-
-    private get isNewQueryResultFeatureEnabled(): boolean {
-        return this._vscodeWrapper
-            .getConfiguration()
-            .get(Constants.configEnableNewQueryResultFeature);
-    }
-
-    private get shouldUseOldResultPane(): boolean {
-        return !this.isRichExperiencesEnabled || !this.isNewQueryResultFeatureEnabled;
+    private get useLegacyQueryResults(): boolean {
+        return (
+            this._vscodeWrapper
+                .getConfiguration()
+                .get(Constants.configUseLegacyQueryResultExperience) || false
+        );
     }
 
     private async runQueryCallback(
@@ -240,7 +234,7 @@ export class SqlOutputContentProvider {
             uri,
             title,
         );
-        if (this.shouldUseOldResultPane) {
+        if (this.useLegacyQueryResults) {
             if (this._panels.has(uri)) {
                 let panelController = this._panels.get(uri);
                 if (panelController.isDisposed) {
@@ -360,25 +354,27 @@ export class SqlOutputContentProvider {
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
             queryRunner.eventEmitter.on("start", async (panelUri) => {
-                if (this.shouldUseOldResultPane) {
-                    this._panels.get(uri).proxy.sendEvent("start", panelUri);
+                if (this.useLegacyQueryResults) {
+                    this._panels.get(queryRunner.uri).proxy.sendEvent("start", panelUri);
                     sendActionEvent(TelemetryViews.ResultsGrid, TelemetryActions.OpenQueryResult);
                 } else {
                     this._lastSendMessageTime = Date.now();
                     this._queryResultWebviewController.addQueryResultState(
-                        uri,
+                        queryRunner.uri,
                         title,
                         this.getIsExecutionPlan(),
                         this._executionPlanOptions?.includeActualExecutionPlanXml ?? false,
                     );
                     this._queryResultWebviewController.getQueryResultState(
-                        uri,
+                        queryRunner.uri,
                     ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                     if (this.isOpenQueryResultsInTabByDefaultEnabled) {
-                        await this._queryResultWebviewController.createPanelController(uri);
+                        await this._queryResultWebviewController.createPanelController(
+                            queryRunner.uri,
+                        );
                     }
-                    this._queryResultWebviewController.updatePanelState(uri);
-                    if (!this._queryResultWebviewController.hasPanel(uri)) {
+                    this._queryResultWebviewController.updatePanelState(queryRunner.uri);
+                    if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
                         await this._queryResultWebviewController.revealToForeground();
                     }
                     sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
@@ -389,11 +385,14 @@ export class SqlOutputContentProvider {
                 }
             });
             queryRunner.eventEmitter.on("resultSet", async (resultSet: ResultSetSummary) => {
-                if (this.shouldUseOldResultPane) {
-                    this._panels.get(uri).proxy.sendEvent("resultSet", resultSet);
+                if (this.useLegacyQueryResults) {
+                    this._panels.get(queryRunner.uri).proxy.sendEvent("resultSet", resultSet);
                 } else {
-                    this._queryResultWebviewController.addResultSetSummary(uri, resultSet);
-                    this._queryResultWebviewController.updatePanelState(uri);
+                    this._queryResultWebviewController.addResultSetSummary(
+                        queryRunner.uri,
+                        resultSet,
+                    );
+                    this._queryResultWebviewController.updatePanelState(queryRunner.uri);
                 }
             });
             queryRunner.eventEmitter.on("batchStart", async (batch) => {
@@ -413,43 +412,43 @@ export class SqlOutputContentProvider {
                         text: LocalizedConstants.runQueryBatchStartLine(
                             batch.selection.startLine + 1,
                         ),
-                        uri: uri,
+                        uri: queryRunner.uri,
                     },
                 };
-                if (this.shouldUseOldResultPane) {
-                    this._panels.get(uri).proxy.sendEvent("message", message);
+                if (this.useLegacyQueryResults) {
+                    this._panels.get(queryRunner.uri).proxy.sendEvent("message", message);
                 } else {
                     this._queryResultWebviewController
-                        .getQueryResultState(uri)
+                        .getQueryResultState(queryRunner.uri)
                         .messages.push(message);
                     this._queryResultWebviewController.getQueryResultState(
-                        uri,
+                        queryRunner.uri,
                     ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                     this._queryResultWebviewController.state =
-                        this._queryResultWebviewController.getQueryResultState(uri);
-                    this._queryResultWebviewController.updatePanelState(uri);
-                    if (!this._queryResultWebviewController.hasPanel(uri)) {
+                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    this._queryResultWebviewController.updatePanelState(queryRunner.uri);
+                    if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
                         await this._queryResultWebviewController.revealToForeground();
                     }
                 }
             });
             queryRunner.eventEmitter.on("message", async (message) => {
-                if (this.shouldUseOldResultPane) {
-                    this._panels.get(uri).proxy.sendEvent("message", message);
+                if (this.useLegacyQueryResults) {
+                    this._panels.get(queryRunner.uri).proxy.sendEvent("message", message);
                 } else {
                     this._queryResultWebviewController
-                        .getQueryResultState(uri)
+                        .getQueryResultState(queryRunner.uri)
                         .messages.push(message);
 
                     // Set state for messages at fixed intervals to avoid spamming the webview
                     if (this._lastSendMessageTime < Date.now() - MESSAGE_INTERVAL_IN_MS) {
                         this._queryResultWebviewController.getQueryResultState(
-                            uri,
+                            queryRunner.uri,
                         ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                         this._queryResultWebviewController.state =
-                            this._queryResultWebviewController.getQueryResultState(uri);
-                        this._queryResultWebviewController.updatePanelState(uri);
-                        if (!this._queryResultWebviewController.hasPanel(uri)) {
+                            this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                        this._queryResultWebviewController.updatePanelState(queryRunner.uri);
+                        if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
                             await this._queryResultWebviewController.revealToForeground();
                         }
                         this._lastSendMessageTime = Date.now();
@@ -463,17 +462,21 @@ export class SqlOutputContentProvider {
                         // only update query history with new queries
                         this._vscodeWrapper.executeCommand(
                             Constants.cmdRefreshQueryHistory,
-                            uri,
+                            queryRunner.uri,
                             hasError,
                         );
                     }
-                    if (this.shouldUseOldResultPane) {
-                        this._panels.get(uri).proxy.sendEvent("complete", totalMilliseconds);
+                    if (this.useLegacyQueryResults) {
+                        this._panels
+                            .get(queryRunner.uri)
+                            .proxy.sendEvent("complete", totalMilliseconds);
                     } else {
-                        this._queryResultWebviewController.getQueryResultState(uri).messages.push({
-                            message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
-                            isError: false, // Elapsed time messages are never displayed as errors
-                        });
+                        this._queryResultWebviewController
+                            .getQueryResultState(queryRunner.uri)
+                            .messages.push({
+                                message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
+                                isError: false, // Elapsed time messages are never displayed as errors
+                            });
                         // if there is an error, show the error message and set the tab to the messages tab
                         let tabState: QueryResultPaneTabs;
                         if (hasError) {
@@ -481,20 +484,21 @@ export class SqlOutputContentProvider {
                         } else {
                             tabState =
                                 Object.keys(
-                                    this._queryResultWebviewController.getQueryResultState(uri)
-                                        .resultSetSummaries,
+                                    this._queryResultWebviewController.getQueryResultState(
+                                        queryRunner.uri,
+                                    ).resultSetSummaries,
                                 ).length > 0
                                     ? QueryResultPaneTabs.Results
                                     : QueryResultPaneTabs.Messages;
                         }
 
                         this._queryResultWebviewController.getQueryResultState(
-                            uri,
+                            queryRunner.uri,
                         ).tabStates.resultPaneTab = tabState;
                         this._queryResultWebviewController.state =
-                            this._queryResultWebviewController.getQueryResultState(uri);
-                        this._queryResultWebviewController.updatePanelState(uri);
-                        if (!this._queryResultWebviewController.hasPanel(uri)) {
+                            this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                        this._queryResultWebviewController.updatePanelState(queryRunner.uri);
+                        if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
                             await this._queryResultWebviewController.revealToForeground();
                         }
                     }
@@ -560,6 +564,11 @@ export class SqlOutputContentProvider {
         let savedResultUri = decodeURIComponent(savedUri);
         this._queryResultsMap.set(savedResultUri, this._queryResultsMap.get(untitledResultsUri));
         this._queryResultsMap.delete(untitledResultsUri);
+    }
+
+    public updateQueryRunnerUri(oldUri: string, newUri: string): void {
+        let queryRunner = this.getQueryRunner(oldUri);
+        queryRunner.updateQueryRunnerUri(oldUri, newUri);
     }
 
     /**

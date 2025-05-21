@@ -11,26 +11,55 @@ import {
     ScriptOperation,
     IScriptingObject,
     IScriptOptions,
+    ScriptingProgressNotification,
 } from "../models/contracts/scripting/scriptingRequest";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import * as vscode from "vscode";
 
 export class ScriptingService {
     private _client: SqlToolsServiceClient;
 
     constructor(private _connectionManager: ConnectionManager) {
         this._client = this._connectionManager.client;
+        this._client.onNotification(ScriptingProgressNotification.type, (params) => {
+            this._client.logger.verbose(JSON.stringify(params));
+            if (params.errorMessage) {
+                const errorText = `Scripting progress error: ${params.errorMessage} - ${params.errorDetails}`;
+                this._client.logger.error(errorText);
+                vscode.window.showErrorMessage(errorText);
+            }
+        });
     }
 
-    // map for the version of SQL Server (default is 140)
-    readonly scriptCompatibilityOptionMap = {
-        90: "Script90Compat",
-        100: "Script100Compat",
-        105: "Script105Compat",
-        110: "Script110Compat",
-        120: "Script120Compat",
-        130: "Script130Compat",
-        140: "Script140Compat",
-    };
+    public static getScriptCompatibility(serverMajorVersion: number, serverMinorVersion: number) {
+        switch (serverMajorVersion) {
+            case 8:
+                return "Script80Compat";
+            case 9:
+                return "Script90Compat";
+            case 10:
+                if (serverMinorVersion === 50) {
+                    return "Script105Compat";
+                }
+                return "Script100Compat";
+            case 11:
+                return "Script110Compat";
+            case 12:
+                return "Script120Compat";
+            case 13:
+                return "Script130Compat";
+            case 14:
+                return "Script140Compat";
+            case 15:
+                return "Script150Compat";
+            case 16:
+                return "Script160Compat";
+            case 17:
+                return "Script170Compat";
+            default:
+                return "Script140Compat";
+        }
+    }
 
     // map for the target database engine edition (default is Enterprise)
     readonly targetDatabaseEngineEditionMap = {
@@ -42,14 +71,20 @@ export class ScriptingService {
         5: "SqlAzureDatabaseEdition",
         6: "SqlDatawarehouseEdition",
         7: "SqlServerStretchEdition",
+        8: "SqlManagedInstanceEdition",
+        9: "SqlDatabaseEdgeEdition",
+        11: "SqlOnDemandEdition",
     };
 
     /**
      * Helper to get the object name and schema name
      * (Public for testing purposes)
      */
-    public getObjectFromNode(node: TreeNodeInfo): IScriptingObject {
+    public getObjectFromNode(node: TreeNodeInfo): IScriptingObject | undefined {
         let metadata = node.metadata;
+        if (!metadata) {
+            return undefined;
+        }
         let scriptingObject: IScriptingObject = {
             type: metadata.metadataTypeName,
             schema: metadata.schema,
@@ -69,7 +104,7 @@ export class ScriptingService {
         operation: ScriptOperation,
     ): IScriptingParams {
         const scriptingObject = this.getObjectFromNode(node);
-        let serverInfo = this._connectionManager.getServerInfo(node.connectionInfo);
+        let serverInfo = this._connectionManager.getServerInfo(node.connectionProfile);
         let scriptCreateDropOption: string;
         switch (operation) {
             case ScriptOperation.Select:
@@ -93,10 +128,10 @@ export class ScriptingService {
                     : "SqlServerEnterpriseEdition",
             targetDatabaseEngineType:
                 serverInfo && serverInfo.isCloud ? "SqlAzure" : "SingleInstance",
-            scriptCompatibilityOption:
-                serverInfo && serverInfo.serverMajorVersion
-                    ? this.scriptCompatibilityOptionMap[serverInfo.serverMajorVersion]
-                    : "Script140Compat",
+            scriptCompatibilityOption: ScriptingService.getScriptCompatibility(
+                serverInfo?.serverMajorVersion,
+                serverInfo?.serverMinorVersion,
+            ),
         };
         let scriptingParams: IScriptingParams = {
             filePath: undefined,

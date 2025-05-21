@@ -223,11 +223,7 @@ export let msgError = l10n.t("Error: ");
 export let msgYes = l10n.t("Yes");
 export let msgNo = l10n.t("No");
 export let defaultDatabaseLabel = l10n.t("<default>");
-export let notConnectedLabel = l10n.t("Disconnected");
-export let notConnectedTooltip = l10n.t("Click to connect to a database");
-export let connectingLabel = l10n.t("Connecting");
 export let connectingTooltip = l10n.t("Connecting to: ");
-export let connectErrorLabel = l10n.t("Connection error");
 export let connectErrorTooltip = l10n.t("Error connecting to: ");
 export let connectErrorCode = l10n.t("Error code: ");
 export let connectErrorMessage = l10n.t("Error Message: ");
@@ -566,6 +562,9 @@ export let openQueryResultsInTabByDefaultPrompt = l10n.t(
 );
 export let alwaysShowInNewTab = l10n.t("Always show in new tab");
 export let keepInQueryPane = l10n.t("Keep in query pane");
+export let inMemoryDataProcessingThresholdExceeded = l10n.t(
+    "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold",
+);
 
 export function enableRichExperiencesPrompt(learnMoreUrl: string) {
     return l10n.t({
@@ -586,10 +585,35 @@ export class ObjectExplorer {
     public static FailedOEConnectionErrorRetry = l10n.t("Retry");
     public static FailedOEConnectionErrorUpdate = l10n.t("Edit Connection Profile");
     public static Connecting = l10n.t("Connecting...");
+    public static NodeDeletionConfirmation(nodeLabel: string) {
+        return l10n.t({
+            message: "Are you sure you want to remove {0}?",
+            args: [nodeLabel],
+            comment: ["{0} is the node label"],
+        });
+    }
+    public static NodeDeletionConfirmationYes = l10n.t("Yes");
+    public static NodeDeletionConfirmationNo = l10n.t("No");
+    public static LoadingNodeLabel = l10n.t("Loading...");
+    public static FetchingScriptLabel(scriptType: string) {
+        return l10n.t({
+            message: "Fetching {0} script...",
+            args: [scriptType],
+            comment: ["{0} is the script type"],
+        });
+    }
+    public static ScriptSelectLabel = l10n.t("Select");
+    public static ScriptCreateLabel = l10n.t("Create");
+    public static ScriptInsertLabel = l10n.t("Insert");
+    public static ScriptUpdateLabel = l10n.t("Update");
+    public static ScriptDeleteLabel = l10n.t("Delete");
+    public static ScriptExecuteLabel = l10n.t("Execute");
+    public static ScriptAlterLabel = l10n.t("Alter");
+    public static AzureSignInMessage = l10n.t("Signing in to Azure...");
 }
 
 export class ConnectionDialog {
-    public static connectionDialog = l10n.t("Connection Dialog (Preview)");
+    public static connectionDialog = l10n.t("Connection Dialog");
     public static azureAccount = l10n.t("Azure Account");
     public static azureAccountIsRequired = l10n.t("Azure Account is required");
     public static selectAnAccount = l10n.t("Select an account");
@@ -621,6 +645,20 @@ export class ConnectionDialog {
             comment: ["{0} is the connection name"],
         });
     };
+    public static multipleMatchingTokensError(accountDisplayName?: string, tenantId?: string) {
+        if (!accountDisplayName || !tenantId) {
+            return l10n.t(
+                "Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+            );
+        }
+        return l10n.t({
+            message:
+                "Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+            args: [accountDisplayName, tenantId],
+            comment: ["{0} is the account display name", "{1} is the tenant id"],
+        });
+    }
+    public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
 }
 
 export class FirewallRule {
@@ -963,4 +1001,120 @@ export class SchemaDesigner {
     );
     public static SaveAs = l10n.t("Save As");
     public static Save = l10n.t("Save");
+    public static SchemaDesigner = l10n.t("Schema Designer");
+    public static tabTitle(databaseName: string) {
+        return l10n.t({
+            message: "{0} (Preview)",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    }
+}
+
+export class StatusBar {
+    public static disconnectedLabel = l10n.t("Connect to MSSQL");
+    public static notConnectedTooltip = l10n.t("Click to connect to a database");
+    public static connectingLabel = l10n.t("Connecting");
+    public static connectErrorLabel = l10n.t("Connection error"); // {0} is the server name
+}
+
+export class Connection {
+    public static missingConnectionIdsError = (connectionDisplayNames: string[]) => {
+        return l10n.t({
+            message:
+                "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
+            args: [connectionDisplayNames.join("\n")],
+            comment: [
+                "{0} is the list of display names for the connections that have been ignored",
+            ],
+        });
+    };
+
+    public static missingConnectionInformation = (connectionId: string) => {
+        return l10n.t({
+            message:
+                "The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.",
+            args: [connectionId],
+            comment: ["{0} is the connection ID for the connection that has been ignored"],
+        });
+    };
+
+    public static errorMigratingLegacyConnection = (connectionId: string, errorMessage: string) => {
+        return l10n.t({
+            message:
+                "Error migrating connection ID {0} to new format.  Please recreate this connection to use it.\nError:\n{1}",
+            args: [connectionId, errorMessage],
+            comment: ["{0} is the connection id", "{1} is the error message"],
+        });
+    };
+}
+
+export class MssqlChatAgent {
+    public static noModelFound = l10n.t("No model found.");
+    public static noToolsToProcess = l10n.t("No tools to process.");
+    public static notConnected = l10n.t("You are not connected to any database.");
+    public static usingModel = (modelName: string, canSendRequest: boolean | undefined) => {
+        return l10n.t({
+            message: "Using {0} ({1})...",
+            args: [modelName, canSendRequest],
+            comment: ["{0} is the model name", "{1} is whether the model can send requests"],
+        });
+    };
+    public static toolLookupFor = (partName: string, partInput: string) => {
+        return l10n.t({
+            message: "Tool lookup for: {0} - {1}.",
+            args: [partName, partInput],
+            comment: ["{0} is the part name", "{1} is the part input"],
+        });
+    };
+    public static gotInvalidToolUseParameters = (partInput: string, errorMessage: string) => {
+        return l10n.t({
+            message: 'Got invalid tool use parameters: "{0}". ({1})',
+            args: [partInput, errorMessage],
+            comment: ["{0} is the part input", "{1} is the error message"],
+        });
+    };
+    public static callingTool = (toolFunctionName: string, sqlToolParameters: string) => {
+        return l10n.t({
+            message: "Calling tool: {0} with {1}.",
+            args: [toolFunctionName, sqlToolParameters],
+            comment: ["{0} is the tool function name", "{1} is the SQL tool parameters"],
+        });
+    };
+    public static modelNotFoundError = l10n.t(
+        "The requested model could not be found. Please check model availability or try a different model.",
+    );
+    public static noPermissionError = l10n.t(
+        "Access denied. Please ensure you have the necessary permissions to use this tool or model.",
+    );
+    public static quoteLimitExceededError = l10n.t(
+        "Usage limits exceeded. Try again later, or consider optimizing your requests.",
+    );
+    public static offTopicError = l10n.t(
+        "I'm sorry, I can only assist with SQL-related questions.",
+    );
+    public static unexpectedError = l10n.t(
+        "An unexpected error occurred with the language model. Please try again.",
+    );
+    public static usingModelToProcessRequest = (modelName: string) => {
+        return l10n.t({
+            message: "Using {0} to process your request...",
+            args: [modelName],
+            comment: ["{0} is the model name that will be processing the request"],
+        });
+    };
+    public static languageModelDidNotReturnAnyOutput = l10n.t(
+        "The language model did not return any output.",
+    );
+    public static errorOccurredWhileProcessingRequest = l10n.t(
+        "An error occurred while processing your request.",
+    );
+    public static errorOccurredWith = (errorMessage: string) => {
+        return l10n.t({
+            message: "An error occurred: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    };
+    public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
 }

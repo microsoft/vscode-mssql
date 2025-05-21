@@ -54,7 +54,7 @@ suite("ConnectionCredentials Tests", () => {
         let config = stubs.createWorkspaceConfiguration(configResult);
         vscodeWrapper
             .setup((x) => x.getConfiguration(TypeMoq.It.isAny()))
-            .returns((x) => {
+            .returns((_x) => {
                 return config;
             });
     });
@@ -63,6 +63,7 @@ suite("ConnectionCredentials Tests", () => {
     function connectProfile(
         profile: IConnectionProfile,
         emptyPassword: boolean,
+        shouldSaveUpdates: boolean,
     ): Promise<IConnectionInfo> {
         // Setup input paramaters
         let isProfile = true;
@@ -73,13 +74,13 @@ suite("ConnectionCredentials Tests", () => {
         // Mocking functions
         connectionStore
             .setup(async (x) => await x.removeProfile(TypeMoq.It.isAny()))
-            .returns((profile1: IConnectionProfile) => Promise.resolve(true));
+            .returns((_profile1: IConnectionProfile) => Promise.resolve(true));
         connectionStore
             .setup(async (x) => await x.saveProfile(TypeMoq.It.isAny()))
             .returns((profile1: IConnectionProfile) => Promise.resolve(profile1));
         prompter
             .setup((x) => x.prompt(TypeMoq.It.isAny()))
-            .returns((questions: IQuestion[]) => Promise.resolve(answers));
+            .returns((_questions: IQuestion[]) => Promise.resolve(answers));
 
         // Function Call to test
         return ConnectionCredentials.ensureRequiredPropertiesSet(
@@ -89,69 +90,71 @@ suite("ConnectionCredentials Tests", () => {
             wasPasswordEmptyInConfigFile,
             prompter.object,
             connectionStore.object,
+            undefined, // defaultProfileValues
+            shouldSaveUpdates,
         );
     }
 
-    function ensureRequestAndSavePassword(emptyPassword: boolean): (done: MochaDone) => void {
-        return (done: MochaDone) => {
-            // Setup Profile Information to have savePassword on and blank
-            let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
-                savePassword: true,
-                emptyPasswordInput: emptyPassword,
-                password: "",
-            });
+    async function ensureRequestAndSavePassword(
+        emptyPassword: boolean,
+        shouldSavePassword: boolean,
+    ): Promise<void> {
+        // Setup Profile Information to have savePassword on and blank
+        let profile = Object.assign(new ConnectionProfile(), defaultProfile, {
+            savePassword: shouldSavePassword,
+            emptyPasswordInput: emptyPassword,
+            password: "",
+        });
 
-            // Setup input paramaters
-            let isProfile = true;
-            let isPasswordRequired = false;
-            let wasPasswordEmptyInConfigFile: boolean = emptyPassword;
-            let passwordQuestion: IQuestion[];
-            let answers = {};
+        // Setup input paramaters
+        let isProfile = true;
+        let isPasswordRequired = false;
+        let wasPasswordEmptyInConfigFile: boolean = emptyPassword;
+        let passwordQuestion: IQuestion[];
+        let answers = {};
 
-            // Mocking functions
-            connectionStore
-                .setup(async (x) => await x.removeProfile(TypeMoq.It.isAny()))
-                .returns((profile1: IConnectionProfile) => Promise.resolve(true));
-            connectionStore
-                .setup(async (x) => await x.saveProfile(TypeMoq.It.isAny()))
-                .returns((profile1: IConnectionProfile) => Promise.resolve(profile1));
-            prompter
-                .setup((x) => x.prompt(TypeMoq.It.isAny()))
-                .callback((questions) => {
-                    passwordQuestion = questions.filter(
-                        (question) => question.name === LocalizedConstants.passwordPrompt,
-                    );
-                    answers[LocalizedConstants.passwordPrompt] = emptyPassword ? "" : "newPassword";
-                    void passwordQuestion[0].onAnswered(answers[LocalizedConstants.passwordPrompt]);
-                })
-                .returns((questions: IQuestion[]) => Promise.resolve(answers));
+        // Mocking functions
+        connectionStore
+            .setup(async (x) => await x.removeProfile(TypeMoq.It.isAny()))
+            .returns((_profile1: IConnectionProfile) => Promise.resolve(true));
+        connectionStore
+            .setup(async (x) => await x.saveProfile(TypeMoq.It.isAny()))
+            .returns((profile1: IConnectionProfile) => Promise.resolve(profile1));
+        prompter
+            .setup((x) => x.prompt(TypeMoq.It.isAny()))
+            .callback((questions) => {
+                passwordQuestion = questions.filter(
+                    (question) => question.name === LocalizedConstants.passwordPrompt,
+                );
+                answers[LocalizedConstants.passwordPrompt] = emptyPassword ? "" : "newPassword";
+                void passwordQuestion[0].onAnswered(answers[LocalizedConstants.passwordPrompt]);
+            })
+            .returns((_questions: IQuestion[]) => Promise.resolve(answers));
 
-            // Call function to test
-            ConnectionCredentials.ensureRequiredPropertiesSet(
-                profile,
-                isProfile,
-                isPasswordRequired,
-                wasPasswordEmptyInConfigFile,
-                prompter.object,
-                connectionStore.object,
-            )
-                .then((success) => {
-                    assert.ok(success);
-                    // Checking to see password question was prompted
-                    assert.ok(passwordQuestion);
-                    assert.equal(success.password, answers[LocalizedConstants.passwordPrompt]);
-                    connectionStore.verify(
-                        async (x) => await x.removeProfile(TypeMoq.It.isAny()),
-                        TypeMoq.Times.once(),
-                    );
-                    connectionStore.verify(
-                        async (x) => await x.saveProfile(TypeMoq.It.isAny()),
-                        TypeMoq.Times.once(),
-                    );
-                    done();
-                })
-                .catch((err) => done(new Error(err)));
-        };
+        // Call function to test
+        const updatedProfile = await ConnectionCredentials.ensureRequiredPropertiesSet(
+            profile,
+            isProfile,
+            isPasswordRequired,
+            wasPasswordEmptyInConfigFile,
+            prompter.object,
+            connectionStore.object,
+            undefined, // defaultProfileValues
+            shouldSavePassword,
+        );
+
+        assert.ok(updatedProfile);
+        // Checking to see password question was prompted
+        assert.ok(passwordQuestion);
+        assert.equal(updatedProfile.password, answers[LocalizedConstants.passwordPrompt]);
+        connectionStore.verify(
+            async (x) => await x.removeProfile(TypeMoq.It.isAny()),
+            shouldSavePassword ? TypeMoq.Times.once() : TypeMoq.Times.never(),
+        );
+        connectionStore.verify(
+            async (x) => await x.saveProfile(TypeMoq.It.isAny()),
+            shouldSavePassword ? TypeMoq.Times.once() : TypeMoq.Times.never(),
+        );
     }
 
     suite("ensureRequiredPropertiesSet Tests", () => {
@@ -164,7 +167,7 @@ suite("ConnectionCredentials Tests", () => {
             });
             let emptyPassword = false;
 
-            connectProfile(profile, emptyPassword)
+            connectProfile(profile, emptyPassword, true /* shouldSaveUpdates */)
                 .then((success) => {
                     assert.ok(success);
                     connectionStore.verify(
@@ -189,7 +192,7 @@ suite("ConnectionCredentials Tests", () => {
             });
 
             let emptyPassword = true;
-            connectProfile(profile, emptyPassword)
+            connectProfile(profile, emptyPassword, true /* shouldSaveUpdates */)
                 .then((success) => {
                     assert.ok(success);
                     connectionStore.verify(
@@ -214,7 +217,7 @@ suite("ConnectionCredentials Tests", () => {
             });
 
             let emptyPassword = false;
-            connectProfile(profile, emptyPassword)
+            connectProfile(profile, emptyPassword, true /* shouldSaveUpdates */)
                 .then((success) => {
                     assert.ok(success);
                     connectionStore.verify(
@@ -239,7 +242,7 @@ suite("ConnectionCredentials Tests", () => {
             });
 
             let emptyPassword = true;
-            connectProfile(profile, emptyPassword)
+            connectProfile(profile, emptyPassword, true /* shouldSaveUpdates */)
                 .then((success) => {
                     assert.ok(success);
                     connectionStore.verify(
@@ -257,17 +260,30 @@ suite("ConnectionCredentials Tests", () => {
 
         // Connect with savePassword true and blank password and
         // confirm password is prompted for and saved for non-empty password
-        test(
-            "ensureRequiredPropertiesSet should request password and save it for non-empty passwords",
-            ensureRequestAndSavePassword(false),
-        );
+        test("ensureRequiredPropertiesSet should request password and save it for non-empty passwords", async () => {
+            await ensureRequestAndSavePassword(
+                false /* emptyPassword */,
+                true /* shouldSavePassword */,
+            );
+        });
 
         // Connect with savePassword true and blank password and
         // confirm password is prompted for and saved correctly for an empty password
-        test(
-            "ensureRequiredPropertiesSet should request password and save it correctly for empty passswords",
-            ensureRequestAndSavePassword(true),
-        );
+        test("ensureRequiredPropertiesSet should request password and save it correctly for empty passswords", async () => {
+            await ensureRequestAndSavePassword(
+                true /* emptyPassword */,
+                true /* shouldSavePassword */,
+            );
+        });
+
+        // Connect with savePassword false and blank password and
+        // confirm password is prompted for but not saved
+        test("ensureRequiredPropertiesSet should request password but not save it for non-empty passswords", async () => {
+            await ensureRequestAndSavePassword(
+                false /* emptyPassword */,
+                false /* shouldSavePassword */,
+            );
+        });
     });
 
     suite("ConnectionDetails conversion tests", () => {

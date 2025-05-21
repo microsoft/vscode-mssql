@@ -167,6 +167,24 @@ export class ConnectionCredentials implements IConnectionInfo {
         return connInfo;
     }
 
+    public static removeUndefinedProperties(connection: IConnectionInfo): IConnectionInfo {
+        // TODO: ideally this compares against the default values acquired from a source of truth (e.g. STS),
+        // so that it can clean up more than just undefined properties.
+
+        const output = Object.assign({}, connection);
+        for (const key of Object.keys(output)) {
+            if (
+                output[key] === undefined ||
+                // eslint-disable-next-line no-restricted-syntax
+                output[key] === null
+            ) {
+                delete output[key];
+            }
+        }
+
+        return output;
+    }
+
     public static async ensureRequiredPropertiesSet(
         credentials: IConnectionInfo,
         isProfile: boolean,
@@ -175,6 +193,7 @@ export class ConnectionCredentials implements IConnectionInfo {
         prompter: IPrompter,
         connectionStore: ConnectionStore,
         defaultProfileValues?: IConnectionInfo,
+        shouldSaveUpdates: boolean = true,
     ): Promise<IConnectionInfo> {
         let questions: IQuestion[] =
             await ConnectionCredentials.getRequiredCredentialValuesQuestions(
@@ -191,8 +210,8 @@ export class ConnectionCredentials implements IConnectionInfo {
             type: QuestionTypes.confirm,
             name: LocalizedConstants.msgSavePassword,
             message: LocalizedConstants.msgSavePassword,
-            shouldPrompt: (answers) => {
-                if (credentials.connectionString) {
+            shouldPrompt: (_answers) => {
+                if (credentials.connectionString || !shouldSaveUpdates) {
                     return false;
                 }
 
@@ -225,6 +244,7 @@ export class ConnectionCredentials implements IConnectionInfo {
                     // stored the password in the config file or purposefully set an empty password,
                     // then transfer the password to the credential store
                     if (
+                        shouldSaveUpdates &&
                         profile.savePassword &&
                         (!wasPasswordEmptyInConfigFile || profile.emptyPasswordInput)
                     ) {
@@ -239,7 +259,7 @@ export class ConnectionCredentials implements IConnectionInfo {
                             (<IConnectionProfile>unprocessedCredentials).savePassword ||
                         profile.password !== unprocessedCredentials.password
                     ) {
-                        if (await connectionStore.removeProfile(profile)) {
+                        if (shouldSaveUpdates && (await connectionStore.removeProfile(profile))) {
                             await connectionStore.saveProfile(profile);
                         }
                     }

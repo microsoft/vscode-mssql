@@ -428,6 +428,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
             .returns(() => {
                 let configResult: { [key: string]: any } = {};
                 configResult[Constants.configPersistQueryResultTabs] = false;
+                configResult[Constants.configUseLegacyQueryResultExperience] = true;
                 let config = stubs.createWorkspaceConfiguration(configResult);
                 return config;
             });

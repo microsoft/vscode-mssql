@@ -66,6 +66,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     private _container: HTMLElement;
     protected _tableContainer: HTMLElement;
     private selectionModel: CellSelectionModel<T>;
+    public headerFilter: HeaderFilter<T>;
 
     constructor(
         parent: HTMLElement,
@@ -142,14 +143,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this._container.appendChild(this._tableContainer);
         this.styleElement = DOM.createStyleSheet(this._container);
         this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
-        this.registerPlugin(
-            new HeaderFilter(
-                webViewState.themeKind,
-                this.queryResultContext,
-                this.webViewState,
-                gridId,
-            ),
+        this.headerFilter = new HeaderFilter(
+            webViewState.themeKind,
+            this.queryResultContext,
+            this.webViewState,
+            gridId,
         );
+        this.registerPlugin(this.headerFilter);
         this.registerPlugin(
             new ContextMenu(
                 this.uri,
@@ -199,9 +199,49 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.mapMouseEvent(this._grid.onContextMenu);
         this.mapMouseEvent(this._grid.onClick);
         this.mapMouseEvent(this._grid.onDblClick);
-        this._grid.onColumnsResized.subscribe(() => console.log("oncolumnresize"));
+        this._grid.onColumnsResized.subscribe(async (_e, data) => {
+            if (!data) {
+                return;
+            }
+            let columnSizes = this.grid
+                .getColumns()
+                .slice(1)
+                .map((v) => v.width);
+            let currentColumnSizes = await this.webViewState.extensionRpc.call("getColumnWidths", {
+                uri: this.queryResultContext.state.uri,
+            });
+            if (currentColumnSizes === columnSizes) {
+                return;
+            }
+
+            let message = {
+                uri: this.queryResultContext.state.uri,
+                columnWidths: columnSizes,
+            };
+            await this.webViewState.extensionRpc.call("setColumnWidths", message);
+        });
+
         this.style(styles);
         // this.registerPlugin(new MouseWheelSupport());
+    }
+
+    public async restoreColumnWidths(): Promise<void> {
+        const columnWidthArray = (await this.webViewState.extensionRpc.call("getColumnWidths", {
+            uri: this.queryResultContext.state.uri,
+        })) as number[];
+        if (!columnWidthArray) {
+            return;
+        }
+        let count = 0;
+        for (const column of this._grid.getColumns()) {
+            // Skip the first column (row selector)
+            if (count === 0) {
+                count++;
+                continue;
+            }
+            column.width = columnWidthArray[count - 1];
+            count++;
+        }
     }
 
     /**

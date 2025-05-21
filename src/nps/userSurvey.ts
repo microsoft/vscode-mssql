@@ -41,7 +41,10 @@ export class UserSurvey {
 
     /** checks user eligibility for NPS survey and, if eligible, displays the survey and submits feedback */
     public promptUserForNPSFeedback(): void {
-        void (async () => this.promptUserForNPSFeedbackAsync)();
+        void this.promptUserForNPSFeedbackAsync().catch((err) => {
+            // Handle any errors that occur during the prompt and not throwing them in order to not break the calling function
+            console.error("Error prompting for NPS feedback:", err);
+        });
     }
 
     private async promptUserForNPSFeedbackAsync(): Promise<void> {
@@ -184,6 +187,12 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
             modernFeaturesEnabled: vscode.workspace
                 .getConfiguration()
                 .get(constants.configEnableRichExperiences),
+            useLegacyConnectionExperience: vscode.workspace
+                .getConfiguration()
+                .get(constants.configUseLegacyConnectionExperience),
+            useLegacyQueryResultExperience: vscode.workspace
+                .getConfiguration()
+                .get(constants.configUseLegacyQueryResultExperience),
             ...stringAnswers,
         },
         numericalAnswers,

@@ -245,6 +245,7 @@ export class LocConstants {
             pasteConnectionString: l10n.t("Paste connection string from clipboard"),
             copy: l10n.t("Copy"),
             paste: l10n.t("Paste"),
+            searchSettings: l10n.t("Search settings..."),
         };
     }
 
@@ -327,6 +328,7 @@ export class LocConstants {
             showFilter: l10n.t("Show Filter"),
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
+            clearSort: l10n.t("Clear Sort"),
             saveAsCsv: l10n.t("Save as CSV"),
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),

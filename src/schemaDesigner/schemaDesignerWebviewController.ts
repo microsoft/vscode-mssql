@@ -8,7 +8,7 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
-import { TreeNodeInfo } from "../objectExplorer/treeNodeInfo";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
@@ -16,6 +16,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     SchemaDesigner.SchemaDesignerReducers
 > {
     private _sessionId: string = "";
+    private _key: string = "";
+    public schemaDesignerDetails: SchemaDesigner.CreateSessionResponse | undefined = undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -26,6 +28,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         private accessToken: string | undefined,
         private databaseName: string,
         private treeNode: TreeNodeInfo,
+        private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
     ) {
         super(
             context,
@@ -34,7 +37,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             "schemaDesigner",
             {},
             {
-                title: databaseName,
+                title: LocConstants.SchemaDesigner.tabTitle(databaseName),
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
@@ -51,6 +54,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 showRestorePromptAfterClose: false,
             },
         );
+
+        this._key = `${this.connectionString}-${this.databaseName}`;
 
         this.registerReducers();
     }
@@ -75,11 +80,23 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.registerRequestHandler("initializeSchemaDesigner", async () => {
-            const sessionResponse = await this.schemaDesignerService.createSession({
-                connectionString: this.connectionString,
-                accessToken: this.accessToken,
-                databaseName: this.databaseName,
-            });
+            let sessionResponse: SchemaDesigner.CreateSessionResponse;
+            if (!this.schemaDesignerCache.has(this._key)) {
+                sessionResponse = await this.schemaDesignerService.createSession({
+                    connectionString: this.connectionString,
+                    accessToken: this.accessToken,
+                    databaseName: this.databaseName,
+                });
+                this.schemaDesignerCache.set(this._key, {
+                    schemaDesignerDetails: sessionResponse,
+                    isDirty: false,
+                });
+            } else {
+                // if the cache has the session, the changes have not been saved, and the
+                // session is dirty
+                sessionResponse = this.updateCacheItem(undefined, true).schemaDesignerDetails;
+            }
+            this.schemaDesignerDetails = sessionResponse;
             this._sessionId = sessionResponse.sessionId;
             return sessionResponse;
         });
@@ -89,6 +106,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
             });
+            this.updateCacheItem(payload.updatedSchema, true);
             return script;
         });
 
@@ -98,6 +116,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     updatedSchema: payload.updatedSchema,
                     sessionId: this._sessionId,
                 });
+                this.updateCacheItem(payload.updatedSchema, true);
                 return {
                     report,
                 };
@@ -113,6 +132,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 await this.schemaDesignerService.publishSession({
                     sessionId: this._sessionId,
                 });
+                this.updateCacheItem(undefined, false);
                 return {
                     success: true,
                 };
@@ -146,10 +166,24 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
     }
 
-    override dispose(): void {
+    private updateCacheItem(
+        updatedSchema?: SchemaDesigner.Schema,
+        isDirty?: boolean,
+    ): SchemaDesigner.SchemaDesignerCacheItem {
+        let schemaDesignerCacheItem = this.schemaDesignerCache.get(this._key)!;
+        if (updatedSchema) {
+            this.schemaDesignerDetails!.schema = updatedSchema;
+            schemaDesignerCacheItem.schemaDesignerDetails.schema = updatedSchema;
+        }
+        // if isDirty is not provided, set it to schemaDesignerCacheItem.isDirty
+        // else, set it to the provided value
+        schemaDesignerCacheItem.isDirty = isDirty ?? schemaDesignerCacheItem.isDirty;
+        this.schemaDesignerCache.set(this._key, schemaDesignerCacheItem);
+        return schemaDesignerCacheItem;
+    }
+
+    override async dispose(): Promise<void> {
+        this.updateCacheItem(this.schemaDesignerDetails!.schema);
         super.dispose();
-        this.schemaDesignerService.disposeSession({
-            sessionId: this._sessionId,
-        });
     }
 }

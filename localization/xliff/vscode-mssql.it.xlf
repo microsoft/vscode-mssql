@@ -26,6 +26,10 @@
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
         <target state="translated">È già in esecuzione una query per questa sessione dell'editor. Annullare questa query o attenderne il completamento.</target>
       </trans-unit>
+      <trans-unit id="++CODE++fa0563b6f04578f7a2a7cff43aed611c4835bbb2f3a21dfed76a0601a1d63859">
+        <source xml:lang="en">Access denied. Please ensure you have the necessary permissions to use this tool or model.</source>
+        <target state="new">Access denied. Please ensure you have the necessary permissions to use this tool or model.</target>
+      </trans-unit>
       <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
         <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
         <note>{0} is the connection id
@@ -68,6 +72,11 @@
         <source xml:lang="en">Add Firewall Rule</source>
         <target state="translated">Aggiungi regola del firewall</target>
       </trans-unit>
+      <trans-unit id="++CODE++07d072b97d1e2346b3eed5778ffb9d979a83de20ca00ff8a5f8bfa99d41993a5">
+        <source xml:lang="en">Add Firewall Rule to {0}</source>
+        <note>{0} is the server name</note>
+        <target state="translated">Aggiungi regola del firewall a {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
         <source xml:lang="en">Add Table</source>
         <target state="translated">Aggiungi tabella</target>
@@ -75,6 +84,11 @@
       <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
         <source xml:lang="en">Add a Microsoft Entra account...</source>
         <target state="translated">Aggiungere un account Microsoft Entra...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
+        <source xml:lang="en">Add my client IP ({0})</source>
+        <note>{0} is the IP address of the client</note>
+        <target state="translated">Aggiungi IP client personale ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++cf502b3a94444bf574bf8c1ca17b7ba9f954543af389a62e0eeca0ec3faa08f3">
         <source xml:lang="en">Add new column</source>
@@ -112,6 +126,10 @@
         <source xml:lang="en">Alphabetical</source>
         <target state="translated">In ordine alfabetico</target>
       </trans-unit>
+      <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
+        <source xml:lang="en">Alter</source>
+        <target state="new">Alter</target>
+      </trans-unit>
       <trans-unit id="++CODE++1888bd4ce917e9c8cecde43608d69624f56668f86f1bbe4331494db33fb52578">
         <source xml:lang="en">Always show in new tab</source>
         <target state="translated">Mostra sempre nella nuova scheda</target>
@@ -120,10 +138,27 @@
         <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
         <target state="translated">Errore durante l'aggiornamento dei nodi. Per altri dettagli, vedere il canale di output MSSQL.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
+        <source xml:lang="en">An error occurred while processing your request.</source>
+        <target state="new">An error occurred while processing your request.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8cf147a84fa5b378df2fb1c8d2001b12404768f0de0871a152ed488136a3b350">
         <source xml:lang="en">An error occurred while removing Microsoft Entra account: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">Si è verificato un errore durante la rimozione dell'account Microsoft Entra: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
+        <source xml:lang="en">An error occurred: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">An error occurred: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8b8fe298945f010c0411318ce29f36e4d4da70cdd0d28299dc0b64e7c8866e74">
+        <source xml:lang="en">An unexpected error occurred with the language model. Please try again.</source>
+        <target state="new">An unexpected error occurred with the language model. Please try again.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++82fcdad573baa3443513b5c61196ed142a07d6b967afc2778c8932549a5ad455">
+        <source xml:lang="en">An unknown error occurred. Please try again.</source>
+        <target state="new">An unknown error occurred. Please try again.</target>
       </trans-unit>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
@@ -136,6 +171,11 @@
       <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
         <source xml:lang="en">Apply changes to target</source>
         <target state="translated">Applica modifiche alla destinazione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d06cb9591349a9b98151fca38054ea9703b643b570f3b4557f3d2c07d76a7403">
+        <source xml:lang="en">Are you sure you want to delete {0}?</source>
+        <note>{0} is the node label</note>
+        <target state="new">Are you sure you want to delete {0}?</target>
       </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
@@ -161,6 +201,16 @@
       <trans-unit id="++CODE++53c90adec54ba3992244fa9a6edbef327f573af7d2c99f2a110ba57949283b38">
         <source xml:lang="en">Authentication Type</source>
         <target state="translated">Tipo di autenticazione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9a1bed14bd9674de782c072cb0e866910c7df51326e29f8a0bea807d4791a7e6">
+        <source xml:lang="en">Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</source>
+        <note>{0} is the account display name
+{1} is the tenant id</note>
+        <target state="new">Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b1b511843263fa8435aafed7abebc29efd242c576fd5d386e04e349e7288e092">
+        <source xml:lang="en">Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</source>
+        <target state="new">Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</target>
       </trans-unit>
       <trans-unit id="++CODE++439a99b0935fb17d372edb14b699ddd05330257d8c40b464365c1129bdf94d6a">
         <source xml:lang="en">Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.</source>
@@ -208,6 +258,10 @@
         <source xml:lang="en">Azure sign in failed.</source>
         <target state="translated">L'accesso ad Azure non è riuscito.</target>
       </trans-unit>
+      <trans-unit id="++CODE++bcfba23612af01d6083c1cbc352807182aa4a2a08665615d5e75206766e035c0">
+        <source xml:lang="en">Azure sign-in failed or was cancelled.</source>
+        <target state="translated">L'accesso ad Azure non è riuscito o è stato annullato.</target>
+      </trans-unit>
       <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
         <target state="translated">La cache dei token di Azure è stata cancellata.</target>
@@ -248,6 +302,12 @@
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
         <target state="translated">CSV</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d9a998bc5b0b1a8720c33d843590e55895977f19f6d8f56e440c778b673ab17a">
+        <source xml:lang="en">Calling tool: {0} with {1}.</source>
+        <note>{0} is the tool function name
+{1} is the SQL tool parameters</note>
+        <target state="new">Calling tool: {0} with {1}.</target>
       </trans-unit>
       <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
         <source xml:lang="en">Cancel</source>
@@ -403,6 +463,14 @@
         <source xml:lang="en">Clear Selection</source>
         <target state="translated">Cancella selezione</target>
       </trans-unit>
+      <trans-unit id="++CODE++8046678782bb5feaf7131b03db70b9f5f66007fcc8b0c670c186db149edeb041">
+        <source xml:lang="en">Clear Sort</source>
+        <target state="new">Clear Sort</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
+        <source xml:lang="en">Clear cache and refresh token</source>
+        <target state="new">Clear cache and refresh token</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">Fare clic per connettersi a un database</target>
@@ -491,7 +559,7 @@
       </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
-        <target state="new">Comparison Details</target>
+        <target state="translated">Dettagli del confronto</target>
       </trans-unit>
       <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
         <source xml:lang="en">Confirm to clear recent connections list</source>
@@ -508,6 +576,10 @@
       <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
         <source xml:lang="en">Connect to Database</source>
         <target state="translated">Connettiti al database</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4559fb568a70152599e0f4c5aeae4ca533de114086a7fbd57f5281732c9db33b">
+        <source xml:lang="en">Connect to MSSQL</source>
+        <target state="new">Connect to MSSQL</target>
       </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
@@ -534,9 +606,9 @@
         <source xml:lang="en">Connecting...</source>
         <target state="new">Connecting...</target>
       </trans-unit>
-      <trans-unit id="++CODE++f82e876fbb96757b5e0ff7d062baaaf01763104fc6bba89647cc06e4e327b648">
-        <source xml:lang="en">Connection Dialog (Preview)</source>
-        <target state="translated">Finestra di dialogo Connessione (anteprima)</target>
+      <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
+        <source xml:lang="en">Connection Dialog</source>
+        <target state="new">Connection Dialog</target>
       </trans-unit>
       <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
         <source xml:lang="en">Connection Error</source>
@@ -597,7 +669,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
         <source xml:lang="en">Copy connection string to clipboard</source>
-        <target state="new">Copy connection string to clipboard</target>
+        <target state="translated">Copia la stringa di connessione negli Appunti</target>
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
@@ -635,6 +707,11 @@
       <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
         <source xml:lang="en">Create a new firewall rule</source>
         <target state="translated">Crea una nuova regola del firewall</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
+        <source xml:lang="en">Create new firewall rule for {0}</source>
+        <note>{0} is the server name that the firewall rule will be created for</note>
+        <target state="translated">Crea nuova regola del firewall per {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -715,10 +792,6 @@
       <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
         <source xml:lang="en">Disconnect</source>
         <target state="translated">Disconnetti</target>
-      </trans-unit>
-      <trans-unit id="++CODE++04dfac3671b494ad53fcd152f7a14511bfb35747278aad8ce254a0d6e4ba4718">
-        <source xml:lang="en">Disconnected</source>
-        <target state="translated">Disconnessione completata</target>
       </trans-unit>
       <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
         <source xml:lang="en">Disconnected on document "{0}"</source>
@@ -872,6 +945,16 @@
         <source xml:lang="en">Error loading; refresh to try again</source>
         <target state="translated">Errore durante il caricamento; aggiornare per riprovare</target>
       </trans-unit>
+      <trans-unit id="++CODE++1991a10d051f3811602fc80483727c19b7b89172132fd03d816a064cfd3a87ac">
+        <source xml:lang="en">Error migrating connection ID {0} to new format.  Please recreate this connection to use it.
+Error:
+{1}</source>
+        <note>{0} is the connection id
+{1} is the error message</note>
+        <target state="new">Error migrating connection ID {0} to new format.  Please recreate this connection to use it.
+Error:
+{1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">Si è verificato un errore durante l'apertura del contenuto nell'editor.</target>
@@ -907,6 +990,10 @@
       <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
         <source xml:lang="en">Excel</source>
         <target state="translated">Excel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
+        <source xml:lang="en">Execute</source>
+        <target state="new">Execute</target>
       </trans-unit>
       <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
         <source xml:lang="en">Executing query...</source>
@@ -988,6 +1075,11 @@
         <source xml:lang="en">Failed to save scmp file: '{0}'</source>
         <note>{0} is the error message returned from the save scmp operation</note>
         <target state="translated">Non è stato possibile salvare il file scmp: '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
+        <source xml:lang="en">Fetching {0} script...</source>
+        <note>{0} is the script type</note>
+        <target state="new">Fetching {0} script...</target>
       </trans-unit>
       <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
         <source xml:lang="en">File</source>
@@ -1126,6 +1218,12 @@
         <source xml:lang="en">Getting definition ...</source>
         <target state="translated">Recupero della definizione...</target>
       </trans-unit>
+      <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
+        <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
+        <note>{0} is the part input
+{1} is the error message</note>
+        <target state="new">Got invalid tool use parameters: "{0}". ({1})</target>
+      </trans-unit>
       <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
         <source xml:lang="en">Greater Than</source>
         <target state="translated">Maggiore di</target>
@@ -1159,6 +1257,10 @@
         <source xml:lang="en">I have read the summary and understand the potential risks.</source>
         <target state="translated">Ho letto il riepilogo e ho compreso i potenziali rischi.</target>
       </trans-unit>
+      <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
+        <source xml:lang="en">I'm sorry, I can only assist with SQL-related questions.</source>
+        <target state="new">I'm sorry, I can only assist with SQL-related questions.</target>
+      </trans-unit>
       <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
         <source xml:lang="en">Ignore Tenant</source>
         <target state="translated">Ignora tenant</target>
@@ -1191,6 +1293,10 @@
         <source xml:lang="en">Initializing comparison, this might take a while...</source>
         <target state="translated">Inizializzazione del confronto. L'operazione potrebbe richiedere qualche istante...</target>
       </trans-unit>
+      <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
+        <source xml:lang="en">Insert</source>
+        <target state="new">Insert</target>
+      </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
         <target state="translated">Integrato</target>
@@ -1209,7 +1315,7 @@
       </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
-        <target state="new">Invalid connection string: {0}</target>
+        <target state="translated">Stringa di connessione non valida: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++b65d31b3dcfd9935b8fae6c977fe0f07a5d73a830edb2426c05d63464b299858">
         <source xml:lang="en">Invalid max length '{0}'</source>
@@ -1280,11 +1386,11 @@
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
-        <target state="new">Load</target>
+        <target state="translated">Carica</target>
       </trans-unit>
       <trans-unit id="++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b">
         <source xml:lang="en">Load from Connection String</source>
-        <target state="new">Load from Connection String</target>
+        <target state="translated">Carica da stringa di connessione</target>
       </trans-unit>
       <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
         <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
@@ -1309,6 +1415,10 @@
       <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
         <source xml:lang="en">Loading Table Designer</source>
         <target state="translated">Caricamento di Progettazione tabelle</target>
+      </trans-unit>
+      <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
+        <source xml:lang="en">Loading...</source>
+        <target state="new">Loading...</target>
       </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
@@ -1341,6 +1451,10 @@
       <trans-unit id="++CODE++305fd6adb2295a939e62e4fed83349c610aa4e1840280503e6b64c8042dccd16">
         <source xml:lang="en">Max Length</source>
         <target state="translated">Lunghezza massima</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3cb29430462001e8edb74afebb929c2e967e7eac89679c4d549a8305ec4a2fe7">
+        <source xml:lang="en">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</source>
+        <target state="new">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</target>
       </trans-unit>
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
@@ -1483,6 +1597,10 @@
         <source xml:lang="en">No items</source>
         <target state="translated">Nessun elemento</target>
       </trans-unit>
+      <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
+        <source xml:lang="en">No model found.</source>
+        <target state="new">No model found.</target>
+      </trans-unit>
       <trans-unit id="++CODE++c933cd0d45861a20699df513967542bc9b448f409d362d9bec4e7443dd96f403">
         <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
         <note>{0} is the connection id
@@ -1504,6 +1622,10 @@
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">Non sono disponibili sottoscrizioni.  Modificare i filtri della sottoscrizione per riprovare.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
+        <source xml:lang="en">No tools to process.</source>
+        <target state="new">No tools to process.</target>
       </trans-unit>
       <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
         <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
@@ -1553,9 +1675,9 @@
         <source xml:lang="en">OK</source>
         <target state="translated">OK</target>
       </trans-unit>
-      <trans-unit id="++CODE++e1d42d9f427d5f4d009777176781c6c5cd131a4abc0f3dd3beac983b29e3efdb">
-        <source xml:lang="en">Object Explorer Filter (Preview)</source>
-        <target state="translated">Filtro Esplora oggetti (anteprima)</target>
+      <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
+        <source xml:lang="en">Object Explorer Filter</source>
+        <target state="new">Object Explorer Filter</target>
       </trans-unit>
       <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
         <source xml:lang="en">Object Type</source>
@@ -1672,11 +1794,11 @@
       </trans-unit>
       <trans-unit id="++CODE++f3380f7b44bd70af2a369de6026bf2ca2a7b36fde9086935efcd62a0e379cc7a">
         <source xml:lang="en">Paste</source>
-        <target state="new">Paste</target>
+        <target state="translated">Incolla</target>
       </trans-unit>
       <trans-unit id="++CODE++aa7e02a360294359df9e77459e71e6f350056d94cf36d644cc2c910fff983359">
         <source xml:lang="en">Paste connection string from clipboard</source>
-        <target state="new">Paste connection string from clipboard</target>
+        <target state="translated">Incolla stringa di connessione dagli Appunti</target>
       </trans-unit>
       <trans-unit id="++CODE++71f0edbc866bcd836e06eefc36556b0e6a3552f2d422dc8bc12bddd51e3b5a8e">
         <source xml:lang="en">Path: {0}</source>
@@ -1874,6 +1996,10 @@
         <source xml:lang="en">Reverse Alphabetical</source>
         <target state="translated">Ordine alfabetico inverso</target>
       </trans-unit>
+      <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
+        <source xml:lang="en">Rule name</source>
+        <target state="translated">Nome regola</target>
+      </trans-unit>
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
         <target state="translated">Eseguire la cronologia delle query</target>
@@ -1973,6 +2099,10 @@
         <note>{0} is the error message returned from the compare operation</note>
         <target state="translated">Confronto schemi non riuscito: '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++15b5d02ad3478e97181969698b48fe22f92298cc513e992be78922dc8f3ffe9c">
+        <source xml:lang="en">Schema Designer</source>
+        <target state="new">Schema Designer</target>
+      </trans-unit>
       <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
         <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
         <target state="translated">Il modello di Designer dello schema è pronto. Ora è possibile pubblicare le modifiche.</target>
@@ -1997,9 +2127,17 @@
         <source xml:lang="en">Search options...</source>
         <target state="translated">Opzioni di ricerca...</target>
       </trans-unit>
+      <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
+        <source xml:lang="en">Search settings...</source>
+        <target state="new">Search settings...</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
         <target state="translated">Ricerca...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
+        <source xml:lang="en">Select</source>
+        <target state="new">Select</target>
       </trans-unit>
       <trans-unit id="++CODE++d1ec69e64b9609d089aae09f7adc5c566d2cd222f8d8325f0ab3b523f0ac2690">
         <source xml:lang="en">Select All</source>
@@ -2114,6 +2252,18 @@
       <trans-unit id="++CODE++2a2c6072cca49b7f2056d66f738d53593bce3004d1291d736ea9a69e58babae8">
         <source xml:lang="en">Sign in to your Azure subscription with a device code. Use this in setups where the Sign In command does not work</source>
         <target state="translated">Consente di accedere alla sottoscrizione di Azure con un codice dispositivo. Usare questa opzione nelle configurazioni in cui il comando Accedi non funziona</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f33c8e270a9d867a7ed6cb8d51e40f58132390afcd0e2eb79292952039fd8397">
+        <source xml:lang="en">Sign into Azure</source>
+        <target state="translated">Accedi ad Azure</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cdc182077e173c86c2831fe9995d41691b9bc1182fe44519a292ea2b814eb17a">
+        <source xml:lang="en">Sign into Azure in order to add a firewall rule.</source>
+        <target state="translated">Accedere ad Azure per aggiungere una regola del firewall.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
+        <source xml:lang="en">Signing in to Azure...</source>
+        <target state="new">Signing in to Azure...</target>
       </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>
@@ -2290,6 +2440,11 @@
         <source xml:lang="en">The columns of the index.</source>
         <target state="translated">Colonne dell'indice.</target>
       </trans-unit>
+      <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
+        <source xml:lang="en">The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.</source>
+        <note>{0} is the connection ID for the connection that has been ignored</note>
+        <target state="new">The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
         <source xml:lang="en">The description of the check constraint.</source>
         <target state="translated">Descrizione del vincolo CHECK.</target>
@@ -2322,6 +2477,19 @@
 {1} is the name of the filter</note>
         <target state="translated">È necessario impostare il primo valore per l'operatore {0} nel filtro {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++9f0bbf0f3fc1ec45ca02debcaf080ecd6f40e8a11bae6e0189136badee4946a7">
+        <source xml:lang="en">The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. 
+
+ {0}</source>
+        <note>{0} is the list of display names for the connections that have been ignored</note>
+        <target state="new">The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. 
+
+ {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
+        <source xml:lang="en">The language model did not return any output.</source>
+        <target state="new">The language model did not return any output.</target>
+      </trans-unit>
       <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
         <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
         <target state="translated">Mapping tra colonne chiave esterna e colonne chiave primaria.</target>
@@ -2353,6 +2521,10 @@
       <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
         <target state="translated">L'elenco delle connessioni recenti è stato cancellato, ma si sono verificati degli errori nell'eliminazione di alcune credenziali associate. Visualizzare gli errori nel canale di output MSSQL.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
+        <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
+        <target state="new">The requested model could not be found. Please check model availability or try a different model.</target>
       </trans-unit>
       <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
         <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
@@ -2388,6 +2560,12 @@
         <source xml:lang="en">Toggle Tooltips</source>
         <target state="translated">Attiva/Disattiva descrizioni comando</target>
       </trans-unit>
+      <trans-unit id="++CODE++10b7ff2efd404627d5a929c6fb2a97fa57867f169fbf1016834477571a4cedb2">
+        <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
+        <note>{0} is the part name
+{1} is the part input</note>
+        <target state="new">Tool lookup for: {0} - {1}.</target>
+      </trans-unit>
       <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
         <source xml:lang="en">Total execution time: {0}</source>
         <note>{0} is the elapsed time</note>
@@ -2409,6 +2587,10 @@
         <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
         <target state="translated">Non è possibile leggere le opzioni dell'agente proxy per ottenere i tenant.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291">
+        <source xml:lang="en">Update</source>
+        <target state="new">Update</target>
+      </trans-unit>
       <trans-unit id="++CODE++6f32c6efd3fd051f5df8f5a6926828722e2734a8b2138751abf9363a674550bd">
         <source xml:lang="en">Update Database</source>
         <target state="translated">Aggiorna database</target>
@@ -2416,6 +2598,10 @@
       <trans-unit id="++CODE++92294188e79b2a13584eb3e6120f971c94ada2a387f3199a4cd3cb17039f9d37">
         <source xml:lang="en">Updating IntelliSense...</source>
         <target state="translated">Aggiornamento di IntelliSense...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c83ce937073615b8c93e7c38ed529e567ff2c01f291f92e3b4d08245018f362b">
+        <source xml:lang="en">Usage limits exceeded. Try again later, or consider optimizing your requests.</source>
+        <target state="new">Usage limits exceeded. Try again later, or consider optimizing your requests.</target>
       </trans-unit>
       <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
         <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
@@ -2432,6 +2618,17 @@
       <trans-unit id="++CODE++bb6e451b4ca453ef7b93d4a89b702cde206029b5c57a46ac64072d7e909018c4">
         <source xml:lang="en">User name is required</source>
         <target state="translated">Il nome utente è obbligatorio</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1806851cf9209ecb674faf6fe227aa165f6dbc4df5d05ea9f0cc71e3d00245c7">
+        <source xml:lang="en">Using {0} ({1})...</source>
+        <note>{0} is the model name
+{1} is whether the model can send requests</note>
+        <target state="new">Using {0} ({1})...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d31cf428966542cd931bd382d445f06e61e26c9a6c5aaf4227dffd0bfd18e97c">
+        <source xml:lang="en">Using {0} to process your request...</source>
+        <note>{0} is the model name that will be processing the request</note>
+        <target state="new">Using {0} to process your request...</target>
       </trans-unit>
       <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
         <source xml:lang="en">Value</source>
@@ -2480,6 +2677,10 @@
       <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
         <source xml:lang="en">Yes</source>
         <target state="translated">Sì</target>
+      </trans-unit>
+      <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
+        <source xml:lang="en">You are not connected to any database.</source>
+        <target state="new">You are not connected to any database.</target>
       </trans-unit>
       <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
         <source xml:lang="en">You must review and accept the terms to proceed</source>
@@ -2588,15 +2789,10 @@
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">Aggiornamento di IntelliSense</target>
       </trans-unit>
-      <trans-unit id="++CODE++4a9d0c2a08911dce1aca48e9c47c363c83764394e17d9cb2484206ecf8c702c8">
+      <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
         <source xml:lang="en">{0} (Preview)</source>
-        <note>{0} is the file name</note>
-        <target state="translated">{0} (anteprima)</target>
-      </trans-unit>
-      <trans-unit id="++CODE++1ab2969df504b0957aad86e66ea727c14d87ed01cc5039a8941d050884da2b78">
-        <source xml:lang="en">{0} (Preview)</source>
-        <note>{0} is the editor title</note>
-        <target state="translated">{0} (anteprima)</target>
+        <note>{0} is the database name</note>
+        <target state="new">{0} (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
@@ -2686,9 +2882,9 @@
         <source xml:lang="en">Add Connection</source>
         <target state="translated">Aggiungi connessione</target>
       </trans-unit>
-      <trans-unit id="mssql.addObjectExplorerPreview">
-        <source xml:lang="en">Add Connection (Preview)</source>
-        <target state="translated">Aggiungi connessione (anteprima)</target>
+      <trans-unit id="mssql.addObjectExplorerLegacy">
+        <source xml:lang="en">Add Connection (Legacy)</source>
+        <target state="new">Add Connection (Legacy)</target>
       </trans-unit>
       <trans-unit id="mssql.addAadAccount">
         <source xml:lang="en">Add Microsoft Entra Account</source>
@@ -2701,6 +2897,10 @@
       <trans-unit id="mssql.query.executionTimeout">
         <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
         <target state="translated">L'impostazione del valore 0 per il timeout di esecuzione indica un'attesa illimitata (nessun timeout)</target>
+      </trans-unit>
+      <trans-unit id="mssql.copilot.analyzeQueryPerformance">
+        <source xml:lang="en">Analyze Query Performance (Preview)</source>
+        <target state="new">Analyze Query Performance (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumns">
         <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
@@ -2717,6 +2917,10 @@
       <trans-unit id="mssql.changeDatabase">
         <source xml:lang="en">Change Database</source>
         <target state="translated">Cambia database</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorerChatWithDatabase">
+        <source xml:lang="en">Chat with this database (Preview)</source>
+        <target state="new">Chat with this database (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
@@ -2765,6 +2969,10 @@
       <trans-unit id="extension.connections">
         <source xml:lang="en">Connections</source>
         <target state="translated">Connessioni</target>
+      </trans-unit>
+      <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
+        <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
+        <target state="new">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</target>
       </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
@@ -2817,8 +3025,8 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <target state="translated">Non mostrare le richieste per abilitare le funzionalità basate sull'interfaccia utente.</target>
       </trans-unit>
       <trans-unit id="mssql.editConnection">
-        <source xml:lang="en">Edit Connection (Preview)</source>
-        <target state="translated">Modifica connessione (anteprima)</target>
+        <source xml:lang="en">Edit Connection</source>
+        <target state="new">Edit Connection</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Edit Table</source>
@@ -2946,17 +3154,13 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
         <target state="translated">Abilita le funzionalità sperimentali nell'estensione MSSQL. Le funzionalità non sono pronte per la produzione e potrebbero presentare bug o problemi. Riavvia Visual Studio Code dopo aver modificato questa impostazione.</target>
       </trans-unit>
-      <trans-unit id="mssql.enableNewQueryResultFeature.description">
-        <source xml:lang="en">Enables the new Query Results feature. The default value is true. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
-        <target state="translated">Abilita la nuova funzionalità Risultati query. Il valore predefinito è true. Questa opzione ha effetto solo se `mssql.enableRichExperiences` è abilitato.</target>
-      </trans-unit>
       <trans-unit id="mssql.enableSqlAuthenticationProvider">
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
         <target state="translated">Abilita l'uso del provider di autenticazione Sql per la modalità di autenticazione 'Microsoft Entra ID Interactive' quando l'utente seleziona l'autenticazione 'AzureMFA'. Abilita l'integrazione dell'endpoint risorsa lato server durante il recupero dei token di accesso. Questa opzione è supportata solo per la libreria di autenticazione 'MSAL'. Riavvia Visual Studio Code dopo aver modificato questa opzione.</target>
       </trans-unit>
       <trans-unit id="mssql.showExecutionPlanInResults">
-        <source xml:lang="en">Estimated Plan (Preview)</source>
-        <target state="translated">Piano stimato (anteprima)</target>
+        <source xml:lang="en">Estimated Plan</source>
+        <target state="new">Estimated Plan</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -2966,13 +3170,17 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Execute Query</source>
         <target state="translated">Esecuzione query</target>
       </trans-unit>
+      <trans-unit id="mssql.copilot.explainQuery">
+        <source xml:lang="en">Explain Query (Preview)</source>
+        <target state="new">Explain Query (Preview)</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.description">
         <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
         <target state="translated">Familiarizza con altre funzionalità dell'estensione MSSQL che possono aiutarti a essere più produttivo.</target>
       </trans-unit>
       <trans-unit id="mssql.filterNode">
-        <source xml:lang="en">Filter (Preview)</source>
-        <target state="translated">Filtro (anteprima)</target>
+        <source xml:lang="en">Filter</source>
+        <target state="new">Filter</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
         <source xml:lang="en">Filter your Object Explorer Tree</source>
@@ -2989,6 +3197,10 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       <trans-unit id="mssql.userFeedback">
         <source xml:lang="en">Give Feedback</source>
         <target state="translated">Inviare feedback</target>
+      </trans-unit>
+      <trans-unit id="mssql.copilot.editorSubmenu">
+        <source xml:lang="en">MSSQL Copilot (Preview)</source>
+        <target state="new">MSSQL Copilot (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.Configuration">
         <source xml:lang="en">MSSQL configuration</source>
@@ -3085,8 +3297,8 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <target state="translated">Cronologia delle query</target>
       </trans-unit>
       <trans-unit id="extension.queryResult">
-        <source xml:lang="en">Query Results (Preview)</source>
-        <target state="translated">Risultati della query (anteprima)</target>
+        <source xml:lang="en">Query Results</source>
+        <target state="new">Query Results</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.altText">
         <source xml:lang="en">Query editor and query results pane</source>
@@ -3115,6 +3327,10 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       <trans-unit id="mssql.revealQueryResultPanel">
         <source xml:lang="en">Reveal Query Result Panel</source>
         <target state="translated">Mostra pannello risultati query</target>
+      </trans-unit>
+      <trans-unit id="mssql.copilot.rewriteQuery">
+        <source xml:lang="en">Rewrite Query (Preview)</source>
+        <target state="new">Rewrite Query (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.runQueryHistory">
         <source xml:lang="en">Run Query</source>
@@ -3148,9 +3364,9 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">Genera script come SELECT TOP 1000</target>
       </trans-unit>
-      <trans-unit id="mssql.selectedSubscriptions">
-        <source xml:lang="en">Selected Subscriptions</source>
-        <target state="translated">Sottoscrizioni selezionate</target>
+      <trans-unit id="mssql.selectedAzureSubscriptions">
+        <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
+        <target state="new">Selected Azure subscriptions for browsing and managing servers and databases</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
@@ -3276,6 +3492,10 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">The unique identifier for this connection profile.</source>
         <target state="translated">Identificatore univoco per questo profilo di connessione.</target>
       </trans-unit>
+      <trans-unit id="mssql.legacySetting.deprecationMessage">
+        <source xml:lang="en">This setting will be removed in a future release.</source>
+        <target state="new">This setting will be removed in a future release.</target>
+      </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
         <target state="translated">Attiva/Disattiva modalità SQLCMD</target>
@@ -3293,6 +3513,14 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Usa database</target>
+      </trans-unit>
+      <trans-unit id="mssql.useLegacyConnectionExperience.description">
+        <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
+        <target state="new">Use the legacy connection experience instead of the modern experience.</target>
+      </trans-unit>
+      <trans-unit id="mssql.useLegacyQueryResultExperience.description">
+        <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
+        <target state="new">Use the legacy query result experience instead of the modern experience.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

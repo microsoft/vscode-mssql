@@ -5,10 +5,11 @@
 
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
-import { NodeInfo } from "../models/contracts/objectExplorer/nodeInfo";
-import { ObjectExplorerUtils } from "./objectExplorerUtils";
-import * as Constants from "../constants/constants";
-import { IConnectionInfo, ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
+import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
+import { ObjectExplorerUtils } from "../objectExplorerUtils";
+import * as Constants from "../../constants/constants";
+import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
+import { IConnectionProfile } from "../../models/interfaces";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -19,11 +20,17 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _errorMessage: string;
     private _sessionId: string;
     private _parentNode: TreeNodeInfo;
-    private _connectionInfo: IConnectionInfo;
+    private _connectionProfile: IConnectionProfile;
     private _metadata: ObjectMetadata;
     private _filterableProperties: vscodeMssql.NodeFilterProperty[];
     private _filters: vscodeMssql.NodeFilter[];
     private _originalLabel: string;
+
+    /**
+     * Use this flag to force a refresh of the node in the next expansion.
+     * It will be reset to false after the refresh is done.
+     */
+    public shouldRefresh: boolean = false;
 
     constructor(
         label: string,
@@ -33,9 +40,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         nodeStatus: string,
         nodeType: string,
         sessionId: string,
-        connectionInfo: IConnectionInfo,
+        connectionProfile: IConnectionProfile,
         parentNode: TreeNodeInfo,
         filterProperties: vscodeMssql.NodeFilterProperty[],
+        nodeSubType: string,
         objectMetadata?: ObjectMetadata,
         filters?: vscodeMssql.NodeFilter[],
     ) {
@@ -47,36 +55,35 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this._nodeType = nodeType;
         this._sessionId = sessionId;
         this._parentNode = parentNode;
-        this._connectionInfo = connectionInfo;
+        this._connectionProfile = connectionProfile;
         this._filterableProperties = filterProperties;
         this._metadata = objectMetadata;
         this._filters = filters;
-        // Connection is a docker container
-        if (connectionInfo.containerName) {
-            if (nodeType === Constants.serverLabel) {
-                this._nodeType = Constants.dockerContainerLabel;
-            }
-            if (nodeType === Constants.disconnectedServerNodeType) {
-                this._nodeType = Constants.disconnectedDockerContainerNodeType;
-            }
-            this.context = { ...context, subType: this._nodeType };
+        this._nodeSubType = nodeSubType;
+        if (this._nodeSubType) {
+            this.iconPath = ObjectExplorerUtils.iconPath(`${this._nodeType}_${this._nodeSubType}`);
+        } else {
+            this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
         }
-        this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
-        if (this.connectionInfo?.database) {
-            if (this.nodeType === Constants.serverLabel) {
-                this.iconPath = ObjectExplorerUtils.iconPath(Constants.database_green);
-            }
-            if (this.nodeType === Constants.disconnectedServerNodeType) {
-                this.iconPath = ObjectExplorerUtils.iconPath(Constants.database_red);
-            }
+        if (connectionProfile.containerName) {
+            this._nodeSubType = nodeType.includes(Constants.disconnected)
+                ? Constants.disconnectedDockerContainer
+                : Constants.dockerContainer;
+            this.context = { ...context, subType: this._nodeSubType };
         }
+        this.id = this.generateId();
+    }
+
+    // Gernating a unique ID for the node
+    protected generateId(): string {
+        return `${this._connectionProfile?.id}-${this._nodePath}-${Date.now()}`;
     }
 
     public static fromNodeInfo(
         nodeInfo: NodeInfo,
         sessionId: string,
         parentNode: TreeNodeInfo,
-        connectionInfo: IConnectionInfo,
+        connectionProfile: IConnectionProfile,
         label?: string,
         nodeType?: string,
     ): TreeNodeInfo {
@@ -99,9 +106,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
             nodeInfo.nodeStatus,
             type,
             sessionId,
-            connectionInfo,
+            connectionProfile,
             parentNode,
             nodeInfo.filterableProperties,
+            nodeInfo.nodeSubType,
             nodeInfo.metadata,
         );
         return treeNodeInfo;
@@ -144,14 +152,14 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
      * Returns a **copy** of the node's connection information.
      *
      * ⚠️ Note: This is a **shallow copy**—modifying the returned object will NOT affect the original connection info.
-     * If you want to update the actual connection info stored in the node, use the `updateConnectionInfo` method instead.
+     * If you want to update the actual connection info stored in the node, use the `updateConnectionProfile` method instead.
      */
-    public get connectionInfo(): IConnectionInfo {
-        if (!this._connectionInfo) {
+    public get connectionProfile(): IConnectionProfile {
+        if (!this._connectionProfile) {
             return undefined;
         }
         return {
-            ...this._connectionInfo,
+            ...this._connectionProfile,
         };
     }
 
@@ -223,8 +231,12 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this.contextValue = this._convertToContextValue(value);
     }
 
-    public updateConnectionInfo(value: IConnectionInfo): void {
-        this._connectionInfo = value;
+    public updateConnectionProfile(value: IConnectionProfile): void {
+        this._connectionProfile = value;
+    }
+
+    protected updateMetadata(value: ObjectMetadata): void {
+        this._metadata = value;
     }
 
     private _updateContextValue() {

@@ -28,6 +28,8 @@ import {
     QueryExecutionOptions,
     DbCellValue,
     ExecutionPlanOptions,
+    QueryConnectionUriChangeRequest,
+    QueryConnectionUriChangeParams,
 } from "../models/contracts/queryExecute";
 import { QueryDisposeParams, QueryDisposeRequest } from "../models/contracts/queryDispose";
 import {
@@ -887,5 +889,17 @@ export default class QueryRunner {
 
     get totalElapsedMilliseconds(): number {
         return this._totalElapsedMilliseconds;
+    }
+
+    public updateQueryRunnerUri(oldUri: string, newUri: string): void {
+        let queryConnectionUriChangeParams: QueryConnectionUriChangeParams = {
+            newOwnerUri: newUri,
+            originalOwnerUri: oldUri,
+        };
+        this._client.sendNotification(
+            QueryConnectionUriChangeRequest.type,
+            queryConnectionUriChangeParams,
+        );
+        this.uri = newUri;
     }
 }

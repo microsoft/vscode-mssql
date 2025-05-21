@@ -13,7 +13,7 @@ import {
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
-import { TreeNodeInfo } from "./treeNodeInfo";
+import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { randomUUID } from "crypto";
 import { sendActionEvent } from "../telemetry/telemetry";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -46,7 +46,7 @@ export class ObjectExplorerFilterReactWebviewController extends ReactWebviewPane
                 nodePath: "",
             },
             {
-                title: vscode.l10n.t("Object Explorer Filter (Preview)"),
+                title: vscode.l10n.t("Object Explorer Filter"),
                 viewColumn: vscode.ViewColumn.Beside,
                 iconPath: {
                     dark: vscode.Uri.joinPath(context.extensionUri, "media", "filter_dark.svg"),
