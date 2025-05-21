@@ -2173,10 +2173,6 @@
       <note>{0} is the tab name
 {1} is the number of issues</note>
     </trans-unit>
-    <trans-unit id="++CODE++a65e8abff7bfedc0762e0ba182469a60e53114f72e4f7ce7fe3f5e314c87f852">
-      <source xml:lang="en">{0} ▾ (Click to change database)</source>
-      <note>{0} is the connection name</note>
-    </trans-unit>
     <trans-unit id="++CODE++fbf6567d7b396892abbe6cccf81dca280649e099b853b805be1beb6af53d9229">
       <source xml:lang="en">{0}. {1}</source>
       <note>{0} is the status
@@ -2608,6 +2604,9 @@
     </trans-unit>
     <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
       <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for &apos;SELECT C1, C2 FROM T1&apos; both C1 and C2 will be on separate lines</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
+      <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
       <source xml:lang="en">Sort and Filter Query Results</source>

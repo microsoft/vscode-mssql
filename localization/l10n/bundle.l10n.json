@@ -1266,12 +1266,6 @@
   },
   "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
-  "{0} ▾ (Click to change database)/{0} is the connection name": {
-    "message": "{0} ▾ (Click to change database)",
-    "comment": [
-      "{0} is the connection name"
-    ]
-  },
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
