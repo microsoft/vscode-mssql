@@ -23,24 +23,24 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
             return [];
         }
         const connection = this._connectionManager.getConnectionInfo(document.uri.toString());
+
+        const items: vscode.CodeLens[] = [
+            new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
+                title: connection
+                    ? generateServerDisplayName(connection.credentials)
+                    : QueryEditor.codeLensConnect,
+                command: Constants.cmdConnect,
+            }),
+        ];
         if (connection) {
-            return [
-                new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
-                    title: generateServerDisplayName(connection.credentials),
-                    command: Constants.cmdConnect,
-                }),
+            items.push(
                 new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
                     title: generateDatabaseDisplayName(connection.credentials),
                     command: Constants.cmdChooseDatabase,
                 }),
-            ];
+            );
         }
-        return [
-            new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
-                title: QueryEditor.codeLensConnect,
-                command: Constants.cmdConnect,
-            }),
-        ];
+        return items;
     }
 
     public resolveCodeLens?(
