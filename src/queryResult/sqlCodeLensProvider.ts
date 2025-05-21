@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import ConnectionManager from "../controllers/connectionManager";
 import { QueryEditor } from "../constants/locConstants";
-import { getConnectionDisplayString } from "../models/connectionInfo";
+import { getConnectionDatabaseName, getConnectionServerName } from "../models/connectionInfo";
 
 export class SqlCodeLensProvider implements vscode.CodeLensProvider {
     constructor(private _connectionManager: ConnectionManager) {}
@@ -24,16 +24,14 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
         }
         const connection = this._connectionManager.getConnectionInfo(document.uri.toString());
         if (connection) {
-            const connectionName = getConnectionDisplayString(connection.credentials);
             return [
                 new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
-                    title: connectionName,
+                    title: getConnectionServerName(connection.credentials),
+                    command: Constants.cmdConnect,
+                }),
+                new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
+                    title: getConnectionDatabaseName(connection.credentials),
                     command: Constants.cmdChooseDatabase,
-                    arguments: [
-                        {
-                            source: "CodeLens",
-                        },
-                    ],
                 }),
             ];
         }
@@ -41,11 +39,6 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
             new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
                 title: QueryEditor.codeLensConnect,
                 command: Constants.cmdConnect,
-                arguments: [
-                    {
-                        source: "CodeLens",
-                    },
-                ],
             }),
         ];
     }

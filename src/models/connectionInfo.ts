@@ -139,18 +139,32 @@ export function getPicklistDetails(connCreds: IConnectionInfo): string {
  */
 export function getConnectionDisplayString(creds: IConnectionInfo, trim: boolean = false): string {
     const server = creds.server;
-    const database = creds.database || LocalizedConstants.defaultDatabaseLabel;
+    const database = getConnectionDatabaseName(creds);
     const user = getUserNameOrDomainLogin(creds);
 
-    let result = user
-        ? `${server} : $(database) ${database} : ${user}`
-        : `${server} : $(database) ${database}`;
+    let result = user ? `${server} : ${database} : ${user}` : `${server} : ${database}`;
 
     if (trim && result.length > Constants.maxDisplayedStatusTextLength) {
         result = result.slice(0, Constants.maxDisplayedStatusTextLength) + " \u2026"; // add ellipsis
     }
 
     return result;
+}
+
+export function getConnectionServerName(creds: IConnectionInfo): string {
+    return creds.server;
+}
+
+export function getConnectionDatabaseName(
+    creds: IConnectionInfo,
+    includeDatabaseIcon: boolean = true,
+): string {
+    const databaseName = creds.database || LocalizedConstants.defaultDatabaseLabel;
+    if (includeDatabaseIcon) {
+        return `$(database) ${databaseName}`;
+    } else {
+        return databaseName;
+    }
 }
 
 /**
