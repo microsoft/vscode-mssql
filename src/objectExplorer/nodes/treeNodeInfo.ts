@@ -65,7 +65,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         } else {
             this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
         }
-        if (connectionProfile.containerName) {
+        if (connectionProfile && connectionProfile.containerName) {
             this._nodeSubType = nodeType.includes(Constants.disconnected)
                 ? Constants.disconnectedDockerContainer
                 : Constants.dockerContainer;

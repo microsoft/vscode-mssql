@@ -1240,7 +1240,7 @@ export default class MainController implements vscode.Disposable {
                     );
                     if (stoppedSuccessfully) {
                         // Disconnect from the node
-                        await this._objectExplorerProvider.removeNode(node as ConnectionNode);
+                        await this._objectExplorerProvider.disconnectNode(node as ConnectionNode);
                         return this._objectExplorerProvider.refresh(undefined);
                     }
                 },
