@@ -965,6 +965,7 @@
   "Disable intellisense and syntax error checking on current document": "Disable intellisense and syntax error checking on current document",
   "Non-SQL Server SQL file detected. Disable IntelliSense for such files?": "Non-SQL Server SQL file detected. Disable IntelliSense for such files?",
   "Add Connection": "Add Connection",
+  "Add Local Container Connection": "Add Local Container Connection",
   "Azure: Sign In": "Azure: Sign In",
   "Sign in to your Azure subscription": "Sign in to your Azure subscription",
   "Azure: Sign In with Device Code": "Azure: Sign In with Device Code",

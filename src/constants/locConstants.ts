@@ -477,6 +477,7 @@ export let autoDisableNonTSqlLanguageServicePrompt = l10n.t(
     "Non-SQL Server SQL file detected. Disable IntelliSense for such files?",
 );
 export let msgAddConnection = l10n.t("Add Connection");
+export let msgAddLocalContainerConnection = l10n.t("Add Local Container Connection");
 export let msgConnect = l10n.t("Connect");
 export let azureSignIn = l10n.t("Azure: Sign In");
 export let azureSignInDescription = l10n.t("Sign in to your Azure subscription");

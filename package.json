@@ -261,6 +261,10 @@
             ],
             "objectExplorer": [
                 {
+                    "id": "newConnection",
+                    "name": "%extension.newConnection%"
+                },
+                {
                     "id": "objectExplorer",
                     "name": "%extension.connections%"
                 },

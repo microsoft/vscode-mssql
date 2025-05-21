@@ -23,6 +23,7 @@
     "mssql.removeObjectExplorerNode": "Remove",
     "mssql.refreshObjectExplorerNode": "Refresh",
     "extension.connections": "Connections",
+    "extension.newConnection": "New Connection",
     "extension.queryHistory": "Query History",
     "extension.queryResult": "Query Results",
     "mssql.connect": "Connect",

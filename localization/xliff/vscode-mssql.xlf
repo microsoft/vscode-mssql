@@ -64,6 +64,9 @@
       <source xml:lang="en">Add Firewall Rule to {0}</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++7b3b3a5685d28fe499ac564842e36566bcd889ae3775d278ffdae095ce554c42">
+      <source xml:lang="en">Add Local Container Connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
       <source xml:lang="en">Add Table</source>
     </trans-unit>
@@ -2612,6 +2615,9 @@
     </trans-unit>
     <trans-unit id="mssql.query.textSize">
       <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
+    </trans-unit>
+    <trans-unit id="extension.newConnection">
+      <source xml:lang="en">New Connection</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerNewQuery">
       <source xml:lang="en">New Query</source>

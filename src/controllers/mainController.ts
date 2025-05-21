@@ -69,6 +69,7 @@ import * as Prompts from "../chat/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
 import { deleteContainer, stopContainer } from "../containerDeployment/dockerUtils";
+import { NewConnectionProvider } from "../containerDeployment/newConnectionProvider";
 
 /**
  * The main controller class that initializes the extension
@@ -89,6 +90,7 @@ export default class MainController implements vscode.Disposable {
     private _lastOpenedTimer: Utils.Timer | undefined;
     private _untitledSqlDocumentService: UntitledSqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
+    private _newConnectionProvider: NewConnectionProvider;
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
@@ -439,6 +441,16 @@ export default class MainController implements vscode.Disposable {
                     await launchEditorChatWithPrompt(Prompts.analyzeQueryPerformancePrompt);
                 }),
             );
+
+            if (this.isRichExperiencesEnabled) {
+                this._newConnectionProvider = new NewConnectionProvider();
+                this._context.subscriptions.push(
+                    vscode.window.registerTreeDataProvider(
+                        "newConnection",
+                        this._newConnectionProvider,
+                    ),
+                );
+            }
 
             this.initializeQueryHistory();
 
