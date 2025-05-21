@@ -205,7 +205,7 @@ export async function checkDockerInstallation(): Promise<DockerCommandParams> {
  */
 export async function checkEngine(): Promise<DockerCommandParams> {
     const engineCommand = COMMANDS.CHECK_ENGINE[platform()];
-    if (!engineCommand) {
+    if (engineCommand === undefined) {
         return {
             success: false,
             error: ContainerDeployment.unsupportedDockerPlatformError(platform()),
