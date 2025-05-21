@@ -205,6 +205,8 @@ export const configInMemoryDataProcessingThreshold = "resultsGrid.inMemoryDataPr
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
+export const configShowActiveConnectionAsCodeLensSuggestion =
+    "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";

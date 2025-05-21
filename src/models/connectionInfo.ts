@@ -8,7 +8,6 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { EncryptOptions } from "../models/interfaces";
 import * as Interfaces from "./interfaces";
-import * as Utils from "./utils";
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -138,31 +137,20 @@ export function getPicklistDetails(connCreds: IConnectionInfo): string {
  * @param conn connection
  * @returns display string that can be used in status view or other locations
  */
-export function getConnectionDisplayString(creds: IConnectionInfo): string {
-    // Update the connection text
-    let text: string = creds.server;
-    if (creds.database !== "") {
-        text = appendIfNotEmpty(text, creds.database);
-    } else {
-        text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
-    }
-    let user: string = getUserNameOrDomainLogin(creds);
-    text = appendIfNotEmpty(text, user);
+export function getConnectionDisplayString(creds: IConnectionInfo, trim: boolean = false): string {
+    const server = creds.server;
+    const database = creds.database || LocalizedConstants.defaultDatabaseLabel;
+    const user = getUserNameOrDomainLogin(creds);
 
-    // Limit the maximum length of displayed text
-    if (text && text.length > Constants.maxDisplayedStatusTextLength) {
-        text = text.substr(0, Constants.maxDisplayedStatusTextLength);
-        text += " \u2026"; // Ellipsis character (...)
+    let result = user
+        ? `${server} : $(database) ${database} : ${user}`
+        : `${server} : $(database) ${database}`;
+
+    if (trim && result.length > Constants.maxDisplayedStatusTextLength) {
+        result = result.slice(0, Constants.maxDisplayedStatusTextLength) + " \u2026"; // add ellipsis
     }
 
-    return text;
-}
-
-function appendIfNotEmpty(connectionText: string, value: string): string {
-    if (Utils.isNotEmpty(value)) {
-        connectionText += ` : ${value}`;
-    }
-    return connectionText;
+    return result;
 }
 
 /**
