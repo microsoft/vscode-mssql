@@ -155,6 +155,7 @@
     "mssql.query.ansiPadding": "Enable SET ANSI_PADDING",
     "mssql.query.ansiWarnings": "Enable SET ANSI_WARNINGS",
     "mssql.query.ansiNulls": "Enable SET ANSI_NULLS",
+    "mssql.query.showActiveConnectionAsCodeLensSuggestion": "Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.",
     "mssql.query.alwaysEncryptedParameterization": "Enable Parameterization for Always Encrypted",
     "mssql.ignorePlatformWarning": "[Optional] Do not show unsupported platform warnings",
     "mssql.Configuration": "MSSQL configuration",

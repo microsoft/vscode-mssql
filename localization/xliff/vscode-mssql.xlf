@@ -4,6 +4,9 @@
     <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
       <source xml:lang="en"> is required.</source>
     </trans-unit>
+    <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
+      <source xml:lang="en">$(plug)  Connect to MSSQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
@@ -2619,6 +2622,9 @@
     </trans-unit>
     <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
       <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for &apos;SELECT C1, C2 FROM T1&apos; both C1 and C2 will be on separate lines</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
+      <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
       <source xml:lang="en">Sort and Filter Query Results</source>

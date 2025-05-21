@@ -1271,6 +1271,7 @@
     ]
   },
   "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
+  "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

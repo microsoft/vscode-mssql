@@ -1790,6 +1790,11 @@
                     "default": false,
                     "description": "%mssql.query.alwaysEncryptedParameterization%"
                 },
+                "mssql.query.showActiveConnectionAsCodeLensSuggestion": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.query.showActiveConnectionAsCodeLensSuggestion%"
+                },
                 "mssql.ignorePlatformWarning": {
                     "type": "boolean",
                     "description": "%mssql.ignorePlatformWarning%",

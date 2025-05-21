@@ -995,3 +995,7 @@ export class MssqlChatAgent {
     };
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
 }
+
+export class QueryEditor {
+    public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
+}
