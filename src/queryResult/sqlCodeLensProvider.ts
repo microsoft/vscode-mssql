@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import ConnectionManager from "../controllers/connectionManager";
 import { QueryEditor } from "../constants/locConstants";
-import { getConnectionDatabaseName, getConnectionServerName } from "../models/connectionInfo";
+import { generateDatabaseDisplayName, generateServerDisplayName } from "../models/connectionInfo";
 
 export class SqlCodeLensProvider implements vscode.CodeLensProvider {
     constructor(private _connectionManager: ConnectionManager) {}
@@ -26,11 +26,11 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
         if (connection) {
             return [
                 new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
-                    title: getConnectionServerName(connection.credentials),
+                    title: generateServerDisplayName(connection.credentials),
                     command: Constants.cmdConnect,
                 }),
                 new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
-                    title: getConnectionDatabaseName(connection.credentials),
+                    title: generateDatabaseDisplayName(connection.credentials),
                     command: Constants.cmdChooseDatabase,
                 }),
             ];

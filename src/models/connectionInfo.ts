@@ -138,8 +138,8 @@ export function getPicklistDetails(connCreds: IConnectionInfo): string {
  * @returns display string that can be used in status view or other locations
  */
 export function getConnectionDisplayString(creds: IConnectionInfo, trim: boolean = false): string {
-    const server = creds.server;
-    const database = getConnectionDatabaseName(creds);
+    const server = generateServerDisplayName(creds);
+    const database = generateDatabaseDisplayName(creds);
     const user = getUserNameOrDomainLogin(creds);
 
     let result = user ? `${server} : ${database} : ${user}` : `${server} : ${database}`;
@@ -151,11 +151,11 @@ export function getConnectionDisplayString(creds: IConnectionInfo, trim: boolean
     return result;
 }
 
-export function getConnectionServerName(creds: IConnectionInfo): string {
+export function generateServerDisplayName(creds: IConnectionInfo): string {
     return creds.server;
 }
 
-export function getConnectionDatabaseName(
+export function generateDatabaseDisplayName(
     creds: IConnectionInfo,
     includeDatabaseIcon: boolean = true,
 ): string {
