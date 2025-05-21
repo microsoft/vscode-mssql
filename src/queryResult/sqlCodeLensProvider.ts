@@ -22,7 +22,7 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
         if (!shouldShowActiveConnection) {
             return [];
         }
-        const connection = this._connectionManager.getConnectionInfo(document.uri.toString());
+        const connection = this._connectionManager.getConnectionInfo(document.uri.toString(true));
 
         const items: vscode.CodeLens[] = [
             new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
