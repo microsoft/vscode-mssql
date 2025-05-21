@@ -124,18 +124,25 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
+            console.log("Checking Docker profile");
             state = await this.validateDockerConnectionProfile(state, state.formState);
+            console.log("Docker profile checked");
             if (!state.formState.containerName) {
+                console.log("No container name provided, generating one");
                 state.formState.containerName = await dockerUtils.validateContainerName(
                     state.formState.containerName,
                 );
+                console.log("Container name generated");
             }
 
             if (!state.formState.port) {
+                console.log("No port provided, generating one");
                 state.formState.port = await dockerUtils.findAvailablePort(defaultContainerPort);
+                console.log("Port generated");
             }
 
             state.isDockerProfileValid = state.formErrors.length === 0;
+            console.log("Docker profile is valid ", state.isDockerProfileValid);
             return state;
         });
 
