@@ -38,6 +38,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     cd.ContainerDeploymentReducers
 > {
     requiredInputs: cd.ContainerDeploymentFormItemSpec[];
+    dockerDebugChannel: vscode.OutputChannel = vscode.window.createOutputChannel("Docker Debug");
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
@@ -124,25 +125,27 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
-            console.log("Checking Docker profile");
+            this.dockerDebugChannel.appendLine("Checking Docker profile");
             state = await this.validateDockerConnectionProfile(state, state.formState);
-            console.log("Docker profile checked");
+            this.dockerDebugChannel.appendLine("Docker profile checked");
             if (!state.formState.containerName) {
-                console.log("No container name provided, generating one");
+                this.dockerDebugChannel.appendLine("No container name provided, generating one");
                 state.formState.containerName = await dockerUtils.validateContainerName(
                     state.formState.containerName,
                 );
-                console.log("Container name generated");
+                this.dockerDebugChannel.appendLine("Container name generated");
             }
 
             if (!state.formState.port) {
-                console.log("No port provided, generating one");
+                this.dockerDebugChannel.appendLine("No port provided, generating one");
                 state.formState.port = await dockerUtils.findAvailablePort(defaultContainerPort);
-                console.log("Port generated");
+                this.dockerDebugChannel.appendLine("Port generated");
             }
 
             state.isDockerProfileValid = state.formErrors.length === 0;
-            console.log("Docker profile is valid ", state.isDockerProfileValid);
+            this.dockerDebugChannel.appendLine(
+                `Docker profile is valid ${state.isDockerProfileValid}`,
+            );
             return state;
         });
 
