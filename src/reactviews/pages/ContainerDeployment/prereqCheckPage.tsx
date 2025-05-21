@@ -97,13 +97,9 @@ export const PrereqCheckPage: React.FC = () => {
                 <StepCard
                     step={containerDeploymentState.dockerSteps[DockerStepOrder.startDockerDesktop]}
                 />
-                {containerDeploymentState?.platform !== "linux" && (
-                    <StepCard
-                        step={
-                            containerDeploymentState.dockerSteps[DockerStepOrder.checkDockerEngine]
-                        }
-                    />
-                )}
+                <StepCard
+                    step={containerDeploymentState.dockerSteps[DockerStepOrder.checkDockerEngine]}
+                />
                 {stepsLoaded ? (
                     <Button
                         className={classes.button}
