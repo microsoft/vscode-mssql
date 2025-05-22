@@ -33,6 +33,7 @@ export function AutoArrangeButton() {
         const generateComponenets = flowUtils.generatePositions(nodes, edges);
         reactFlow.setNodes(generateComponenets.nodes);
         reactFlow.setEdges(generateComponenets.edges);
+        context.resetView();
     };
     if (!context) {
         return undefined;

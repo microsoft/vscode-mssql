@@ -48,6 +48,7 @@ export interface SchemaDesignerContextProps
     }>;
     closeDesigner: () => void;
     resetUndoRedoState: () => void;
+    resetView: () => void;
     isInitialized: boolean;
 }
 
@@ -397,6 +398,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
     };
 
+    function resetView() {
+        setTimeout(async () => {
+            await reactFlow.fitView({
+                nodes: reactFlow.getNodes().filter((node) => node.hidden !== true),
+            });
+        }, 0);
+    }
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -425,6 +434,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 isInitialized,
                 closeDesigner,
                 resetUndoRedoState,
+                resetView,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
