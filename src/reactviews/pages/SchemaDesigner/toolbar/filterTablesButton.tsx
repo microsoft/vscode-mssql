@@ -16,9 +16,8 @@ import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
-import { Edge, Node, useReactFlow } from "@xyflow/react";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { flowUtils } from "../schemaDesignerUtils";
+import { useReactFlow } from "@xyflow/react";
+import eventBus from "../schemaDesignerEvents";
 
 export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);
@@ -33,27 +32,17 @@ export function FilterTablesButton() {
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
     function loadTables() {
-        const schema = flowUtils.extractSchemaModel(
-            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-        );
-
-        if (!schema) {
-            return;
+        // Update the selected tables based on the current nodes
+        const nodes = reactFlow.getNodes();
+        const tableNames = nodes
+            .filter((node) => node.hidden !== true)
+            .map((node) => `${node.data.schema}.${node.data.name}`);
+        if (nodes.length === tableNames.length) {
+            setSelectedTables([]);
+        } else {
+            setSelectedTables(tableNames);
         }
-        const tableNames = schema.tables.map((table) => `${table.schema}.${table.name}`);
-        // bring selected tables to the top
-        tableNames.sort((a, b) => {
-            const aSelected = selectedTables.includes(a);
-            const bSelected = selectedTables.includes(b);
-            if (aSelected && !bSelected) {
-                return -1;
-            }
-            if (!aSelected && bSelected) {
-                return 1;
-            }
-            return a.localeCompare(b);
-        });
+        setFilterText("");
     }
 
     useEffect(() => {
@@ -82,6 +71,14 @@ export function FilterTablesButton() {
             }
         });
     }, [selectedTables]);
+
+    useEffect(() => {
+        eventBus.on("getScript", () =>
+            requestAnimationFrame(() => {
+                loadTables();
+            }),
+        );
+    }, []);
 
     // Function to highlight text based on search
     const highlightText = (text: string, searchText: string) => {
@@ -212,6 +209,13 @@ export function FilterTablesButton() {
                         style={{}}
                         onClick={() => {
                             setSelectedTables([]);
+                            const nodes = reactFlow.getNodes();
+                            nodes.forEach((node) => {
+                                reactFlow.updateNode(node.id, {
+                                    ...node,
+                                    hidden: false,
+                                });
+                            });
                         }}
                         appearance="subtle"
                         icon={<FluentIcons.DismissRegular />}>
