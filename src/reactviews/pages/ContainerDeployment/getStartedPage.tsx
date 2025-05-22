@@ -9,6 +9,7 @@ import { Button, makeStyles } from "@fluentui/react-components";
 import { PrereqCheckPage } from "./prereqCheckPage";
 import { themeType } from "../../common/utils";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -18,7 +19,9 @@ const useStyles = makeStyles({
         alignItems: "center",
         justifyContent: "center",
         height: "100%",
-        overflow: "scroll",
+        width: "100%",
+        minWidth: "750px",
+        minHeight: "fit-content",
     },
     stepsDiv: {
         display: "flex",
@@ -39,7 +42,7 @@ const useStyles = makeStyles({
         flexWrap: "wrap",
         lineHeight: "1.5",
         marginBottom: "5px",
-        fontWeight: "bold",
+        fontWeight: 500,
     },
     itemDiv: {
         position: "relative",
@@ -83,69 +86,82 @@ export const GetStartedPage: React.FC = () => {
     return showNext ? (
         <PrereqCheckPage />
     ) : (
-        <div className={classes.outerDiv}>
-            <div className={classes.stepsDiv}>
-                <div className={classes.stepsHeader}>
-                    Seamless SQL Server on Docker, Right in VS Code!
-                </div>
-                <div className={classes.itemDiv}>
-                    <img
-                        className={classes.icon}
-                        src={oneClick(theme)}
-                        alt="One Click Server Creation"
-                    />
-                    <div className={classes.textDiv}>
-                        <div className={classes.titleDiv}>One Click Server Container Creation</div>
-                        <div>Spin up a SQL server container in seconds—no manual setup needed.</div>
+        <div>
+            <ContainerDeploymentHeader
+                headerText={"Local SQL Server database container connection"}
+            />
+            <div className={classes.outerDiv}>
+                <div className={classes.stepsDiv}>
+                    <div className={classes.stepsHeader}>
+                        Seamless SQL Server on Docker, Right in VS Code!
                     </div>
-                </div>
-                <div className={classes.itemDiv}>
-                    <img
-                        className={classes.icon}
-                        src={easyManagement(theme)}
-                        alt="Easy Management"
-                    />
-                    <div className={classes.textDiv}>
-                        <div className={classes.titleDiv}>Easy Management</div>
-                        <div>Start, stop, or remove your SQL server container anytime.</div>
-                    </div>
-                </div>
-                <div className={classes.itemDiv}>
-                    <img className={classes.icon} src={rightFit(theme)} alt="Pick the Right Fit" />
-                    <div className={classes.textDiv}>
-                        <div className={classes.titleDiv}>Pick the Right Fit</div>
-                        <div>
-                            Not sure which SQL Server version to choose? We’ll guide you through the
-                            options with best-practice recommendations.
-                        </div>
-                        <a>SQL Server on Docker Best Practices</a>
-                        <a style={{ marginTop: "0px" }}>
-                            SQL Server editions and Feature comparison
-                        </a>
-                    </div>
-                </div>
-                <div className={classes.itemDiv}>
-                    <img
-                        className={classes.icon}
-                        src={seamlessConnections(theme)}
-                        alt="Seamless Connections"
-                    />
-                    <div className={classes.textDiv}>
-                        <div className={classes.titleDiv}>Seamless Connections</div>
-                        <div>
-                            Deploy, manage, and interact with SQL Server container — right from VS
-                            Code, no context switching.
+                    <div className={classes.itemDiv}>
+                        <img
+                            className={classes.icon}
+                            src={oneClick(theme)}
+                            alt="One Click Server Creation"
+                        />
+                        <div className={classes.textDiv}>
+                            <div className={classes.titleDiv}>
+                                One Click Server Container Creation
+                            </div>
+                            <div>
+                                Spin up a SQL server container in seconds—no manual setup needed.
+                            </div>
                         </div>
                     </div>
+                    <div className={classes.itemDiv}>
+                        <img
+                            className={classes.icon}
+                            src={easyManagement(theme)}
+                            alt="Easy Management"
+                        />
+                        <div className={classes.textDiv}>
+                            <div className={classes.titleDiv}>Easy Management</div>
+                            <div>Start, stop, or remove your SQL server container anytime.</div>
+                        </div>
+                    </div>
+                    <div className={classes.itemDiv}>
+                        <img
+                            className={classes.icon}
+                            src={rightFit(theme)}
+                            alt="Pick the Right Fit"
+                        />
+                        <div className={classes.textDiv}>
+                            <div className={classes.titleDiv}>Pick the Right Fit</div>
+                            <div>
+                                Not sure which SQL Server version to choose? We’ll guide you through
+                                the options with best-practice recommendations.
+                            </div>
+                            <a>SQL Server on Docker Best Practices</a>
+                            <a style={{ marginTop: "0px" }}>
+                                SQL Server editions and Feature comparison
+                            </a>
+                        </div>
+                    </div>
+                    <div className={classes.itemDiv}>
+                        <img
+                            className={classes.icon}
+                            src={seamlessConnections(theme)}
+                            alt="Seamless Connections"
+                        />
+                        <div className={classes.textDiv}>
+                            <div className={classes.titleDiv}>Seamless Connections</div>
+                            <div>
+                                Deploy, manage, and interact with SQL Server container — right from
+                                VS Code, no context switching.
+                            </div>
+                        </div>
+                    </div>
+                    <Button
+                        className={classes.button}
+                        onClick={() => {
+                            setShowNext(true);
+                        }}
+                        appearance={"primary"}>
+                        Get Started
+                    </Button>
                 </div>
-                <Button
-                    className={classes.button}
-                    onClick={() => {
-                        setShowNext(true);
-                    }}
-                    appearance={"primary"}>
-                    Get Started
-                </Button>
             </div>
         </div>
     );

@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { AddConnectionTreeNode } from "../objectExplorer/nodes/addConnectionTreeNode";
-import { AddContainerConnectionTreeNode } from "./addContainerConnectionTreeNode";
+import { AddLocalContainerConnectionTreeNode } from "./addLocalContainerConnectionTreeNode";
 
 export class NewConnectionProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -18,6 +18,6 @@ export class NewConnectionProvider implements vscode.TreeDataProvider<any> {
     }
 
     public async getChildren(): Promise<vscode.TreeItem[]> {
-        return [new AddConnectionTreeNode(), new AddContainerConnectionTreeNode()];
+        return [new AddConnectionTreeNode(), new AddLocalContainerConnectionTreeNode()];
     }
 }

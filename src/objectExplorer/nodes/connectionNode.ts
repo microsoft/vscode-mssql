@@ -10,7 +10,7 @@ import { ConnectionProfile } from "../../models/connectionProfile";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as ConnInfo from "../../models/connectionInfo";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
-import { disconnectedDockerContainer } from "../../constants/constants";
+import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
 
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
@@ -79,7 +79,11 @@ export class ConnectionNode extends TreeNodeInfo {
             type: SERVER_NODE_CONNECTED,
             filterable: nodeInfo.filterableProperties?.length > 0,
             hasFilters: false,
-            subType: connectionProfile.database ? DATABASE_SUBTYPE : "",
+            subType: connectionProfile.database
+                ? DATABASE_SUBTYPE
+                : connectionProfile.containerName
+                  ? dockerContainer
+                  : "",
         };
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         this.nodePath = nodeInfo.nodePath;
@@ -96,10 +100,8 @@ export class ConnectionNode extends TreeNodeInfo {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DATABASE_CONNECTED);
         } else {
             let iconName = ICON_SERVER_CONNECTED;
-            if (connectionProfile.containerName) {
-                iconName = ICON_DOCKER_SERVER_CONNECTED;
-                this.context = { ...this.context, subType: iconName };
-            }
+            if (connectionProfile.containerName) iconName = ICON_DOCKER_SERVER_CONNECTED;
+
             this.iconPath = ObjectExplorerUtils.iconPath(iconName);
         }
     }
@@ -129,10 +131,7 @@ export class ConnectionNode extends TreeNodeInfo {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DATABASE_DISCONNECTED);
         } else {
             let iconName = ICON_SERVER_DISCONNECTED;
-            if (this.connectionProfile.containerName) {
-                iconName = ICON_DOCKER_SERVER_DISCONNECTED;
-                this.context = { ...this.context, subType: ICON_DOCKER_SERVER_DISCONNECTED };
-            }
+            if (this.connectionProfile.containerName) iconName = ICON_DOCKER_SERVER_DISCONNECTED;
             this.iconPath = ObjectExplorerUtils.iconPath(iconName);
         }
     }

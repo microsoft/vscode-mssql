@@ -9,7 +9,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
-export class AddContainerConnectionTreeNode extends vscode.TreeItem {
+export class AddLocalContainerConnectionTreeNode extends vscode.TreeItem {
     constructor() {
         super(
             LocalizedConstants.msgAddLocalContainerConnection,

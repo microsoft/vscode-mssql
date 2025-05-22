@@ -9,6 +9,7 @@ import { StepCard } from "./stepCard";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { checkStepsLoaded, runDockerSteps } from "./deploymentUtils";
 import { DockerStepOrder } from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -19,6 +20,8 @@ const useStyles = makeStyles({
         justifyContent: "center",
         height: "100%",
         width: "100%",
+        minWidth: "650px",
+        minHeight: "fit-content",
     },
     stepsDiv: {
         display: "flex",
@@ -40,6 +43,7 @@ const useStyles = makeStyles({
         padding: "8px",
         alignItems: "unset",
         textAlign: "left",
+        fontWeight: 500,
     },
     stepsSubheader: {
         width: "100%",
@@ -58,7 +62,7 @@ export const ContainerSetupStepsPage: React.FC = () => {
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!containerDeploymentState) {
+    if (!containerDeploymentState || !containerDeploymentState.formState.containerName) {
         return undefined;
     }
 
@@ -83,27 +87,36 @@ export const ContainerSetupStepsPage: React.FC = () => {
     }, [containerDeploymentState]);
 
     return (
-        <div className={classes.outerDiv}>
-            <div className={classes.stepsDiv}>
-                <div className={classes.stepsHeader}>Setting up container...</div>
-                <div className={classes.stepsSubheader}>
-                    Getting container ready for connections
+        <div>
+            <ContainerDeploymentHeader
+                headerText={containerDeploymentState.formState.containerName}
+            />
+            <div className={classes.outerDiv}>
+                <div className={classes.stepsDiv}>
+                    <div className={classes.stepsHeader}>
+                        Setting up {containerDeploymentState.formState.containerName}...
+                    </div>
+                    <div className={classes.stepsSubheader}>
+                        Getting container ready for connections
+                    </div>
+                    <StepCard
+                        step={containerDeploymentState.dockerSteps[DockerStepOrder.startContainer]}
+                    />
+                    <StepCard
+                        step={containerDeploymentState.dockerSteps[DockerStepOrder.checkContainer]}
+                    />
+                    <StepCard
+                        step={
+                            containerDeploymentState.dockerSteps[DockerStepOrder.connectToContainer]
+                        }
+                    />
+                    <Button
+                        className={classes.button}
+                        onClick={() => (stepsLoaded ? state.dispose() : undefined)}
+                        appearance={stepsLoaded ? "primary" : "secondary"}>
+                        Finish
+                    </Button>
                 </div>
-                <StepCard
-                    step={containerDeploymentState.dockerSteps[DockerStepOrder.startContainer]}
-                />
-                <StepCard
-                    step={containerDeploymentState.dockerSteps[DockerStepOrder.checkContainer]}
-                />
-                <StepCard
-                    step={containerDeploymentState.dockerSteps[DockerStepOrder.connectToContainer]}
-                />
-                <Button
-                    className={classes.button}
-                    onClick={() => (stepsLoaded ? state.dispose() : undefined)}
-                    appearance={stepsLoaded ? "primary" : "secondary"}>
-                    Finish
-                </Button>
             </div>
         </div>
     );

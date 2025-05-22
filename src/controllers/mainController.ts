@@ -828,12 +828,6 @@ export default class MainController implements vscode.Disposable {
         if (sessionCreationResult) {
             const newNode = await sessionCreationResult.connectionNode;
             if (newNode) {
-                if (newNode.connectionProfile.containerName) {
-                    newNode.nodeSubType = newNode.nodeType.includes(Constants.disconnected)
-                        ? Constants.disconnectedDockerContainer
-                        : Constants.dockerContainer;
-                    newNode.context = { ...newNode.context, subType: newNode.nodeSubType };
-                }
                 this._objectExplorerProvider.refresh(undefined);
                 return newNode;
             }

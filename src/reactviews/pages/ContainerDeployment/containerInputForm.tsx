@@ -15,6 +15,7 @@ import {
     DockerConnectionProfile,
 } from "../../../sharedInterfaces/containerDeploymentInterfaces";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
+import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -24,9 +25,10 @@ const useStyles = makeStyles({
         marginLeft: "5px",
         marginRight: "5px",
         padding: "8px",
-        height: "85%",
         width: "500px",
         whiteSpace: "nowrap",
+        minWidth: "800px",
+        height: "80vh",
     },
     button: {
         height: "28px",
@@ -36,7 +38,11 @@ const useStyles = makeStyles({
         marginLeft: "24px",
     },
     bottomDiv: {
-        marginTop: "auto",
+        bottom: 0,
+        paddingBottom: "50px",
+    },
+    formDiv: {
+        flexGrow: 1,
     },
 });
 
@@ -98,51 +104,62 @@ export const ContainerInputForm: React.FC = () => {
     return showNext ? (
         <ContainerSetupStepsPage />
     ) : (
-        <div className={classes.outerDiv}>
-            {renderFormFields(false)}
-            <div>
-                <Button
-                    icon={
-                        showAdvancedOptions ? <ChevronDown20Regular /> : <ChevronRight20Regular />
-                    }
-                    appearance="subtle"
-                    onClick={() => setShowAdvanced(!showAdvancedOptions)}
-                />
-                Advanced Options
-            </div>
+        <div>
+            <ContainerDeploymentHeader
+                headerText={"Local SQL Server database container connection"}
+                paddingLeft="20px"
+            />
+            <div className={classes.outerDiv}>
+                <div className={classes.formDiv}>
+                    {renderFormFields(false)}
+                    <div>
+                        <Button
+                            icon={
+                                showAdvancedOptions ? (
+                                    <ChevronDown20Regular />
+                                ) : (
+                                    <ChevronRight20Regular />
+                                )
+                            }
+                            appearance="subtle"
+                            onClick={() => setShowAdvanced(!showAdvancedOptions)}
+                        />
+                        Advanced Options
+                    </div>
 
-            {showAdvancedOptions && (
-                <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
-            )}
-
-            <div className={classes.bottomDiv}>
-                <hr style={{ background: tokens.colorNeutralBackground2 }} />
-                <div
-                    style={{
-                        ...(eulaComponent.componentWidth && {
-                            width: eulaComponent.componentWidth,
-                        }),
-                        marginTop: "10px",
-                    }}>
-                    <FormField<
-                        DockerConnectionProfile,
-                        ContainerDeploymentWebviewState,
-                        ContainerDeploymentFormItemSpec,
-                        ContainerDeploymentContextProps
-                    >
-                        key={eulaComponent.propertyName}
-                        context={state}
-                        component={eulaComponent}
-                        idx={0}
-                    />
+                    {showAdvancedOptions && (
+                        <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
+                    )}
                 </div>
-                <Button
-                    className={classes.button}
-                    type="submit"
-                    onClick={() => handleSubmit()}
-                    appearance={"primary"}>
-                    Create Container
-                </Button>
+                <div className={classes.bottomDiv}>
+                    <hr style={{ background: tokens.colorNeutralBackground2 }} />
+                    <div
+                        style={{
+                            ...(eulaComponent.componentWidth && {
+                                width: eulaComponent.componentWidth,
+                            }),
+                            marginTop: "10px",
+                        }}>
+                        <FormField<
+                            DockerConnectionProfile,
+                            ContainerDeploymentWebviewState,
+                            ContainerDeploymentFormItemSpec,
+                            ContainerDeploymentContextProps
+                        >
+                            key={eulaComponent.propertyName}
+                            context={state}
+                            component={eulaComponent}
+                            idx={0}
+                        />
+                    </div>
+                    <Button
+                        className={classes.button}
+                        type="submit"
+                        onClick={() => handleSubmit()}
+                        appearance={"primary"}>
+                        Create Container
+                    </Button>
+                </div>
             </div>
         </div>
     );

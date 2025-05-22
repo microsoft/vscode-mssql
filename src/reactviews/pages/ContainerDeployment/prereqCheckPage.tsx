@@ -10,6 +10,7 @@ import { Button, makeStyles } from "@fluentui/react-components";
 import { ContainerInputForm } from "./containerInputForm";
 import { checkStepsLoaded, runDockerSteps } from "./deploymentUtils";
 import { DockerStepOrder } from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -20,6 +21,8 @@ const useStyles = makeStyles({
         justifyContent: "center",
         height: "100%",
         width: "100%",
+        minWidth: "650px",
+        minHeight: "fit-content",
     },
     stepsDiv: {
         display: "flex",
@@ -87,35 +90,46 @@ export const PrereqCheckPage: React.FC = () => {
     return showNext ? (
         <ContainerInputForm />
     ) : (
-        <div className={classes.outerDiv}>
-            <div className={classes.stepsDiv}>
-                <div className={classes.stepsHeader}>Getting Docker Ready...</div>
-                <div className={classes.stepsSubheader}>Checking pre-requisites</div>
-                <StepCard
-                    step={containerDeploymentState.dockerSteps[DockerStepOrder.dockerInstallation]}
-                />
-                <StepCard
-                    step={containerDeploymentState.dockerSteps[DockerStepOrder.startDockerDesktop]}
-                />
-                <StepCard
-                    step={containerDeploymentState.dockerSteps[DockerStepOrder.checkDockerEngine]}
-                />
-                {stepsLoaded ? (
-                    <Button
-                        className={classes.button}
-                        onClick={() => setShowNext(true)}
-                        appearance="primary">
-                        Next
-                    </Button>
-                ) : (
-                    <Button
-                        className={classes.button}
-                        onClick={() => {
-                            state.dispose();
-                        }}>
-                        Cancel
-                    </Button>
-                )}
+        <div>
+            <ContainerDeploymentHeader
+                headerText={"Local SQL Server database container connection"}
+            />
+            <div className={classes.outerDiv}>
+                <div className={classes.stepsDiv}>
+                    <div className={classes.stepsHeader}>Getting Docker Ready...</div>
+                    <div className={classes.stepsSubheader}>Checking pre-requisites</div>
+                    <StepCard
+                        step={
+                            containerDeploymentState.dockerSteps[DockerStepOrder.dockerInstallation]
+                        }
+                    />
+                    <StepCard
+                        step={
+                            containerDeploymentState.dockerSteps[DockerStepOrder.startDockerDesktop]
+                        }
+                    />
+                    <StepCard
+                        step={
+                            containerDeploymentState.dockerSteps[DockerStepOrder.checkDockerEngine]
+                        }
+                    />
+                    {stepsLoaded ? (
+                        <Button
+                            className={classes.button}
+                            onClick={() => setShowNext(true)}
+                            appearance="primary">
+                            Next
+                        </Button>
+                    ) : (
+                        <Button
+                            className={classes.button}
+                            onClick={() => {
+                                state.dispose();
+                            }}>
+                            Cancel
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
     );
