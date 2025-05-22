@@ -35,7 +35,7 @@ export const COMMANDS = {
         win32: 'start "" "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"',
         darwin: "open -a Docker",
         // still need to test
-        linux: "systemctl start docker",
+        linux: "sudo -v; sudo systemctl start docker",
     },
     CHECK_ENGINE: {
         win32: `powershell -Command "& \\"C:\\Program Files\\Docker\\Docker\\DockerCli.exe\\" -SwitchLinuxEngine"`,
@@ -63,6 +63,16 @@ export const COMMANDS = {
     DELETE_CONTAINER: (name: string) => `docker stop ${name} && docker rm ${name}`,
     INSPECT_CONTAINER: (id: string) => `docker inspect ${id}`,
 };
+
+/**
+ *  Add sudo to the command if the platform is Linux.
+ */
+export function linuxifyCommandIfNeeded(command: string): string {
+    if (platform() !== Platform.Linux) {
+        return command;
+    }
+    return `sudo -v;sudo ${command}`;
+}
 
 /**
  * The steps for the Docker container deployment process.
@@ -190,7 +200,7 @@ async function execCommand(command: string): Promise<string> {
 
 export async function checkDockerInstallation(): Promise<DockerCommandParams> {
     try {
-        await execCommand(COMMANDS.CHECK_DOCKER);
+        await execCommand(linuxifyCommandIfNeeded(COMMANDS.CHECK_DOCKER));
         return { success: true };
     } catch {
         return {
@@ -235,7 +245,7 @@ export async function checkEngine(): Promise<DockerCommandParams> {
  */
 export async function validateContainerName(containerName: string): Promise<string> {
     try {
-        const stdout = await execCommand(COMMANDS.VALIDATE_CONTAINER_NAME);
+        const stdout = await execCommand(linuxifyCommandIfNeeded(COMMANDS.VALIDATE_CONTAINER_NAME));
         const existingContainers = stdout ? stdout.split("\n") : [];
         let newContainerName = "";
 
@@ -266,12 +276,8 @@ export async function startSqlServerDockerContainer(
     hostname: string,
     port: number,
 ): Promise<DockerCommandParams> {
-    const command = COMMANDS.START_SQL_SERVER(
-        containerName,
-        password,
-        port,
-        Number(version),
-        hostname,
+    const command = linuxifyCommandIfNeeded(
+        COMMANDS.START_SQL_SERVER(containerName, password, port, Number(version), hostname),
     );
     console.log(command);
     try {
@@ -293,7 +299,9 @@ export async function startSqlServerDockerContainer(
 
 export async function isDockerContainerRunning(name: string): Promise<boolean> {
     try {
-        const output = await execCommand(COMMANDS.CHECK_CONTAINER_RUNNING(name));
+        const output = await execCommand(
+            linuxifyCommandIfNeeded(COMMANDS.CHECK_CONTAINER_RUNNING(name)),
+        );
         return output.trim() === name;
     } catch {
         return false;
@@ -324,7 +332,7 @@ export async function startDocker(): Promise<DockerCommandParams> {
         return await new Promise((resolve) => {
             const checkDocker = setInterval(async () => {
                 try {
-                    await execCommand(COMMANDS.CHECK_DOCKER);
+                    await execCommand(linuxifyCommandIfNeeded(COMMANDS.CHECK_DOCKER));
                     clearInterval(checkDocker);
                     resolve({ success: true });
                 } catch {
@@ -353,7 +361,7 @@ export async function restartContainer(containerName: string): Promise<boolean> 
     if (containerRunning) return true;
 
     try {
-        await execCommand(COMMANDS.START_CONTAINER(containerName));
+        await execCommand(linuxifyCommandIfNeeded(COMMANDS.START_CONTAINER(containerName)));
         return (await checkIfContainerIsReadyForConnections(containerName)).success;
     } catch {
         return false;
@@ -374,8 +382,10 @@ export async function checkIfContainerIsReadyForConnections(
     return new Promise((resolve) => {
         const interval = setInterval(async () => {
             try {
-                const logs = await execCommand(COMMANDS.CHECK_LOGS(containerName, platform()));
-                if (logs.includes(COMMANDS.CHECK_CONTAINER_READY)) {
+                const logs = await execCommand(
+                    linuxifyCommandIfNeeded(COMMANDS.CHECK_LOGS(containerName, platform())),
+                );
+                if (logs.includes(linuxifyCommandIfNeeded(COMMANDS.CHECK_CONTAINER_READY))) {
                     clearInterval(interval);
                     return resolve({ success: true });
                 }
@@ -398,7 +408,7 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
     sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.DeleteContainer);
 
     try {
-        await execCommand(COMMANDS.DELETE_CONTAINER(containerName));
+        await execCommand(linuxifyCommandIfNeeded(COMMANDS.DELETE_CONTAINER(containerName)));
         return true;
     } catch {
         return false;
@@ -409,7 +419,7 @@ export async function stopContainer(containerName: string): Promise<boolean> {
     sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StopContainer);
 
     try {
-        await execCommand(COMMANDS.STOP_CONTAINER(containerName));
+        await execCommand(linuxifyCommandIfNeeded(COMMANDS.STOP_CONTAINER(containerName)));
         return true;
     } catch {
         return false;
@@ -422,7 +432,9 @@ async function getUsedPortsFromContainers(containerIds: string[]): Promise<Set<n
     await Promise.all(
         containerIds.map(async (id) => {
             try {
-                const inspect = await execCommand(COMMANDS.INSPECT_CONTAINER(id));
+                const inspect = await execCommand(
+                    linuxifyCommandIfNeeded(COMMANDS.INSPECT_CONTAINER(id)),
+                );
                 const matches = inspect.match(/"HostPort":\s*"(\d+)"/g);
                 matches?.forEach((match) => {
                     const port = match.match(/\d+/);
@@ -440,7 +452,9 @@ async function getUsedPortsFromContainers(containerIds: string[]): Promise<Set<n
 async function findContainerByPort(containerIds: string[], serverName: string): Promise<string> {
     for (const id of containerIds) {
         try {
-            const inspect = await execCommand(COMMANDS.INSPECT_CONTAINER(id));
+            const inspect = await execCommand(
+                linuxifyCommandIfNeeded(COMMANDS.INSPECT_CONTAINER(id)),
+            );
             const ports = inspect.match(/"HostPort":\s*"(\d+)"/g);
 
             if (ports?.some((p) => serverName.includes(p.match(/\d+/)?.[0] || ""))) {
@@ -459,7 +473,7 @@ export async function checkIfConnectionIsDockerContainer(serverName: string): Pr
     if (!serverName.includes(localhost) && !serverName.includes(localhostIP)) return "";
 
     try {
-        const stdout = await execCommand(COMMANDS.GET_CONTAINERS);
+        const stdout = await execCommand(linuxifyCommandIfNeeded(COMMANDS.GET_CONTAINERS));
         const containerIds = stdout.split("\n").filter(Boolean);
         if (!containerIds.length) return "";
 
@@ -475,7 +489,7 @@ export async function findAvailablePort(
 ): Promise<number> {
     try {
         dockerDebugChannel.appendLine(`Checking for used ports starting from ${startPort}...`);
-        const stdout = await execCommand(COMMANDS.GET_CONTAINERS);
+        const stdout = await execCommand(linuxifyCommandIfNeeded(COMMANDS.GET_CONTAINERS));
         dockerDebugChannel.appendLine(`Docker containers: ${stdout}`);
         const containerIds = stdout.split("\n").filter(Boolean);
         dockerDebugChannel.appendLine(`Docker containers: ${containerIds}`);
