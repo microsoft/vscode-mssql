@@ -24,7 +24,6 @@ import {
 import { ContainerDeployment } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
-import { Container } from "@angular/compiler/src/i18n/i18n_ast";
 
 // TODO: test linux containers
 /**
