@@ -25,7 +25,6 @@ import { ContainerDeployment } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 
-// TODO: test linux containers
 /**
  * Commands used to interact with Docker.
  */
@@ -467,27 +466,18 @@ export async function checkIfConnectionIsDockerContainer(serverName: string): Pr
     }
 }
 
-export async function findAvailablePort(
-    startPort: number,
-    dockerDebugChannel: vscode.OutputChannel,
-): Promise<number> {
+export async function findAvailablePort(startPort: number): Promise<number> {
     try {
-        dockerDebugChannel.appendLine(`Checking for used ports starting from ${startPort}...`);
         const stdout = await execCommand(COMMANDS.GET_CONTAINERS);
-        dockerDebugChannel.appendLine(`Docker containers: ${stdout}`);
         const containerIds = stdout.split("\n").filter(Boolean);
-        dockerDebugChannel.appendLine(`Docker containers: ${containerIds}`);
         if (!containerIds.length) return startPort;
 
-        dockerDebugChannel.appendLine(`Found ${containerIds.length} containers.`);
         const usedPorts = await getUsedPortsFromContainers(containerIds);
-        dockerDebugChannel.appendLine(`Used ports: ${Array.from(usedPorts).join(", ")}`);
 
         let port = startPort;
         while (usedPorts.has(port)) port++;
         return port;
-    } catch (e) {
-        dockerDebugChannel.appendLine(`Error while checking for used ports: ${e.message}.`);
+    } catch {
         return -1;
     }
 }

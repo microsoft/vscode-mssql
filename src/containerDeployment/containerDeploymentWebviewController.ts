@@ -38,7 +38,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     cd.ContainerDeploymentReducers
 > {
     requiredInputs: cd.ContainerDeploymentFormItemSpec[];
-    dockerDebugChannel: vscode.OutputChannel = vscode.window.createOutputChannel("Docker Debug");
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
@@ -125,30 +124,18 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
-            this.dockerDebugChannel.appendLine("Checking Docker profile");
             state = await this.validateDockerConnectionProfile(state, state.formState);
-            this.dockerDebugChannel.appendLine("Docker profile checked");
             if (!state.formState.containerName) {
-                this.dockerDebugChannel.appendLine("No container name provided, generating one");
                 state.formState.containerName = await dockerUtils.validateContainerName(
                     state.formState.containerName,
                 );
-                this.dockerDebugChannel.appendLine("Container name generated");
             }
 
             if (!state.formState.port) {
-                this.dockerDebugChannel.appendLine("No port provided, generating one");
-                state.formState.port = await dockerUtils.findAvailablePort(
-                    defaultContainerPort,
-                    this.dockerDebugChannel,
-                );
-                this.dockerDebugChannel.appendLine("Port generated");
+                state.formState.port = await dockerUtils.findAvailablePort(defaultContainerPort);
             }
 
             state.isDockerProfileValid = state.formErrors.length === 0;
-            this.dockerDebugChannel.appendLine(
-                `Docker profile is valid ${state.isDockerProfileValid}`,
-            );
             return state;
         });
 
@@ -176,7 +163,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         // Check if portNumber is a valid number
         if (isNaN(portNumber) || portNumber <= 0) return false;
 
-        const newPort = await dockerUtils.findAvailablePort(portNumber, this.dockerDebugChannel);
+        const newPort = await dockerUtils.findAvailablePort(portNumber);
         return newPort === portNumber;
     }
 
@@ -272,17 +259,19 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             version: dockerProfile.version,
         });
 
-        // Make object explorer session
-        const session = await this.mainController.createObjectExplorerSession(
-            connection as IConnectionProfile,
-        );
+        this.mainController.connectionManager.connectionUI
+            .saveProfile(connection as IConnectionProfile)
+            .then(async () => {
+                await this.mainController.createObjectExplorerSession(
+                    connection as IConnectionProfile,
+                );
+            })
+            .catch((err) => {
+                vscode.window.showErrorMessage(err);
+                return false;
+            });
 
-        // Save profile for future use
-        const profile = await this.mainController.connectionManager.connectionUI.saveProfile(
-            connection as IConnectionProfile,
-        );
-
-        return session !== undefined && profile !== undefined;
+        return true;
     }
 
     private setFormComponents(): Record<
