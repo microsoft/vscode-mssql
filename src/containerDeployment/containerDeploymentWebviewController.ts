@@ -138,7 +138,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
             if (!state.formState.port) {
                 this.dockerDebugChannel.appendLine("No port provided, generating one");
-                state.formState.port = await dockerUtils.findAvailablePort(defaultContainerPort);
+                state.formState.port = await dockerUtils.findAvailablePort(
+                    defaultContainerPort,
+                    this.dockerDebugChannel,
+                );
                 this.dockerDebugChannel.appendLine("Port generated");
             }
 
