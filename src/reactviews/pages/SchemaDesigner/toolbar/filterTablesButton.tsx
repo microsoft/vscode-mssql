@@ -27,9 +27,9 @@ export function FilterTablesButton() {
         return undefined;
     }
 
-    const [tableNames, setTableNames] = useState<string[]>([]);
+    const [filterText, setFilterText] = useState("");
+
     const [selectedTables, setSelectedTables] = useState<string[]>([]);
-    const [filteredTableNames, setFilteredTableNames] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
     function loadTables() {
@@ -54,8 +54,6 @@ export function FilterTablesButton() {
             }
             return a.localeCompare(b);
         });
-        setTableNames(tableNames);
-        setFilteredTableNames(tableNames);
     }
 
     useEffect(() => {
@@ -85,6 +83,68 @@ export function FilterTablesButton() {
         });
     }, [selectedTables]);
 
+    // Function to highlight text based on search
+    const highlightText = (text: string, searchText: string) => {
+        if (!searchText || searchText.trim() === "") {
+            return <span>{text}</span>;
+        }
+
+        // Case insensitive search
+        const regex = new RegExp(`(${searchText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+        const parts = text.split(regex);
+
+        return (
+            <>
+                {parts.map((part, index) => {
+                    // Check if this part matches the search text (case insensitive)
+                    const isMatch = part.toLowerCase() === searchText.toLowerCase();
+                    return isMatch ? (
+                        <span
+                            key={index}
+                            style={{
+                                backgroundColor: "var(--vscode-editor-findMatchBackground)",
+                                color: "var(--vscode-editor-background)",
+                                padding: "0 2px",
+                                borderRadius: "3px",
+                            }}>
+                            {part}
+                        </span>
+                    ) : (
+                        <span key={index}>{part}</span>
+                    );
+                })}
+            </>
+        );
+    };
+
+    function renderListItems() {
+        const nodes = reactFlow.getNodes();
+        const tableNames = nodes.map((node) => `${node.data.schema}.${node.data.name}`);
+        tableNames.sort();
+
+        const items: JSX.Element[] = [];
+        tableNames.forEach((tableName) => {
+            const tableItem = (
+                <ListItem
+                    style={{
+                        lineHeight: "30px",
+                        alignItems: "center",
+                        padding: "2px",
+                    }}
+                    value={tableName}
+                    key={tableName}>
+                    <Text>{highlightText(tableName, filterText)}</Text>
+                </ListItem>
+            );
+            if (!filterText) {
+                items.push(tableItem);
+            } else if (tableName.toLowerCase().includes(filterText.toLowerCase())) {
+                items.push(tableItem);
+            }
+        });
+        return items;
+    }
+
     return (
         <Menu open={isFilterMenuOpen} onOpenChange={(_, data) => setIsFilterMenuOpen(data.open)}>
             <MenuTrigger>
@@ -96,7 +156,7 @@ export function FilterTablesButton() {
                         loadTables();
                         setIsFilterMenuOpen(!isFilterMenuOpen);
                     }}>
-                    {locConstants.schemaDesigner.filter}
+                    {locConstants.schemaDesigner.filter(selectedTables.length)}
                 </Button>
             </MenuTrigger>
 
@@ -117,21 +177,14 @@ export function FilterTablesButton() {
                         marginBottom: "10px",
                         width: "100%",
                     }}
+                    value={filterText}
                     onChange={(_e, data) => {
-                        const searchText = data.value;
-                        if (searchText.length === 0) {
-                            setFilteredTableNames(tableNames);
-                            return;
-                        }
-                        const filteredNames = tableNames.filter((name) =>
-                            name.toLowerCase().includes(searchText.toLowerCase()),
-                        );
-                        setFilteredTableNames(filteredNames);
+                        setFilterText(data.value);
                     }}
                     onAbort={() => {
-                        setFilteredTableNames(tableNames);
-                        setSelectedTables([]);
-                    }}></SearchBox>
+                        setFilterText("");
+                    }}
+                />
                 <List
                     selectionMode="multiselect"
                     style={{
@@ -143,16 +196,7 @@ export function FilterTablesButton() {
                     onSelectionChange={(_e, data) => {
                         setSelectedTables(data.selectedItems as string[]);
                     }}>
-                    {filteredTableNames.map((tableName) => (
-                        <ListItem value={tableName} key={tableName}>
-                            <Text
-                                style={{
-                                    lineHeight: "30px",
-                                }}>
-                                {tableName}
-                            </Text>
-                        </ListItem>
-                    ))}
+                    {renderListItems()}
                 </List>
                 <div
                     style={{
@@ -160,6 +204,8 @@ export function FilterTablesButton() {
                         flexDirection: "row",
                         gap: "5px",
                         justifyContent: "flex-end",
+                        borderTop: "1px solid var(--vscode-editorWidget-border)",
+                        paddingTop: "5px",
                     }}>
                     <Button
                         size="small"

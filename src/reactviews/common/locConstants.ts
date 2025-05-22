@@ -386,7 +386,17 @@ export class LocConstants {
             autoArrangeConfirmationContent: l10n.t(
                 "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?",
             ),
-            filter: l10n.t("Filter"),
+            filter: (selectedTablesCount: number) => {
+                if (selectedTablesCount === 0) {
+                    return l10n.t("Filter");
+                } else {
+                    return l10n.t({
+                        message: "Filter ({0})",
+                        args: [selectedTablesCount],
+                        comment: ["{0} is the number of selected tables"],
+                    });
+                }
+            },
             clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
             refresh: l10n.t("Refresh"),
