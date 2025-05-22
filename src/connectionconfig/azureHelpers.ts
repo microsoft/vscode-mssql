@@ -328,9 +328,9 @@ export async function constructAzureAccountForTenant(
 
 //#endregion
 
-//#region Miscellaneous Auzre helpers
+//#region Miscellaneous Azure helpers
 
-function extractFromResourceId(resourceId: string, property: string): string | undefined {
+export function extractFromResourceId(resourceId: string, property: string): string | undefined {
     if (!property.endsWith("/")) {
         property += "/";
     }
@@ -343,7 +343,12 @@ function extractFromResourceId(resourceId: string, property: string): string | u
         startIndex += property.length;
     }
 
-    return resourceId.substring(startIndex, resourceId.indexOf("/", startIndex));
+    let endIndex = resourceId.indexOf("/", startIndex);
+    if (endIndex === -1) {
+        endIndex = undefined;
+    }
+
+    return resourceId.substring(startIndex, endIndex);
 }
 
 //#endregion

@@ -971,8 +971,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     );
                 } catch (err) {
                     this.logger.verbose(
-                        `Error getting token or checking validity; forcing refresh. Error: ${getErrorMessage(err)}`,
+                        `Error getting token or checking validity; prompting for refresh. Error: ${getErrorMessage(err)}`,
                     );
+
+                    this.vscodeWrapper.showErrorMessage(
+                        "Error validating Entra authentication token; you may need to refresh your token.",
+                    );
+
                     isTokenExpired = true;
                 }
 
