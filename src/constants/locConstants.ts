@@ -849,6 +849,9 @@ export class ContainerDeployment {
     public static windowsContainersError = l10n.t(
         "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
     );
+    public static linuxDockerPermissionsError = l10n.t(
+        "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
+    );
     public static dockerFailedToStartWithinTimeout = l10n.t(
         "Docker failed to start within the timeout period. Please manually start Docker and try again.",
     );
