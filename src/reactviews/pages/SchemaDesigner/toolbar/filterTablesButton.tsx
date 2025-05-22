@@ -31,6 +31,14 @@ export function FilterTablesButton() {
     const [selectedTables, setSelectedTables] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
+    function resetView() {
+        setTimeout(async () => {
+            await reactFlow.fitView({
+                nodes: reactFlow.getNodes().filter((node) => node.hidden !== true),
+            });
+        }, 0);
+    }
+
     function loadTables() {
         // Update the selected tables based on the current nodes
         const nodes = reactFlow.getNodes();
@@ -54,22 +62,23 @@ export function FilterTablesButton() {
                     hidden: false,
                 });
             });
-            return;
+            resetView();
+        } else {
+            nodes.forEach((node) => {
+                const tableName = `${node.data.schema}.${node.data.name}`;
+                if (selectedTables.includes(tableName)) {
+                    reactFlow.updateNode(node.id, {
+                        ...node,
+                        hidden: false,
+                    });
+                } else {
+                    reactFlow.updateNode(node.id, {
+                        ...node,
+                        hidden: true,
+                    });
+                }
+            });
         }
-        nodes.forEach((node) => {
-            const tableName = `${node.data.schema}.${node.data.name}`;
-            if (selectedTables.includes(tableName)) {
-                reactFlow.updateNode(node.id, {
-                    ...node,
-                    hidden: false,
-                });
-            } else {
-                reactFlow.updateNode(node.id, {
-                    ...node,
-                    hidden: true,
-                });
-            }
-        });
     }, [selectedTables]);
 
     useEffect(() => {
@@ -192,6 +201,7 @@ export function FilterTablesButton() {
                     selectedItems={selectedTables}
                     onSelectionChange={(_e, data) => {
                         setSelectedTables(data.selectedItems as string[]);
+                        resetView();
                     }}>
                     {renderListItems()}
                 </List>
@@ -207,15 +217,9 @@ export function FilterTablesButton() {
                     <Button
                         size="small"
                         style={{}}
-                        onClick={() => {
+                        onClick={async () => {
                             setSelectedTables([]);
-                            const nodes = reactFlow.getNodes();
-                            nodes.forEach((node) => {
-                                reactFlow.updateNode(node.id, {
-                                    ...node,
-                                    hidden: false,
-                                });
-                            });
+                            resetView();
                         }}
                         appearance="subtle"
                         icon={<FluentIcons.DismissRegular />}>
