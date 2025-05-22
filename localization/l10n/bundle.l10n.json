@@ -360,6 +360,12 @@
   "Auto Arrange Confirmation": "Auto Arrange Confirmation",
   "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?": "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?",
   "Filter": "Filter",
+  "Filter ({0})/{0} is the number of selected tables": {
+    "message": "Filter ({0})",
+    "comment": [
+      "{0} is the number of selected tables"
+    ]
+  },
   "Refresh": "Refresh",
   "Publish Changes": "Publish Changes",
   "Edit Table": "Edit Table",
