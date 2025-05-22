@@ -176,7 +176,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         // Check if portNumber is a valid number
         if (isNaN(portNumber) || portNumber <= 0) return false;
 
-        const newPort = await dockerUtils.findAvailablePort(portNumber);
+        const newPort = await dockerUtils.findAvailablePort(portNumber, this.dockerDebugChannel);
         return newPort === portNumber;
     }
 
