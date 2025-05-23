@@ -403,7 +403,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             await reactFlow.fitView({
                 nodes: reactFlow.getNodes().filter((node) => node.hidden !== true),
             });
-        }, 0);
+        }, 10);
     }
 
     return (
