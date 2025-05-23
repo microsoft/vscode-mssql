@@ -929,6 +929,7 @@ export default class ConnectionManager {
                     fileUri,
                 ),
             );
+            this._connections[fileUri].credentials = newDatabaseCredentials;
             return true;
         } else {
             return false;
