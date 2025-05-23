@@ -169,7 +169,7 @@ export function FilterTablesButton() {
                 }}>
                 <SearchBox
                     size="small"
-                    placeholder="Search"
+                    placeholder={locConstants.schemaDesigner.searchTables}
                     style={{
                         marginBottom: "10px",
                         width: "100%",
