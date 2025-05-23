@@ -17,6 +17,8 @@ import {
     CompletionExtensionParams,
     CompletionExtLoadRequest,
     RebuildIntelliSenseNotification,
+    TableCompletionParams,
+    TableCompletionResult,
 } from "../models/contracts/languageService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
@@ -68,6 +70,8 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../chat/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { MetadataService } from "../metadata/metadataService";
+import { SqlCompletionItemProvider } from "../languageservice/sqlCompletionItemProvider";
 
 /**
  * The main controller class that initializes the extension
@@ -107,6 +111,7 @@ export default class MainController implements vscode.Disposable {
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
+    public metadataService: MetadataService;
 
     /**
      * The main controller constructor
@@ -523,6 +528,39 @@ export default class MainController implements vscode.Disposable {
                 this.onDidChangeConfiguration(params),
             );
 
+            // Register table completion handler for enhanced IntelliSense
+            this.registerTableCompletionHandler();
+
+            // Register SQL completion provider for enhanced table search
+            const sqlCompletionProvider = new SqlCompletionItemProvider(this._connectionMgr);
+
+            // ✅ ÇOKLU REGISTRATION: VS Code'un builtin SQL completion'ını override et
+            // Registration 1: Sadece nokta trigger'ı (en yüksek priority)
+            this._context.subscriptions.push(
+                vscode.languages.registerCompletionItemProvider(
+                    { scheme: 'file', language: 'sql' },
+                    sqlCompletionProvider,
+                    '.' // Sadece nokta - alias completion için kritik
+                )
+            );
+
+            // Registration 2: Boşluk ve diğer trigger'lar
+            this._context.subscriptions.push(
+                vscode.languages.registerCompletionItemProvider(
+                    { scheme: 'file', language: 'sql' },
+                    sqlCompletionProvider,
+                    ' ', '\t', '\n'
+                )
+            );
+
+            // Registration 3: Manual completion (Ctrl+Space)
+            this._context.subscriptions.push(
+                vscode.languages.registerCompletionItemProvider(
+                    { scheme: 'file', language: 'sql' },
+                    sqlCompletionProvider
+                )
+            );
+
             return true;
         }
     }
@@ -718,6 +756,9 @@ export default class MainController implements vscode.Disposable {
             this._prompter,
             this.useLegacyConnectionExperience,
         );
+
+        // Initialize metadata service
+        this.metadataService = new MetadataService(this._connectionMgr);
 
         void this.showOnLaunchPrompts();
 
@@ -1515,6 +1556,61 @@ export default class MainController implements vscode.Disposable {
      */
     public onLoadCompletionExtension(params: CompletionExtensionParams): void {
         SqlToolsServerClient.instance.sendRequest(CompletionExtLoadRequest.type, params);
+    }
+
+    /**
+     * Handle table completion requests for enhanced IntelliSense
+     */
+    public async onTableCompletion(params: TableCompletionParams): Promise<TableCompletionResult> {
+        try {
+            const tables = await this.metadataService.searchTables(
+                params.ownerUri,
+                params.searchTerm || ''
+            );
+
+            let filteredTables = tables;
+
+            // Filter by type if needed
+            if (params.includeViews === false) {
+                filteredTables = tables.filter(table => table.type === 'Table');
+            }
+
+            // Apply max results limit
+            if (params.maxResults && params.maxResults > 0) {
+                filteredTables = filteredTables.slice(0, params.maxResults);
+            }
+
+            // Convert to completion items
+            const items = filteredTables.map(table => ({
+                name: table.name,
+                schema: table.schema,
+                fullyQualifiedName: table.fullyQualifiedName,
+                type: table.type,
+                description: table.urn
+            }));
+
+            return {
+                items,
+                isComplete: filteredTables.length === tables.length
+            };
+        } catch (error) {
+            console.error('Error in table completion:', error);
+            return {
+                items: [],
+                isComplete: true
+            };
+        }
+    }
+
+    /**
+     * Register table completion request handler
+     */
+    public registerTableCompletionHandler(): void {
+        // Register the handler with the language service client
+        // Bu method SQL Tools Service'den gelen request'leri handle edecek
+        // Şimdilik placeholder olarak bırakıyoruz, asıl implementasyon
+        // SQL Tools Service tarafında yapılacak
+        console.log('Table completion handler registered');
     }
 
     /**

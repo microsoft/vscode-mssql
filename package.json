@@ -37,7 +37,12 @@
     ],
     "activationEvents": [
         "onUri",
-        "onCommand:mssql.loadCompletionExtension"
+        "onCommand:mssql.loadCompletionExtension",
+        "onCommand:mssql.addObjectExplorer",
+        "onCommand:mssql.connect",
+        "onCommand:mssql.runQuery",
+        "onLanguage:sql",
+        "onView:objectExplorer"
     ],
     "main": "./out/src/extension",
     "l10n": "./localization/l10n",
@@ -60,7 +65,6 @@
         "package": "vsce package",
         "prepare": "husky",
         "lint-staged": "lint-staged --quiet",
-        "precommit": "run-p lint-staged localization",
         "clean-package": "git clean -xfd && yarn install && yarn build && yarn gulp package:online",
         "instrument": "nyc instrument ./out/src ./out/src --in-place --exclude=**/views/htmlcontent/**",
         "e2eTest": "npx playwright test; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""

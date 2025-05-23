@@ -59,7 +59,7 @@ export namespace StatusChangedNotification {
 }
 
 /**
- * Update event parameters
+ * Status change event parameters
  */
 export class StatusChangeParams {
     /**
@@ -68,39 +68,176 @@ export class StatusChangeParams {
     public ownerUri: string;
 
     /**
-     * The new status of the document
+     * The new status of the language service
      */
     public status: string;
 }
 
-// ------------------------------- </ Status Sent Event > ----------------------------------
+// ------------------------------- </ Status Event > ----------------------------------
 
-// ------------------------------- < Non T-Sql Event > ------------------------------------
+// ------------------------------- < Language Event > ------------------------------------
 
+/**
+ * Event sent when the language service detects a language change
+ */
+export namespace LanguageDetectedNotification {
+    export const type = new NotificationType<LanguageDetectedParams, void>(
+        "textDocument/languageDetected",
+    );
+}
+
+/**
+ * Language detection event parameters
+ */
+export class LanguageDetectedParams {
+    /**
+     * URI identifying the text document
+     */
+    public ownerUri: string;
+
+    /**
+     * The detected language
+     */
+    public language: string;
+}
+
+// ------------------------------- </ Language Event > ----------------------------------
+
+// ------------------------------- < Non-TSql Event > ------------------------------------
+
+/**
+ * Event sent when the language service detects a non-TSQL file
+ */
+export namespace NonTSqlNotification {
+    export const type = new NotificationType<NonTSqlParams, void>("textDocument/nonTSql");
+}
+
+/**
+ * Non-TSQL detected event parameters
+ */
 export class NonTSqlParams {
     /**
      * URI identifying the text document
      */
     public ownerUri: string;
+
     /**
-     * Indicates whether the file was flagged due to containing
-     * non-TSQL keywords or hitting the error limit.
+     * Language of the document
      */
-    public containsNonTSqlKeywords: boolean;
+    public language: string;
 }
 
+// ------------------------------- </ Non-TSql Event > ----------------------------------
+
+// ------------------------------- < Completion Extension Request > ------------------------------------
 /**
- *
+ * Completion extension load parameters
  */
-export namespace NonTSqlNotification {
-    export const type = new NotificationType<NonTSqlParams, void>(
-        "textDocument/nonTSqlFileDetected",
+export class CompletionExtensionParams {
+    /// <summary>
+    /// Absolute path for the assembly containing the completion extension
+    /// </summary>
+    public assemblyPath: string;
+    /// <summary>
+    /// The type name for the completion extension
+    /// </summary>
+    public typeName: string;
+    /// <summary>
+    /// Property bag for initializing the completion extension
+    /// </summary>
+    public properties: {};
+}
+
+export namespace CompletionExtLoadRequest {
+    export const type = new RequestType<CompletionExtensionParams, boolean, void, void>(
+        "completion/extLoad",
     );
 }
 
-// ------------------------------- </ Non T-Sql Event > ----------------------------------
+// ------------------------------- </ Completion Extension Request > ----------------------------------
+
+// ------------------------------- < Table Completion Request > ------------------------------------
+
+/**
+ * Parameters for requesting table completion
+ */
+export class TableCompletionParams {
+    /**
+     * URI identifying the text document
+     */
+    public ownerUri: string;
+
+    /**
+     * Search term for filtering tables
+     */
+    public searchTerm?: string;
+
+    /**
+     * Whether to include views in results
+     */
+    public includeViews?: boolean;
+
+    /**
+     * Maximum number of results to return
+     */
+    public maxResults?: number;
+}
+
+/**
+ * Table completion item
+ */
+export class TableCompletionItem {
+    /**
+     * Name of the table
+     */
+    public name: string;
+
+    /**
+     * Schema name
+     */
+    public schema: string;
+
+    /**
+     * Fully qualified name (schema.table)
+     */
+    public fullyQualifiedName: string;
+
+    /**
+     * Type of object (Table or View)
+     */
+    public type: 'Table' | 'View';
+
+    /**
+     * Optional description
+     */
+    public description?: string;
+}
+
+/**
+ * Table completion response
+ */
+export class TableCompletionResult {
+    /**
+     * List of table completion items
+     */
+    public items: TableCompletionItem[];
+
+    /**
+     * Whether results are complete or truncated
+     */
+    public isComplete: boolean;
+}
+
+export namespace TableCompletionRequest {
+    export const type = new RequestType<TableCompletionParams, TableCompletionResult, void, void>(
+        "textDocument/tableCompletion",
+    );
+}
+
+// ------------------------------- </ Table Completion Request > ----------------------------------
 
 // ------------------------------- < Language Flavor Changed Event > ------------------------------------
+
 /**
  * Language flavor change event parameters
  */
@@ -128,27 +265,4 @@ export namespace LanguageFlavorChangedNotification {
     );
 }
 
-// ------------------------------- < Load Completion Extension Request > ------------------------------------
-/**
- * Completion extension load parameters
- */
-export class CompletionExtensionParams {
-    /// <summary>
-    /// Absolute path for the assembly containing the completion extension
-    /// </summary>
-    public assemblyPath: string;
-    /// <summary>
-    /// The type name for the completion extension
-    /// </summary>
-    public typeName: string;
-    /// <summary>
-    /// Property bag for initializing the completion extension
-    /// </summary>
-    public properties: {};
-}
-
-export namespace CompletionExtLoadRequest {
-    export const type = new RequestType<CompletionExtensionParams, boolean, void, void>(
-        "completion/extLoad",
-    );
-}
+// ------------------------------- </ Language Flavor Changed Event > ----------------------------------
