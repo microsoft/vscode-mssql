@@ -16,9 +16,8 @@ import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
-import { Edge, Node, useReactFlow } from "@xyflow/react";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
-import { flowUtils } from "../schemaDesignerUtils";
+import { useReactFlow } from "@xyflow/react";
+import eventBus from "../schemaDesignerEvents";
 
 export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);
@@ -27,35 +26,23 @@ export function FilterTablesButton() {
         return undefined;
     }
 
-    const [tableNames, setTableNames] = useState<string[]>([]);
+    const [filterText, setFilterText] = useState("");
+
     const [selectedTables, setSelectedTables] = useState<string[]>([]);
-    const [filteredTableNames, setFilteredTableNames] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
 
     function loadTables() {
-        const schema = flowUtils.extractSchemaModel(
-            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-        );
-
-        if (!schema) {
-            return;
+        // Update the selected tables based on the current nodes
+        const nodes = reactFlow.getNodes();
+        const tableNames = nodes
+            .filter((node) => node.hidden !== true)
+            .map((node) => `${node.data.schema}.${node.data.name}`);
+        if (nodes.length === tableNames.length) {
+            setSelectedTables([]);
+        } else {
+            setSelectedTables(tableNames);
         }
-        const tableNames = schema.tables.map((table) => `${table.schema}.${table.name}`);
-        // bring selected tables to the top
-        tableNames.sort((a, b) => {
-            const aSelected = selectedTables.includes(a);
-            const bSelected = selectedTables.includes(b);
-            if (aSelected && !bSelected) {
-                return -1;
-            }
-            if (!aSelected && bSelected) {
-                return 1;
-            }
-            return a.localeCompare(b);
-        });
-        setTableNames(tableNames);
-        setFilteredTableNames(tableNames);
+        setFilterText("");
     }
 
     useEffect(() => {
@@ -67,23 +54,93 @@ export function FilterTablesButton() {
                     hidden: false,
                 });
             });
-            return;
+        } else {
+            nodes.forEach((node) => {
+                const tableName = `${node.data.schema}.${node.data.name}`;
+                if (selectedTables.includes(tableName)) {
+                    reactFlow.updateNode(node.id, {
+                        ...node,
+                        hidden: false,
+                    });
+                } else {
+                    reactFlow.updateNode(node.id, {
+                        ...node,
+                        hidden: true,
+                    });
+                }
+            });
         }
-        nodes.forEach((node) => {
-            const tableName = `${node.data.schema}.${node.data.name}`;
-            if (selectedTables.includes(tableName)) {
-                reactFlow.updateNode(node.id, {
-                    ...node,
-                    hidden: false,
-                });
-            } else {
-                reactFlow.updateNode(node.id, {
-                    ...node,
-                    hidden: true,
-                });
+    }, [selectedTables]);
+
+    useEffect(() => {
+        eventBus.on("getScript", () =>
+            requestAnimationFrame(() => {
+                loadTables();
+            }),
+        );
+    }, []);
+
+    // Function to highlight text based on search
+    const highlightText = (text: string, searchText: string) => {
+        if (!searchText || searchText.trim() === "") {
+            return <span>{text}</span>;
+        }
+
+        // Case insensitive search
+        const regex = new RegExp(`(${searchText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+        const parts = text.split(regex);
+
+        return (
+            <>
+                {parts.map((part, index) => {
+                    // Check if this part matches the search text (case insensitive)
+                    const isMatch = part.toLowerCase() === searchText.toLowerCase();
+                    return isMatch ? (
+                        <span
+                            key={index}
+                            style={{
+                                backgroundColor: "var(--vscode-editor-findMatchBackground)",
+                                color: "var(--vscode-editor-background)",
+                                padding: "0 2px",
+                                borderRadius: "3px",
+                            }}>
+                            {part}
+                        </span>
+                    ) : (
+                        <span key={index}>{part}</span>
+                    );
+                })}
+            </>
+        );
+    };
+
+    function renderListItems() {
+        const nodes = reactFlow.getNodes();
+        const tableNames = nodes.map((node) => `${node.data.schema}.${node.data.name}`);
+        tableNames.sort();
+
+        const items: JSX.Element[] = [];
+        tableNames.forEach((tableName) => {
+            const tableItem = (
+                <ListItem
+                    style={{
+                        lineHeight: "30px",
+                        alignItems: "center",
+                        padding: "2px",
+                    }}
+                    value={tableName}
+                    key={tableName}>
+                    <Text>{highlightText(tableName, filterText)}</Text>
+                </ListItem>
+            );
+            if (!filterText) {
+                items.push(tableItem);
+            } else if (tableName.toLowerCase().includes(filterText.toLowerCase())) {
+                items.push(tableItem);
             }
         });
-    }, [selectedTables]);
+        return items;
+    }
 
     return (
         <Menu open={isFilterMenuOpen} onOpenChange={(_, data) => setIsFilterMenuOpen(data.open)}>
@@ -96,7 +153,7 @@ export function FilterTablesButton() {
                         loadTables();
                         setIsFilterMenuOpen(!isFilterMenuOpen);
                     }}>
-                    {locConstants.schemaDesigner.filter}
+                    {locConstants.schemaDesigner.filter(selectedTables.length)}
                 </Button>
             </MenuTrigger>
 
@@ -112,26 +169,19 @@ export function FilterTablesButton() {
                 }}>
                 <SearchBox
                     size="small"
-                    placeholder="Search"
+                    placeholder={locConstants.schemaDesigner.searchTables}
                     style={{
                         marginBottom: "10px",
                         width: "100%",
                     }}
+                    value={filterText}
                     onChange={(_e, data) => {
-                        const searchText = data.value;
-                        if (searchText.length === 0) {
-                            setFilteredTableNames(tableNames);
-                            return;
-                        }
-                        const filteredNames = tableNames.filter((name) =>
-                            name.toLowerCase().includes(searchText.toLowerCase()),
-                        );
-                        setFilteredTableNames(filteredNames);
+                        setFilterText(data.value);
                     }}
                     onAbort={() => {
-                        setFilteredTableNames(tableNames);
-                        setSelectedTables([]);
-                    }}></SearchBox>
+                        setFilterText("");
+                    }}
+                />
                 <List
                     selectionMode="multiselect"
                     style={{
@@ -142,17 +192,9 @@ export function FilterTablesButton() {
                     selectedItems={selectedTables}
                     onSelectionChange={(_e, data) => {
                         setSelectedTables(data.selectedItems as string[]);
+                        context.resetView();
                     }}>
-                    {filteredTableNames.map((tableName) => (
-                        <ListItem value={tableName} key={tableName}>
-                            <Text
-                                style={{
-                                    lineHeight: "30px",
-                                }}>
-                                {tableName}
-                            </Text>
-                        </ListItem>
-                    ))}
+                    {renderListItems()}
                 </List>
                 <div
                     style={{
@@ -160,12 +202,15 @@ export function FilterTablesButton() {
                         flexDirection: "row",
                         gap: "5px",
                         justifyContent: "flex-end",
+                        borderTop: "1px solid var(--vscode-editorWidget-border)",
+                        paddingTop: "5px",
                     }}>
                     <Button
                         size="small"
                         style={{}}
-                        onClick={() => {
+                        onClick={async () => {
                             setSelectedTables([]);
+                            context.resetView();
                         }}
                         appearance="subtle"
                         icon={<FluentIcons.DismissRegular />}>

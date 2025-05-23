@@ -9,7 +9,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
-import { Edge, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
+import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
 import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
 import { UndoRedoStack } from "../../common/undoRedoStack";
@@ -48,6 +48,7 @@ export interface SchemaDesignerContextProps
     }>;
     closeDesigner: () => void;
     resetUndoRedoState: () => void;
+    resetView: () => void;
     isInitialized: boolean;
 }
 
@@ -215,45 +216,30 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
      * Adds a new table to the flow
      */
     const addTable = async (table: SchemaDesigner.Table) => {
-        const newReactFlowNode: Node<SchemaDesigner.Table> = {
-            id: table.id,
-            type: "tableNode",
-            data: { ...table },
-            position: { x: 0, y: 0 },
-        };
+        const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        const existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
 
-        const schemaModel = flowUtils.extractSchemaModel(
-            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-        );
+        const schemaModel = flowUtils.extractSchemaModel(existingNodes, existingEdges);
 
-        schemaModel.tables.push(newReactFlowNode.data);
+        schemaModel.tables.push(table);
+
         const updatedPositions = flowUtils.generateSchemaDesignerFlowComponents(schemaModel);
 
-        const nodeWithPosition = updatedPositions.nodes.find(
-            (node) => node.id === newReactFlowNode.id,
-        );
+        const nodeWithPosition = updatedPositions.nodes.find((node) => node.id === table.id);
 
         const edgesForNewTable = updatedPositions.edges.filter(
-            (edge) => edge.source === newReactFlowNode.id || edge.target === newReactFlowNode.id,
+            (edge) => edge.source === table.id || edge.target === table.id,
         );
 
         if (nodeWithPosition) {
-            nodeWithPosition.selected = true;
-            reactFlow.addNodes(nodeWithPosition);
-            reactFlow.addEdges(edgesForNewTable);
-            // update all affected positions
-            for (const updatedNode of updatedPositions.nodes) {
-                if (updatedNode.id === nodeWithPosition.id) continue;
-                reactFlow.updateNode(updatedNode.id, {
-                    position: updatedNode.position,
-                    data: updatedNode.data,
-                });
-            }
+            existingNodes.push(nodeWithPosition);
+            existingEdges.push(...edgesForNewTable);
+
+            reactFlow.setNodes(existingNodes);
+            reactFlow.setEdges(existingEdges);
             requestAnimationFrame(async () => {
                 setCenter(nodeWithPosition.id, true);
             });
-
             eventBus.emit("getScript");
             return true;
         }
@@ -264,68 +250,71 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     /**
      * Updates a table in the flow
      */
-    const updateTable = async (table: SchemaDesigner.Table) => {
-        const schemaModel = flowUtils.extractSchemaModel(
-            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
-            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-        );
+    const updateTable = async (updatedTable: SchemaDesigner.Table) => {
+        const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        let existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
 
-        const tableNode = schemaModel.tables.find((node) => node.id === table.id);
-        if (!tableNode) {
-            console.warn(`Table with id ${table.id} not found`);
+        const existingTableNode = existingNodes.find((node) => node.id === updatedTable.id);
+
+        if (!existingTableNode) {
             return false;
         }
 
-        for (const t of schemaModel.tables) {
-            if (t.id !== table.id) {
-                // Update the foreign keys for other tables
-                t.foreignKeys.forEach((fk) => {
-                    if (
-                        fk.referencedSchemaName === tableNode.schema &&
-                        fk.referencedTableName === tableNode.name
-                    ) {
-                        fk.referencedSchemaName = table.schema;
-                        fk.referencedTableName = table.name;
-                    }
-                });
+        // Updating the table name and schema in all foreign keys that reference this table
+        // This is necessary because the table name and schema might have changed
+        existingEdges.forEach((edge) => {
+            if (
+                edge?.data?.referencedSchemaName === existingTableNode?.data?.schema &&
+                edge?.data?.referencedTableName === existingTableNode?.data?.name
+            ) {
+                edge.data.referencedSchemaName = updatedTable.schema;
+                edge.data.referencedTableName = updatedTable.name;
             }
-        }
-
-        const updatedTable = {
-            ...tableNode,
-            ...table,
-        };
-
-        const updatedSchema = {
-            ...schemaModel,
-            tables: schemaModel.tables.map((node) => (node.id === table.id ? updatedTable : node)),
-        };
-
-        // Delete existing edges for this table
-        const edgesToDelete = reactFlow
-            .getEdges()
-            .filter((edge) => edge.source === table.id || edge.target === table.id);
-
-        await reactFlow.deleteElements({
-            nodes: [],
-            edges: edgesToDelete,
         });
 
-        // Regenerate flow components with updated schema
-        const newFlowComponents = flowUtils.generateSchemaDesignerFlowComponents(updatedSchema);
+        // Update the table node with the new data
+        existingTableNode.data = updatedTable;
 
-        const nodeWithPosition = newFlowComponents.nodes.find((node) => node.id === table.id);
+        // Remove the existing foreign keys from the table
+        existingEdges = existingEdges.filter((edge) => edge.source !== updatedTable.id);
 
-        if (nodeWithPosition) {
-            const edgesForUpdatedTable = newFlowComponents.edges.filter(
-                (edge) => edge.source === table.id || edge.target === table.id,
+        // Add the new foreign keys to the table
+        updatedTable.foreignKeys.forEach((foreignKey) => {
+            const referencedTable = existingNodes.find(
+                (node) =>
+                    node.data.schema === foreignKey.referencedSchemaName &&
+                    node.data.name === foreignKey.referencedTableName,
             );
+            if (!referencedTable) {
+                return;
+            }
 
-            reactFlow.updateNodeData(nodeWithPosition.id, nodeWithPosition.data);
-            reactFlow.addEdges(edgesForUpdatedTable);
-            return true;
-        }
-        return false;
+            foreignKey.columns.forEach((column, index) => {
+                const referencedColumn = foreignKey.referencedColumns[index];
+                existingEdges.push({
+                    id: foreignKey.id,
+                    source: updatedTable.id,
+                    target: referencedTable.id,
+                    sourceHandle: `right-${column}`,
+                    targetHandle: `left-${referencedColumn}`,
+                    markerEnd: {
+                        type: MarkerType.ArrowClosed,
+                    },
+                    data: {
+                        ...foreignKey,
+                        referencedColumns: [referencedColumn],
+                        columns: [column],
+                    },
+                });
+            });
+        });
+
+        reactFlow.setNodes(existingNodes);
+        reactFlow.setEdges(existingEdges);
+        requestAnimationFrame(() => {
+            setCenter(updatedTable.id, true);
+        });
+        return true;
     };
 
     const deleteTable = async (table: SchemaDesigner.Table) => {
@@ -409,6 +398,14 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         eventBus.emit("updateUndoRedoState", stateStack.canUndo(), stateStack.canRedo());
     };
 
+    function resetView() {
+        setTimeout(async () => {
+            await reactFlow.fitView({
+                nodes: reactFlow.getNodes().filter((node) => node.hidden !== true),
+            });
+        }, 10);
+    }
+
     return (
         <SchemaDesignerContext.Provider
             value={{
@@ -437,6 +434,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 isInitialized,
                 closeDesigner,
                 resetUndoRedoState,
+                resetView,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
