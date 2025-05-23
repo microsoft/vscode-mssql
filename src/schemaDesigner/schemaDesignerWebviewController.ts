@@ -10,6 +10,8 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
+import { homedir } from "os";
+import { getUniqueFilePath } from "../utils/utils";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
@@ -62,11 +64,24 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
     private registerReducers() {
         this.registerRequestHandler("exportToFile", async (payload) => {
+            // Get the current workspace folder
+            let currentFolder: vscode.Uri;
+            if (vscode.workspace.workspaceFolders) {
+                currentFolder = vscode.workspace.workspaceFolders[0]?.uri;
+            }
+            if (!currentFolder) {
+                currentFolder = vscode.Uri.file(homedir());
+            }
+
             const outputPath = await vscode.window.showSaveDialog({
                 filters: {
                     [payload.format]: [payload.format],
                 },
-                defaultUri: vscode.Uri.file(`${this.databaseName}.${payload.format}`),
+                defaultUri: await getUniqueFilePath(
+                    currentFolder,
+                    `schema-${this.databaseName}`,
+                    payload.format,
+                ),
                 saveLabel: LocConstants.SchemaDesigner.Save,
                 title: LocConstants.SchemaDesigner.SaveAs,
             });
