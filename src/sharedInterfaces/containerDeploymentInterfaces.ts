@@ -122,6 +122,7 @@ export interface ContainerDeploymentReducers {
 export interface DockerStep {
     loadState: ApiStatus;
     errorMessage?: string;
+    fullErrorText?: string;
     argNames: string[];
     headerText: string;
     bodyText: string;
@@ -133,6 +134,7 @@ export type DockerCommandParams = {
     success: boolean;
     error?: string;
     port?: number;
+    fullErrorText?: string;
 };
 
 export enum DockerStepOrder {

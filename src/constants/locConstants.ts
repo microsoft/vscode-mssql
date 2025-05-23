@@ -858,6 +858,9 @@ export class ContainerDeployment {
     public static containerFailedToStartWithinTimeout = l10n.t(
         "Container failed to start within the timeout period. Please wait a few minutes and try again.",
     );
+    public static previousStepFailed = l10n.t(
+        "Previous step failed. Please check the error message and try again.",
+    );
 }
 
 export class UserSurvey {

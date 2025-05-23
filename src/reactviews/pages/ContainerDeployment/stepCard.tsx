@@ -58,6 +58,7 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     const classes = useStyles();
     const state = useContext(ContainerDeploymentContext);
     const [expanded, setExpanded] = useState(false);
+    const [showFullErrorText, setShowFullErrorText] = useState(false);
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
@@ -89,7 +90,22 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
                     onClick={() => setExpanded(!expanded)}
                 />
             </div>
-            {expanded && <div style={{ marginLeft: "32x" }}>{step.bodyText}</div>}
+            {expanded && (
+                <div style={{ marginLeft: "32x" }}>
+                    {step.loadState === ApiStatus.Error ? step.errorMessage : step.bodyText}
+                    <div style={{ marginTop: "8px" }}>
+                        {showFullErrorText && (
+                            <div style={{ marginBottom: "8px" }}>{step.fullErrorText}</div>
+                        )}
+
+                        {step.fullErrorText && (
+                            <a onClick={() => setShowFullErrorText(!showFullErrorText)}>
+                                {showFullErrorText ? "Hide" : "Show"} full error message
+                            </a>
+                        )}
+                    </div>
+                </div>
+            )}
         </Card>
     );
 };

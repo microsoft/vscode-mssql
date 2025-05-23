@@ -35,6 +35,7 @@ const useStyles = makeStyles({
         height: "28px",
         width: "60px",
         marginTop: "20px",
+        marginBottom: "20px",
     },
     stepsHeader: {
         fontSize: "24px",

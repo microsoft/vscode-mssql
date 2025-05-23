@@ -1224,6 +1224,7 @@
   "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.": "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
   "Docker failed to start within the timeout period. Please manually start Docker and try again.": "Docker failed to start within the timeout period. Please manually start Docker and try again.",
   "Container failed to start within the timeout period. Please wait a few minutes and try again.": "Container failed to start within the timeout period. Please wait a few minutes and try again.",
+  "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",

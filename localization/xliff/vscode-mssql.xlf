@@ -1499,6 +1499,9 @@
       <source xml:lang="en">Previous pending reconnection for uri {0}, succeeded.</source>
       <note>{0} is the uri</note>
     </trans-unit>
+    <trans-unit id="++CODE++d196df298e2df96370fbe47015195f865db9761ab45899b56376f17df4174a88">
+      <source xml:lang="en">Previous step failed. Please check the error message and try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++92022c2f45b6a9ba92c51438e6fed444d69673e4bd6c529e3ea8f0a8bfe1e969">
       <source xml:lang="en">Primary Key</source>
     </trans-unit>

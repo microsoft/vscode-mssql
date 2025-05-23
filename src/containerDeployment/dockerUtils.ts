@@ -25,6 +25,8 @@ import { ContainerDeployment } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 
+const MAX_ERROR_TEXT_LENGTH = 300;
+
 /**
  * Commands used to interact with Docker.
  */
@@ -126,11 +128,20 @@ export function setStepStatusesFromResult(
     } else {
         steps[currentStep].loadState = ApiStatus.Error;
         steps[currentStep].errorMessage = result.error;
+        steps[currentStep].fullErrorText = truncateErrorTextIfNeeded(result.fullErrorText);
         for (let i = currentStep + 1; i < steps.length; i++) {
             steps[i].loadState = ApiStatus.Error;
+            steps[i].errorMessage = ContainerDeployment.previousStepFailed;
         }
     }
     return steps;
+}
+
+export function truncateErrorTextIfNeeded(errorText: string): string {
+    if (errorText.length > MAX_ERROR_TEXT_LENGTH) {
+        return `${errorText.substring(0, MAX_ERROR_TEXT_LENGTH)}...`;
+    }
+    return errorText;
 }
 
 /**
@@ -191,10 +202,11 @@ export async function checkDockerInstallation(): Promise<DockerCommandParams> {
     try {
         await execCommand(COMMANDS.CHECK_DOCKER);
         return { success: true };
-    } catch {
+    } catch (e) {
         return {
             success: false,
             error: ContainerDeployment.dockerInstallError,
+            fullErrorText: e.message,
         };
     }
 }
@@ -214,7 +226,7 @@ export async function checkEngine(): Promise<DockerCommandParams> {
     try {
         await execCommand(engineCommand);
         return { success: true };
-    } catch {
+    } catch (e) {
         return {
             success: false,
             error:
@@ -223,6 +235,7 @@ export async function checkEngine(): Promise<DockerCommandParams> {
                     : platform() === Platform.Mac
                       ? ContainerDeployment.rosettaError
                       : ContainerDeployment.windowsContainersError,
+            fullErrorText: e.message,
         };
     }
 }
@@ -278,12 +291,12 @@ export async function startSqlServerDockerContainer(
             success: true,
             port,
         };
-    } catch (error) {
-        console.log(error);
+    } catch (e) {
         return {
             success: false,
-            error: error.message,
+            error: e.message,
             port: undefined,
+            fullErrorText: e.message,
         };
     }
 }
@@ -324,19 +337,24 @@ export async function startDocker(): Promise<DockerCommandParams> {
                     await execCommand(COMMANDS.CHECK_DOCKER);
                     clearInterval(checkDocker);
                     resolve({ success: true });
-                } catch {
+                } catch (e) {
                     if (++attempts >= maxAttempts) {
                         clearInterval(checkDocker);
                         resolve({
                             success: false,
                             error: ContainerDeployment.dockerFailedToStartWithinTimeout,
+                            fullErrorText: e.message,
                         });
                     }
                 }
             }, interval);
         });
-    } catch (err) {
-        return { success: false, error: err.message };
+    } catch (e) {
+        return {
+            success: false,
+            error: ContainerDeployment.dockerFailedToStartWithinTimeout,
+            fullErrorText: e.message,
+        };
     }
 }
 
