@@ -64,21 +64,15 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
     private registerReducers() {
         this.registerRequestHandler("exportToFile", async (payload) => {
-            // Get the current workspace folder
-            let currentFolder: vscode.Uri;
-            if (vscode.workspace.workspaceFolders) {
-                currentFolder = vscode.workspace.workspaceFolders[0]?.uri;
-            }
-            if (!currentFolder) {
-                currentFolder = vscode.Uri.file(homedir());
-            }
+            // Determine the base folder for saving the file
+            const baseFolder =
+                vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(homedir());
 
+            // Prompt the user with a Save dialog
             const outputPath = await vscode.window.showSaveDialog({
-                filters: {
-                    [payload.format]: [payload.format],
-                },
+                filters: { [payload.format]: [payload.format] },
                 defaultUri: await getUniqueFilePath(
-                    currentFolder,
+                    baseFolder,
                     `schema-${this.databaseName}`,
                     payload.format,
                 ),
