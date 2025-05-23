@@ -1649,6 +1649,9 @@
     <trans-unit id="++CODE++a8132c7a4b0c6fd2534779f4d49c670b485b9eb9ea9ae0eda3af3a40424e01db">
       <source xml:lang="en">SQL Server 2022 - latest</source>
     </trans-unit>
+    <trans-unit id="++CODE++7d46b13752fae14aef836df1ecf4af01cdfc859ffc68888193e934734ff8e579">
+      <source xml:lang="en">SQL Server 2025 - latest</source>
+    </trans-unit>
     <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
       <source xml:lang="en">SQL Server Container SA Password</source>
     </trans-unit>

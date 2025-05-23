@@ -781,6 +781,7 @@ export class ContainerDeployment {
         });
     public static selectImage = l10n.t("Select image");
     public static selectImageTooltip = l10n.t("Select the SQL Server Container Image");
+    public static sqlServer2025Image = l10n.t("SQL Server 2025 - latest");
     public static sqlServer2022Image = l10n.t("SQL Server 2022 - latest");
     public static sqlServer2019Image = l10n.t("SQL Server 2019 - latest");
     public static sqlServer2017Image = l10n.t("SQL Server 2017 - latest");

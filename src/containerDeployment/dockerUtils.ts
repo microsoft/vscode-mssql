@@ -148,6 +148,7 @@ export function truncateErrorTextIfNeeded(errorText: string): string {
  * Container image versions available for SQL Server.
  */
 export const sqlVersions = [
+    { displayName: ContainerDeployment.sqlServer2025Image, value: "2025" },
     { displayName: ContainerDeployment.sqlServer2022Image, value: "2022" },
     { displayName: ContainerDeployment.sqlServer2019Image, value: "2019" },
     { displayName: ContainerDeployment.sqlServer2017Image, value: "2017" },

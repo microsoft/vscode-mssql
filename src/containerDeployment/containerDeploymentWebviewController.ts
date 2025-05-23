@@ -232,7 +232,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             authenticationType: sqlAuthentication,
             savePassword: false,
             containerName: "",
-            version: "2022",
+            version: "2025",
             hostname: "",
             loadStatus: ApiStatus.Loading,
         };
@@ -266,8 +266,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                     connection as IConnectionProfile,
                 );
             })
-            .catch((err) => {
-                vscode.window.showErrorMessage(err);
+            .catch(() => {
                 return false;
             });
 
