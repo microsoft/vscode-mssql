@@ -38,6 +38,7 @@ import {
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { mockGetCapabilitiesRequest } from "./mocks";
+import { AzureController } from "../../src/azure/azureController";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -490,5 +491,34 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 ).to.have.lengthOf(2);
             });
         });
+    });
+
+    test("getAzureActionButtons", async () => {
+        controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+        controller.state.connectionProfile.accountId = "TestEntraAccountId";
+
+        const actionButtons = await controller["getAzureActionButtons"]();
+        expect(actionButtons.length).to.equal(1, "Should always have the Sign In button");
+        expect(actionButtons[0].id).to.equal("azureSignIn");
+
+        controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+        controller.state.connectionProfile.accountId = "TestUserId";
+
+        const isTokenValidStub = sandbox.stub(AzureController, "isTokenValid").returns(false);
+
+        // When there's no error, we should have refreshToken button
+        let buttons = await controller["getAzureActionButtons"]();
+        expect(buttons.length).to.equal(2);
+        expect(buttons[1].id).to.equal("refreshToken");
+
+        // Test error handling when getAccountSecurityToken throws
+        isTokenValidStub.restore();
+        sandbox
+            .stub(mainController.azureAccountService, "getAccountSecurityToken")
+            .throws(new Error("Test error"));
+
+        buttons = await controller["getAzureActionButtons"]();
+        expect(buttons.length).to.equal(2);
+        expect(buttons[1].id).to.equal("refreshToken");
     });
 });
