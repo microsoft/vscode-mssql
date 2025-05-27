@@ -1113,6 +1113,11 @@ Error:
         <source xml:lang="en">Filter</source>
         <target state="translated">Applicare il filtro</target>
       </trans-unit>
+      <trans-unit id="++CODE++a76057f27f2880792cf681fd60ca7b9043463252597c22b60eb5beca29292017">
+        <source xml:lang="en">Filter ({0})</source>
+        <note>{0} is the number of selected tables</note>
+        <target state="new">Filter ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
         <source xml:lang="en">Filter Azure subscriptions</source>
         <target state="translated">Filtra sottoscrizioni di Azure</target>
@@ -2158,6 +2163,10 @@ Error:
       <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
         <source xml:lang="en">Search settings...</source>
         <target state="new">Search settings...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
+        <source xml:lang="en">Search tables...</source>
+        <target state="new">Search tables...</target>
       </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
