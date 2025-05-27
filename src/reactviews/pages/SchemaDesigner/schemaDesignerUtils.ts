@@ -791,7 +791,11 @@ export const flowUtils = {
 
         for (const edge of edges) {
             if (edge.hidden) continue;
-            graph.setEdge(edge.source, edge.target);
+            const sourceNode = nodes.find((n) => n.id === edge.source);
+            const targetNode = nodes.find((n) => n.id === edge.target);
+            if (!sourceNode?.hidden && !targetNode?.hidden) {
+                graph.setEdge(edge.source, edge.target);
+            }
         }
 
         dagre.layout(graph);
