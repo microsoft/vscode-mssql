@@ -31,6 +31,7 @@ export class LocConstants {
                 }),
             close: l10n.t("Close"),
             apply: l10n.t("Apply"),
+            next: l10n.t("Next"),
             clearSelection: l10n.t("Clear Selection"),
             find: l10n.t("Find"),
             findNext: l10n.t("Find Next"),
@@ -47,6 +48,7 @@ export class LocConstants {
                 }),
             closeFind: l10n.t("Close Find"),
             load: l10n.t("Load"),
+            finish: l10n.t("Finish"),
         };
     }
 
@@ -251,6 +253,7 @@ export class LocConstants {
 
     public get executionPlan() {
         return {
+            loadingExecutionPlan: l10n.t("Loading execution plan..."),
             queryCostRelativeToScript: (index: number, costPercentage: string) =>
                 l10n.t({
                     message: "Query {0}:  Query cost (relative to the script):  {1}%",
@@ -701,6 +704,41 @@ export class LocConstants {
             includeExcludeAllOperationInProgress: l10n.t(
                 "Processing include or exclude all differences operation.",
             ),
+        };
+    }
+
+    public get containerDeployment() {
+        return {
+            loadingDeploymentPage: l10n.t("Loading deployment page..."),
+            sqlServerContainerHeader: l10n.t("Local SQL Server database container connection"),
+            getStartedPageHeader: l10n.t("Seamless SQL Server on Docker, Right in VS Code!"),
+            oneClickServerCreation: l10n.t("One Click Server Container Creation"),
+            oneClickServerCreationDescription: l10n.t(
+                "Spin up a SQL server container in seconds—no manual setup needed.",
+            ),
+            easyManagement: l10n.t("Easy Management"),
+            easyManagementDescription: l10n.t(
+                "Start, stop, or remove your SQL server container anytime.",
+            ),
+            pickTheRightFit: l10n.t("Pick the Right Fit"),
+            pickTheRightFitDescription: l10n.t(
+                "Not sure which SQL Server version to choose? We’ll guide you through the options with best-practice recommendations.",
+            ),
+            sqlServerOnDockerBestPractices: l10n.t("SQL Server on Docker Best Practices"),
+            sqlServerEditionsAndFeatureComparison: l10n.t(
+                "SQL Server Editions and Feature Comparison",
+            ),
+            seamlessConnections: l10n.t("Seamless Connections"),
+            seamlessConnectionsDescription: l10n.t(
+                "Deploy, manage, and interact with SQL Server container — right from VS Code, no context switching.",
+            ),
+            getStarted: l10n.t("Get Started"),
+            gettingDockerReady: l10n.t("Getting Docker Ready..."),
+            checkingPrerequisites: l10n.t("Checking pre-requisites"),
+            advancedOptions: l10n.t("Advanced Options"),
+            createContainer: l10n.t("Create Container"),
+            settingUp: l10n.t("Setting up"),
+            gettingContainerReadyForConnection: l10n.t("Getting container ready for connections"),
         };
     }
 }

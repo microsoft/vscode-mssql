@@ -11,6 +11,7 @@ import { ContainerInputForm } from "./containerInputForm";
 import { checkStepsLoaded, runDockerSteps } from "./deploymentUtils";
 import { DockerStepOrder } from "../../../sharedInterfaces/containerDeploymentInterfaces";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -92,12 +93,16 @@ export const PrereqCheckPage: React.FC = () => {
     ) : (
         <div>
             <ContainerDeploymentHeader
-                headerText={"Local SQL Server database container connection"}
+                headerText={locConstants.containerDeployment.sqlServerContainerHeader}
             />
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
-                    <div className={classes.stepsHeader}>Getting Docker Ready...</div>
-                    <div className={classes.stepsSubheader}>Checking pre-requisites</div>
+                    <div className={classes.stepsHeader}>
+                        {locConstants.containerDeployment.gettingDockerReady}
+                    </div>
+                    <div className={classes.stepsSubheader}>
+                        {locConstants.containerDeployment.checkingPrerequisites}
+                    </div>
                     <StepCard
                         step={
                             containerDeploymentState.dockerSteps[DockerStepOrder.dockerInstallation]
@@ -118,7 +123,7 @@ export const PrereqCheckPage: React.FC = () => {
                             className={classes.button}
                             onClick={() => setShowNext(true)}
                             appearance="primary">
-                            Next
+                            {locConstants.common.next}
                         </Button>
                     ) : (
                         <Button
@@ -126,7 +131,7 @@ export const PrereqCheckPage: React.FC = () => {
                             onClick={() => {
                                 state.dispose();
                             }}>
-                            Cancel
+                            {locConstants.common.cancel}
                         </Button>
                     )}
                 </div>

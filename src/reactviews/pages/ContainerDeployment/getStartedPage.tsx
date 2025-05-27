@@ -10,6 +10,7 @@ import { PrereqCheckPage } from "./prereqCheckPage";
 import { themeType } from "../../common/utils";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -89,25 +90,25 @@ export const GetStartedPage: React.FC = () => {
     ) : (
         <div>
             <ContainerDeploymentHeader
-                headerText={"Local SQL Server database container connection"}
+                headerText={locConstants.containerDeployment.sqlServerContainerHeader}
             />
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
                     <div className={classes.stepsHeader}>
-                        Seamless SQL Server on Docker, Right in VS Code!
+                        {locConstants.containerDeployment.getStartedPageHeader}
                     </div>
                     <div className={classes.itemDiv}>
                         <img
                             className={classes.icon}
                             src={oneClick(theme)}
-                            alt="One Click Server Creation"
+                            alt={locConstants.containerDeployment.oneClickServerCreation}
                         />
                         <div className={classes.textDiv}>
                             <div className={classes.titleDiv}>
-                                One Click Server Container Creation
+                                {locConstants.containerDeployment.oneClickServerCreation}
                             </div>
                             <div>
-                                Spin up a SQL server container in seconds—no manual setup needed.
+                                {locConstants.containerDeployment.oneClickServerCreationDescription}
                             </div>
                         </div>
                     </div>
@@ -115,28 +116,32 @@ export const GetStartedPage: React.FC = () => {
                         <img
                             className={classes.icon}
                             src={easyManagement(theme)}
-                            alt="Easy Management"
+                            alt={locConstants.containerDeployment.easyManagement}
                         />
                         <div className={classes.textDiv}>
-                            <div className={classes.titleDiv}>Easy Management</div>
-                            <div>Start, stop, or remove your SQL server container anytime.</div>
+                            <div className={classes.titleDiv}>
+                                {locConstants.containerDeployment.easyManagement}
+                            </div>
+                            <div>{locConstants.containerDeployment.easyManagementDescription}</div>
                         </div>
                     </div>
                     <div className={classes.itemDiv}>
                         <img
                             className={classes.icon}
                             src={rightFit(theme)}
-                            alt="Pick the Right Fit"
+                            alt={locConstants.containerDeployment.pickTheRightFit}
                         />
                         <div className={classes.textDiv}>
-                            <div className={classes.titleDiv}>Pick the Right Fit</div>
-                            <div>
-                                Not sure which SQL Server version to choose? We’ll guide you through
-                                the options with best-practice recommendations.
+                            <div className={classes.titleDiv}>
+                                {locConstants.containerDeployment.pickTheRightFit}
                             </div>
-                            <a>SQL Server on Docker Best Practices</a>
+                            <div>{locConstants.containerDeployment.pickTheRightFitDescription}</div>
+                            <a>{locConstants.containerDeployment.sqlServerOnDockerBestPractices}</a>
                             <a style={{ marginTop: "0px" }}>
-                                SQL Server editions and Feature comparison
+                                {
+                                    locConstants.containerDeployment
+                                        .sqlServerEditionsAndFeatureComparison
+                                }
                             </a>
                         </div>
                     </div>
@@ -144,13 +149,14 @@ export const GetStartedPage: React.FC = () => {
                         <img
                             className={classes.icon}
                             src={seamlessConnections(theme)}
-                            alt="Seamless Connections"
+                            alt={locConstants.containerDeployment.seamlessConnections}
                         />
                         <div className={classes.textDiv}>
-                            <div className={classes.titleDiv}>Seamless Connections</div>
+                            <div className={classes.titleDiv}>
+                                {locConstants.containerDeployment.seamlessConnections}
+                            </div>
                             <div>
-                                Deploy, manage, and interact with SQL Server container — right from
-                                VS Code, no context switching.
+                                {locConstants.containerDeployment.seamlessConnectionsDescription}
                             </div>
                         </div>
                     </div>
@@ -160,7 +166,7 @@ export const GetStartedPage: React.FC = () => {
                             setShowNext(true);
                         }}
                         appearance={"primary"}>
-                        Get Started
+                        {locConstants.containerDeployment.getStarted}
                     </Button>
                 </div>
             </div>

@@ -16,6 +16,7 @@ import {
 } from "../../../sharedInterfaces/containerDeploymentInterfaces";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -106,7 +107,7 @@ export const ContainerInputForm: React.FC = () => {
     ) : (
         <div>
             <ContainerDeploymentHeader
-                headerText={"Local SQL Server database container connection"}
+                headerText={locConstants.containerDeployment.sqlServerContainerHeader}
                 paddingLeft="20px"
             />
             <div className={classes.outerDiv}>
@@ -124,7 +125,7 @@ export const ContainerInputForm: React.FC = () => {
                             appearance="subtle"
                             onClick={() => setShowAdvanced(!showAdvancedOptions)}
                         />
-                        Advanced Options
+                        {locConstants.containerDeployment.advancedOptions}
                     </div>
 
                     {showAdvancedOptions && (
@@ -157,7 +158,7 @@ export const ContainerInputForm: React.FC = () => {
                         type="submit"
                         onClick={() => handleSubmit()}
                         appearance={"primary"}>
-                        Create Container
+                        {locConstants.containerDeployment.createContainer}
                     </Button>
                 </div>
             </div>

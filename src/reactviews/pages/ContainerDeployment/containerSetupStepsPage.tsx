@@ -10,6 +10,7 @@ import { Button, makeStyles } from "@fluentui/react-components";
 import { checkStepsLoaded, runDockerSteps } from "./deploymentUtils";
 import { DockerStepOrder } from "../../../sharedInterfaces/containerDeploymentInterfaces";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -94,10 +95,11 @@ export const ContainerSetupStepsPage: React.FC = () => {
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
                     <div className={classes.stepsHeader}>
-                        Setting up {containerDeploymentState.formState.containerName}...
+                        {locConstants.containerDeployment.settingUp}{" "}
+                        {containerDeploymentState.formState.containerName}...
                     </div>
                     <div className={classes.stepsSubheader}>
-                        Getting container ready for connections
+                        {locConstants.containerDeployment.gettingContainerReadyForConnection}
                     </div>
                     <StepCard
                         step={containerDeploymentState.dockerSteps[DockerStepOrder.startContainer]}
@@ -114,7 +116,7 @@ export const ContainerSetupStepsPage: React.FC = () => {
                         className={classes.button}
                         onClick={() => (stepsLoaded ? state.dispose() : undefined)}
                         appearance={stepsLoaded ? "primary" : "secondary"}>
-                        Finish
+                        {locConstants.common.finish}
                     </Button>
                 </div>
             </div>
