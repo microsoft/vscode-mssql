@@ -29,13 +29,11 @@ export function AutoArrangeButton() {
     const autoArrange = () => {
         eventBus.emit("pushState");
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
-        const schema = flowUtils.extractSchemaModel(
-            nodes,
-            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
-        );
-        const generateComponenets = flowUtils.generateSchemaDesignerFlowComponents(schema);
+        const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+        const generateComponenets = flowUtils.generatePositions(nodes, edges);
         reactFlow.setNodes(generateComponenets.nodes);
         reactFlow.setEdges(generateComponenets.edges);
+        context.resetView();
     };
     if (!context) {
         return undefined;
