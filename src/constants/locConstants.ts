@@ -797,7 +797,9 @@ export class ContainerDeployment {
     );
     public static port = l10n.t("Port");
     public static portTooltip = l10n.t("Choose a port to host the SQL Server Docker Container");
-    public static pleaseChooseUnusedPort = l10n.t("Please choose a port that is not in use");
+    public static pleaseChooseUnusedPort = l10n.t(
+        "Please make sure the port is a number, and choose a port that is not in use",
+    );
     public static hostname = l10n.t("Hostname");
     public static hostnameTooltip = l10n.t("Choose a hostname for the container");
     public static termsAndConditions = l10n.t("Terms & Conditions");

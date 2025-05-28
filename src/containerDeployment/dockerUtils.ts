@@ -25,8 +25,17 @@ import { ContainerDeployment } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import * as path from "path";
+import { FormItemValidationState } from "../sharedInterfaces/form";
 
 const MAX_ERROR_TEXT_LENGTH = 300;
+export const invalidContainerNameValidationResult: FormItemValidationState = {
+    isValid: false,
+    validationMessage: ContainerDeployment.pleaseChooseUniqueContainerName,
+};
+export const invalidPortNumberValidationResult: FormItemValidationState = {
+    isValid: false,
+    validationMessage: ContainerDeployment.pleaseChooseUnusedPort,
+};
 
 /**
  * Commands used to interact with Docker.
@@ -79,6 +88,8 @@ export function initializeDockerSteps(): DockerStep[] {
             bodyText: ContainerDeployment.dockerInstallBody,
             link: "https://docs.docker.com/engine/install/",
             linkText: ContainerDeployment.installDocker,
+            errorLink: "https://docs.docker.com/engine/install/",
+            errorLinkText: ContainerDeployment.installDocker,
             stepAction: checkDockerInstallation,
         },
         {

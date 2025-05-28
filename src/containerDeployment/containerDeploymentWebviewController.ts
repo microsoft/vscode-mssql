@@ -88,11 +88,13 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ] as any) = payload.event.value;
 
-            return await this.validateDockerConnectionProfile(
+            const newState = await this.validateDockerConnectionProfile(
                 state,
                 this.state.formState,
                 payload.event.propertyName,
             );
+            this.updateState(newState);
+            return newState;
         });
         this.registerReducer("completeDockerStep", async (state, payload) => {
             const currentStepNumber = payload.dockerStepNumber;
@@ -190,7 +192,11 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 );
                 state.isValidContainerName = validationResult !== "";
                 if (!state.isValidContainerName) {
+                    component.validation = dockerUtils.invalidContainerNameValidationResult;
                     erroredInputs.push(prop);
+                } else {
+                    // If the container name is valid, we can reset the validation message
+                    component.validation = { isValid: true, validationMessage: "" };
                 }
             }
             // Special validation for port, because docker commands
@@ -201,7 +207,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 );
                 state.isValidPortNumber = isValidPort;
                 if (!isValidPort) {
+                    component.validation = dockerUtils.invalidPortNumberValidationResult;
                     erroredInputs.push(prop);
+                } else {
+                    component.validation = { isValid: true, validationMessage: "" };
                 }
             }
             // Default validation logic
@@ -348,14 +357,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.containerName,
                 isAdvancedOption: true,
                 tooltip: ContainerDeployment.containerNameTooltip,
-                validate(state, value) {
-                    return !value || value.toString() === "" || state.isValidContainerName
-                        ? { isValid: true, validationMessage: "" }
-                        : {
-                              isValid: false,
-                              validationMessage:
-                                  ContainerDeployment.pleaseChooseUniqueContainerName,
-                          };
+                validate(state, _) {
+                    return { isValid: state.isValidContainerName, validationMessage: "" };
                 },
             }),
 
@@ -365,13 +368,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.port,
                 isAdvancedOption: true,
                 tooltip: ContainerDeployment.portTooltip,
-                validate(state, value) {
-                    return !value || value.toString() === "" || state.isValidPortNumber
-                        ? { isValid: true, validationMessage: "" }
-                        : {
-                              isValid: false,
-                              validationMessage: ContainerDeployment.pleaseChooseUnusedPort,
-                          };
+                validate(state, _) {
+                    return { isValid: state.isValidPortNumber, validationMessage: "" };
                 },
             }),
 

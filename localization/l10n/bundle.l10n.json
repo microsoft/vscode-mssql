@@ -1227,7 +1227,7 @@
   "Please choose a unique name for the container": "Please choose a unique name for the container",
   "Port": "Port",
   "Choose a port to host the SQL Server Docker Container": "Choose a port to host the SQL Server Docker Container",
-  "Please choose a port that is not in use": "Please choose a port that is not in use",
+  "Please make sure the port is a number, and choose a port that is not in use": "Please make sure the port is a number, and choose a port that is not in use",
   "Hostname": "Hostname",
   "Choose a hostname for the container": "Choose a hostname for the container",
   "Terms & Conditions": "Terms & Conditions",

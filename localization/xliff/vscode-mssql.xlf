@@ -1522,9 +1522,6 @@
     <trans-unit id="++CODE++955d464619712f47bd39bd4fa1eb8ca90d1415bd5da4d3dc80b13d8be23f281e">
       <source xml:lang="en">Please Accept the Docker EULA</source>
     </trans-unit>
-    <trans-unit id="++CODE++1df1c1ebdbd0d721e5aea0d9f620d42982a7dc22147a6493a7112fd70115b853">
-      <source xml:lang="en">Please choose a port that is not in use</source>
-    </trans-unit>
     <trans-unit id="++CODE++e9867ec277676c80767b62a3ccde695a9fd4b9927c6541f6bfb0be08bed55596">
       <source xml:lang="en">Please choose a unique name for the container</source>
     </trans-unit>
@@ -1533,6 +1530,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2048d236cea5afafe8b7e125d9b86eb44250c4ac6f382bc412dca8e4188292fa">
       <source xml:lang="en">Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
+      <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
     </trans-unit>
     <trans-unit id="++CODE++768742aef46bbb43fdd36f568edeb182810dc96b84ad73db24565b95423f4829">
       <source xml:lang="en">Please make your password at least 8 characters long.</source>
