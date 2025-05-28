@@ -682,7 +682,6 @@
       "{1} is the error message"
     ]
   },
-  "Connection Errors": "Connection Errors",
   "Server connection in progress. Do you want to cancel?": "Server connection in progress. Do you want to cancel?",
   "Confirm to clear recent connections list": "Confirm to clear recent connections list",
   "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.": "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.",
@@ -708,7 +707,7 @@
   "Microsoft Entra Id - Universal w/ MFA Support": "Microsoft Entra Id - Universal w/ MFA Support",
   "Azure Code Grant": "Azure Code Grant",
   "Azure Device Code": "Azure Device Code",
-  "Azure Logs": "Azure Logs",
+  "MSSQL - Azure Auth Logs": "MSSQL - Azure Auth Logs",
   "Open": "Open",
   "Ignore Tenant": "Ignore Tenant",
   "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process./{0} is the tenant name{1} is the tenant id{2} is the resource": {
