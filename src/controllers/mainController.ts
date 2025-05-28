@@ -2151,9 +2151,9 @@ export default class MainController implements vscode.Disposable {
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
-        if (this._lastActiveEditorUri) {
+        if (this._previousActiveEditor && doc.languageId === Constants.languageId) {
             await this._connectionMgr.transferFileConnection(
-                this._lastActiveEditorUri,
+                this._previousActiveEditor.uri.toString(true),
                 doc.uri.toString(true),
                 true /* keepOldConnected */,
             );
@@ -2173,18 +2173,22 @@ export default class MainController implements vscode.Disposable {
 
         if (doc && doc.uri) {
             this._lastOpenedUri = doc.uri.toString(true);
-            this._lastActiveEditorUri ??= this._lastOpenedUri; // pre-opened tabs won't trigger onDidChangeActiveTextEditor, so set _lastActiveEditorUri here
+
+            // pre-opened tabs won't trigger onDidChangeActiveTextEditor, so set _previousActiveEditor here
+            this._previousActiveEditor = doc.languageId === Constants.languageId ? doc : undefined;
         }
     }
 
-    private _lastActiveEditorUri: string | undefined;
+    /**
+     * Tracks the previous editor for the purposes of transferring connections to a newly-opened file.
+     * Set to undefined if the previous editor is not a SQL file (languageId === mssql).
+     */
+    private _previousActiveEditor: vscode.TextDocument | undefined;
 
     private onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
         if (editor?.document) {
-            this._lastActiveEditorUri =
-                editor.document.languageId === Constants.languageId
-                    ? editor.document.uri.toString(true)
-                    : undefined;
+            this._previousActiveEditor =
+                editor.document.languageId === Constants.languageId ? editor.document : undefined;
         }
     }
 
