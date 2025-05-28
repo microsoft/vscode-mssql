@@ -1210,11 +1210,13 @@ export default class MainController implements vscode.Disposable {
                         // allows for the object explorer item loading UI to show
                         this._objectExplorerProvider.deleteChildrenCache(node);
                         await this._objectExplorerProvider.refresh(node);
-                        await this.objectExplorerTree.reveal(node, {
-                            select: true,
-                            focus: true,
-                            expand: true,
-                        });
+                        await this.connectionManager.connectionUI
+                            .saveProfile(node.connectionProfile as IConnectionProfile)
+                            .then(async () => {
+                                await this.createObjectExplorerSession(
+                                    node.connectionProfile as IConnectionProfile,
+                                );
+                            });
                     } catch {
                         vscode.window.showErrorMessage(
                             LocalizedConstants.ContainerDeployment.failStartContainer(

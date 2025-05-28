@@ -739,6 +739,8 @@ export class LocConstants {
             createContainer: l10n.t("Create Container"),
             settingUp: l10n.t("Setting up"),
             gettingContainerReadyForConnection: l10n.t("Getting container ready for connections"),
+            hideFullErrorMessage: l10n.t("Hide full error message"),
+            showFullErrorMessage: l10n.t("Show full error message"),
         };
     }
 }

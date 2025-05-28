@@ -14,6 +14,7 @@ import { useContext, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { DockerStep } from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -47,6 +48,9 @@ const useStyles = makeStyles({
         alignItems: "center",
         justifyContent: "space-between",
         padding: "4px",
+    },
+    topSpace: {
+        marginTop: "8px",
     },
 });
 
@@ -91,16 +95,39 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
                 />
             </div>
             {expanded && (
-                <div style={{ marginLeft: "32x" }}>
+                <div style={{ marginLeft: "32px" }}>
                     {step.loadState === ApiStatus.Error ? step.errorMessage : step.bodyText}
-                    <div style={{ marginTop: "8px" }}>
+                    {/* If step.link is defined and API is not in error, render it */}
+                    {step.loadState !== ApiStatus.Error && step.link && (
+                        <div className={classes.topSpace}>
+                            <a href={step.link} target="_blank" rel="noopener noreferrer">
+                                {step.linkText}
+                            </a>
+                        </div>
+                    )}
+
+                    {/* If step.errorLink is defined and API is in error, render it */}
+                    {step.loadState === ApiStatus.Error && step.errorLink && (
+                        <div className={classes.topSpace}>
+                            <a
+                                href={step.errorLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={classes.topSpace}>
+                                {step.errorLinkText}
+                            </a>
+                        </div>
+                    )}
+                    <div className={classes.topSpace}>
                         {showFullErrorText && (
                             <div style={{ marginBottom: "8px" }}>{step.fullErrorText}</div>
                         )}
 
                         {step.fullErrorText && (
                             <a onClick={() => setShowFullErrorText(!showFullErrorText)}>
-                                {showFullErrorText ? "Hide" : "Show"} full error message
+                                {showFullErrorText
+                                    ? locConstants.containerDeployment.hideFullErrorMessage
+                                    : locConstants.containerDeployment.showFullErrorMessage}
                             </a>
                         )}
                     </div>

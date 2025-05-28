@@ -629,6 +629,8 @@ export class ObjectExplorerService {
             if (containerName) {
                 connectionProfile.containerName = containerName;
             }
+            // if the connnection is a docker container, make sure to set the container name for future use
+            await this._connectionManager.connectionStore.saveProfile(connectionProfile);
         }
 
         if (!connectionProfile.id) {

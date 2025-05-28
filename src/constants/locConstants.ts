@@ -859,9 +859,14 @@ export class ContainerDeployment {
     public static containerFailedToStartWithinTimeout = l10n.t(
         "Container failed to start within the timeout period. Please wait a few minutes and try again.",
     );
+    public static dockerDesktopPathError = l10n.t(
+        "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
+    );
     public static previousStepFailed = l10n.t(
         "Previous step failed. Please check the error message and try again.",
     );
+    public static installDocker = l10n.t("Install Docker");
+    public static startDockerEngine = l10n.t("Start Docker Engine");
 }
 
 export class UserSurvey {

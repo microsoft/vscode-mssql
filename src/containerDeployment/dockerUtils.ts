@@ -24,6 +24,7 @@ import {
 import { ContainerDeployment } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
+import * as path from "path";
 
 const MAX_ERROR_TEXT_LENGTH = 300;
 
@@ -32,17 +33,18 @@ const MAX_ERROR_TEXT_LENGTH = 300;
  */
 export const COMMANDS = {
     CHECK_DOCKER: "docker --version",
-    START_DOCKER: {
-        win32: 'start "" "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"',
+    CHECK_DOCKER_RUNNING: "docker info",
+    GET_DOCKER_PATH: 'powershell -Command "(Get-Command docker).Source"',
+    START_DOCKER: (path: string) => ({
+        win32: `start "" "${path}"`,
         darwin: "open -a Docker",
-        // still need to test
         linux: "systemctl start docker",
-    },
-    CHECK_ENGINE: {
-        win32: `powershell -Command "& \\"C:\\Program Files\\Docker\\Docker\\DockerCli.exe\\" -SwitchLinuxEngine"`,
+    }),
+    CHECK_ENGINE: (path: string) => ({
+        win32: `powershell -Command "& \\"${path}\\" -SwitchLinuxEngine"`,
         darwin: `cat "${process.env.HOME}/Library/Group Containers/group.com.docker/settings-store.json" | grep '"UseVirtualizationFrameworkRosetta": true' || exit 1`,
         linux: "docker ps",
-    },
+    }),
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
     START_SQL_SERVER: (
@@ -75,6 +77,8 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.dockerInstallHeader,
             bodyText: ContainerDeployment.dockerInstallBody,
+            link: "https://docs.docker.com/engine/install/",
+            linkText: ContainerDeployment.installDocker,
             stepAction: checkDockerInstallation,
         },
         {
@@ -82,6 +86,8 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.startDockerHeader,
             bodyText: ContainerDeployment.startDockerBody,
+            errorLink: "https://docs.docker.com/engine/",
+            errorLinkText: ContainerDeployment.startDockerEngine,
             stepAction: startDocker,
         },
         {
@@ -216,7 +222,12 @@ export async function checkDockerInstallation(): Promise<DockerCommandParams> {
  * Checks if the Docker engine is running and set up for running Linux containers.
  */
 export async function checkEngine(): Promise<DockerCommandParams> {
-    const engineCommand = COMMANDS.CHECK_ENGINE[platform()];
+    let dockerCliPath = "";
+    if (platform() === Platform.Windows) {
+        dockerCliPath = await getDockerPath("DockerCli.exe");
+    }
+
+    const engineCommand = COMMANDS.CHECK_ENGINE(dockerCliPath)[platform()];
     if (engineCommand === undefined) {
         return {
             success: false,
@@ -270,6 +281,33 @@ export async function validateContainerName(containerName: string): Promise<stri
     }
 }
 
+/**
+ * Finds the path to the given Docker executable.
+ */
+export async function getDockerPath(executable: string): Promise<string> {
+    try {
+        const stdout = (await execCommand(COMMANDS.GET_DOCKER_PATH)).trim();
+        const fullPath = stdout.trim();
+
+        const parts = fullPath.split(path.sep);
+
+        // Find the second "Docker" in the path
+        const dockerIndex = parts.findIndex(
+            (part, idx) =>
+                part.toLowerCase() === "docker" && parts.slice(0, idx).includes("Docker"),
+        );
+
+        if (dockerIndex >= 1) {
+            const basePath = parts.slice(0, dockerIndex + 1).join(path.sep);
+            return path.join(basePath, executable);
+        }
+
+        return "";
+    } catch (e) {
+        return "";
+    }
+}
+
 export async function startSqlServerDockerContainer(
     containerName: string,
     password: string,
@@ -315,7 +353,22 @@ export async function isDockerContainerRunning(name: string): Promise<boolean> {
  * Attempts to start Docker Desktop within 30 seconds.
  */
 export async function startDocker(): Promise<DockerCommandParams> {
-    const startCommand = COMMANDS.START_DOCKER[platform()];
+    try {
+        await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
+        return { success: true };
+    } catch {} // If this command fails, docker is not running, so we proceed to start it.
+
+    let dockerDesktopPath = "";
+    if (platform() === Platform.Windows) {
+        dockerDesktopPath = await getDockerPath("Docker Desktop.exe");
+        if (!dockerDesktopPath) {
+            return {
+                success: false,
+                error: ContainerDeployment.dockerDesktopPathError,
+            };
+        }
+    }
+    const startCommand = COMMANDS.START_DOCKER(dockerDesktopPath)[platform()];
 
     if (!startCommand) {
         return {
@@ -326,7 +379,6 @@ export async function startDocker(): Promise<DockerCommandParams> {
 
     try {
         await execCommand(startCommand);
-        console.log("Waiting for Docker to start...");
 
         let attempts = 0;
         const maxAttempts = 30;
@@ -335,7 +387,7 @@ export async function startDocker(): Promise<DockerCommandParams> {
         return await new Promise((resolve) => {
             const checkDocker = setInterval(async () => {
                 try {
-                    await execCommand(COMMANDS.CHECK_DOCKER);
+                    await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
                     clearInterval(checkDocker);
                     resolve({ success: true });
                 } catch (e) {
@@ -359,21 +411,21 @@ export async function startDocker(): Promise<DockerCommandParams> {
     }
 }
 
-export async function restartContainer(containerName: string): Promise<boolean> {
+export function restartContainer(containerName: string): Promise<boolean> {
     sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartContainer);
 
-    const isDockerStarted = await startDocker();
-    if (!isDockerStarted.success) return false;
+    return startDocker().then((isDockerStarted) => {
+        if (!isDockerStarted.success) return false;
 
-    const containerRunning = await isDockerContainerRunning(containerName);
-    if (containerRunning) return true;
+        return isDockerContainerRunning(containerName).then((containerRunning) => {
+            if (containerRunning) return true;
 
-    try {
-        await execCommand(COMMANDS.START_CONTAINER(containerName));
-        return (await checkIfContainerIsReadyForConnections(containerName)).success;
-    } catch {
-        return false;
-    }
+            return execCommand(COMMANDS.START_CONTAINER(containerName))
+                .then(() => checkIfContainerIsReadyForConnections(containerName))
+                .then((result) => result.success)
+                .catch(() => false);
+        });
+    });
 }
 
 /**

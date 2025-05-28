@@ -123,6 +123,10 @@ export interface DockerStep {
     loadState: ApiStatus;
     errorMessage?: string;
     fullErrorText?: string;
+    link?: string;
+    linkText?: string;
+    errorLink?: string;
+    errorLinkText?: string;
     argNames: string[];
     headerText: string;
     bodyText: string;
