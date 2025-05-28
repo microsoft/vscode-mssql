@@ -155,7 +155,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
             this._mainController.connectionManager,
-            getAccounts(this._mainController.azureAccountService),
+            getAccounts(this._mainController.azureAccountService, this.logger),
             this.getAzureActionButtons(),
         );
 
@@ -299,7 +299,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("filterAzureSubscriptions", async (state) => {
             try {
-                if (await promptForAzureSubscriptionFilter(state)) {
+                if (await promptForAzureSubscriptionFilter(state, this.logger)) {
                     await this.loadAllAzureServers(state);
                 }
             } catch (err) {
@@ -514,6 +514,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const tenants = await getTenants(
                 this._mainController.azureAccountService,
                 this.state.connectionProfile.accountId,
+                this.logger,
             );
             if (tenants.length === 1) {
                 hiddenProperties.push("tenantId");
@@ -935,6 +936,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 accountsComponent.options = await getAccounts(
                     this._mainController.azureAccountService,
+                    this.logger,
                 );
 
                 this.state.connectionProfile.accountId = account.key.id;
@@ -956,15 +958,28 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 (account) => account.displayInfo.userId === this.state.connectionProfile.accountId,
             );
             if (account) {
-                const session =
-                    await this._mainController.azureAccountService.getAccountSecurityToken(
-                        account,
-                        undefined,
+                let isTokenExpired = false;
+                try {
+                    const session =
+                        await this._mainController.azureAccountService.getAccountSecurityToken(
+                            account,
+                            undefined,
+                        );
+                    isTokenExpired = !AzureController.isTokenValid(
+                        session.token,
+                        session.expiresOn,
                     );
-                const isTokenExpired = !AzureController.isTokenValid(
-                    session.token,
-                    session.expiresOn,
-                );
+                } catch (err) {
+                    this.logger.verbose(
+                        `Error getting token or checking validity; prompting for refresh. Error: ${getErrorMessage(err)}`,
+                    );
+
+                    this.vscodeWrapper.showErrorMessage(
+                        "Error validating Entra authentication token; you may need to refresh your token.",
+                    );
+
+                    isTokenExpired = true;
+                }
 
                 if (isTokenExpired) {
                     actionButtons.push({
@@ -979,12 +994,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                                     this.state.connectionProfile.accountId,
                             );
                             if (account) {
-                                const session =
-                                    await this._mainController.azureAccountService.getAccountSecurityToken(
-                                        account,
-                                        undefined,
+                                try {
+                                    const session =
+                                        await this._mainController.azureAccountService.getAccountSecurityToken(
+                                            account,
+                                            undefined,
+                                        );
+                                    this.logger.log("Token refreshed", session.expiresOn);
+                                } catch (err) {
+                                    this.logger.error(
+                                        `Error refreshing token: ${getErrorMessage(err)}`,
                                     );
-                                this.logger.log("Token refreshed", session.expiresOn);
+                                }
                             }
                         },
                     });
@@ -1016,6 +1037,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 tenants = await getTenants(
                     this._mainController.azureAccountService,
                     this.state.connectionProfile.accountId,
+                    this.logger,
                 );
                 if (tenantComponent) {
                     tenantComponent.options = tenants;
@@ -1040,6 +1062,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 tenants = await getTenants(
                     this._mainController.azureAccountService,
                     this.state.connectionProfile.accountId,
+                    this.logger,
                 );
                 if (tenantComponent) {
                     tenantComponent.options = tenants;
