@@ -57,6 +57,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         }
     }
 
+    public async setNodeLoading(node: TreeNodeInfo): Promise<void> {
+        await this._objectExplorerService.setLoadingUiForNode(node);
+    }
+
     public async createSession(
         connectionCredentials?: IConnectionInfo,
     ): Promise<CreateSessionResult> {

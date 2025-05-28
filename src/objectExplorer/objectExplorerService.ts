@@ -436,6 +436,16 @@ export class ObjectExplorerService {
          * one blocked operation can delay the other.
          */
         void this.getOrCreateNodeChildrenWithSession(element);
+        return this.setLoadingUiForNode(element);
+    }
+
+    /**
+     * Sets a loading UI for the given node.
+     * This is used to show a loading spinner while the children are being fetched/ other node operations are being performed.
+     * @param element The node to set the loading UI for
+     * @returns A loading node that will be displayed in the tree
+     */
+    public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const loadingNode = new vscode.TreeItem(
             LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
             vscode.TreeItemCollapsibleState.None,

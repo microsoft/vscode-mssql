@@ -411,21 +411,19 @@ export async function startDocker(): Promise<DockerCommandParams> {
     }
 }
 
-export function restartContainer(containerName: string): Promise<boolean> {
+export async function restartContainer(containerName: string): Promise<boolean> {
     sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartContainer);
 
-    return startDocker().then((isDockerStarted) => {
-        if (!isDockerStarted.success) return false;
+    await startDocker();
+    const isContainerRunning = await isDockerContainerRunning(containerName);
+    if (isContainerRunning) return true; // Container is already running
+    await execCommand(COMMANDS.START_CONTAINER(containerName));
+    const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);
 
-        return isDockerContainerRunning(containerName).then((containerRunning) => {
-            if (containerRunning) return true;
-
-            return execCommand(COMMANDS.START_CONTAINER(containerName))
-                .then(() => checkIfContainerIsReadyForConnections(containerName))
-                .then((result) => result.success)
-                .catch(() => false);
-        });
-    });
+    if (!containerReadyResult.success) {
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -439,16 +437,39 @@ export async function checkIfContainerIsReadyForConnections(
     const intervalMs = 1000;
     const start = Date.now();
 
+    // We check the logs for the timestamp of the "Recovery is complete" message,
+    // because when a container is stopped and started, the logs are not cleared.
+    // Checking the timestamp ensures that the container is ready after it has been restarted,
+    // rather than returning a false positive from the previous run.
+    const TIMESTAMP_REGEX = /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?)/;
+
     return new Promise((resolve) => {
         const interval = setInterval(async () => {
             try {
                 const logs = await execCommand(COMMANDS.CHECK_LOGS(containerName, platform()));
-                if (logs.includes(COMMANDS.CHECK_CONTAINER_READY)) {
-                    clearInterval(interval);
-                    return resolve({ success: true });
+                const lines = logs.split("\n");
+                const readyLine = lines.find((line) =>
+                    line.includes(COMMANDS.CHECK_CONTAINER_READY),
+                );
+
+                if (readyLine) {
+                    const match = readyLine.match(TIMESTAMP_REGEX);
+                    if (match) {
+                        const timestampStr = match[1];
+
+                        // Parse using Date constructor – replace space with 'T' to make it ISO-ish, adn add 'Z' for UTC
+                        const logTimestamp = new Date(timestampStr.replace(" ", "T") + "Z");
+
+                        const ageMs = new Date().getTime() - logTimestamp.getTime();
+
+                        if (ageMs >= 0 && ageMs <= timeoutMs) {
+                            clearInterval(interval);
+                            return resolve({ success: true });
+                        }
+                    }
                 }
             } catch {
-                // Ignore error and retry until timeout
+                // Ignore and retry
             }
 
             if (Date.now() - start > timeoutMs) {

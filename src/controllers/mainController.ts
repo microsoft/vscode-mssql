@@ -1209,7 +1209,14 @@ export default class MainController implements vscode.Disposable {
                         // doing it this way instead of directly calling startContainer
                         // allows for the object explorer item loading UI to show
                         this._objectExplorerProvider.deleteChildrenCache(node);
-                        await this._objectExplorerProvider.refresh(node);
+                        await this._objectExplorerProvider.setNodeLoading(node);
+                        this._objectExplorerProvider.refresh(node);
+                        await this.objectExplorerTree.reveal(node, {
+                            select: true,
+                            focus: true,
+                            expand: true,
+                        });
+
                         await this.connectionManager.connectionUI
                             .saveProfile(node.connectionProfile as IConnectionProfile)
                             .then(async () => {
@@ -1234,23 +1241,27 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdStopContainer,
                 async (node: TreeNodeInfo) => {
                     const containerName = node.connectionProfile.containerName;
-                    const stoppedSuccessfully = await stopContainer(
-                        node.connectionProfile.containerName,
-                    );
-                    vscode.window.showInformationMessage(
-                        stoppedSuccessfully
-                            ? LocalizedConstants.ContainerDeployment.stoppedContainerSucessfully(
-                                  containerName,
-                              )
-                            : LocalizedConstants.ContainerDeployment.failStopContainer(
-                                  containerName,
-                              ),
-                    );
-                    if (stoppedSuccessfully) {
-                        // Disconnect from the node
-                        await this._objectExplorerProvider.disconnectNode(node as ConnectionNode);
-                        return this._objectExplorerProvider.refresh(undefined);
-                    }
+
+                    await this._objectExplorerProvider.setNodeLoading(node);
+                    this._objectExplorerProvider.refresh(node);
+
+                    await stopContainer(containerName).then(async (stoppedSuccessfully) => {
+                        if (stoppedSuccessfully) {
+                            await this._objectExplorerProvider
+                                .disconnectNode(node as ConnectionNode)
+                                .then(() => this._objectExplorerProvider.refresh(undefined));
+                        }
+
+                        vscode.window.showInformationMessage(
+                            stoppedSuccessfully
+                                ? LocalizedConstants.ContainerDeployment.stoppedContainerSucessfully(
+                                      containerName,
+                                  )
+                                : LocalizedConstants.ContainerDeployment.failStopContainer(
+                                      containerName,
+                                  ),
+                        );
+                    });
                 },
             ),
         );
