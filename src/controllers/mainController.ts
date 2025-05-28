@@ -518,6 +518,10 @@ export default class MainController implements vscode.Disposable {
                 async (params) => await this.onDidOpenTextDocument(params),
             );
 
+            this._vscodeWrapper.onDidChangeActiveTextEditor((params) =>
+                this.onDidChangeActiveTextEditor(params),
+            );
+
             this._vscodeWrapper.onDidSaveTextDocument((params) =>
                 this.onDidSaveTextDocument(params),
             );
@@ -2147,9 +2151,9 @@ export default class MainController implements vscode.Disposable {
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
-        if (this._lastOpenedUri) {
+        if (this._lastActiveEditorUri) {
             await this._connectionMgr.transferFileConnection(
-                this._lastOpenedUri,
+                this._lastActiveEditorUri,
                 doc.uri.toString(true),
                 true /* keepOldConnected */,
             );
@@ -2166,8 +2170,21 @@ export default class MainController implements vscode.Disposable {
         // Setup properties incase of rename
         this._lastOpenedTimer = new Utils.Timer();
         this._lastOpenedTimer.start();
+
         if (doc && doc.uri) {
             this._lastOpenedUri = doc.uri.toString(true);
+            this._lastActiveEditorUri ??= this._lastOpenedUri; // pre-opened tabs won't trigger onDidChangeActiveTextEditor, so set _lastActiveEditorUri here
+        }
+    }
+
+    private _lastActiveEditorUri: string | undefined;
+
+    private onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
+        if (editor?.document) {
+            this._lastActiveEditorUri =
+                editor.document.languageId === Constants.languageId
+                    ? editor.document.uri.toString(true)
+                    : undefined;
         }
     }
 
