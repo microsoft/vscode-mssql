@@ -519,6 +519,10 @@ export class ObjectExplorerService {
     public async createSession(
         connectionInfo?: IConnectionInfo,
     ): Promise<CreateSessionResult | undefined> {
+        if (!this._rootTreeNodeArray) {
+            await this.getRootNodes(); // ensure root nodes are loaded
+        }
+
         const createSessionActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.CreateSession,
