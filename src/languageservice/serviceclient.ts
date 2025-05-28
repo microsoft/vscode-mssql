@@ -337,7 +337,7 @@ export default class SqlToolsServiceClient {
                         if (await exists(serverFullPath)) {
                             const overrideMessage = `Using ${exeFile} from ${stsRootPath}`;
                             void vscode.window.showInformationMessage(overrideMessage);
-                            console.log(overrideMessage);
+                            this.logger.log(overrideMessage);
                             overridePath = serverFullPath;
                             break;
                         }
@@ -349,7 +349,7 @@ export default class SqlToolsServiceClient {
                     }
                 }
             } catch (err) {
-                console.warn(
+                this.logger.warn(
                     "Unexpected error getting override path for SQL Tools Service client ",
                     err,
                 );
@@ -372,7 +372,7 @@ export default class SqlToolsServiceClient {
                 if (resourceClientOverrideExists) {
                     const overrideMessage = `Using ${resourceOverridePath} from ${overrideDir}`;
                     void vscode.window.showInformationMessage(overrideMessage);
-                    console.log(overrideMessage);
+                    this.logger.log(overrideMessage);
                     resourcePath = resourceOverridePath;
                 }
             }
