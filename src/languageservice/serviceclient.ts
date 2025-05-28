@@ -167,10 +167,10 @@ export default class SqlToolsServiceClient {
             let config = new ExtConfig();
             let vscodeWrapper = new VscodeWrapper();
 
-            _channel = vscodeWrapper.createOutputChannel(
+            let logger = Logger.create(
+                vscodeWrapper.outputChannel,
                 Constants.serviceInitializingOutputChannelName,
             );
-            let logger = Logger.create(_channel);
 
             let serverStatusView = new ServerStatusView();
             let httpClient = new HttpClient();
@@ -343,7 +343,7 @@ export default class SqlToolsServiceClient {
                         }
                     }
                     if (!overridePath) {
-                        console.warn(
+                        this._logger.warn(
                             `Could not find valid SQL Tools Service EXE from ${JSON.stringify(exeFiles)} at ${stsRootPath}, falling back to config`,
                         );
                     }
