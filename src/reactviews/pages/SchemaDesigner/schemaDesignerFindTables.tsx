@@ -46,7 +46,7 @@ export const SchemaDesignerFindTableWidget = ({
     const getSearchableItems = (): TableNodeItem[] => {
         const nodes = reactFlow.getNodes() as Array<Node<SchemaDesigner.Table>>;
         return nodes
-            .filter((node) => node.data && node.data.name)
+            .filter((node) => !node.hidden && node.data && node.data.name)
             .map((node) => new TableNodeItem(node));
     };
 
