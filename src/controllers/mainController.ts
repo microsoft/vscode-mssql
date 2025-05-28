@@ -67,8 +67,6 @@ import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../chat/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
-import { LoggerEventNotification, TraceEventType } from "../models/contracts/sqltoolsserviceLogger";
-import { Logger } from "../models/logger";
 
 /**
  * The main controller class that initializes the extension
@@ -679,32 +677,6 @@ export default class MainController implements vscode.Disposable {
     public async initialize(): Promise<boolean> {
         // initialize language service client
         await SqlToolsServerClient.instance.initialize(this._context);
-
-        const logger = Logger.create(this._vscodeWrapper.outputChannel, "SQLToolsServiceLogger");
-
-        SqlToolsServerClient.instance.onNotification(LoggerEventNotification.type, (params) => {
-            switch (params.traceEventType) {
-                case TraceEventType.Critical:
-                    logger.critical(params.message);
-                case TraceEventType.Error:
-                    logger.error(params.message);
-                case TraceEventType.Warning:
-                    logger.warn(params.message);
-                case TraceEventType.Information:
-                    logger.info(params.message);
-                case TraceEventType.Verbose:
-                    logger.verbose(params.message);
-                case TraceEventType.Start:
-                case TraceEventType.Stop:
-                case TraceEventType.Suspend:
-                case TraceEventType.Resume:
-                case TraceEventType.Transfer:
-                default:
-                    logger.verbose(params.message);
-                    break;
-            }
-        });
-
         // Init status bar
         this._statusview = new StatusView(this._vscodeWrapper);
 
