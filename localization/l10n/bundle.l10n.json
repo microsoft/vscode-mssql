@@ -359,10 +359,17 @@
   "Export": "Export",
   "Add Table": "Add Table",
   "Auto Arrange": "Auto Arrange",
+  "Auto Arrange Confirmation": "Auto Arrange Confirmation",
+  "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?": "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?",
   "Filter": "Filter",
+  "Filter ({0})/{0} is the number of selected tables": {
+    "message": "Filter ({0})",
+    "comment": [
+      "{0} is the number of selected tables"
+    ]
+  },
   "Refresh": "Refresh",
   "Publish Changes": "Publish Changes",
-  "View Code": "View Code",
   "Edit Table": "Edit Table",
   "Open in Editor": "Open in Editor",
   "Changed Tables": "Changed Tables",
@@ -528,6 +535,12 @@
   "No Action": "No Action",
   "Possible Data Loss detected. Please review the changes.": "Possible Data Loss detected. Please review the changes.",
   "Warnings detected. Please review the changes.": "Warnings detected. Please review the changes.",
+  "Definition": "Definition",
+  "Delete Confirmation": "Delete Confirmation",
+  "Are you sure you want to delete the selected items?": "Are you sure you want to delete the selected items?",
+  "Undo": "Undo",
+  "Redo": "Redo",
+  "Search tables...": "Search tables...",
   "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
   "No schema differences were found.": "No schema differences were found.",
   "Initializing comparison, this might take a while...": "Initializing comparison, this might take a while...",
@@ -693,7 +706,6 @@
       "{1} is the error message"
     ]
   },
-  "Connection Errors": "Connection Errors",
   "Server connection in progress. Do you want to cancel?": "Server connection in progress. Do you want to cancel?",
   "Confirm to clear recent connections list": "Confirm to clear recent connections list",
   "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.": "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.",
@@ -719,7 +731,7 @@
   "Microsoft Entra Id - Universal w/ MFA Support": "Microsoft Entra Id - Universal w/ MFA Support",
   "Azure Code Grant": "Azure Code Grant",
   "Azure Device Code": "Azure Device Code",
-  "Azure Logs": "Azure Logs",
+  "MSSQL - Azure Auth Logs": "MSSQL - Azure Auth Logs",
   "Open": "Open",
   "Ignore Tenant": "Ignore Tenant",
   "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process./{0} is the tenant name{1} is the tenant id{2} is the resource": {
@@ -1383,6 +1395,7 @@
     ]
   },
   "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
+  "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

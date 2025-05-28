@@ -425,6 +425,7 @@ export const ObjectExplorerFilterPage = () => {
                     <Tooltip content="Clear" relationship="label">
                         <Button
                             size="small"
+                            appearance="subtle"
                             icon={<EraserRegular />}
                             onClick={() => {
                                 if (

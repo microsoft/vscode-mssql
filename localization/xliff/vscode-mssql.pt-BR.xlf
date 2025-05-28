@@ -6,6 +6,10 @@
         <source xml:lang="en"> is required.</source>
         <target state="translated"> é obrigatório.</target>
       </trans-unit>
+      <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
+        <source xml:lang="en">$(plug)  Connect to MSSQL</source>
+        <target state="new">$(plug)  Connect to MSSQL</target>
+      </trans-unit>
       <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="translated">&lt;default&gt;</target>
@@ -172,6 +176,10 @@
         <source xml:lang="en">Apply changes to target</source>
         <target state="translated">Aplicar alterações ao destino</target>
       </trans-unit>
+      <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
+        <source xml:lang="en">Are you sure you want to delete the selected items?</source>
+        <target state="new">Are you sure you want to delete the selected items?</target>
+      </trans-unit>
       <trans-unit id="++CODE++d06cb9591349a9b98151fca38054ea9703b643b570f3b4557f3d2c07d76a7403">
         <source xml:lang="en">Are you sure you want to delete {0}?</source>
         <note>{0} is the node label</note>
@@ -223,6 +231,14 @@
       <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
         <source xml:lang="en">Auto Arrange</source>
         <target state="translated">Organizar Automaticamente</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ebe205c96ccbd815b1ba5c318ebfad7ce72d76dfea65929bf8c5203cd0c72a93">
+        <source xml:lang="en">Auto Arrange Confirmation</source>
+        <target state="new">Auto Arrange Confirmation</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
+        <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
+        <target state="new">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</target>
       </trans-unit>
       <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
         <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
@@ -757,6 +773,10 @@
         <source xml:lang="en">Default Value</source>
         <target state="translated">Valor Padrão</target>
       </trans-unit>
+      <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
+        <source xml:lang="en">Definition</source>
+        <target state="new">Definition</target>
+      </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
         <target state="translated">DefinitionRequestCompleted</target>
@@ -768,6 +788,10 @@
       <trans-unit id="++CODE++e2d0a54968ead24efc0dffa6ac78fc606dceec34a0f586177a74a54cc2272cf8">
         <source xml:lang="en">Delete</source>
         <target state="translated">Excluir</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2860bf10bd8d01c604f713ea3f60ccea6ef028fd2e7074a400fac50c569aa45c">
+        <source xml:lang="en">Delete Confirmation</source>
+        <target state="new">Delete Confirmation</target>
       </trans-unit>
       <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
         <source xml:lang="en">Delete saved connection</source>
@@ -1088,6 +1112,11 @@ Error:
       <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
         <source xml:lang="en">Filter</source>
         <target state="translated">Filtro</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a76057f27f2880792cf681fd60ca7b9043463252597c22b60eb5beca29292017">
+        <source xml:lang="en">Filter ({0})</source>
+        <note>{0} is the number of selected tables</note>
+        <target state="new">Filter ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
         <source xml:lang="en">Filter Azure subscriptions</source>
@@ -1929,6 +1958,10 @@ Error:
         <source xml:lang="en">Recent connections list cleared</source>
         <target state="translated">Lista de conexões recentes limpa</target>
       </trans-unit>
+      <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
+        <source xml:lang="en">Redo</source>
+        <target state="new">Redo</target>
+      </trans-unit>
       <trans-unit id="++CODE++d49d10a2017dc4911588fbe91abdc783a6eb59caf6b52432ddae0399d838014d">
         <source xml:lang="en">Referenced column '{0}' not found</source>
         <note>{0} is the column name</note>
@@ -2130,6 +2163,10 @@ Error:
       <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
         <source xml:lang="en">Search settings...</source>
         <target state="new">Search settings...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
+        <source xml:lang="en">Search tables...</source>
+        <target state="new">Search tables...</target>
       </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
@@ -2587,6 +2624,10 @@ Error:
         <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
         <target state="translated">Não é possível ler as opções do agente proxy para obter locatários.</target>
       </trans-unit>
+      <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
+        <source xml:lang="en">Undo</source>
+        <target state="new">Undo</target>
+      </trans-unit>
       <trans-unit id="++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291">
         <source xml:lang="en">Update</source>
         <target state="new">Update</target>
@@ -2641,10 +2682,6 @@ Error:
       <trans-unit id="++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6">
         <source xml:lang="en">Very Satisfied</source>
         <target state="translated">Muito Satisfeito</target>
-      </trans-unit>
-      <trans-unit id="++CODE++d56bf62b4b9935c64d1da0afbf5f5c86b0301ca7bebad0086c8ce3085ae5ab06">
-        <source xml:lang="en">View Code</source>
-        <target state="translated">Ver Código</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -3435,6 +3472,10 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
         <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
         <target state="translated">As referências a objetos em uma instrução select devem ser divididas em linhas separadas? Por exemplo, para "SELECT C1, C2 FROM T1", C1 e C2 devem estar em linhas separadas</target>
+      </trans-unit>
+      <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
+        <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
+        <target state="new">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
         <source xml:lang="en">Sort and Filter Query Results</source>

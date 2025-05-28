@@ -385,12 +385,25 @@ export class LocConstants {
             export: l10n.t("Export"),
             addTable: l10n.t("Add Table"),
             autoArrange: l10n.t("Auto Arrange"),
-            filter: l10n.t("Filter"),
+            autoArrangeConfirmation: l10n.t("Auto Arrange Confirmation"),
+            autoArrangeConfirmationContent: l10n.t(
+                "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?",
+            ),
+            filter: (selectedTablesCount: number) => {
+                if (selectedTablesCount === 0) {
+                    return l10n.t("Filter");
+                } else {
+                    return l10n.t({
+                        message: "Filter ({0})",
+                        args: [selectedTablesCount],
+                        comment: ["{0} is the number of selected tables"],
+                    });
+                }
+            },
             clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
             refresh: l10n.t("Refresh"),
             publishChanges: l10n.t("Publish Changes"),
-            viewCode: l10n.t("View Code"),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
             changedTables: l10n.t("Changed Tables"),
@@ -577,6 +590,16 @@ export class LocConstants {
             noAction: l10n.t("No Action"),
             possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
             hasWarnings: l10n.t("Warnings detected. Please review the changes."),
+            definition: l10n.t("Definition"),
+            copy: l10n.t("Copy"),
+            close: l10n.t("Close"),
+            deleteConfirmation: l10n.t("Delete Confirmation"),
+            deleteConfirmationContent: l10n.t(
+                "Are you sure you want to delete the selected items?",
+            ),
+            undo: l10n.t("Undo"),
+            redo: l10n.t("Redo"),
+            searchTables: l10n.t("Search tables..."),
         };
     }
 

@@ -86,7 +86,6 @@ export function msgConnectionErrorPasswordExpired(errorNumber: number, errorMess
         comment: ["{0} is the error number", "{1} is the error message"],
     });
 }
-export let connectionErrorChannelName = l10n.t("Connection Errors");
 export let msgPromptCancelConnect = l10n.t("Server connection in progress. Do you want to cancel?");
 export let msgPromptClearRecentConnections = l10n.t("Confirm to clear recent connections list");
 export let msgOpenSqlFile = l10n.t(
@@ -118,7 +117,7 @@ export let authTypeSql = l10n.t("SQL Login");
 export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal w/ MFA Support");
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
-export let azureLogChannelName = l10n.t("Azure Logs");
+export let azureLogChannelName = l10n.t("MSSQL - Azure Auth Logs");
 export let azureConsentDialogOpen = l10n.t("Open");
 export let azureConsentDialogIgnore = l10n.t("Ignore Tenant");
 export function azureConsentDialogBody(tenantName: string, tenantId: string, resource: string) {
@@ -1130,4 +1129,8 @@ export class MssqlChatAgent {
         });
     };
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
+}
+
+export class QueryEditor {
+    public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
 }

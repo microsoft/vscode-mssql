@@ -44,8 +44,6 @@ export interface ISqlProviderItem extends vscode.QuickPickItem {
 }
 
 export class ConnectionUI {
-    private _errorOutputChannel: vscode.OutputChannel;
-
     constructor(
         private _connectionManager: ConnectionManager,
         private _context: vscode.ExtensionContext,
@@ -58,9 +56,6 @@ export class ConnectionUI {
         if (!this._vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
-        this._errorOutputChannel = this._vscodeWrapper.createOutputChannel(
-            LocalizedConstants.connectionErrorChannelName,
-        );
     }
 
     private get connectionManager(): ConnectionManager {
@@ -79,13 +74,6 @@ export class ConnectionUI {
      */
     public set vscodeWrapper(wrapper: VscodeWrapper) {
         this._vscodeWrapper = wrapper;
-    }
-
-    // Show connection errors in an output window
-    public showConnectionErrors(errorMessages: string): void {
-        this._errorOutputChannel.clear();
-        this._errorOutputChannel.append(errorMessages);
-        this._errorOutputChannel.show(true);
     }
 
     /**
