@@ -202,9 +202,6 @@
     <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
       <source xml:lang="en">Azure Device Code</source>
     </trans-unit>
-    <trans-unit id="++CODE++dd0c9a87e191fd735e4b79b2006a4804b2190b078a05aff1ea23945f37b309c2">
-      <source xml:lang="en">Azure Logs</source>
-    </trans-unit>
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
     </trans-unit>
@@ -482,9 +479,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
       <source xml:lang="en">Connection Error</source>
-    </trans-unit>
-    <trans-unit id="++CODE++52d8d284995954ca5f68adbc705bb4ff2a930cc1ff2a3885a1002ff477394eee">
-      <source xml:lang="en">Connection Errors</source>
     </trans-unit>
     <trans-unit id="++CODE++d913a8ab7732ff7d26c8afceb2e2706c5c991762df193b236fd839bd3a616cb6">
       <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
@@ -1111,6 +1105,9 @@
     </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++28c3a8199a6dcd1373eb25c32820524f38fbba49d1e1fb378bd30dfb6d61ec2d">
+      <source xml:lang="en">MSSQL - Azure Auth Logs</source>
     </trans-unit>
     <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
       <source xml:lang="en">MSSQL Feedback</source>
