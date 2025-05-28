@@ -18,7 +18,7 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
