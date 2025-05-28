@@ -513,9 +513,11 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper.onDidCloseTextDocument(
                 async (params) => await this.onDidCloseTextDocument(params),
             );
-            this._vscodeWrapper.onDidOpenTextDocument((params) =>
-                this.onDidOpenTextDocument(params),
+
+            this._vscodeWrapper.onDidOpenTextDocument(
+                async (params) => await this.onDidOpenTextDocument(params),
             );
+
             this._vscodeWrapper.onDidSaveTextDocument((params) =>
                 this.onDidSaveTextDocument(params),
             );
@@ -724,7 +726,7 @@ export default class MainController implements vscode.Disposable {
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = this._vscodeWrapper.activeTextEditor;
         if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
-            this.onDidOpenTextDocument(activeTextEditor.document);
+            await this.onDidOpenTextDocument(activeTextEditor.document);
         }
         await this.sanitizeConnectionProfiles();
         await this.loadTokenCache();
@@ -2138,12 +2140,20 @@ export default class MainController implements vscode.Disposable {
      * Called by VS Code when a text document is opened. Checks if a SQL file was opened
      * to enable features of our extension for the document.
      */
-    public onDidOpenTextDocument(doc: vscode.TextDocument): void {
+    public async onDidOpenTextDocument(doc: vscode.TextDocument): Promise<void> {
         if (this._connectionMgr === undefined) {
             // Avoid processing events before initialization is complete
             return;
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
+
+        if (this._lastOpenedUri) {
+            await this._connectionMgr.transferFileConnection(
+                this._lastOpenedUri,
+                doc.uri.toString(true),
+                true /* keepOldConnected */,
+            );
+        }
 
         if (doc && doc.languageId === Constants.languageId) {
             // set encoding to false
