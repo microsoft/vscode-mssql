@@ -323,6 +323,20 @@ export default class MainController implements vscode.Disposable {
                     .update(Constants.cmdObjectExplorerGroupBySchemaFlagName, false, true);
             });
 
+            this.registerCommand(Constants.cmdEnableRichExperiencesCommand);
+            this._event.on(Constants.cmdEnableRichExperiencesCommand, async () => {
+                await this._vscodeWrapper
+                    .getConfiguration()
+                    .update(
+                        Constants.configEnableRichExperiences,
+                        true,
+                        vscode.ConfigurationTarget.Global,
+                    );
+
+                // reload immediately so that the changes take effect
+                await vscode.commands.executeCommand("workbench.action.reloadWindow");
+            });
+
             const launchEditorChatWithPrompt = async (
                 prompt: string,
                 selectionPrompt: string | undefined = undefined,
@@ -1212,6 +1226,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdStartContainer,
                 async (node: TreeNodeInfo) => {
+                    if (!node) return;
                     try {
                         // doing it this way instead of directly calling startContainer
                         // allows for the object explorer item loading UI to show
@@ -1247,6 +1262,8 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdStopContainer,
                 async (node: TreeNodeInfo) => {
+                    if (!node) return;
+
                     const containerName = node.connectionProfile.containerName;
 
                     await this._objectExplorerProvider.setNodeLoading(node);
@@ -1277,6 +1294,8 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdDeleteContainer,
                 async (node: TreeNodeInfo) => {
+                    if (!node) return;
+
                     const confirmation = await vscode.window.showInformationMessage(
                         LocalizedConstants.Common.areYouSureYouWantTo("delete the container"),
                         LocalizedConstants.Common.delete,
@@ -1304,20 +1323,6 @@ export default class MainController implements vscode.Disposable {
                 },
             ),
         );
-
-        this.registerCommand(Constants.cmdEnableRichExperiencesCommand);
-        this._event.on(Constants.cmdEnableRichExperiencesCommand, async () => {
-            await this._vscodeWrapper
-                .getConfiguration()
-                .update(
-                    Constants.configEnableRichExperiences,
-                    true,
-                    vscode.ConfigurationTarget.Global,
-                );
-
-            // reload immediately so that the changes take effect
-            await vscode.commands.executeCommand("workbench.action.reloadWindow");
-        });
 
         // Reveal Query Results command
         this._context.subscriptions.push(
