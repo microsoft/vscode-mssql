@@ -451,15 +451,13 @@ export default class MainController implements vscode.Disposable {
                 }),
             );
 
-            if (this.isRichExperiencesEnabled) {
-                this._newConnectionProvider = new NewConnectionProvider();
-                this._context.subscriptions.push(
-                    vscode.window.registerTreeDataProvider(
-                        "newConnection",
-                        this._newConnectionProvider,
-                    ),
-                );
-            }
+            this._newConnectionProvider = new NewConnectionProvider(this.isRichExperiencesEnabled);
+            this._context.subscriptions.push(
+                vscode.window.registerTreeDataProvider(
+                    "newConnection",
+                    this._newConnectionProvider,
+                ),
+            );
 
             this.initializeQueryHistory();
 

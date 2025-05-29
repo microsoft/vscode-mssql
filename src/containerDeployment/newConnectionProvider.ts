@@ -12,12 +12,18 @@ export class NewConnectionProvider implements vscode.TreeDataProvider<any> {
         any | undefined
     >();
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
+    private _isRichExperienceEnabled: boolean = true;
+
+    constructor(isRichExperienceEnabled: boolean) {
+        this._isRichExperienceEnabled = isRichExperienceEnabled;
+    }
 
     public getTreeItem(node: vscode.TreeItem): vscode.TreeItem {
         return node;
     }
 
     public async getChildren(): Promise<vscode.TreeItem[]> {
+        if (!this._isRichExperienceEnabled) return [new AddConnectionTreeNode()];
         return [new AddConnectionTreeNode(), new AddLocalContainerConnectionTreeNode()];
     }
 }
