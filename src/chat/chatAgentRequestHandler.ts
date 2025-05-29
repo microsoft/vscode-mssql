@@ -38,6 +38,8 @@ const MODEL_SELECTOR: vscode.LanguageModelChatSelector = {
     vendor: "copilot",
     family: "gpt-4o",
 };
+const DISCONNECTED_LABEL_PREFIX = "> ⚠️";
+const CONNECTED_LABEL_PREFIX = "> 🟢";
 
 export const createSqlAgentRequestHandler = (
     copilotService: CopilotService,
@@ -233,12 +235,13 @@ export const createSqlAgentRequestHandler = (
                 );
             }
 
-            if (!connectionUri) {
+            const connection = controller.connectionManager.getConnectionInfo(connectionUri);
+            if (!connectionUri || !connection) {
                 activity.update({
                     correlationId: correlationId,
                     message: "No connection URI found. Sending prompt to default language model.",
                 });
-                stream.markdown("⚠️ " + loc.notConnected);
+                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.notConnected}\n\n`);
                 await sendToDefaultLanguageModel(
                     prompt,
                     model,
@@ -250,9 +253,7 @@ export const createSqlAgentRequestHandler = (
                 return { metadata: { command: "", correlationId: correlationId } };
             }
 
-            const connection = controller.connectionManager.getConnectionInfo(connectionUri);
-
-            var connectionMessage = `> 🟢 ${loc.connectionLabel(generateServerDisplayName(connection.credentials), generateDatabaseDisplayName(connection.credentials, false))}\n\n`;
+            var connectionMessage = `${CONNECTED_LABEL_PREFIX} ${loc.connectionLabel(generateServerDisplayName(connection.credentials), generateDatabaseDisplayName(connection.credentials, false))}\n\n`;
             stream.markdown(connectionMessage);
 
             const success = await copilotService.startConversation(
