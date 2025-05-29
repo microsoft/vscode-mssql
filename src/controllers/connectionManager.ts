@@ -35,7 +35,6 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
-import * as events from "events";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
@@ -112,7 +111,10 @@ export default class ConnectionManager {
     private _firewallService: FirewallService;
     public azureController: AzureController;
 
-    private _event: events.EventEmitter = new events.EventEmitter();
+    private _onConnectionsChangedEmitter: vscode.EventEmitter<void> =
+        new vscode.EventEmitter<void>();
+    public readonly onConnectionsChanged: vscode.Event<void> =
+        this._onConnectionsChangedEmitter.event;
 
     public initialized: Deferred<void> = new Deferred<void>();
 
@@ -1426,23 +1428,14 @@ export default class ConnectionManager {
         return await connectionCompletePromise;
     }
 
-    /**
-     * Registers a listener that is triggered when the active connections change.
-     *
-     * @param listener - A callback function to be invoked when the "activeConnectionsChanged" event occurs.
-     */
-    public onActiveConnectionsChanged(listener: () => void): void {
-        this._event.on("activeConnectionsChanged", listener);
-    }
-
     private addActiveConnection(fileUri: string, connectionInfo: ConnectionInfo) {
         this._connections[fileUri] = connectionInfo;
-        this._event.emit("activeConnectionsChanged");
+        this._onConnectionsChangedEmitter.fire();
     }
 
     private removeActiveConnection(fileUri: string): void {
         delete this._connections[fileUri];
-        this._event.emit("activeConnectionsChanged");
+        this._onConnectionsChangedEmitter.fire();
     }
 
     public async onCancelConnect(): Promise<void> {
