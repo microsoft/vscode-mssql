@@ -929,11 +929,19 @@ export class MssqlChatAgent {
     public static noModelFound = l10n.t("No model found.");
     public static noToolsToProcess = l10n.t("No tools to process.");
     public static notConnected = l10n.t("You are not connected to any database.");
-    public static connectionLabel = (serverName: string, databaseName: string) => {
+    public static connectedTo = l10n.t("Connected to:");
+    public static server = (serverName: string) => {
         return l10n.t({
-            message: "Connected to {0},{1}",
-            args: [serverName, databaseName],
-            comment: ["{0} is the server name", "{1} is the database name"],
+            message: "Server - {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+    public static database = (databaseName: string) => {
+        return l10n.t({
+            message: "Database - {0}",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
         });
     };
     public static usingModel = (modelName: string, canSendRequest: boolean | undefined) => {

@@ -253,7 +253,10 @@ export const createSqlAgentRequestHandler = (
                 return { metadata: { command: "", correlationId: correlationId } };
             }
 
-            var connectionMessage = `${CONNECTED_LABEL_PREFIX} ${loc.connectionLabel(generateServerDisplayName(connection.credentials), generateDatabaseDisplayName(connection.credentials, false))}\n\n`;
+            var connectionMessage =
+                `${CONNECTED_LABEL_PREFIX} ${loc.connectedTo}  \n` +
+                `> &nbsp;&nbsp;&nbsp;&nbsp; ${loc.server(generateServerDisplayName(connection.credentials))}  \n` +
+                `> &nbsp;&nbsp;&nbsp;&nbsp; ${loc.database(generateDatabaseDisplayName(connection.credentials, false))}\n\n`;
             stream.markdown(connectionMessage);
 
             const success = await copilotService.startConversation(

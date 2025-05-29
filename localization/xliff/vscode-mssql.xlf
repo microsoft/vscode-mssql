@@ -460,10 +460,8 @@
 {1} is the document name
 {2} is the server info</note>
     </trans-unit>
-    <trans-unit id="++CODE++6ccdc08e4a3a9e8601ec0530c38b9c21ce7e1e7740a52446dd8924c8aa41af2c">
-      <source xml:lang="en">Connected to {0},{1}</source>
-      <note>{0} is the server name
-{1} is the database name</note>
+    <trans-unit id="++CODE++00aaa2ec4a2146b807cc64a6f59880630adc5d451cd1a68a80e2d2ccf2d21bbc">
+      <source xml:lang="en">Connected to:</source>
     </trans-unit>
     <trans-unit id="++CODE++d403c686f6a1048014bdd230f59963271b0123ea48245754fc9f264b962a2182">
       <source xml:lang="en">Connecting</source>
@@ -578,6 +576,10 @@
     </trans-unit>
     <trans-unit id="++CODE++fa7fe67124e94375d97e50896e0c32f44b03bb7ed5e9fb026341b55da724126b">
       <source xml:lang="en">Database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++84a2b1ae34166a218282ec6156f3af9c67f4ccb6c03ec1cc0a03d9b3792069aa">
+      <source xml:lang="en">Database - {0}</source>
+      <note>{0} is the database name</note>
     </trans-unit>
     <trans-unit id="++CODE++667dd91d86c6b574073536489e39f0c5ab034846a63d946e8ef9f7bedeb1f4fb">
       <source xml:lang="en">Database Project</source>
@@ -1695,6 +1697,10 @@
     </trans-unit>
     <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
       <source xml:lang="en">Server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f6cd8550a42862c96bedf199eb6415f9f6859b49211e35694080e73978042cf8">
+      <source xml:lang="en">Server - {0}</source>
+      <note>{0} is the server name</note>
     </trans-unit>
     <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
       <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
