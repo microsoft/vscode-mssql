@@ -24,6 +24,8 @@ import {
 } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
+import { generateDatabaseDisplayName, generateServerDisplayName } from "../models/connectionInfo";
+import MainController from "../controllers/mainController";
 
 export interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -41,6 +43,7 @@ export const createSqlAgentRequestHandler = (
     copilotService: CopilotService,
     vscodeWrapper: VscodeWrapper,
     context: vscode.ExtensionContext,
+    controller: MainController,
 ): vscode.ChatRequestHandler => {
     const getNextConversationUri = (() => {
         let idCounter = 1;
@@ -246,6 +249,11 @@ export const createSqlAgentRequestHandler = (
                 );
                 return { metadata: { command: "", correlationId: correlationId } };
             }
+
+            const connection = controller.connectionManager.getConnectionInfo(connectionUri);
+
+            var connectionMessage = `> 🟢 ${loc.connectionLabel(generateServerDisplayName(connection.credentials), generateDatabaseDisplayName(connection.credentials, false))}\n\n`;
+            stream.markdown(connectionMessage);
 
             const success = await copilotService.startConversation(
                 conversationUri,

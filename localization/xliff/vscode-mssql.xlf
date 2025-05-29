@@ -460,6 +460,11 @@
 {1} is the document name
 {2} is the server info</note>
     </trans-unit>
+    <trans-unit id="++CODE++6ccdc08e4a3a9e8601ec0530c38b9c21ce7e1e7740a52446dd8924c8aa41af2c">
+      <source xml:lang="en">Connected to {0},{1}</source>
+      <note>{0} is the server name
+{1} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++d403c686f6a1048014bdd230f59963271b0123ea48245754fc9f264b962a2182">
       <source xml:lang="en">Connecting</source>
     </trans-unit>
