@@ -133,72 +133,58 @@ suite("MainController Tests", function () {
     });
 
     // Renamed file event test
-    test("onDidCloseTextDocument should call renamedDoc function when rename occurs", (done) => {
+    test("onDidCloseTextDocument should call renamedDoc function when rename occurs", () => {
         // A renamed doc constitutes an openDoc event directly followed by a closeDoc event
-        mainController.onDidOpenTextDocument(newDocument);
+        void mainController.onDidOpenTextDocument(newDocument);
         void mainController.onDidCloseTextDocument(document);
 
         // Verify renameDoc function was called
-        try {
-            connectionManager.verify(
-                (x) => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-            assert.equal(docUriCallback, document.uri.toString());
-            assert.equal(newDocUriCallback, newDocument.uri.toString());
-            done();
-        } catch (err) {
-            done(new Error(err));
-        }
+
+        connectionManager.verify(
+            (x) => x.transferFileConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            TypeMoq.Times.once(),
+        );
+        assert.equal(docUriCallback, document.uri.toString());
+        assert.equal(newDocUriCallback, newDocument.uri.toString());
     });
 
     // Closed document event called to test rename and untitled save file event timeouts
-    test("onDidCloseTextDocument should propogate to the connectionManager even if a special event occured before it", (done) => {
+    test("onDidCloseTextDocument should propogate to the connectionManager even if a special event occured before it", async () => {
         // Call both special cases
         mainController.onDidSaveTextDocument(newDocument);
-        mainController.onDidOpenTextDocument(newDocument);
+        await mainController.onDidOpenTextDocument(newDocument);
 
         // Cause event time out (above 10 ms should work)
         setTimeout(() => {
             void mainController.onDidCloseTextDocument(document);
 
-            try {
-                connectionManager.verify(
-                    (x) =>
-                        x.transferFileConnection(
-                            // ignore changes to settings.json because MainController setup adds missing mssql connection settings
-                            TypeMoq.It.is((x) => !x.endsWith("settings.json")),
-                            TypeMoq.It.is((x) => !x.endsWith("settings.json")),
-                        ),
-                    TypeMoq.Times.never(),
-                );
-                connectionManager.verify(
-                    (x) => x.onDidCloseTextDocument(TypeMoq.It.isAny()),
-                    TypeMoq.Times.once(),
-                );
-                assert.equal(docUriCallback, document.uri.toString());
-                done();
-            } catch (err) {
-                done(new Error(err));
-            }
+            connectionManager.verify(
+                (x) =>
+                    x.transferFileConnection(
+                        // ignore changes to settings.json because MainController setup adds missing mssql connection settings
+                        TypeMoq.It.is((x) => !x.endsWith("settings.json")),
+                        TypeMoq.It.is((x) => !x.endsWith("settings.json")),
+                    ),
+                TypeMoq.Times.never(),
+            );
+            connectionManager.verify(
+                (x) => x.onDidCloseTextDocument(TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
+            );
+            assert.equal(docUriCallback, document.uri.toString());
             // Timeout set to the max threshold + 1
         }, Constants.untitledSaveTimeThreshold + 1);
     });
 
     // Open document event test
-    test("onDidOpenTextDocument should propogate the function to the connectionManager", (done) => {
+    test("onDidOpenTextDocument should propogate the function to the connectionManager", async () => {
         // Call onDidOpenTextDocument to test it side effects
-        mainController.onDidOpenTextDocument(document);
-        try {
-            connectionManager.verify(
-                (x) => x.onDidOpenTextDocument(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-            assert.equal(docUriCallback, document.uri.toString());
-            done();
-        } catch (err) {
-            done(new Error(err));
-        }
+        await mainController.onDidOpenTextDocument(document);
+        connectionManager.verify(
+            (x) => x.onDidOpenTextDocument(TypeMoq.It.isAny()),
+            TypeMoq.Times.once(),
+        );
+        assert.equal(docUriCallback, document.uri.toString());
     });
 
     // Save document event test
@@ -221,7 +207,7 @@ suite("MainController Tests", function () {
         }
     });
 
-    test("TextDocument Events should handle non-initialized connection manager", (done) => {
+    test("TextDocument Events should handle non-initialized connection manager", async () => {
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         let controller: MainController = new MainController(
             TestExtensionContext.object,
@@ -230,10 +216,9 @@ suite("MainController Tests", function () {
         );
 
         // None of the TextDocument events should throw exceptions, they should cleanly exit instead.
-        controller.onDidOpenTextDocument(document);
+        await controller.onDidOpenTextDocument(document);
         controller.onDidSaveTextDocument(document);
         void controller.onDidCloseTextDocument(document);
-        done();
     });
 
     test("onNewQuery should call the new query and new connection", async () => {
