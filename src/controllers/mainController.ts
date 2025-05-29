@@ -514,8 +514,8 @@ export default class MainController implements vscode.Disposable {
                 async (params) => await this.onDidCloseTextDocument(params),
             );
 
-            this._vscodeWrapper.onDidOpenTextDocument(
-                async (params) => await this.onDidOpenTextDocument(params),
+            this._vscodeWrapper.onDidOpenTextDocument((params) =>
+                this.onDidOpenTextDocument(params),
             );
 
             this._vscodeWrapper.onDidChangeActiveTextEditor((params) =>
@@ -2144,16 +2144,16 @@ export default class MainController implements vscode.Disposable {
      * Called by VS Code when a text document is opened. Checks if a SQL file was opened
      * to enable features of our extension for the document.
      */
-    public async onDidOpenTextDocument(doc: vscode.TextDocument): Promise<void> {
+    public onDidOpenTextDocument(doc: vscode.TextDocument): void {
         if (this._connectionMgr === undefined) {
             // Avoid processing events before initialization is complete
             return;
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
-        if (this._previousActiveEditor && doc.languageId === Constants.languageId) {
-            await this._connectionMgr.transferFileConnection(
-                this._previousActiveEditor.uri.toString(true),
+        if (this._previousActiveDocument && doc.languageId === Constants.languageId) {
+            void this._connectionMgr.transferFileConnection(
+                this._previousActiveDocument.uri.toString(true),
                 doc.uri.toString(true),
                 true /* keepOldConnected */,
             );
@@ -2175,7 +2175,8 @@ export default class MainController implements vscode.Disposable {
             this._lastOpenedUri = doc.uri.toString(true);
 
             // pre-opened tabs won't trigger onDidChangeActiveTextEditor, so set _previousActiveEditor here
-            this._previousActiveEditor = doc.languageId === Constants.languageId ? doc : undefined;
+            this._previousActiveDocument =
+                doc.languageId === Constants.languageId ? doc : undefined;
         }
     }
 
@@ -2183,11 +2184,11 @@ export default class MainController implements vscode.Disposable {
      * Tracks the previous editor for the purposes of transferring connections to a newly-opened file.
      * Set to undefined if the previous editor is not a SQL file (languageId === mssql).
      */
-    private _previousActiveEditor: vscode.TextDocument | undefined;
+    private _previousActiveDocument: vscode.TextDocument | undefined;
 
-    private onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
+    public onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
         if (editor?.document) {
-            this._previousActiveEditor =
+            this._previousActiveDocument =
                 editor.document.languageId === Constants.languageId ? editor.document : undefined;
         }
     }
