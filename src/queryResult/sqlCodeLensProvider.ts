@@ -10,7 +10,14 @@ import { QueryEditor } from "../constants/locConstants";
 import { generateDatabaseDisplayName, generateServerDisplayName } from "../models/connectionInfo";
 
 export class SqlCodeLensProvider implements vscode.CodeLensProvider {
-    constructor(private _connectionManager: ConnectionManager) {}
+    private _codeLensChangedEmitter = new vscode.EventEmitter<void>();
+    public readonly onDidChangeCodeLenses?: vscode.Event<void> = this._codeLensChangedEmitter.event;
+
+    constructor(private _connectionManager: ConnectionManager) {
+        this._connectionManager.onActiveConnectionsChanged(() => {
+            this._codeLensChangedEmitter.fire();
+        });
+    }
 
     public provideCodeLenses(
         document: vscode.TextDocument,
