@@ -27,7 +27,7 @@ export function ExportDiagramButton() {
         const computedStyle = getComputedStyle(reactFlowContainer);
         const graphBackgroundColor = computedStyle.getPropertyValue("--vscode-editor-background");
 
-        const nodesBounds = getNodesBounds(getNodes());
+        const nodesBounds = getNodesBounds(getNodes().filter((node) => !node.hidden));
         const viewport = getViewportForBounds(
             nodesBounds,
             nodesBounds.width,

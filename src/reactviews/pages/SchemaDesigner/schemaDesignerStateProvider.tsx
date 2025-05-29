@@ -20,6 +20,8 @@ export interface SchemaDesignerContextProps
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     schemaNames: string[];
     datatypes: string[];
+    findTableText: string;
+    setFindTableText: (text: string) => void;
     getScript: () => Promise<string>;
     initializeSchemaDesigner: () => Promise<{
         nodes: Node<SchemaDesigner.Table>[];
@@ -77,6 +79,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [schemaNames, setSchemaNames] = useState<string[]>([]);
     const reactFlow = useReactFlow();
     const [isInitialized, setIsInitialized] = useState(false);
+    const [findTableText, setFindTableText] = useState<string>("");
 
     useEffect(() => {
         const handleScript = () => {
@@ -415,6 +418,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 themeKind: themeKind,
                 schemaNames,
                 datatypes,
+                findTableText,
+                setFindTableText,
                 getScript,
                 initializeSchemaDesigner,
                 saveAsFile,
