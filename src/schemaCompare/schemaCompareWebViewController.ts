@@ -117,12 +117,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         void this.start(node);
         this.registerRpcHandlers();
 
-        this.connectionMgr.onActiveConnectionsChanged(() => {
-            const activeServers = this.getActiveServersList();
-            this.state.activeServers = activeServers;
+        this.registerDisposable(
+            this.connectionMgr.onConnectionsChanged(() => {
+                const activeServers = this.getActiveServersList();
+                this.state.activeServers = activeServers;
 
-            this.updateState();
-        });
+                this.updateState();
+            }),
+        );
     }
 
     /**
