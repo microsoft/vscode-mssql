@@ -5,9 +5,9 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
-import * as Constants from "../constants/constants";
-import * as LocalizedConstants from "../constants/locConstants";
-import { ObjectExplorerUtils } from "./objectExplorerUtils";
+import * as Constants from "../../constants/constants";
+import * as LocalizedConstants from "../../constants/locConstants";
+import { ObjectExplorerUtils } from "../objectExplorerUtils";
 
 export class AddConnectionTreeNode extends vscode.TreeItem {
     constructor() {
@@ -17,8 +17,8 @@ export class AddConnectionTreeNode extends vscode.TreeItem {
             command: Constants.cmdAddObjectExplorer,
         };
         this.iconPath = {
-            light: path.join(ObjectExplorerUtils.rootPath, "add_light.svg"),
-            dark: path.join(ObjectExplorerUtils.rootPath, "add_dark.svg"),
+            light: vscode.Uri.file(path.join(ObjectExplorerUtils.rootPath, "add_light.svg")),
+            dark: vscode.Uri.file(path.join(ObjectExplorerUtils.rootPath, "add_dark.svg")),
         };
     }
 }

@@ -125,11 +125,9 @@ jobs:
           vsix_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
           echo "vsix_text_color=$vsix_text_color" >> $GITHUB_ENV
 
-      - name: Run unit tests
+      - name: Run unit tests for PR branch
         run: |
-          cd main
-          DISPLAY=:10 yarn test
-          cd ../pr
+          cd pr
           DISPLAY=:10 yarn test
 
       - name: PR Unit Test Report
@@ -142,6 +140,12 @@ jobs:
           working-directory: ./pr
           badge-title: 'unit-tests'
 
+      - name: Run unit tests for main branch # for calculating coverage comparison
+        continue-on-error: true
+        run: |
+          cd main
+          DISPLAY=:10 yarn test
+
       - name: Build mappings for React Webviews
         run: |
           cd ./pr
@@ -151,19 +155,29 @@ jobs:
 
       - name: Setup environment for smoke tests
         run: |
+          wget http://mirrors.kernel.org/ubuntu/pool/main/o/openldap/libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
+          sudo dpkg -i libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
           echo "Setting up environment for smoke tests"
-          echo "PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)" >> $GITHUB_ENV
+          PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)"
+          echo "PASSWORD=$PASSWORD" >> $GITHUB_ENV
           sudo cp build/mssql.init /etc/init.d/mssql-server
           sudo chmod +x /etc/init.d/mssql-server
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
           sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list)"
           sudo apt-get update
           sudo apt-get install -y mssql-server
-          sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD=${{ env.PASSWORD }} /opt/mssql/bin/mssql-conf setup || true
+          # Set the language choice variable (1 for English)
+          LANGUAGE_CHOICE="1"
+          echo -e "$LANGUAGE_CHOICE" | sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD="$PASSWORD" /opt/mssql/bin/mssql-conf setup || true
           sudo service mssql-server start
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update
+          sudo apt-get install -y mssql-tools
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "$PASSWORD" -Q "SELECT @@VERSION"
         working-directory: ./pr
 
-      - name: Run smoke tests
+      - name: Run smoke tests for PR branch
         run: |
           VS_CODE_VERSION=stable
           SERVER_NAME=localhost
@@ -194,6 +208,19 @@ jobs:
             reporter: jest-junit
             badge-title: 'smoke-tests'
             working-directory: ./pr
+
+      - name: Run smoke tests for main branch # for calculating coverage comparison
+        continue-on-error: true
+        run: |
+          VS_CODE_VERSION=stable
+          SERVER_NAME=localhost
+          AUTHENTICATION_TYPE="SQL Login"
+          USER_NAME=sa
+          PASSWORD=${{ env.PASSWORD }}
+          SAVE_PASSWORD=No
+          PROFILE_NAME=test-server
+          cd main
+          DISPLAY=:10 yarn smoketest
 
       - name: Merge Smoke and Unit Test Coverage Reports
         run: |

@@ -122,11 +122,13 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     };
 
     const createTable = () => {
-        const filter = async () => {
-            let hasNewFilters = await table.setupFilterState();
-            if (hasNewFilters) {
-                table.rerenderGrid();
-            }
+        const setupState = async () => {
+            await table.setupFilterState();
+            await table.restoreColumnWidths();
+            table.headerFilter.enabled =
+                table.grid.getDataLength() < context.state.inMemoryDataProcessingThreshold!;
+
+            table.rerenderGrid();
         };
         const DEFAULT_FONT_SIZE = 12;
         context?.log(`resultGrid: ${context.state.fontSettings.fontSize}`);
@@ -243,6 +245,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             },
             {
                 inMemoryDataProcessing: true,
+                inMemoryDataCountThreshold: context.state.inMemoryDataProcessingThreshold,
             },
             undefined,
             undefined,
@@ -260,7 +263,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             tableOptions,
             props.gridParentRef,
         );
-        void filter();
+        void setupState();
         collection.setCollectionChangedCallback((startIndex, count) => {
             let refreshedRows = range(startIndex, startIndex + count);
             table.invalidateRows(refreshedRows, true);

@@ -40,11 +40,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
                 fontSettings: {},
             },
             {
-                title: vscode.l10n.t({
-                    message: "{0} (Preview)",
-                    args: [title],
-                    comment: "{0} is the editor title",
-                }),
+                title: title,
                 viewColumn: _viewColumn,
                 preserveFocus: true,
                 iconPath: {

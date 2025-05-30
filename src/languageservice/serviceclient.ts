@@ -41,8 +41,6 @@ import { serviceName } from "../azure/constants";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
 
-let _channel: vscode.OutputChannel = undefined;
-
 /**
  * @interface IMessage
  */
@@ -167,10 +165,7 @@ export default class SqlToolsServiceClient {
             let config = new ExtConfig();
             let vscodeWrapper = new VscodeWrapper();
 
-            _channel = vscodeWrapper.createOutputChannel(
-                Constants.serviceInitializingOutputChannelName,
-            );
-            let logger = Logger.create(_channel);
+            let logger = Logger.create(vscodeWrapper.outputChannel, "SQL Tools Service");
 
             let serverStatusView = new ServerStatusView();
             let httpClient = new HttpClient();
@@ -199,7 +194,7 @@ export default class SqlToolsServiceClient {
     // out-of-proc server through the LanguageClient
     public initialize(context: vscode.ExtensionContext): Promise<ServerInitializationResult> {
         this._logger.appendLine(Constants.serviceInitializing);
-        this._logPath = context.logPath;
+        this._logPath = context.logUri.fsPath;
         return PlatformInformation.getCurrent().then((platformInfo) => {
             return this.initializeForPlatform(platformInfo, context);
         });
@@ -232,8 +227,8 @@ export default class SqlToolsServiceClient {
                     .then(async (serverPath) => {
                         if (serverPath === undefined) {
                             // Check if the service already installed and if not open the output channel to show the logs
-                            if (_channel !== undefined) {
-                                _channel.show();
+                            if (this._vscodeWrapper !== undefined) {
+                                this._vscodeWrapper.outputChannel.show();
                             }
                             let installedServerPath = await this._server.downloadServerFiles(
                                 platformInfo.runtimeId,
@@ -260,7 +255,7 @@ export default class SqlToolsServiceClient {
                         }
                     })
                     .catch((err) => {
-                        Utils.logDebug(Constants.serviceLoadingFailed + " " + err);
+                        this.logger.logDebug(Constants.serviceLoadingFailed + " " + err);
                         Utils.showErrorMsg(Constants.serviceLoadingFailed);
                         reject(err);
                     });
@@ -322,7 +317,7 @@ export default class SqlToolsServiceClient {
         isWindows: boolean,
     ): Promise<void> {
         if (serverPath === undefined) {
-            Utils.logDebug(Constants.invalidServiceFilePath);
+            this.logger.logDebug(Constants.invalidServiceFilePath);
             throw new Error(Constants.invalidServiceFilePath);
         } else {
             let overridePath: string | undefined = undefined;

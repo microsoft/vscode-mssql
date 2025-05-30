@@ -79,16 +79,9 @@ suite("Connection UI tests", () => {
             connectionStore.object,
             mockAccountStore,
             prompter.object,
-            false,
+            true, // legacyConnectionExperience
             vscodeWrapper.object,
         );
-    });
-
-    test("showConnectionErrors should show errors in the output channel", () => {
-        connectionUI.showConnectionErrors(TypeMoq.It.isAnyString());
-        outputChannel.verify((c) => c.clear(), TypeMoq.Times.once());
-        outputChannel.verify((c) => c.append(TypeMoq.It.isAny()), TypeMoq.Times.once());
-        outputChannel.verify((c) => c.show(true), TypeMoq.Times.once());
     });
 
     test("showConnections with recent and new connection", async () => {

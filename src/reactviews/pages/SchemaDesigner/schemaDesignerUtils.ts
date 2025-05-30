@@ -771,6 +771,53 @@ export const flowUtils = {
     getTableHeight: (table: SchemaDesigner.Table): number =>
         LAYOUT_CONSTANTS.BASE_NODE_HEIGHT + table.columns.length * LAYOUT_CONSTANTS.COLUMN_HEIGHT,
 
+    generatePositions: (
+        nodes: Node<SchemaDesigner.Table>[],
+        edges: Edge<SchemaDesigner.ForeignKey>[],
+    ): {
+        nodes: Node<SchemaDesigner.Table>[];
+        edges: Edge<SchemaDesigner.ForeignKey>[];
+    } => {
+        const graph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+        graph.setGraph(LAYOUT_CONSTANTS.LAYOUT_OPTIONS);
+
+        for (const node of nodes) {
+            if (node.hidden) continue;
+            graph.setNode(node.id, {
+                width: flowUtils.getTableWidth(),
+                height: flowUtils.getTableHeight(node.data),
+            });
+        }
+
+        for (const edge of edges) {
+            if (edge.hidden) continue;
+            const sourceNode = nodes.find((n) => n.id === edge.source);
+            const targetNode = nodes.find((n) => n.id === edge.target);
+            if (!sourceNode?.hidden && !targetNode?.hidden) {
+                graph.setEdge(edge.source, edge.target);
+            }
+        }
+
+        dagre.layout(graph);
+
+        const layoutedNodes = nodes.map((node) => {
+            if (node.hidden) return node;
+            const dagreNode = graph.node(node.id);
+            return {
+                ...node,
+                position: {
+                    x: dagreNode.x - flowUtils.getTableWidth() / 2,
+                    y: dagreNode.y - flowUtils.getTableHeight(node.data) / 2,
+                },
+            };
+        });
+
+        return {
+            nodes: layoutedNodes,
+            edges,
+        };
+    },
+
     generateSchemaDesignerFlowComponents: (
         schema: SchemaDesigner.Schema,
     ): {

@@ -7,10 +7,7 @@ import * as vscode from "vscode";
 import { l10n } from "vscode";
 import { Azure as Loc } from "../constants/locConstants";
 
-import {
-    AzureSubscription,
-    VSCodeAzureSubscriptionProvider,
-} from "@microsoft/vscode-azext-azureauth";
+import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 
 import { IAccount, ITenant } from "../models/contracts/azure";
@@ -23,15 +20,29 @@ import {
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
-
-export const azureSubscriptionFilterConfigKey = "azureResourceGroups.selectedSubscriptions";
+import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
+import { configSelectedAzureSubscriptions } from "../constants/constants";
+import { Logger } from "../models/logger";
 
 //#region VS Code integration
 
+/**
+ * Checks to see if the user is signed into VS Code with an Azure account
+ * @returns true if the user is signed in, false otherwise
+ */
+export async function isSignedIn(): Promise<boolean> {
+    const auth: MssqlVSCodeAzureSubscriptionProvider = new MssqlVSCodeAzureSubscriptionProvider();
+    return await auth.isSignedIn();
+}
+
+/**
+ * Prompts the user to sign in to Azure if they are not already signed in
+ * @returns auth object if the user signs in or is already signed in, undefined if the user cancels sign-in.
+ */
 export async function confirmVscodeAzureSignin(): Promise<
-    VSCodeAzureSubscriptionProvider | undefined
+    MssqlVSCodeAzureSubscriptionProvider | undefined
 > {
-    const auth: VSCodeAzureSubscriptionProvider = new VSCodeAzureSubscriptionProvider();
+    const auth: MssqlVSCodeAzureSubscriptionProvider = new MssqlVSCodeAzureSubscriptionProvider();
 
     if (!(await auth.isSignedIn())) {
         const result = await auth.signIn();
@@ -44,34 +55,45 @@ export async function confirmVscodeAzureSignin(): Promise<
     return auth;
 }
 
-export async function promptForAzureSubscriptionFilter(state: ConnectionDialogWebviewState) {
+/**
+ *  * @returns true if the user selected subscriptions, false if they canceled the selection quickpick
+ */
+export async function promptForAzureSubscriptionFilter(
+    state: ConnectionDialogWebviewState,
+    logger: Logger,
+): Promise<boolean> {
     try {
         const auth = await confirmVscodeAzureSignin();
 
         if (!auth) {
             state.formError = l10n.t("Azure sign in failed.");
-            return;
+            return false;
         }
 
-        const selectedSubs = await vscode.window.showQuickPick(getQuickPickItems(auth), {
-            canPickMany: true,
-            ignoreFocusOut: true,
-            placeHolder: l10n.t("Select subscriptions"),
-        });
+        const selectedSubs = await vscode.window.showQuickPick(
+            getSubscriptionQuickPickItems(auth),
+            {
+                canPickMany: true,
+                ignoreFocusOut: true,
+                placeHolder: l10n.t("Select subscriptions"),
+            },
+        );
 
         if (!selectedSubs) {
-            return;
+            return false;
         }
 
         await vscode.workspace.getConfiguration().update(
-            azureSubscriptionFilterConfigKey,
+            configSelectedAzureSubscriptions,
             selectedSubs.map((s) => `${s.tenantId}/${s.subscriptionId}`),
             vscode.ConfigurationTarget.Global,
         );
+
+        return true;
     } catch (error) {
         state.formError = l10n.t("Error loading Azure subscriptions.");
-        console.error(state.formError + "\n" + getErrorMessage(error));
-        return;
+        logger.error(state.formError + "\n" + getErrorMessage(error));
+        return false;
     }
 }
 
@@ -80,8 +102,8 @@ export interface SubscriptionPickItem extends vscode.QuickPickItem {
     subscriptionId: string;
 }
 
-export async function getQuickPickItems(
-    auth: VSCodeAzureSubscriptionProvider,
+export async function getSubscriptionQuickPickItems(
+    auth: MssqlVSCodeAzureSubscriptionProvider,
 ): Promise<SubscriptionPickItem[]> {
     const allSubs = await auth.getSubscriptions(
         false /* don't use the current filter, 'cause we're gonna set it */,
@@ -89,7 +111,7 @@ export async function getQuickPickItems(
 
     const prevSelectedSubs = vscode.workspace
         .getConfiguration()
-        .get<string[] | undefined>(azureSubscriptionFilterConfigKey)
+        .get<string[] | undefined>(configSelectedAzureSubscriptions)
         ?.map((entry) => entry.split("/")[1]);
 
     const quickPickItems: SubscriptionPickItem[] = allSubs
@@ -156,6 +178,7 @@ export async function fetchServersFromAzure(sub: AzureSubscription): Promise<Azu
 
 export async function getAccounts(
     azureAccountService: AzureAccountService,
+    logger: Logger,
 ): Promise<FormItemOptions[]> {
     let accounts: IAccount[] = [];
     try {
@@ -167,7 +190,7 @@ export async function getAccounts(
             };
         });
     } catch (error) {
-        console.error(`Error loading Azure accounts: ${getErrorMessage(error)}`);
+        logger.error(`Error loading Azure accounts: ${getErrorMessage(error)}`);
 
         sendErrorEvent(
             TelemetryViews.ConnectionDialog,
@@ -193,19 +216,37 @@ export async function getAccounts(
 export async function getTenants(
     azureAccountService: AzureAccountService,
     accountId: string,
+    logger: Logger,
 ): Promise<FormItemOptions[]> {
     let tenants: ITenant[] = [];
     try {
         const account = (await azureAccountService.getAccounts()).find(
             (account) => account.displayInfo?.userId === accountId,
         );
-        if (!account) {
+
+        if (!account?.properties?.tenants) {
+            const missingProp = !account
+                ? "account"
+                : !account.properties
+                  ? "properties"
+                  : "tenants";
+            const message = `Unable to retrieve tenants for the selected account due to undefined ${missingProp}`;
+            logger.error(message);
+
+            sendErrorEvent(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.LoadAzureTenantsForEntraAuth,
+                new Error(message),
+                true, // includeErrorMessage
+                undefined, // errorCode
+                `missing_${missingProp}`, // errorType
+            );
+
             return [];
         }
+
         tenants = account.properties.tenants;
-        if (!tenants) {
-            return [];
-        }
+
         return tenants.map((tenant) => {
             return {
                 displayName: tenant.displayName,
@@ -213,7 +254,7 @@ export async function getTenants(
             };
         });
     } catch (error) {
-        console.error(`Error loading Azure tenants: ${getErrorMessage(error)}`);
+        logger.error(`Error loading Azure tenants: ${getErrorMessage(error)}`);
 
         sendErrorEvent(
             TelemetryViews.ConnectionDialog,
@@ -287,9 +328,9 @@ export async function constructAzureAccountForTenant(
 
 //#endregion
 
-//#region Miscellaneous Auzre helpers
+//#region Miscellaneous Azure helpers
 
-function extractFromResourceId(resourceId: string, property: string): string | undefined {
+export function extractFromResourceId(resourceId: string, property: string): string | undefined {
     if (!property.endsWith("/")) {
         property += "/";
     }
@@ -302,7 +343,12 @@ function extractFromResourceId(resourceId: string, property: string): string | u
         startIndex += property.length;
     }
 
-    return resourceId.substring(startIndex, resourceId.indexOf("/", startIndex));
+    let endIndex = resourceId.indexOf("/", startIndex);
+    if (endIndex === -1) {
+        endIndex = undefined;
+    }
+
+    return resourceId.substring(startIndex, endIndex);
 }
 
 //#endregion

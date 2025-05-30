@@ -24,7 +24,7 @@ test.describe("MSSQL Extension - Database Connection", async () => {
 
     test.beforeAll(async () => {
         // Launch with new UI off
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension(true);
+        const { electronApp, page } = await launchVsCodeWithMssqlExtension(true /* oldUi */);
         vsCodeApp = electronApp;
         vsCodePage = page;
     });
@@ -51,7 +51,7 @@ test.describe("MSSQL Extension - Database Connection", async () => {
         await openNewQueryEditor(vsCodePage, profileName, password);
         await disconnect(vsCodePage);
 
-        const disconnectedStatus = await vsCodePage.getByText("Disconnected");
+        const disconnectedStatus = await vsCodePage.getByText("Connect to MSSQL");
         await expect(disconnectedStatus).toBeVisible({ timeout: 10 * 1000 });
     });
 

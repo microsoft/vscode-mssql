@@ -8,7 +8,6 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { EncryptOptions } from "../models/interfaces";
 import * as Interfaces from "./interfaces";
-import * as Utils from "./utils";
 import * as vscode from "vscode";
 
 /**
@@ -139,39 +138,42 @@ export function getPicklistDetails(connCreds: IConnectionInfo): string {
  * @param conn connection
  * @returns display string that can be used in status view or other locations
  */
-export function getConnectionDisplayString(creds: IConnectionInfo): string {
-    // Update the connection text
-    let text: string = creds.server;
-    if (creds.database !== "") {
-        text = appendIfNotEmpty(text, creds.database);
-    } else {
-        text = appendIfNotEmpty(text, LocalizedConstants.defaultDatabaseLabel);
-    }
-    let user: string = getUserNameOrDomainLogin(creds);
-    text = appendIfNotEmpty(text, user);
+export function getConnectionDisplayString(creds: IConnectionInfo, trim: boolean = false): string {
+    const server = generateServerDisplayName(creds);
+    const database = generateDatabaseDisplayName(creds);
+    const user = getUserNameOrDomainLogin(creds);
+
+    let result = user ? `${server} : ${database} : ${user}` : `${server} : ${database}`;
 
     let statusBarConnectionInfoMaxLength: number = vscode.workspace
         .getConfiguration(Constants.extensionConfigSectionName)
         .get(Constants.configStatusBarConnectionInfoMaxLength);
 
-    // Limit the maximum length of displayed text
     if (
+        trim &&
         statusBarConnectionInfoMaxLength >= 0 &&
-        text &&
-        text.length > statusBarConnectionInfoMaxLength
+        result.length > statusBarConnectionInfoMaxLength
     ) {
-        text = text.substr(0, statusBarConnectionInfoMaxLength);
-        text += " \u2026"; // Ellipsis character (...)
+        result = result.slice(0, statusBarConnectionInfoMaxLength) + " \u2026"; // add ellipsis
     }
 
-    return text;
+    return result;
 }
 
-function appendIfNotEmpty(connectionText: string, value: string): string {
-    if (Utils.isNotEmpty(value)) {
-        connectionText += ` : ${value}`;
+export function generateServerDisplayName(creds: IConnectionInfo): string {
+    return creds.server;
+}
+
+export function generateDatabaseDisplayName(
+    creds: IConnectionInfo,
+    includeDatabaseIcon: boolean = true,
+): string {
+    const databaseName = creds.database || LocalizedConstants.defaultDatabaseLabel;
+    if (includeDatabaseIcon) {
+        return `$(database) ${databaseName}`;
+    } else {
+        return databaseName;
     }
-    return connectionText;
 }
 
 /**

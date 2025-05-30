@@ -10,6 +10,7 @@ export const extensionName = "mssql";
 export const extensionConfigSectionName = "mssql";
 export const telemetryConfigSectionName = "telemetry";
 export const mssqlProviderName = "MSSQL";
+export const mssqlChatParticipantName = "mssql"; // must be the same as the one in package.json
 export const noneProviderName = "None";
 export const objectExplorerId = "objectExplorer";
 export const queryHistory = "queryHistory";
@@ -50,8 +51,12 @@ export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
 export const cmdAddObjectExplorer = "mssql.addObjectExplorer";
-export const cmdAddObjectExplorerPreview = "mssql.addObjectExplorerPreview";
+export const cmdAddObjectExplorerLegacy = "mssql.addObjectExplorerLegacy";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
+export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
+export const cmdExplainQuery = "mssql.copilot.explainQuery";
+export const cmdRewriteQuery = "mssql.copilot.rewriteQuery";
+export const cmdAnalyzeQueryPerformance = "mssql.copilot.analyzeQueryPerformance";
 export const cmdRemoveObjectExplorerNode = "mssql.removeObjectExplorerNode";
 export const cmdRefreshObjectExplorerNode = "mssql.refreshObjectExplorerNode";
 export const cmdDisconnectObjectExplorerNode = "mssql.disconnectObjectExplorerNode";
@@ -125,7 +130,7 @@ export const outputContentTypeShowWarning = "showWarning";
 export const outputServiceLocalhost = "http://localhost:";
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
-export const untitledSaveTimeThreshold = 10.0;
+export const untitledSaveTimeThreshold = 50.0;
 export const renamedOpenTimeThreshold = 10.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
 export const macOpenSslHelpLink =
@@ -190,11 +195,17 @@ export const configEnableRichExperiencesDoNotShowPrompt =
     "mssql.enableRichExperiencesDoNotShowPrompt";
 export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
-export const configEnableNewQueryResultFeature = "mssql.enableNewQueryResultFeature";
+export const configUseLegacyConnectionExperience = "mssql.useLegacyConnectionExperience";
+export const configUseLegacyQueryResultExperience = "mssql.useLegacyQueryResultExperience";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
+export const configInMemoryDataProcessingThreshold = "resultsGrid.inMemoryDataProcessingThreshold";
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
+export const copilotDebugLogging = "mssql.copilotDebugLogging";
+export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
+export const configShowActiveConnectionAsCodeLensSuggestion =
+    "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 
 // ToolsService Constants

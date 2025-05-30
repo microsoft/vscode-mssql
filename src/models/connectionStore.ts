@@ -34,21 +34,26 @@ import { Deferred } from "../protocol";
 export class ConnectionStore {
     constructor(
         private _context: vscode.ExtensionContext,
-        private _logger: Logger,
         private _credentialStore: ICredentialStore,
+        private _logger?: Logger,
         private _connectionConfig?: ConnectionConfig,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!this.vscodeWrapper) {
             this.vscodeWrapper = new VscodeWrapper();
         }
+
+        if (!this._logger) {
+            this._logger = Logger.create(this.vscodeWrapper.outputChannel, "ConnectionStore");
+        }
+
         if (!this._connectionConfig) {
             this._connectionConfig = new ConnectionConfig();
         }
     }
 
     public get initialized(): Deferred<void> {
-        return (this._connectionConfig as ConnectionConfig).initialized;
+        return this._connectionConfig.initialized;
     }
 
     public static get CRED_PREFIX(): string {
@@ -572,7 +577,7 @@ export class ConnectionStore {
         // TODO re-add deduplication logic from old method
 
         this._logger.logDebug(
-            `readAllConnections: ${connResults.length} connections${includeRecentConnections ? ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)` : "; excluded recent"})`,
+            `readAllConnections(): ${connResults.length} connections${includeRecentConnections ? ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)` : "; excluded recent"}`,
         );
 
         return connResults;

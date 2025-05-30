@@ -15,6 +15,10 @@ import SqlToolsServerClient from "./languageservice/serviceclient";
 import { ConnectionProfile } from "./models/connectionProfile";
 import { FirewallRuleError } from "./languageservice/interfaces";
 import { RequestType } from "vscode-languageclient";
+import { createSqlAgentRequestHandler, ISqlChatResult } from "./chat/chatAgentRequestHandler";
+import { sendActionEvent } from "./telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
+import { ChatResultFeedbackKind } from "vscode";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -31,9 +35,33 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     // 	LocalizedConstants.loadLocalizedConstants(vscode.env.language);
     // }
 
+    // Check if GitHub Copilot is installed
+    const copilotExtension = vscode.extensions.getExtension("GitHub.copilot");
+    vscode.commands.executeCommand(
+        "setContext",
+        "mssql.copilot.isGHCInstalled",
+        !!copilotExtension,
+    );
+
     // Exposed for testing purposes
     vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
     await controller.activate();
+    const participant = vscode.chat.createChatParticipant(
+        "mssql.agent",
+        createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context, controller),
+    );
+
+    const receiveFeedbackDisposable = participant.onDidReceiveFeedback(
+        (feedback: vscode.ChatResultFeedback) => {
+            sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Feedback, {
+                kind: feedback.kind === ChatResultFeedbackKind.Helpful ? "Helpful" : "Unhelpful",
+                correlationId: (feedback.result as ISqlChatResult).metadata.correlationId,
+            });
+        },
+    );
+
+    context.subscriptions.push(controller, participant, receiveFeedbackDisposable);
+
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
         promptForConnection: async (ignoreFocusOut?: boolean) => {
