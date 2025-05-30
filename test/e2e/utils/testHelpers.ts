@@ -15,7 +15,7 @@ export async function addDatabaseConnection(
     savePassword: string,
     profileName: string,
 ): Promise<void> {
-    const addConnectionButton = await vsCodePage.locator('div[aria-label="Add Connection"]').last();
+    const addConnectionButton = await vsCodePage.locator('div[aria-label="Add Connection"]');
     let isConnectionButtonVisible = await addConnectionButton.isVisible();
     if (!isConnectionButtonVisible) {
         await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');

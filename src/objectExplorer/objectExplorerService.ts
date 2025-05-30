@@ -457,7 +457,7 @@ export class ObjectExplorerService {
      */
     public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const loadingNode = new vscode.TreeItem(
-            element.loadingLabel,
+            element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
             vscode.TreeItemCollapsibleState.None,
         );
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");

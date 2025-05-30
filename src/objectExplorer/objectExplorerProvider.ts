@@ -81,7 +81,11 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         node: ConnectionNode,
         showUserConfirmationPrompt?: boolean,
     ): Promise<void> {
-        await this._objectExplorerService.removeNode(node, showUserConfirmationPrompt);
+        if (showUserConfirmationPrompt !== undefined) {
+            await this._objectExplorerService.removeNode(node, showUserConfirmationPrompt);
+        } else {
+            await this._objectExplorerService.removeNode(node);
+        }
     }
 
     public async disconnectNode(node: ConnectionNode): Promise<void> {

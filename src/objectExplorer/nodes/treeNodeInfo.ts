@@ -11,7 +11,7 @@ import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
 import { generateGuid } from "../../models/utils";
-import { ContainerDeployment, ObjectExplorer } from "../../constants/locConstants";
+import { ContainerDeployment } from "../../constants/locConstants";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -27,7 +27,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _filterableProperties: vscodeMssql.NodeFilterProperty[];
     private _filters: vscodeMssql.NodeFilter[];
     private _originalLabel: string;
-    private _loadingLabel: string = ObjectExplorer.LoadingNodeLabel;
+    private _loadingLabel: string;
 
     /**
      * Use this flag to force a refresh of the node in the next expansion.

@@ -57,9 +57,7 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
     });
 
     // Ensure the extension has loaded by checking object explorer has loaded
-    const objectExplorerElement = page
-        .locator('[role="treeitem"][aria-label*="Add Connection"]')
-        .last();
+    const objectExplorerElement = page.locator('[role="treeitem"][aria-label*="Add Connection"]');
     await objectExplorerElement.waitFor({
         state: "visible",
         timeout: 30 * 1000,
