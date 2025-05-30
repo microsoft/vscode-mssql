@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 1.32.1
+* Release date: June 2, 2025
+* Release status: GA
+### What's new in 1.32.1
+* Fixed an issue where Group By Schema was not working in some cases
+* Added server connection status labels to MSSQL integration with GitHub Copilot
+
 ## Version 1.32.0
 * Release date: May 19, 2025
 * Release status: GA
