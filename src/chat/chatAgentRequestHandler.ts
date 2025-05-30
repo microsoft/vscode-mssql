@@ -39,6 +39,7 @@ const MODEL_SELECTOR: vscode.LanguageModelChatSelector = {
 };
 const DISCONNECTED_LABEL_PREFIX = "> ⚠️";
 const CONNECTED_LABEL_PREFIX = "> 🟢";
+const SERVER_DATABASE_LABEL_PREFIX = "> ➖";
 
 export const createSqlAgentRequestHandler = (
     copilotService: CopilotService,
@@ -254,8 +255,8 @@ export const createSqlAgentRequestHandler = (
 
             var connectionMessage =
                 `${CONNECTED_LABEL_PREFIX} ${loc.connectedTo}  \n` +
-                `> &nbsp;&nbsp;&nbsp;&nbsp; ${loc.server(connection.credentials.server)}  \n` +
-                `> &nbsp;&nbsp;&nbsp;&nbsp; ${loc.database(connection.credentials.database)}\n\n`;
+                `${SERVER_DATABASE_LABEL_PREFIX} ${loc.server(connection.credentials.server)}  \n` +
+                `${SERVER_DATABASE_LABEL_PREFIX} ${loc.database(connection.credentials.database)}\n\n`;
             stream.markdown(connectionMessage);
 
             const success = await copilotService.startConversation(
