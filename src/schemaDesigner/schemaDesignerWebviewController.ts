@@ -101,8 +101,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             return sessionResponse;
         });
 
-        this.registerRequestHandler("getScript", async (payload) => {
-            const script = await this.schemaDesignerService.generateScript({
+        this.registerRequestHandler("getDefinition", async (payload) => {
+            const script = await this.schemaDesignerService.getDefinition({
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
             });
@@ -112,14 +112,24 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.registerRequestHandler("getReport", async (payload) => {
             try {
-                const report = await this.schemaDesignerService.getReport({
-                    updatedSchema: payload.updatedSchema,
-                    sessionId: this._sessionId,
-                });
-                this.updateCacheItem(payload.updatedSchema, true);
-                return {
-                    report,
-                };
+                return await vscode.window.withProgress(
+                    {
+                        location: vscode.ProgressLocation.Notification,
+                        title: "Generating report. This might take a while...",
+                        cancellable: false,
+                    },
+                    async () => {
+                        // Wait for the report to be generated
+                        const report = await this.schemaDesignerService.getReport({
+                            updatedSchema: payload.updatedSchema,
+                            sessionId: this._sessionId,
+                        });
+                        this.updateCacheItem(payload.updatedSchema, true);
+                        return {
+                            report,
+                        };
+                    },
+                );
             } catch (error) {
                 return {
                     error: error.toString(),
@@ -158,7 +168,20 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.registerRequestHandler("openInEditorWithConnection", async (payload) => {
-            void this.mainController.onNewQuery(this.treeNode, payload.text);
+            vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: "Opening publish script. This might take a while...",
+                    cancellable: false,
+                },
+                async () => {
+                    const result = await this.schemaDesignerService.generateScript({
+                        sessionId: this._sessionId,
+                    });
+                    // Open the document in the editor with the connection
+                    void this.mainController.onNewQuery(this.treeNode, result?.script);
+                },
+            );
         });
 
         this.registerRequestHandler("closeDesigner", async () => {

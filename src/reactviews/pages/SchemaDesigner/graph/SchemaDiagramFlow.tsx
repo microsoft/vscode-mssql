@@ -241,6 +241,7 @@ export const SchemaDesignerFlow = () => {
                 onEdgesChange={onEdgesChange}
                 onConnect={handleConnect}
                 onConnectEnd={handleConnectEnd}
+                onlyRenderVisibleElements={context.renderOnlyVisibleTables}
                 proOptions={{
                     hideAttribution: true,
                 }}
