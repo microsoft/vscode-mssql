@@ -20,7 +20,6 @@ export interface SchemaDesignerContextProps
     extensionRpc: WebviewRpc<SchemaDesigner.SchemaDesignerReducers>;
     schemaNames: string[];
     datatypes: string[];
-    getScript: () => Promise<string>;
     findTableText: string;
     setFindTableText: (text: string) => void;
     getDefinition: () => Promise<string>;

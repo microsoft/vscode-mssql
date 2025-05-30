@@ -34,7 +34,7 @@ export function ExportDiagramButton() {
         context.setRenderOnlyVisibleTables(false);
         await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for the nodes to be rendered
 
-        const nodesBounds = getNodesBounds(getNodes());
+        const nodesBounds = getNodesBounds(getNodes().filter((node) => !node.hidden));
         const viewport = getViewportForBounds(
             nodesBounds,
             nodesBounds.width,

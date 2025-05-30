@@ -85,7 +85,6 @@ export function msgConnectionErrorPasswordExpired(errorNumber: number, errorMess
         comment: ["{0} is the error number", "{1} is the error message"],
     });
 }
-export let connectionErrorChannelName = l10n.t("Connection Errors");
 export let msgPromptCancelConnect = l10n.t("Server connection in progress. Do you want to cancel?");
 export let msgPromptClearRecentConnections = l10n.t("Confirm to clear recent connections list");
 export let msgOpenSqlFile = l10n.t(
@@ -117,7 +116,7 @@ export let authTypeSql = l10n.t("SQL Login");
 export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal w/ MFA Support");
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
-export let azureLogChannelName = l10n.t("Azure Logs");
+export let azureLogChannelName = l10n.t("MSSQL - Azure Auth Logs");
 export let azureConsentDialogOpen = l10n.t("Open");
 export let azureConsentDialogIgnore = l10n.t("Ignore Tenant");
 export function azureConsentDialogBody(tenantName: string, tenantId: string, resource: string) {
@@ -930,6 +929,21 @@ export class MssqlChatAgent {
     public static noModelFound = l10n.t("No model found.");
     public static noToolsToProcess = l10n.t("No tools to process.");
     public static notConnected = l10n.t("You are not connected to any database.");
+    public static connectedTo = l10n.t("Connected to:");
+    public static server = (serverName: string) => {
+        return l10n.t({
+            message: "Server - {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+    public static database = (databaseName: string) => {
+        return l10n.t({
+            message: "Database - {0}",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    };
     public static usingModel = (modelName: string, canSendRequest: boolean | undefined) => {
         return l10n.t({
             message: "Using {0} ({1})...",
