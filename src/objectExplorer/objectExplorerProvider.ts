@@ -24,6 +24,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     constructor(
         private _vscodeWrapper: VscodeWrapper,
         connectionManager: ConnectionManager,
+        private _isRichExperienceEnabled: boolean = true,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -35,6 +36,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
             (node) => {
                 this.refresh(node);
             },
+            this._isRichExperienceEnabled,
         );
     }
 
@@ -75,8 +77,11 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.expandNode(node, sessionId, promise);
     }
 
-    public async removeNode(node: ConnectionNode): Promise<void> {
-        await this._objectExplorerService.removeNode(node);
+    public async removeNode(
+        node: ConnectionNode,
+        showUserConfirmationPrompt?: boolean,
+    ): Promise<void> {
+        await this._objectExplorerService.removeNode(node, showUserConfirmationPrompt);
     }
 
     public async disconnectNode(node: ConnectionNode): Promise<void> {

@@ -70,7 +70,6 @@ import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
 import { deleteContainer, stopContainer } from "../containerDeployment/dockerUtils";
-import { NewConnectionProvider } from "../containerDeployment/newConnectionProvider";
 
 /**
  * The main controller class that initializes the extension
@@ -91,7 +90,6 @@ export default class MainController implements vscode.Disposable {
     private _lastOpenedTimer: Utils.Timer | undefined;
     private _untitledSqlDocumentService: UntitledSqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
-    private _newConnectionProvider: NewConnectionProvider;
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
@@ -216,8 +214,8 @@ export default class MainController implements vscode.Disposable {
                 await this.onClearPooledConnections();
             });
             this.registerCommand(Constants.cmdDeployLocalDockerContainer);
-            this._event.on(Constants.cmdDeployLocalDockerContainer, async () => {
-                await this.onDeployContainer();
+            this._event.on(Constants.cmdDeployLocalDockerContainer, () => {
+                this.onDeployContainer();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -463,14 +461,6 @@ export default class MainController implements vscode.Disposable {
 
                     await launchEditorChatWithPrompt(Prompts.analyzeQueryPerformancePrompt);
                 }),
-            );
-
-            this._newConnectionProvider = new NewConnectionProvider(this.isRichExperiencesEnabled);
-            this._context.subscriptions.push(
-                vscode.window.registerTreeDataProvider(
-                    "newConnection",
-                    this._newConnectionProvider,
-                ),
             );
 
             this.initializeQueryHistory();
@@ -865,7 +855,11 @@ export default class MainController implements vscode.Disposable {
         // Register the object explorer tree provider
         this._objectExplorerProvider =
             objectExplorerProvider ??
-            new ObjectExplorerProvider(this._vscodeWrapper, this._connectionMgr);
+            new ObjectExplorerProvider(
+                this._vscodeWrapper,
+                this._connectionMgr,
+                this.isRichExperiencesEnabled,
+            );
 
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
@@ -1266,11 +1260,16 @@ export default class MainController implements vscode.Disposable {
 
                     const containerName = node.connectionProfile.containerName;
 
+                    node.loadingLabel =
+                        LocalizedConstants.ContainerDeployment.stoppingContainerLoadingLabel;
                     await this._objectExplorerProvider.setNodeLoading(node);
                     this._objectExplorerProvider.refresh(node);
 
                     await stopContainer(containerName).then(async (stoppedSuccessfully) => {
                         if (stoppedSuccessfully) {
+                            node.loadingLabel =
+                                LocalizedConstants.ContainerDeployment.startingContainerLoadingLabel;
+
                             await this._objectExplorerProvider
                                 .disconnectNode(node as ConnectionNode)
                                 .then(() => this._objectExplorerProvider.refresh(undefined));
@@ -1297,12 +1296,19 @@ export default class MainController implements vscode.Disposable {
                     if (!node) return;
 
                     const confirmation = await vscode.window.showInformationMessage(
-                        LocalizedConstants.Common.areYouSureYouWantTo("delete the container"),
+                        LocalizedConstants.ContainerDeployment.deleteContainerConfirmation(
+                            node.connectionProfile.containerName,
+                        ),
+                        { modal: true },
                         LocalizedConstants.Common.delete,
-                        LocalizedConstants.Common.cancel,
                     );
 
                     if (confirmation === LocalizedConstants.Common.delete) {
+                        node.loadingLabel =
+                            LocalizedConstants.ContainerDeployment.deletingContainerLoadingLabel;
+                        await this._objectExplorerProvider.setNodeLoading(node);
+                        this._objectExplorerProvider.refresh(node);
+
                         const containerName = node.connectionProfile.containerName;
                         const deletedSuccessfully = await deleteContainer(containerName);
                         vscode.window.showInformationMessage(
@@ -1314,9 +1320,14 @@ export default class MainController implements vscode.Disposable {
                                       containerName,
                                   ),
                         );
+                        node.loadingLabel =
+                            LocalizedConstants.ContainerDeployment.startingContainerLoadingLabel;
                         if (deletedSuccessfully) {
                             // Delete node from tree
-                            await this._objectExplorerProvider.removeNode(node as ConnectionNode);
+                            await this._objectExplorerProvider.removeNode(
+                                node as ConnectionNode,
+                                false,
+                            );
                             return this._objectExplorerProvider.refresh(undefined);
                         }
                     }
@@ -1574,14 +1585,13 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
-    public async onDeployContainer(): Promise<boolean> {
+    public onDeployContainer(): void {
         const reactPanel = new ContainerDeploymentWebviewController(
             this._context,
             this._vscodeWrapper,
             this,
         );
         reactPanel.revealToForeground();
-        return true;
     }
 
     /**

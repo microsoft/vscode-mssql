@@ -142,6 +142,10 @@
     <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
       <source xml:lang="en">Apply changes to target</source>
     </trans-unit>
+    <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
+      <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
+      <note>{0} is the container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
       <source xml:lang="en">Are you sure you want to delete the selected items?</source>
     </trans-unit>
@@ -380,6 +384,9 @@
     <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
       <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
     </trans-unit>
+    <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
+      <source xml:lang="en">Choose the Right Version</source>
+    </trans-unit>
     <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
       <source xml:lang="en">Circular reference detected: &apos;{0}&apos; → &apos;{1}&apos; creates a cycle</source>
       <note>{0} is source table
@@ -469,8 +476,14 @@
     <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
       <source xml:lang="en">Compare</source>
     </trans-unit>
+    <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
+      <source xml:lang="en">Compare SQL Server editions</source>
+    </trans-unit>
     <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
       <source xml:lang="en">Comparison Details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
+      <source xml:lang="en">Configure and customize SQL Server containers</source>
     </trans-unit>
     <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
       <source xml:lang="en">Confirm to clear recent connections list</source>
@@ -658,11 +671,11 @@
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
     </trans-unit>
+    <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
+      <source xml:lang="en">Deleting Container...</source>
+    </trans-unit>
     <trans-unit id="++CODE++7b5d652644014b86b5e56f51de1015a8f01f76d5504cf9d4c8fd52ab522c36c1">
       <source xml:lang="en">Deploy a local SQL Server Docker container</source>
-    </trans-unit>
-    <trans-unit id="++CODE++92493bf86393b753ed93d13de1c72fdaf3f836a2e2aa56a5669f4beab1c771e6">
-      <source xml:lang="en">Deploy, manage, and interact with SQL Server container — right from VS Code, no context switching.</source>
     </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
@@ -672,6 +685,9 @@
     </trans-unit>
     <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
       <source xml:lang="en">Details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2627a8bf71657dfb52145438b6b003c0511d15c0b1e07bd1d99bc440336a360f">
+      <source xml:lang="en">Develop and interact with your containerized SQL Server— without leaving VS Code.</source>
     </trans-unit>
     <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
       <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
@@ -715,9 +731,6 @@
     </trans-unit>
     <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
       <source xml:lang="en">Don&apos;t Show Again</source>
-    </trans-unit>
-    <trans-unit id="++CODE++798c2e782d87a2d33ed3fe408a5552acb99555826c41c849df4b47884fc7b0fa">
-      <source xml:lang="en">Easy Management</source>
     </trans-unit>
     <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
       <source xml:lang="en">Edit</source>
@@ -1158,8 +1171,14 @@
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a8a3297b399ffea1d6008e0cd1f801b6e7cddf90dfb037010bde1609ad6b46de">
+      <source xml:lang="en">Launch a SQL Server container in seconds—no manual steps required.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
+    </trans-unit>
+    <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
+      <source xml:lang="en">Learn more about SQL Server 2025 features</source>
     </trans-unit>
     <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
       <source xml:lang="en">Length</source>
@@ -1403,9 +1422,6 @@
     <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
       <source xml:lang="en">Not started</source>
     </trans-unit>
-    <trans-unit id="++CODE++a511c07d99001ca3acbeacc50c739b54fbe05dc14e28865471707812799fb55b">
-      <source xml:lang="en">Not sure which SQL Server version to choose? We’ll guide you through the options with best-practice recommendations.</source>
-    </trans-unit>
     <trans-unit id="++CODE++07b555a4dd9446c56aae7bbe326905f8aabc205d5eee96191a71e15510fbb53f">
       <source xml:lang="en">Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
     </trans-unit>
@@ -1436,8 +1452,8 @@
     <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
       <source xml:lang="en">On Update Action</source>
     </trans-unit>
-    <trans-unit id="++CODE++2eebb576204878bc87adabc35bd37edcfca1cb8eafb670980bffbb6807c58473">
-      <source xml:lang="en">One Click Server Container Creation</source>
+    <trans-unit id="++CODE++9aa44eecfd66422fe7a98fea431db40fc887dbfbece7fb398a370436a80ebf3f">
+      <source xml:lang="en">One-Click Container Setup</source>
     </trans-unit>
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>
@@ -1516,8 +1532,8 @@
       <source xml:lang="en">Path: {0}</source>
       <note>{0} is the path of the node in the object explorer</note>
     </trans-unit>
-    <trans-unit id="++CODE++5dba9e6a7a54ecd3d1083958b0ba6be88e8a49833ba5ccdf3868326830191d01">
-      <source xml:lang="en">Pick the Right Fit</source>
+    <trans-unit id="++CODE++0a59729d88d37ed0f6bddc3a9a92d14b94528c315fec4cd3c70cd2d4bcabe1ff">
+      <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.</source>
     </trans-unit>
     <trans-unit id="++CODE++955d464619712f47bd39bd4fa1eb8ca90d1415bd5da4d3dc80b13d8be23f281e">
       <source xml:lang="en">Please Accept the Docker EULA</source>
@@ -1701,6 +1717,9 @@
     <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
       <source xml:lang="en">Run Query History</source>
     </trans-unit>
+    <trans-unit id="++CODE++47172d6439e0db77078d01b2e3792e3a79c5f1be472be2539ba6a47e3d3e8ad6">
+      <source xml:lang="en">Run SQL Server in a container, effortlessly from VS Code</source>
+    </trans-unit>
     <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
       <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
     </trans-unit>
@@ -1709,9 +1728,6 @@
     </trans-unit>
     <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
       <source xml:lang="en">SQL Plan Files</source>
-    </trans-unit>
-    <trans-unit id="++CODE++4054bae5b7dcf82ab983fe7e7f9291647860c68abba221b1c94c463cb6cdfbb1">
-      <source xml:lang="en">SQL Server 2017 - latest</source>
     </trans-unit>
     <trans-unit id="++CODE++ef2f4386d6bb9dd3fad8828ff95a5fe91c882af93fbcd37e196d059c531f932b">
       <source xml:lang="en">SQL Server 2019 - latest</source>
@@ -1725,14 +1741,8 @@
     <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
       <source xml:lang="en">SQL Server Container SA Password</source>
     </trans-unit>
-    <trans-unit id="++CODE++476dfe9ac13fed765a59bad0f83af2bd3b453361a43ac2967b6b95f133963483">
-      <source xml:lang="en">SQL Server Editions and Feature Comparison</source>
-    </trans-unit>
     <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
       <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++1f723fb0c74b4451331b1338c99e478bbbcb13ba54460d441040ea28bcba5a43">
-      <source xml:lang="en">SQL Server on Docker Best Practices</source>
     </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>
@@ -1815,11 +1825,8 @@
     <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
       <source xml:lang="en">Script copied to clipboard</source>
     </trans-unit>
-    <trans-unit id="++CODE++acfd283dd59144cc65c1221af1536ed46068fc9f20b5d00162170ad3806b6462">
-      <source xml:lang="en">Seamless Connections</source>
-    </trans-unit>
-    <trans-unit id="++CODE++4fc367ee282c463f838850390171baf85754f665bb674c0c17e768f8f6282528">
-      <source xml:lang="en">Seamless SQL Server on Docker, Right in VS Code!</source>
+    <trans-unit id="++CODE++2468de9857dec991e09c843810eb03e9fa831ed3bc05ed59deae8674f4bcba7c">
+      <source xml:lang="en">Seamless Integration</source>
     </trans-unit>
     <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
       <source xml:lang="en">Search options...</source>
@@ -1946,6 +1953,9 @@
     <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
       <source xml:lang="en">Signing in to Azure...</source>
     </trans-unit>
+    <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
+      <source xml:lang="en">Simple Container Management</source>
+    </trans-unit>
     <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
       <source xml:lang="en">Sort Ascending</source>
     </trans-unit>
@@ -1967,17 +1977,14 @@
     <trans-unit id="++CODE++ed17e62be4222e6fa3890918aee4885848f3e87ee14bc9b5dbe65e603173f26b">
       <source xml:lang="en">Specifies whether the column may have a NULL value.</source>
     </trans-unit>
-    <trans-unit id="++CODE++0de8c9f816240aceecf4a22a06142b66c803b771b997d88a9a7388d8df967e30">
-      <source xml:lang="en">Spin up a SQL server container in seconds—no manual setup needed.</source>
-    </trans-unit>
     <trans-unit id="++CODE++69d9fc0bd940622a5b7b2031fb88730204429955812a17b4f54c21089dbdadcb">
       <source xml:lang="en">Start Docker Engine</source>
     </trans-unit>
     <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
       <source xml:lang="en">Start IP Address</source>
     </trans-unit>
-    <trans-unit id="++CODE++494f427ee6ee0df1d5df1045d6011c6acef0ac932b78ed237d530f08e3464cef">
-      <source xml:lang="en">Start, stop, or remove your SQL server container anytime.</source>
+    <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
+      <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
     </trans-unit>
     <trans-unit id="++CODE++26254424b6f10bfd397e77bc2c93c10fc436795145ee5f2a09b27d54518ec9d6">
       <source xml:lang="en">Started executing query at </source>
@@ -1988,6 +1995,9 @@
     </trans-unit>
     <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
       <source xml:lang="en">Started saving results to </source>
+    </trans-unit>
+    <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
+      <source xml:lang="en">Starting Container...</source>
     </trans-unit>
     <trans-unit id="++CODE++26e931032bc7932e0b673f8586025a7a3930db078f3aab5f9fb90d947673594c">
       <source xml:lang="en">Starting Docker</source>
@@ -2004,6 +2014,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
       <source xml:lang="en">Stop</source>
+    </trans-unit>
+    <trans-unit id="++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9">
+      <source xml:lang="en">Stopping Container...</source>
     </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
@@ -2552,7 +2565,7 @@
       <source xml:lang="en">Delete Container</source>
     </trans-unit>
     <trans-unit id="mssql.deployLocalDockerContainer">
-      <source xml:lang="en">Deploy and connect to a SQL Server Docker Container</source>
+      <source xml:lang="en">Deploy a SQL Server Docker Container</source>
     </trans-unit>
     <trans-unit id="mssql.designSchema">
       <source xml:lang="en">Design Schema (Preview)</source>
@@ -2701,6 +2714,9 @@
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Give Feedback</source>
     </trans-unit>
+    <trans-unit id="mssql.hasConnections">
+      <source xml:lang="en">Indicates whether the user has defined any connection profiles in &apos;User Settings&apos;.</source>
+    </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot (Preview)</source>
     </trans-unit>
@@ -2727,9 +2743,6 @@
     </trans-unit>
     <trans-unit id="mssql.query.textSize">
       <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
-    </trans-unit>
-    <trans-unit id="extension.newConnection">
-      <source xml:lang="en">New Connection</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerNewQuery">
       <source xml:lang="en">New Query</source>

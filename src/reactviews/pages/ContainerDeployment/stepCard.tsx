@@ -88,23 +88,17 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
                     {getStatusIcon()}
                     <span>{step.headerText}</span>
                 </div>
-                <Button
-                    icon={expanded ? <ChevronDown20Regular /> : <ChevronUp20Regular />}
-                    appearance="subtle"
-                    onClick={() => setExpanded(!expanded)}
-                />
+                {step.loadState !== ApiStatus.Loaded && (
+                    <Button
+                        icon={expanded ? <ChevronDown20Regular /> : <ChevronUp20Regular />}
+                        appearance="subtle"
+                        onClick={() => setExpanded(!expanded)}
+                    />
+                )}
             </div>
-            {expanded && (
+            {expanded && step.loadState !== ApiStatus.Loaded && (
                 <div style={{ marginLeft: "32px" }}>
                     {step.loadState === ApiStatus.Error ? step.errorMessage : step.bodyText}
-                    {/* If step.link is defined and API is not in error, render it */}
-                    {step.loadState !== ApiStatus.Error && step.link && (
-                        <div className={classes.topSpace}>
-                            <a href={step.link} target="_blank" rel="noopener noreferrer">
-                                {step.linkText}
-                            </a>
-                        </div>
-                    )}
 
                     {/* If step.errorLink is defined and API is in error, render it */}
                     {step.loadState === ApiStatus.Error && step.errorLink && (

@@ -734,26 +734,27 @@ export class LocConstants {
         return {
             loadingDeploymentPage: l10n.t("Loading deployment page..."),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container connection"),
-            getStartedPageHeader: l10n.t("Seamless SQL Server on Docker, Right in VS Code!"),
-            oneClickServerCreation: l10n.t("One Click Server Container Creation"),
-            oneClickServerCreationDescription: l10n.t(
-                "Spin up a SQL server container in seconds—no manual setup needed.",
+            getStartedPageHeader: l10n.t(
+                "Run SQL Server in a container, effortlessly from VS Code",
             ),
-            easyManagement: l10n.t("Easy Management"),
-            easyManagementDescription: l10n.t(
-                "Start, stop, or remove your SQL server container anytime.",
+            oneClickServerSetup: l10n.t("One-Click Container Setup"),
+            oneClickServerSetupDescription: l10n.t(
+                "Launch a SQL Server container in seconds—no manual steps required.",
             ),
-            pickTheRightFit: l10n.t("Pick the Right Fit"),
-            pickTheRightFitDescription: l10n.t(
-                "Not sure which SQL Server version to choose? We’ll guide you through the options with best-practice recommendations.",
+            simpleManagement: l10n.t("Simple Container Management"),
+            simpleManagementDescription: l10n.t(
+                "Start, stop, and remove containers directly from the extension.",
             ),
-            sqlServerOnDockerBestPractices: l10n.t("SQL Server on Docker Best Practices"),
-            sqlServerEditionsAndFeatureComparison: l10n.t(
-                "SQL Server Editions and Feature Comparison",
+            chooseTheRightVersion: l10n.t("Choose the Right Version"),
+            chooseTheRightVersionDescription: l10n.t(
+                "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.",
             ),
-            seamlessConnections: l10n.t("Seamless Connections"),
-            seamlessConnectionsDescription: l10n.t(
-                "Deploy, manage, and interact with SQL Server container — right from VS Code, no context switching.",
+            learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
+            sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
+            configureAndCustomizeSqlServer: l10n.t("Configure and customize SQL Server containers"),
+            seamlessIntegration: l10n.t("Seamless Integration"),
+            seamlessIntegrationDescription: l10n.t(
+                "Develop and interact with your containerized SQL Server— without leaving VS Code.",
             ),
             getStarted: l10n.t("Get Started"),
             gettingDockerReady: l10n.t("Getting Docker Ready..."),

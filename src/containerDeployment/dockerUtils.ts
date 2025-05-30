@@ -26,8 +26,20 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendActionEvent } from "../telemetry/telemetry";
 import * as path from "path";
 import { FormItemValidationState } from "../sharedInterfaces/form";
+import { getErrorMessage } from "../utils/utils";
+import { Logger } from "../models/logger";
 
+/**
+ * The maximum length of the error text to display in the UI.
+ * If the error text exceeds this length, it will be truncated.
+ */
 const MAX_ERROR_TEXT_LENGTH = 300;
+
+/**
+ * The maximum port number that can be used for Docker containers.
+ */
+const MAX_PORT_NUMBER = 65535;
+
 export const invalidContainerNameValidationResult: FormItemValidationState = {
     isValid: false,
     validationMessage: ContainerDeployment.pleaseChooseUniqueContainerName,
@@ -36,6 +48,8 @@ export const invalidPortNumberValidationResult: FormItemValidationState = {
     isValid: false,
     validationMessage: ContainerDeployment.pleaseChooseUnusedPort,
 };
+
+export const dockerLogger = Logger.create(vscode.window.createOutputChannel("Docker Deployment"));
 
 /**
  * Commands used to interact with Docker.
@@ -68,8 +82,8 @@ export const COMMANDS = {
         `docker ps --filter "name=${name}" --filter "status=running" --format "{{.Names}}"`,
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
     START_CONTAINER: (name: string) => `docker start ${name}`,
-    CHECK_LOGS: (name: string, platform: string) =>
-        `docker logs --tail 15 ${name} | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
+    CHECK_LOGS: (name: string, platform: string, timestamp: string) =>
+        `docker logs --since ${timestamp} ${name} | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
     CHECK_CONTAINER_READY: `Recovery is complete`,
     STOP_CONTAINER: (name: string) => `docker stop ${name}`,
     DELETE_CONTAINER: (name: string) => `docker stop ${name} && docker rm ${name}`,
@@ -86,8 +100,6 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.dockerInstallHeader,
             bodyText: ContainerDeployment.dockerInstallBody,
-            link: "https://docs.docker.com/engine/install/",
-            linkText: ContainerDeployment.installDocker,
             errorLink: "https://docs.docker.com/engine/install/",
             errorLinkText: ContainerDeployment.installDocker,
             stepAction: checkDockerInstallation,
@@ -154,6 +166,9 @@ export function setStepStatusesFromResult(
     return steps;
 }
 
+/**
+ * Truncates the error text if it exceeds the maximum length.
+ */
 export function truncateErrorTextIfNeeded(errorText: string): string {
     if (errorText.length > MAX_ERROR_TEXT_LENGTH) {
         return `${errorText.substring(0, MAX_ERROR_TEXT_LENGTH)}...`;
@@ -168,9 +183,13 @@ export const sqlVersions = [
     { displayName: ContainerDeployment.sqlServer2025Image, value: "2025" },
     { displayName: ContainerDeployment.sqlServer2022Image, value: "2022" },
     { displayName: ContainerDeployment.sqlServer2019Image, value: "2019" },
-    { displayName: ContainerDeployment.sqlServer2017Image, value: "2017" },
 ];
 
+/**
+ * Checks if the SQL Server password meets the complexity requirements.
+ * If the password is valid, it returns the validation message, which is an empty string.
+ * If the password is invalid, it returns an error message.
+ */
 export function validateSqlServerPassword(password: string): string {
     if (password.length < 8) {
         return ContainerDeployment.passwordLengthError;
@@ -194,7 +213,8 @@ export function validateSqlServerPassword(password: string): string {
 }
 
 /**
- * Checks if the provided connection name is valid and not a duplicate.
+ * Checks if the provided connection name is valid and not a duplicate connection name within
+ * mssql.connections
  */
 export function validateConnectionName(connectionName: string): boolean {
     const connections = vscode.workspace
@@ -206,7 +226,9 @@ export function validateConnectionName(connectionName: string): boolean {
 
 //#region Docker Command Implementations
 
-// Helper function to execute a command
+/**
+ * Helper function to execute a command in the shell and return the output.
+ */
 async function execCommand(command: string): Promise<string> {
     return new Promise((resolve, reject) => {
         exec(command, (error, stdout) => {
@@ -216,6 +238,9 @@ async function execCommand(command: string): Promise<string> {
     });
 }
 
+/**
+ * Checks if docker is installed
+ */
 export async function checkDockerInstallation(): Promise<DockerCommandParams> {
     try {
         await execCommand(COMMANDS.CHECK_DOCKER);
@@ -224,13 +249,16 @@ export async function checkDockerInstallation(): Promise<DockerCommandParams> {
         return {
             success: false,
             error: ContainerDeployment.dockerInstallError,
-            fullErrorText: e.message,
+            fullErrorText: getErrorMessage(e),
         };
     }
 }
 
 /**
- * Checks if the Docker engine is running and set up for running Linux containers.
+ * Checks if the Docker engine is running and ready to run containers.
+ * On Windows, checks if the Docker Engine is set to use Linux containers.
+ * On macOS, checks if Rosetta is installed for ARM64 architecture.
+ * On Linux, checks for permissions to run Docker commands.
  */
 export async function checkEngine(): Promise<DockerCommandParams> {
     let dockerCliPath = "";
@@ -258,13 +286,14 @@ export async function checkEngine(): Promise<DockerCommandParams> {
                     : platform() === Platform.Mac
                       ? ContainerDeployment.rosettaError
                       : ContainerDeployment.windowsContainersError,
-            fullErrorText: e.message,
+            fullErrorText: getErrorMessage(e),
         };
     }
 }
 
 /**
- * Checks that a container name is unique
+ * Checks that the provided container name is valid and unique.
+ * If the name is empty, it generates a unique name based on the default container name.
  */
 export async function validateContainerName(containerName: string): Promise<string> {
     try {
@@ -319,6 +348,9 @@ export async function getDockerPath(executable: string): Promise<string> {
     }
 }
 
+/**
+ * Starts a SQL Server Docker container with the specified parameters.
+ */
 export async function startSqlServerDockerContainer(
     containerName: string,
     password: string,
@@ -333,10 +365,9 @@ export async function startSqlServerDockerContainer(
         Number(version),
         hostname,
     );
-    console.log(command);
     try {
         await execCommand(command);
-        console.log(`SQL Server container ${containerName} started on port ${port}.`);
+        dockerLogger.append(`SQL Server container ${containerName} started on port ${port}.`);
         return {
             success: true,
             port,
@@ -344,13 +375,17 @@ export async function startSqlServerDockerContainer(
     } catch (e) {
         return {
             success: false,
-            error: e.message,
+            error: getErrorMessage(e),
             port: undefined,
-            fullErrorText: e.message,
+            fullErrorText: getErrorMessage(e),
         };
     }
 }
 
+/**
+ * Checks if a Docker container with the specified name is running.
+ * Returns true if the container is running, false otherwise.
+ */
 export async function isDockerContainerRunning(name: string): Promise<boolean> {
     try {
         const output = await execCommand(COMMANDS.CHECK_CONTAINER_RUNNING(name));
@@ -389,6 +424,7 @@ export async function startDocker(): Promise<DockerCommandParams> {
     }
 
     try {
+        dockerLogger.appendLine("Waiting for Docker to start...");
         await execCommand(startCommand);
 
         let attempts = 0;
@@ -400,6 +436,7 @@ export async function startDocker(): Promise<DockerCommandParams> {
                 try {
                     await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
                     clearInterval(checkDocker);
+                    dockerLogger.appendLine("Docker started successfully.");
                     resolve({ success: true });
                 } catch (e) {
                     if (++attempts >= maxAttempts) {
@@ -407,7 +444,7 @@ export async function startDocker(): Promise<DockerCommandParams> {
                         resolve({
                             success: false,
                             error: ContainerDeployment.dockerFailedToStartWithinTimeout,
-                            fullErrorText: e.message,
+                            fullErrorText: getErrorMessage(e),
                         });
                     }
                 }
@@ -417,18 +454,24 @@ export async function startDocker(): Promise<DockerCommandParams> {
         return {
             success: false,
             error: ContainerDeployment.dockerFailedToStartWithinTimeout,
-            fullErrorText: e.message,
+            fullErrorText: getErrorMessage(e),
         };
     }
 }
 
+/**
+ * Restarts a Docker container with the specified name.
+ * If the container is already running, it returns true without restarting.
+ */
 export async function restartContainer(containerName: string): Promise<boolean> {
     sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartContainer);
 
     await startDocker();
     const isContainerRunning = await isDockerContainerRunning(containerName);
     if (isContainerRunning) return true; // Container is already running
+    dockerLogger.appendLine(`Restarting container: ${containerName}`);
     await execCommand(COMMANDS.START_CONTAINER(containerName));
+    dockerLogger.appendLine(`Container ${containerName} restarted successfully.`);
     const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);
 
     if (!containerReadyResult.success) {
@@ -447,37 +490,25 @@ export async function checkIfContainerIsReadyForConnections(
     const timeoutMs = 60_000;
     const intervalMs = 1000;
     const start = Date.now();
+    const startTimestamp = new Date(start).toISOString();
 
-    // We check the logs for the timestamp of the "Recovery is complete" message,
-    // because when a container is stopped and started, the logs are not cleared.
-    // Checking the timestamp ensures that the container is ready after it has been restarted,
-    // rather than returning a false positive from the previous run.
-    const TIMESTAMP_REGEX = /(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)?)/;
+    dockerLogger.appendLine(`Checking if container ${containerName} is ready for connections...`);
 
     return new Promise((resolve) => {
         const interval = setInterval(async () => {
             try {
-                const logs = await execCommand(COMMANDS.CHECK_LOGS(containerName, platform()));
+                const logs = await execCommand(
+                    COMMANDS.CHECK_LOGS(containerName, platform(), startTimestamp),
+                );
                 const lines = logs.split("\n");
                 const readyLine = lines.find((line) =>
                     line.includes(COMMANDS.CHECK_CONTAINER_READY),
                 );
 
                 if (readyLine) {
-                    const match = readyLine.match(TIMESTAMP_REGEX);
-                    if (match) {
-                        const timestampStr = match[1];
-
-                        // Parse using Date constructor – replace space with 'T' to make it ISO-ish, adn add 'Z' for UTC
-                        const logTimestamp = new Date(timestampStr.replace(" ", "T") + "Z");
-
-                        const ageMs = new Date().getTime() - logTimestamp.getTime();
-
-                        if (ageMs >= 0 && ageMs <= timeoutMs) {
-                            clearInterval(interval);
-                            return resolve({ success: true });
-                        }
-                    }
+                    clearInterval(interval);
+                    dockerLogger.appendLine(`${containerName} is ready for connections!`);
+                    return resolve({ success: true });
                 }
             } catch {
                 // Ignore and retry
@@ -494,6 +525,9 @@ export async function checkIfContainerIsReadyForConnections(
     });
 }
 
+/**
+ * Deletes a Docker container with the specified name.
+ */
 export async function deleteContainer(containerName: string): Promise<boolean> {
     sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.DeleteContainer);
 
@@ -505,6 +539,9 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
     }
 }
 
+/**
+ * Stops a Docker container with the specified name.
+ */
 export async function stopContainer(containerName: string): Promise<boolean> {
     sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StopContainer);
 
@@ -516,6 +553,10 @@ export async function stopContainer(containerName: string): Promise<boolean> {
     }
 }
 
+/**
+ * Retrieves the list of running Docker containers and their ports.
+ * Returns a set of used ports from the specified container IDs.
+ */
 async function getUsedPortsFromContainers(containerIds: string[]): Promise<Set<number>> {
     const usedPorts = new Set<number>();
 
@@ -537,6 +578,10 @@ async function getUsedPortsFromContainers(containerIds: string[]): Promise<Set<n
     return usedPorts;
 }
 
+/**
+ * Finds a Docker container by checking if its exposed ports match the server name.
+ * It inspects each container to find a match with the server name.
+ */
 async function findContainerByPort(containerIds: string[], serverName: string): Promise<string> {
     for (const id of containerIds) {
         try {
@@ -552,23 +597,30 @@ async function findContainerByPort(containerIds: string[], serverName: string): 
         }
     }
 
-    return "";
+    return undefined;
 }
 
+/**
+ * Checks if a connection is a Docker container by inspecting the server name.
+ */
 export async function checkIfConnectionIsDockerContainer(serverName: string): Promise<string> {
     if (!serverName.includes(localhost) && !serverName.includes(localhostIP)) return "";
 
     try {
         const stdout = await execCommand(COMMANDS.GET_CONTAINERS);
         const containerIds = stdout.split("\n").filter(Boolean);
-        if (!containerIds.length) return "";
+        if (!containerIds.length) return undefined;
 
         return await findContainerByPort(containerIds, serverName);
     } catch {
-        return "";
+        return undefined;
     }
 }
 
+/**
+ * Finds an available port for a new Docker container, starting from the specified port.
+ * It checks the currently running containers and their exposed ports to find an unused port.
+ */
 export async function findAvailablePort(startPort: number): Promise<number> {
     try {
         const stdout = await execCommand(COMMANDS.GET_CONTAINERS);
@@ -577,9 +629,12 @@ export async function findAvailablePort(startPort: number): Promise<number> {
 
         const usedPorts = await getUsedPortsFromContainers(containerIds);
 
-        let port = startPort;
-        while (usedPorts.has(port)) port++;
-        return port;
+        for (let port = startPort; port <= MAX_PORT_NUMBER; port++) {
+            if (!usedPorts.has(port)) {
+                return port;
+            }
+        }
+        return -1; // No available port found
     } catch {
         return -1;
     }

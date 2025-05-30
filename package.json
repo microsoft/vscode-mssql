@@ -262,10 +262,6 @@
             ],
             "objectExplorer": [
                 {
-                    "id": "newConnection",
-                    "name": "%extension.newConnection%"
-                },
-                {
                     "id": "objectExplorer",
                     "name": "%extension.connections%"
                 },
@@ -460,6 +456,12 @@
                     "command": "mssql.objectExplorer.disableGroupBySchema",
                     "when": "view == objectExplorer && config.mssql.objectExplorer.groupBySchema",
                     "title": "%mssql.objectExplorer.disableGroupBySchema%",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.deployLocalDockerContainer",
+                    "when": "mssql.hasConnections && config.mssql.enableRichExperiences && view == objectExplorer",
+                    "title": "%mssql.deployLocalDockerContainer%",
                     "group": "navigation"
                 }
             ],
@@ -1063,7 +1065,11 @@
                 "command": "mssql.deployLocalDockerContainer",
                 "title": "%mssql.deployLocalDockerContainer%",
                 "when": "mssql.enableRichExperiences",
-                "category": "MS SQL"
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/newTable_dark.svg",
+                    "light": "media/newTable_light.svg"
+                }
             },
             {
                 "command": "mssql.stopContainer",
@@ -1433,6 +1439,12 @@
                             }
                         }
                     },
+                    "scope": "resource"
+                },
+                "mssql.hasConnections": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.hasConnections%",
                     "scope": "resource"
                 },
                 "mssql.shortcuts": {

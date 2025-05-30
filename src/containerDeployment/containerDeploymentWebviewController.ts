@@ -67,10 +67,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 },
             },
         );
-        void this.initialize();
+        this.initialize();
     }
 
-    private async initialize() {
+    private initialize() {
         this.state.loadState = ApiStatus.Loading;
         this.state.formState = this.getDefaultConnectionProfile();
         this.state.platform = platform();
@@ -387,7 +387,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: `<span>
                         ${Common.accept}
                         <a
-                            href="https://www.docker.com/legal/docker-subscription-service-agreement/"
+                            href="https://go.microsoft.com/fwlink/?LinkId=746388"
                             target="_blank"
                         >
                             ${ContainerDeployment.termsAndConditions}

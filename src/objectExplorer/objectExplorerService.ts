@@ -64,6 +64,7 @@ import {
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
+import { AddLocalContainerConnectionTreeNode } from "../containerDeployment/addLocalContainerConnectionTreeNode";
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -102,6 +103,7 @@ export class ObjectExplorerService {
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
+        private _isRichExperienceEnabled: boolean = true,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -349,11 +351,13 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Helper to show the Add Connection node; only displayed when there are no saved connections
+     * Helper to show the Add Connection nodes; only displayed when there are no saved connections
      */
-    private getAddConnectionNode(): AddConnectionTreeNode[] {
+    private getAddConnectionNodes(): vscode.TreeItem[] {
         this._rootTreeNodeArray = [];
-        return [new AddConnectionTreeNode()];
+        let nodeList = [new AddConnectionTreeNode()];
+        if (this._isRichExperienceEnabled) nodeList.push(new AddLocalContainerConnectionTreeNode());
+        return nodeList;
     }
 
     /**
@@ -392,12 +396,18 @@ export class ObjectExplorerService {
 
         // if there are no saved connections, show the add connection node
         if (savedConnections.length === 0) {
-            this._logger.verbose("No saved connections found. Showing add connection node.");
+            this._logger.verbose("No saved connections found. Showing add connection nodes.");
             getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
                 childrenCount: 0,
             });
-            return this.getAddConnectionNode();
+            return this.getAddConnectionNodes();
         }
+
+        void vscode.commands.executeCommand(
+            "setContext",
+            "mssql.hasConnections",
+            savedConnections.length > 0,
+        );
 
         let result: TreeNodeInfo[] = [];
         if (this._rootTreeNodeArray) {
@@ -447,7 +457,7 @@ export class ObjectExplorerService {
      */
     public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const loadingNode = new vscode.TreeItem(
-            LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
+            element.loadingLabel,
             vscode.TreeItemCollapsibleState.None,
         );
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");

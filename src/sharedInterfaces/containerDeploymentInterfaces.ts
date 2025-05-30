@@ -25,11 +25,11 @@ export class ContainerDeploymentWebviewState
     > = {};
     formErrors: string[] = [];
     platform: string = "";
-    // Used for container name validation within the form
+    /** Used for container name validation within the form */
     isValidContainerName: boolean = false;
-    // Used for port number validation within the form
+    /** Used for port number validation within the form */
     isValidPortNumber: boolean = false;
-    // Used to check whether docker container creation can proceed
+    /** Used to check whether docker container creation can proceed */
     isDockerProfileValid: boolean = false;
     constructor(params?: Partial<ContainerDeploymentWebviewState>) {
         for (const key in params) {
@@ -119,12 +119,14 @@ export interface ContainerDeploymentReducers {
     dispose: {};
 }
 
+/**
+ * Represents a step in the Docker deployment process.
+ * Each step includes metadata about its state, error handling, and the action to perform.
+ */
 export interface DockerStep {
     loadState: ApiStatus;
     errorMessage?: string;
     fullErrorText?: string;
-    link?: string;
-    linkText?: string;
     errorLink?: string;
     errorLinkText?: string;
     argNames: string[];
@@ -134,6 +136,11 @@ export interface DockerStep {
     stepAction: (...args: any[]) => Promise<DockerCommandParams>;
 }
 
+/**
+ * Parameters for Docker command execution.
+ * Contains the result of the command execution, including success status,
+ * optional error messages, port information, and full error text.
+ */
 export type DockerCommandParams = {
     success: boolean;
     error?: string;
@@ -141,6 +148,9 @@ export type DockerCommandParams = {
     fullErrorText?: string;
 };
 
+/**
+ * Enumeration representing the order of Docker steps in the deployment process.
+ */
 export enum DockerStepOrder {
     dockerInstallation = 0,
     startDockerDesktop = 1,

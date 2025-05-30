@@ -476,7 +476,6 @@ export let autoDisableNonTSqlLanguageServicePrompt = l10n.t(
     "Non-SQL Server SQL file detected. Disable IntelliSense for such files?",
 );
 export let msgAddConnection = l10n.t("Add Connection");
-export let msgAddLocalContainerConnection = l10n.t("Add Local Container Connection");
 export let msgConnect = l10n.t("Connect");
 export let azureSignIn = l10n.t("Azure: Sign In");
 export let azureSignInDescription = l10n.t("Sign in to your Azure subscription");
@@ -783,7 +782,6 @@ export class ContainerDeployment {
     public static sqlServer2025Image = l10n.t("SQL Server 2025 - latest");
     public static sqlServer2022Image = l10n.t("SQL Server 2022 - latest");
     public static sqlServer2019Image = l10n.t("SQL Server 2019 - latest");
-    public static sqlServer2017Image = l10n.t("SQL Server 2017 - latest");
     public static sqlServerPasswordTooltip = l10n.t("SQL Server Container SA Password");
     public static pleaseChooseUniqueProfileName = l10n.t(
         "Please choose a unique name for the profile",
@@ -868,6 +866,18 @@ export class ContainerDeployment {
     );
     public static installDocker = l10n.t("Install Docker");
     public static startDockerEngine = l10n.t("Start Docker Engine");
+    public static msgAddLocalContainerConnection = l10n.t("Add Local Container Connection");
+    public static startingContainerLoadingLabel = l10n.t("Starting Container...");
+    public static stoppingContainerLoadingLabel = l10n.t("Stopping Container...");
+    public static deletingContainerLoadingLabel = l10n.t("Deleting Container...");
+    public static deleteContainerConfirmation = (containerName: string) => {
+        return l10n.t({
+            message:
+                "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    };
 }
 
 export class UserSurvey {
