@@ -38,7 +38,8 @@ const useStyles = makeStyles({
     },
     button: {
         height: "28px",
-        width: "60px",
+        width: "fit-content",
+        textWrap: "nowrap",
         marginTop: "20px",
         marginBottom: "20px",
     },
