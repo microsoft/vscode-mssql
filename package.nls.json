@@ -92,7 +92,7 @@
     "mssql.connectionGroup.id": "The unique identifier for the connection group.",
     "mssql.connectionGroup.color": "The color of the connection group.",
     "mssql.connectionGroup.description": "The description of the connection group.",
-    "mssql.connectionGroup.parentId": "The unique identifier for the parent connection group.",
+    "mssql.connectionGroup.groupId": "The unique identifier for the parent connection group.",
     "mssql.enableSqlAuthenticationProvider": "Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.",
     "mssql.enableConnectionPooling": "Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'",
     "mssql.shortcuts": "Shortcuts related to the results window",

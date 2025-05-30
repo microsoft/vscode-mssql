@@ -24,6 +24,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
 import { Deferred } from "../protocol";
+import { ServerGroupManager } from "../connectionconfig/serverGroupManager";
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -48,7 +49,10 @@ export class ConnectionStore {
         }
 
         if (!this._connectionConfig) {
-            this._connectionConfig = new ConnectionConfig();
+            this._connectionConfig = new ConnectionConfig(
+                ServerGroupManager.getInstance(this.vscodeWrapper),
+                this.vscodeWrapper,
+            );
         }
     }
 
@@ -564,8 +568,9 @@ export class ConnectionStore {
 
         connResults = connResults.concat(configConnections);
 
+        // Include recent connections, if specified
         if (includeRecentConnections) {
-            const recentConnections = this.getRecentlyUsedConnections().map((c) => {
+            let recentConnections = this.getRecentlyUsedConnections().map((c) => {
                 const conn = c as IConnectionProfileWithSource;
                 conn.profileSource = CredentialsQuickPickItemType.Mru;
                 return conn;
@@ -574,11 +579,36 @@ export class ConnectionStore {
             connResults = connResults.concat(recentConnections);
         }
 
-        // TODO re-add deduplication logic from old method
+        // Deduplicate connections by ID
+        const uniqueConnections = new Map<string, IConnectionProfileWithSource>();
+        let dupeCount = 0;
 
-        this._logger.logDebug(
-            `readAllConnections(): ${connResults.length} connections${includeRecentConnections ? ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)` : "; excluded recent"}`,
-        );
+        for (const conn of connResults) {
+            if (!uniqueConnections.has(conn.id)) {
+                uniqueConnections.set(conn.id, conn);
+            } else {
+                dupeCount++;
+                this._logger.verbose(
+                    `Duplicate connection ID found: ${conn.id}. Ignoring duplicate connection.`,
+                );
+            }
+        }
+
+        connResults = Array.from(uniqueConnections.values());
+
+        let logMessage = `readAllConnections(): ${connResults.length} connections found`;
+
+        if (includeRecentConnections) {
+            logMessage += ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)`;
+        } else {
+            logMessage += "; excluded recent";
+        }
+
+        if (dupeCount > 0) {
+            logMessage += `; ${dupeCount} duplicate connections ignored`;
+        }
+
+        this._logger.logDebug(logMessage);
 
         return connResults;
     }

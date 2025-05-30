@@ -741,6 +741,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             UserSurvey.getInstance().promptUserForNPSFeedback();
         } catch (error) {
             this.state.connectionStatus = ApiStatus.Error;
+            this.state.formError = getErrorMessage(error);
 
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,
