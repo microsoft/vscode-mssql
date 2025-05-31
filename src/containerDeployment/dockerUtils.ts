@@ -487,7 +487,7 @@ export async function restartContainer(containerName: string): Promise<boolean> 
 export async function checkIfContainerIsReadyForConnections(
     containerName: string,
 ): Promise<DockerCommandParams> {
-    const timeoutMs = 60_000;
+    const timeoutMs = 300_000; // 5 minutes
     const intervalMs = 1000;
     const start = Date.now();
     const startTimestamp = new Date(start).toISOString();

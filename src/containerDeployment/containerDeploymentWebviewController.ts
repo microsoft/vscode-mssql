@@ -260,8 +260,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             emptyPasswordInput: false,
             azureAuthType: undefined,
             accountStore: undefined,
-            isValidProfile: () => true,
-            isAzureActiveDirectory: () => false,
         };
 
         sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.CreateSQLContainer, {
