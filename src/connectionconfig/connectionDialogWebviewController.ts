@@ -731,11 +731,31 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
 
             this.state.connectionStatus = ApiStatus.Loaded;
-            await this._mainController.objectExplorerTree.reveal(node, {
-                focus: true,
-                select: true,
-                expand: true,
-            });
+
+            try {
+                // Log the node for debugging
+                this.logger.verbose(
+                    `Attempting to reveal node: ${JSON.stringify({
+                        type: node?.constructor?.name,
+                        label: node?.label,
+                        path: node?.nodePath,
+                        sessionId: node?.sessionId,
+                    })}`,
+                );
+
+                await this._mainController.objectExplorerTree.reveal(node, {
+                    focus: true,
+                    select: true,
+                    expand: true,
+                });
+            } catch (revealError) {
+                this.logger.error(`Failed to reveal node in tree: ${getErrorMessage(revealError)}`);
+                // Continue even if reveal fails - the connection was successful
+                this.vscodeWrapper.showInformationMessage(
+                    `Connection successful, but couldn't highlight the connection in the Object Explorer.`,
+                );
+            }
+
             await this.panel.dispose();
             this.dispose();
             UserSurvey.getInstance().promptUserForNPSFeedback();

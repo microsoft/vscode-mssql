@@ -86,6 +86,16 @@ export class ServerGroupManager extends ConnectionConfigBase {
         );
     }
 
+    /**
+     * Retrieves a connection group by its ID.
+     * @param id The ID of the connection group to retrieve.
+     * @returns The connection group with the specified ID, or `undefined` if not found.
+     */
+    public getGroupById(id: string, global: boolean = true): IConnectionGroup | undefined {
+        const connGroups = this.getGroups(global);
+        return connGroups.find((g) => g.id === id);
+    }
+
     public getRootGroup(): IConnectionGroup | undefined {
         const groups: IConnectionGroup[] = this.getGroups();
         return groups.find((group) => group.name === this.RootGroupName);

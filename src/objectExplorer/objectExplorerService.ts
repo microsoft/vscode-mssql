@@ -27,13 +27,14 @@ import {
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import {
     AuthenticationTypes,
+    IConnectionGroup,
     IConnectionProfile,
     IConnectionProfileWithSource,
 } from "../models/interfaces";
 import * as LocalizedConstants from "../constants/locConstants";
 import { AddConnectionTreeNode } from "./nodes/addConnectionTreeNode";
 import { AccountSignInTreeNode } from "./nodes/accountSignInTreeNode";
-import { ConnectTreeNode } from "./nodes/connectTreeNode";
+import { ConnectTreeNode, TreeNodeType } from "./nodes/connectTreeNode";
 import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
@@ -464,7 +465,7 @@ export class ObjectExplorerService {
             if (connection.groupId && groupMap.has(connection.groupId)) {
                 const groupNode = groupMap.get(connection.groupId);
 
-                const connectionNode = new ConnectionNode(connection);
+                const connectionNode = new ConnectionNode(connection, groupNode);
                 this._treeNodeToChildrenMap.get(groupNode).push(connectionNode);
                 groupNode.addChild(connectionNode);
             } else {
@@ -1105,7 +1106,7 @@ export class ObjectExplorerService {
      */
     public addDisconnectedNode(connectionCredentials: IConnectionProfile): void {
         const connectionNode = new ConnectionNode(connectionCredentials);
-        this.addConnectionNodeAtRightPosition(connectionNode);
+        this.updateNode(connectionNode);
     }
 
     /**
@@ -1215,6 +1216,92 @@ export class ObjectExplorerService {
         return foundNode;
     }
 
+    public updateNode(node: TreeNodeInfo): void {
+        if (node instanceof ConnectTreeNode) {
+            node = getParentNode(node);
+        }
+        if (node instanceof ServerGroupNodeInfo) {
+            // If the node is a server group, update or add it to the root array
+            const existingGroupIndex = this._rootTreeNodeArray.findIndex(
+                (rootNode) => rootNode.id === node.id,
+            );
+
+            if (existingGroupIndex > -1) {
+                this._rootTreeNodeArray[existingGroupIndex] = node;
+            } else {
+                this._rootTreeNodeArray.push(node);
+            }
+        } else {
+            // If the node is a connection, find its parent server group
+
+            if (node.connectionProfile?.groupId === this._serverGroupManager.getRootGroup().id) {
+                // If the parent group is the root group, we can add the node directly to the root array
+                this._rootTreeNodeArray.push(node);
+            }
+
+            const parentGroup = this._rootTreeNodeArray.find(
+                (rootNode) => rootNode.id === node.connectionProfile?.groupId,
+            ) as ServerGroupNodeInfo;
+
+            if (parentGroup) {
+                if (parentGroup.id === this._serverGroupManager.getRootGroup().id) {
+                    // If the parent group is the root group, we can add the node directly to the root array
+                    this._rootTreeNodeArray.push(node);
+                } else {
+                    const existingNodeIndex = parentGroup.children.findIndex(
+                        (childNode) =>
+                            childNode.connectionProfile &&
+                            childNode.connectionProfile.id === node.connectionProfile?.id,
+                    );
+
+                    // Replace the old node with the new, updated node
+                    if (existingNodeIndex > -1) {
+                        parentGroup.children[existingNodeIndex] = node;
+                    } else {
+                        parentGroup.addChild(node);
+                    }
+                }
+            } else {
+                // TODO: does this apply to us?
+
+                // Special case handling: if there are no server groups loaded
+                // into the root node, it may be because they were hidden if
+                // there were no connections at start up (so that a default "Add
+                // Connection" node could be shown). Add the existing server
+                // node to the tree first, and then try updating the connection
+                // node again.
+                const group = this._serverGroupManager.getGroupById(node.connectionProfile.groupId);
+                if (group) {
+                    this.addServerGroupNode(group);
+                    this.updateNode(node);
+                } else {
+                    this._logger.error(
+                        `Unable to find server group ${node.connectionProfile.groupId} for node with ID: ${node.connectionProfile.id}`,
+                    );
+                }
+            }
+        }
+    }
+
+    public addServerGroupNode(group: IConnectionGroup): void {
+        const nodePath = group.id;
+        const groupNode = new ServerGroupNodeInfo(
+            group.id,
+            group.name,
+            serverGroupNode.serverGroupContextValue(),
+            vscode.TreeItemCollapsibleState.Expanded,
+            nodePath,
+            undefined,
+            serverGroupNode.serverGroupNodeType,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+        );
+        this.updateNode(groupNode);
+    }
+
     /**
      * @deprecated Use rootNodeConnections instead
      */
@@ -1248,4 +1335,13 @@ export class ObjectExplorerService {
         collectConnectionNodes(this._rootTreeNodeArray);
         return connections;
     }
+}
+
+export function getParentNode(node: TreeNodeType): TreeNodeInfo {
+    node = node.parentNode;
+    if (!(node instanceof TreeNodeInfo)) {
+        vscode.window.showErrorMessage(LocalizedConstants.nodeErrorMessage);
+        throw new Error(`Parent node was not TreeNodeInfo.`);
+    }
+    return node;
 }
