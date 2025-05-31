@@ -11,6 +11,7 @@ import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
 import { generateGuid } from "../../models/utils";
+import { ContainerDeployment } from "../../constants/locConstants";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -26,6 +27,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _filterableProperties: vscodeMssql.NodeFilterProperty[];
     private _filters: vscodeMssql.NodeFilter[];
     private _originalLabel: string;
+    private _loadingLabel: string;
 
     /**
      * Use this flag to force a refresh of the node in the next expansion.
@@ -65,6 +67,13 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
             this.iconPath = ObjectExplorerUtils.iconPath(`${this._nodeType}_${this._nodeSubType}`);
         } else {
             this.iconPath = ObjectExplorerUtils.iconPath(this.nodeType);
+        }
+        if (connectionProfile && connectionProfile.containerName) {
+            this._nodeSubType = nodeType.includes(Constants.disconnected)
+                ? Constants.disconnectedDockerContainer
+                : Constants.dockerContainer;
+            this.context = { ...context, subType: this._nodeSubType };
+            this.loadingLabel = ContainerDeployment.startingContainerLoadingLabel;
         }
         this.id = this.generateId();
     }
@@ -141,6 +150,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
     public get parentNode(): TreeNodeInfo {
         return this._parentNode;
+    }
+
+    public get loadingLabel(): string {
+        return this._loadingLabel;
     }
 
     /**
@@ -226,6 +239,9 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this.contextValue = this._convertToContextValue(value);
     }
 
+    public set loadingLabel(value: string) {
+        this._loadingLabel = value;
+    }
     public updateConnectionProfile(value: IConnectionProfile): void {
         this._connectionProfile = value;
     }

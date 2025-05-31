@@ -268,6 +268,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             isAzureActiveDirectory: function (): boolean {
                 throw new Error("Function not implemented.");
             },
+            containerName: undefined,
         };
 
         treeNode = new TreeNodeInfo(

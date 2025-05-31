@@ -31,6 +31,7 @@ export class LocConstants {
                 }),
             close: l10n.t("Close"),
             apply: l10n.t("Apply"),
+            next: l10n.t("Next"),
             clearSelection: l10n.t("Clear Selection"),
             find: l10n.t("Find"),
             findNext: l10n.t("Find Next"),
@@ -47,6 +48,7 @@ export class LocConstants {
                 }),
             closeFind: l10n.t("Close Find"),
             load: l10n.t("Load"),
+            finish: l10n.t("Finish"),
         };
     }
 
@@ -251,6 +253,7 @@ export class LocConstants {
 
     public get executionPlan() {
         return {
+            loadingExecutionPlan: l10n.t("Loading execution plan..."),
             queryCostRelativeToScript: (index: number, costPercentage: string) =>
                 l10n.t({
                     message: "Query {0}:  Query cost (relative to the script):  {1}%",
@@ -724,6 +727,44 @@ export class LocConstants {
             includeExcludeAllOperationInProgress: l10n.t(
                 "Processing include or exclude all differences operation.",
             ),
+        };
+    }
+
+    public get containerDeployment() {
+        return {
+            loadingDeploymentPage: l10n.t("Loading deployment page..."),
+            sqlServerContainerHeader: l10n.t("Local SQL Server database container connection"),
+            getStartedPageHeader: l10n.t(
+                "Run SQL Server in a container, effortlessly from VS Code",
+            ),
+            oneClickServerSetup: l10n.t("One-Click Container Setup"),
+            oneClickServerSetupDescription: l10n.t(
+                "Launch a SQL Server container in seconds—no manual steps required.",
+            ),
+            simpleManagement: l10n.t("Simple Container Management"),
+            simpleManagementDescription: l10n.t(
+                "Start, stop, and remove containers directly from the extension.",
+            ),
+            chooseTheRightVersion: l10n.t("Choose the Right Version"),
+            chooseTheRightVersionDescription: l10n.t(
+                "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.",
+            ),
+            learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
+            sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
+            configureAndCustomizeSqlServer: l10n.t("Configure and customize SQL Server containers"),
+            seamlessIntegration: l10n.t("Seamless Integration"),
+            seamlessIntegrationDescription: l10n.t(
+                "Develop and interact with your containerized SQL Server— without leaving VS Code.",
+            ),
+            getStarted: l10n.t("Get Started"),
+            gettingDockerReady: l10n.t("Getting Docker Ready..."),
+            checkingPrerequisites: l10n.t("Checking pre-requisites"),
+            advancedOptions: l10n.t("Advanced Options"),
+            createContainer: l10n.t("Create Container"),
+            settingUp: l10n.t("Setting up"),
+            gettingContainerReadyForConnection: l10n.t("Getting container ready for connections"),
+            hideFullErrorMessage: l10n.t("Hide full error message"),
+            showFullErrorMessage: l10n.t("Show full error message"),
         };
     }
 }

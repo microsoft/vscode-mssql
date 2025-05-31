@@ -3215,21 +3215,24 @@ suite("OE Service Tests", () => {
             return profiles;
         }
 
-        test("getRootNodes should return AddConnectionNode when no saved connections exist", async () => {
+        test("getRootNodes should return AddConnectionNodes when no saved connections exist", async () => {
             // Setup connection store to return empty array
             mockConnectionStore.readAllConnections.resolves([]);
 
-            // Setup getAddConnectionNode to return a mock node
-            const mockAddConnectionNode = [{ label: "Add Connection" }];
-            (objectExplorerService as any).getAddConnectionNode = sandbox.stub();
-            (objectExplorerService as any).getAddConnectionNode.returns(mockAddConnectionNode);
+            // Setup getAddConnectionNodes to return a mock nodes
+            const mockAddConnectionNodes = [
+                { label: "Add Connection" },
+                { label: "Add Local Container Connection" },
+            ];
+            (objectExplorerService as any).getAddConnectionNodes = sandbox.stub();
+            (objectExplorerService as any).getAddConnectionNodes.returns(mockAddConnectionNodes);
 
             // Call the method
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify the result
-            expect(result, "Result should match mock add connection node").to.equal(
-                mockAddConnectionNode,
+            expect(result, "Result should match mock add connection nodes").to.equal(
+                mockAddConnectionNodes,
             );
 
             // Verify connection store was called
@@ -3238,8 +3241,8 @@ suite("OE Service Tests", () => {
                 "Connection store should be called once",
             ).to.be.true;
 
-            // Verify getAddConnectionNode was called
-            expect((objectExplorerService as any).getAddConnectionNode.calledOnce).to.be.true;
+            // Verify getAddConnectionNodes was called
+            expect((objectExplorerService as any).getAddConnectionNodes.calledOnce).to.be.true;
 
             // Verify telemetry was tracked
             expect(startActivityStub.calledOnce, "Telemetry start should be called once").to.be
@@ -3268,7 +3271,7 @@ suite("OE Service Tests", () => {
             // Verify logging
             expect(
                 mockLogger.verbose.calledWith(
-                    "No saved connections found. Showing add connection node.",
+                    "No saved connections found. Showing add connection nodes.",
                 ),
             ).to.be.true;
         });
@@ -3434,15 +3437,20 @@ suite("OE Service Tests", () => {
             const cachedNodes = createMockTreeNodes(2);
             (objectExplorerService as any)._rootTreeNodeArray = cachedNodes;
 
-            // Setup getAddConnectionNode to return a mock node
-            const mockAddConnectionNode = [{ label: "Add Connection" }];
-            (objectExplorerService as any).getAddConnectionNode = sandbox.stub();
-            (objectExplorerService as any).getAddConnectionNode.returns(mockAddConnectionNode);
+            // Setup getAddConnectionNodes to return a mock node
+            const mockAddConnectionNodes = [
+                { label: "Add Connection" },
+                { label: "Add Local Container Connection" },
+            ];
+            (objectExplorerService as any).getAddConnectionNodes = sandbox.stub();
+            (objectExplorerService as any).getAddConnectionNodes.returns(mockAddConnectionNodes);
             // Call the method
             const result = await (objectExplorerService as any).getRootNodes();
 
             // Verify the result - should be the add connection node, not the cached nodes
-            expect(result, "Result should be add connection node").to.equal(mockAddConnectionNode);
+            expect(result, "Result should be add connection nodes").to.equal(
+                mockAddConnectionNodes,
+            );
 
             // Verify connection store was called
             expect(
@@ -3450,16 +3458,16 @@ suite("OE Service Tests", () => {
                 "Connection store should be called once",
             ).to.be.true;
 
-            // Verify getAddConnectionNode was called
+            // Verify getAddConnectionNodes was called
             expect(
-                (objectExplorerService as any).getAddConnectionNode.calledOnce,
-                "getAddConnectionNode should be called once",
+                (objectExplorerService as any).getAddConnectionNodes.calledOnce,
+                "getAddConnectionNodes should be called once",
             ).to.be.true;
 
             // Verify logging
             expect(
                 mockLogger.verbose.calledWith(
-                    "No saved connections found. Showing add connection node.",
+                    "No saved connections found. Showing add connection nodes.",
                 ),
                 "Logging should indicate no saved connections",
             ).to.be.true;
