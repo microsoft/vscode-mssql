@@ -8,7 +8,6 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { EncryptOptions } from "../models/interfaces";
 import * as Interfaces from "./interfaces";
-import * as vscode from "vscode";
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -138,23 +137,19 @@ export function getPicklistDetails(connCreds: IConnectionInfo): string {
  * @param conn connection
  * @returns display string that can be used in status view or other locations
  */
-export function getConnectionDisplayString(creds: IConnectionInfo, trim: boolean = false): string {
+export function getConnectionDisplayString(creds: IConnectionInfo, trimLength?: number): string {
     const server = generateServerDisplayName(creds);
     const database = generateDatabaseDisplayName(creds);
     const user = getUserNameOrDomainLogin(creds);
 
     let result = user ? `${server} : ${database} : ${user}` : `${server} : ${database}`;
 
-    let statusBarConnectionInfoMaxLength: number = vscode.workspace
-        .getConfiguration(Constants.extensionConfigSectionName)
-        .get(Constants.configStatusBarConnectionInfoMaxLength);
-
-    if (
-        trim &&
-        statusBarConnectionInfoMaxLength >= 0 &&
-        result.length > statusBarConnectionInfoMaxLength
-    ) {
-        result = result.slice(0, statusBarConnectionInfoMaxLength) + " \u2026"; // add ellipsis
+    if (trimLength) {
+        if (trimLength === 0) {
+            result = "";
+        } else if (trimLength > 0 && result.length > trimLength) {
+            result = result.slice(0, trimLength) + " \u2026"; // add ellipsis
+        }
     }
 
     return result;
