@@ -1813,7 +1813,7 @@
                 },
                 "mssql.statusBar.connectionInfoMaxLength": {
                     "type": "number",
-                    "default": 100,
+                    "default": -1,
                     "description": "%mssql.statusBar.connectionInfoMaxLength.description%"
                 }
             }
