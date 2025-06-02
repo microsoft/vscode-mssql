@@ -124,7 +124,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 return await vscode.window.withProgress(
                     {
                         location: vscode.ProgressLocation.Notification,
-                        title: "Generating report. This might take a while...",
+                        title: LocConstants.SchemaDesigner.GeneratingReport,
                         cancellable: false,
                     },
                     async () => {
@@ -180,7 +180,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             vscode.window.withProgress(
                 {
                     location: vscode.ProgressLocation.Notification,
-                    title: "Opening publish script. This might take a while...",
+                    title: LocConstants.SchemaDesigner.OpeningPublishScript,
                     cancellable: false,
                 },
                 async () => {
