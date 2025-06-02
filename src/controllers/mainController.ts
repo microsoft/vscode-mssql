@@ -68,6 +68,9 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../chat/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { ConnectionGroupNodeInfo } from "../objectExplorer/nodes/connectionGroupNode";
+import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
+import { ConnectionGroupManager } from "../connectionconfig/serverGroupManager";
 
 /**
  * The main controller class that initializes the extension
@@ -989,6 +992,44 @@ export default class MainController implements vscode.Disposable {
                     await this._objectExplorerProvider.disconnectNode(node);
                 },
             ),
+        );
+
+        this.registerCommand(Constants.cmdConnectionGroupAdd);
+        this._event.on(Constants.cmdConnectionGroupAdd, () => {
+            const connGroupDialog = new ConnectionGroupWebviewController(
+                this._context,
+                this._vscodeWrapper,
+                ConnectionGroupManager.getInstance(),
+            );
+            connGroupDialog.revealToForeground();
+        });
+
+        this.registerCommand(Constants.cmdConnectionGroupEdit);
+        this._event.on(Constants.cmdConnectionGroupEdit, () => {
+            const connGroupDialog = new ConnectionGroupWebviewController(
+                this._context,
+                this._vscodeWrapper,
+                ConnectionGroupManager.getInstance(),
+            );
+            connGroupDialog.revealToForeground();
+        });
+
+        this.registerCommand(Constants.cmdConnectionGroupDelete);
+        this._event.on(
+            Constants.cmdConnectionGroupDelete,
+            async (node: ConnectionGroupNodeInfo) => {
+                const result = await this._vscodeWrapper.showInformationMessage(
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmation(
+                        typeof node.label === "string" ? node.label : node.label.label,
+                    ),
+                    LocalizedConstants.Common.delete,
+                    LocalizedConstants.Common.cancel,
+                );
+                if (result === LocalizedConstants.Common.delete) {
+                    // TODO: Implement delete connection group logic here
+                    console.log("Delete connection group placeholder");
+                }
+            },
         );
 
         if (this.isRichExperiencesEnabled) {

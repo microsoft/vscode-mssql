@@ -9,23 +9,23 @@ import { ConnectionConfigBase } from "./connectionConfigBase";
 import * as Constants from "../constants/constants";
 import * as Utils from "../models/utils";
 
-export class ServerGroupManager extends ConnectionConfigBase {
+export class ConnectionGroupManager extends ConnectionConfigBase {
     /** The name of the root connection group. */
     public readonly RootGroupName: string = "ROOT";
 
-    private static _instance: ServerGroupManager;
+    private static _instance: ConnectionGroupManager;
 
     public constructor(_vscodeWrapper?: VscodeWrapper) {
-        super("ServerGroupManager", _vscodeWrapper);
+        super("ConnectionGroupManager", _vscodeWrapper);
 
         void this.assignMissingIds();
     }
 
-    public static getInstance(vscodeWrapper?: VscodeWrapper): ServerGroupManager {
-        if (!ServerGroupManager._instance) {
-            ServerGroupManager._instance = new ServerGroupManager(vscodeWrapper);
+    public static getInstance(vscodeWrapper?: VscodeWrapper): ConnectionGroupManager {
+        if (!ConnectionGroupManager._instance) {
+            ConnectionGroupManager._instance = new ConnectionGroupManager(vscodeWrapper);
         }
-        return ServerGroupManager._instance;
+        return ConnectionGroupManager._instance;
     }
 
     protected async assignMissingIds(): Promise<void> {
@@ -99,6 +99,14 @@ export class ServerGroupManager extends ConnectionConfigBase {
     public getRootGroup(): IConnectionGroup | undefined {
         const groups: IConnectionGroup[] = this.getGroups();
         return groups.find((group) => group.name === this.RootGroupName);
+    }
+
+    public addConnectionGroup(newGroup: IConnectionGroup): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
+    public updateConnectionGroup(updatedGroup: IConnectionGroup): Promise<void> {
+        throw new Error("Method not implemented.");
     }
 
     private async writeConnectionGroupsToSettings(connGroups: IConnectionGroup[]): Promise<void> {

@@ -61,9 +61,9 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
-import { ServerGroupManager } from "../connectionconfig/serverGroupManager";
-import * as serverGroupNode from "./nodes/serverGroupNode";
-import { ServerGroupNodeInfo } from "./nodes/serverGroupNode";
+import { ConnectionGroupManager } from "../connectionconfig/serverGroupManager";
+import * as connectionGroupNode from "./nodes/connectionGroupNode";
+import { ConnectionGroupNodeInfo } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 
 export interface CreateSessionResult {
@@ -82,7 +82,27 @@ export class ObjectExplorerService {
      * we expand a node. The key is the node and the value is the array of children.
      */
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
-    private _rootTreeNodeArray: Array<TreeNodeInfo>;
+
+    private _connectionNodes: Map<string, ConnectionNode>;
+    private _serverGroupNodes: Map<string, ConnectionGroupNodeInfo>;
+    private get _rootTreeNodeArray(): Array<TreeNodeInfo> {
+        const result = [];
+
+        const root = this._serverGroupManager.getRootGroup();
+
+        if (!this._serverGroupNodes.has(root.id)) {
+            this._logger.error(
+                "Root server group is not defined. Cannot get root nodes for Object Explorer.",
+            );
+            return [];
+        }
+
+        for (const child of this._serverGroupNodes.get(root.id)?.children || []) {
+            result.push(child);
+        }
+
+        return result;
+    }
 
     /**
      * Map of pending session creations
@@ -103,7 +123,7 @@ export class ObjectExplorerService {
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
-        private _serverGroupManager: ServerGroupManager = ServerGroupManager.getInstance(),
+        private _serverGroupManager: ConnectionGroupManager = ConnectionGroupManager.getInstance(),
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -354,7 +374,7 @@ export class ObjectExplorerService {
      * Helper to show the Add Connection node; only displayed when there are no saved connections
      */
     private getAddConnectionNode(): AddConnectionTreeNode[] {
-        this._rootTreeNodeArray = [];
+        //this._rootTreeNodeArray = [];
         return [new AddConnectionTreeNode()];
     }
 
@@ -374,7 +394,7 @@ export class ObjectExplorerService {
             return this.getRootNodes();
         }
 
-        if (element instanceof ServerGroupNodeInfo) {
+        if (element instanceof ConnectionGroupNodeInfo) {
             return element.children;
         }
 
@@ -395,7 +415,6 @@ export class ObjectExplorerService {
             },
         );
 
-        const result: TreeNodeInfo[] = [];
         const rootNode = this._serverGroupManager.getRootGroup();
         const serverGroups = this._serverGroupManager.getGroups();
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
@@ -411,31 +430,28 @@ export class ObjectExplorerService {
             return this.getAddConnectionNode();
         }
 
-        const groupMap = new Map<string, ServerGroupNodeInfo>();
+        this._serverGroupNodes = new Map<string, ConnectionGroupNodeInfo>();
+        this._connectionNodes = new Map<string, ConnectionNode>();
 
         // Add all group nodes from settings first
         for (const group of serverGroups) {
             const nodePath = group.id;
-            const groupNode = new ServerGroupNodeInfo(
+            const groupNode = new ConnectionGroupNodeInfo(
                 group.id,
                 group.name,
-                serverGroupNode.serverGroupContextValue(),
+                connectionGroupNode.connectionGroupContextValue(),
                 vscode.TreeItemCollapsibleState.Expanded,
                 nodePath,
                 undefined,
-                serverGroupNode.serverGroupNodeType,
+                connectionGroupNode.connectionGroupNodeType,
                 undefined,
                 undefined,
                 undefined,
                 undefined,
                 undefined,
             );
-            groupMap.set(group.id, groupNode);
-        }
 
-        // Initialize children arrays for all groups in the _treeNodeToChildrenMap
-        for (const groupNode of groupMap.values()) {
-            this._treeNodeToChildrenMap.set(groupNode, []);
+            this._serverGroupNodes.set(group.id, groupNode);
         }
 
         // Populate group hierarchy - add each group as a child to its parent
@@ -445,14 +461,20 @@ export class ObjectExplorerService {
                 continue;
             }
 
-            if (group.parentId && groupMap.has(group.parentId)) {
-                const parentNode = groupMap.get(group.parentId);
-                const childNode = groupMap.get(group.id);
+            if (group.parentId && this._serverGroupNodes.has(group.parentId)) {
+                const parentNode = this._serverGroupNodes.get(group.parentId);
+                const childNode = this._serverGroupNodes.get(group.id);
 
                 if (parentNode && childNode) {
-                    const children = this._treeNodeToChildrenMap.get(parentNode) || [];
-                    children.push(childNode);
-                    this._treeNodeToChildrenMap.set(parentNode, children);
+                    parentNode.addChild(childNode);
+
+                    if (parentNode.id !== rootNode.id) {
+                        childNode.parentNode = parentNode;
+                    }
+                } else {
+                    this._logger.error(
+                        `Child group ${group.name} with ID ${group.id} does not have a valid parent group (${group.parentId}).`,
+                    );
                 }
             } else {
                 this._logger.error(
@@ -461,12 +483,16 @@ export class ObjectExplorerService {
             }
         }
 
+        // Add connections as children of their respective groups
         for (const connection of savedConnections) {
-            if (connection.groupId && groupMap.has(connection.groupId)) {
-                const groupNode = groupMap.get(connection.groupId);
+            if (connection.groupId && this._serverGroupNodes.has(connection.groupId)) {
+                const groupNode = this._serverGroupNodes.get(connection.groupId);
 
-                const connectionNode = new ConnectionNode(connection, groupNode);
-                this._treeNodeToChildrenMap.get(groupNode).push(connectionNode);
+                const connectionNode = new ConnectionNode(
+                    connection,
+                    groupNode.id === rootNode.id ? undefined : groupNode,
+                );
+                this._connectionNodes.set(connection.id, connectionNode);
                 groupNode.addChild(connectionNode);
             } else {
                 this._logger.error(
@@ -475,24 +501,8 @@ export class ObjectExplorerService {
             }
         }
 
-        const oeRootNodes =
-            (this._treeNodeToChildrenMap.get(groupMap.get(rootNode.id)) as TreeNodeInfo[]) || [];
+        const result = [...this._rootTreeNodeArray];
 
-        result.push(...oeRootNodes);
-
-        this._rootTreeNodeArray = result;
-        // this._treeNodeToChildrenMap
-
-        // let result: TreeNodeInfo[] = [];
-        // if (this._rootTreeNodeArray) {
-        //     this._logger.verbose("Using cached root tree node array.");
-        //     result = this.sortByServerName(this._rootTreeNodeArray);
-        // } else {
-        //     this._logger.verbose("Reading saved connections from connection store.");
-        //     this._rootTreeNodeArray = await this.getSavedConnectionNodes();
-        //     this._logger.verbose(`Found ${this._rootTreeNodeArray.length} saved connections.`);
-        //     result = this.sortByServerName(this._rootTreeNodeArray);
-        // }
         getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
             nodeCount: result.length,
         });
@@ -513,7 +523,7 @@ export class ObjectExplorerService {
             }
         }
 
-        if (element instanceof ServerGroupNodeInfo) {
+        if (element instanceof ConnectionGroupNodeInfo) {
             // TODO: get children for server group nodes and cache them
             this._logger.error(
                 `getNodeChildren() for ${element.nodePath}: TODO: get children for server group nodes and cache them`,
@@ -818,7 +828,8 @@ export class ObjectExplorerService {
         if (!connectionNode) {
             isNewConnection = true;
             connectionNode = new ConnectionNode(connectionProfile);
-            this._rootTreeNodeArray.push(connectionNode);
+            this._connectionNodes.set(connectionProfile.id, connectionNode);
+            // this._rootTreeNodeArray.push(connectionNode);
         } else {
             connectionNode.updateConnectionProfile(connectionProfile);
         }
@@ -826,7 +837,7 @@ export class ObjectExplorerService {
         connectionNode.updateToConnectedState({
             nodeInfo: successResponse.rootNode,
             sessionId: successResponse.sessionId,
-            parentNode: undefined,
+            parentNode: connectionNode.parentNode,
             connectionProfile: connectionProfile,
         });
 
@@ -1053,10 +1064,20 @@ export class ObjectExplorerService {
         }
 
         await this.disconnectNode(node);
-        const index = this._rootTreeNodeArray.indexOf(node, 0);
-        if (index > -1) {
-            this._rootTreeNodeArray.splice(index, 1);
+
+        // const index = this._rootTreeNodeArray.indexOf(node, 0);
+        // if (index > -1) {
+        //     this._rootTreeNodeArray.splice(index, 1);
+        // }
+
+        if (this._connectionNodes.has(node.connectionProfile.id)) {
+            this._connectionNodes.delete(node.connectionProfile.id);
+        } else {
+            this._logger.error(
+                `Connection node with ID ${node.connectionProfile.id} not found in connection nodes map.`,
+            );
         }
+
         this._refreshCallback(undefined); // Refresh tree root.
         await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
     }
@@ -1116,21 +1137,27 @@ export class ObjectExplorerService {
      */
     private addConnectionNodeAtRightPosition(connectionNode: ConnectionNode): void {
         // Remove any existing node with the same connection profile
-        const existingNodeIndex = this._rootTreeNodeArray.findIndex((node) =>
-            Utils.isSameConnectionInfo(node.connectionProfile, connectionNode.connectionProfile),
-        );
-        if (existingNodeIndex !== -1) {
-            this._rootTreeNodeArray.splice(existingNodeIndex, 1);
-        }
+        // const existingNodeIndex = this._rootTreeNodeArray.findIndex((node) =>
+        //     Utils.isSameConnectionInfo(node.connectionProfile, connectionNode.connectionProfile),
+        // );
+        // if (existingNodeIndex !== -1) {
+        //     this._rootTreeNodeArray.splice(existingNodeIndex, 1);
+        // }
 
-        const index = this._rootTreeNodeArray.findIndex(
-            (node) => (node.label as string).localeCompare(connectionNode.label as string) > 0,
+        // const index = this._rootTreeNodeArray.findIndex(
+        //     (node) => (node.label as string).localeCompare(connectionNode.label as string) > 0,
+        // );
+        // if (index === -1) {
+        //     this._rootTreeNodeArray.push(connectionNode);
+        // } else {
+        //     this._rootTreeNodeArray.splice(index, 0, connectionNode);
+        // }
+
+        this._logger.verbose(
+            `${this._connectionNodes.has(connectionNode.connectionProfile.id) ? "Updating" : "Adding"} connection node: ${connectionNode.label}`,
         );
-        if (index === -1) {
-            this._rootTreeNodeArray.push(connectionNode);
-        } else {
-            this._rootTreeNodeArray.splice(index, 0, connectionNode);
-        }
+
+        this._connectionNodes.set(connectionNode.connectionProfile.id, connectionNode);
     }
 
     /**
@@ -1178,6 +1205,97 @@ export class ObjectExplorerService {
         }
     }
 
+    public updateNode(node: TreeNodeInfo): void {
+        if (node instanceof ConnectTreeNode) {
+            node = getParentNode(node);
+        }
+
+        if (node instanceof ConnectionGroupNodeInfo) {
+            // If the node is a server group, update or add it to the list of server groups
+            // const existingGroupIndex = this._rootTreeNodeArray.findIndex(
+            //     (rootNode) => rootNode.id === node.id,
+            // );
+
+            // if (existingGroupIndex > -1) {
+            //     this._rootTreeNodeArray[existingGroupIndex] = node;
+            // } else {
+            //     this._rootTreeNodeArray.push(node);
+            // }
+
+            this._serverGroupNodes.set(node.id, node);
+        } else {
+            // If the node is a connection, find its parent server group
+
+            // if (node.connectionProfile?.groupId === this._serverGroupManager.getRootGroup().id) {
+            //     // If the parent group is the root group, we can add the node directly to the root array
+            //     this._rootTreeNodeArray.push(node);
+            // }
+
+            // const parentGroup = this._rootTreeNodeArray.find(
+            //     (rootNode) => rootNode.id === node.connectionProfile?.groupId,
+            // ) as ConnectionGroupNodeInfo;
+
+            // if (parentGroup) {
+            //     if (parentGroup.id === this._serverGroupManager.getRootGroup().id) {
+            //         // If the parent group is the root group, we can add the node directly to the root array
+            //         this._rootTreeNodeArray.push(node);
+            //     } else {
+            //         const existingNodeIndex = parentGroup.children.findIndex(
+            //             (childNode) =>
+            //                 childNode.connectionProfile &&
+            //                 childNode.connectionProfile.id === node.connectionProfile?.id,
+            //         );
+
+            //         // Replace the old node with the new, updated node
+            //         if (existingNodeIndex > -1) {
+            //             parentGroup.children[existingNodeIndex] = node;
+            //         } else {
+            //             parentGroup.addChild(node);
+            //         }
+            //     }
+            // } else {
+            //     // TODO: does this apply to us?
+
+            //     // Special case handling: if there are no server groups loaded
+            //     // into the root node, it may be because they were hidden if
+            //     // there were no connections at start up (so that a default "Add
+            //     // Connection" node could be shown). Add the existing server
+            //     // node to the tree first, and then try updating the connection
+            //     // node again.
+            //     const group = this._serverGroupManager.getGroupById(node.connectionProfile.groupId);
+            //     if (group) {
+            //         this.addServerGroupNode(group);
+            //         this.updateNode(node);
+            //     } else {
+            //         this._logger.error(
+            //             `Unable to find server group ${node.connectionProfile.groupId} for node with ID: ${node.connectionProfile.id}`,
+            //         );
+            //     }
+            // }
+
+            this._connectionNodes.set(node.connectionProfile.id, node as ConnectionNode);
+        }
+    }
+
+    public addServerGroupNode(group: IConnectionGroup): void {
+        const nodePath = group.id;
+        const groupNode = new ConnectionGroupNodeInfo(
+            group.id,
+            group.name,
+            connectionGroupNode.connectionGroupContextValue(),
+            vscode.TreeItemCollapsibleState.Expanded,
+            nodePath,
+            undefined,
+            connectionGroupNode.connectionGroupNodeType,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+        );
+        this.updateNode(groupNode);
+    }
+
     /**
      * Gets the connection node from the profile by recursively searching through the tree.
      * @param connectionProfile The connection profile to get the node for
@@ -1187,119 +1305,41 @@ export class ObjectExplorerService {
         connectionProfile: IConnectionProfile,
     ): ConnectionNode | undefined {
         // Helper function to recursively search for connection node
-        const findConnectionNode = (nodes: TreeNodeInfo[]): ConnectionNode | undefined => {
-            for (const node of nodes) {
-                if (
-                    node instanceof ConnectionNode &&
-                    Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile)
-                ) {
-                    return node;
-                }
+        // const findConnectionNode = (nodes: TreeNodeInfo[]): ConnectionNode | undefined => {
+        //     for (const node of nodes) {
+        //         if (
+        //             node instanceof ConnectionNode &&
+        //             Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile)
+        //         ) {
+        //             return node;
+        //         }
 
-                // If it's a server group, search its children
-                if (
-                    node instanceof ServerGroupNodeInfo &&
-                    node.children &&
-                    node.children.length > 0
-                ) {
-                    const foundNode = findConnectionNode(node.children);
-                    if (foundNode) {
-                        return foundNode;
-                    }
-                }
-            }
-            return undefined;
-        };
+        //         // If it's a server group, search its children
+        //         if (
+        //             node instanceof ConnectionGroupNodeInfo &&
+        //             node.children &&
+        //             node.children.length > 0
+        //         ) {
+        //             const foundNode = findConnectionNode(node.children);
+        //             if (foundNode) {
+        //                 return foundNode;
+        //             }
+        //         }
+        //     }
+        //     return undefined;
+        // };
 
-        const foundNode = findConnectionNode(this._rootTreeNodeArray);
+        // const foundNode = findConnectionNode(this._rootTreeNodeArray);
+
+        const foundNode = this._connectionNodes.get(connectionProfile.id);
+
+        if (!foundNode) {
+            this._logger.error(
+                `Connection node not found for profile with ID: ${connectionProfile.id}`,
+            );
+        }
 
         return foundNode;
-    }
-
-    public updateNode(node: TreeNodeInfo): void {
-        if (node instanceof ConnectTreeNode) {
-            node = getParentNode(node);
-        }
-        if (node instanceof ServerGroupNodeInfo) {
-            // If the node is a server group, update or add it to the root array
-            const existingGroupIndex = this._rootTreeNodeArray.findIndex(
-                (rootNode) => rootNode.id === node.id,
-            );
-
-            if (existingGroupIndex > -1) {
-                this._rootTreeNodeArray[existingGroupIndex] = node;
-            } else {
-                this._rootTreeNodeArray.push(node);
-            }
-        } else {
-            // If the node is a connection, find its parent server group
-
-            if (node.connectionProfile?.groupId === this._serverGroupManager.getRootGroup().id) {
-                // If the parent group is the root group, we can add the node directly to the root array
-                this._rootTreeNodeArray.push(node);
-            }
-
-            const parentGroup = this._rootTreeNodeArray.find(
-                (rootNode) => rootNode.id === node.connectionProfile?.groupId,
-            ) as ServerGroupNodeInfo;
-
-            if (parentGroup) {
-                if (parentGroup.id === this._serverGroupManager.getRootGroup().id) {
-                    // If the parent group is the root group, we can add the node directly to the root array
-                    this._rootTreeNodeArray.push(node);
-                } else {
-                    const existingNodeIndex = parentGroup.children.findIndex(
-                        (childNode) =>
-                            childNode.connectionProfile &&
-                            childNode.connectionProfile.id === node.connectionProfile?.id,
-                    );
-
-                    // Replace the old node with the new, updated node
-                    if (existingNodeIndex > -1) {
-                        parentGroup.children[existingNodeIndex] = node;
-                    } else {
-                        parentGroup.addChild(node);
-                    }
-                }
-            } else {
-                // TODO: does this apply to us?
-
-                // Special case handling: if there are no server groups loaded
-                // into the root node, it may be because they were hidden if
-                // there were no connections at start up (so that a default "Add
-                // Connection" node could be shown). Add the existing server
-                // node to the tree first, and then try updating the connection
-                // node again.
-                const group = this._serverGroupManager.getGroupById(node.connectionProfile.groupId);
-                if (group) {
-                    this.addServerGroupNode(group);
-                    this.updateNode(node);
-                } else {
-                    this._logger.error(
-                        `Unable to find server group ${node.connectionProfile.groupId} for node with ID: ${node.connectionProfile.id}`,
-                    );
-                }
-            }
-        }
-    }
-
-    public addServerGroupNode(group: IConnectionGroup): void {
-        const nodePath = group.id;
-        const groupNode = new ServerGroupNodeInfo(
-            group.id,
-            group.name,
-            serverGroupNode.serverGroupContextValue(),
-            vscode.TreeItemCollapsibleState.Expanded,
-            nodePath,
-            undefined,
-            serverGroupNode.serverGroupNodeType,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-        );
-        this.updateNode(groupNode);
     }
 
     /**
@@ -1323,7 +1363,7 @@ export class ObjectExplorerService {
                 if (node instanceof ConnectionNode && node.connectionProfile) {
                     connections.push(node.connectionProfile);
                 } else if (
-                    node instanceof ServerGroupNodeInfo &&
+                    node instanceof ConnectionGroupNodeInfo &&
                     node.children &&
                     node.children.length > 0
                 ) {
@@ -1334,6 +1374,34 @@ export class ObjectExplorerService {
 
         collectConnectionNodes(this._rootTreeNodeArray);
         return connections;
+    }
+
+    public getConnectionNodeById(id: string): ConnectionNode | undefined {
+        if (!id) {
+            this._logger.error("Connection node ID is undefined or empty.");
+            return undefined;
+        }
+
+        const connectionNode = this._connectionNodes.get(id);
+        if (!connectionNode) {
+            this._logger.error(`Connection node with ID ${id} not found.`);
+        }
+
+        return connectionNode;
+    }
+
+    public getServerGroupNodeById(id: string): ConnectionGroupNodeInfo | undefined {
+        if (!id) {
+            this._logger.error("Server group node ID is undefined or empty.");
+            return undefined;
+        }
+
+        const serverGroupNode = this._serverGroupNodes.get(id);
+        if (!serverGroupNode) {
+            this._logger.error(`Server group node with ID ${id} not found.`);
+        }
+
+        return serverGroupNode;
     }
 }
 

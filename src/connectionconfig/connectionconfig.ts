@@ -12,7 +12,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { ConnectionConfigBase } from "./connectionConfigBase";
-import { ServerGroupManager } from "./serverGroupManager";
+import { ConnectionGroupManager } from "./serverGroupManager";
 
 /**
  * Implements connection profile file storage.
@@ -24,7 +24,7 @@ export class ConnectionConfig extends ConnectionConfigBase implements IConnectio
      * Constructor.
      */
     public constructor(
-        private serverGroupManager: ServerGroupManager,
+        private serverGroupManager: ConnectionGroupManager,
         _vscodeWrapper?: VscodeWrapper,
     ) {
         super("ConnectionConfig", _vscodeWrapper);

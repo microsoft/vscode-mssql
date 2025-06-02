@@ -701,6 +701,19 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 authMode: this.state.connectionProfile.authenticationType,
             });
 
+            // // all properties are set when converting from a ConnectionDetails object,
+            // // so we want to clean the default undefined properties before saving.
+            // cleanedConnection = ConnectionCredentials.removeUndefinedProperties(
+            //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            //     cleanedConnection as any,
+            // );
+
+            // if (this._connectionBeingEdited) {
+            //     await this._mainController.connectionManager.connectionStore.updateProfile(cleanedConnection)
+            // } else {
+            //     await this._mainController.connectionManager.connectionStore.addProfile(cleanedConnection);
+            // }
+
             if (this._connectionBeingEdited) {
                 this._mainController.connectionManager.getUriForConnection(
                     this._connectionBeingEdited,

@@ -9,14 +9,14 @@ import * as vscodeMssql from "vscode-mssql";
 import { TreeItemCollapsibleState } from "vscode";
 import { IConnectionProfile } from "../../models/interfaces";
 
-export const serverGroupNodeType = "ServerGroup";
+export const connectionGroupNodeType = "ConnectionGroup";
 
 /**
  * Represents a server group node in the Object Explorer.
  * This class extends the TreeNodeInfo class and adds functionality specific to server groups.
  * It contains a list of child nodes and methods to manage them.
  */
-export class ServerGroupNodeInfo extends TreeNodeInfo {
+export class ConnectionGroupNodeInfo extends TreeNodeInfo {
     public children: TreeNodeInfo[];
 
     constructor(
@@ -59,10 +59,19 @@ export class ServerGroupNodeInfo extends TreeNodeInfo {
      * @param child The child node to add.
      */
     public addChild(child: TreeNodeInfo): void {
-        // Insert alphabetically based on label
-        const index = this.children.findIndex(
-            (c) => c.label.toString().localeCompare(child.label.toString()) > 0,
-        );
+        // Insert connection groups first, then other nodes, both alphabetically
+        const isChildConnectionGroup = child instanceof ConnectionGroupNodeInfo;
+
+        const index = this.children.findIndex((c) => {
+            const isCurrentConnectionGroup = c instanceof ConnectionGroupNodeInfo;
+
+            if (isChildConnectionGroup === isCurrentConnectionGroup) {
+                return c.label.toString().localeCompare(child.label.toString()) > 0;
+            }
+
+            return isChildConnectionGroup && !isCurrentConnectionGroup;
+        });
+
         if (index === -1) {
             this.children.push(child);
             return;
@@ -82,9 +91,9 @@ export class ServerGroupNodeInfo extends TreeNodeInfo {
     }
 }
 
-export function serverGroupContextValue(): vscodeMssql.TreeNodeContextValue {
+export function connectionGroupContextValue(): vscodeMssql.TreeNodeContextValue {
     return {
-        type: serverGroupNodeType,
+        type: connectionGroupNodeType,
         filterable: false,
         hasFilters: false,
         subType: "",

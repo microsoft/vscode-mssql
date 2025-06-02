@@ -608,6 +608,15 @@ export class ObjectExplorer {
     public static ScriptExecuteLabel = l10n.t("Execute");
     public static ScriptAlterLabel = l10n.t("Alter");
     public static AzureSignInMessage = l10n.t("Signing in to Azure...");
+
+    public static ConnectionGroupDeletionConfirmation(groupName: string) {
+        return l10n.t({
+            message:
+                "Are you sure you want to delete {0}?  This will also delete all connections in this group.",
+            args: [groupName],
+            comment: ["{0} is the group name"],
+        });
+    }
 }
 
 export class ConnectionDialog {
@@ -1012,4 +1021,15 @@ export class MssqlChatAgent {
 
 export class QueryEditor {
     public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
+}
+
+export class ConnectionGroup {
+    public static createNewGroup = l10n.t("Create Connection Group");
+    public static editExistingGroup = (groupName: string) => {
+        return l10n.t({
+            message: "Edit Connection Group - {0}",
+            args: [groupName],
+            comment: ["{0} is the connection group name"],
+        });
+    };
 }

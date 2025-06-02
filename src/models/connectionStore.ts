@@ -24,7 +24,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
 import { Deferred } from "../protocol";
-import { ServerGroupManager } from "../connectionconfig/serverGroupManager";
+import { ConnectionGroupManager } from "../connectionconfig/serverGroupManager";
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -50,7 +50,7 @@ export class ConnectionStore {
 
         if (!this._connectionConfig) {
             this._connectionConfig = new ConnectionConfig(
-                ServerGroupManager.getInstance(this.vscodeWrapper),
+                ConnectionGroupManager.getInstance(this.vscodeWrapper),
                 this.vscodeWrapper,
             );
         }
