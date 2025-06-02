@@ -449,6 +449,7 @@ export class ObjectExplorerService {
                 undefined,
                 undefined,
                 undefined,
+                group,
             );
 
             this._serverGroupNodes.set(group.id, groupNode);
@@ -1292,6 +1293,7 @@ export class ObjectExplorerService {
             undefined,
             undefined,
             undefined,
+            group,
         );
         this.updateNode(groupNode);
     }

@@ -7,7 +7,7 @@ import { TreeNodeInfo } from "./treeNodeInfo";
 
 import * as vscodeMssql from "vscode-mssql";
 import { TreeItemCollapsibleState } from "vscode";
-import { IConnectionProfile } from "../../models/interfaces";
+import { IConnectionGroup, IConnectionProfile } from "../../models/interfaces";
 
 export const connectionGroupNodeType = "ConnectionGroup";
 
@@ -18,6 +18,7 @@ export const connectionGroupNodeType = "ConnectionGroup";
  */
 export class ConnectionGroupNodeInfo extends TreeNodeInfo {
     public children: TreeNodeInfo[];
+    private _connectionGroup: IConnectionGroup;
 
     constructor(
         id: string,
@@ -32,6 +33,7 @@ export class ConnectionGroupNodeInfo extends TreeNodeInfo {
         parentNode: TreeNodeInfo,
         filterProperties: vscodeMssql.NodeFilterProperty[],
         nodeSubType: string,
+        connectionGroup: IConnectionGroup,
         objectMetadata?: vscodeMssql.ObjectMetadata,
         filters?: vscodeMssql.NodeFilter[],
     ) {
@@ -52,6 +54,22 @@ export class ConnectionGroupNodeInfo extends TreeNodeInfo {
         );
         this.children = [];
         this.id = id;
+        this._connectionGroup = connectionGroup;
+    }
+
+    /**
+     * Returns a **copy** of the node's connection information.
+     *
+     * ⚠️ Note: This is a **shallow copy**; modifying the returned object will NOT affect the original connection group.
+     * If you want to update the actual connection group stored in the node, use the `updateConnectionGroup` method instead.
+     */
+    public get connectionGroup(): IConnectionGroup {
+        if (!this._connectionGroup) {
+            return undefined;
+        }
+        return {
+            ...this._connectionGroup,
+        };
     }
 
     /**

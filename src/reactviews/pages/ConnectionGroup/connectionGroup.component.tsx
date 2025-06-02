@@ -50,10 +50,14 @@ export const ConnectionGroupDialog = ({
                             : "Create New Connection Group"}
                     </DialogTitle>
                     <DialogContent>
-                        <MessageBar intent="error" style={{ paddingRight: "12px" }}>
-                            {state.message}
-                        </MessageBar>
-                        <br />
+                        {state.message && (
+                            <>
+                                <MessageBar intent="error" style={{ paddingRight: "12px" }}>
+                                    {state.message}
+                                </MessageBar>
+                                <br />
+                            </>
+                        )}
 
                         <Field className={formStyles.formComponentDiv} label="Name">
                             <Input
@@ -90,6 +94,7 @@ export const ConnectionGroupDialog = ({
                     <DialogActions>
                         <Button
                             appearance="primary"
+                            style={{ width: "auto", whiteSpace: "nowrap" }}
                             onClick={() => {
                                 saveConnectionGroup({
                                     name: groupName,

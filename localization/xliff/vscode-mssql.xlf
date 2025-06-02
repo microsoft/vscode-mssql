@@ -140,6 +140,10 @@
       <source xml:lang="en">Are you sure you want to delete {0}?</source>
       <note>{0} is the node label</note>
     </trans-unit>
+    <trans-unit id="++CODE++06f1783b8fa5a8be694c26e8cea5b2bd668dd7beb434d1271155bae4e7f4a736">
+      <source xml:lang="en">Are you sure you want to delete {0}?  This will also delete all connections in this group.</source>
+      <note>{0} is the group name</note>
+    </trans-unit>
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
       <source xml:lang="en">Are you sure you want to disconnect?</source>
     </trans-unit>
@@ -542,6 +546,9 @@
     <trans-unit id="++CODE++7aa0a3ede22306a6fe14f159fb12acfbb63bad17edf71486aa552c2cd757e5cd">
       <source xml:lang="en">Create As Script</source>
     </trans-unit>
+    <trans-unit id="++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d">
+      <source xml:lang="en">Create Connection Group</source>
+    </trans-unit>
     <trans-unit id="++CODE++71c1ec27a8c136ecdc781c1fd2364676155fbab7abf8837b9075eb3b9f9af7c0">
       <source xml:lang="en">Create Connection Profile</source>
     </trans-unit>
@@ -656,6 +663,10 @@
     </trans-unit>
     <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
       <source xml:lang="en">Edit</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
+      <source xml:lang="en">Edit Connection Group - {0}</source>
+      <note>{0} is the connection group name</note>
     </trans-unit>
     <trans-unit id="++CODE++a43dafda7f271d0796fb53cc6c2d8f302b8c8892ea0fed0b1096e9c7769f91c1">
       <source xml:lang="en">Edit Connection Profile</source>
@@ -2233,6 +2244,9 @@
     <trans-unit id="mssql.addObjectExplorerLegacy">
       <source xml:lang="en">Add Connection (Legacy)</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroups.create">
+      <source xml:lang="en">Add Connection Group</source>
+    </trans-unit>
     <trans-unit id="mssql.addAadAccount">
       <source xml:lang="en">Add Microsoft Entra Account</source>
     </trans-unit>
@@ -2317,6 +2331,9 @@
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroups.delete">
+      <source xml:lang="en">Delete Connection Group</source>
+    </trans-unit>
     <trans-unit id="mssql.designSchema">
       <source xml:lang="en">Design Schema (Preview)</source>
     </trans-unit>
@@ -2337,6 +2354,9 @@
     </trans-unit>
     <trans-unit id="mssql.editConnection">
       <source xml:lang="en">Edit Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroups.edit">
+      <source xml:lang="en">Edit Connection Group</source>
     </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Edit Table</source>
