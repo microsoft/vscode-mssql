@@ -272,7 +272,7 @@ export class ConnectionStore {
         profile: IConnectionProfile,
         forceWritePlaintextPassword?: boolean,
     ): Promise<IConnectionProfile> {
-        await this._connectionConfig.populateMissingIds(profile);
+        await this._connectionConfig.populateMissingConnectionIds(profile);
 
         // Add the profile to the saved list, taking care to clear out the password field if necessary
         let savedProfile: IConnectionProfile;

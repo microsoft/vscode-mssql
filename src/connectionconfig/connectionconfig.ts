@@ -116,6 +116,19 @@ export class ConnectionConfig implements IConnectionConfig {
             });
         }
 
+        // filter out any connection with a group that isn't defined
+        const groupIds = new Set<string>((await this.getGroups()).map((g) => g.id));
+        profiles = profiles.filter((p) => {
+            if (!groupIds.has(p.groupId)) {
+                this._logger.warn(
+                    `Connection '${getConnectionDisplayName(p)}' with ID '${p.id}' has a group ID that does not exist (${p.groupId}) so it is being ignored.  Correct its group ID to keep using this connection.`,
+                );
+                return false;
+            } else {
+                return true;
+            }
+        });
+
         return profiles;
     }
 
@@ -127,7 +140,7 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     public async addConnection(profile: IConnectionProfile): Promise<void> {
-        await this.populateMissingIds(profile);
+        await this.populateMissingConnectionIds(profile);
 
         let profiles = await this.getConnections(false /* getWorkspaceConnections */);
 
@@ -199,7 +212,7 @@ export class ConnectionConfig implements IConnectionConfig {
         for (const conn of connections) {
             if (conn.groupId === id) {
                 this._logger.verbose(
-                    `Removing connection ${conn.id} because its group ${id} was removed`,
+                    `Removing connection '${conn.id}' because its group '${id}' was removed`,
                 );
                 connectionRemoved = true;
                 this.removeConnectionHelper(conn, connections);
@@ -209,7 +222,7 @@ export class ConnectionConfig implements IConnectionConfig {
         const groups = this.getGroupsFromSettings();
         const index = groups.findIndex((g) => g.id === id);
         if (index === -1) {
-            this._logger.error(`Connection group with ID ${id} not found when removing.`);
+            this._logger.error(`Connection group with ID '${id}' not found when removing.`);
             return Promise.resolve();
         }
         groups.splice(index, 1);
@@ -276,12 +289,12 @@ export class ConnectionConfig implements IConnectionConfig {
      * Populate missing connection ID and group ID for a connection profile.
      * @returns true if the profile was modified, false otherwise.
      */
-    public async populateMissingIds(profile: IConnectionProfile): Promise<boolean> {
+    public populateMissingConnectionIds(profile: IConnectionProfile): boolean {
         let modified = false;
 
         // ensure each profile is in a group
         if (profile.groupId === undefined) {
-            const rootGroup = await this.getRootGroup();
+            const rootGroup = this.getRootGroup();
             if (rootGroup) {
                 profile.groupId = rootGroup.id;
                 modified = true;
@@ -357,7 +370,7 @@ export class ConnectionConfig implements IConnectionConfig {
         const profiles: IConnectionProfile[] = this.getConnectionsFromSettings();
 
         for (const profile of profiles) {
-            if (this.populateMissingIds(profile)) {
+            if (this.populateMissingConnectionIds(profile)) {
                 madeChanges = true;
                 this._logger.logDebug(
                     `Adding missing group ID or connection ID to connection '${getConnectionDisplayName(profile)}'`,

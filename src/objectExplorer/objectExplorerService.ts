@@ -442,12 +442,12 @@ export class ObjectExplorerService {
                     }
                 } else {
                     this._logger.error(
-                        `Child group ${group.name} with ID ${group.id} does not have a valid parent group (${group.parentId}).`,
+                        `Child group '${group.name}' with ID '${group.id}' does not have a valid parent group (${group.parentId}).`,
                     );
                 }
             } else {
                 this._logger.error(
-                    `Group ${group.name} with ID ${group.id} does not have a valid parent group ID.  This should have been corrected when reading server groups from settings.`,
+                    `Group '${group.name}' with ID '${group.id}' does not have a valid parent group ID.  This should have been corrected when reading server groups from settings.`,
                 );
             }
         }
@@ -465,7 +465,7 @@ export class ObjectExplorerService {
                 groupNode.addChild(connectionNode);
             } else {
                 this._logger.error(
-                    `Connection ${getConnectionDisplayName(connection)} with ID ${connection.id} does not have a valid group ID.  This should have been corrected when reading connections from settings.`,
+                    `Connection '${getConnectionDisplayName(connection)}' with ID '${connection.id}' does not have a valid group ID.  This should have been corrected when reading connections from settings.`,
                 );
             }
         }
