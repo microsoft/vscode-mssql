@@ -8,6 +8,8 @@ import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form"
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
+import { IConnectionGroup } from "../models/interfaces";
+import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
 
 export class ConnectionDialogWebviewState
     implements
@@ -39,6 +41,7 @@ export class ConnectionDialogWebviewState
     public azureServers: AzureSqlServerInfo[] = [];
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
+    public connectionGroups: IConnectionGroup[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public readyToConnect: boolean = false;
     public formError: string = "";
@@ -58,7 +61,11 @@ export class ConnectionDialogWebviewState
 }
 
 export interface IDialogProps {
-    type: "trustServerCert" | "addFirewallRule" | "loadFromConnectionString";
+    type:
+        | "trustServerCert"
+        | "addFirewallRule"
+        | "loadFromConnectionString"
+        | "createConnectionGroup";
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {
@@ -75,6 +82,11 @@ export interface ConnectionStringDialogProps extends IDialogProps {
     type: "loadFromConnectionString";
     connectionString: string;
     connectionStringError?: string;
+}
+
+export interface CreateConnectionGroupDialogProps extends IDialogProps {
+    type: "createConnectionGroup";
+    props: ConnectionGroupState;
 }
 
 export interface AzureSubscriptionInfo {
@@ -141,6 +153,7 @@ export interface ConnectionDialogContextProps
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
+    createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
@@ -172,6 +185,9 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     };
     addFirewallRule: {
         firewallRuleSpec: FirewallRuleSpec;
+    };
+    createConnectionGroup: {
+        connectionGroupSpec: ConnectionGroupSpec;
     };
     closeDialog: {};
     filterAzureSubscriptions: {};

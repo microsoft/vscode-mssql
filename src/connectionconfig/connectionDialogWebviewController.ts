@@ -68,6 +68,7 @@ import {
 } from "../constants/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
+import { createConnectionGroupFromSpec } from "../controllers/connectionGroupWebviewController";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -287,6 +288,38 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule);
 
             state.dialog = undefined;
+            this.updateState(state);
+
+            return await this.connectHelper(state);
+        });
+
+        this.registerReducer("createConnectionGroup", async (state, payload) => {
+            try {
+                await this._mainController.connectionManager.connectionStore.connectionConfig.addGroup(
+                    createConnectionGroupFromSpec(payload.connectionGroupSpec),
+                );
+            } catch (err) {
+                state.formError = getErrorMessage(err);
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.SaveConnectionGroup,
+                    err,
+                    false, // includeErrorMessage
+                    undefined, // errorCode
+                    err.Name, // errorType
+                    {
+                        failure: err.Name,
+                    },
+                );
+            }
+
+            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.SaveConnectionGroup);
+
+            state.dialog = undefined;
+
+            state.connectionGroups =
+                await this._mainController.connectionManager.connectionStore.connectionConfig.getGroups();
+
             this.updateState(state);
 
             return await this.connectHelper(state);

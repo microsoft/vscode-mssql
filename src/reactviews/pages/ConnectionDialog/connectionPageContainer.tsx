@@ -12,6 +12,7 @@ import {
     ConnectionDialogWebviewState,
     ConnectionInputMode,
     ConnectionStringDialogProps,
+    CreateConnectionGroupDialogProps,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
 } from "../../../sharedInterfaces/connectionDialog";
@@ -30,6 +31,7 @@ import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
@@ -87,6 +89,13 @@ export const ConnectionInfoFormContainer = () => {
                         dialogProps={context.state.dialog as ConnectionStringDialogProps}
                     />
                 )}
+                {context.state.dialog?.type === "createConnectionGroup" && (
+                    <ConnectionGroupDialog
+                        state={(context.state.dialog as CreateConnectionGroupDialogProps).props}
+                        saveConnectionGroup={context.createConnectionGroup}
+                        closeDialog={context.closeDialog}
+                    />
+                )}
 
                 <FormField<
                     IConnectionDialogProfile,
@@ -101,6 +110,10 @@ export const ConnectionInfoFormContainer = () => {
                     idx={0}
                     props={{ orientation: "horizontal" }}
                 />
+
+                <div className={formStyles.formComponentDiv}>
+                    <Field label="Connection Group" orientation="horizontal"></Field>
+                </div>
 
                 <div className={formStyles.formComponentDiv}>
                     <Field label="Input type" orientation="horizontal">

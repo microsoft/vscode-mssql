@@ -83,14 +83,7 @@ export class ConnectionGroupWebviewController extends ReactWebviewPanelControlle
                     });
                 } else {
                     this.logger.verbose("Creating new connection group", payload);
-
-                    const newGroup: IConnectionGroup = {
-                        name: payload.name,
-                        description: payload.description,
-                        color: payload.color,
-                        id: Utils.generateGuid(),
-                    };
-                    await this.connectionConfig.addGroup(newGroup);
+                    await this.connectionConfig.addGroup(createConnectionGroupFromSpec(payload));
                 }
 
                 sendActionEvent(
@@ -117,4 +110,13 @@ export class ConnectionGroupWebviewController extends ReactWebviewPanelControlle
             return state;
         });
     }
+}
+
+export function createConnectionGroupFromSpec(spec: ConnectionGroupState): IConnectionGroup {
+    return {
+        name: spec.name,
+        description: spec.description,
+        color: spec.color,
+        id: Utils.generateGuid(),
+    };
 }
