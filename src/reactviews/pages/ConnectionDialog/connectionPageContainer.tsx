@@ -111,9 +111,19 @@ export const ConnectionInfoFormContainer = () => {
                     props={{ orientation: "horizontal" }}
                 />
 
-                <div className={formStyles.formComponentDiv}>
-                    <Field label="Connection Group" orientation="horizontal"></Field>
-                </div>
+                <FormField<
+                    IConnectionDialogProfile,
+                    ConnectionDialogWebviewState,
+                    ConnectionDialogFormItemSpec,
+                    ConnectionDialogContextProps
+                >
+                    context={context}
+                    component={
+                        context.state.formComponents["groupId"] as ConnectionDialogFormItemSpec
+                    }
+                    idx={0}
+                    props={{ orientation: "horizontal" }}
+                />
 
                 <div className={formStyles.formComponentDiv}>
                     <Field label="Input type" orientation="horizontal">

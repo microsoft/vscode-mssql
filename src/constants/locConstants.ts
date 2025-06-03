@@ -578,7 +578,7 @@ export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
     public static NoItems = l10n.t("No items");
     public static FailedOEConnectionError = l10n.t(
-        "We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
+        "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
     );
     public static FailedOEConnectionErrorRetry = l10n.t("Retry");
     public static FailedOEConnectionErrorUpdate = l10n.t("Edit Connection Profile");
@@ -629,6 +629,7 @@ export class ConnectionDialog {
     public static selectATenant = l10n.t("Select a tenant");
     public static tenantIdIsRequired = l10n.t("Tenant ID is required");
     public static profileName = l10n.t("Profile Name");
+    public static connectionGroup = l10n.t("Connection Group");
     public static serverIsRequired = l10n.t("Server is required");
     public static usernameIsRequired = l10n.t("User name is required");
     public static connectionString = l10n.t("Connection String");

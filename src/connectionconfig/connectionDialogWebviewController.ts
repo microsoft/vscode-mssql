@@ -23,6 +23,7 @@ import {
     TrustServerCertDialogProps,
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
+    CreateConnectionGroupDialogProps,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
@@ -92,7 +93,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         "database",
         "encrypt",
     ];
-
+    g;
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
 
@@ -158,6 +159,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this._mainController.connectionManager,
             getAccounts(this._mainController.azureAccountService, this.logger),
             this.getAzureActionButtons(),
+            this.getConnectionGroups(),
+            this.getConnectionGroupButton(),
         );
 
         this.state.connectionComponents = {
@@ -294,9 +297,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("createConnectionGroup", async (state, payload) => {
+            const addedGroup = createConnectionGroupFromSpec(payload.connectionGroupSpec);
+
             try {
                 await this._mainController.connectionManager.connectionStore.connectionConfig.addGroup(
-                    createConnectionGroupFromSpec(payload.connectionGroupSpec),
+                    addedGroup,
                 );
             } catch (err) {
                 state.formError = getErrorMessage(err);
@@ -317,6 +322,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             state.dialog = undefined;
 
+            state.formComponents.groupId.options = await this.getConnectionGroups();
+            state.connectionProfile.groupId = addedGroup.id;
             state.connectionGroups =
                 await this._mainController.connectionManager.connectionStore.connectionConfig.getGroups();
 
@@ -568,7 +575,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.selectedInputMode === ConnectionInputMode.Parameters ||
             state.selectedInputMode === ConnectionInputMode.AzureBrowse
         ) {
-            return state.connectionComponents.mainOptions;
+            return [...state.connectionComponents.mainOptions, "groupId"];
         }
         return ["connectionString", "profileName"];
     }
@@ -981,6 +988,32 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 id: t.tenantId,
             };
         });
+    }
+
+    private async getConnectionGroups(): Promise<FormItemOptions[]> {
+        const connectionGroups =
+            await this._mainController.connectionManager.connectionStore.connectionConfig.getGroups();
+        const rootGroup =
+            this._mainController.connectionManager.connectionStore.connectionConfig.getRootGroup();
+        return connectionGroups.map((g) => ({
+            displayName: g.id === rootGroup.id ? "<Default>" : g.name,
+            value: g.id,
+        }));
+    }
+
+    private async getConnectionGroupButton(): Promise<FormItemActionButton> {
+        return {
+            label: "Create Connection Group",
+            id: "createConnectionGroup",
+            callback: async () => {
+                this.state.dialog = {
+                    type: "createConnectionGroup",
+                    props: {},
+                } as CreateConnectionGroupDialogProps;
+
+                this.updateState();
+            },
+        };
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
