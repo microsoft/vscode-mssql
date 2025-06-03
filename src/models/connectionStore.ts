@@ -18,13 +18,12 @@ import {
     IConnectionProfileWithSource,
 } from "../models/interfaces";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
-import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
-import { ConnectionConfig } from "../connectionconfig/connectionconfig";
+// import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
+import { ConnectionConfig } from "../connectionconfig/connectionConfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
 import { Deferred } from "../protocol";
-import { ConnectionGroupManager } from "../connectionconfig/connectionGroupManager";
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -49,10 +48,7 @@ export class ConnectionStore {
         }
 
         if (!this._connectionConfig) {
-            this._connectionConfig = new ConnectionConfig(
-                ConnectionGroupManager.getInstance(this.vscodeWrapper),
-                this.vscodeWrapper,
-            );
+            this._connectionConfig = new ConnectionConfig(this.vscodeWrapper);
         }
     }
 
@@ -147,7 +143,7 @@ export class ConnectionStore {
         return cred.join(ConnectionStore.CRED_SEPARATOR);
     }
 
-    public get connectionConfig(): IConnectionConfig {
+    public get connectionConfig(): ConnectionConfig {
         return this._connectionConfig;
     }
 
@@ -276,7 +272,7 @@ export class ConnectionStore {
         profile: IConnectionProfile,
         forceWritePlaintextPassword?: boolean,
     ): Promise<IConnectionProfile> {
-        this._connectionConfig.populateMissingIds(profile);
+        await this._connectionConfig.populateMissingIds(profile);
 
         // Add the profile to the saved list, taking care to clear out the password field if necessary
         let savedProfile: IConnectionProfile;

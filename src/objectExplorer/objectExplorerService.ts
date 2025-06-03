@@ -25,12 +25,7 @@ import {
     CloseSessionResponse,
 } from "../models/contracts/objectExplorer/closeSessionRequest";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
-import {
-    AuthenticationTypes,
-    IConnectionGroup,
-    IConnectionProfile,
-    IConnectionProfileWithSource,
-} from "../models/interfaces";
+import { AuthenticationTypes, IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import * as LocalizedConstants from "../constants/locConstants";
 import { AddConnectionTreeNode } from "./nodes/addConnectionTreeNode";
 import { AccountSignInTreeNode } from "./nodes/accountSignInTreeNode";
@@ -57,11 +52,10 @@ import {
     GetSessionIdResponse,
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
-import VscodeWrapper from "../controllers/vscodeWrapper";
+import VscodeWrapper, { ConfigurationTarget } from "../controllers/vscodeWrapper";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
-import { ConnectionGroupManager } from "../connectionconfig/connectionGroupManager";
 import * as connectionGroupNode from "./nodes/connectionGroupNode";
 import { ConnectionGroupNodeInfo } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
@@ -88,7 +82,7 @@ export class ObjectExplorerService {
     private get _rootTreeNodeArray(): Array<TreeNodeInfo> {
         const result = [];
 
-        const root = this._serverGroupManager.getRootGroup();
+        const root = this._connectionManager.connectionStore.connectionConfig.getRootGroup();
 
         if (!this._serverGroupNodes.has(root.id)) {
             this._logger.error(
@@ -123,7 +117,6 @@ export class ObjectExplorerService {
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
-        private _serverGroupManager: ConnectionGroupManager = ConnectionGroupManager.getInstance(),
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -386,8 +379,12 @@ export class ObjectExplorerService {
             },
         );
 
-        const rootNode = this._serverGroupManager.getRootGroup();
-        const serverGroups = this._serverGroupManager.getGroups();
+        const rootNode =
+            await this._connectionManager.connectionStore.connectionConfig.getRootGroup();
+        const serverGroups =
+            await this._connectionManager.connectionStore.connectionConfig.getGroups(
+                ConfigurationTarget.Global,
+            );
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
 
         // if there are no saved connections, show the add connection node

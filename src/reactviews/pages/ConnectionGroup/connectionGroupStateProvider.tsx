@@ -8,6 +8,7 @@ import { createContext } from "react";
 import {
     ConnectionGroupContextProps,
     ConnectionGroupReducers,
+    ConnectionGroupSpec,
     ConnectionGroupState,
 } from "../../../sharedInterfaces/connectionGroup";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -30,12 +31,8 @@ const ConnectionGroupStateProvider: React.FC<ConnectionGroupProviderProps> = ({ 
                 themeKind: webviewContext.themeKind,
                 ...getCoreRPCs(webviewContext),
                 closeDialog: () => webviewContext?.extensionRpc.action("closeDialog"),
-                saveConnectionGroup: (name: string, description: string, color: string) =>
-                    webviewContext?.extensionRpc.action("saveConnectionGroup", {
-                        name,
-                        description,
-                        color,
-                    }),
+                saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) =>
+                    webviewContext?.extensionRpc.action("saveConnectionGroup", connectionGroupSpec),
             }}>
             {children}
         </ConnectionGroupContext.Provider>

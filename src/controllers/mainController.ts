@@ -70,7 +70,6 @@ import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionGroupNodeInfo } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
-import { ConnectionGroupManager } from "../connectionconfig/connectionGroupManager";
 
 /**
  * The main controller class that initializes the extension
@@ -994,12 +993,12 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        this.registerCommand(Constants.cmdConnectionGroupAdd);
-        this._event.on(Constants.cmdConnectionGroupAdd, () => {
+        this.registerCommand(Constants.cmdConnectionGroupCreate);
+        this._event.on(Constants.cmdConnectionGroupCreate, () => {
             const connGroupDialog = new ConnectionGroupWebviewController(
                 this._context,
                 this._vscodeWrapper,
-                ConnectionGroupManager.getInstance(),
+                this.connectionManager.connectionStore.connectionConfig,
             );
             connGroupDialog.revealToForeground();
         });
@@ -1009,7 +1008,7 @@ export default class MainController implements vscode.Disposable {
             const connGroupDialog = new ConnectionGroupWebviewController(
                 this._context,
                 this._vscodeWrapper,
-                ConnectionGroupManager.getInstance(),
+                this.connectionManager.connectionStore.connectionConfig,
                 node.connectionGroup,
             );
             connGroupDialog.revealToForeground();
@@ -1027,7 +1026,7 @@ export default class MainController implements vscode.Disposable {
                     LocalizedConstants.Common.delete,
                 );
                 if (result === LocalizedConstants.Common.delete) {
-                    void ConnectionGroupManager.getInstance().removeConnectionGroup(
+                    void this.connectionManager.connectionStore.connectionConfig.removeGroup(
                         node.connectionGroup.id,
                     );
                 }
