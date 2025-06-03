@@ -563,7 +563,7 @@
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/ ",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
                     "group": "5_MSSQL_tree@9999"
                 },
                 {
@@ -613,7 +613,7 @@
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/ ",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
                     "group": "inline@9999"
                 },
                 {
@@ -655,7 +655,7 @@
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/"
                 },
                 {
                     "command": "mssql.scriptSelect",

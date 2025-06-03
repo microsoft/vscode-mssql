@@ -70,7 +70,7 @@ import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionGroupNodeInfo } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
-import { ConnectionGroupManager } from "../connectionconfig/serverGroupManager";
+import { ConnectionGroupManager } from "../connectionconfig/connectionGroupManager";
 
 /**
  * The main controller class that initializes the extension
@@ -1019,16 +1019,17 @@ export default class MainController implements vscode.Disposable {
         this._event.on(
             Constants.cmdConnectionGroupDelete,
             async (node: ConnectionGroupNodeInfo) => {
-                const result = await this._vscodeWrapper.showInformationMessage(
+                const result = await vscode.window.showInformationMessage(
                     LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmation(
                         typeof node.label === "string" ? node.label : node.label.label,
                     ),
+                    { modal: true },
                     LocalizedConstants.Common.delete,
-                    LocalizedConstants.Common.cancel,
                 );
                 if (result === LocalizedConstants.Common.delete) {
-                    // TODO: Implement delete connection group logic here
-                    console.log("Delete connection group placeholder");
+                    void ConnectionGroupManager.getInstance().removeConnectionGroup(
+                        node.connectionGroup.id,
+                    );
                 }
             },
         );

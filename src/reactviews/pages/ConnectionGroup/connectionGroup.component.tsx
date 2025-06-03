@@ -103,7 +103,7 @@ export const ConnectionGroupDialog = ({
                                 });
                             }}
                             disabled={false}>
-                            "Create Connection Group"
+                            Create Connection Group
                         </Button>
                         <Button
                             appearance="secondary"

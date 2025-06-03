@@ -102,11 +102,36 @@ export class ConnectionGroupManager extends ConnectionConfigBase {
     }
 
     public addConnectionGroup(newGroup: IConnectionGroup): Promise<void> {
-        throw new Error("Method not implemented.");
+        if (!newGroup.id) {
+            newGroup.id = Utils.generateGuid();
+        }
+
+        const groups = this.getGroups();
+        groups.push(newGroup);
+        return this.writeConnectionGroupsToSettings(groups);
     }
 
-    public updateConnectionGroup(updatedGroup: IConnectionGroup): Promise<void> {
-        throw new Error("Method not implemented.");
+    public async updateConnectionGroup(updatedGroup: IConnectionGroup): Promise<void> {
+        const groups = this.getGroups();
+        const index = groups.findIndex((g) => g.id === updatedGroup.id);
+        if (index === -1) {
+            throw Error(`Connection group with ID ${updatedGroup.id} not found when updating`);
+        } else {
+            groups[index] = updatedGroup;
+        }
+
+        return await this.writeConnectionGroupsToSettings(groups);
+    }
+
+    public async removeConnectionGroup(id: string): Promise<void> {
+        const groups = this.getGroups();
+        const index = groups.findIndex((g) => g.id === id);
+        if (index === -1) {
+            this._logger.error(`Connection group with ID ${id} not found when removing.`);
+            return Promise.resolve();
+        }
+        groups.splice(index, 1);
+        return this.writeConnectionGroupsToSettings(groups);
     }
 
     private async writeConnectionGroupsToSettings(connGroups: IConnectionGroup[]): Promise<void> {

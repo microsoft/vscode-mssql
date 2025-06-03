@@ -12,7 +12,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { ConnectionConfigBase } from "./connectionConfigBase";
-import { ConnectionGroupManager } from "./serverGroupManager";
+import { ConnectionGroupManager } from "./connectionGroupManager";
 
 /**
  * Implements connection profile file storage.

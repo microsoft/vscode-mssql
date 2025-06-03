@@ -13,7 +13,7 @@ import { getErrorMessage } from "../utils/utils";
 import { Deferred } from "../protocol";
 import * as Loc from "../constants/locConstants";
 import { IConnectionGroup } from "../models/interfaces";
-import { ConnectionGroupManager } from "../connectionconfig/serverGroupManager";
+import { ConnectionGroupManager } from "../connectionconfig/connectionGroupManager";
 import * as Utils from "../models/utils";
 
 /**

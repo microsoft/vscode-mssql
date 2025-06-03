@@ -61,7 +61,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
-import { ConnectionGroupManager } from "../connectionconfig/serverGroupManager";
+import { ConnectionGroupManager } from "../connectionconfig/connectionGroupManager";
 import * as connectionGroupNode from "./nodes/connectionGroupNode";
 import { ConnectionGroupNodeInfo } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
@@ -339,35 +339,6 @@ export class ObjectExplorerService {
             return labelA.toLowerCase().localeCompare(labelB.toLowerCase());
         });
         return sortedNodeArray;
-    }
-
-    /**
-     * Get nodes from saved connections
-     */
-    private async getSavedConnectionNodes(): Promise<TreeNodeInfo[]> {
-        const result: TreeNodeInfo[] = [];
-
-        let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
-        // Remove any connections that have duplicated IDs
-        if (savedConnections.length > 0) {
-            const uniqueConnections = new Map<string, IConnectionProfileWithSource>();
-            for (const conn of savedConnections) {
-                if (!uniqueConnections.has(conn.id)) {
-                    uniqueConnections.set(conn.id, conn);
-                } else {
-                    this._logger.verbose(
-                        `Duplicate connection ID found: ${conn.id}. Ignoring duplicate connection.`,
-                    );
-                }
-            }
-            savedConnections = Array.from(uniqueConnections.values());
-        }
-        for (const conn of savedConnections) {
-            const connectionNode = new ConnectionNode(conn);
-            result.push(connectionNode);
-        }
-
-        return result;
     }
 
     /**
