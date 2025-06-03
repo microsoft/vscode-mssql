@@ -78,20 +78,20 @@ export class ObjectExplorerService {
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
 
     private _connectionNodes: Map<string, ConnectionNode>;
-    private _serverGroupNodes: Map<string, ConnectionGroupNodeInfo>;
+    private _connectionGroupNodes: Map<string, ConnectionGroupNodeInfo>;
     private get _rootTreeNodeArray(): Array<TreeNodeInfo> {
         const result = [];
 
         const root = this._connectionManager.connectionStore.connectionConfig.getRootGroup();
 
-        if (!this._serverGroupNodes.has(root.id)) {
+        if (!this._connectionGroupNodes.has(root.id)) {
             this._logger.error(
                 "Root server group is not defined. Cannot get root nodes for Object Explorer.",
             );
             return [];
         }
 
-        for (const child of this._serverGroupNodes.get(root.id)?.children || []) {
+        for (const child of this._connectionGroupNodes.get(root.id)?.children || []) {
             result.push(child);
         }
 
@@ -398,7 +398,7 @@ export class ObjectExplorerService {
             return this.getAddConnectionNode();
         }
 
-        this._serverGroupNodes = new Map<string, ConnectionGroupNodeInfo>();
+        this._connectionGroupNodes = new Map<string, ConnectionGroupNodeInfo>();
         this._connectionNodes = new Map<string, ConnectionNode>();
 
         // Add all group nodes from settings first
@@ -420,7 +420,7 @@ export class ObjectExplorerService {
                 group,
             );
 
-            this._serverGroupNodes.set(group.id, groupNode);
+            this._connectionGroupNodes.set(group.id, groupNode);
         }
 
         // Populate group hierarchy - add each group as a child to its parent
@@ -430,9 +430,9 @@ export class ObjectExplorerService {
                 continue;
             }
 
-            if (group.parentId && this._serverGroupNodes.has(group.parentId)) {
-                const parentNode = this._serverGroupNodes.get(group.parentId);
-                const childNode = this._serverGroupNodes.get(group.id);
+            if (group.parentId && this._connectionGroupNodes.has(group.parentId)) {
+                const parentNode = this._connectionGroupNodes.get(group.parentId);
+                const childNode = this._connectionGroupNodes.get(group.id);
 
                 if (parentNode && childNode) {
                     parentNode.addChild(childNode);
@@ -454,8 +454,8 @@ export class ObjectExplorerService {
 
         // Add connections as children of their respective groups
         for (const connection of savedConnections) {
-            if (connection.groupId && this._serverGroupNodes.has(connection.groupId)) {
-                const groupNode = this._serverGroupNodes.get(connection.groupId);
+            if (connection.groupId && this._connectionGroupNodes.has(connection.groupId)) {
+                const groupNode = this._connectionGroupNodes.get(connection.groupId);
 
                 const connectionNode = new ConnectionNode(
                     connection,
@@ -1191,7 +1191,7 @@ export class ObjectExplorerService {
             //     this._rootTreeNodeArray.push(node);
             // }
 
-            this._serverGroupNodes.set(node.id, node);
+            this._connectionGroupNodes.set(node.id, node);
         } else {
             // If the node is a connection, find its parent server group
 
@@ -1320,6 +1320,14 @@ export class ObjectExplorerService {
         return connections;
     }
 
+    public get connection(): IConnectionInfo[] {
+        return [...this._connectionNodes.values()].map((node) => node.connectionProfile);
+    }
+
+    public get connectionGroups(): IConnectionGroup[] {
+        return [...this._connectionGroupNodes.values()].map((node) => node.connectionGroup);
+    }
+
     /**
      * Gets all connection profiles from the tree by traversing the hierarchy.
      * @returns Array of all connection profiles in the tree.
@@ -1366,7 +1374,7 @@ export class ObjectExplorerService {
             return undefined;
         }
 
-        const serverGroupNode = this._serverGroupNodes.get(id);
+        const serverGroupNode = this._connectionGroupNodes.get(id);
         if (!serverGroupNode) {
             this._logger.error(`Server group node with ID ${id} not found.`);
         }

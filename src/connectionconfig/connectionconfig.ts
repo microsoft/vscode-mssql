@@ -194,11 +194,14 @@ export class ConnectionConfig implements IConnectionConfig {
     public async removeGroup(id: string): Promise<void> {
         const connections = this.getConnectionsFromSettings();
 
+        let connectionRemoved = false;
+
         for (const conn of connections) {
             if (conn.groupId === id) {
                 this._logger.verbose(
                     `Removing connection ${conn.id} because its group ${id} was removed`,
                 );
+                connectionRemoved = true;
                 this.removeConnectionHelper(conn, connections);
             }
         }
@@ -211,7 +214,10 @@ export class ConnectionConfig implements IConnectionConfig {
         }
         groups.splice(index, 1);
 
-        await this.writeConnectionsToSettings(connections);
+        if (connectionRemoved) {
+            await this.writeConnectionsToSettings(connections);
+        }
+
         return this.writeConnectionGroupsToSettings(groups);
     }
 

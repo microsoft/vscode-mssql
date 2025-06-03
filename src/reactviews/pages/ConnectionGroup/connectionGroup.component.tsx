@@ -98,8 +98,8 @@ export const ConnectionGroupDialog = ({
                             onClick={() => {
                                 saveConnectionGroup({
                                     name: groupName,
-                                    description: description,
-                                    color: color,
+                                    description: description || undefined,
+                                    color: color || undefined,
                                 });
                             }}
                             disabled={false}>
