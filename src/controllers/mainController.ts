@@ -70,10 +70,7 @@ import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 import { ConnectionGroupNodeInfo } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
-import { ConnectionUI } from "../views/connectionUI";
-import { ConnectionStore } from "../models/connectionStore";
 import { Logger } from "../models/logger";
-import { ColorThemeKind } from "../sharedInterfaces/webview";
 
 /**
  * The main controller class that initializes the extension
@@ -113,8 +110,6 @@ export default class MainController implements vscode.Disposable {
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
-    private _connectionUI: ConnectionUI;
-    private _connectionStore: ConnectionStore;
     private _logger: Logger;
 
     /**
