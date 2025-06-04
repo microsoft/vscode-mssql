@@ -6,12 +6,7 @@
 import { useContext, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { Button, makeStyles } from "@fluentui/react-components";
-import {
-    DesktopCursor24Filled,
-    TextBulletListCheckmark20Filled,
-    ArrowSyncCheckmark24Filled,
-    Rocket24Filled,
-} from "@fluentui/react-icons";
+import { DesktopCursor24Filled, ArrowSyncCheckmark24Filled } from "@fluentui/react-icons";
 import { PrereqCheckPage } from "./prereqCheckPage";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 import { locConstants } from "../../common/locConstants";
@@ -42,14 +37,6 @@ const useStyles = makeStyles({
         textWrap: "nowrap",
         marginTop: "20px",
         marginBottom: "20px",
-    },
-    stepsHeader: {
-        fontSize: "24px",
-        textAlign: "left",
-        flexWrap: "wrap",
-        lineHeight: "1.5",
-        marginBottom: "5px",
-        fontWeight: 500,
     },
     itemDiv: {
         position: "relative",
@@ -103,17 +90,14 @@ export const GetStartedPage: React.FC = () => {
             />
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
-                    <div className={classes.stepsHeader}>
-                        {locConstants.containerDeployment.getStartedPageHeader}
-                    </div>
                     <div className={classes.itemDiv}>
                         <DesktopCursor24Filled className={classes.icon} />
                         <div className={classes.textDiv}>
                             <div className={classes.titleDiv}>
-                                {locConstants.containerDeployment.oneClickServerSetup}
+                                {locConstants.containerDeployment.instantContainerSetup}
                             </div>
                             <div>
-                                {locConstants.containerDeployment.oneClickServerSetupDescription}
+                                {locConstants.containerDeployment.instantContainerDescription}
                             </div>
                         </div>
                     </div>
@@ -158,28 +142,6 @@ export const GetStartedPage: React.FC = () => {
                                 style={{ marginTop: "0px" }}>
                                 {locConstants.containerDeployment.configureAndCustomizeSqlServer}
                             </a>
-                        </div>
-                    </div>
-                    <div className={classes.itemDiv}>
-                        <TextBulletListCheckmark20Filled className={classes.icon} />
-                        <div className={classes.textDiv}>
-                            <div className={classes.titleDiv}>
-                                {locConstants.containerDeployment.simpleManagement}
-                            </div>
-                            <div>
-                                {locConstants.containerDeployment.simpleManagementDescription}
-                            </div>
-                        </div>
-                    </div>
-                    <div className={classes.itemDiv}>
-                        <Rocket24Filled className={classes.icon} />
-                        <div className={classes.textDiv}>
-                            <div className={classes.titleDiv}>
-                                {locConstants.containerDeployment.seamlessIntegration}
-                            </div>
-                            <div>
-                                {locConstants.containerDeployment.seamlessIntegrationDescription}
-                            </div>
                         </div>
                     </div>
                     <Button

@@ -51,7 +51,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             "containerDeployment",
             new cd.ContainerDeploymentWebviewState(),
             {
-                title: ContainerDeployment.webviewTitle,
+                title: ContainerDeployment.createLocalSqlContainer,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(

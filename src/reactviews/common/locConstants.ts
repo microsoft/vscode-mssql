@@ -733,13 +733,10 @@ export class LocConstants {
     public get containerDeployment() {
         return {
             loadingDeploymentPage: l10n.t("Loading deployment page..."),
-            sqlServerContainerHeader: l10n.t("Local SQL Server database container connection"),
-            getStartedPageHeader: l10n.t(
-                "Run SQL Server in a container, effortlessly from VS Code",
-            ),
-            oneClickServerSetup: l10n.t("One-Click Container Setup"),
-            oneClickServerSetupDescription: l10n.t(
-                "Launch a SQL Server container in seconds—no manual steps required.",
+            sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
+            instantContainerSetup: l10n.t("Instant Container Setup"),
+            instantContainerDescription: l10n.t(
+                "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.",
             ),
             simpleManagement: l10n.t("Simple Container Management"),
             simpleManagementDescription: l10n.t(
@@ -752,10 +749,6 @@ export class LocConstants {
             learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
             sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
             configureAndCustomizeSqlServer: l10n.t("Configure and customize SQL Server containers"),
-            seamlessIntegration: l10n.t("Seamless Integration"),
-            seamlessIntegrationDescription: l10n.t(
-                "Develop and interact with your containerized SQL Server— without leaving VS Code.",
-            ),
             getStarted: l10n.t("Get Started"),
             gettingDockerReady: l10n.t("Getting Docker Ready..."),
             checkingPrerequisites: l10n.t("Checking pre-requisites"),

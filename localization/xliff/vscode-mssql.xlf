@@ -336,6 +336,9 @@
     <trans-unit id="++CODE++4a41af1285aa71f4e677bc3fa729070b3c3c0af177cb4e9f12e34f1e21045894">
       <source xml:lang="en">Check Constraints</source>
     </trans-unit>
+    <trans-unit id="++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0">
+      <source xml:lang="en">Checking Docker Engine Configuration</source>
+    </trans-unit>
     <trans-unit id="++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4">
       <source xml:lang="en">Checking if Docker is installed</source>
     </trans-unit>
@@ -345,8 +348,11 @@
     <trans-unit id="++CODE++2341d1c3197fc3205cd4550c118259316a51c665389e9a3c74db361c6e11d83a">
       <source xml:lang="en">Checking if Docker is running on your machine. If not, we&apos;ll start it for you.</source>
     </trans-unit>
-    <trans-unit id="++CODE++1824e6ece39f647c406586db3aec65f664c5d721dd17e1facc45c4403160067e">
-      <source xml:lang="en">Checking if the Docker Engine is running on your machine. If not, we&apos;ll start it for you.</source>
+    <trans-unit id="++CODE++6be7e803f4291ec5e83f38d2789fd4ea6c31923cdf1eedfa48564e33708cc5d3">
+      <source xml:lang="en">Checking if Docker is started</source>
+    </trans-unit>
+    <trans-unit id="++CODE++741262e58e1274cef3f38a5aa8042fcf05db92d4ca8e9c9e573acd0e2242ba97">
+      <source xml:lang="en">Checking if the Docker Engine is configured correctly on your machine.</source>
     </trans-unit>
     <trans-unit id="++CODE++38ccc9db5b300e54116d6f6e8b8ee1420fea7792e8483c7368fdd964b6ecef0a">
       <source xml:lang="en">Checking pre-requisites</source>
@@ -603,8 +609,11 @@
     <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
       <source xml:lang="en">Create Firewall Rule</source>
     </trans-unit>
-    <trans-unit id="++CODE++2bae9e19a3cded02836026ddf9856650b494324b079e54a92bcaa68ad4780c8a">
-      <source xml:lang="en">Create Local Container Connection</source>
+    <trans-unit id="++CODE++f7450e89276bf601752a2ef286965fb13e17c418012b0aa68be16f8941cc7321">
+      <source xml:lang="en">Create Local SQL Container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
+      <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
     </trans-unit>
     <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
       <source xml:lang="en">Create a new firewall rule</source>
@@ -671,11 +680,8 @@
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
     </trans-unit>
-    <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
-      <source xml:lang="en">Deleting Container...</source>
-    </trans-unit>
-    <trans-unit id="++CODE++7b5d652644014b86b5e56f51de1015a8f01f76d5504cf9d4c8fd52ab522c36c1">
-      <source xml:lang="en">Deploy a local SQL Server Docker container</source>
+    <trans-unit id="++CODE++681f7fb4e6ef0bfec79351bb1231b203aab879961bf57c0e1e60afe6643330d6">
+      <source xml:lang="en">Deleting SQL Container...</source>
     </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
@@ -685,9 +691,6 @@
     </trans-unit>
     <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
       <source xml:lang="en">Details</source>
-    </trans-unit>
-    <trans-unit id="++CODE++2627a8bf71657dfb52145438b6b003c0511d15c0b1e07bd1d99bc440336a360f">
-      <source xml:lang="en">Develop and interact with your containerized SQL Server— without leaving VS Code.</source>
     </trans-unit>
     <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
       <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
@@ -1127,6 +1130,9 @@
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
     </trans-unit>
+    <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
+      <source xml:lang="en">Instant Container Setup</source>
+    </trans-unit>
     <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
       <source xml:lang="en">Integrated</source>
     </trans-unit>
@@ -1170,9 +1176,6 @@
     </trans-unit>
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a8a3297b399ffea1d6008e0cd1f801b6e7cddf90dfb037010bde1609ad6b46de">
-      <source xml:lang="en">Launch a SQL Server container in seconds—no manual steps required.</source>
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
@@ -1233,8 +1236,8 @@
     <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
       <source xml:lang="en">Loading...</source>
     </trans-unit>
-    <trans-unit id="++CODE++27057ff2389685a3fedbf518725fa77d635b5fa2124677143b96766fe00f0e8c">
-      <source xml:lang="en">Local SQL Server database container connection</source>
+    <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
+      <source xml:lang="en">Local SQL Server database container</source>
     </trans-unit>
     <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
       <source xml:lang="en">Location</source>
@@ -1451,9 +1454,6 @@
     </trans-unit>
     <trans-unit id="++CODE++53dbddd7bcdf5a51afae1447f034e76d78722d20c1d6d62002c00e19f68ea9b2">
       <source xml:lang="en">On Update Action</source>
-    </trans-unit>
-    <trans-unit id="++CODE++9aa44eecfd66422fe7a98fea431db40fc887dbfbece7fb398a370436a80ebf3f">
-      <source xml:lang="en">One-Click Container Setup</source>
     </trans-unit>
     <trans-unit id="++CODE++ed077f3d8125d60dca1979c7133601bd187d47c73ed9975028f677e49e709942">
       <source xml:lang="en">Open</source>
@@ -1717,9 +1717,6 @@
     <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
       <source xml:lang="en">Run Query History</source>
     </trans-unit>
-    <trans-unit id="++CODE++47172d6439e0db77078d01b2e3792e3a79c5f1be472be2539ba6a47e3d3e8ad6">
-      <source xml:lang="en">Run SQL Server in a container, effortlessly from VS Code</source>
-    </trans-unit>
     <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
       <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
     </trans-unit>
@@ -1824,9 +1821,6 @@
     </trans-unit>
     <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
       <source xml:lang="en">Script copied to clipboard</source>
-    </trans-unit>
-    <trans-unit id="++CODE++2468de9857dec991e09c843810eb03e9fa831ed3bc05ed59deae8674f4bcba7c">
-      <source xml:lang="en">Seamless Integration</source>
     </trans-unit>
     <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
       <source xml:lang="en">Search options...</source>
@@ -1996,14 +1990,8 @@
     <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
       <source xml:lang="en">Started saving results to </source>
     </trans-unit>
-    <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
-      <source xml:lang="en">Starting Container...</source>
-    </trans-unit>
-    <trans-unit id="++CODE++26e931032bc7932e0b673f8586025a7a3930db078f3aab5f9fb90d947673594c">
-      <source xml:lang="en">Starting Docker</source>
-    </trans-unit>
-    <trans-unit id="++CODE++89caff358dd06b198287328333de1a16f7a3563652cbb6df6b38b901d5d4b263">
-      <source xml:lang="en">Starting Docker Engine</source>
+    <trans-unit id="++CODE++2b8616f88fe2532e6c375bf4831274eae156298cde813fa6f7eac3b0c6b93208">
+      <source xml:lang="en">Starting SQL Container...</source>
     </trans-unit>
     <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
       <source xml:lang="en">Starting {0}...</source>
@@ -2015,8 +2003,8 @@
     <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
       <source xml:lang="en">Stop</source>
     </trans-unit>
-    <trans-unit id="++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9">
-      <source xml:lang="en">Stopping Container...</source>
+    <trans-unit id="++CODE++ce27a2a90f88c662b94d95c3c369d00e0c00418ae79ca2f92aa64b557f8e2ab5">
+      <source xml:lang="en">Stopping SQL Container...</source>
     </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>
@@ -2558,14 +2546,14 @@
     <trans-unit id="mssql.createAzureFunction">
       <source xml:lang="en">Create Azure Function with SQL binding</source>
     </trans-unit>
-    <trans-unit id="mssql.deployLocalDockerContainer">
-      <source xml:lang="en">Create a Local Container Connection</source>
-    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
       <source xml:lang="en">Create a Table with Table Designer</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
+    </trans-unit>
+    <trans-unit id="mssql.deployLocalDockerContainer">
+      <source xml:lang="en">Create local SQL Container</source>
     </trans-unit>
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>

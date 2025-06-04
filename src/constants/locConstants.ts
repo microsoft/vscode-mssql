@@ -734,7 +734,7 @@ export class QueryResult {
 }
 
 export class ContainerDeployment {
-    public static webviewTitle = l10n.t("Deploy a local SQL Server Docker container");
+    public static createLocalSqlContainer = l10n.t("Create Local SQL Container");
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({
             message: "{0} stopped successfully.",
@@ -810,16 +810,16 @@ export class ContainerDeployment {
     public static dockerInstallError = l10n.t(
         "Docker is not installed or not in PATH. Please install Docker Desktop and try again.",
     );
-    public static startDockerHeader = l10n.t("Starting Docker");
+    public static startDockerHeader = l10n.t("Checking if Docker is started");
     public static startDockerBody = l10n.t(
         "Checking if Docker is running on your machine. If not, we'll start it for you.",
     );
     public static dockerError = l10n.t(
         "Error running Docker commands. Please make sure Docker is running.",
     );
-    public static startDockerEngineHeader = l10n.t("Starting Docker Engine");
+    public static startDockerEngineHeader = l10n.t("Checking Docker Engine Configuration");
     public static startDockerEngineBody = l10n.t(
-        "Checking if the Docker Engine is running on your machine. If not, we'll start it for you.",
+        "Checking if the Docker Engine is configured correctly on your machine.",
     );
     public static creatingContainerHeader = l10n.t("Creating Container");
     public static creatingContainerBody = l10n.t(
@@ -866,10 +866,10 @@ export class ContainerDeployment {
     );
     public static installDocker = l10n.t("Install Docker");
     public static startDockerEngine = l10n.t("Start Docker Engine");
-    public static msgCreateLocalContainerConnection = l10n.t("Create Local Container Connection");
-    public static startingContainerLoadingLabel = l10n.t("Starting Container...");
-    public static stoppingContainerLoadingLabel = l10n.t("Stopping Container...");
-    public static deletingContainerLoadingLabel = l10n.t("Deleting Container...");
+    public static msgCreateLocalSqlContainer = l10n.t("Create Local SQL Container");
+    public static startingContainerLoadingLabel = l10n.t("Starting SQL Container...");
+    public static stoppingContainerLoadingLabel = l10n.t("Stopping SQL Container...");
+    public static deletingContainerLoadingLabel = l10n.t("Deleting SQL Container...");
     public static deleteContainerConfirmation = (containerName: string) => {
         return l10n.t({
             message:
