@@ -277,7 +277,7 @@ export async function checkEngine(): Promise<DockerCommandParams> {
 
     try {
         const stdout = await execCommand(engineCommand);
-        if (platform() === Platform.Windows && stdout.trim() !== "linux") {
+        if (platform() === Platform.Windows && stdout.trim() !== `'${Platform.Linux}'`) {
             const confirmation = await vscode.window.showInformationMessage(
                 ContainerDeployment.switchToLinuxContainersConfirmation,
                 { modal: true },
