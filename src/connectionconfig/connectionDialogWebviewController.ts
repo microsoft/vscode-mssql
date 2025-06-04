@@ -786,13 +786,29 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.connectionStatus = ApiStatus.Loaded;
 
             try {
-                // Log the node for debugging
+                // Log the connection details
+                this.logger.verbose(
+                    `Connection successful. Connection details: ${JSON.stringify({
+                        id: cleanedConnection.id,
+                        server: cleanedConnection.server,
+                        database: cleanedConnection.database,
+                        groupId: cleanedConnection.groupId,
+                    })}`,
+                );
+
+                // Log the node details
                 this.logger.verbose(
                     `Attempting to reveal node: ${JSON.stringify({
                         type: node?.constructor?.name,
                         label: node?.label,
                         path: node?.nodePath,
                         sessionId: node?.sessionId,
+                        parentNode: node?.parentNode
+                            ? {
+                                  type: node.parentNode?.constructor?.name,
+                                  label: node.parentNode?.label,
+                              }
+                            : undefined,
                     })}`,
                 );
 
@@ -802,7 +818,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     expand: true,
                 });
             } catch (revealError) {
-                this.logger.error(`Failed to reveal node in tree: ${getErrorMessage(revealError)}`);
+                this.logger.error(
+                    `Failed to reveal node in tree. Error: ${getErrorMessage(revealError)}`,
+                );
+                this.logger.error(
+                    `Node details at time of error: ${JSON.stringify({
+                        type: node?.constructor?.name,
+                        label: node?.label,
+                        path: node?.nodePath,
+                        sessionId: node?.sessionId,
+                        exists: !!node,
+                    })}`,
+                );
                 // Continue even if reveal fails - the connection was successful
                 this.vscodeWrapper.showInformationMessage(
                     `Connection successful, but couldn't highlight the connection in the Object Explorer.`,

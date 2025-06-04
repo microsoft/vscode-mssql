@@ -56,6 +56,11 @@ export class ConnectionNode extends TreeNodeInfo {
 
     protected override generateId(): string {
         return `${this.connectionProfile.id}_${Date.now()}`;
+
+        // Create a stable ID that doesn't change on each instantiation
+        const baseId = this.connectionProfile.id;
+        const groupId = this.connectionProfile.groupId || "default";
+        return `${baseId}_${groupId}`;
     }
 
     /**
