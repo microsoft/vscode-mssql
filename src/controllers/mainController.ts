@@ -489,6 +489,12 @@ export default class MainController implements vscode.Disposable {
 
             this.schemaDesignerService = new SchemaDesignerService(SqlToolsServerClient.instance);
 
+            this.connectionSharingService = new ConnectionSharingService(
+                this._context,
+                this._connectionMgr.client,
+                this._connectionMgr,
+            );
+
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
                 this._vscodeWrapper,

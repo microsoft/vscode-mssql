@@ -2480,7 +2480,7 @@ declare module "vscode-mssql" {
          * @returns The connection URI if the connection is established successfully.
          * @throws Error if the connection cannot be established.
          */
-        connect(extensionId: string, connectionId: string): string;
+        connect(extensionId: string, connectionId: string): Promise<string | undefined>;
         /**
          * Disconnect from a connection using the connection URI.
          * @param connectionUri The URI of the connection to disconnect from.
@@ -2504,6 +2504,6 @@ declare module "vscode-mssql" {
          * @param connectionUri The URI of the connection to get server information from.
          * @returns A promise that resolves with the server information.
          */
-        getServerInfo(connectionUri: string): Promise<mssql.ServerInfo>;
+        getServerInfo(connectionUri: string): mssql.IServerInfo;
     }
 }
