@@ -866,7 +866,7 @@ export class ContainerDeployment {
     );
     public static installDocker = l10n.t("Install Docker");
     public static startDockerEngine = l10n.t("Start Docker Engine");
-    public static msgAddLocalContainerConnection = l10n.t("Add Local Container Connection");
+    public static msgCreateLocalContainerConnection = l10n.t("Create Local Container Connection");
     public static startingContainerLoadingLabel = l10n.t("Starting Container...");
     public static stoppingContainerLoadingLabel = l10n.t("Stopping Container...");
     public static deletingContainerLoadingLabel = l10n.t("Deleting Container...");
@@ -878,6 +878,12 @@ export class ContainerDeployment {
             comment: ["{0} is the container name"],
         });
     };
+    public static switchToLinuxContainersConfirmation = l10n.t(
+        "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
+    );
+    public static switchToLinuxContainersCanceled = l10n.t(
+        "Switching to Linux containers was canceled. SQL Server only supports Linux containers.",
+    );
 }
 
 export class UserSurvey {

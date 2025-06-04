@@ -3222,7 +3222,7 @@ suite("OE Service Tests", () => {
             // Setup getAddConnectionNodes to return a mock nodes
             const mockAddConnectionNodes = [
                 { label: "Add Connection" },
-                { label: "Add Local Container Connection" },
+                { label: "Create Local Container Connection" },
             ];
             (objectExplorerService as any).getAddConnectionNodes = sandbox.stub();
             (objectExplorerService as any).getAddConnectionNodes.returns(mockAddConnectionNodes);
@@ -3440,7 +3440,7 @@ suite("OE Service Tests", () => {
             // Setup getAddConnectionNodes to return a mock node
             const mockAddConnectionNodes = [
                 { label: "Add Connection" },
-                { label: "Add Local Container Connection" },
+                { label: "Create Local Container Connection" },
             ];
             (objectExplorerService as any).getAddConnectionNodes = sandbox.stub();
             (objectExplorerService as any).getAddConnectionNodes.returns(mockAddConnectionNodes);

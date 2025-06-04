@@ -12,11 +12,11 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 export class AddLocalContainerConnectionTreeNode extends vscode.TreeItem {
     constructor() {
         super(
-            LocalizedConstants.ContainerDeployment.msgAddLocalContainerConnection,
+            LocalizedConstants.ContainerDeployment.msgCreateLocalContainerConnection,
             vscode.TreeItemCollapsibleState.None,
         );
         this.command = {
-            title: LocalizedConstants.ContainerDeployment.msgAddLocalContainerConnection,
+            title: LocalizedConstants.ContainerDeployment.msgCreateLocalContainerConnection,
             command: Constants.cmdDeployLocalDockerContainer,
         };
         this.iconPath = {

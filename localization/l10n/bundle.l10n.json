@@ -1263,7 +1263,7 @@
   "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
   "Install Docker": "Install Docker",
   "Start Docker Engine": "Start Docker Engine",
-  "Add Local Container Connection": "Add Local Container Connection",
+  "Create Local Container Connection": "Create Local Container Connection",
   "Starting Container...": "Starting Container...",
   "Stopping Container...": "Stopping Container...",
   "Deleting Container...": "Deleting Container...",
@@ -1273,6 +1273,8 @@
       "{0} is the container name"
     ]
   },
+  "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?": "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
+  "Switching to Linux containers was canceled. SQL Server only supports Linux containers.": "Switching to Linux containers was canceled. SQL Server only supports Linux containers.",
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",

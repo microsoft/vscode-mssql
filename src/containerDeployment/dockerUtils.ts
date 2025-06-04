@@ -21,7 +21,7 @@ import {
     localhostIP,
     Platform,
 } from "../constants/constants";
-import { ContainerDeployment } from "../constants/locConstants";
+import { ContainerDeployment, msgYes } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import * as path from "path";
@@ -63,11 +63,12 @@ export const COMMANDS = {
         darwin: "open -a Docker",
         linux: "systemctl start docker",
     }),
-    CHECK_ENGINE: (path: string) => ({
-        win32: `powershell -Command "& \\"${path}\\" -SwitchLinuxEngine"`,
+    CHECK_ENGINE: {
+        win32: `docker info --format '{{.OSType}}'`,
         darwin: `cat "${process.env.HOME}/Library/Group Containers/group.com.docker/settings-store.json" | grep '"UseVirtualizationFrameworkRosetta": true' || exit 1`,
         linux: "docker ps",
-    }),
+    },
+    SWITCH_ENGINE: (path: string) => `powershell -Command "& \\"${path}\\" -SwitchLinuxEngine"`,
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
     START_SQL_SERVER: (
@@ -266,7 +267,7 @@ export async function checkEngine(): Promise<DockerCommandParams> {
         dockerCliPath = await getDockerPath("DockerCli.exe");
     }
 
-    const engineCommand = COMMANDS.CHECK_ENGINE(dockerCliPath)[platform()];
+    const engineCommand = COMMANDS.CHECK_ENGINE[platform()];
     if (engineCommand === undefined) {
         return {
             success: false,
@@ -275,7 +276,19 @@ export async function checkEngine(): Promise<DockerCommandParams> {
     }
 
     try {
-        await execCommand(engineCommand);
+        const stdout = await execCommand(engineCommand);
+        if (platform() === Platform.Windows && stdout.trim() !== "linux") {
+            const confirmation = await vscode.window.showInformationMessage(
+                ContainerDeployment.switchToLinuxContainersConfirmation,
+                { modal: true },
+                msgYes,
+            );
+            if (confirmation === msgYes) {
+                await execCommand(COMMANDS.SWITCH_ENGINE(dockerCliPath));
+            } else {
+                throw new Error(ContainerDeployment.switchToLinuxContainersCanceled);
+            }
+        }
         return { success: true };
     } catch (e) {
         return {

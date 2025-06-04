@@ -67,9 +67,6 @@
       <source xml:lang="en">Add Firewall Rule to {0}</source>
       <note>{0} is the server name</note>
     </trans-unit>
-    <trans-unit id="++CODE++7b3b3a5685d28fe499ac564842e36566bcd889ae3775d278ffdae095ce554c42">
-      <source xml:lang="en">Add Local Container Connection</source>
-    </trans-unit>
     <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
       <source xml:lang="en">Add Table</source>
     </trans-unit>
@@ -605,6 +602,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
       <source xml:lang="en">Create Firewall Rule</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2bae9e19a3cded02836026ddf9856650b494324b079e54a92bcaa68ad4780c8a">
+      <source xml:lang="en">Create Local Container Connection</source>
     </trans-unit>
     <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
       <source xml:lang="en">Create a new firewall rule</source>
@@ -2054,6 +2054,9 @@
     <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
       <source xml:lang="en">Switch to MSAL</source>
     </trans-unit>
+    <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
+      <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
+    </trans-unit>
     <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
       <source xml:lang="en">Table</source>
     </trans-unit>
@@ -2306,6 +2309,9 @@
     <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
       <source xml:lang="en">You must review and accept the terms to proceed</source>
     </trans-unit>
+    <trans-unit id="++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe">
+      <source xml:lang="en">Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?</source>
+    </trans-unit>
     <trans-unit id="++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4">
       <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
       <note>{0} is the resource</note>
@@ -2552,6 +2558,9 @@
     <trans-unit id="mssql.createAzureFunction">
       <source xml:lang="en">Create Azure Function with SQL binding</source>
     </trans-unit>
+    <trans-unit id="mssql.deployLocalDockerContainer">
+      <source xml:lang="en">Create a Local Container Connection</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.title">
       <source xml:lang="en">Create a Table with Table Designer</source>
     </trans-unit>
@@ -2563,9 +2572,6 @@
     </trans-unit>
     <trans-unit id="mssql.deleteContainer">
       <source xml:lang="en">Delete Container</source>
-    </trans-unit>
-    <trans-unit id="mssql.deployLocalDockerContainer">
-      <source xml:lang="en">Deploy a SQL Server Docker Container</source>
     </trans-unit>
     <trans-unit id="mssql.designSchema">
       <source xml:lang="en">Design Schema (Preview)</source>

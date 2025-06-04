@@ -186,7 +186,7 @@
     "mssql.userFeedback": "Give Feedback",
     "mssql.selectedAzureSubscriptions": "Selected Azure subscriptions for browsing and managing servers and databases",
     "mssql.designSchema": "Design Schema (Preview)",
-    "mssql.deployLocalDockerContainer": "Deploy a SQL Server Docker Container",
+    "mssql.deployLocalDockerContainer": "Create a Local Container Connection",
     "mssql.stopContainer": "Stop Container",
     "mssql.deleteContainer": "Delete Container",
     "mssql.startContainer": "Start Container",
