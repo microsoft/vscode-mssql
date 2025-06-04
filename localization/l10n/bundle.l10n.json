@@ -1291,6 +1291,12 @@
   },
   "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
+  "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
+    "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
+    "comment": [
+      "{0} is the extension name"
+    ]
+  },
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

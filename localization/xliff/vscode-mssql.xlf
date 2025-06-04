@@ -1911,6 +1911,10 @@
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dcf10fd537a0660c98f1a3890997024dfebb2ac795ee02dcbc7581ec4a0fe141">
+      <source xml:lang="en">The extension &apos;{0}&apos; is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.</source>
+      <note>{0} is the extension name</note>
+    </trans-unit>
     <trans-unit id="++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e">
       <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
