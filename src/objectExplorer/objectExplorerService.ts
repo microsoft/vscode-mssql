@@ -461,14 +461,20 @@ export class ObjectExplorerService {
             if (connection.groupId && newConnectionGroupNodes.has(connection.groupId)) {
                 const groupNode = newConnectionGroupNodes.get(connection.groupId);
 
-                const connectionNode = new ConnectionNode(
-                    connection,
-                    groupNode.id === rootNode.id ? undefined : groupNode,
-                );
+                let connectionNode: ConnectionNode;
 
                 if (this._connectionNodes.has(connection.id)) {
-                    connectionNode.id = this._connectionNodes.get(connection.id).id;
+                    connectionNode = this._connectionNodes.get(connection.id);
+                    connectionNode.updateConnectionProfile(connection);
+                    connectionNode.label = getConnectionDisplayName(connection);
+                } else {
+                    connectionNode = new ConnectionNode(
+                        connection,
+                        groupNode.id === rootNode.id ? undefined : groupNode,
+                    );
                 }
+
+                connectionNode.parentNode = groupNode.id === rootNode.id ? undefined : groupNode;
 
                 newConnectionNodes.set(connection.id, connectionNode);
                 groupNode.addChild(connectionNode);
