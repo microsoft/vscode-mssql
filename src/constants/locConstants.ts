@@ -1013,3 +1013,14 @@ export class MssqlChatAgent {
 export class QueryEditor {
     public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
 }
+
+export class ConnectionSharing {
+    public static connectionSharingRequestNotification(extensionName: string) {
+        return l10n.t({
+            message:
+                "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    }
+}

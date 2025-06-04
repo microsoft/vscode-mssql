@@ -68,6 +68,7 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../chat/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 
 /**
  * The main controller class that initializes the extension
@@ -107,6 +108,7 @@ export default class MainController implements vscode.Disposable {
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
+    public connectionSharingService: ConnectionSharingService;
 
     /**
      * The main controller constructor
