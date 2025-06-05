@@ -12,7 +12,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import { platform } from "os";
+import * as os from "os";
 import { FormItemType } from "../../src/sharedInterfaces/form";
 import * as dockerUtils from "../../src/containerDeployment/dockerUtils";
 import {
@@ -20,6 +20,7 @@ import {
     DockerStepOrder,
 } from "../../src/sharedInterfaces/containerDeploymentInterfaces";
 import * as telemetry from "../../src/telemetry/telemetry";
+import { AddLocalContainerConnectionTreeNode } from "../../src/containerDeployment/addLocalContainerConnectionTreeNode";
 
 suite("ContainerDeploymentWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -94,7 +95,7 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.strictEqual(controllerState.loadState, ApiStatus.Loaded);
         assert.strictEqual(controllerState.formState.version, "2025");
         assert.strictEqual(controllerState.formState.user, "SA");
-        assert.strictEqual(controllerState.platform, platform());
+        assert.strictEqual(controllerState.platform, os.platform());
         assert.strictEqual(Object.keys(controllerState.formComponents).length, 8);
         assert.strictEqual(controllerState.dockerSteps.length, 6);
     });
@@ -503,5 +504,30 @@ suite("ContainerDeploymentWebviewController", () => {
 
         assert.strictEqual(result, true, "Should return true on success");
         sendActionEventStub.restore();
+    });
+});
+
+suite("Add Local Container Connection Node", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+    test("Verify addLocalContainerConnectionNode", async () => {
+        const node = new AddLocalContainerConnectionTreeNode();
+        assert.strictEqual(
+            node.label,
+            "Create Local SQL Container",
+            "Node label should match expected value",
+        );
+        assert.strictEqual(
+            node.command?.command,
+            "mssql.deployLocalDockerContainer",
+            "Node command should match expected value",
+        );
     });
 });

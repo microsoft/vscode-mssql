@@ -64,7 +64,7 @@ export const COMMANDS = {
         linux: "systemctl start docker",
     }),
     CHECK_ENGINE: {
-        win32: `docker context show`,
+        win32: `docker info --format '{{.OSType}}'`,
         darwin: `cat "${process.env.HOME}/Library/Group Containers/group.com.docker/settings-store.json" | grep '"UseVirtualizationFrameworkRosetta": true' || exit 1`,
         linux: "docker ps",
     },
@@ -179,15 +179,6 @@ export function truncateErrorTextIfNeeded(errorText: string): string {
 }
 
 /**
- * Container image versions available for SQL Server.
- */
-export const sqlVersions: FormItemOptions[] = [
-    { displayName: "SQL Server 2025", value: "2025" },
-    { displayName: "SQL Server 2022", value: "2022" },
-    { displayName: "SQL Server 2019", value: "2019" },
-];
-
-/**
  * Checks if the SQL Server password meets the complexity requirements.
  * If the password is valid, it returns the validation message, which is an empty string.
  * If the password is invalid, it returns an error message.
@@ -278,7 +269,7 @@ export async function checkEngine(): Promise<DockerCommandParams> {
 
     try {
         const stdout = await execCommand(engineCommand);
-        if (platform() === Platform.Windows && stdout.trim() !== `desktop-${Platform.Linux}`) {
+        if (platform() === Platform.Windows && stdout.trim() !== `'${Platform.Linux}'`) {
             const confirmation = await vscode.window.showInformationMessage(
                 ContainerDeployment.switchToLinuxContainersConfirmation,
                 { modal: true },
