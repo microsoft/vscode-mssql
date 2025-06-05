@@ -19,10 +19,6 @@ import { createSqlAgentRequestHandler, ISqlChatResult } from "./chat/chatAgentRe
 import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
-import {
-    IConnectionSharingService,
-    SimpleExecuteResult,
-} from "./connectionSharing/connectionSharingService";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -143,7 +139,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         getServerInfo: (connectionInfo: IConnectionInfo) => {
             return controller.connectionManager.getServerInfo(connectionInfo);
         },
-        connectionSharing: <IConnectionSharingService>{
+        connectionSharing: <vscodeMssql.IConnectionSharingService>{
             getConnectionIdForActiveEditor: (extensionId: string) => {
                 return controller.connectionSharingService.getConnectionIdForActiveEditor(
                     extensionId,
@@ -161,7 +157,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
             executeSimpleQuery: (
                 connectionUri: string,
                 queryString: string,
-            ): Promise<SimpleExecuteResult> => {
+            ): Promise<vscodeMssql.SimpleExecuteResult> => {
                 return controller.connectionSharingService.executeSimpleQuery(
                     connectionUri,
                     queryString,

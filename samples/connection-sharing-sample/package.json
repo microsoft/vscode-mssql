@@ -1,6 +1,7 @@
 {
   "name": "connection-sharing-sample",
   "displayName": "Connection Sharing Sample",
+  "publisher": "ms-mssql",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -14,8 +15,24 @@
   "contributes": {
     "commands": [
       {
-        "command": "connection-sharing-sample.helloWorld",
-        "title": "Hello World"
+        "command": "connection-sharing-sample.commands",
+        "title": "Connection sharing using commands",
+        "category": "ConnSharing"
+      },
+      {
+        "command": "connection-sharing-sample.apis",
+        "title": "Connection sharing using APIs",
+        "category": "ConnSharing"
+      },
+      {
+        "command": "connection-sharing-sample.availableConnections",
+        "title": "Show a count of available connections",
+        "category": "ConnSharing"
+      },
+      {
+        "command": "connection-sharing-sample.requestApproval",
+        "title": "Request Approval for Connection Sharing",
+        "category": "ConnSharing"
       }
     ]
   },
@@ -34,8 +51,6 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.100.0",
-    "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",

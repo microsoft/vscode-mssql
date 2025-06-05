@@ -1047,6 +1047,11 @@
                 "command": "mssql.connectionSharing.editConnectionSharingPermissions",
                 "title": "Edit connection sharing permissions",
                 "category": "MSSQL"
+            },
+            {
+                "command": "mssql.connectionSharing.clearAllConnectionSharingPermissions",
+                "title": "Clear All Connection Sharing Permissions",
+                "category": "MSSQL"
             }
         ],
         "keybindings": [

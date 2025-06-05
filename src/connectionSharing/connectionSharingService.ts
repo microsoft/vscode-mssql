@@ -7,7 +7,7 @@ import * as mssql from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
-import { DbCellValue, IConnectionProfile, IDbColumn } from "../models/interfaces";
+import { IConnectionProfile } from "../models/interfaces";
 import { generateGuid } from "../models/utils";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
@@ -18,59 +18,7 @@ type ConnectionSharingApproval = "approved" | "denied";
 // Map of extension IDs to connection sharing approval status
 type ConnectionSharingApprovalMap = Record<string, ConnectionSharingApproval>;
 
-/**
- * Interface for connection sharing service
- * This service allows external extensions to use connections established by the mssql extension.
- */
-export interface IConnectionSharingService {
-    /**
-     * Get the connection ID for the active editor.
-     * @param extensionId The ID of the extension.
-     * @returns The connection ID if an active editor is connected, or undefined if there is no active editor or the editor is not connected.
-     */
-    getConnectionIdForActiveEditor(extensionId: string): string | undefined;
-    /**
-     * Connect to an existing connection using the connection ID.
-     * This will return the connection URI if successful.
-     * @param extensionId The ID of the extension.
-     * @param connectionId The ID of the connection.
-     * @returns The connection URI if the connection is established successfully.
-     * @throws Error if the connection cannot be established.
-     */
-    connect(extensionId: string, connectionId: string): Promise<string | undefined>;
-    /**
-     * Disconnect from a connection using the connection URI.
-     * @param connectionUri The URI of the connection to disconnect from.
-     */
-    disconnect(connectionUri: string): void;
-    /**
-     * Check if a connection is currently established using the connection URI.
-     * @param connectionUri The URI of the connection to check.
-     * @returns True if the connection is established, false otherwise.
-     */
-    isConnected(connectionUri: string): boolean;
-    /**
-     * Execute a simple query on the database using the connection URI.
-     * @param connectionUri The URI of the connection to use for executing the query.
-     * @param queryString The SQL query to execute.
-     * @returns A promise that resolves with the result of the query execution.
-     */
-    executeSimpleQuery(connectionUri: string, queryString: string): Promise<SimpleExecuteResult>;
-    /**
-     * Get server information using the connection URI.
-     * @param connectionUri The URI of the connection to get server information from.
-     * @returns A promise that resolves with the server information.
-     */
-    getServerInfo(connectionUri: string): mssql.IServerInfo;
-}
-
-export interface SimpleExecuteResult {
-    rowCount: number;
-    columnInfo: IDbColumn[];
-    rows: DbCellValue[][];
-}
-
-export class ConnectionSharingService implements IConnectionSharingService {
+export class ConnectionSharingService implements mssql.IConnectionSharingService {
     constructor(
         private context: vscode.ExtensionContext,
         private _client: SqlToolsServiceClient,
@@ -123,13 +71,26 @@ export class ConnectionSharingService implements IConnectionSharingService {
         context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.editConnectionSharingPermissions",
-                async () => this.editConnectionSharingPermissions(),
+                async (extensionId?: string) => this.editConnectionSharingPermissions(extensionId),
+            ),
+        );
+
+        context.subscriptions.push(
+            vscode.commands.registerCommand(
+                "mssql.connectionSharing.clearAllConnectionSharingPermissions",
+                async () => {
+                    await this.setApprovedExtensions({});
+                    vscode.window.showInformationMessage(
+                        "All connection sharing permissions have been cleared.",
+                    );
+                },
             ),
         );
     }
 
     private async getExtensionPermissionsList(): Promise<ConnectionSharingApprovalMap> {
         const serializedList = await this.context.secrets.get(CONNECTION_SHARING_PERMISSIONS_KEY);
+        console.log("serializedList", serializedList);
         if (!serializedList) {
             // If no approved extensions are found, initialize with an empty array
             await this.context.secrets.store(
@@ -150,55 +111,45 @@ export class ConnectionSharingService implements IConnectionSharingService {
 
     private async getConnectionSharingApproval(
         extensionId: string,
-    ): Promise<ConnectionSharingApproval> {
+    ): Promise<ConnectionSharingApproval | undefined> {
         const approvedExtensions = await this.getExtensionPermissionsList();
+        console.log("approvedExtensions", approvedExtensions);
         return approvedExtensions[extensionId];
     }
 
-    public async requestConnectionSharingApproval(extensionId: string): Promise<boolean> {
+    private async requestConnectionSharingApproval(extensionId: string): Promise<boolean> {
         const currentApproval = await this.getConnectionSharingApproval(extensionId);
-        switch (currentApproval) {
-            case "approved":
-                return true; // Already approved
-            case "denied":
-                return false; // Already denied
-            default:
-                const addToApprovedRequest = await vscode.window.showInformationMessage(
-                    LocalizedConstants.ConnectionSharing.connectionSharingRequestNotification(
-                        extensionId,
-                    ),
-                    {},
-                    "Approve",
-                    "Deny",
-                    "Clear",
-                );
+        if (currentApproval === "approved") {
+            return true; // Already approved
+        } else if (currentApproval === "denied") {
+            return false; // Already denied
+        } else {
+            console.log("Default case for connection sharing approval");
+            const addToApprovedRequest = await vscode.window.showInformationMessage(
+                LocalizedConstants.ConnectionSharing.connectionSharingRequestNotification(
+                    extensionId,
+                ),
+                {},
+                "Approve",
+                "Deny",
+            );
 
-                switch (addToApprovedRequest) {
-                    case "Approve":
-                        await this.updateExtensionApproval(extensionId, "approved");
-                        return true;
-                    case "Deny":
-                        await this.updateExtensionApproval(extensionId, "denied");
-                        return false;
-                    case "Clear":
-                        // Clear the approval for this extension
-                        const currentPermissions = await this.getExtensionPermissionsList();
-                        delete currentPermissions[extensionId];
-                        await this.setApprovedExtensions(currentPermissions);
-                        return false; // Default to false if cleared
-                    default:
-                        // User canceled the action
-                        if (currentApproval === undefined) {
-                            // If no previous approval, default to false
-                            return false;
-                        }
-                        return false;
-                }
-                return false; // Default to false if no action taken
+            if (!addToApprovedRequest) {
+                // User canceled the action
+                return false;
+            }
+            switch (addToApprovedRequest) {
+                case "Approve":
+                    await this.updateExtensionApproval(extensionId, "approved");
+                    return true;
+                case "Deny":
+                    await this.updateExtensionApproval(extensionId, "denied");
+                    return false;
+            }
         }
     }
 
-    private async editConnectionSharingPermissions(): Promise<void> {
+    private async editConnectionSharingPermissions(extensionId?: string): Promise<void> {
         const extensionsQuickPickItems: vscode.QuickPickItem[] = vscode.extensions.all.map(
             (extension) => {
                 return {
@@ -208,18 +159,20 @@ export class ConnectionSharingService implements IConnectionSharingService {
             },
         );
 
-        const selectedExtension = await vscode.window.showQuickPick(extensionsQuickPickItems, {
-            canPickMany: false,
-            placeHolder: "Select an extension to edit connection sharing permissions",
-        });
-
-        if (!selectedExtension) {
-            return; // User canceled the selection
+        if (!extensionId) {
+            extensionId = (
+                await vscode.window.showQuickPick(extensionsQuickPickItems, {
+                    canPickMany: false,
+                    placeHolder: "Select an extension to edit connection sharing permissions",
+                })
+            ).detail;
         }
 
-        const extensionId = selectedExtension.detail;
+        console.log("selectedExtensionId", extensionId);
 
         const currentApproval = await this.getConnectionSharingApproval(extensionId);
+
+        console.log("currentApproval", currentApproval);
 
         const newPermission = await vscode.window.showQuickPick(
             [
@@ -240,6 +193,8 @@ export class ConnectionSharingService implements IConnectionSharingService {
                 )}`,
             },
         );
+
+        console.log("newPermission", newPermission);
 
         if (!newPermission) {
             return; // User canceled the selection
@@ -271,7 +226,9 @@ export class ConnectionSharingService implements IConnectionSharingService {
     public getConnectionIdForActiveEditor(extensionId: string): string | undefined {
         const approved = this.requestConnectionSharingApproval(extensionId);
         if (!approved) {
-            return undefined; // Connection sharing not approved for this extension
+            throw new Error(
+                `Connection sharing not approved for extension ${extensionId}. Please approve the extension to share connections.`,
+            );
         }
 
         const activeEditor = vscode.window.activeTextEditor;
@@ -294,6 +251,12 @@ export class ConnectionSharingService implements IConnectionSharingService {
     }
 
     public async connect(extensionId: string, connectionId: string): Promise<string | undefined> {
+        const approved = await this.requestConnectionSharingApproval(extensionId);
+        if (!approved) {
+            throw new Error(
+                `Connection sharing not approved for extension ${extensionId}. Please approve the extension to share connections.`,
+            );
+        }
         const connections =
             await this._connectionManager.connectionStore.connectionConfig.getConnections(false);
         const connection = connections.find((conn) => conn.id === connectionId);
@@ -323,11 +286,11 @@ export class ConnectionSharingService implements IConnectionSharingService {
     public async executeSimpleQuery(
         connectionUri: string,
         queryString: string,
-    ): Promise<SimpleExecuteResult> {
+    ): Promise<mssql.SimpleExecuteResult> {
         const result = await this._client.sendRequest(
             new RequestType<
                 { ownerUri: string; queryString: string },
-                SimpleExecuteResult,
+                mssql.SimpleExecuteResult,
                 void,
                 void
             >("query/simpleexecute"),

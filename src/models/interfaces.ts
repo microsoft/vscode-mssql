@@ -180,52 +180,15 @@ export interface IAzureSignInQuickPickItem extends vscode.QuickPickItem {
     command: string;
 }
 
-export class DbCellValue {
-    displayValue: string;
-    isNull: boolean;
-}
-
 export class ResultSetSubset {
     rowCount: number;
-    rows: DbCellValue[][];
-}
-
-export interface IDbColumn {
-    allowDBNull?: boolean;
-    baseCatalogName: string;
-    baseColumnName: string;
-    baseSchemaName: string;
-    baseServerName: string;
-    baseTableName: string;
-    columnName: string;
-    columnOrdinal?: number;
-    columnSize?: number;
-    isAliased?: boolean;
-    isAutoIncrement?: boolean;
-    isExpression?: boolean;
-    isHidden?: boolean;
-    isIdentity?: boolean;
-    isKey?: boolean;
-    isBytes?: boolean;
-    isChars?: boolean;
-    isSqlVariant?: boolean;
-    isUdt?: boolean;
-    dataType: string;
-    isXml?: boolean;
-    isJson?: boolean;
-    isLong?: boolean;
-    isReadOnly?: boolean;
-    isUnique?: boolean;
-    numericPrecision?: number;
-    numericScale?: number;
-    udtAssemblyQualifiedName: string;
-    dataTypeName: string;
+    rows: vscodeMssql.DbCellValue[][];
 }
 
 export class ResultSetSummary {
     id: number;
     rowCount: number;
-    columnInfo: IDbColumn[];
+    columnInfo: vscodeMssql.IDbColumn[];
 }
 
 export class BatchSummary {

@@ -2464,4 +2464,106 @@ declare module "vscode-mssql" {
             }
         }
     }
+
+    export class DbCellValue {
+        displayValue: string;
+        isNull: boolean;
+    }
+
+    export interface IDbColumn {
+        allowDBNull?: boolean;
+        baseCatalogName: string;
+        baseColumnName: string;
+        baseSchemaName: string;
+        baseServerName: string;
+        baseTableName: string;
+        columnName: string;
+        columnOrdinal?: number;
+        columnSize?: number;
+        isAliased?: boolean;
+        isAutoIncrement?: boolean;
+        isExpression?: boolean;
+        isHidden?: boolean;
+        isIdentity?: boolean;
+        isKey?: boolean;
+        isBytes?: boolean;
+        isChars?: boolean;
+        isSqlVariant?: boolean;
+        isUdt?: boolean;
+        dataType: string;
+        isXml?: boolean;
+        isJson?: boolean;
+        isLong?: boolean;
+        isReadOnly?: boolean;
+        isUnique?: boolean;
+        numericPrecision?: number;
+        numericScale?: number;
+        udtAssemblyQualifiedName: string;
+        dataTypeName: string;
+    }
+
+    export interface SimpleExecuteResult {
+        /**
+         * Count of rows returned by the query.
+         */
+        rowCount: number;
+        /**
+         * Column information for the result set.
+         */
+        columnInfo: IDbColumn[];
+        /**
+         * Rows returned by the query.
+         * Each row is an array of DbCellValue, representing the values of each column in that row.
+         */
+        rows: DbCellValue[][];
+    }
+
+    /**
+     * Interface for connection sharing service
+     * This service allows external extensions to use connections established by the mssql extension.
+     */
+    export interface IConnectionSharingService {
+        /**
+         * Get the connection ID for the active editor.
+         * @param extensionId The ID of the extension.
+         * @returns The connection ID if an active editor is connected, or undefined if there is no active editor or the editor is not connected.
+         */
+        getConnectionIdForActiveEditor(extensionId: string): string | undefined;
+        /**
+         * Connect to an existing connection using the connection ID.
+         * This will return the connection URI if successful.
+         * @param extensionId The ID of the extension.
+         * @param connectionId The ID of the connection.
+         * @returns The connection URI if the connection is established successfully.
+         * @throws Error if the connection cannot be established.
+         */
+        connect(extensionId: string, connectionId: string): Promise<string | undefined>;
+        /**
+         * Disconnect from a connection using the connection URI.
+         * @param connectionUri The URI of the connection to disconnect from.
+         */
+        disconnect(connectionUri: string): void;
+        /**
+         * Check if a connection is currently established using the connection URI.
+         * @param connectionUri The URI of the connection to check.
+         * @returns True if the connection is established, false otherwise.
+         */
+        isConnected(connectionUri: string): boolean;
+        /**
+         * Execute a simple query on the database using the connection URI.
+         * @param connectionUri The URI of the connection to use for executing the query.
+         * @param queryString The SQL query to execute.
+         * @returns A promise that resolves with the result of the query execution.
+         */
+        executeSimpleQuery(
+            connectionUri: string,
+            queryString: string,
+        ): Promise<SimpleExecuteResult>;
+        /**
+         * Get server information using the connection URI.
+         * @param connectionUri The URI of the connection to get server information from.
+         * @returns A promise that resolves with the server information.
+         */
+        getServerInfo(connectionUri: string): IServerInfo;
+    }
 }
