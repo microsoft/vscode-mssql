@@ -1067,8 +1067,8 @@
                 "when": "mssql.enableRichExperiences",
                 "category": "MS SQL",
                 "icon": {
-                    "dark": "media/newTable_dark.svg",
-                    "light": "media/newTable_light.svg"
+                    "dark": "media/newContainer_dark.svg",
+                    "light": "media/newContainer_light.svg"
                 }
             },
             {

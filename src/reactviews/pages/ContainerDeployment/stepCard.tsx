@@ -11,7 +11,7 @@ import {
     Circle20Regular,
     Dismiss20Regular,
 } from "@fluentui/react-icons";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { DockerStep } from "../../../sharedInterfaces/containerDeploymentInterfaces";
@@ -64,12 +64,19 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     const state = useContext(ContainerDeploymentContext);
     const [expanded, setExpanded] = useState(false);
     const [showFullErrorText, setShowFullErrorText] = useState(false);
+    const prevStepFailedText = locConstants.containerDeployment.previousStepFailed;
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
     if (!state) {
         return undefined;
     }
+
+    useEffect(() => {
+        if (step.loadState === ApiStatus.Error && step.errorMessage !== prevStepFailedText) {
+            setExpanded(true);
+        }
+    }, [state.state]);
 
     const getStatusIcon = () => {
         if (step.loadState === ApiStatus.NotStarted) {
@@ -105,23 +112,25 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
                     {step.loadState === ApiStatus.Error ? step.errorMessage : step.bodyText}
 
                     {/* If step.errorLink is defined and API is in error, render it */}
-                    {step.loadState === ApiStatus.Error && step.errorLink && (
-                        <div className={classes.topSpace}>
-                            <a
-                                href={step.errorLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={classes.topSpace}>
-                                {step.errorLinkText}
-                            </a>
-                        </div>
-                    )}
+                    {step.loadState === ApiStatus.Error &&
+                        step.errorLink &&
+                        step.errorMessage !== prevStepFailedText && (
+                            <div className={classes.topSpace}>
+                                <a
+                                    href={step.errorLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={classes.topSpace}>
+                                    {step.errorLinkText}
+                                </a>
+                            </div>
+                        )}
                     <div className={classes.topSpace}>
-                        {showFullErrorText && (
+                        {showFullErrorText && step.errorMessage !== prevStepFailedText && (
                             <div style={{ marginBottom: "8px" }}>{step.fullErrorText}</div>
                         )}
 
-                        {step.fullErrorText && (
+                        {step.fullErrorText && step.errorMessage !== prevStepFailedText && (
                             <a onClick={() => setShowFullErrorText(!showFullErrorText)}>
                                 {showFullErrorText
                                     ? locConstants.containerDeployment.hideFullErrorMessage

@@ -680,8 +680,8 @@
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
     </trans-unit>
-    <trans-unit id="++CODE++681f7fb4e6ef0bfec79351bb1231b203aab879961bf57c0e1e60afe6643330d6">
-      <source xml:lang="en">Deleting SQL Container...</source>
+    <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
+      <source xml:lang="en">Deleting Container...</source>
     </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
@@ -1985,8 +1985,8 @@
     <trans-unit id="++CODE++47d62b3ce92021fa331252ba82176c2a4ccb592c2264bd58ec74e5d1b722c98e">
       <source xml:lang="en">Started saving results to </source>
     </trans-unit>
-    <trans-unit id="++CODE++2b8616f88fe2532e6c375bf4831274eae156298cde813fa6f7eac3b0c6b93208">
-      <source xml:lang="en">Starting SQL Container...</source>
+    <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
+      <source xml:lang="en">Starting Container...</source>
     </trans-unit>
     <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
       <source xml:lang="en">Starting {0}...</source>
@@ -1998,8 +1998,8 @@
     <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
       <source xml:lang="en">Stop</source>
     </trans-unit>
-    <trans-unit id="++CODE++ce27a2a90f88c662b94d95c3c369d00e0c00418ae79ca2f92aa64b557f8e2ab5">
-      <source xml:lang="en">Stopping SQL Container...</source>
+    <trans-unit id="++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9">
+      <source xml:lang="en">Stopping Container...</source>
     </trans-unit>
     <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
       <source xml:lang="en">Submit</source>

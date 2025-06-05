@@ -870,9 +870,9 @@ export class ContainerDeployment {
     public static installDocker = l10n.t("Install Docker");
     public static startDockerEngine = l10n.t("Start Docker Engine");
     public static msgCreateLocalSqlContainer = l10n.t("Create Local SQL Container");
-    public static startingContainerLoadingLabel = l10n.t("Starting SQL Container...");
-    public static stoppingContainerLoadingLabel = l10n.t("Stopping SQL Container...");
-    public static deletingContainerLoadingLabel = l10n.t("Deleting SQL Container...");
+    public static startingContainerLoadingLabel = l10n.t("Starting Container...");
+    public static stoppingContainerLoadingLabel = l10n.t("Stopping Container...");
+    public static deletingContainerLoadingLabel = l10n.t("Deleting Container...");
     public static deleteContainerConfirmation = (containerName: string) => {
         return l10n.t({
             message:

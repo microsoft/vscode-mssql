@@ -145,7 +145,7 @@ suite("Docker Utilities", () => {
 
     test("validateSqlServerPassword: should validate password complexity and length", () => {
         // Too short
-        const shortPassword = "Ab1!";
+        const shortPassword = "Zx12s?!";
         const shortResult = dockerUtils.validateSqlServerPassword(shortPassword);
         assert.strictEqual(
             shortResult,
@@ -168,7 +168,7 @@ suite("Docker Utilities", () => {
         assert.strictEqual(result1, "", "Should return empty string for valid password");
 
         // Valid: meets 4 categories (uppercase, lowercase, number, special char)
-        const validPassword2 = "Passw0rd!";
+        const validPassword2 = "G7v@rLm9!";
         const result2 = dockerUtils.validateSqlServerPassword(validPassword2);
         assert.strictEqual(result2, "", "Should return empty string for valid password");
 
@@ -379,7 +379,7 @@ suite("Docker Utilities", () => {
 
     test("startSqlServerDockerContainer: success and failure cases", async () => {
         const containerName = "testContainer";
-        const password = "StrongPass123!";
+        const password = "Xf9!uDq7@LmB2#cV";
         const version = "2019";
         const hostname = "localhost";
         const port = 1433;

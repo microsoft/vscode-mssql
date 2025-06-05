@@ -646,6 +646,7 @@
   "Getting container ready for connections": "Getting container ready for connections",
   "Hide full error message": "Hide full error message",
   "Show full error message": "Show full error message",
+  "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
   "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
   "Remind Me Later": "Remind Me Later",
@@ -1260,12 +1261,11 @@
   "Docker failed to start within the timeout period. Please manually start Docker and try again.": "Docker failed to start within the timeout period. Please manually start Docker and try again.",
   "Container failed to start within the timeout period. Please wait a few minutes and try again.": "Container failed to start within the timeout period. Please wait a few minutes and try again.",
   "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.": "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
-  "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
   "Install Docker": "Install Docker",
   "Start Docker Engine": "Start Docker Engine",
-  "Starting SQL Container...": "Starting SQL Container...",
-  "Stopping SQL Container...": "Stopping SQL Container...",
-  "Deleting SQL Container...": "Deleting SQL Container...",
+  "Starting Container...": "Starting Container...",
+  "Stopping Container...": "Stopping Container...",
+  "Deleting Container...": "Deleting Container...",
   "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code./{0} is the container name": {
     "message": "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.",
     "comment": [

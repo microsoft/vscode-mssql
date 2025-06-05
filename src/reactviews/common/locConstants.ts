@@ -758,6 +758,9 @@ export class LocConstants {
             gettingContainerReadyForConnection: l10n.t("Getting container ready for connections"),
             hideFullErrorMessage: l10n.t("Hide full error message"),
             showFullErrorMessage: l10n.t("Show full error message"),
+            previousStepFailed: l10n.t(
+                "Previous step failed. Please check the error message and try again.",
+            ),
         };
     }
 }
