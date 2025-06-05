@@ -11,6 +11,9 @@ import { IConnectionGroup, IConnectionProfile } from "../../models/interfaces";
 
 export const connectionGroupNodeType = "ConnectionGroup";
 
+const defaultDarkColor = "#424242";
+const defaultLightColor = "#F6F6F6";
+
 /**
  * Represents a server group node in the Object Explorer.
  * This class extends the TreeNodeInfo class and adds functionality specific to server groups.
@@ -56,13 +59,15 @@ export class ConnectionGroupNodeInfo extends TreeNodeInfo {
         this.id = id;
         this._connectionGroup = connectionGroup;
         this.iconPath = this.getIcon();
+        this.tooltip = connectionGroup.description;
     }
 
     private getIcon(): vscode.IconPath {
         const self = this;
         function constructSvg(lightTheme: boolean): string {
-            const fgColor = self._connectionGroup.color ?? (lightTheme ? "#F6F6F6" : "#424242");
-            const borderColor = lightTheme ? "#424242" : "#F6F6F6";
+            const fgColor =
+                self._connectionGroup.color ?? (lightTheme ? defaultLightColor : defaultDarkColor);
+            const borderColor = lightTheme ? defaultDarkColor : defaultLightColor;
             const svgContent = `<svg width="16" height="16" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;"><rect id="canvas" x="0" y="0" width="16" height="16" style="fill:${borderColor};fill-opacity:0;fill-rule:nonzero;"/><path id="outline" d="M13.502,14.998l-10,0c-0.827,0 -1.5,-0.673 -1.5,-1.5l-0,-11.996c-0,-0.827 0.673,-1.5 1.5,-1.5l8,0c0.827,0 1.5,0.673 1.5,1.5l-0,2.886l2,1l-0,8.11c-0,0.827 -0.673,1.5 -1.5,1.5Z" style="fill:${borderColor};fill-rule:nonzero;"/><path id="iconBg" d="M14.002,13.498l-0,-7.492l-2,-1l-0,-3.504c-0,-0.277 -0.224,-0.5 -0.5,-0.5l-8,0c-0.276,0 -0.5,0.223 -0.5,0.5l-0,11.996c0,0.275 0.224,0.5 0.5,0.5l10,0c0.276,0 0.5,-0.225 0.5,-0.5Zm-2,-0.496l-0,-6.496l1,0.5l-0,5.996l-1,0Z" style="fill:${fgColor};fill-rule:nonzero;"/><path id="iconFg" d="M13.002,12.998l-1,0l-0,-6.5l1,0.5l-0,6Z" style="fill:${borderColor};fill-rule:nonzero;"/></svg>`;
             return `data:image/svg+xml;base64,${Buffer.from(svgContent).toString("base64")}`;
         }

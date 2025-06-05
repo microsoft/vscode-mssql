@@ -34,6 +34,7 @@ import {
     ConnectionGroupState,
 } from "../../../sharedInterfaces/connectionGroup";
 import { useState } from "react";
+import { Keys } from "../../common/keys";
 
 const useStyles = makeStyles({
     previewColor: {
@@ -94,9 +95,28 @@ export const ConnectionGroupDialog = ({
         setColor({ ...data.color, a: 1 });
     };
 
+    function isReadyToSubmit(): boolean {
+        return groupName.trim() !== "";
+    }
+
+    function handleSubmit() {
+        if (isReadyToSubmit()) {
+            saveConnectionGroup({
+                name: groupName,
+                description: description || undefined,
+                color: new TinyColor(color).toHexString(false /* allow3Char */) || undefined,
+            });
+        }
+    }
+
     return (
         <Dialog open={true /* standalone dialog always open*/}>
-            <DialogSurface>
+            <DialogSurface
+                onKeyDown={(e: React.KeyboardEvent) => {
+                    if (e.key === Keys.Escape && popoverOpen === false) {
+                        closeDialog();
+                    }
+                }}>
                 <DialogBody>
                     <DialogTitle>
                         {state.existingGroupName
@@ -104,112 +124,113 @@ export const ConnectionGroupDialog = ({
                             : "Create New Connection Group"}
                     </DialogTitle>
                     <DialogContent>
-                        {state.message && (
-                            <>
-                                <MessageBar intent="error" style={{ paddingRight: "12px" }}>
-                                    {state.message}
-                                </MessageBar>
-                                <br />
-                            </>
-                        )}
+                        <form onSubmit={handleSubmit}>
+                            {state.message && (
+                                <>
+                                    <MessageBar intent="error" style={{ paddingRight: "12px" }}>
+                                        {state.message}
+                                    </MessageBar>
+                                    <br />
+                                </>
+                            )}
 
-                        <Field className={formStyles.formComponentDiv} label="Name" required>
-                            <Input
-                                value={groupName}
-                                onChange={(_e, data) => {
-                                    setGroupName(data.value);
-                                }}
-                                required
-                                placeholder="Enter connection group name"
-                            />
-                        </Field>
-
-                        <Field className={formStyles.formComponentDiv} label="Description">
-                            <Textarea
-                                value={description}
-                                onChange={(_e, data) => {
-                                    setDescription(data.value);
-                                }}
-                                placeholder="Enter description (optional)"
-                            />
-                        </Field>
-
-                        <Field className={formStyles.formComponentDiv} label="Color">
-                            <div className={styles.colorContainer}>
-                                <div
-                                    className={styles.previewColor}
-                                    style={{
-                                        backgroundColor: new TinyColor(pickerColor).toRgbString(),
+                            <Field className={formStyles.formComponentDiv} label="Name" required>
+                                <Input
+                                    value={groupName}
+                                    onChange={(_e, data) => {
+                                        setGroupName(data.value);
                                     }}
-                                    onClick={() => {
-                                        setPopoverOpen(true);
-                                    }}
+                                    required
+                                    placeholder="Enter connection group name"
                                 />
-                                <Popover
-                                    open={popoverOpen}
-                                    trapFocus
-                                    onOpenChange={(_, data) => setPopoverOpen(data.open)}>
-                                    <PopoverTrigger disableButtonEnhancement>
-                                        <Button style={{ minWidth: "120px" }}>Choose color</Button>
-                                    </PopoverTrigger>
+                            </Field>
 
-                                    <PopoverSurface>
-                                        <ColorPicker
-                                            color={new TinyColor(color).toHsv()}
-                                            onColorChange={handleChange}>
-                                            <ColorArea
-                                                inputX={{ "aria-label": "Saturation" }}
-                                                inputY={{ "aria-label": "Brightness" }}
-                                            />
-                                            <div className={styles.row}>
-                                                <div className={styles.sliders}>
-                                                    <ColorSlider aria-label="Hue" />
-                                                </div>
-                                                <div
-                                                    className={styles.previewColor}
-                                                    style={{
-                                                        backgroundColor: new TinyColor(
-                                                            color,
-                                                        ).toRgbString(),
-                                                    }}
+                            <Field className={formStyles.formComponentDiv} label="Description">
+                                <Textarea
+                                    value={description}
+                                    onChange={(_e, data) => {
+                                        setDescription(data.value);
+                                    }}
+                                    placeholder="Enter description (optional)"
+                                />
+                            </Field>
+
+                            <Field className={formStyles.formComponentDiv} label="Color">
+                                <div className={styles.colorContainer}>
+                                    <div
+                                        className={styles.previewColor}
+                                        style={{
+                                            backgroundColor: new TinyColor(
+                                                pickerColor,
+                                            ).toRgbString(),
+                                        }}
+                                        onClick={() => {
+                                            setPopoverOpen(true);
+                                        }}
+                                    />
+                                    <Popover
+                                        open={popoverOpen}
+                                        trapFocus
+                                        onOpenChange={(_, data) => setPopoverOpen(data.open)}>
+                                        <PopoverTrigger disableButtonEnhancement>
+                                            <Button style={{ minWidth: "120px" }}>
+                                                Choose color
+                                            </Button>
+                                        </PopoverTrigger>
+
+                                        <PopoverSurface>
+                                            <ColorPicker
+                                                color={new TinyColor(color).toHsv()}
+                                                onColorChange={handleChange}>
+                                                <ColorArea
+                                                    inputX={{ "aria-label": "Saturation" }}
+                                                    inputY={{ "aria-label": "Brightness" }}
                                                 />
+                                                <div className={styles.row}>
+                                                    <div className={styles.sliders}>
+                                                        <ColorSlider aria-label="Hue" />
+                                                    </div>
+                                                    <div
+                                                        className={styles.previewColor}
+                                                        style={{
+                                                            backgroundColor: new TinyColor(
+                                                                color,
+                                                            ).toRgbString(),
+                                                        }}
+                                                    />
+                                                </div>
+                                            </ColorPicker>
+                                            <div className={styles.row}>
+                                                <Button
+                                                    appearance="primary"
+                                                    onClick={() => {
+                                                        setPickerColor(color);
+                                                        setPopoverOpen(false);
+                                                    }}>
+                                                    Ok
+                                                </Button>
+                                                <Button
+                                                    onClick={() => {
+                                                        setPopoverOpen(false);
+                                                    }}>
+                                                    Cancel
+                                                </Button>
                                             </div>
-                                        </ColorPicker>
-                                        <div className={styles.row}>
-                                            <Button
-                                                appearance="primary"
-                                                onClick={() => {
-                                                    setPickerColor(color);
-                                                    setPopoverOpen(false);
-                                                }}>
-                                                Ok
-                                            </Button>
-                                            <Button
-                                                onClick={() => {
-                                                    setPopoverOpen(false);
-                                                }}>
-                                                Cancel
-                                            </Button>
-                                        </div>
-                                    </PopoverSurface>
-                                </Popover>
-                            </div>
-                        </Field>
+                                        </PopoverSurface>
+                                    </Popover>
+                                </div>
+                            </Field>
+                        </form>
                     </DialogContent>
                     <DialogActions>
                         <Button
                             appearance="primary"
+                            type="submit"
                             style={{ width: "auto", whiteSpace: "nowrap" }}
                             onClick={() => {
-                                saveConnectionGroup({
-                                    name: groupName,
-                                    description: description || undefined,
-                                    color:
-                                        new TinyColor(color).toHexString(false /* allow3Char */) ||
-                                        undefined,
-                                });
+                                handleSubmit();
                             }}
-                            disabled={groupName.length === 0}>
+                            disabled={!isReadyToSubmit()}>
                             Save Connection Group
                         </Button>
                         <Button
