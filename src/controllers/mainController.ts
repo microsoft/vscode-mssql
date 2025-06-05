@@ -860,8 +860,6 @@ export default class MainController implements vscode.Disposable {
         return undefined;
     }
 
-    private debugVar;
-
     /**
      * Initializes the Object Explorer commands
      * @param objectExplorerProvider provider settable for testing purposes
@@ -880,10 +878,6 @@ export default class MainController implements vscode.Disposable {
             dragAndDropController: new ObjectExplorerDragAndDropController(),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
-
-        this.objectExplorerTree.onDidChangeSelection((e) => {
-            this.debugVar = e.selection;
-        });
 
         // Old style Add connection when experimental features are not enabled
 
@@ -2355,7 +2349,7 @@ export default class MainController implements vscode.Disposable {
         }
         // remove them from object explorer
         await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
-        needsRefresh = staleConnections.length > 0;
+        needsRefresh ||= staleConnections.length > 0;
 
         // if a connection(s) was/were manually added
         let newConnections = userConnections.filter((userConn) => {
