@@ -55,6 +55,7 @@ import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
+    IConnectionGroup,
     IConnectionProfile,
     IConnectionProfileWithSource,
 } from "../models/interfaces";
@@ -105,6 +106,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         private _mainController: MainController,
         private _objectExplorerProvider: ObjectExplorerProvider,
         connectionToEdit?: IConnectionInfo,
+        initialConnectionGroup?: IConnectionGroup,
     ) {
         super(
             context,
@@ -131,7 +133,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         this.registerRpcHandlers();
-        void this.initializeDialog(connectionToEdit)
+        void this.initializeDialog(connectionToEdit, initialConnectionGroup)
             .then(() => {
                 this.updateState();
                 this.initialized.resolve();
@@ -153,7 +155,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             });
     }
 
-    private async initializeDialog(connectionToEdit: IConnectionInfo) {
+    private async initializeDialog(
+        connectionToEdit: IConnectionInfo,
+        initialConnectionGroup?: IConnectionGroup,
+    ) {
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
             this._mainController.connectionManager,
@@ -215,6 +220,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     "loadConnectionToEdit", // errorType
                 );
             }
+        }
+
+        if (initialConnectionGroup) {
+            this.state.connectionProfile.groupId = initialConnectionGroup.id;
         }
 
         await this.updateItemVisibility();

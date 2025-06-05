@@ -469,14 +469,20 @@
             ],
             "view/item/context": [
                 {
+                    "command": "mssql.addObjectExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "title": "%mssql.addObjectExplorer%",
+                    "group": "0_MSSQL_connectionGroups@0"
+                },
+                {
                     "command": "mssql.connectionGroups.edit",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
-                    "group": "0_MSSQL_connectionGroups@0"
+                    "group": "0_MSSQL_connectionGroups@1"
                 },
                 {
                     "command": "mssql.connectionGroups.delete",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
-                    "group": "0_MSSQL_connectionGroups@1"
+                    "group": "0_MSSQL_connectionGroups@9"
                 },
                 {
                     "command": "mssql.objectExplorerNewQuery",
@@ -572,6 +578,12 @@
                     "command": "mssql.objectExplorerChatWithDatabase",
                     "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "MS_SQL@11"
+                },
+                {
+                    "command": "mssql.addObjectExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "title": "%mssql.addObjectExplorer%",
+                    "group": "inline@1"
                 },
                 {
                     "command": "mssql.connectionGroups.edit",

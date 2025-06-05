@@ -39,7 +39,7 @@ import { SqlProjectsService } from "../services/sqlProjectsService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { SqlTasksService } from "../services/sqlTasksService";
 import StatusView from "../views/statusView";
-import { IConnectionProfile, ISelectionData } from "./../models/interfaces";
+import { IConnectionGroup, IConnectionProfile, ISelectionData } from "./../models/interfaces";
 import ConnectionManager from "./connectionManager";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
 import VscodeWrapper from "./vscodeWrapper";
@@ -889,10 +889,15 @@ export default class MainController implements vscode.Disposable {
                 await self.createObjectExplorerSession();
             } else {
                 let connectionInfo: IConnectionInfo | undefined = undefined;
+                let connectionGroup: IConnectionGroup | undefined = undefined;
                 if (args) {
                     // validate that `args` is an IConnectionInfo before assigning
                     if (isIConnectionInfo(args)) {
                         connectionInfo = args;
+                    } else {
+                        if (args instanceof ConnectionGroupNodeInfo) {
+                            connectionGroup = args.connectionGroup;
+                        }
                     }
                 }
 
@@ -902,6 +907,7 @@ export default class MainController implements vscode.Disposable {
                     this,
                     this._objectExplorerProvider,
                     connectionInfo,
+                    connectionGroup,
                 );
                 connDialog.revealToForeground();
             }
