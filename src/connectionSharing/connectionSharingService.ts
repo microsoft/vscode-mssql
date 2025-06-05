@@ -119,6 +119,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
                     {},
                     "Approve",
                     "Deny",
+                    "Clear",
                 );
 
                 switch (addToApprovedRequest) {
@@ -127,6 +128,19 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
                         return true;
                     case "Deny":
                         await this.updateExtensionApproval(extensionId, "denied");
+                        return false;
+                    case "Clear":
+                        // Clear the approval for this extension
+                        const currentPermissions = await this.getExtensionPermissionsList();
+                        delete currentPermissions[extensionId];
+                        await this.setApprovedExtensions(currentPermissions);
+                        return false; // Default to false if cleared
+                    default:
+                        // User canceled the action
+                        if (currentApproval === undefined) {
+                            // If no previous approval, default to false
+                            return false;
+                        }
                         return false;
                 }
                 return false; // Default to false if no action taken
@@ -159,18 +173,20 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         const newPermission = await vscode.window.showQuickPick(
             [
                 {
-                    label: "Approve",
+                    label: currentApproval === "approved" ? "Approve (Current)" : "Approve",
                     description: "Allow this extension to share connections",
                     detail: "approved",
                 },
                 {
-                    label: "Deny",
+                    label: currentApproval === "denied" ? "Deny (Current)" : "Deny",
                     description: "Do not allow this extension to share connections",
                     detail: "denied",
                 },
             ],
             {
-                placeHolder: `Current permission for ${this.getExtensionDisplayName(extensionId)} is "${currentApproval}". Select new permission.`,
+                placeHolder: `Select new permission for extension: ${this.getExtensionDisplayName(
+                    extensionId,
+                )}`,
             },
         );
 
@@ -255,14 +271,18 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
 
     async executeSimpleQuery(connectionUri: string, query: string): Promise<SimpleExecuteResult> {
         const result = await this._client.sendRequest(
-            new RequestType<{ ownerUri: string; query: string }, SimpleExecuteResult, void, void>(
-                "query/simpleexecute",
-            ),
+            new RequestType<
+                { ownerUri: string; queryString: string },
+                SimpleExecuteResult,
+                void,
+                void
+            >("query/simpleexecute"),
             {
                 ownerUri: connectionUri,
-                query,
+                queryString: query,
             },
         );
+        console.log("result", result);
         return result;
     }
 

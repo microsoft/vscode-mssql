@@ -1042,6 +1042,11 @@
                 "command": "mssql.copilot.rewriteQuery",
                 "title": "%mssql.copilot.rewriteQuery%",
                 "category": "MSSQL"
+            },
+            {
+                "command": "mssql.connectionSharing.editConnectionSharingPermissions",
+                "title": "Edit connection sharing permissions",
+                "category": "MSSQL"
             }
         ],
         "keybindings": [
