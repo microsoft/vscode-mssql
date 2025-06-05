@@ -77,9 +77,9 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         const versions = await dockerUtils.getSqlServerContainerVersions();
         this.state.formComponents = this.setFormComponents(versions);
         this.state.dockerSteps = dockerUtils.initializeDockerSteps();
-        this.updateState();
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
+        this.updateState();
     }
 
     private registerRpcHandlers() {

@@ -79,7 +79,6 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
             return <Checkmark20Regular style={{ color: "green" }} />;
         }
         if (step.loadState === ApiStatus.Error) {
-            setExpanded(true);
             return <Dismiss20Regular style={{ color: "red" }} />;
         }
         return <Spinner size="tiny" />;
