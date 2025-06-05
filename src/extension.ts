@@ -19,6 +19,10 @@ import { createSqlAgentRequestHandler, ISqlChatResult } from "./chat/chatAgentRe
 import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
+import {
+    IConnectionSharingService,
+    SimpleExecuteResult,
+} from "./connectionSharing/connectionSharingService";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -138,6 +142,34 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         },
         getServerInfo: (connectionInfo: IConnectionInfo) => {
             return controller.connectionManager.getServerInfo(connectionInfo);
+        },
+        connectionSharing: <IConnectionSharingService>{
+            getConnectionIdForActiveEditor: (extensionId: string) => {
+                return controller.connectionSharingService.getConnectionIdForActiveEditor(
+                    extensionId,
+                );
+            },
+            connect: async (extensionId: string, connectionId: string): Promise<string> => {
+                return controller.connectionSharingService.connect(extensionId, connectionId);
+            },
+            disconnect: (connectionUri: string): void => {
+                return controller.connectionSharingService.disconnect(connectionUri);
+            },
+            isConnected: (connectionUri: string): boolean => {
+                return controller.connectionSharingService.isConnected(connectionUri);
+            },
+            executeSimpleQuery: (
+                connectionUri: string,
+                queryString: string,
+            ): Promise<SimpleExecuteResult> => {
+                return controller.connectionSharingService.executeSimpleQuery(
+                    connectionUri,
+                    queryString,
+                );
+            },
+            getServerInfo: (connectionUri: string): vscodeMssql.IServerInfo => {
+                return controller.connectionSharingService.getServerInfo(connectionUri);
+            },
         },
     };
 }

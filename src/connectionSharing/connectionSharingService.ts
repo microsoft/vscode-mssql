@@ -7,10 +7,9 @@ import * as mssql from "vscode-mssql";
 import ConnectionManager from "../controllers/connectionManager";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
-import { IConnectionProfile } from "../models/interfaces";
+import { DbCellValue, IConnectionProfile, IDbColumn } from "../models/interfaces";
 import { generateGuid } from "../models/utils";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
-import { SimpleExecuteResult } from "azdata";
 import { RequestType } from "vscode-languageclient";
 
 const CONNECTION_SHARING_PERMISSIONS_KEY = "mssql.connectionSharing.extensionPermissions";
@@ -19,7 +18,59 @@ type ConnectionSharingApproval = "approved" | "denied";
 // Map of extension IDs to connection sharing approval status
 type ConnectionSharingApprovalMap = Record<string, ConnectionSharingApproval>;
 
-export class ConnectionSharingService implements mssql.IConnectionSharingService {
+/**
+ * Interface for connection sharing service
+ * This service allows external extensions to use connections established by the mssql extension.
+ */
+export interface IConnectionSharingService {
+    /**
+     * Get the connection ID for the active editor.
+     * @param extensionId The ID of the extension.
+     * @returns The connection ID if an active editor is connected, or undefined if there is no active editor or the editor is not connected.
+     */
+    getConnectionIdForActiveEditor(extensionId: string): string | undefined;
+    /**
+     * Connect to an existing connection using the connection ID.
+     * This will return the connection URI if successful.
+     * @param extensionId The ID of the extension.
+     * @param connectionId The ID of the connection.
+     * @returns The connection URI if the connection is established successfully.
+     * @throws Error if the connection cannot be established.
+     */
+    connect(extensionId: string, connectionId: string): Promise<string | undefined>;
+    /**
+     * Disconnect from a connection using the connection URI.
+     * @param connectionUri The URI of the connection to disconnect from.
+     */
+    disconnect(connectionUri: string): void;
+    /**
+     * Check if a connection is currently established using the connection URI.
+     * @param connectionUri The URI of the connection to check.
+     * @returns True if the connection is established, false otherwise.
+     */
+    isConnected(connectionUri: string): boolean;
+    /**
+     * Execute a simple query on the database using the connection URI.
+     * @param connectionUri The URI of the connection to use for executing the query.
+     * @param queryString The SQL query to execute.
+     * @returns A promise that resolves with the result of the query execution.
+     */
+    executeSimpleQuery(connectionUri: string, queryString: string): Promise<SimpleExecuteResult>;
+    /**
+     * Get server information using the connection URI.
+     * @param connectionUri The URI of the connection to get server information from.
+     * @returns A promise that resolves with the server information.
+     */
+    getServerInfo(connectionUri: string): mssql.IServerInfo;
+}
+
+export interface SimpleExecuteResult {
+    rowCount: number;
+    columnInfo: IDbColumn[];
+    rows: DbCellValue[][];
+}
+
+export class ConnectionSharingService implements IConnectionSharingService {
     constructor(
         private context: vscode.ExtensionContext,
         private _client: SqlToolsServiceClient,
@@ -104,7 +155,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         return approvedExtensions[extensionId];
     }
 
-    async requestConnectionSharingApproval(extensionId: string): Promise<boolean> {
+    public async requestConnectionSharingApproval(extensionId: string): Promise<boolean> {
         const currentApproval = await this.getConnectionSharingApproval(extensionId);
         switch (currentApproval) {
             case "approved":
@@ -217,7 +268,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         return extensionId;
     }
 
-    getConnectionIdForActiveEditor(extensionId: string): string | undefined {
+    public getConnectionIdForActiveEditor(extensionId: string): string | undefined {
         const approved = this.requestConnectionSharingApproval(extensionId);
         if (!approved) {
             return undefined; // Connection sharing not approved for this extension
@@ -242,7 +293,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         return (connectionDetails as IConnectionProfile).id;
     }
 
-    async connect(extensionId: string, connectionId: string): Promise<string | undefined> {
+    public async connect(extensionId: string, connectionId: string): Promise<string | undefined> {
         const connections =
             await this._connectionManager.connectionStore.connectionConfig.getConnections(false);
         const connection = connections.find((conn) => conn.id === connectionId);
@@ -261,15 +312,18 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         return guid; // Return the connection URI
     }
 
-    disconnect(connectionUri: string): void {
+    public disconnect(connectionUri: string): void {
         void this._connectionManager.disconnect(connectionUri);
     }
 
-    isConnected(connectionUri: string): boolean {
+    public isConnected(connectionUri: string): boolean {
         return this._connectionManager.isConnected(connectionUri);
     }
 
-    async executeSimpleQuery(connectionUri: string, query: string): Promise<SimpleExecuteResult> {
+    public async executeSimpleQuery(
+        connectionUri: string,
+        queryString: string,
+    ): Promise<SimpleExecuteResult> {
         const result = await this._client.sendRequest(
             new RequestType<
                 { ownerUri: string; queryString: string },
@@ -279,14 +333,13 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             >("query/simpleexecute"),
             {
                 ownerUri: connectionUri,
-                queryString: query,
+                queryString: queryString,
             },
         );
-        console.log("result", result);
         return result;
     }
 
-    getServerInfo(connectionUri: string): mssql.IServerInfo {
+    public getServerInfo(connectionUri: string): mssql.IServerInfo {
         const connectionDetails = this._connectionManager.getConnectionInfoFromUri(connectionUri);
         return this._connectionManager.getServerInfo(connectionDetails);
     }
