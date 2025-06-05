@@ -779,9 +779,12 @@ export class ContainerDeployment {
         });
     public static selectImage = l10n.t("Select image");
     public static selectImageTooltip = l10n.t("Select the SQL Server Container Image");
-    public static sqlServer2025Image = l10n.t("SQL Server 2025 - latest");
-    public static sqlServer2022Image = l10n.t("SQL Server 2022 - latest");
-    public static sqlServer2019Image = l10n.t("SQL Server 2019 - latest");
+    public static sqlServerVersionImage = (version: string) =>
+        l10n.t({
+            message: "SQL Server {0} - latest",
+            args: [version],
+            comment: ["{0} is the SQL Server version"],
+        });
     public static sqlServerPasswordTooltip = l10n.t("SQL Server Container SA Password");
     public static pleaseChooseUniqueProfileName = l10n.t(
         "Please choose a unique name for the profile",

@@ -322,7 +322,7 @@ suite("ContainerDeploymentWebviewController", () => {
         // Simulate step
         callState.dockerSteps = [
             {
-                loadState: ApiStatus.Loading,
+                loadState: ApiStatus.NotStarted,
                 stepAction: sinon.stub(),
                 argNames: [],
             },
@@ -354,7 +354,7 @@ suite("ContainerDeploymentWebviewController", () => {
             },
         ] as any);
 
-        callState.dockerSteps[0].loadState = ApiStatus.Loading; // Reset to loading state
+        callState.dockerSteps[0].loadState = ApiStatus.NotStarted; // Reset to not started state
 
         const result2 = await controller["_reducers"]["completeDockerStep"](callState, {
             dockerStepNumber: 0,
@@ -377,7 +377,7 @@ suite("ContainerDeploymentWebviewController", () => {
             {},
             {},
             {
-                loadState: ApiStatus.Loading,
+                loadState: ApiStatus.NotStarted,
                 stepAction: fakeStepAction,
                 argNames: ["containerName", "port"],
             }, // connectToContainer step
@@ -403,7 +403,7 @@ suite("ContainerDeploymentWebviewController", () => {
         );
 
         addContainerConnectionSpy.resolves(false); // Connection failure
-        callState.dockerSteps[DockerStepOrder.connectToContainer].loadState = ApiStatus.Loading; // Reset to loading state
+        callState.dockerSteps[DockerStepOrder.connectToContainer].loadState = ApiStatus.NotStarted; // Reset to not started state
 
         const result4 = await controller["_reducers"]["completeDockerStep"](callState, {
             dockerStepNumber: DockerStepOrder.connectToContainer,

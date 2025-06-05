@@ -25,7 +25,7 @@ import { ContainerDeployment, msgYes } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import * as path from "path";
-import { FormItemValidationState } from "../sharedInterfaces/form";
+import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
 
@@ -64,7 +64,7 @@ export const COMMANDS = {
         linux: "systemctl start docker",
     }),
     CHECK_ENGINE: {
-        win32: `docker info --format '{{.OSType}}'`,
+        win32: `docker context show`,
         darwin: `cat "${process.env.HOME}/Library/Group Containers/group.com.docker/settings-store.json" | grep '"UseVirtualizationFrameworkRosetta": true' || exit 1`,
         linux: "docker ps",
     },
@@ -89,6 +89,7 @@ export const COMMANDS = {
     STOP_CONTAINER: (name: string) => `docker stop ${name}`,
     DELETE_CONTAINER: (name: string) => `docker stop ${name} && docker rm ${name}`,
     INSPECT_CONTAINER: (id: string) => `docker inspect ${id}`,
+    GET_SQL_SERVER_CONTAINER_VERSIONS: `curl -s https://mcr.microsoft.com/v2/mssql/server/tags/list`,
 };
 
 /**
@@ -97,7 +98,7 @@ export const COMMANDS = {
 export function initializeDockerSteps(): DockerStep[] {
     return [
         {
-            loadState: ApiStatus.Loading,
+            loadState: ApiStatus.NotStarted,
             argNames: [],
             headerText: ContainerDeployment.dockerInstallHeader,
             bodyText: ContainerDeployment.dockerInstallBody,
@@ -106,7 +107,7 @@ export function initializeDockerSteps(): DockerStep[] {
             stepAction: checkDockerInstallation,
         },
         {
-            loadState: ApiStatus.Loading,
+            loadState: ApiStatus.NotStarted,
             argNames: [],
             headerText: ContainerDeployment.startDockerHeader,
             bodyText: ContainerDeployment.startDockerBody,
@@ -115,28 +116,28 @@ export function initializeDockerSteps(): DockerStep[] {
             stepAction: startDocker,
         },
         {
-            loadState: ApiStatus.Loading,
+            loadState: ApiStatus.NotStarted,
             argNames: [],
             headerText: ContainerDeployment.startDockerEngineHeader,
             bodyText: ContainerDeployment.startDockerEngineBody,
             stepAction: checkEngine,
         },
         {
-            loadState: ApiStatus.Loading,
+            loadState: ApiStatus.NotStarted,
             argNames: ["containerName", "password", "version", "hostname", "port"],
             headerText: ContainerDeployment.creatingContainerHeader,
             bodyText: ContainerDeployment.creatingContainerBody,
             stepAction: startSqlServerDockerContainer,
         },
         {
-            loadState: ApiStatus.Loading,
+            loadState: ApiStatus.NotStarted,
             argNames: ["containerName"],
             headerText: ContainerDeployment.settingUpContainerHeader,
             bodyText: ContainerDeployment.settingUpContainerBody,
             stepAction: checkIfContainerIsReadyForConnections,
         },
         {
-            loadState: ApiStatus.Loading,
+            loadState: ApiStatus.NotStarted,
             argNames: [],
             headerText: ContainerDeployment.connectingToContainerHeader,
             bodyText: ContainerDeployment.connectingToContainerBody,
@@ -180,10 +181,10 @@ export function truncateErrorTextIfNeeded(errorText: string): string {
 /**
  * Container image versions available for SQL Server.
  */
-export const sqlVersions = [
-    { displayName: ContainerDeployment.sqlServer2025Image, value: "2025" },
-    { displayName: ContainerDeployment.sqlServer2022Image, value: "2022" },
-    { displayName: ContainerDeployment.sqlServer2019Image, value: "2019" },
+export const sqlVersions: FormItemOptions[] = [
+    { displayName: "SQL Server 2025", value: "2025" },
+    { displayName: "SQL Server 2022", value: "2022" },
+    { displayName: "SQL Server 2019", value: "2019" },
 ];
 
 /**
@@ -277,7 +278,7 @@ export async function checkEngine(): Promise<DockerCommandParams> {
 
     try {
         const stdout = await execCommand(engineCommand);
-        if (platform() === Platform.Windows && stdout.trim() !== `'${Platform.Linux}'`) {
+        if (platform() === Platform.Windows && stdout.trim() !== `desktop-${Platform.Linux}`) {
             const confirmation = await vscode.window.showInformationMessage(
                 ContainerDeployment.switchToLinuxContainersConfirmation,
                 { modal: true },
@@ -650,6 +651,39 @@ export async function findAvailablePort(startPort: number): Promise<number> {
         return -1; // No available port found
     } catch {
         return -1;
+    }
+}
+
+/**
+ * Retrieves the SQL Server container versions from the Microsoft Container Registry.
+ */
+export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]> {
+    try {
+        const stdout = await execCommand(COMMANDS.GET_SQL_SERVER_CONTAINER_VERSIONS);
+        const versions = stdout.split("\n");
+        const uniqueYears = Array.from(
+            new Set(
+                versions
+                    .map(
+                        (v) =>
+                            v
+                                .trim() // trim whitespace
+                                .replace(/^"|"[,]*$/g, "") //remove starting and ending quotes and trailing commas
+                                .slice(0, 4), // take first 4 chars
+                    )
+                    .filter((v) => /^\d{4}$/.test(v)), // ensure all digits
+            ),
+        ).reverse();
+
+        return uniqueYears.map((year) => ({
+            displayName: ContainerDeployment.sqlServerVersionImage(year),
+            value: year,
+        })) as FormItemOptions[];
+    } catch (e) {
+        dockerLogger.appendLine(
+            `Error fetching SQL Server container versions: ${getErrorMessage(e)}`,
+        );
+        return [];
     }
 }
 

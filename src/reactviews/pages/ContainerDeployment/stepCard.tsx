@@ -8,6 +8,7 @@ import {
     Checkmark20Regular,
     ChevronDown20Regular,
     ChevronUp20Regular,
+    Circle20Regular,
     Dismiss20Regular,
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
@@ -71,6 +72,9 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     }
 
     const getStatusIcon = () => {
+        if (step.loadState === ApiStatus.NotStarted) {
+            return <Circle20Regular style={{ color: "gray" }} />;
+        }
         if (step.loadState === ApiStatus.Loaded) {
             return <Checkmark20Regular style={{ color: "green" }} />;
         }

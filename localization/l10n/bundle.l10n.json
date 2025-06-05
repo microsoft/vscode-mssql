@@ -1213,9 +1213,12 @@
   },
   "Select image": "Select image",
   "Select the SQL Server Container Image": "Select the SQL Server Container Image",
-  "SQL Server 2025 - latest": "SQL Server 2025 - latest",
-  "SQL Server 2022 - latest": "SQL Server 2022 - latest",
-  "SQL Server 2019 - latest": "SQL Server 2019 - latest",
+  "SQL Server {0} - latest/{0} is the SQL Server version": {
+    "message": "SQL Server {0} - latest",
+    "comment": [
+      "{0} is the SQL Server version"
+    ]
+  },
   "SQL Server Container SA Password": "SQL Server Container SA Password",
   "Please choose a unique name for the profile": "Please choose a unique name for the profile",
   "Container Name": "Container Name",

@@ -1726,20 +1726,15 @@
     <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
       <source xml:lang="en">SQL Plan Files</source>
     </trans-unit>
-    <trans-unit id="++CODE++ef2f4386d6bb9dd3fad8828ff95a5fe91c882af93fbcd37e196d059c531f932b">
-      <source xml:lang="en">SQL Server 2019 - latest</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a8132c7a4b0c6fd2534779f4d49c670b485b9eb9ea9ae0eda3af3a40424e01db">
-      <source xml:lang="en">SQL Server 2022 - latest</source>
-    </trans-unit>
-    <trans-unit id="++CODE++7d46b13752fae14aef836df1ecf4af01cdfc859ffc68888193e934734ff8e579">
-      <source xml:lang="en">SQL Server 2025 - latest</source>
-    </trans-unit>
     <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
       <source xml:lang="en">SQL Server Container SA Password</source>
     </trans-unit>
     <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
       <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
+      <source xml:lang="en">SQL Server {0} - latest</source>
+      <note>{0} is the SQL Server version</note>
     </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>

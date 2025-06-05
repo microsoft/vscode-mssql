@@ -13,7 +13,7 @@ import {
     localhost,
     sqlAuthentication,
 } from "../constants/constants";
-import { FormItemType, FormItemSpec } from "../sharedInterfaces/form";
+import { FormItemType, FormItemSpec, FormItemOptions } from "../sharedInterfaces/form";
 import MainController from "../controllers/mainController";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -67,14 +67,15 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 },
             },
         );
-        this.initialize();
+        void this.initialize();
     }
 
-    private initialize() {
+    private async initialize() {
         this.state.loadState = ApiStatus.Loading;
         this.state.formState = this.getDefaultConnectionProfile();
         this.state.platform = platform();
-        this.state.formComponents = this.setFormComponents();
+        const versions = await dockerUtils.getSqlServerContainerVersions();
+        this.state.formComponents = this.setFormComponents(versions);
         this.state.dockerSteps = dockerUtils.initializeDockerSteps();
         this.updateState();
         this.registerRpcHandlers();
@@ -99,7 +100,14 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         this.registerReducer("completeDockerStep", async (state, payload) => {
             const currentStepNumber = payload.dockerStepNumber;
             const currentStep = state.dockerSteps[currentStepNumber];
-            if (currentStep.loadState !== ApiStatus.Loading) return state;
+            if (currentStep.loadState !== ApiStatus.NotStarted) return state;
+            this.updateState({
+                ...state,
+                dockerSteps: {
+                    ...state.dockerSteps,
+                    [currentStepNumber]: { ...currentStep, loadState: ApiStatus.Loading },
+                },
+            });
 
             let dockerResult: cd.DockerCommandParams;
             if (currentStepNumber === cd.DockerStepOrder.connectToContainer) {
@@ -280,7 +288,9 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         return true;
     }
 
-    private setFormComponents(): Record<
+    private setFormComponents(
+        versions: FormItemOptions[],
+    ): Record<
         string,
         FormItemSpec<
             cd.DockerConnectionProfile,
@@ -304,7 +314,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.selectImage,
                 required: true,
                 tooltip: ContainerDeployment.selectImageTooltip,
-                options: dockerUtils.sqlVersions,
+                options: versions,
             }),
 
             password: createFormItem({
