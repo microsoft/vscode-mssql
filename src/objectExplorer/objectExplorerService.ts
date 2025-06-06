@@ -1330,11 +1330,10 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Gets all connection profiles from the tree by traversing the hierarchy.
      * @returns Array of all connection profiles in the tree.
      */
-    public get connections(): IConnectionInfo[] {
-        const result: IConnectionInfo[] = [];
+    public get connections(): IConnectionProfile[] {
+        const result: IConnectionProfile[] = [];
 
         for (const connNode of this._connectionNodes.values()) {
             result.push(connNode.connectionProfile);

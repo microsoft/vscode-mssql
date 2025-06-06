@@ -2327,26 +2327,98 @@ export default class MainController implements vscode.Disposable {
 
         let needsRefresh = false;
 
+        // 1. If the connectionsGroup setting has changed, Object Explorer always needs to be refreshed
         if (e.affectsConfiguration(`mssql.${Constants.connectionGroupsArrayName}`)) {
-            // if the groups have changed, the OE tree always needs to be refreshed
             needsRefresh = true;
         }
 
-        // user connections is a super-set of object explorer connections
-        // read the connections from global settings and workspace settings.
-        let userConnections: IConnectionProfile[] =
-            await this.connectionManager.connectionStore.connectionConfig.getConnections(true);
+        // 2. Handle connections that have been added, removed, or reparented in OE
+        let configConnections =
+            await this.connectionManager.connectionStore.connectionConfig.getConnections(
+                true /* alsoGetFromWorkspace */,
+            );
         let objectExplorerConnections = this._objectExplorerProvider.connections;
 
-        // if a connection(s) was/were manually removed
-        let staleConnections = objectExplorerConnections.filter((oeConn) => {
-            return !userConnections.some((userConn) =>
-                Utils.isSameConnectionInfo(oeConn, userConn),
+        let result = await this.handleRemovedConns(objectExplorerConnections, configConnections);
+        needsRefresh ||= result;
+
+        result = await this.handleAddedConns(objectExplorerConnections, configConnections);
+        needsRefresh ||= result;
+
+        // no side-effects, so can be skipped if OE refresh is already needed
+        needsRefresh ||= await this.checkForMovedConns(
+            objectExplorerConnections,
+            configConnections,
+        );
+
+        // 3. Ensure passwords have been saved to the credential store instead of to config JSON
+        await this.sanitizeConnectionProfiles();
+
+        return needsRefresh;
+    }
+
+    /** Determine if any connections have had their groupId changed.
+     * This function has no side-effects, so it can be skipped if an OE refresh is already needed.
+     */
+    private async checkForMovedConns(
+        oeConnections: IConnectionProfile[],
+        configConnections: IConnectionProfile[],
+    ): Promise<boolean> {
+        for (const connProfile of configConnections) {
+            if (
+                connProfile.groupId !=
+                this._objectExplorerProvider.objectExplorerService.getConnectionNodeById(
+                    connProfile.id,
+                )?.connectionProfile.groupId
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async handleAddedConns(
+        oeConnections: IConnectionProfile[],
+        configConnections: IConnectionProfile[],
+    ): Promise<boolean> {
+        let needsRefresh = false;
+
+        // if a connection(s) was/were manually added
+        let newConnections = configConnections.filter((userConn) => {
+            return !oeConnections.some((oeConn) => Utils.isSameConnectionInfo(userConn, oeConn));
+        });
+        for (let conn of newConnections) {
+            // if a connection is not connected
+            // that means it was added manually
+            const newConnectionProfile = <IConnectionProfile>conn;
+            const uri = ObjectExplorerUtils.getNodeUriFromProfile(newConnectionProfile);
+            if (
+                !this.connectionManager.isActiveConnection(conn) &&
+                !this.connectionManager.isConnecting(uri)
+            ) {
+                // add a disconnected node for the connection
+                this._objectExplorerProvider.addDisconnectedNode(conn);
+                needsRefresh = true;
+            }
+        }
+
+        return needsRefresh;
+    }
+
+    private async handleRemovedConns(
+        oeConnections: IConnectionProfile[],
+        configConnections: IConnectionProfile[],
+    ): Promise<boolean> {
+        let needsRefresh = false;
+
+        // if a connection was manually removed...
+        let staleConnections = oeConnections.filter((oeConn) => {
+            return !configConnections.some((configConn) =>
+                Utils.isSameConnectionInfo(oeConn, configConn),
             );
         });
-        // disconnect that/those connection(s) and then
-        // remove its/their credentials from the credential store
-        // and MRU
+        // ...disconnect that connection and remove its creds from the credential store and MRU
         for (let conn of staleConnections) {
             let profile = <IConnectionProfile>conn;
             if (this.connectionManager.isActiveConnection(conn)) {
@@ -2364,44 +2436,6 @@ export default class MainController implements vscode.Disposable {
         // remove them from object explorer
         await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
         needsRefresh ||= staleConnections.length > 0;
-
-        // if a connection(s) was/were manually added
-        let newConnections = userConnections.filter((userConn) => {
-            return !objectExplorerConnections.some((oeConn) =>
-                Utils.isSameConnectionInfo(userConn, oeConn),
-            );
-        });
-        for (let conn of newConnections) {
-            // if a connection is not connected
-            // that means it was added manually
-            const newConnectionProfile = <IConnectionProfile>conn;
-            const uri = ObjectExplorerUtils.getNodeUriFromProfile(newConnectionProfile);
-            if (
-                !this.connectionManager.isActiveConnection(conn) &&
-                !this.connectionManager.isConnecting(uri)
-            ) {
-                // add a disconnected node for the connection
-                this._objectExplorerProvider.addDisconnectedNode(conn);
-                needsRefresh = true;
-            }
-        }
-
-        await this.sanitizeConnectionProfiles();
-
-        // determine if any connections have had their groupId changed
-        if (!needsRefresh) {
-            for (const connProfile of userConnections) {
-                if (
-                    connProfile.groupId !=
-                    this._objectExplorerProvider.objectExplorerService.getConnectionNodeById(
-                        connProfile.id,
-                    )?.connectionProfile.groupId
-                ) {
-                    needsRefresh = true;
-                    break;
-                }
-            }
-        }
 
         return needsRefresh;
     }
