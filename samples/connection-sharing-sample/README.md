@@ -1,71 +1,31 @@
-# connection-sharing-sample README
+# Connection Sharing Sample Extension
 
-This is the README for your extension "connection-sharing-sample". After writing up a brief description, we recommend including the following sections.
+A VS Code extension that demonstrates how to use the **MSSQL Extension's Connection Sharing API** to interact with SQL Server databases from within your own extensions.
 
-## Features
+## 📋 Overview
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+This sample extension showcases two different approaches to leverage database connections established by the MSSQL extension:
 
-For example if there is an image subfolder under your extension project workspace:
+1. **Command-based approach** - Using VS Code's command execution system
+2. **Direct API approach** - Using the MSSQL extension's exported API directly
 
-\!\[feature X\]\(images/feature-x.png\)
+## To run:
+1. Compile the mssql extension by running from the repository root:
+````bash
+yarn
+yarn watch
+````
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+2. Open this sample extension in VS Code
+3. In the Run and Debug view, select the "Run Extension" configuration
+4. It should launch a new VS Code window with the extension activated
 
-## Requirements
+## 🆘 Support
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+If you encounter any issues or have questions:
 
-## Extension Settings
+1. Check the [Common Issues](#-common-issues--solutions) section
+2. Open an issue on GitHub
+3. Check the VS Code and MSSQL extension documentation
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
 
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**

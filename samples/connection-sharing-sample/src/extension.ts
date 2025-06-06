@@ -1,105 +1,208 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import { IConnectionProfile } from 'azdata';
 import * as vscode from 'vscode';
 import * as mssql from 'vscode-mssql';
 
-const extensionId = 'ms-mssql.connection-sharing-sample';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "connection-sharing-sample" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	context.subscriptions.push(vscode.commands.registerCommand('connection-sharing-sample.commands', async () => {
-		const connectionId = await vscode.commands.executeCommand('mssql.connectionSharing.getConnectionIdForActiveEditor', extensionId);
-		console.log(`Connection ID for active editor: ${connectionId}`);
-
-		const connectionUri = await vscode.commands.executeCommand('mssql.connectionSharing.connect', extensionId, connectionId);
-
-		const serverInfo = await vscode.commands.executeCommand('mssql.connectionSharing.getServerInfo', connectionUri);
-		console.log(`Server Info:`, serverInfo);
-
-		const executeQuery = await vscode.commands.executeCommand('mssql.connectionSharing.executeSimpleQuery', connectionUri, "SELECT TOP(10) name FROM sys.databases");
-		console.log(`Query executed:`, executeQuery);
-
-		await vscode.commands.executeCommand('mssql.connectionSharing.disconnect', connectionUri);
-		console.log(`Disconnected from connection: ${connectionUri}`);
-	}));
+const EXTENSION_ID = 'ms-mssql.connection-sharing-sample';
+const MSSQL_EXTENSION_ID = 'ms-mssql.mssql';
 
 
+export function activate(extensionContext: vscode.ExtensionContext) {
+	console.log('Connection Sharing Sample extension is now active!');
 
-	context.subscriptions.push(vscode.commands.registerCommand('connection-sharing-sample.apis', async () => {
-		const mssqlExtension = vscode.extensions.getExtension("ms-mssql.mssql");
+	// Register all available commands with VS Code
+	registerCommands(extensionContext);
+}
+
+export function registerCommands(extensionContext: vscode.ExtensionContext) {
+	extensionContext.subscriptions.push(
+		vscode.commands.registerCommand('connection-sharing-sample.commands', connectionSharingWithCommands)
+	);
+
+	extensionContext.subscriptions.push(
+		vscode.commands.registerCommand('connection-sharing-sample.apis', connectionSharingWithApis)
+	);
+
+	extensionContext.subscriptions.push(
+		vscode.commands.registerCommand('connection-sharing-sample.availableConnections', showAvailableConnections)
+	);
+
+	extensionContext.subscriptions.push(
+		vscode.commands.registerCommand('connection-sharing-sample.requestApproval', requestConnectionSharingPermissions)
+	);
+}
+
+async function connectionSharingWithCommands() {
+	try {
+		console.log('--- Starting Connection Sharing Demo (Commands Approach) ---');
+
+		const activeConnectionId = await vscode.commands.executeCommand(
+			'mssql.connectionSharing.getConnectionIdForActiveEditor',
+			EXTENSION_ID
+		) as string;
+
+		if (!activeConnectionId) {
+			vscode.window.showErrorMessage('No active database connection found in the current editor');
+			return;
+		}
+
+		console.log(`Active connection ID: ${activeConnectionId}`);
+
+		const databaseConnectionUri = await vscode.commands.executeCommand(
+			'mssql.connectionSharing.connect',
+			EXTENSION_ID,
+			activeConnectionId
+		) as string;
+
+		if (!databaseConnectionUri) {
+			vscode.window.showErrorMessage('Failed to establish database connection');
+			return;
+		}
+
+		console.log(`Successfully connected. Connection URI: ${databaseConnectionUri}`);
+
+		const databaseServerInfo = await vscode.commands.executeCommand(
+			'mssql.connectionSharing.getServerInfo',
+			databaseConnectionUri
+		);
+
+		console.log('Database server information:', databaseServerInfo);
+
+		const queryResults = await vscode.commands.executeCommand(
+			'mssql.connectionSharing.executeSimpleQuery',
+			databaseConnectionUri,
+			'SELECT TOP(10) name AS DatabaseName FROM sys.databases ORDER BY name'
+		);
+
+		console.log('Query results (Top 10 databases):', queryResults);
+
+		await vscode.commands.executeCommand('mssql.connectionSharing.disconnect', databaseConnectionUri);
+		console.log(`Successfully disconnected from: ${databaseConnectionUri}`);
+
+	} catch (error) {
+		console.error('Error in connection sharing demo:', error);
+		vscode.window.showErrorMessage(`Connection sharing demo failed: ${error}`);
+	}
+}
+
+async function connectionSharingWithApis() {
+	try {
+		console.log('--- Starting Connection Sharing Demo (Direct API Approach) ---');
+
+		const mssqlExtension = vscode.extensions.getExtension(MSSQL_EXTENSION_ID);
 		if (!mssqlExtension) {
-			vscode.window.showErrorMessage("MSSQL extension is not installed");
+			vscode.window.showErrorMessage('MSSQL extension is not installed. Please install it first.');
 			return;
 		}
 
 		await mssqlExtension.activate();
 
-		const mssqlApi = mssqlExtension.exports as any;
-		if (!mssqlApi) {
-			vscode.window.showErrorMessage("MSSQL API is not available");
+		const mssqlExtensionApi = mssqlExtension.exports as any;
+		if (!mssqlExtensionApi) {
+			vscode.window.showErrorMessage('Unable to access MSSQL extension API');
 			return;
 		}
 
-		const connectionSharingApi = mssqlApi.connectionSharing as mssql.IConnectionSharingService;
-		if (!connectionSharingApi) {
-			vscode.window.showErrorMessage("Connection Sharing API is not available");
+		const connectionSharingService = mssqlExtensionApi.connectionSharing as mssql.IConnectionSharingService;
+		if (!connectionSharingService) {
+			vscode.window.showErrorMessage('Connection sharing service is not available');
 			return;
 		}
 
-		const connectionId = await connectionSharingApi.getConnectionIdForActiveEditor(extensionId);
-		if (!connectionId) {
-			vscode.window.showErrorMessage("No connection ID found for the active editor");
+		const activeConnectionId = await connectionSharingService.getConnectionIdForActiveEditor(EXTENSION_ID);
+		if (!activeConnectionId) {
+			vscode.window.showErrorMessage('No database connection found for the active editor');
 			return;
 		}
 
-		const connectionUri = await connectionSharingApi.connect(extensionId, connectionId);
-		if (!connectionUri) {
-			vscode.window.showErrorMessage("Failed to connect using the connection ID");
+		console.log(`Retrieved connection ID: ${activeConnectionId}`);
+
+		const databaseConnectionUri = await connectionSharingService.connect(EXTENSION_ID, activeConnectionId);
+		if (!databaseConnectionUri) {
+			vscode.window.showErrorMessage('Failed to establish database connection');
 			return;
 		}
 
-		const serverInfo = await connectionSharingApi.getServerInfo(connectionUri);
-		if (!serverInfo) {
-			vscode.window.showErrorMessage("Failed to retrieve server info");
-			return;
-		}	
+		console.log(`Connected successfully. URI: ${databaseConnectionUri}`);
 
-		console.log(`Server Info:`, serverInfo);
-
-		const executeQuery = await connectionSharingApi.executeSimpleQuery(connectionUri, "SELECT TOP(10) name FROM sys.databases");
-		if (!executeQuery) {
-			vscode.window.showErrorMessage("Failed to execute query");
+		const serverInformation = await connectionSharingService.getServerInfo(databaseConnectionUri);
+		if (!serverInformation) {
+			vscode.window.showErrorMessage('Failed to retrieve database server information');
 			return;
 		}
-		console.log(`Query executed:`, executeQuery);
 
-		await connectionSharingApi.disconnect(connectionUri);
-		console.log(`Disconnected from connection: ${connectionUri}`);
-	}));
+		console.log('Server information:', serverInformation);
 
-	context.subscriptions.push(vscode.commands.registerCommand('connection-sharing-sample.availableConnections', async () => {
-		const connections = vscode.workspace.getConfiguration("mssql").inspect('connections')?.globalValue as IConnectionProfile[];
-		if (!connections) {
-			vscode.window.showInformationMessage("No available connections found.");
+		const databaseListResults = await connectionSharingService.executeSimpleQuery(
+			databaseConnectionUri,
+			'SELECT TOP(10) name AS DatabaseName FROM sys.databases ORDER BY name'
+		);
+
+		if (!databaseListResults) {
+			vscode.window.showErrorMessage('Failed to execute database query');
 			return;
 		}
-		vscode.window.showInformationMessage(`Total available connections: ${connections.length}`);
-	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('connection-sharing-sample.requestApproval', async () => {
-		await vscode.commands.executeCommand( "mssql.connectionSharing.editConnectionSharingPermissions", extensionId);
-	}));
+		console.log('Database query results:', databaseListResults);
+
+		await connectionSharingService.disconnect(databaseConnectionUri);
+		console.log(`Disconnected successfully from: ${databaseConnectionUri}`);
+
+		// Show success message to user
+		vscode.window.showInformationMessage('Connection sharing API demo completed successfully!');
+
+	} catch (error) {
+		console.error('Error in API-based connection sharing demo:', error);
+		vscode.window.showErrorMessage(`API demo failed: ${error}`);
+	}
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() { }
+async function showAvailableConnections(): Promise<void> {
+	try {
+		// Retrieve configured connections from VS Code settings
+		const configuredConnections = vscode.workspace
+			.getConfiguration('mssql')
+			.inspect('connections')?.globalValue as IConnectionProfile[];
+
+		if (!configuredConnections || configuredConnections.length === 0) {
+			vscode.window.showInformationMessage(
+				'No database connections configured. Please set up connections in VS Code settings.'
+			);
+			return;
+		}
+
+		// Display connection count and details
+		const connectionCount = configuredConnections.length;
+
+		vscode.window.showInformationMessage(
+			`Found ${connectionCount} configured connection(s).`
+		);
+	} catch (error) {
+		console.error('Error retrieving available connections:', error);
+		vscode.window.showErrorMessage(`Failed to retrieve connections: ${error}`);
+	}
+}
+
+async function requestConnectionSharingPermissions(): Promise<void> {
+	try {
+		console.log('Opening connection sharing permissions dialog...');
+
+		const result = await vscode.commands.executeCommand(
+			'mssql.connectionSharing.editConnectionSharingPermissions',
+			EXTENSION_ID
+		);
+
+		if (result === "approved") {
+			vscode.window.showInformationMessage('Connection sharing permissions approved successfully.');
+		}
+		else if (result === "denied") {
+			vscode.window.showWarningMessage('Connection sharing permissions were denied.');
+		}
+		else {
+			vscode.window.showInformationMessage('Connection sharing permissions dialog closed without action.');
+		}
+	} catch (error) {
+		console.error('Error opening permissions dialog:', error);
+		vscode.window.showErrorMessage(`Failed to open permissions dialog: ${error}`);
+	}
+}

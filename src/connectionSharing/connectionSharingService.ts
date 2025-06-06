@@ -149,7 +149,9 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         }
     }
 
-    private async editConnectionSharingPermissions(extensionId?: string): Promise<void> {
+    public async editConnectionSharingPermissions(
+        extensionId?: string,
+    ): Promise<ConnectionSharingApproval | undefined> {
         const extensionsQuickPickItems: vscode.QuickPickItem[] = vscode.extensions.all.map(
             (extension) => {
                 return {
@@ -203,6 +205,8 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         const newApproval: ConnectionSharingApproval =
             newPermission.detail as ConnectionSharingApproval;
         await this.updateExtensionApproval(extensionId, newApproval);
+
+        return newApproval;
     }
 
     private async updateExtensionApproval(

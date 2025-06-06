@@ -2565,5 +2565,13 @@ declare module "vscode-mssql" {
          * @returns A promise that resolves with the server information.
          */
         getServerInfo(connectionUri: string): IServerInfo;
+        /**
+         * Edit the connection sharing permissions for a specific extension.
+         * @param extensionId The ID of the extension to edit permissions for.
+         * @returns A promise that resolves with the updated connection sharing approval, or undefined if the operation failed.
+         */
+        editConnectionSharingPermissions(
+            extensionId: string,
+        ): Promise<ConnectionSharingApproval | undefined>;
     }
 }
