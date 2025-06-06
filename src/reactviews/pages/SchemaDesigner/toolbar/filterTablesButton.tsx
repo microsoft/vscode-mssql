@@ -10,8 +10,9 @@ import {
     SearchBox,
     Text,
     Button,
+    ListItem,
+    List,
 } from "@fluentui/react-components";
-import { List, ListItem } from "@fluentui/react-list-preview";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";

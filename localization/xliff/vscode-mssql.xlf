@@ -947,6 +947,9 @@
     <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
       <source xml:lang="en">Generate script to deploy changes to target</source>
     </trans-unit>
+    <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
+      <source xml:lang="en">Generating Report. This may take a while...</source>
+    </trans-unit>
     <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
       <source xml:lang="en">Generating report, this might take a while...</source>
     </trans-unit>
@@ -1352,6 +1355,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
       <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
+      <source xml:lang="en">Opening Publish Script. This may take a while...</source>
     </trans-unit>
     <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
       <source xml:lang="en">Operator</source>
