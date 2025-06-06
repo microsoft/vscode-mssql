@@ -8,7 +8,6 @@ import { useContext } from "react";
 import { ConnectionGroupContext } from "./connectionGroupStateProvider";
 import { ConnectionGroupDialog } from "./connectionGroup.component";
 
-// Define styles for the component
 const useStyles = makeStyles({
     root: {
         display: "flex",

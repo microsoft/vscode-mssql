@@ -110,7 +110,6 @@ export default class MainController implements vscode.Disposable {
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
-    private _logger: Logger;
 
     /**
      * The main controller constructor
@@ -126,7 +125,6 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr = connectionManager;
         }
         this._vscodeWrapper = vscodeWrapper ?? new VscodeWrapper();
-        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "MainController");
         this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
         this.configuration = vscode.workspace.getConfiguration();
         UserSurvey.createInstance(this._context, this._vscodeWrapper);
@@ -838,21 +836,6 @@ export default class MainController implements vscode.Disposable {
         if (sessionCreationResult) {
             const newNode = await sessionCreationResult.connectionNode;
             if (newNode) {
-                this._logger.verbose(
-                    `Refreshing tree view with new node: ${JSON.stringify({
-                        id: newNode.id,
-                        nodeId: newNode.id,
-                        label: newNode.label,
-                        sessionId: newNode.sessionId,
-                        parentNode: newNode.parentNode
-                            ? {
-                                  type: newNode.parentNode.constructor.name,
-                                  label: newNode.parentNode.label,
-                                  id: newNode.parentNode.id,
-                              }
-                            : undefined,
-                    })}`,
-                );
                 this._objectExplorerProvider.refresh(undefined);
                 return newNode;
             }
@@ -2384,13 +2367,12 @@ export default class MainController implements vscode.Disposable {
     ): Promise<boolean> {
         let needsRefresh = false;
 
-        // if a connection(s) was/were manually added
+        // if a connection was manually added
         let newConnections = configConnections.filter((userConn) => {
             return !oeConnections.some((oeConn) => Utils.isSameConnectionInfo(userConn, oeConn));
         });
         for (let conn of newConnections) {
-            // if a connection is not connected
-            // that means it was added manually
+            // if a connection is not connected, that means it was added manually
             const newConnectionProfile = <IConnectionProfile>conn;
             const uri = ObjectExplorerUtils.getNodeUriFromProfile(newConnectionProfile);
             if (

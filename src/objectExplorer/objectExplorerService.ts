@@ -338,7 +338,6 @@ export class ObjectExplorerService {
      * Helper to show the Add Connection node; only displayed when there are no saved connections
      */
     private getAddConnectionNode(): AddConnectionTreeNode[] {
-        //this._rootTreeNodeArray = [];
         return [new AddConnectionTreeNode()];
     }
 
@@ -510,28 +509,20 @@ export class ObjectExplorerService {
             }
         }
 
-        if (element instanceof ConnectionGroupNodeInfo) {
-            // TODO: get children for server group nodes and cache them
-            this._logger.error(
-                `getNodeChildren() for ${element.nodePath}: TODO: get children for server group nodes and cache them`,
-            );
-            this._treeNodeToChildrenMap.set(element, []);
-        } else {
-            /**
-             * If no children are cached, return a temporary loading node to keep the UI responsive
-             * and trigger the async call to fetch real children.
-             * This node will be replaced once the data is retrieved and the tree is refreshed.
-             * Tree expansion is queued, so without this if multiple connections are expanding,
-             * one blocked operation can delay the other.
-             */
-            void this.getOrCreateNodeChildrenWithSession(element);
-            const loadingNode = new vscode.TreeItem(
-                LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
-                vscode.TreeItemCollapsibleState.None,
-            );
-            loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
-            this._treeNodeToChildrenMap.set(element, [loadingNode]);
-        }
+        /**
+         * If no children are cached, return a temporary loading node to keep the UI responsive
+         * and trigger the async call to fetch real children.
+         * This node will be replaced once the data is retrieved and the tree is refreshed.
+         * Tree expansion is queued, so without this if multiple connections are expanding,
+         * one blocked operation can delay the other.
+         */
+        void this.getOrCreateNodeChildrenWithSession(element);
+        const loadingNode = new vscode.TreeItem(
+            LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
+            vscode.TreeItemCollapsibleState.None,
+        );
+        loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
+        this._treeNodeToChildrenMap.set(element, [loadingNode]);
 
         return this._treeNodeToChildrenMap.get(element);
     }
@@ -846,28 +837,8 @@ export class ObjectExplorerService {
             isNewConnection = true;
             connectionNode = new ConnectionNode(connectionProfile);
             this._connectionNodes.set(connectionProfile.id, connectionNode);
-            this._logger.verbose(
-                `Created new connection node: ${JSON.stringify({
-                    id: connectionNode.id,
-                    nodeId: connectionNode.id,
-                    profileId: connectionProfile.id,
-                    server: connectionProfile.server,
-                    database: connectionProfile.database,
-                    groupId: connectionProfile.groupId,
-                })}`,
-            );
         } else {
             connectionNode.updateConnectionProfile(connectionProfile);
-            this._logger.verbose(
-                `Updated existing connection node: ${JSON.stringify({
-                    id: connectionNode.id,
-                    nodeId: connectionNode.id,
-                    profileId: connectionProfile.id,
-                    server: connectionProfile.server,
-                    database: connectionProfile.database,
-                    groupId: connectionProfile.groupId,
-                })}`,
-            );
         }
 
         connectionNode.updateToConnectedState({
@@ -876,22 +847,6 @@ export class ObjectExplorerService {
             parentNode: connectionNode.parentNode,
             connectionProfile: connectionProfile,
         });
-
-        this._logger.verbose(
-            `Updated node to connected state: ${JSON.stringify({
-                id: connectionNode.id,
-                nodeId: connectionNode.id,
-                sessionId: successResponse.sessionId,
-                nodeType: successResponse.rootNode?.nodeType,
-                parentNode: connectionNode.parentNode
-                    ? {
-                          type: connectionNode.parentNode.constructor.name,
-                          label: connectionNode.parentNode.label,
-                          id: connectionNode.parentNode.id,
-                      }
-                    : undefined,
-            })}`,
-        );
 
         // make a connection if not connected already
         const nodeUri = this.getNodeIdentifier(connectionNode);
@@ -903,9 +858,6 @@ export class ObjectExplorerService {
         }
         if (isNewConnection) {
             this.addConnectionNodeAtRightPosition(connectionNode);
-            this._logger.verbose(
-                `Added new connection node at right position. Node ID: ${connectionNode.id}`,
-            );
         }
         // remove the sign in node once the session is created
         if (this._treeNodeToChildrenMap.has(connectionNode)) {
@@ -913,23 +865,6 @@ export class ObjectExplorerService {
         }
 
         const finalNode = this.getConnectionNodeFromProfile(connectionProfile);
-        this._logger.verbose(
-            `Returning final node: ${JSON.stringify({
-                exists: !!finalNode,
-                id: finalNode?.id,
-                nodeId: finalNode?.id,
-                type: finalNode?.constructor.name,
-                label: finalNode?.label,
-                sessionId: finalNode?.sessionId,
-                parentNode: finalNode?.parentNode
-                    ? {
-                          type: finalNode.parentNode.constructor.name,
-                          label: finalNode.parentNode.label,
-                          id: finalNode.parentNode.id,
-                      }
-                    : undefined,
-            })}`,
-        );
 
         return {
             sessionId: successResponse.sessionId,
@@ -1138,11 +1073,6 @@ export class ObjectExplorerService {
         }
 
         await this.disconnectNode(node);
-
-        // const index = this._rootTreeNodeArray.indexOf(node, 0);
-        // if (index > -1) {
-        //     this._rootTreeNodeArray.splice(index, 1);
-        // }
 
         if (this._connectionNodes.has(node.connectionProfile.id)) {
             this._connectionNodes.delete(node.connectionProfile.id);

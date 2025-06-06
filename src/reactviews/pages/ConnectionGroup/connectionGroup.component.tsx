@@ -118,10 +118,11 @@ export const ConnectionGroupDialog = ({
                     }
                 }}>
                 <DialogBody>
+                    {" "}
                     <DialogTitle>
                         {state.existingGroupName
-                            ? `Edit Connection Group: ${state.existingGroupName}`
-                            : "Create New Connection Group"}
+                            ? Loc.connectionGroups.editConnectionGroup(state.existingGroupName)
+                            : Loc.connectionGroups.createNew}
                     </DialogTitle>
                     <DialogContent>
                         <form onSubmit={handleSubmit}>
@@ -132,30 +133,34 @@ export const ConnectionGroupDialog = ({
                                     </MessageBar>
                                     <br />
                                 </>
-                            )}
-
-                            <Field className={formStyles.formComponentDiv} label="Name" required>
+                            )}{" "}
+                            <Field
+                                className={formStyles.formComponentDiv}
+                                label={Loc.connectionGroups.name}
+                                required>
                                 <Input
                                     value={groupName}
                                     onChange={(_e, data) => {
                                         setGroupName(data.value);
                                     }}
                                     required
-                                    placeholder="Enter connection group name"
+                                    placeholder={Loc.connectionGroups.enterConnectionGroupName}
                                 />
-                            </Field>
-
-                            <Field className={formStyles.formComponentDiv} label="Description">
+                            </Field>{" "}
+                            <Field
+                                className={formStyles.formComponentDiv}
+                                label={Loc.connectionGroups.description}>
                                 <Textarea
                                     value={description}
                                     onChange={(_e, data) => {
                                         setDescription(data.value);
                                     }}
-                                    placeholder="Enter description (optional)"
+                                    placeholder={Loc.connectionGroups.enterDescription}
                                 />
-                            </Field>
-
-                            <Field className={formStyles.formComponentDiv} label="Color">
+                            </Field>{" "}
+                            <Field
+                                className={formStyles.formComponentDiv}
+                                label={Loc.connectionGroups.color}>
                                 <div className={styles.colorContainer}>
                                     <div
                                         className={styles.previewColor}
@@ -174,7 +179,7 @@ export const ConnectionGroupDialog = ({
                                         onOpenChange={(_, data) => setPopoverOpen(data.open)}>
                                         <PopoverTrigger disableButtonEnhancement>
                                             <Button style={{ minWidth: "120px" }}>
-                                                Choose color
+                                                {Loc.connectionGroups.chooseColor}
                                             </Button>
                                         </PopoverTrigger>
 
@@ -207,13 +212,13 @@ export const ConnectionGroupDialog = ({
                                                         setPickerColor(color);
                                                         setPopoverOpen(false);
                                                     }}>
-                                                    Ok
+                                                    {Loc.common.select}
                                                 </Button>
                                                 <Button
                                                     onClick={() => {
                                                         setPopoverOpen(false);
                                                     }}>
-                                                    Cancel
+                                                    {Loc.common.cancel}
                                                 </Button>
                                             </div>
                                         </PopoverSurface>
@@ -231,7 +236,7 @@ export const ConnectionGroupDialog = ({
                                 handleSubmit();
                             }}
                             disabled={!isReadyToSubmit()}>
-                            Save Connection Group
+                            {Loc.connectionGroups.saveConnectionGroup}
                         </Button>
                         <Button
                             appearance="secondary"

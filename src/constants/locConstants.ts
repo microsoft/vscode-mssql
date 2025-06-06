@@ -637,6 +637,8 @@ export class ConnectionDialog {
     public static signIn = l10n.t("Sign in");
     public static additionalParameters = l10n.t("Additional parameters");
     public static connect = l10n.t("Connect");
+    public static default = l10n.t("<Default>");
+    public static createConnectionGroup = l10n.t("Create Connection Group");
 
     public static errorLoadingAzureDatabases(subscriptionName: string, subscriptionId: string) {
         return l10n.t({

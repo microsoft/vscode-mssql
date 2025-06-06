@@ -18,7 +18,6 @@ import {
     IConnectionProfileWithSource,
 } from "../models/interfaces";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
-// import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
@@ -566,7 +565,7 @@ export class ConnectionStore {
 
         // Include recent connections, if specified
         if (includeRecentConnections) {
-            let recentConnections = this.getRecentlyUsedConnections().map((c) => {
+            const recentConnections = this.getRecentlyUsedConnections().map((c) => {
                 const conn = c as IConnectionProfileWithSource;
                 conn.profileSource = CredentialsQuickPickItemType.Mru;
                 return conn;

@@ -750,19 +750,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 authMode: this.state.connectionProfile.authenticationType,
             });
 
-            // // all properties are set when converting from a ConnectionDetails object,
-            // // so we want to clean the default undefined properties before saving.
-            // cleanedConnection = ConnectionCredentials.removeUndefinedProperties(
-            //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            //     cleanedConnection as any,
-            // );
-
-            // if (this._connectionBeingEdited) {
-            //     await this._mainController.connectionManager.connectionStore.updateProfile(cleanedConnection)
-            // } else {
-            //     await this._mainController.connectionManager.connectionStore.addProfile(cleanedConnection);
-            // }
-
             if (this._connectionBeingEdited) {
                 this._mainController.connectionManager.getUriForConnection(
                     this._connectionBeingEdited,
@@ -794,56 +781,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             this.state.connectionStatus = ApiStatus.Loaded;
 
-            try {
-                // Log the connection details
-                this.logger.verbose(
-                    `Connection successful. Connection details: ${JSON.stringify({
-                        id: cleanedConnection.id,
-                        server: cleanedConnection.server,
-                        database: cleanedConnection.database,
-                        groupId: cleanedConnection.groupId,
-                    })}`,
-                );
-
-                // Log the node details
-                this.logger.verbose(
-                    `Attempting to reveal node: ${JSON.stringify({
-                        type: node?.constructor?.name,
-                        label: node?.label,
-                        path: node?.nodePath,
-                        sessionId: node?.sessionId,
-                        parentNode: node?.parentNode
-                            ? {
-                                  type: node.parentNode?.constructor?.name,
-                                  label: node.parentNode?.label,
-                              }
-                            : undefined,
-                    })}`,
-                );
-
-                await this._mainController.objectExplorerTree.reveal(node, {
-                    focus: true,
-                    select: true,
-                    expand: true,
-                });
-            } catch (revealError) {
-                this.logger.error(
-                    `Failed to reveal node in tree. Error: ${getErrorMessage(revealError)}`,
-                );
-                this.logger.error(
-                    `Node details at time of error: ${JSON.stringify({
-                        type: node?.constructor?.name,
-                        label: node?.label,
-                        path: node?.nodePath,
-                        sessionId: node?.sessionId,
-                        exists: !!node,
-                    })}`,
-                );
-                // Continue even if reveal fails - the connection was successful
-                this.vscodeWrapper.showInformationMessage(
-                    `Connection successful, but couldn't highlight the connection in the Object Explorer.`,
-                );
-            }
+            await this._mainController.objectExplorerTree.reveal(node, {
+                focus: true,
+                select: true,
+                expand: true,
+            });
 
             await this.panel.dispose();
             this.dispose();
@@ -1032,14 +974,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         const rootGroup =
             this._mainController.connectionManager.connectionStore.connectionConfig.getRootGroup();
         return connectionGroups.map((g) => ({
-            displayName: g.id === rootGroup.id ? "<Default>" : g.name,
+            displayName: g.id === rootGroup.id ? Loc.default : g.name,
             value: g.id,
         }));
     }
 
     private async getConnectionGroupButton(): Promise<FormItemActionButton> {
         return {
-            label: "Create Connection Group",
+            label: Loc.createConnectionGroup,
             id: "createConnectionGroup",
             callback: async () => {
                 this.state.dialog = {

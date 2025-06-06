@@ -111,6 +111,7 @@
   },
   "Close Find": "Close Find",
   "Load": "Load",
+  "Select": "Select",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -625,6 +626,18 @@
     ]
   },
   "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
+  "Create New Connection Group": "Create New Connection Group",
+  "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
+    "message": "Edit Connection Group: {0}",
+    "comment": [
+      "{0} is the name of the connection group being edited"
+    ]
+  },
+  "Enter connection group name": "Enter connection group name",
+  "Enter description (optional)": "Enter description (optional)",
+  "Color": "Color",
+  "Choose color": "Choose color",
+  "Save Connection Group": "Save Connection Group",
   "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
   "Remind Me Later": "Remind Me Later",
@@ -1067,7 +1080,6 @@
       "{0} is the script type"
     ]
   },
-  "Select": "Select",
   "Insert": "Insert",
   "Update": "Update",
   "Execute": "Execute",
@@ -1093,6 +1105,8 @@
   "Connection string is required": "Connection string is required",
   "Sign in": "Sign in",
   "Additional parameters": "Additional parameters",
+  "<Default>": "<Default>",
+  "Create Connection Group": "Create Connection Group",
   "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission./{0} is the subscription name{1} is the subscription id": {
     "message": "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.",
     "comment": [
@@ -1298,7 +1312,6 @@
   },
   "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
-  "Create Connection Group": "Create Connection Group",
   "Edit Connection Group - {0}/{0} is the connection group name": {
     "message": "Edit Connection Group - {0}",
     "comment": [
