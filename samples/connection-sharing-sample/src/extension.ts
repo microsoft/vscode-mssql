@@ -42,7 +42,7 @@ async function connectionSharingWithCommands() {
 		) as string;
 
 		if (!activeConnectionId) {
-			vscode.window.showErrorMessage('No active database connection found in the current editor');
+			vscode.window.showErrorMessage('No database connection found for the active editor');
 			return;
 		}
 

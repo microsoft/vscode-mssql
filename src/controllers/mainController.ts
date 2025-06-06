@@ -493,6 +493,7 @@ export default class MainController implements vscode.Disposable {
                 this._context,
                 this._connectionMgr.client,
                 this._connectionMgr,
+                this._vscodeWrapper,
             );
 
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(

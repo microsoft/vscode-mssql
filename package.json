@@ -1045,12 +1045,12 @@
             },
             {
                 "command": "mssql.connectionSharing.editConnectionSharingPermissions",
-                "title": "Edit connection sharing permissions",
+                "title": "%mssql.connectionSharing.editConnectionSharingPermissions%",
                 "category": "MSSQL"
             },
             {
                 "command": "mssql.connectionSharing.clearAllConnectionSharingPermissions",
-                "title": "Clear All Connection Sharing Permissions",
+                "title": "%mssql.connectionSharing.clearAllConnectionSharingPermissions%",
                 "category": "MSSQL"
             }
         ],

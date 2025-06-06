@@ -1023,4 +1023,34 @@ export class ConnectionSharing {
             comment: ["{0} is the extension name"],
         });
     }
+    public static Approve = l10n.t("Approve");
+    public static Deny = l10n.t("Deny");
+    public static GrantAccess = l10n.t("✅ Grant Access");
+    public static GrantAccessCurrent = l10n.t("✅ Grant Access (Current)");
+    public static DenyAccess = l10n.t("❌ Deny Access");
+    public static DenyAccessCurrent = l10n.t("❌ Deny Access (Current)");
+    public static AllowThisExtensionToAccessYourConnections = l10n.t(
+        "Allow this extension to access your connections",
+    );
+    public static BlockThisExtensionFromAccessingYourConnections = l10n.t(
+        "Block this extension from accessing your connections",
+    );
+    public static SelectAnExtensionToManage = l10n.t(
+        "Select an extension to manage connection sharing permissions",
+    );
+    public static SelectNewPermission = (extensionName: string) => {
+        return l10n.t({
+            message: "Select new permission for extension: '{0}'",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    };
+    public static ClearAllPermissions = l10n.t(
+        "Clear permissions for all extensions to access your connections",
+    );
+    public static Clear = l10n.t("Clear");
+    public static Cancel = l10n.t("Cancel");
+    public static AllPermissionsCleared = l10n.t(
+        "All permissions for extensions to access your connections have been cleared.",
+    );
 }

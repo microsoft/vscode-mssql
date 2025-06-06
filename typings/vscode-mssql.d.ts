@@ -2528,7 +2528,7 @@ declare module "vscode-mssql" {
          * @param extensionId The ID of the extension.
          * @returns The connection ID if an active editor is connected, or undefined if there is no active editor or the editor is not connected.
          */
-        getActiveEditorConnectionId(extensionId: string): string | undefined;
+        getActiveEditorConnectionId(extensionId: string): Promise<string | undefined>;
         /**
          * Connect to an existing connection using the connection ID.
          * This will return the connection URI if successful.
