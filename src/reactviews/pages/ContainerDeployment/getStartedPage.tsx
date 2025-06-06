@@ -6,7 +6,6 @@
 import { useContext, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { Button, makeStyles } from "@fluentui/react-components";
-import { DesktopCursor24Filled, ArrowSyncCheckmark24Filled } from "@fluentui/react-icons";
 import { PrereqCheckPage } from "./prereqCheckPage";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 import { locConstants } from "../../common/locConstants";
@@ -91,7 +90,11 @@ export const GetStartedPage: React.FC = () => {
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
                     <div className={classes.itemDiv}>
-                        <DesktopCursor24Filled className={classes.icon} />
+                        <img
+                            className={classes.icon}
+                            src={instantSetup()}
+                            alt={locConstants.containerDeployment.instantContainerSetup}
+                        />
                         <div className={classes.textDiv}>
                             <div className={classes.titleDiv}>
                                 {locConstants.containerDeployment.instantContainerSetup}
@@ -102,9 +105,10 @@ export const GetStartedPage: React.FC = () => {
                         </div>
                     </div>
                     <div className={classes.itemDiv}>
-                        <ArrowSyncCheckmark24Filled
+                        <img
                             className={classes.icon}
-                            style={{ width: "85px", height: "85px" }}
+                            src={chooseVersion()}
+                            alt={locConstants.containerDeployment.instantContainerSetup}
                         />
                         <div className={classes.textDiv}>
                             <div className={classes.titleDiv}>
@@ -156,4 +160,12 @@ export const GetStartedPage: React.FC = () => {
             </div>
         </div>
     );
+};
+
+export const instantSetup = () => {
+    return require(`./InstantSetup.svg`);
+};
+
+export const chooseVersion = () => {
+    return require(`./ChooseVersion.svg`);
 };
