@@ -65,7 +65,7 @@ import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWe
 import { DefaultWebviewNotifications } from "./reactWebviewBaseController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
-import * as Prompts from "../chat/prompts";
+import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
 
