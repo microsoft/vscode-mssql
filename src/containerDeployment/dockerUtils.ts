@@ -159,7 +159,9 @@ export function setStepStatusesFromResult(
     } else {
         steps[currentStep].loadState = ApiStatus.Error;
         steps[currentStep].errorMessage = result.error;
-        steps[currentStep].fullErrorText = truncateErrorTextIfNeeded(result.fullErrorText);
+        steps[currentStep].fullErrorText = truncateAndSanitizeErrorTextIfNeeded(
+            result.fullErrorText,
+        );
         for (let i = currentStep + 1; i < steps.length; i++) {
             steps[i].loadState = ApiStatus.Error;
             steps[i].errorMessage = ContainerDeployment.previousStepFailed;
@@ -169,13 +171,18 @@ export function setStepStatusesFromResult(
 }
 
 /**
- * Truncates the error text if it exceeds the maximum length.
+ * Truncates the error text if it exceeds the maximum length and sanitizes sensitive info.
  */
-export function truncateErrorTextIfNeeded(errorText: string): string {
-    if (errorText.length > MAX_ERROR_TEXT_LENGTH) {
-        return `${errorText.substring(0, MAX_ERROR_TEXT_LENGTH)}...`;
+export function truncateAndSanitizeErrorTextIfNeeded(errorText: string): string {
+    // Sanitize
+    const sanitized = errorText.replace(/(SA_PASSWORD=)([^ \n]+)/gi, '$1******"');
+
+    // Truncate if necessary
+    if (sanitized.length > MAX_ERROR_TEXT_LENGTH) {
+        return `${sanitized.substring(0, MAX_ERROR_TEXT_LENGTH)}...`;
     }
-    return errorText;
+
+    return sanitized;
 }
 
 /**
@@ -380,7 +387,7 @@ export async function startSqlServerDockerContainer(
     } catch (e) {
         return {
             success: false,
-            error: getErrorMessage(e),
+            error: ContainerDeployment.startSqlServerContainerError,
             port: undefined,
             fullErrorText: getErrorMessage(e),
         };

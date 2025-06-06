@@ -804,10 +804,10 @@ export class ContainerDeployment {
     public static hostname = l10n.t("Hostname");
     public static hostnameTooltip = l10n.t("Choose a hostname for the container");
     public static termsAndConditions = l10n.t("Terms & Conditions");
-    public static acceptDockerEulaTooltip = l10n.t(
-        "Accept the Docker EULA to deploy a SQL Server Docker container",
+    public static acceptSqlServerEulaTooltip = l10n.t(
+        "Accept the SQL Server EULA to deploy a SQL Server Docker container",
     );
-    public static acceptDockerEula = l10n.t("Please Accept the Docker EULA");
+    public static acceptSqlServerEula = l10n.t("Please Accept the SQL Server EULA");
     public static dockerInstallHeader = l10n.t("Checking if Docker is installed");
     public static dockerInstallBody = l10n.t("Checking if Docker is installed on your machine");
     public static dockerInstallError = l10n.t(
@@ -886,6 +886,9 @@ export class ContainerDeployment {
     );
     public static switchToLinuxContainersCanceled = l10n.t(
         "Switching to Linux containers was canceled. SQL Server only supports Linux containers.",
+    );
+    public static startSqlServerContainerError = l10n.t(
+        "Failed to start SQL Server container. Please check the error message for more details, and then try again.",
     );
 }
 

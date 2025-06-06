@@ -25,8 +25,8 @@
     <trans-unit id="++CODE++89713b9c9c1b8f659c9f49db25e4a47886dd673fee248c3f650391f09a759cef">
       <source xml:lang="en">Accept</source>
     </trans-unit>
-    <trans-unit id="++CODE++02ce8f0ae513a6f636978a8fadf224b825c9913ad55ab2ae3c3000a5255fe9cc">
-      <source xml:lang="en">Accept the Docker EULA to deploy a SQL Server Docker container</source>
+    <trans-unit id="++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34">
+      <source xml:lang="en">Accept the SQL Server EULA to deploy a SQL Server Docker container</source>
     </trans-unit>
     <trans-unit id="++CODE++fa0563b6f04578f7a2a7cff43aed611c4835bbb2f3a21dfed76a0601a1d63859">
       <source xml:lang="en">Access denied. Please ensure you have the necessary permissions to use this tool or model.</source>
@@ -929,6 +929,9 @@
       <source xml:lang="en">Failed to save scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the save scmp operation</note>
     </trans-unit>
+    <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
+      <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
       <source xml:lang="en">Failed to start {0}.</source>
       <note>Failed to start {0}.</note>
@@ -1535,8 +1538,8 @@
     <trans-unit id="++CODE++0a59729d88d37ed0f6bddc3a9a92d14b94528c315fec4cd3c70cd2d4bcabe1ff">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.</source>
     </trans-unit>
-    <trans-unit id="++CODE++955d464619712f47bd39bd4fa1eb8ca90d1415bd5da4d3dc80b13d8be23f281e">
-      <source xml:lang="en">Please Accept the Docker EULA</source>
+    <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
+      <source xml:lang="en">Please Accept the SQL Server EULA</source>
     </trans-unit>
     <trans-unit id="++CODE++e9867ec277676c80767b62a3ccde695a9fd4b9927c6541f6bfb0be08bed55596">
       <source xml:lang="en">Please choose a unique name for the container</source>

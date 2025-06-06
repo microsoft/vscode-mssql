@@ -402,14 +402,14 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                         </a>
                     </span>`,
                 required: true,
-                tooltip: ContainerDeployment.acceptDockerEulaTooltip,
+                tooltip: ContainerDeployment.acceptSqlServerEulaTooltip,
                 componentWidth: "600px",
                 validate(_, value) {
                     return value
                         ? { isValid: true, validationMessage: "" }
                         : {
                               isValid: false,
-                              validationMessage: ContainerDeployment.acceptDockerEula,
+                              validationMessage: ContainerDeployment.acceptSqlServerEula,
                           };
                 },
             }),

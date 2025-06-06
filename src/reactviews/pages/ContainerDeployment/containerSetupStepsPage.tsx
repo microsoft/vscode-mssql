@@ -72,7 +72,7 @@ export const ContainerSetupStepsPage: React.FC = () => {
                     />
                     <Button
                         className={classes.button}
-                        onClick={() => (stepsLoaded ? state.dispose() : undefined)}
+                        onClick={() => state.dispose()}
                         appearance={stepsLoaded ? "primary" : "secondary"}>
                         {locConstants.common.finish}
                     </Button>

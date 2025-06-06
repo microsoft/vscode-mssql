@@ -134,19 +134,30 @@ suite("Docker Utilities", () => {
         }
     });
 
-    test("truncateErrorText: should truncate long error messages correctly", () => {
+    test("truncateAndSanitizeErrorTextIfNeeded: should truncate long error messages and sanitize SA_PASSWORD", () => {
+        // Test truncation
         const longErrorText = "Some detailed error ".repeat(35); // > 300 chars
-        const truncated = dockerUtils.truncateErrorTextIfNeeded(longErrorText);
+        const truncated = dockerUtils.truncateAndSanitizeErrorTextIfNeeded(longErrorText);
         assert.ok(truncated.length <= 303, "Text should be truncated to 300 chars + ellipsis");
-        const shortErrorTest = "Short error message";
-        const shortTruncated = dockerUtils.truncateErrorTextIfNeeded(shortErrorTest);
-        assert.strictEqual(shortTruncated, shortErrorTest, "Short text should remain unchanged");
+
+        // Test no truncation for short error
+        const shortErrorText = "Short error message";
+        const shortTruncated = dockerUtils.truncateAndSanitizeErrorTextIfNeeded(shortErrorText);
+        assert.strictEqual(shortTruncated, shortErrorText, "Short text should remain unchanged");
+
+        // Test sanitization
+        const errorWithPassword = "Connection failed: SA_PASSWORD={testtesttest} something broke";
+        const sanitized = dockerUtils.truncateAndSanitizeErrorTextIfNeeded(errorWithPassword);
+        assert.ok(sanitized.includes("SA_PASSWORD=******"), "SA_PASSWORD value should be masked");
+        assert.ok(
+            !sanitized.includes("testtesttest"),
+            "Original password should not appear in sanitized output",
+        );
     });
 
     test("validateSqlServerPassword: should validate password complexity and length", () => {
         // Too short
-        const shortPassword = "Zx12s?!";
-        const shortResult = dockerUtils.validateSqlServerPassword(shortPassword);
+        const shortResult = dockerUtils.validateSqlServerPassword("<0>");
         assert.strictEqual(
             shortResult,
             ContainerDeployment.passwordLengthError,
@@ -154,8 +165,7 @@ suite("Docker Utilities", () => {
         );
 
         // Valid length but not enough complexity (only lowercase)
-        const lowComplexityPassword = "abcdefgh";
-        const lowComplexityResult = dockerUtils.validateSqlServerPassword(lowComplexityPassword);
+        const lowComplexityResult = dockerUtils.validateSqlServerPassword("<placeholder>");
         assert.strictEqual(
             lowComplexityResult,
             ContainerDeployment.passwordComplexityError,
@@ -163,19 +173,15 @@ suite("Docker Utilities", () => {
         );
 
         // Valid: meets 3 categories (uppercase, lowercase, number)
-        const validPassword1 = "Password1";
-        const result1 = dockerUtils.validateSqlServerPassword(validPassword1);
+        const result1 = dockerUtils.validateSqlServerPassword("Placeholder1");
         assert.strictEqual(result1, "", "Should return empty string for valid password");
 
         // Valid: meets 4 categories (uppercase, lowercase, number, special char)
-        const validPassword2 = "G7v@rLm9!";
-        const result2 = dockerUtils.validateSqlServerPassword(validPassword2);
+        const result2 = dockerUtils.validateSqlServerPassword("<Placeholder1>");
         assert.strictEqual(result2, "", "Should return empty string for valid password");
 
         // Only 2 categories (lowercase and digit)
-        const invalidCategoryPassword = "abc12345";
-        const invalidCategoryResult =
-            dockerUtils.validateSqlServerPassword(invalidCategoryPassword);
+        const invalidCategoryResult = dockerUtils.validateSqlServerPassword("<hidden>");
         assert.strictEqual(
             invalidCategoryResult,
             ContainerDeployment.passwordComplexityError,
@@ -379,7 +385,6 @@ suite("Docker Utilities", () => {
 
     test("startSqlServerDockerContainer: success and failure cases", async () => {
         const containerName = "testContainer";
-        const password = "Xf9!uDq7@LmB2#cV";
         const version = "2019";
         const hostname = "localhost";
         const port = 1433;
@@ -391,7 +396,7 @@ suite("Docker Utilities", () => {
 
         const resultSuccess = await dockerUtils.startSqlServerDockerContainer(
             containerName,
-            password,
+            "Xf9!uDq7@LmB2#cV",
             version,
             hostname,
             port,
@@ -406,11 +411,13 @@ suite("Docker Utilities", () => {
         execStub.resetHistory();
 
         // Failure case: exec yields (error, null stdout)
-        execStub.onCall(0).yields(new Error("Failed to start container"), null);
+        execStub
+            .onCall(0)
+            .yields(new Error(ContainerDeployment.startSqlServerContainerError), null);
 
         const resultFailure = await dockerUtils.startSqlServerDockerContainer(
             containerName,
-            password,
+            "Xf9!uDq7@LmB2#cV",
             version,
             hostname,
             port,
@@ -418,8 +425,11 @@ suite("Docker Utilities", () => {
 
         sinon.assert.calledOnce(execStub);
         assert.strictEqual(resultFailure.success, false);
-        assert.strictEqual(resultFailure.error, "Failed to start container");
-        assert.strictEqual(resultFailure.fullErrorText, "Failed to start container");
+        assert.strictEqual(resultFailure.error, ContainerDeployment.startSqlServerContainerError);
+        assert.strictEqual(
+            resultFailure.fullErrorText,
+            ContainerDeployment.startSqlServerContainerError,
+        );
         assert.strictEqual(resultFailure.port, undefined);
     });
 
