@@ -108,7 +108,13 @@ export const GetStartedPage: React.FC = () => {
                         <img
                             className={classes.icon}
                             src={chooseVersion()}
-                            alt={locConstants.containerDeployment.instantContainerSetup}
+                            alt={locConstants.containerDeployment.chooseTheRightVersion}
+                            style={{
+                                width: "60px",
+                                height: "60px",
+                                marginLeft: "9px",
+                                marginRight: "18px",
+                            }}
                         />
                         <div className={classes.textDiv}>
                             <div className={classes.titleDiv}>
