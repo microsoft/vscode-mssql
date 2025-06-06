@@ -132,7 +132,31 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             }
             return state;
         });
+        this.registerReducer("resetDockerStepStates", async (state, _payload) => {
+            // Find the first errored step index
+            const firstErroredIndex = state.dockerSteps.findIndex(
+                (step) => step.loadState === ApiStatus.Error,
+            );
 
+            if (firstErroredIndex !== -1) {
+                // Reset the errored step and all steps after it
+                const updatedSteps = state.dockerSteps.map((step, index) => {
+                    if (index >= firstErroredIndex) {
+                        return {
+                            ...step,
+                            loadState: ApiStatus.NotStarted,
+                            errorMessage: undefined,
+                            fullErrorText: undefined,
+                        };
+                    }
+                    return step;
+                });
+
+                state.dockerSteps = updatedSteps;
+            }
+
+            return state;
+        });
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
             state = await this.validateDockerConnectionProfile(state, state.formState);
             if (!state.formState.containerName) {

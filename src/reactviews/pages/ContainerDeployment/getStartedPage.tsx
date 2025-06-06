@@ -163,9 +163,9 @@ export const GetStartedPage: React.FC = () => {
 };
 
 export const instantSetup = () => {
-    return require(`./InstantSetup.svg`);
+    return require(`../../media/instantSetup.svg`);
 };
 
 export const chooseVersion = () => {
-    return require(`./ChooseVersion.svg`);
+    return require(`../../media/chooseVersion.svg`);
 };

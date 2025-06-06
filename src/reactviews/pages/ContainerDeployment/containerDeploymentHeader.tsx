@@ -59,5 +59,5 @@ export const ContainerDeploymentHeader: React.FC<HeaderProps> = ({ headerText, p
 };
 
 export const dockerIcon = () => {
-    return require(`./Docker.svg`);
+    return require(`../../media/docker.svg`);
 };

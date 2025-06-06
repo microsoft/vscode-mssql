@@ -49,6 +49,7 @@ export class LocConstants {
             closeFind: l10n.t("Close Find"),
             load: l10n.t("Load"),
             finish: l10n.t("Finish"),
+            retry: l10n.t("Retry"),
         };
     }
 

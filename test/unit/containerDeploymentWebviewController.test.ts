@@ -433,6 +433,51 @@ suite("ContainerDeploymentWebviewController", () => {
         setStepStatusesSpy.restore();
     });
 
+    test("resetDockerStepStates reducer should reset errored and following steps", async () => {
+        let callState = (controller as any).state;
+
+        // Setup initial state
+        callState.dockerSteps = [
+            {
+                loadState: ApiStatus.Loaded,
+                stepAction: sinon.stub(),
+                argNames: [],
+                errorMessage: "Old error 1",
+                fullErrorText: "Old full error 1",
+            },
+            {
+                loadState: ApiStatus.Error,
+                stepAction: sinon.stub(),
+                argNames: [],
+                errorMessage: "Error happened",
+                fullErrorText: "Something bad happened",
+            },
+            {
+                loadState: ApiStatus.Error,
+                stepAction: sinon.stub(),
+                argNames: [],
+                errorMessage: "Old error 2",
+                fullErrorText: "Old full error 2",
+            },
+        ];
+
+        // Call reducer directly
+        const resultState = await controller["_reducers"]["resetDockerStepStates"](callState, {});
+
+        // First step should remain unchanged
+        assert.strictEqual(resultState.dockerSteps[0].loadState, ApiStatus.Loaded);
+        assert.strictEqual(resultState.dockerSteps[0].errorMessage, "Old error 1");
+
+        // Second and third steps should be reset
+        assert.strictEqual(resultState.dockerSteps[1].loadState, ApiStatus.NotStarted);
+        assert.strictEqual(resultState.dockerSteps[1].errorMessage, undefined);
+        assert.strictEqual(resultState.dockerSteps[1].fullErrorText, undefined);
+
+        assert.strictEqual(resultState.dockerSteps[2].loadState, ApiStatus.NotStarted);
+        assert.strictEqual(resultState.dockerSteps[2].errorMessage, undefined);
+        assert.strictEqual(resultState.dockerSteps[2].fullErrorText, undefined);
+    });
+
     test("Test checkDocker Profile reducer", async () => {
         let callState = (controller as any).state;
         const validateProfileStub = sinon.stub(

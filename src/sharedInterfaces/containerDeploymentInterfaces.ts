@@ -88,6 +88,11 @@ export interface ContainerDeploymentContextProps
     completeDockerStep(dockerStepNumber: DockerStepOrder): void;
 
     /**
+     * Resets the states of all Docker steps to NotStarted, from the first errored step
+     */
+    resetDockerStepStates(): void;
+
+    /**
      * Cleans up and disposes of resources used by the deployment context.
      */
     dispose(): void;
@@ -100,6 +105,12 @@ export interface ContainerDeploymentReducers {
     completeDockerStep: {
         dockerStepNumber: DockerStepOrder;
     };
+
+    /**
+     * Reducer for resetting Docker step states.
+     * Resets all Docker steps to NotStarted, starting from the first errored step.
+     */
+    resetDockerStepStates: {};
 
     /**
      * Reducer for Docker profile validation.

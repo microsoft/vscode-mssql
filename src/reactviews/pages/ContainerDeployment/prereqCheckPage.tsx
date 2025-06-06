@@ -8,17 +8,20 @@ import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { StepCard } from "./stepCard";
 import { Button } from "@fluentui/react-components";
 import { ContainerInputForm } from "./containerInputForm";
-import { checkStepsLoaded, runDockerSteps } from "./deploymentUtils";
+import { runDockerSteps } from "./deploymentUtils";
 import { DockerStepOrder } from "../../../sharedInterfaces/containerDeploymentInterfaces";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 import { locConstants } from "../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 export const PrereqCheckPage: React.FC = () => {
     const classes = stepPageStyles();
     const state = useContext(ContainerDeploymentContext);
     const [showNext, setShowNext] = useState(false);
     const [stepsLoaded, setStepsLoaded] = useState(false);
+    const [stepsErrored, setStepsErrored] = useState(false);
+
     const containerDeploymentState = state?.state;
 
     // If this passes, container deployment state is guaranteed
@@ -40,12 +43,22 @@ export const PrereqCheckPage: React.FC = () => {
 
     useEffect(() => {
         setStepsLoaded(
-            checkStepsLoaded(
-                containerDeploymentState.dockerSteps,
-                DockerStepOrder.checkDockerEngine,
-            ),
+            containerDeploymentState.dockerSteps[DockerStepOrder.checkDockerEngine].loadState ===
+                ApiStatus.Loaded,
         );
     }, [containerDeploymentState]);
+
+    useEffect(() => {
+        setStepsErrored(
+            containerDeploymentState.dockerSteps[DockerStepOrder.connectToContainer].loadState ===
+                ApiStatus.Error,
+        );
+    }, [containerDeploymentState]);
+
+    const handleRetry = async () => {
+        // reset step states
+        await state.resetDockerStepStates();
+    };
 
     return showNext ? (
         <ContainerInputForm />
@@ -77,22 +90,32 @@ export const PrereqCheckPage: React.FC = () => {
                             containerDeploymentState.dockerSteps[DockerStepOrder.checkDockerEngine]
                         }
                     />
-                    {stepsLoaded ? (
-                        <Button
-                            className={classes.button}
-                            onClick={() => setShowNext(true)}
-                            appearance="primary">
-                            {locConstants.common.next}
-                        </Button>
-                    ) : (
-                        <Button
-                            className={classes.button}
-                            onClick={() => {
-                                state.dispose();
-                            }}>
-                            {locConstants.common.cancel}
-                        </Button>
-                    )}
+                    <div className={classes.buttonDiv}>
+                        {stepsErrored && (
+                            <Button
+                                className={classes.button}
+                                onClick={handleRetry}
+                                appearance="primary">
+                                {locConstants.common.retry}
+                            </Button>
+                        )}
+                        {stepsLoaded ? (
+                            <Button
+                                className={classes.button}
+                                onClick={() => setShowNext(true)}
+                                appearance="primary">
+                                {locConstants.common.next}
+                            </Button>
+                        ) : (
+                            <Button
+                                className={classes.button}
+                                onClick={() => {
+                                    state.dispose();
+                                }}>
+                                {locConstants.common.cancel}
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

@@ -45,4 +45,12 @@ export const stepPageStyles = makeStyles({
         textAlign: "left",
         padding: "8px",
     },
+    buttonDiv: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "center",
+        width: "100%",
+        padding: "8px",
+        gap: "5px",
+    },
 });
