@@ -22,10 +22,4 @@ yarn watch
 
 ## 🆘 Support
 
-If you encounter any issues or have questions:
-
-1. Check the [Common Issues](#-common-issues--solutions) section
-2. Open an issue on GitHub
-3. Check the VS Code and MSSQL extension documentation
-
-
+If you encounter any issues or have questions, please open issues on Github.
