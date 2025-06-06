@@ -14,7 +14,7 @@ import { Deferred } from "../protocol";
 import * as Loc from "../constants/locConstants";
 import { IConnectionGroup } from "../models/interfaces";
 import * as Utils from "../models/utils";
-import { ConnectionConfig } from "../connectionconfig/connectionConfig";
+import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 
 /**
  * Controller for the Add Firewall Rule dialog

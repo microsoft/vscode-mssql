@@ -1305,7 +1305,7 @@ export class ObjectExplorerService {
         const foundNode = this._connectionNodes.get(connectionProfile.id);
 
         if (!foundNode) {
-            this._logger.error(
+            this._logger.verbose(
                 `Connection node not found for profile with ID: ${connectionProfile.id}`,
             );
         }
@@ -1333,26 +1333,14 @@ export class ObjectExplorerService {
      * Gets all connection profiles from the tree by traversing the hierarchy.
      * @returns Array of all connection profiles in the tree.
      */
-    public get rootNodeConnections(): IConnectionInfo[] {
-        const connections: IConnectionInfo[] = [];
+    public get connections(): IConnectionInfo[] {
+        const result: IConnectionInfo[] = [];
 
-        // Helper function to recursively collect connection nodes
-        const collectConnectionNodes = (nodes: TreeNodeInfo[]) => {
-            for (const node of nodes) {
-                if (node instanceof ConnectionNode && node.connectionProfile) {
-                    connections.push(node.connectionProfile);
-                } else if (
-                    node instanceof ConnectionGroupNodeInfo &&
-                    node.children &&
-                    node.children.length > 0
-                ) {
-                    collectConnectionNodes(node.children);
-                }
-            }
-        };
+        for (const connNode of this._connectionNodes.values()) {
+            result.push(connNode.connectionProfile);
+        }
 
-        collectConnectionNodes(this._rootTreeNodeArray);
-        return connections;
+        return result;
     }
 
     public getConnectionNodeById(id: string): ConnectionNode | undefined {

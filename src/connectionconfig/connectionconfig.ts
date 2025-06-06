@@ -140,7 +140,7 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     public async addConnection(profile: IConnectionProfile): Promise<void> {
-        await this.populateMissingConnectionIds(profile);
+        this.populateMissingConnectionIds(profile);
 
         let profiles = await this.getConnections(false /* getWorkspaceConnections */);
 
@@ -162,6 +162,16 @@ export class ConnectionConfig implements IConnectionConfig {
 
         await this.writeConnectionsToSettings(profiles);
         return found;
+    }
+
+    public async updateConnection(updatedProfile: IConnectionProfile): Promise<void> {
+        const profiles = await this.getConnections(false /* getWorkspaceConnections */);
+        const index = profiles.findIndex((p) => p.id === updatedProfile.id);
+        if (index === -1) {
+            throw new Error(`Connection with ID ${updatedProfile.id} not found`);
+        }
+        profiles[index] = updatedProfile;
+        await this.writeConnectionsToSettings(profiles);
     }
 
     //#endregion

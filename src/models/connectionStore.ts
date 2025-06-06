@@ -19,7 +19,7 @@ import {
 } from "../models/interfaces";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
 // import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
-import { ConnectionConfig } from "../connectionconfig/connectionConfig";
+import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";

@@ -442,9 +442,9 @@ suite("Object Explorer Provider Tests", function () {
 
     test("Test rootNodeConnections getter", () => {
         let testConnections = [new ConnectionCredentials()];
-        objectExplorerService.setup((s) => s.rootNodeConnections).returns(() => testConnections);
-        let rootConnections = objectExplorerProvider.rootNodeConnections;
-        objectExplorerService.verify((s) => s.rootNodeConnections, TypeMoq.Times.once());
+        objectExplorerService.setup((s) => s.connections).returns(() => testConnections);
+        let rootConnections = objectExplorerProvider.connections;
+        objectExplorerService.verify((s) => s.connections, TypeMoq.Times.once());
         assert.equal(rootConnections, testConnections);
     });
 });

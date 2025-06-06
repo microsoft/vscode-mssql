@@ -238,7 +238,7 @@ suite("OE Service Tests", () => {
             (objectExplorerService as any)._rootTreeNodeArray = [];
 
             // Call the getter
-            const result = objectExplorerService.rootNodeConnections;
+            const result = objectExplorerService.connections;
 
             // Verify the result is an empty array
             expect(result, "Result should be an empty array").to.be.an("array").that.is.empty;
@@ -279,7 +279,7 @@ suite("OE Service Tests", () => {
             (objectExplorerService as any)._rootTreeNodeArray = mockRootNodes;
 
             // Call the getter
-            const result = objectExplorerService.rootNodeConnections;
+            const result = objectExplorerService.connections;
 
             // Verify the result
             expect(result, "Result should be an array with length 2")

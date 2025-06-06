@@ -875,7 +875,10 @@ export default class MainController implements vscode.Disposable {
             treeDataProvider: this._objectExplorerProvider,
             canSelectMany: false,
             showCollapseAll: true,
-            dragAndDropController: new ObjectExplorerDragAndDropController(),
+            dragAndDropController: new ObjectExplorerDragAndDropController(
+                this._vscodeWrapper,
+                this._connectionMgr.connectionStore,
+            ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
 
@@ -2310,6 +2313,10 @@ export default class MainController implements vscode.Disposable {
         }
     }
 
+    /**
+     * Updates the Object Explorer connections based on the user settings, removing stale connections and adding new ones.
+     * @returns true if the Object Explorer should be refreshed, false otherwise.
+     */
     private async onChangeConnectionConfig(e: vscode.ConfigurationChangeEvent): Promise<boolean> {
         if (
             !e.affectsConfiguration(`mssql.${Constants.connectionsArrayName}`) &&
@@ -2321,14 +2328,15 @@ export default class MainController implements vscode.Disposable {
         let needsRefresh = false;
 
         if (e.affectsConfiguration(`mssql.${Constants.connectionGroupsArrayName}`)) {
+            // if the groups have changed, the OE tree always needs to be refreshed
             needsRefresh = true;
         }
 
-        // user connections is a super set of object explorer connections
+        // user connections is a super-set of object explorer connections
         // read the connections from global settings and workspace settings.
-        let userConnections: any[] =
+        let userConnections: IConnectionProfile[] =
             await this.connectionManager.connectionStore.connectionConfig.getConnections(true);
-        let objectExplorerConnections = this._objectExplorerProvider.rootNodeConnections;
+        let objectExplorerConnections = this._objectExplorerProvider.connections;
 
         // if a connection(s) was/were manually removed
         let staleConnections = objectExplorerConnections.filter((oeConn) => {
@@ -2379,6 +2387,21 @@ export default class MainController implements vscode.Disposable {
         }
 
         await this.sanitizeConnectionProfiles();
+
+        // determine if any connections have had their groupId changed
+        if (!needsRefresh) {
+            for (const connProfile of userConnections) {
+                if (
+                    connProfile.groupId !=
+                    this._objectExplorerProvider.objectExplorerService.getConnectionNodeById(
+                        connProfile.id,
+                    )?.connectionProfile.groupId
+                ) {
+                    needsRefresh = true;
+                    break;
+                }
+            }
+        }
 
         return needsRefresh;
     }

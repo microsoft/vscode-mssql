@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionConfig";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as sinon from "sinon";
 import { expect } from "chai";

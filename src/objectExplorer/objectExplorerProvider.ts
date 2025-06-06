@@ -102,8 +102,8 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._objectExplorerService.cleanNodeChildren(node);
     }
 
-    public get rootNodeConnections(): IConnectionInfo[] {
-        return this._objectExplorerService.rootNodeConnections;
+    public get connections(): IConnectionInfo[] {
+        return this._objectExplorerService.connections;
     }
 
     public get objectExplorerService(): ObjectExplorerService {

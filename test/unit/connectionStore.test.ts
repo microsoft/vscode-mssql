@@ -8,7 +8,7 @@ import * as vscode from "vscode";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
 import { Logger } from "../../src/models/logger";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionConfig";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { expect } from "chai";
 import * as sinon from "sinon";
