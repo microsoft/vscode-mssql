@@ -2528,16 +2528,17 @@ declare module "vscode-mssql" {
          * @param extensionId The ID of the extension.
          * @returns The connection ID if an active editor is connected, or undefined if there is no active editor or the editor is not connected.
          */
-        getConnectionIdForActiveEditor(extensionId: string): string | undefined;
+        getActiveEditorConnectionId(extensionId: string): string | undefined;
         /**
          * Connect to an existing connection using the connection ID.
          * This will return the connection URI if successful.
          * @param extensionId The ID of the extension.
          * @param connectionId The ID of the connection.
+         * @param database Optional database name to connect to.
          * @returns The connection URI if the connection is established successfully.
          * @throws Error if the connection cannot be established.
          */
-        connect(extensionId: string, connectionId: string): Promise<string | undefined>;
+        connect(extensionId: string, connectionId: string, database?: string): Promise<string | undefined>;
         /**
          * Disconnect from a connection using the connection URI.
          * @param connectionUri The URI of the connection to disconnect from.
@@ -2573,5 +2574,10 @@ declare module "vscode-mssql" {
         editConnectionSharingPermissions(
             extensionId: string,
         ): Promise<ConnectionSharingApproval | undefined>;
+        /**
+         * List all databases available in the server for the given connection URI.
+         * @param connectionUri The URI of the connection to list databases for.
+         */
+        listDatabases(connectionUri: string): Promise<string[]>;
     }
 }

@@ -37,7 +37,7 @@ async function connectionSharingWithCommands() {
 		console.log('--- Starting Connection Sharing Demo (Commands Approach) ---');
 
 		const activeConnectionId = await vscode.commands.executeCommand(
-			'mssql.connectionSharing.getConnectionIdForActiveEditor',
+			'mssql.connectionSharing.getActiveEditorConnectionId',
 			EXTENSION_ID
 		) as string;
 
@@ -109,7 +109,7 @@ async function connectionSharingWithApis() {
 			return;
 		}
 
-		const activeConnectionId = await connectionSharingService.getConnectionIdForActiveEditor(EXTENSION_ID);
+		const activeConnectionId = await connectionSharingService.getActiveEditorConnectionId(EXTENSION_ID);
 		if (!activeConnectionId) {
 			vscode.window.showErrorMessage('No database connection found for the active editor');
 			return;

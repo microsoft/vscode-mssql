@@ -140,10 +140,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
             return controller.connectionManager.getServerInfo(connectionInfo);
         },
         connectionSharing: <vscodeMssql.IConnectionSharingService>{
-            getConnectionIdForActiveEditor: (extensionId: string) => {
-                return controller.connectionSharingService.getConnectionIdForActiveEditor(
-                    extensionId,
-                );
+            getActiveEditorConnectionId: (extensionId: string) => {
+                return controller.connectionSharingService.getActiveEditorConnectionId(extensionId);
             },
             connect: async (extensionId: string, connectionId: string): Promise<string> => {
                 return controller.connectionSharingService.connect(extensionId, connectionId);
@@ -165,6 +163,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
             },
             getServerInfo: (connectionUri: string): vscodeMssql.IServerInfo => {
                 return controller.connectionSharingService.getServerInfo(connectionUri);
+            },
+            listDatabases: (connectionUri: string): Promise<string[]> => {
+                return controller.connectionSharingService.listDatabases(connectionUri);
             },
         },
     };

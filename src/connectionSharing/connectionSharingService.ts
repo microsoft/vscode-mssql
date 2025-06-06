@@ -14,46 +14,49 @@ import { RequestType } from "vscode-languageclient";
 
 const CONNECTION_SHARING_PERMISSIONS_KEY = "mssql.connectionSharing.extensionPermissions";
 
-type ConnectionSharingApproval = "approved" | "denied";
-// Map of extension IDs to connection sharing approval status
-type ConnectionSharingApprovalMap = Record<string, ConnectionSharingApproval>;
+type ExtensionPermissionStatus = "approved" | "denied";
+type ExtensionPermissionsMap = Record<string, ExtensionPermissionStatus>;
 
 export class ConnectionSharingService implements mssql.IConnectionSharingService {
     constructor(
-        private context: vscode.ExtensionContext,
-        private _client: SqlToolsServiceClient,
-        private _connectionManager: ConnectionManager,
+        private readonly _context: vscode.ExtensionContext,
+        private readonly _client: SqlToolsServiceClient,
+        private readonly _connectionManager: ConnectionManager,
     ) {
-        context.subscriptions.push(
+        this.registerCommands();
+    }
+
+    private registerCommands(): void {
+        this._context.subscriptions.push(
             vscode.commands.registerCommand(
-                "mssql.connectionSharing.getConnectionIdForActiveEditor",
-                (extensionId: string) => this.getConnectionIdForActiveEditor(extensionId),
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+                (extensionId: string) => this.getActiveEditorConnectionId(extensionId),
             ),
         );
 
-        context.subscriptions.push(
+        this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.connect",
-                (extensionId: string, connectionId: string) =>
-                    this.connect(extensionId, connectionId),
+                (extensionId: string, connectionId: string, databaseName?: string) =>
+                    this.connect(extensionId, connectionId, databaseName),
             ),
         );
 
-        context.subscriptions.push(
+        this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.disconnect",
                 (connectionUri: string) => this.disconnect(connectionUri),
             ),
         );
 
-        context.subscriptions.push(
+        this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.isConnected",
                 (connectionUri: string) => this.isConnected(connectionUri),
             ),
         );
 
-        context.subscriptions.push(
+        this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.executeSimpleQuery",
                 (connectionUri: string, query: string) =>
@@ -61,21 +64,28 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             ),
         );
 
-        context.subscriptions.push(
+        this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.getServerInfo",
                 (connectionUri: string) => this.getServerInfo(connectionUri),
             ),
         );
 
-        context.subscriptions.push(
+        this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.editConnectionSharingPermissions",
                 async (extensionId?: string) => this.editConnectionSharingPermissions(extensionId),
             ),
         );
 
-        context.subscriptions.push(
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                "mssql.connectionSharing.listDatabases",
+                (connectionUri: string) => this.listDatabases(connectionUri),
+            ),
+        );
+
+        this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.clearAllConnectionSharingPermissions",
                 async () => {
@@ -88,22 +98,22 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         );
     }
 
-    private async getExtensionPermissionsList(): Promise<ConnectionSharingApprovalMap> {
-        const serializedList = await this.context.secrets.get(CONNECTION_SHARING_PERMISSIONS_KEY);
+    private async getExtensionPermissionsList(): Promise<ExtensionPermissionsMap> {
+        const serializedList = await this._context.secrets.get(CONNECTION_SHARING_PERMISSIONS_KEY);
         console.log("serializedList", serializedList);
         if (!serializedList) {
             // If no approved extensions are found, initialize with an empty array
-            await this.context.secrets.store(
+            await this._context.secrets.store(
                 CONNECTION_SHARING_PERMISSIONS_KEY,
-                JSON.stringify({} as ConnectionSharingApprovalMap),
+                JSON.stringify({} as ExtensionPermissionsMap),
             );
             return {};
         }
-        return JSON.parse(serializedList) as ConnectionSharingApprovalMap;
+        return JSON.parse(serializedList) as ExtensionPermissionsMap;
     }
 
-    private async setApprovedExtensions(extensions: ConnectionSharingApprovalMap): Promise<void> {
-        await this.context.secrets.store(
+    private async setApprovedExtensions(extensions: ExtensionPermissionsMap): Promise<void> {
+        await this._context.secrets.store(
             CONNECTION_SHARING_PERMISSIONS_KEY,
             JSON.stringify(extensions),
         );
@@ -111,7 +121,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
 
     private async getConnectionSharingApproval(
         extensionId: string,
-    ): Promise<ConnectionSharingApproval | undefined> {
+    ): Promise<ExtensionPermissionStatus | undefined> {
         const approvedExtensions = await this.getExtensionPermissionsList();
         console.log("approvedExtensions", approvedExtensions);
         return approvedExtensions[extensionId];
@@ -151,7 +161,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
 
     public async editConnectionSharingPermissions(
         extensionId?: string,
-    ): Promise<ConnectionSharingApproval | undefined> {
+    ): Promise<ExtensionPermissionStatus | undefined> {
         const extensionsQuickPickItems: vscode.QuickPickItem[] = vscode.extensions.all.map(
             (extension) => {
                 return {
@@ -202,8 +212,8 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             return; // User canceled the selection
         }
 
-        const newApproval: ConnectionSharingApproval =
-            newPermission.detail as ConnectionSharingApproval;
+        const newApproval: ExtensionPermissionStatus =
+            newPermission.detail as ExtensionPermissionStatus;
         await this.updateExtensionApproval(extensionId, newApproval);
 
         return newApproval;
@@ -211,7 +221,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
 
     private async updateExtensionApproval(
         extensionId: string,
-        newApproval: ConnectionSharingApproval,
+        newApproval: ExtensionPermissionStatus,
     ): Promise<void> {
         return this.setApprovedExtensions({
             ...(await this.getExtensionPermissionsList()),
@@ -227,7 +237,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         return extensionId;
     }
 
-    public getConnectionIdForActiveEditor(extensionId: string): string | undefined {
+    public getActiveEditorConnectionId(extensionId: string): string | undefined {
         const approved = this.requestConnectionSharingApproval(extensionId);
         if (!approved) {
             throw new Error(
@@ -254,7 +264,11 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         return (connectionDetails as IConnectionProfile).id;
     }
 
-    public async connect(extensionId: string, connectionId: string): Promise<string | undefined> {
+    public async connect(
+        extensionId: string,
+        connectionId: string,
+        databaseName?: string,
+    ): Promise<string | undefined> {
         const approved = await this.requestConnectionSharingApproval(extensionId);
         if (!approved) {
             throw new Error(
@@ -270,6 +284,9 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
         }
         const guid = generateGuid();
+        if (databaseName) {
+            connection.database = databaseName; // Set the database if provided
+        }
         const result = await this._connectionManager.connect(guid, connection);
         if (!result) {
             throw new Error(
@@ -309,5 +326,9 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
     public getServerInfo(connectionUri: string): mssql.IServerInfo {
         const connectionDetails = this._connectionManager.getConnectionInfoFromUri(connectionUri);
         return this._connectionManager.getServerInfo(connectionDetails);
+    }
+
+    public async listDatabases(connectionUri: string): Promise<string[]> {
+        return await this._connectionManager.listDatabases(connectionUri);
     }
 }
