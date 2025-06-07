@@ -1745,4 +1745,16 @@ export default class ConnectionManager {
             return "error";
         }
     }
+
+    /**
+     * Get the connection info for a given file URI
+     * @param uri The file URI
+     * @returns The connection info or undefined if not found
+     */
+    public getConnectionInfoFromUri(uri: string): IConnectionInfo | undefined {
+        if (this._connections[uri]) {
+            return this._connections[uri].credentials;
+        }
+        return undefined;
+    }
 }
