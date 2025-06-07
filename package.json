@@ -456,6 +456,12 @@
                     "when": "view == objectExplorer && config.mssql.objectExplorer.groupBySchema",
                     "title": "%mssql.objectExplorer.disableGroupBySchema%",
                     "group": "navigation"
+                },
+                {
+                    "command": "mssql.deployLocalDockerContainer",
+                    "when": "mssql.hasConnections && config.mssql.enableRichExperiences && view == objectExplorer",
+                    "title": "%mssql.deployLocalDockerContainer%",
+                    "group": "navigation"
                 }
             ],
             "view/item/context": [
@@ -607,6 +613,18 @@
                     "command": "mssql.deleteQueryHistory",
                     "when": "view == queryHistory && viewItem == queryHistoryNode",
                     "group": "MS_SQL@3"
+                },
+                {
+                    "command": "mssql.stopContainer",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer)\\b/"
+                },
+                {
+                    "command": "mssql.deleteContainer",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer)\\b/"
+                },
+                {
+                    "command": "mssql.startContainer",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer)\\b/"
                 }
             ],
             "commandPalette": [
@@ -1041,6 +1059,34 @@
                 "command": "mssql.copilot.rewriteQuery",
                 "title": "%mssql.copilot.rewriteQuery%",
                 "category": "MSSQL"
+            },
+            {
+                "command": "mssql.deployLocalDockerContainer",
+                "title": "%mssql.deployLocalDockerContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/newContainer_dark.svg",
+                    "light": "media/newContainer_light.svg"
+                }
+            },
+            {
+                "command": "mssql.stopContainer",
+                "title": "%mssql.stopContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.deleteContainer",
+                "title": "%mssql.deleteContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.startContainer",
+                "title": "%mssql.startContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -1384,9 +1430,20 @@
                             "emptyPasswordInput": {
                                 "type": "boolean",
                                 "description": "%mssql.connection.emptyPasswordInput%"
+                            },
+                            "containerName": {
+                                "type": "string",
+                                "default": "",
+                                "description": "%mssql.connection.containerName%"
                             }
                         }
                     },
+                    "scope": "resource"
+                },
+                "mssql.hasConnections": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.hasConnections%",
                     "scope": "resource"
                 },
                 "mssql.shortcuts": {
