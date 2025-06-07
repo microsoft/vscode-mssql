@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { TreeNodeInfo } from "./treeNodeInfo";
 import * as vscodeMssql from "vscode-mssql";
+import { TreeNodeInfo } from "./treeNodeInfo";
 import { IConnectionGroup } from "../../models/interfaces";
 
 export const CONNECTION_GROUP_NODE_TYPE = "ConnectionGroup";

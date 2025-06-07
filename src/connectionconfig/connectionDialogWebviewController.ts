@@ -94,7 +94,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         "database",
         "encrypt",
     ];
-    g;
+
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
 

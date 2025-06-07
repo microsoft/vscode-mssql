@@ -8,7 +8,6 @@ import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form"
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
-import { IConnectionGroup } from "../models/interfaces";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
 
 export class ConnectionDialogWebviewState
@@ -138,6 +137,14 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     azureAuthType?: vscodeMssql.AzureAuthType;
     id?: string;
     groupId?: string;
+}
+
+export interface IConnectionGroup {
+    id: string;
+    name: string;
+    parentId?: string;
+    color?: string;
+    description?: string;
 }
 
 export interface ConnectionDialogContextProps
