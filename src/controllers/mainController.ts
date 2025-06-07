@@ -1586,6 +1586,11 @@ export default class MainController implements vscode.Disposable {
     }
 
     public onDeployContainer(): void {
+        sendActionEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.StartContainerDeployment,
+        );
+
         const reactPanel = new ContainerDeploymentWebviewController(
             this._context,
             this._vscodeWrapper,

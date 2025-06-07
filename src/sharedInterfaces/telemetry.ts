@@ -79,6 +79,7 @@ export enum TelemetryActions {
     SubmitGithubIssue = "SubmitGithubIssue",
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
+    StartContainerDeployment = "StartContainerDeployment",
     CreateSQLContainer = "CreateSQLContainer",
     ConnectToContainer = "ConnectToContainer",
     StartContainer = "StartContainer",
