@@ -6,17 +6,11 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
 import { platform } from "os";
-import {
-    DockerCommandParams,
-    DockerStep,
-    DockerStepOrder,
-} from "../sharedInterfaces/containerDeploymentInterfaces";
+import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeploymentInterfaces";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
-    connectionsArrayName,
     defaultContainerName,
     defaultContainerPort,
-    extensionName,
     localhost,
     localhostIP,
     Platform,
@@ -28,12 +22,6 @@ import * as path from "path";
 import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
-
-/**
- * The maximum length of the error text to display in the UI.
- * If the error text exceeds this length, it will be truncated.
- */
-const MAX_ERROR_TEXT_LENGTH = 300;
 
 /**
  * The maximum port number that can be used for Docker containers.
@@ -111,8 +99,6 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.startDockerHeader,
             bodyText: ContainerDeployment.startDockerBody,
-            errorLink: "https://docs.docker.com/engine/",
-            errorLinkText: ContainerDeployment.startDockerEngine,
             stepAction: startDocker,
         },
         {
@@ -120,6 +106,11 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.startDockerEngineHeader,
             bodyText: ContainerDeployment.startDockerEngineBody,
+            errorLink:
+                platform() === Platform.Windows
+                    ? "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers"
+                    : undefined,
+            errorLinkText: ContainerDeployment.configureLinuxContainers,
             stepAction: checkEngine,
         },
         {
@@ -147,42 +138,10 @@ export function initializeDockerSteps(): DockerStep[] {
 }
 
 /**
- * Handles the result of a Docker command and updates the corresponding step statuses accordingly.
+ * Sanitizes sensitive info from error text.
  */
-export function setStepStatusesFromResult(
-    result: DockerCommandParams,
-    currentStep: DockerStepOrder,
-    steps: DockerStep[],
-): DockerStep[] {
-    if (result.success) {
-        steps[currentStep].loadState = ApiStatus.Loaded;
-    } else {
-        steps[currentStep].loadState = ApiStatus.Error;
-        steps[currentStep].errorMessage = result.error;
-        steps[currentStep].fullErrorText = truncateAndSanitizeErrorTextIfNeeded(
-            result.fullErrorText,
-        );
-        for (let i = currentStep + 1; i < steps.length; i++) {
-            steps[i].loadState = ApiStatus.Error;
-            steps[i].errorMessage = ContainerDeployment.previousStepFailed;
-        }
-    }
-    return steps;
-}
-
-/**
- * Truncates the error text if it exceeds the maximum length and sanitizes sensitive info.
- */
-export function truncateAndSanitizeErrorTextIfNeeded(errorText: string): string {
-    // Sanitize
-    const sanitized = errorText.replace(/(SA_PASSWORD=)([^ \n]+)/gi, '$1******"');
-
-    // Truncate if necessary
-    if (sanitized.length > MAX_ERROR_TEXT_LENGTH) {
-        return `${sanitized.substring(0, MAX_ERROR_TEXT_LENGTH)}...`;
-    }
-
-    return sanitized;
+export function sanitizeErrorText(errorText: string): string {
+    return errorText.replace(/(SA_PASSWORD=)([^ \n]+)/gi, '$1******"');
 }
 
 /**
@@ -191,7 +150,7 @@ export function truncateAndSanitizeErrorTextIfNeeded(errorText: string): string 
  * If the password is invalid, it returns an error message.
  */
 export function validateSqlServerPassword(password: string): string {
-    if (password.length < 8) {
+    if (password.length < 8 || password.length > 128) {
         return ContainerDeployment.passwordLengthError;
     }
 
@@ -210,18 +169,6 @@ export function validateSqlServerPassword(password: string): string {
     }
 
     return "";
-}
-
-/**
- * Checks if the provided connection name is valid and not a duplicate connection name within
- * mssql.connections
- */
-export function validateConnectionName(connectionName: string): boolean {
-    const connections = vscode.workspace
-        .getConfiguration(extensionName)
-        .get(connectionsArrayName, []);
-    const isDuplicate = connections.some((profile) => profile.profileName === connectionName);
-    return !isDuplicate;
 }
 
 //#region Docker Command Implementations
@@ -353,11 +300,8 @@ export async function getDockerPath(executable: string): Promise<string> {
             const basePath = parts.slice(0, dockerIndex + 1).join(path.sep);
             return path.join(basePath, executable);
         }
-
-        return "";
-    } catch (e) {
-        return "";
-    }
+    } catch {}
+    return "";
 }
 
 /**
@@ -401,7 +345,8 @@ export async function startSqlServerDockerContainer(
 export async function isDockerContainerRunning(name: string): Promise<boolean> {
     try {
         const output = await execCommand(COMMANDS.CHECK_CONTAINER_RUNNING(name));
-        return output.trim() === name;
+        const names = output.split("\n").map((line) => line.trim());
+        return names.includes(name); // exact match
     } catch {
         return false;
     }

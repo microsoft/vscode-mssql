@@ -1247,7 +1247,7 @@
   "Readying container for connections.": "Readying container for connections.",
   "Connecting to Container": "Connecting to Container",
   "Connecting to your SQL Server Docker container": "Connecting to your SQL Server Docker container",
-  "Please make your password at least 8 characters long.": "Please make your password at least 8 characters long.",
+  "Please make your password 8-128 characters long.": "Please make your password 8-128 characters long.",
   "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).": "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
   "Unsupported platform for Docker: {0}/{0} is the platform name of the machine": {
     "message": "Unsupported platform for Docker: {0}",
@@ -1262,7 +1262,6 @@
   "Container failed to start within the timeout period. Please wait a few minutes and try again.": "Container failed to start within the timeout period. Please wait a few minutes and try again.",
   "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.": "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
   "Install Docker": "Install Docker",
-  "Start Docker Engine": "Start Docker Engine",
   "Starting Container...": "Starting Container...",
   "Stopping Container...": "Stopping Container...",
   "Deleting Container...": "Deleting Container...",
@@ -1272,6 +1271,7 @@
       "{0} is the container name"
     ]
   },
+  "Configure Linux containers": "Configure Linux containers",
   "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?": "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
   "Switching to Linux containers was canceled. SQL Server only supports Linux containers.": "Switching to Linux containers was canceled. SQL Server only supports Linux containers.",
   "Failed to start SQL Server container. Please check the error message for more details, and then try again.": "Failed to start SQL Server container. Please check the error message for more details, and then try again.",

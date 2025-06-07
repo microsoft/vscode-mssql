@@ -834,9 +834,7 @@ export class ContainerDeployment {
     public static connectingToContainerBody = l10n.t(
         "Connecting to your SQL Server Docker container",
     );
-    public static passwordLengthError = l10n.t(
-        "Please make your password at least 8 characters long.",
-    );
+    public static passwordLengthError = l10n.t("Please make your password 8-128 characters long.");
     public static passwordComplexityError = l10n.t(
         "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
     );
@@ -864,11 +862,7 @@ export class ContainerDeployment {
     public static dockerDesktopPathError = l10n.t(
         "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
     );
-    public static previousStepFailed = l10n.t(
-        "Previous step failed. Please check the error message and try again.",
-    );
     public static installDocker = l10n.t("Install Docker");
-    public static startDockerEngine = l10n.t("Start Docker Engine");
     public static msgCreateLocalSqlContainer = l10n.t("Create Local SQL Container");
     public static startingContainerLoadingLabel = l10n.t("Starting Container...");
     public static stoppingContainerLoadingLabel = l10n.t("Stopping Container...");
@@ -881,6 +875,7 @@ export class ContainerDeployment {
             comment: ["{0} is the container name"],
         });
     };
+    public static configureLinuxContainers = l10n.t("Configure Linux containers");
     public static switchToLinuxContainersConfirmation = l10n.t(
         "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
     );

@@ -7,12 +7,11 @@ import { useContext, useEffect, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { StepCard } from "./stepCard";
 import { Button } from "@fluentui/react-components";
-import { runDockerSteps } from "./deploymentUtils";
+import { checkStepErrored, isLastStepLoaded, runDockerStep } from "./deploymentUtils";
 import { DockerStepOrder } from "../../../sharedInterfaces/containerDeploymentInterfaces";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 import { locConstants } from "../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 export const ContainerSetupStepsPage: React.FC = () => {
     const classes = stepPageStyles();
@@ -20,6 +19,7 @@ export const ContainerSetupStepsPage: React.FC = () => {
     const containerDeploymentState = state?.state;
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const [stepsErrored, setStepsErrored] = useState(false);
+    const lastStep = DockerStepOrder.connectToContainer;
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
@@ -28,33 +28,20 @@ export const ContainerSetupStepsPage: React.FC = () => {
     }
 
     useEffect(() => {
-        const runDockerSetupSteps = async () => {
-            await runDockerSteps(
-                state,
-                DockerStepOrder.startContainer,
-                DockerStepOrder.connectToContainer,
-            );
-        };
-        void runDockerSetupSteps();
+        void runDockerStep(state, lastStep);
     }, [containerDeploymentState]);
 
     useEffect(() => {
-        setStepsLoaded(
-            containerDeploymentState.dockerSteps[DockerStepOrder.connectToContainer].loadState ===
-                ApiStatus.Loaded,
-        );
+        setStepsLoaded(isLastStepLoaded(state, lastStep));
     }, [containerDeploymentState]);
 
     useEffect(() => {
-        setStepsErrored(
-            containerDeploymentState.dockerSteps[DockerStepOrder.connectToContainer].loadState ===
-                ApiStatus.Error,
-        );
+        setStepsErrored(checkStepErrored(state));
     }, [containerDeploymentState]);
 
     const handleRetry = async () => {
         // reset step states
-        await state.resetDockerStepStates();
+        await state.resetDockerStepState();
     };
 
     return (

@@ -6,10 +6,8 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as os from "os";
 import * as dockerUtils from "../../src/containerDeployment/dockerUtils";
-import { DockerCommandParams } from "../../src/sharedInterfaces/containerDeploymentInterfaces";
 import { ContainerDeployment } from "../../src/constants/locConstants";
 import * as childProcess from "child_process";
 import { defaultContainerName, Platform } from "../../src/constants/constants";
@@ -44,8 +42,6 @@ suite("Docker Utilities", () => {
 
         assert.strictEqual(steps[1].headerText, ContainerDeployment.startDockerHeader);
         assert.strictEqual(steps[1].bodyText, ContainerDeployment.startDockerBody);
-        assert.strictEqual(steps[1].errorLink, "https://docs.docker.com/engine/");
-        assert.strictEqual(steps[1].errorLinkText, ContainerDeployment.startDockerEngine);
         assert.strictEqual(typeof steps[1].stepAction, "function");
 
         assert.strictEqual(steps[2].headerText, ContainerDeployment.startDockerEngineHeader);
@@ -72,82 +68,10 @@ suite("Docker Utilities", () => {
         assert.strictEqual(steps[5].bodyText, ContainerDeployment.connectingToContainerBody);
         assert.strictEqual(steps[5].stepAction, undefined);
     });
-    test("setStepStatusesFromResult: should update steps correctly for success and failure cases", () => {
-        // --- SUCCESS CASE ---
-        const successSteps = dockerUtils.initializeDockerSteps();
-        const successResult = { success: true } as DockerCommandParams;
-
-        const successUpdated = dockerUtils.setStepStatusesFromResult(
-            successResult,
-            0,
-            successSteps,
-        );
-        assert.strictEqual(
-            successUpdated[0].loadState,
-            ApiStatus.Loaded,
-            "Step 0 should be marked as Loaded on success",
-        );
-
-        // --- FAILURE CASE ---
-        const failureSteps = dockerUtils.initializeDockerSteps();
-        const longErrorText = "Some detailed error ".repeat(35); // > 300 chars
-        const failureResult: DockerCommandParams = {
-            success: false,
-            error: "Step failed",
-            fullErrorText: longErrorText,
-        };
-
-        const failureUpdated = dockerUtils.setStepStatusesFromResult(
-            failureResult,
-            1,
-            failureSteps,
-        );
-
-        // Current step
-        assert.strictEqual(
-            failureUpdated[1].loadState,
-            ApiStatus.Error,
-            "Step 1 should be marked as Error",
-        );
-        assert.strictEqual(
-            failureUpdated[1].errorMessage,
-            "Step failed",
-            "Error message should match",
-        );
-        assert.ok(
-            failureUpdated[1].fullErrorText.length <= 303,
-            "Error text should be truncated to 300 characters, plus ellipsis",
-        );
-
-        // Following steps
-        for (let i = 2; i < failureUpdated.length; i++) {
-            assert.strictEqual(
-                failureUpdated[i].loadState,
-                ApiStatus.Error,
-                `Step ${i} should be marked as Error`,
-            );
-            assert.strictEqual(
-                failureUpdated[i].errorMessage,
-                ContainerDeployment.previousStepFailed,
-                `Step ${i} should show 'previous step failed' message`,
-            );
-        }
-    });
-
-    test("truncateAndSanitizeErrorTextIfNeeded: should truncate long error messages and sanitize SA_PASSWORD", () => {
-        // Test truncation
-        const longErrorText = "Some detailed error ".repeat(35); // > 300 chars
-        const truncated = dockerUtils.truncateAndSanitizeErrorTextIfNeeded(longErrorText);
-        assert.ok(truncated.length <= 303, "Text should be truncated to 300 chars + ellipsis");
-
-        // Test no truncation for short error
-        const shortErrorText = "Short error message";
-        const shortTruncated = dockerUtils.truncateAndSanitizeErrorTextIfNeeded(shortErrorText);
-        assert.strictEqual(shortTruncated, shortErrorText, "Short text should remain unchanged");
-
+    test("sanitizeErrorText: should truncate long error messages and sanitize SA_PASSWORD", () => {
         // Test sanitization
         const errorWithPassword = "Connection failed: SA_PASSWORD={testtesttest} something broke";
-        const sanitized = dockerUtils.truncateAndSanitizeErrorTextIfNeeded(errorWithPassword);
+        const sanitized = dockerUtils.sanitizeErrorText(errorWithPassword);
         assert.ok(sanitized.includes("SA_PASSWORD=******"), "SA_PASSWORD value should be masked");
         assert.ok(
             !sanitized.includes("testtesttest"),
@@ -160,6 +84,14 @@ suite("Docker Utilities", () => {
         const shortResult = dockerUtils.validateSqlServerPassword("<0>");
         assert.strictEqual(
             shortResult,
+            ContainerDeployment.passwordLengthError,
+            "Should return length error",
+        );
+
+        // Too long
+        const longResult = dockerUtils.validateSqlServerPassword("<0>".repeat(129));
+        assert.strictEqual(
+            longResult,
             ContainerDeployment.passwordLengthError,
             "Should return length error",
         );
@@ -187,24 +119,6 @@ suite("Docker Utilities", () => {
             ContainerDeployment.passwordComplexityError,
             "Should return complexity error",
         );
-    });
-
-    test("validateConnectionName: should return false for duplicate and true for unique names", () => {
-        const getConfigurationStub = sinon.stub(vscode.workspace, "getConfiguration");
-        const mockGet = sinon
-            .stub()
-            .returns([{ profileName: "Connection1" }, { profileName: "Connection2" }]);
-        getConfigurationStub.withArgs("mssql").returns({ get: mockGet } as any);
-
-        // Duplicate name
-        const isDuplicate = dockerUtils.validateConnectionName("Connection1");
-        assert.strictEqual(isDuplicate, false, "Should return false for duplicate connection name");
-
-        // Unique name
-        const isUnique = dockerUtils.validateConnectionName("UniqueConnection");
-        assert.strictEqual(isUnique, true, "Should return true for unique connection name");
-
-        getConfigurationStub.restore();
     });
 
     test("checkDockerInstallation: should check Docker installation and return correct status", async () => {

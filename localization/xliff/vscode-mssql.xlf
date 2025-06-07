@@ -485,6 +485,9 @@
     <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
       <source xml:lang="en">Comparison Details</source>
     </trans-unit>
+    <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
+      <source xml:lang="en">Configure Linux containers</source>
+    </trans-unit>
     <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
       <source xml:lang="en">Configure and customize SQL Server containers</source>
     </trans-unit>
@@ -1553,8 +1556,8 @@
     <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
       <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
     </trans-unit>
-    <trans-unit id="++CODE++768742aef46bbb43fdd36f568edeb182810dc96b84ad73db24565b95423f4829">
-      <source xml:lang="en">Please make your password at least 8 characters long.</source>
+    <trans-unit id="++CODE++d81d6eb21f473c77ba01056237fcd372e9021b555b36efc68d24d22a5d608ba5">
+      <source xml:lang="en">Please make your password 8-128 characters long.</source>
     </trans-unit>
     <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
       <source xml:lang="en">Port</source>
@@ -1968,9 +1971,6 @@
     </trans-unit>
     <trans-unit id="++CODE++ed17e62be4222e6fa3890918aee4885848f3e87ee14bc9b5dbe65e603173f26b">
       <source xml:lang="en">Specifies whether the column may have a NULL value.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++69d9fc0bd940622a5b7b2031fb88730204429955812a17b4f54c21089dbdadcb">
-      <source xml:lang="en">Start Docker Engine</source>
     </trans-unit>
     <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
       <source xml:lang="en">Start IP Address</source>

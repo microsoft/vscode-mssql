@@ -252,3 +252,4 @@ export enum Platform {
     Linux = "linux",
 }
 export const isRichExperiencesEnabledDefault = true;
+export const sa = "SA";

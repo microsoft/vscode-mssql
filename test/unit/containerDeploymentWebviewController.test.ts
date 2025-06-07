@@ -12,7 +12,6 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import * as os from "os";
 import { FormItemType } from "../../src/sharedInterfaces/form";
 import * as dockerUtils from "../../src/containerDeployment/dockerUtils";
 import {
@@ -31,7 +30,6 @@ suite("ContainerDeploymentWebviewController", () => {
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
     let validateSqlServerContainerNameStub: sinon.SinonStub;
     let validateSqlServerPasswordStub: sinon.SinonStub;
-    let validateConnectionNameStub: sinon.SinonStub;
     let findAvailablePortStub: sinon.SinonStub;
 
     setup(async () => {
@@ -50,11 +48,6 @@ suite("ContainerDeploymentWebviewController", () => {
             .returns("containerName is valid");
         validateSqlServerContainerNameStub.withArgs("").returns("goodContainerName");
         validateSqlServerContainerNameStub.withArgs("badContainerName").returns("");
-
-        // Stub validateConnectionNameStub to mock its behavior
-        validateConnectionNameStub = sandbox.stub(dockerUtils, "validateConnectionName");
-        validateConnectionNameStub.withArgs("goodConnectionName").returns(true);
-        validateConnectionNameStub.withArgs("badConnectionName").returns(false);
 
         validateSqlServerPasswordStub = sandbox.stub(dockerUtils, "validateSqlServerPassword");
         validateSqlServerPasswordStub.withArgs("goodPassword123").returns("");
@@ -93,9 +86,6 @@ suite("ContainerDeploymentWebviewController", () => {
     test("Verify the initial state and form components of the controller", async () => {
         const controllerState = (controller as any).state;
         assert.strictEqual(controllerState.loadState, ApiStatus.Loaded);
-        assert.strictEqual(controllerState.formState.version, "2025");
-        assert.strictEqual(controllerState.formState.user, "SA");
-        assert.strictEqual(controllerState.platform, os.platform());
         assert.strictEqual(Object.keys(controllerState.formComponents).length, 8);
         assert.strictEqual(controllerState.dockerSteps.length, 6);
     });
@@ -144,26 +134,15 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.strictEqual(savePassword.required, false);
 
         const profileName = formComponents.profileName;
-        result = profileName.validate({}, ""); // empty name should be valid
-        assert.strictEqual(result.isValid, true);
-
-        result = profileName.validate({}, "goodConnectionName");
-        assert.strictEqual(result.isValid, true);
-        result = profileName.validate({}, "badConnectionName");
-        assert.strictEqual(result.isValid, false);
+        assert.strictEqual(profileName.type, FormItemType.Input);
 
         const containerName = formComponents.containerName;
-        result = containerName.validate({ isValidContainerName: true }, "");
-        assert.strictEqual(result.isValid, true);
-        result = containerName.validate({ isValidContainerName: false }, "");
-        assert.strictEqual(result.isValid, false);
+        assert.strictEqual(containerName.type, FormItemType.Input);
+        assert.strictEqual(containerName.isAdvancedOption, true);
 
         const port = formComponents.port;
-        result = port.validate({ isValidPortNumber: true }, "");
-        assert.strictEqual(result.isValid, true);
-
-        result = port.validate({ isValidPortNumber: false }, "");
-        assert.strictEqual(result.isValid, false);
+        assert.strictEqual(port.type, FormItemType.Input);
+        assert.strictEqual(port.isAdvancedOption, true);
 
         const hostname = formComponents.hostname;
         assert.strictEqual(hostname.type, FormItemType.Input);
@@ -316,127 +295,102 @@ suite("ContainerDeploymentWebviewController", () => {
         (updateStateSpy as sinon.SinonSpy).restore();
     });
 
-    test("Test completeDockerStep reducer", async () => {
-        const addContainerConnectionSpy = sinon.stub(controller as any, "addContainerConnection");
+    test("completeDockerStep reducer updates step status and handles success/failure", async () => {
+        const addContainerConnectionStub = sinon.stub(controller as any, "addContainerConnection");
         let callState = (controller as any).state;
 
-        // Simulate step
+        // --- Test general step success ---
+        const mockStepActionSuccess = sinon.stub().resolves({ success: true });
         callState.dockerSteps = [
             {
                 loadState: ApiStatus.NotStarted,
-                stepAction: sinon.stub(),
+                stepAction: mockStepActionSuccess,
                 argNames: [],
             },
         ];
-        callState.formState = { profileName: "test-profile" };
+        callState.formState = {};
 
-        const setStepStatusesSpy = sinon
-            .stub(dockerUtils, "setStepStatusesFromResult")
-            .returns([{ ...callState.dockerSteps[0], loadState: ApiStatus.Loaded }] as any);
-
-        // Successful docker step
-        const result1 = await controller["_reducers"]["completeDockerStep"](callState, {
-            dockerStepNumber: 0,
+        const resultSuccess = await controller["_reducers"]["completeDockerStep"](callState, {
+            dockerStep: 0,
         });
 
-        assert.equal(
-            result1.dockerSteps[0].loadState,
-            ApiStatus.Loaded,
-            "General Step should be loaded",
-        );
-        assert.ok(!result1.dockerSteps[0].errorMessage, "No error message expected on success");
+        assert.equal(resultSuccess.dockerSteps[0].loadState, ApiStatus.Loaded);
+        assert.ok(!resultSuccess.dockerSteps[0].errorMessage);
 
-        // docker Step error
-        setStepStatusesSpy.returns([
-            {
-                ...callState.dockerSteps[0],
-                loadState: ApiStatus.Error,
-                errorMessage: "error message",
-            },
-        ] as any);
+        // --- Test general step failure ---
+        const mockStepActionFailure = sinon.stub().resolves({
+            success: false,
+            error: "Something went wrong",
+            fullErrorText: "Full error detail",
+        });
+        callState.dockerSteps[0].stepAction = mockStepActionFailure;
+        callState.dockerSteps[0].loadState = ApiStatus.NotStarted;
 
-        callState.dockerSteps[0].loadState = ApiStatus.NotStarted; // Reset to not started state
-
-        const result2 = await controller["_reducers"]["completeDockerStep"](callState, {
-            dockerStepNumber: 0,
+        const resultFailure = await controller["_reducers"]["completeDockerStep"](callState, {
+            dockerStep: 0,
         });
 
-        assert.equal(
-            result2.dockerSteps[0].loadState,
-            ApiStatus.Error,
-            "General Step should be Errored",
-        );
-        assert.ok(result2.dockerSteps[0].errorMessage, "Should include error message");
+        assert.equal(resultFailure.dockerSteps[0].loadState, ApiStatus.Error);
+        assert.equal(resultFailure.dockerSteps[0].errorMessage, "Something went wrong");
 
-        // connectToContainer step with action
-        const fakeStepAction = sinon.stub().resolves("docker-result");
-
-        callState.dockerSteps = [
-            {},
-            {},
-            {},
-            {},
-            {},
-            {
-                loadState: ApiStatus.NotStarted,
-                stepAction: fakeStepAction,
-                argNames: ["containerName", "port"],
-            }, // connectToContainer step
-        ];
-        callState.formState = {
-            containerName: "test-container",
-            port: 1433,
+        // --- Test connectToContainer success ---
+        callState.dockerSteps = [];
+        callState.dockerSteps[DockerStepOrder.connectToContainer] = {
+            loadState: ApiStatus.NotStarted,
+            stepAction: sinon.stub(), // not called for connectToContainer
+            argNames: ["containerName", "port"],
         };
-        addContainerConnectionSpy.resolves(true); // Connection success
+        callState.formState = {
+            containerName: "my-container",
+            port: 1433,
+            profileName: "dev-profile",
+        };
+        addContainerConnectionStub.resolves(true);
 
-        const result3 = await controller["_reducers"]["completeDockerStep"](callState, {
-            dockerStepNumber: DockerStepOrder.connectToContainer,
-        });
+        const resultConnectSuccess = await controller["_reducers"]["completeDockerStep"](
+            callState,
+            {
+                dockerStep: DockerStepOrder.connectToContainer,
+            },
+        );
 
         assert.equal(
-            result3.dockerSteps[DockerStepOrder.connectToContainer].loadState,
+            resultConnectSuccess.dockerSteps[DockerStepOrder.connectToContainer].loadState,
             ApiStatus.Loaded,
-            "Connect to Container Step should be loaded",
         );
         assert.ok(
-            !result3.dockerSteps[DockerStepOrder.connectToContainer].errorMessage,
-            "No error message expected on success",
+            !resultConnectSuccess.dockerSteps[DockerStepOrder.connectToContainer].errorMessage,
         );
 
-        addContainerConnectionSpy.resolves(false); // Connection failure
-        callState.dockerSteps[DockerStepOrder.connectToContainer].loadState = ApiStatus.NotStarted; // Reset to not started state
+        // --- Test connectToContainer failure ---
+        callState.dockerSteps[DockerStepOrder.connectToContainer].loadState = ApiStatus.NotStarted;
+        addContainerConnectionStub.resolves(false);
 
-        const result4 = await controller["_reducers"]["completeDockerStep"](callState, {
-            dockerStepNumber: DockerStepOrder.connectToContainer,
-        });
+        const resultConnectFailure = await controller["_reducers"]["completeDockerStep"](
+            callState,
+            {
+                dockerStep: DockerStepOrder.connectToContainer,
+            },
+        );
 
         assert.equal(
-            result4.dockerSteps[DockerStepOrder.connectToContainer].loadState,
+            resultConnectFailure.dockerSteps[DockerStepOrder.connectToContainer].loadState,
             ApiStatus.Error,
-            "Connect to Container Step should be Errored",
         );
         assert.ok(
-            result4.dockerSteps[DockerStepOrder.connectToContainer].errorMessage,
-            "Should include error message",
+            resultConnectFailure.dockerSteps[
+                DockerStepOrder.connectToContainer
+            ].errorMessage.includes("dev-profile"),
         );
 
-        const result5 = await controller["_reducers"]["completeDockerStep"](callState, {
-            dockerStepNumber: DockerStepOrder.connectToContainer,
-        });
-        assert.equal(
-            result5.dockerSteps[DockerStepOrder.connectToContainer].loadState,
-            ApiStatus.Error,
-            "Connect to Container load state should remain Error",
-        );
-
-        addContainerConnectionSpy.restore();
-        setStepStatusesSpy.restore();
+        addContainerConnectionStub.restore();
     });
 
-    test("resetDockerStepStates reducer should reset errored and following steps", async () => {
+    test("resetDockerStepState reducer should reset only the current docker step", async () => {
         let callState = (controller as any).state;
 
         // Setup initial state
+        callState.currentDockerStep = 1; // Only step 1 should be reset
         callState.dockerSteps = [
             {
                 loadState: ApiStatus.Loaded,
@@ -462,20 +416,29 @@ suite("ContainerDeploymentWebviewController", () => {
         ];
 
         // Call reducer directly
-        const resultState = await controller["_reducers"]["resetDockerStepStates"](callState, {});
+        const resultState = await controller["_reducers"]["resetDockerStepState"](callState, {});
 
         // First step should remain unchanged
         assert.strictEqual(resultState.dockerSteps[0].loadState, ApiStatus.Loaded);
         assert.strictEqual(resultState.dockerSteps[0].errorMessage, "Old error 1");
 
-        // Second and third steps should be reset
+        // Only second step (current step) should be reset
         assert.strictEqual(resultState.dockerSteps[1].loadState, ApiStatus.NotStarted);
-        assert.strictEqual(resultState.dockerSteps[1].errorMessage, undefined);
-        assert.strictEqual(resultState.dockerSteps[1].fullErrorText, undefined);
+        assert.strictEqual(
+            resultState.dockerSteps[1].errorMessage,
+            "Error happened",
+            "Error should not be cleared",
+        );
+        assert.strictEqual(
+            resultState.dockerSteps[1].fullErrorText,
+            "Something bad happened",
+            "Full error should not be cleared",
+        );
 
-        assert.strictEqual(resultState.dockerSteps[2].loadState, ApiStatus.NotStarted);
-        assert.strictEqual(resultState.dockerSteps[2].errorMessage, undefined);
-        assert.strictEqual(resultState.dockerSteps[2].fullErrorText, undefined);
+        // Third step should remain unchanged
+        assert.strictEqual(resultState.dockerSteps[2].loadState, ApiStatus.Error);
+        assert.strictEqual(resultState.dockerSteps[2].errorMessage, "Old error 2");
+        assert.strictEqual(resultState.dockerSteps[2].fullErrorText, "Old full error 2");
     });
 
     test("Test checkDocker Profile reducer", async () => {

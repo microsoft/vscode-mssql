@@ -7,12 +7,7 @@ import * as cd from "../sharedInterfaces/containerDeploymentInterfaces";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { platform } from "os";
-import {
-    connectionApplicationName,
-    defaultContainerPort,
-    localhost,
-    sqlAuthentication,
-} from "../constants/constants";
+import { defaultContainerPort, localhost, sa, sqlAuthentication } from "../constants/constants";
 import { FormItemType, FormItemSpec, FormItemOptions } from "../sharedInterfaces/form";
 import MainController from "../controllers/mainController";
 import { FormWebviewController } from "../forms/formWebviewController";
@@ -72,7 +67,16 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
     private async initialize() {
         this.state.loadState = ApiStatus.Loading;
-        this.state.formState = this.getDefaultConnectionProfile();
+        this.state.formState = {
+            version: "",
+            password: "",
+            savePassword: false,
+            profileName: "",
+            containerName: "",
+            port: undefined,
+            hostname: "",
+            acceptEula: false,
+        } as cd.DockerConnectionProfile;
         this.state.platform = platform();
         const versions = await dockerUtils.getSqlServerContainerVersions();
         this.state.formComponents = this.setFormComponents(versions);
@@ -98,9 +102,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return newState;
         });
         this.registerReducer("completeDockerStep", async (state, payload) => {
-            const currentStepNumber = payload.dockerStepNumber;
+            const currentStepNumber = payload.dockerStep;
             const currentStep = state.dockerSteps[currentStepNumber];
             if (currentStep.loadState !== ApiStatus.NotStarted) return state;
+            // Update the current docker step's status to loading
             this.updateState({
                 ...state,
                 dockerSteps: {
@@ -110,51 +115,39 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             });
 
             let dockerResult: cd.DockerCommandParams;
+            let stepSuccessful = false;
             if (currentStepNumber === cd.DockerStepOrder.connectToContainer) {
                 const connectionResult = await this.addContainerConnection(state.formState);
-
-                state.dockerSteps[currentStepNumber].loadState = connectionResult
-                    ? ApiStatus.Loaded
-                    : ApiStatus.Error;
+                stepSuccessful = connectionResult;
 
                 if (!connectionResult) {
-                    state.dockerSteps[currentStepNumber].errorMessage =
-                        `${connectErrorTooltip} ${state.formState.profileName}`;
+                    currentStep.errorMessage = `${connectErrorTooltip} ${state.formState.profileName}`;
                 }
             } else {
                 const args = currentStep.argNames.map((argName) => state.formState[argName]);
                 dockerResult = await currentStep.stepAction(...args);
-                state.dockerSteps = dockerUtils.setStepStatusesFromResult(
-                    dockerResult,
-                    currentStepNumber,
-                    state.dockerSteps,
-                );
+                stepSuccessful = dockerResult.success;
+
+                if (!stepSuccessful) {
+                    currentStep.errorMessage = dockerResult.error;
+                    currentStep.fullErrorText = dockerResult.fullErrorText;
+                }
             }
+
+            // If the step was successful, update the step's load state to Loaded
+            // else, update it to Error and set the error message
+            currentStep.loadState = stepSuccessful ? ApiStatus.Loaded : ApiStatus.Error;
+            if (stepSuccessful) {
+                state.currentDockerStep += 1; // Move to the next step
+            }
+            state.dockerSteps[currentStepNumber] = currentStep;
+
             return state;
         });
-        this.registerReducer("resetDockerStepStates", async (state, _payload) => {
-            // Find the first errored step index
-            const firstErroredIndex = state.dockerSteps.findIndex(
-                (step) => step.loadState === ApiStatus.Error,
-            );
-
-            if (firstErroredIndex !== -1) {
-                // Reset the errored step and all steps after it
-                const updatedSteps = state.dockerSteps.map((step, index) => {
-                    if (index >= firstErroredIndex) {
-                        return {
-                            ...step,
-                            loadState: ApiStatus.NotStarted,
-                            errorMessage: undefined,
-                            fullErrorText: undefined,
-                        };
-                    }
-                    return step;
-                });
-
-                state.dockerSteps = updatedSteps;
-            }
-
+        this.registerReducer("resetDockerStepState", async (state, _payload) => {
+            // Reset the current step to NotStarted
+            const currentStepNumber = state.currentDockerStep;
+            state.dockerSteps[currentStepNumber].loadState = ApiStatus.NotStarted;
             return state;
         });
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
@@ -259,28 +252,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         return state;
     }
 
-    private getDefaultConnectionProfile(): cd.DockerConnectionProfile {
-        const connection: unknown = {
-            connectionString: undefined,
-            profileName: "",
-            encrypt: "Mandatory",
-            trustServerCertificate: true,
-            server: "",
-            database: "",
-            user: "SA",
-            password: "",
-            applicationName: connectionApplicationName,
-            authenticationType: sqlAuthentication,
-            savePassword: false,
-            containerName: "",
-            version: "2025",
-            hostname: "",
-            loadStatus: ApiStatus.Loading,
-        };
-
-        return connection as cd.DockerConnectionProfile;
-    }
-
     private async addContainerConnection(
         dockerProfile: cd.DockerConnectionProfile,
     ): Promise<boolean> {
@@ -290,24 +261,24 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             profileName: dockerProfile.profileName || dockerProfile.containerName,
             savePassword: dockerProfile.savePassword,
             emptyPasswordInput: false,
-            azureAuthType: undefined,
-            accountStore: undefined,
+            authenticationType: sqlAuthentication,
+            user: sa,
+            trustServerCertificate: true,
         };
 
         sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.CreateSQLContainer, {
             version: dockerProfile.version,
         });
 
-        this.mainController.connectionManager.connectionUI
-            .saveProfile(connection as IConnectionProfile)
-            .then(async () => {
-                await this.mainController.createObjectExplorerSession(
-                    connection as IConnectionProfile,
-                );
-            })
-            .catch(() => {
-                return false;
-            });
+        try {
+            const profile = await this.mainController.connectionManager.connectionUI.saveProfile(
+                connection as IConnectionProfile,
+            );
+
+            await this.mainController.createObjectExplorerSession(profile);
+        } catch {
+            return false;
+        }
 
         return true;
     }
@@ -370,17 +341,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 propertyName: "profileName",
                 label: ConnectionDialog.profileName,
                 tooltip: profileNamePlaceholder,
-                validate(_state, value) {
-                    const isValid =
-                        value.toString() === "" ||
-                        dockerUtils.validateConnectionName(value.toString());
-                    return {
-                        isValid,
-                        validationMessage: isValid
-                            ? ""
-                            : ContainerDeployment.pleaseChooseUniqueProfileName,
-                    };
-                },
             }),
 
             containerName: createFormItem({
@@ -389,9 +349,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.containerName,
                 isAdvancedOption: true,
                 tooltip: ContainerDeployment.containerNameTooltip,
-                validate(state, _) {
-                    return { isValid: state.isValidContainerName, validationMessage: "" };
-                },
             }),
 
             port: createFormItem({
@@ -400,9 +357,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.port,
                 isAdvancedOption: true,
                 tooltip: ContainerDeployment.portTooltip,
-                validate(state, _) {
-                    return { isValid: state.isValidPortNumber, validationMessage: "" };
-                },
             }),
 
             hostname: createFormItem({

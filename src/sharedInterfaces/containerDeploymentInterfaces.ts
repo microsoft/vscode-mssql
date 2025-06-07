@@ -31,6 +31,8 @@ export class ContainerDeploymentWebviewState
     isValidPortNumber: boolean = false;
     /** Used to check whether docker container creation can proceed */
     isDockerProfileValid: boolean = false;
+    /** Used to track the current step in the Docker deployment process */
+    currentDockerStep: DockerStepOrder = DockerStepOrder.dockerInstallation;
     constructor(params?: Partial<ContainerDeploymentWebviewState>) {
         for (const key in params) {
             if (key in this) {
@@ -43,7 +45,6 @@ export class ContainerDeploymentWebviewState
 }
 
 export interface DockerConnectionProfile extends vscodeMssql.IConnectionInfo {
-    containerLoadState: ApiStatus.Loading;
     version: string;
     hostname: string;
     profileName: string;
@@ -83,14 +84,14 @@ export interface ContainerDeploymentContextProps
     checkDockerProfile(): void;
 
     /**
-     * Runs a docker step
+     * Runs the current docker step
      */
-    completeDockerStep(dockerStepNumber: DockerStepOrder): void;
+    completeDockerStep(dockerStep: number): void;
 
     /**
-     * Resets the states of all Docker steps to NotStarted, from the first errored step
+     * Resets the states of the current Docker step to NotStarted.
      */
-    resetDockerStepStates(): void;
+    resetDockerStepState(): void;
 
     /**
      * Cleans up and disposes of resources used by the deployment context.
@@ -100,17 +101,15 @@ export interface ContainerDeploymentContextProps
 
 export interface ContainerDeploymentReducers {
     /**
-     * Reducer for Docker installation check results.
+     * Reducer for completing the current Docker step.
      */
-    completeDockerStep: {
-        dockerStepNumber: DockerStepOrder;
-    };
+    completeDockerStep: { dockerStep: number };
 
     /**
-     * Reducer for resetting Docker step states.
-     * Resets all Docker steps to NotStarted, starting from the first errored step.
+     * Reducer for resetting the current Docker step state.
+     * Resets the current Docker step to NotStarted.
      */
-    resetDockerStepStates: {};
+    resetDockerStepState: {};
 
     /**
      * Reducer for Docker profile validation.

@@ -36,13 +36,13 @@ const ContainerDeploymentStateProvider: React.FC<ContainerDeploymentProviderProp
                         event: event,
                     });
                 },
-                completeDockerStep: function (dockerStepNumber): void {
+                completeDockerStep: function (dockerStep: number): void {
                     webviewState?.extensionRpc.action("completeDockerStep", {
-                        dockerStepNumber: dockerStepNumber,
+                        dockerStep: dockerStep,
                     });
                 },
-                resetDockerStepStates: function (): void {
-                    webviewState?.extensionRpc.action("resetDockerStepStates", {});
+                resetDockerStepState: function (): void {
+                    webviewState?.extensionRpc.action("resetDockerStepState", {});
                 },
                 checkDockerProfile: function (): void {
                     webviewState?.extensionRpc.action("checkDockerProfile", {});
