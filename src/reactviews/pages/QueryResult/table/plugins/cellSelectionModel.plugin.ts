@@ -19,7 +19,7 @@ import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
-import { Keys } from "../../keys";
+import { Keys } from "../../../../common/keys";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;

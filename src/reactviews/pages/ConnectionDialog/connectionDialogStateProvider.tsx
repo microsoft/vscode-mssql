@@ -16,6 +16,7 @@ import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
+import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
 
 const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 
@@ -58,6 +59,11 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 addFirewallRule: function (firewallRuleSpec: FirewallRuleSpec): void {
                     webviewState?.extensionRpc.action("addFirewallRule", {
                         firewallRuleSpec,
+                    });
+                },
+                createConnectionGroup: function (connectionGroupSpec: ConnectionGroupSpec): void {
+                    webviewState.extensionRpc.action("createConnectionGroup", {
+                        connectionGroupSpec,
                     });
                 },
                 closeDialog: function (): void {

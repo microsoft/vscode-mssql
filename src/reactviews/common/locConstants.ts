@@ -47,6 +47,7 @@ export class LocConstants {
                 }),
             closeFind: l10n.t("Close Find"),
             load: l10n.t("Load"),
+            select: l10n.t("Select"),
         };
     }
 
@@ -724,6 +725,25 @@ export class LocConstants {
             includeExcludeAllOperationInProgress: l10n.t(
                 "Processing include or exclude all differences operation.",
             ),
+        };
+    }
+
+    public get connectionGroups() {
+        return {
+            createNew: l10n.t("Create New Connection Group"),
+            editConnectionGroup: (groupName: string) =>
+                l10n.t({
+                    message: "Edit Connection Group: {0}",
+                    args: [groupName],
+                    comment: ["{0} is the name of the connection group being edited"],
+                }),
+            name: l10n.t("Name"),
+            enterConnectionGroupName: l10n.t("Enter connection group name"),
+            description: l10n.t("Description"),
+            enterDescription: l10n.t("Enter description (optional)"),
+            color: l10n.t("Color"),
+            chooseColor: l10n.t("Choose color"),
+            saveConnectionGroup: l10n.t("Save Connection Group"),
         };
     }
 }

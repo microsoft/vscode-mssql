@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Keys } from "../pages/QueryResult/keys";
+import { Keys } from "./keys";
 import { EventManager } from "./eventManager";
 
 const defaultConfig = {
