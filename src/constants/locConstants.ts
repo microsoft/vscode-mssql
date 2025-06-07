@@ -897,6 +897,8 @@ export class SchemaDesigner {
             comment: ["{0} is the database name"],
         });
     }
+    public static OpeningPublishScript = l10n.t("Opening Publish Script. This may take a while...");
+    public static GeneratingReport = l10n.t("Generating Report. This may take a while...");
 }
 
 export class StatusBar {
