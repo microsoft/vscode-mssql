@@ -63,6 +63,8 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     const classes = useStyles();
     const state = useContext(ContainerDeploymentContext);
     const [expanded, setExpanded] = useState(false);
+    // This state is used to track if the step has just errored, and expand then
+    const [isNewlyErrored, setIsNewlyErrored] = useState(false);
     const [showFullErrorText, setShowFullErrorText] = useState(false);
 
     // If this passes, container deployment state is guaranteed
@@ -72,14 +74,15 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     }
 
     useEffect(() => {
-        if (step.loadState === ApiStatus.Error) {
+        if (!isNewlyErrored && step.loadState === ApiStatus.Error) {
             setExpanded(true);
+            setIsNewlyErrored(true);
         }
     }, [state.state]);
 
     const getStatusIcon = () => {
         if (step.loadState === ApiStatus.NotStarted) {
-            return <Circle20Regular style={{ color: "gray" }} />;
+            return <Circle20Regular style={{ color: tokens.colorNeutralStroke2 }} />;
         }
         if (step.loadState === ApiStatus.Loaded) {
             return <Checkmark20Regular style={{ color: "green" }} />;
