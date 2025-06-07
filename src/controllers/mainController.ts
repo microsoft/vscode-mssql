@@ -68,9 +68,8 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../chat/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
-import { ConnectionGroupNodeInfo } from "../objectExplorer/nodes/connectionGroupNode";
+import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
-import { Logger } from "../models/logger";
 
 /**
  * The main controller class that initializes the extension
@@ -881,7 +880,7 @@ export default class MainController implements vscode.Disposable {
                     if (isIConnectionInfo(args)) {
                         connectionInfo = args;
                     } else {
-                        if (args instanceof ConnectionGroupNodeInfo) {
+                        if (args instanceof ConnectionGroupNode) {
                             connectionGroup = args.connectionGroup;
                         }
                     }
@@ -1014,7 +1013,7 @@ export default class MainController implements vscode.Disposable {
         });
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupEdit);
-        this._event.on(Constants.cmdConnectionGroupEdit, (node: ConnectionGroupNodeInfo) => {
+        this._event.on(Constants.cmdConnectionGroupEdit, (node: ConnectionGroupNode) => {
             const connGroupDialog = new ConnectionGroupWebviewController(
                 this._context,
                 this._vscodeWrapper,
@@ -1025,23 +1024,20 @@ export default class MainController implements vscode.Disposable {
         });
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupDelete);
-        this._event.on(
-            Constants.cmdConnectionGroupDelete,
-            async (node: ConnectionGroupNodeInfo) => {
-                const result = await vscode.window.showInformationMessage(
-                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmation(
-                        typeof node.label === "string" ? node.label : node.label.label,
-                    ),
-                    { modal: true },
-                    LocalizedConstants.Common.delete,
+        this._event.on(Constants.cmdConnectionGroupDelete, async (node: ConnectionGroupNode) => {
+            const result = await vscode.window.showInformationMessage(
+                LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmation(
+                    typeof node.label === "string" ? node.label : node.label.label,
+                ),
+                { modal: true },
+                LocalizedConstants.Common.delete,
+            );
+            if (result === LocalizedConstants.Common.delete) {
+                void this.connectionManager.connectionStore.connectionConfig.removeGroup(
+                    node.connectionGroup.id,
                 );
-                if (result === LocalizedConstants.Common.delete) {
-                    void this.connectionManager.connectionStore.connectionConfig.removeGroup(
-                        node.connectionGroup.id,
-                    );
-                }
-            },
-        );
+            }
+        });
 
         if (this.isRichExperiencesEnabled) {
             this._context.subscriptions.push(

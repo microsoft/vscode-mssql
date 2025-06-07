@@ -16,6 +16,7 @@ import {
     CredentialsQuickPickItemType,
     AuthenticationTypes,
     IConnectionProfileWithSource,
+    IConnectionGroup,
 } from "../models/interfaces";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
@@ -548,6 +549,11 @@ export class ConnectionStore {
         await this.saveProfile(profile);
     }
 
+    public async readAllConnectionGroups(): Promise<IConnectionGroup[]> {
+        const groups = await this._connectionConfig.getGroups();
+        return groups;
+    }
+
     public async readAllConnections(
         includeRecentConnections: boolean = false,
     ): Promise<IConnectionProfileWithSource[]> {
@@ -606,6 +612,11 @@ export class ConnectionStore {
         this._logger.logDebug(logMessage);
 
         return connResults;
+    }
+
+    /** Gets the groupId for connections  */
+    public get rootGroupId(): string {
+        return this.connectionConfig.getRootGroup().id;
     }
 
     public async getConnectionQuickpickItems(

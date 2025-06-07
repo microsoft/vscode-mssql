@@ -6,10 +6,9 @@
 import * as vscode from "vscode";
 import { TreeNodeInfo } from "./treeNodeInfo";
 import * as vscodeMssql from "vscode-mssql";
-import { TreeItemCollapsibleState } from "vscode";
-import { IConnectionGroup, IConnectionProfile } from "../../models/interfaces";
+import { IConnectionGroup } from "../../models/interfaces";
 
-export const connectionGroupNodeType = "ConnectionGroup";
+export const CONNECTION_GROUP_NODE_TYPE = "ConnectionGroup";
 
 const defaultDarkColor = "#424242";
 const defaultLightColor = "#F6F6F6";
@@ -19,44 +18,27 @@ const defaultLightColor = "#F6F6F6";
  * This class extends the TreeNodeInfo class and adds functionality specific to server groups.
  * It contains a list of child nodes and methods to manage them.
  */
-export class ConnectionGroupNodeInfo extends TreeNodeInfo {
+export class ConnectionGroupNode extends TreeNodeInfo {
     public children: TreeNodeInfo[];
     private _connectionGroup: IConnectionGroup;
 
-    constructor(
-        id: string,
-        label: string,
-        contextValue: vscodeMssql.TreeNodeContextValue,
-        collapsibleState: TreeItemCollapsibleState,
-        nodePath: string,
-        nodeStatus: string,
-        nodeType: string,
-        sessionId: string,
-        connectionInfo: vscodeMssql.IConnectionInfo,
-        parentNode: TreeNodeInfo,
-        filterProperties: vscodeMssql.NodeFilterProperty[],
-        nodeSubType: string,
-        connectionGroup: IConnectionGroup,
-        objectMetadata?: vscodeMssql.ObjectMetadata,
-        filters?: vscodeMssql.NodeFilter[],
-    ) {
+    constructor(connectionGroup: IConnectionGroup) {
         super(
-            label,
-            contextValue,
-            collapsibleState,
-            nodePath,
-            nodeStatus,
-            nodeType,
-            sessionId,
-            connectionInfo as IConnectionProfile,
-            parentNode,
-            filterProperties,
-            nodeSubType,
-            objectMetadata,
-            filters,
+            connectionGroup.name,
+            createConnectionGroupContextValue(),
+            vscode.TreeItemCollapsibleState.Expanded,
+            connectionGroup.id,
+            undefined,
+            CONNECTION_GROUP_NODE_TYPE,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
         );
+
         this.children = [];
-        this.id = id;
+        this.id = connectionGroup.id;
         this._connectionGroup = connectionGroup;
         this.iconPath = this.getIcon();
         this.tooltip = connectionGroup.description;
@@ -99,10 +81,10 @@ export class ConnectionGroupNodeInfo extends TreeNodeInfo {
      */
     public addChild(child: TreeNodeInfo): void {
         // Insert connection groups first, then other nodes, both alphabetically
-        const isChildConnectionGroup = child instanceof ConnectionGroupNodeInfo;
+        const isChildConnectionGroup = child instanceof ConnectionGroupNode;
 
         const index = this.children.findIndex((c) => {
-            const isCurrentConnectionGroup = c instanceof ConnectionGroupNodeInfo;
+            const isCurrentConnectionGroup = c instanceof ConnectionGroupNode;
 
             if (isChildConnectionGroup === isCurrentConnectionGroup) {
                 return c.label.toString().localeCompare(child.label.toString()) > 0;
@@ -130,9 +112,9 @@ export class ConnectionGroupNodeInfo extends TreeNodeInfo {
     }
 }
 
-export function connectionGroupContextValue(): vscodeMssql.TreeNodeContextValue {
+export function createConnectionGroupContextValue(): vscodeMssql.TreeNodeContextValue {
     return {
-        type: connectionGroupNodeType,
+        type: CONNECTION_GROUP_NODE_TYPE,
         filterable: false,
         hasFilters: false,
         subType: "",

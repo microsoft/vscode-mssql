@@ -52,12 +52,11 @@ import {
     GetSessionIdResponse,
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
-import VscodeWrapper, { ConfigurationTarget } from "../controllers/vscodeWrapper";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
-import * as connectionGroupNode from "./nodes/connectionGroupNode";
-import { ConnectionGroupNodeInfo } from "./nodes/connectionGroupNode";
+import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 
 export interface CreateSessionResult {
@@ -78,20 +77,20 @@ export class ObjectExplorerService {
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
 
     private _connectionNodes = new Map<string, ConnectionNode>();
-    private _connectionGroupNodes = new Map<string, ConnectionGroupNodeInfo>();
+    private _connectionGroupNodes = new Map<string, ConnectionGroupNode>();
     private get _rootTreeNodeArray(): Array<TreeNodeInfo> {
         const result = [];
 
-        const root = this._connectionManager.connectionStore.connectionConfig.getRootGroup();
+        const rootId = this._connectionManager.connectionStore.rootGroupId;
 
-        if (!this._connectionGroupNodes.has(root.id)) {
+        if (!this._connectionGroupNodes.has(rootId)) {
             this._logger.error(
                 "Root server group is not defined. Cannot get root nodes for Object Explorer.",
             );
             return [];
         }
 
-        for (const child of this._connectionGroupNodes.get(root.id)?.children || []) {
+        for (const child of this._connectionGroupNodes.get(rootId)?.children || []) {
             result.push(child);
         }
 
@@ -357,7 +356,7 @@ export class ObjectExplorerService {
             return this.getRootNodes();
         }
 
-        if (element instanceof ConnectionGroupNodeInfo) {
+        if (element instanceof ConnectionGroupNode) {
             return element.children;
         }
 
@@ -378,16 +377,17 @@ export class ObjectExplorerService {
             },
         );
 
-        const rootNode =
-            await this._connectionManager.connectionStore.connectionConfig.getRootGroup();
+        const rootId = this._connectionManager.connectionStore.rootGroupId;
         const serverGroups =
-            await this._connectionManager.connectionStore.connectionConfig.getGroups(
-                ConfigurationTarget.Global,
-            );
+            await this._connectionManager.connectionStore.readAllConnectionGroups();
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
 
         // if there are no saved connections, show the add connection node
-        if (savedConnections.length === 0 && serverGroups.length === 0) {
+        if (
+            savedConnections.length === 0 &&
+            serverGroups.length === 1 &&
+            serverGroups[0].id === rootId
+        ) {
             this._logger.verbose(
                 "No saved connections or groups found. Showing add connection node.",
             );
@@ -397,27 +397,12 @@ export class ObjectExplorerService {
             return this.getAddConnectionNode();
         }
 
-        const newConnectionGroupNodes = new Map<string, ConnectionGroupNodeInfo>();
+        const newConnectionGroupNodes = new Map<string, ConnectionGroupNode>();
         const newConnectionNodes = new Map<string, ConnectionNode>();
 
         // Add all group nodes from settings first
         for (const group of serverGroups) {
-            const nodePath = group.id;
-            const groupNode = new ConnectionGroupNodeInfo(
-                group.id,
-                group.name,
-                connectionGroupNode.connectionGroupContextValue(),
-                vscode.TreeItemCollapsibleState.Expanded,
-                nodePath,
-                undefined,
-                connectionGroupNode.connectionGroupNodeType,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                group,
-            );
+            const groupNode = new ConnectionGroupNode(group);
 
             if (this._connectionGroupNodes.has(group.id)) {
                 groupNode.id = this._connectionGroupNodes.get(group.id).id;
@@ -429,7 +414,7 @@ export class ObjectExplorerService {
         // Populate group hierarchy - add each group as a child to its parent
         for (const group of serverGroups) {
             // Skip the root group as it has no parent
-            if (group.name === rootNode.name && group.id === rootNode.id) {
+            if (group.id === rootId) {
                 continue;
             }
 
@@ -440,7 +425,7 @@ export class ObjectExplorerService {
                 if (parentNode && childNode) {
                     parentNode.addChild(childNode);
 
-                    if (parentNode.id !== rootNode.id) {
+                    if (parentNode.id !== rootId) {
                         childNode.parentNode = parentNode;
                     }
                 } else {
@@ -469,11 +454,11 @@ export class ObjectExplorerService {
                 } else {
                     connectionNode = new ConnectionNode(
                         connection,
-                        groupNode.id === rootNode.id ? undefined : groupNode,
+                        groupNode.id === rootId ? undefined : groupNode,
                     );
                 }
 
-                connectionNode.parentNode = groupNode.id === rootNode.id ? undefined : groupNode;
+                connectionNode.parentNode = groupNode.id === rootId ? undefined : groupNode;
 
                 newConnectionNodes.set(connection.id, connectionNode);
                 groupNode.addChild(connectionNode);
@@ -615,28 +600,12 @@ export class ObjectExplorerService {
             undefined,
         );
 
-        this._logger.verbose(
-            `Creating session for connection: ${JSON.stringify({
-                server: connectionInfo?.server,
-                database: connectionInfo?.database,
-                groupId: (connectionInfo as any)?.groupId,
-            })}`,
-        );
-
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
 
         if (!connectionProfile) {
             this._logger.error("Failed to prepare connection profile");
             return undefined;
         }
-
-        this._logger.verbose(
-            `Prepared connection profile: ${JSON.stringify({
-                server: connectionProfile.server,
-                database: connectionProfile.database,
-                groupId: (connectionProfile as any).groupId,
-            })}`,
-        );
 
         const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionProfile);
 
@@ -645,8 +614,6 @@ export class ObjectExplorerService {
                 GetSessionIdRequest.type,
                 connectionDetails,
             );
-
-        this._logger.verbose(`Got session ID: ${sessionIdResponse.sessionId}`);
 
         const sessionCreatedResponse: Deferred<SessionCreatedParameters> =
             new Deferred<SessionCreatedParameters>();
@@ -663,13 +630,7 @@ export class ObjectExplorerService {
             const sessionCreationResult = await sessionCreatedResponse;
             if (sessionCreationResult.success) {
                 this._logger.verbose(
-                    `Session created successfully with session ID ${sessionCreationResult.sessionId}. Root node: ${JSON.stringify(
-                        {
-                            type: sessionCreationResult.rootNode?.nodeType,
-                            label: sessionCreationResult.rootNode?.label,
-                            nodePath: sessionCreationResult.rootNode?.nodePath,
-                        },
-                    )}`,
+                    `Session created successfully with session ID ${sessionCreationResult.sessionId}`,
                 );
                 this._pendingSessionCreations.delete(sessionIdResponse.sessionId);
                 const successResponse = await this.handleSessionCreationSuccess(
@@ -697,7 +658,6 @@ export class ObjectExplorerService {
                 };
             }
         } else {
-            this._logger.error("Create session response was undefined");
             return undefined;
         }
     }
@@ -824,9 +784,6 @@ export class ObjectExplorerService {
         connectionProfile: IConnectionProfile,
     ) {
         if (!successResponse.success) {
-            this._logger.error(
-                "Session creation success handler called with unsuccessful response",
-            );
             return;
         }
 
@@ -857,7 +814,7 @@ export class ObjectExplorerService {
             await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile);
         }
         if (isNewConnection) {
-            this.addConnectionNodeAtRightPosition(connectionNode);
+            this.addConnectionNode(connectionNode);
         }
         // remove the sign in node once the session is created
         if (this._treeNodeToChildrenMap.has(connectionNode)) {
@@ -1135,16 +1092,25 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Adds a connection node to the OE tree at the right position based on its label.
+     * Adds a connection node to the OE tree.
      * @param connectionNode The connection node to add.
      * This will replace any existing node with the same connection profile.
      */
-    private addConnectionNodeAtRightPosition(connectionNode: ConnectionNode): void {
+    private addConnectionNode(connectionNode: ConnectionNode): void {
+        const oldNode = this._connectionNodes.get(connectionNode.connectionProfile.id);
+
         this._logger.verbose(
-            `${this._connectionNodes.has(connectionNode.connectionProfile.id) ? "Updating" : "Adding"} connection node: ${connectionNode.label}`,
+            `${oldNode ? "Updating" : "Adding"} connection node: ${connectionNode.label}`,
         );
 
+        if (oldNode) {
+            this._connectionGroupNodes.get(oldNode.connectionProfile.groupId)?.removeChild(oldNode);
+        }
+
         this._connectionNodes.set(connectionNode.connectionProfile.id, connectionNode);
+        this._connectionGroupNodes
+            .get(connectionNode.connectionProfile.groupId)
+            ?.addChild(connectionNode);
     }
 
     /**
@@ -1197,7 +1163,7 @@ export class ObjectExplorerService {
             node = getParentNode(node);
         }
 
-        if (node instanceof ConnectionGroupNodeInfo) {
+        if (node instanceof ConnectionGroupNode) {
             this._connectionGroupNodes.set(node.id, node);
         } else {
             this._connectionNodes.set(node.connectionProfile.id, node as ConnectionNode);
@@ -1205,22 +1171,7 @@ export class ObjectExplorerService {
     }
 
     public addServerGroupNode(group: IConnectionGroup): void {
-        const nodePath = group.id;
-        const groupNode = new ConnectionGroupNodeInfo(
-            group.id,
-            group.name,
-            connectionGroupNode.connectionGroupContextValue(),
-            vscode.TreeItemCollapsibleState.Expanded,
-            nodePath,
-            undefined,
-            connectionGroupNode.connectionGroupNodeType,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            group,
-        );
+        const groupNode = new ConnectionGroupNode(group);
         this.updateNode(groupNode);
     }
 
@@ -1251,7 +1202,7 @@ export class ObjectExplorerService {
         return connections;
     }
 
-    public get connection(): IConnectionInfo[] {
+    public get connections(): IConnectionProfile[] {
         return [...this._connectionNodes.values()].map((node) => node.connectionProfile);
     }
 
@@ -1259,22 +1210,8 @@ export class ObjectExplorerService {
         return [...this._connectionGroupNodes.values()].map((node) => node.connectionGroup);
     }
 
-    /**
-     * @returns Array of all connection profiles in the tree.
-     */
-    public get connections(): IConnectionProfile[] {
-        const result: IConnectionProfile[] = [];
-
-        for (const connNode of this._connectionNodes.values()) {
-            result.push(connNode.connectionProfile);
-        }
-
-        return result;
-    }
-
     public getConnectionNodeById(id: string): ConnectionNode | undefined {
         if (!id) {
-            this._logger.error("Connection node ID is undefined or empty.");
             return undefined;
         }
 
@@ -1286,9 +1223,8 @@ export class ObjectExplorerService {
         return connectionNode;
     }
 
-    public getServerGroupNodeById(id: string): ConnectionGroupNodeInfo | undefined {
+    public getServerGroupNodeById(id: string): ConnectionGroupNode | undefined {
         if (!id) {
-            this._logger.error("Server group node ID is undefined or empty.");
             return undefined;
         }
 

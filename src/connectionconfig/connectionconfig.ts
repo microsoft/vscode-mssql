@@ -24,7 +24,7 @@ export class ConnectionConfig implements IConnectionConfig {
     public initialized: Deferred<void> = new Deferred<void>();
 
     /** The name of the root connection group. */
-    public readonly RootGroupName: string = "ROOT";
+    static readonly RootGroupName: string = "ROOT";
     private _hasDisplayedMissingIdError: boolean = false;
 
     /**
@@ -179,8 +179,21 @@ export class ConnectionConfig implements IConnectionConfig {
     //#region Connection Groups
 
     public getRootGroup(): IConnectionGroup | undefined {
-        const groups: IConnectionGroup[] = this.getGroupsFromSettings();
-        return groups.find((group) => group.name === this.RootGroupName);
+        let groups: IConnectionGroup[] = this.getGroupsFromSettings();
+        groups = groups.filter((group) => group.name === ConnectionConfig.RootGroupName);
+
+        if (groups.length === 0) {
+            this._logger.error(
+                `No root connection group found. This should have been fixed at initialization.`,
+            );
+            return undefined;
+        } else if (groups.length > 1) {
+            const message = `Multiple connection groups with name "${ConnectionConfig.RootGroupName}" found.  Returning the first one: ${groups[0].id}. Delete or rename the others, then restart the extension.`;
+            this._logger.error(message);
+            this._vscodeWrapper.showErrorMessage(message);
+        }
+
+        return groups[0];
     }
 
     public async getGroups(
@@ -264,18 +277,13 @@ export class ConnectionConfig implements IConnectionConfig {
         toRemove: IConnectionProfile,
         profiles: IConnectionProfile[],
     ): boolean {
-        // Remove the profile if already set
         let found = false;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        profiles = profiles.filter((value) => {
-            if (Utils.isSameProfile(value, toRemove)) {
-                // remove just this profile
+        for (let i = profiles.length - 1; i >= 0; i--) {
+            if (Utils.isSameProfile(profiles[i], toRemove)) {
+                profiles.splice(i, 1);
                 found = true;
-                return false;
-            } else {
-                return true;
             }
-        });
+        }
         return found;
     }
 
@@ -333,7 +341,7 @@ export class ConnectionConfig implements IConnectionConfig {
 
         if (!rootGroup) {
             rootGroup = {
-                name: this.RootGroupName,
+                name: ConnectionConfig.RootGroupName,
                 id: Utils.generateGuid(),
             };
 

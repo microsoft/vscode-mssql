@@ -16,7 +16,6 @@ import { deepClone } from "../../src/models/utils";
 suite("ConnectionConfig Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
-
     let outputChannel: TypeMoq.IMock<vscode.OutputChannel>;
 
     const rootGroupId = "root-group-id";
@@ -133,7 +132,7 @@ suite("ConnectionConfig Tests", () => {
             const nonRootGroup = savedGroups.find((g) => g.name === "Group without ID");
             expect(nonRootGroup).to.not.be.undefined;
             expect(nonRootGroup?.id).to.not.be.undefined;
-            expect(nonRootGroup?.groupId).to.equal(rootGroupId);
+            expect(nonRootGroup?.parentId).to.equal(rootGroupId);
         });
 
         test("Initialization adds missing IDs to connection profiles", async () => {

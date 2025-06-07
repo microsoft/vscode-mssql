@@ -39,6 +39,7 @@ import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { mockGetCapabilitiesRequest } from "./mocks";
 import { AzureController } from "../../src/azure/azureController";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -46,6 +47,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let controller: ConnectionDialogWebviewController;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let outputChannel: TypeMoq.IMock<vscode.OutputChannel>;
     let mainController: MainController;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
     let connectionStore: TypeMoq.IMock<ConnectionStore>;
@@ -53,6 +55,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let mockObjectExplorerProvider: TypeMoq.IMock<ObjectExplorerProvider>;
     let azureAccountService: TypeMoq.IMock<AzureAccountService>;
     let serviceClientMock: TypeMoq.IMock<SqlToolsServerClient>;
+
+    const TEST_ROOT_GROUP_ID = "test-root-group-id";
 
     const testMruConnection = {
         profileSource: CredentialsQuickPickItemType.Mru,
@@ -64,6 +68,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         profileSource: CredentialsQuickPickItemType.Profile,
         server: "SavedServer",
         database: "SavedDatabase",
+        groupId: TEST_ROOT_GROUP_ID,
     } as IConnectionProfileWithSource;
 
     setup(async () => {
@@ -72,6 +77,13 @@ suite("ConnectionDialogWebviewController Tests", () => {
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
         mockObjectExplorerProvider = TypeMoq.Mock.ofType<ObjectExplorerProvider>();
+
+        outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
+        outputChannel.setup((c) => c.clear());
+        outputChannel.setup((c) => c.append(TypeMoq.It.isAny()));
+        outputChannel.setup((c) => c.show(TypeMoq.It.isAny()));
+
+        mockVscodeWrapper.setup((v) => v.outputChannel).returns(() => outputChannel.object);
 
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockContext.setup((c) => c.extensionUri).returns(() => vscode.Uri.parse("file://fakePath"));
@@ -115,6 +127,12 @@ suite("ConnectionDialogWebviewController Tests", () => {
         connectionStore
             .setup((cs) => cs.readAllConnections(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve([testMruConnection, testSavedConnection]));
+
+        connectionStore
+            .setup((cs) => cs.readAllConnectionGroups())
+            .returns(() =>
+                Promise.resolve([{ id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupName }]),
+            );
 
         azureAccountService
             .setup((a) => a.getAccounts())

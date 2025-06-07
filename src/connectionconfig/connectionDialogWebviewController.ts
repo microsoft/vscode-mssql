@@ -970,11 +970,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private async getConnectionGroups(): Promise<FormItemOptions[]> {
         const connectionGroups =
-            await this._mainController.connectionManager.connectionStore.connectionConfig.getGroups();
-        const rootGroup =
-            this._mainController.connectionManager.connectionStore.connectionConfig.getRootGroup();
+            await this._mainController.connectionManager.connectionStore.readAllConnectionGroups();
+        const rootId = this._mainController.connectionManager.connectionStore.rootGroupId;
         return connectionGroups.map((g) => ({
-            displayName: g.id === rootGroup.id ? Loc.default : g.name,
+            displayName: g.id === rootId ? Loc.default : g.name,
             value: g.id,
         }));
     }

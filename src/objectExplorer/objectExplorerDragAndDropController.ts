@@ -8,7 +8,7 @@ import * as vscode from "vscode";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
 import { ConnectionNode } from "./nodes/connectionNode";
-import { ConnectionGroupNodeInfo } from "./nodes/connectionGroupNode";
+import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getErrorMessage } from "../utils/utils";
@@ -46,7 +46,7 @@ export class ObjectExplorerDragAndDropController
     ): void {
         const item = source[0]; // Handle only the first item for simplicity
 
-        if (item instanceof ConnectionNode || item instanceof ConnectionGroupNodeInfo) {
+        if (item instanceof ConnectionNode || item instanceof ConnectionGroupNode) {
             const dragData: ObjectExplorerDragMetadata = {
                 name: item.label.toString(),
                 type: item instanceof ConnectionNode ? "connection" : "group",
@@ -81,14 +81,14 @@ export class ObjectExplorerDragAndDropController
 
         try {
             if (dragData.isConnectionOrGroup && dragData.type && dragData.id) {
-                if (target instanceof ConnectionGroupNodeInfo || target === undefined) {
+                if (target instanceof ConnectionGroupNode || target === undefined) {
                     let targetInfo: { label: string; id: string };
 
                     // If the target is undefined, we're dropping onto the root of the Object Explorer
                     if (target === undefined) {
                         targetInfo = {
                             label: "ROOT",
-                            id: this.connectionStore.connectionConfig.getRootGroup().id,
+                            id: this.connectionStore.rootGroupId,
                         };
                     } else {
                         targetInfo = {
