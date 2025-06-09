@@ -26,6 +26,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _filterableProperties: vscodeMssql.NodeFilterProperty[];
     private _filters: vscodeMssql.NodeFilter[];
     private _originalLabel: string;
+    private _loadingLabel: string;
 
     /**
      * Use this flag to force a refresh of the node in the next expansion.
@@ -143,6 +144,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         return this._parentNode;
     }
 
+    public get loadingLabel(): string {
+        return this._loadingLabel;
+    }
+
     /**
      * Returns a **copy** of the node's connection information.
      *
@@ -226,6 +231,9 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this.contextValue = this._convertToContextValue(value);
     }
 
+    public set loadingLabel(value: string) {
+        this._loadingLabel = value;
+    }
     public updateConnectionProfile(value: IConnectionProfile): void {
         this._connectionProfile = value;
     }

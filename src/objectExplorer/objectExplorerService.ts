@@ -57,9 +57,14 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import {
+    checkIfConnectionIsDockerContainer,
+    restartContainer,
+} from "../containerDeployment/dockerUtils";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
+import { AddLocalContainerConnectionTreeNode } from "../containerDeployment/addLocalContainerConnectionTreeNode";
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -98,6 +103,7 @@ export class ObjectExplorerService {
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
+        private _isRichExperienceEnabled: boolean = true,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -345,11 +351,13 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Helper to show the Add Connection node; only displayed when there are no saved connections
+     * Helper to show the Add Connection nodes; only displayed when there are no saved connections
      */
-    private getAddConnectionNode(): AddConnectionTreeNode[] {
+    private getAddConnectionNodes(): vscode.TreeItem[] {
         this._rootTreeNodeArray = [];
-        return [new AddConnectionTreeNode()];
+        let nodeList = [new AddConnectionTreeNode()];
+        if (this._isRichExperienceEnabled) nodeList.push(new AddLocalContainerConnectionTreeNode());
+        return nodeList;
     }
 
     /**
@@ -388,12 +396,18 @@ export class ObjectExplorerService {
 
         // if there are no saved connections, show the add connection node
         if (savedConnections.length === 0) {
-            this._logger.verbose("No saved connections found. Showing add connection node.");
+            this._logger.verbose("No saved connections found. Showing add connection nodes.");
             getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
                 childrenCount: 0,
             });
-            return this.getAddConnectionNode();
+            return this.getAddConnectionNodes();
         }
+
+        void vscode.commands.executeCommand(
+            "setContext",
+            "mssql.hasConnections",
+            savedConnections.length > 0,
+        );
 
         let result: TreeNodeInfo[] = [];
         if (this._rootTreeNodeArray) {
@@ -432,8 +446,18 @@ export class ObjectExplorerService {
          * one blocked operation can delay the other.
          */
         void this.getOrCreateNodeChildrenWithSession(element);
+        return this.setLoadingUiForNode(element);
+    }
+
+    /**
+     * Sets a loading UI for the given node.
+     * This is used to show a loading spinner while the children are being fetched/ other node operations are being performed.
+     * @param element The node to set the loading UI for
+     * @returns A loading node that will be displayed in the tree
+     */
+    public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const loadingNode = new vscode.TreeItem(
-            LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
+            element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
             vscode.TreeItemCollapsibleState.None,
         );
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
@@ -615,10 +639,33 @@ export class ObjectExplorerService {
             return undefined;
         }
 
+        // Check if connection is a Docker container
+        const serverName = connectionProfile.connectionString
+            ? connectionProfile.connectionString.match(/^Server=([^;]+)/)?.[1]
+            : connectionProfile.server;
+
+        if (serverName && !connectionProfile.containerName) {
+            const containerName = await checkIfConnectionIsDockerContainer(serverName);
+            if (containerName) {
+                connectionProfile.containerName = containerName;
+            }
+            // if the connnection is a docker container, make sure to set the container name for future use
+            await this._connectionManager.connectionStore.saveProfile(connectionProfile);
+        }
+
         if (!connectionProfile.id) {
             connectionProfile.id = Utils.generateGuid();
         }
 
+        // Local container, ensure it is started
+        if (connectionProfile.containerName) {
+            sendActionEvent(
+                TelemetryViews.ContainerDeployment,
+                TelemetryActions.ConnectToContainer,
+            );
+            // start docker and docker container
+            await restartContainer(connectionProfile.containerName);
+        }
         if (connectionProfile.connectionString) {
             if (connectionProfile.savePassword) {
                 // look up connection string
