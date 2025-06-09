@@ -112,9 +112,9 @@
   },
   "Close Find": "Close Find",
   "Load": "Load",
+  "Select": "Select",
   "Finish": "Finish",
   "Retry": "Retry",
-  "Select": "Select",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -628,6 +628,18 @@
     ]
   },
   "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
+  "Create New Connection Group": "Create New Connection Group",
+  "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
+    "message": "Edit Connection Group: {0}",
+    "comment": [
+      "{0} is the name of the connection group being edited"
+    ]
+  },
+  "Enter connection group name": "Enter connection group name",
+  "Enter description (optional)": "Enter description (optional)",
+  "Color": "Color",
+  "Choose color": "Choose color",
+  "Save Connection Group": "Save Connection Group",
   "Loading deployment page...": "Loading deployment page...",
   "Local SQL Server database container": "Local SQL Server database container",
   "Instant Container Setup": "Instant Container Setup",
@@ -648,18 +660,6 @@
   "Hide full error message": "Hide full error message",
   "Show full error message": "Show full error message",
   "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
-  "Create New Connection Group": "Create New Connection Group",
-  "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
-    "message": "Edit Connection Group: {0}",
-    "comment": [
-      "{0} is the name of the connection group being edited"
-    ]
-  },
-  "Enter connection group name": "Enter connection group name",
-  "Enter description (optional)": "Enter description (optional)",
-  "Color": "Color",
-  "Choose color": "Choose color",
-  "Save Connection Group": "Save Connection Group",
   "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
   "Remind Me Later": "Remind Me Later",

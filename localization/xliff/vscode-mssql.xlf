@@ -149,10 +149,6 @@
     <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
       <source xml:lang="en">Are you sure you want to delete the selected items?</source>
     </trans-unit>
-    <trans-unit id="++CODE++d06cb9591349a9b98151fca38054ea9703b643b570f3b4557f3d2c07d76a7403">
-      <source xml:lang="en">Are you sure you want to delete {0}?</source>
-      <note>{0} is the node label</note>
-    </trans-unit>
     <trans-unit id="++CODE++06f1783b8fa5a8be694c26e8cea5b2bd668dd7beb434d1271155bae4e7f4a736">
       <source xml:lang="en">Are you sure you want to delete {0}?  This will also delete all connections in this group.</source>
       <note>{0} is the group name</note>
@@ -389,8 +385,6 @@
     <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
       <source xml:lang="en">Choose a database from the list below</source>
     </trans-unit>
-    <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
-      <source xml:lang="en">Choose color</source>
     <trans-unit id="++CODE++f374a2978746011d60b5e1785696b4f2c1fe9165edc4f876767d2f1282240cb2">
       <source xml:lang="en">Choose a hostname for the container</source>
     </trans-unit>
@@ -399,6 +393,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
       <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
+      <source xml:lang="en">Choose color</source>
     </trans-unit>
     <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
       <source xml:lang="en">Choose the Right Version</source>
@@ -637,10 +634,11 @@
     <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
       <source xml:lang="en">Create Firewall Rule</source>
     </trans-unit>
-    <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
-      <source xml:lang="en">Create New Connection Group</source>
     <trans-unit id="++CODE++f7450e89276bf601752a2ef286965fb13e17c418012b0aa68be16f8941cc7321">
       <source xml:lang="en">Create Local SQL Container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
+      <source xml:lang="en">Create New Connection Group</source>
     </trans-unit>
     <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
       <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
@@ -2332,13 +2330,11 @@
     <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
       <source xml:lang="en">Warnings detected. Please review the changes.</source>
     </trans-unit>
-    <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
-      <source xml:lang="en">We couldn&apos;t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
     <trans-unit id="++CODE++d054fcb4284fd66975e378de56c04bda7b8e951e8e13f66834d9510e2b5461aa">
       <source xml:lang="en">We can&apos;t find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.</source>
     </trans-unit>
-    <trans-unit id="++CODE++f01e36aaf60d2146e1cf906fce3e055116bd19954ad018908f8a7cd8bd2a8b0c">
-      <source xml:lang="en">We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
+    <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
+      <source xml:lang="en">We couldn&apos;t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
     </trans-unit>
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
@@ -2621,6 +2617,7 @@
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.delete">
       <source xml:lang="en">Delete Connection Group</source>
+    </trans-unit>
     <trans-unit id="mssql.deleteContainer">
       <source xml:lang="en">Delete Container</source>
     </trans-unit>
