@@ -529,7 +529,7 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 vscode.lm.registerTool(
-                    "mssql_show_schema_tool",
+                    "mssql_show_schema",
                     new ShowSchemaTool(this.connectionManager),
                 ),
             );

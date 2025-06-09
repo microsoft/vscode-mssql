@@ -8,10 +8,10 @@ import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 
 export interface ServerProfile {
-    serverId: string;
-    serverName: string;
-    hostName: string;
-    defaultDatabase: string;
+    profileId: string;
+    profileName: string;
+    server: string;
+    database: string;
 }
 
 /** Result of the list servers request. */
@@ -36,10 +36,10 @@ export class ListServersTool extends ToolBase<undefined> {
         const profiles = await this.connectionManager.connectionStore.readAllConnections(false);
         // Map to server profiles
         const servers: ServerProfile[] = profiles.map((p) => ({
-            serverId: p.id,
-            serverName: p.profileName,
-            hostName: p.server,
-            defaultDatabase: p.database || "",
+            profileId: p.id,
+            profileName: p.profileName,
+            server: p.server,
+            database: p.database || "",
         }));
         return JSON.stringify({ servers });
     }

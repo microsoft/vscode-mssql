@@ -1904,28 +1904,67 @@
         ],
         "languageModelTools": [
             {
-              "name": "mssql_show_schema",
-              "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool requires an active db connection from the current active editor. This tool opens a graphical view of the database schema, including tables and relationships.",
-              "tags": [
-                "databases",
-                "mssql",
-                "schema",
-                "visualization"
-              ],
-              "canBeReferencedInPrompt": true,
-              "displayName": "Show Database Schema",
-              "toolReferenceName": "mssql_show_schema",
-              "userDescription": "Show database schema for a connected MSSQL database.",
-              "icon": "$(graph-scatter)"
+                "name": "mssql_show_schema",
+                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool requires an active db connection from the current active editor. This tool opens a graphical view of the database schema, including tables and relationships.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "schema",
+                    "visualization"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to use for schema visualization.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Show Database Schema",
+                "toolReferenceName": "mssql_show_schema",
+                "userDescription": "Show database schema for a connected MSSQL database.",
+                "icon": "$(graph-scatter)"
             },
             {
                 "name": "mssql_connect",
-                "modelDescription": "Establish a connection to a server or specific database. Returns a connection ID.",
+                "modelDescription": "Connect to an MSSQL database server using a server name and optional database name. The server name is retrieved from mssql_list_servers. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use $mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a string formatted as 'mssql/{server name}[/{database name}]', where if no database name is present it's the default database for the server.",
                 "tags": [
                     "databases",
                     "mssql",
                     "connection"
                 ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "serverName": {
+                            "description": "Server name. Ensure this is validated with a call to pgsql_list_servers.",
+                            "title": "Server Name",
+                            "type": "string"
+                        },
+                        "database": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "description": "Optional database name; if omitted, uses the server's default database.",
+                            "title": "Database Name"
+                        }
+                    },
+                    "required": [
+                        "serverName"
+                    ]
+                },
                 "canBeReferencedInPrompt": true,
                 "displayName": "Connect to MSSQL Server or Database",
                 "toolReferenceName": "mssql_connect",
@@ -1940,6 +1979,19 @@
                     "mssql",
                     "disconnection"
                 ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to disconnect.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
                 "canBeReferencedInPrompt": true,
                 "displayName": "Disconnect from MSSQL Server or Database",
                 "toolReferenceName": "mssql_disconnect",

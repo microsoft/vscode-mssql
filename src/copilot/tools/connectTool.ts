@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
+import { defaultDatabase } from "../../constants/constants";
 
 /** Parameters for the connect tool. */
 export interface ConnectToolParams {
@@ -25,7 +26,7 @@ export const CONNECT_TOOL_NAME = "mssql_connect";
 export class ConnectTool extends ToolBase<ConnectToolParams> {
     public readonly toolName = CONNECT_TOOL_NAME;
     public readonly description =
-        "Connect to a PostgreSQL server using server name and optional database name.";
+        "Connect to a MSSQL server using server name and optional database name.";
 
     constructor(private connectionManager: ConnectionManager) {
         super();
@@ -47,11 +48,10 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
             } as ConnectToolResult);
         }
 
-        // let creds = await this.connectionManager.connectionUI.handleSelectedConnection(profile);
-        let creds = undefined;
+        let creds = await this.connectionManager.connectionUI.handleSelectedConnection(profile);
 
         const cleanedServerName = serverName.replace(/\//g, "_");
-        const effectiveDatabase = database || profile.connectionCreds.database || undefined;
+        const effectiveDatabase = database || profile.connectionCreds.database || defaultDatabase;
         let connectionId = `mssql/${cleanedServerName}`;
         if (effectiveDatabase) {
             connectionId += `/${effectiveDatabase}`;
