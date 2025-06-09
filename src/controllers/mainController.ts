@@ -68,6 +68,10 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
+import { ConnectTool } from "../copilot/tools/connectTool";
+import { ListServersTool } from "../copilot/tools/listServersTool";
+import { DisconnectTool } from "../copilot/tools/disconnectTool";
 
 /**
  * The main controller class that initializes the extension
@@ -521,6 +525,28 @@ export default class MainController implements vscode.Disposable {
             );
             this._vscodeWrapper.onDidChangeConfiguration((params) =>
                 this.onDidChangeConfiguration(params),
+            );
+
+            this._context.subscriptions.push(
+                vscode.lm.registerTool(
+                    "mssql_show_schema_tool",
+                    new ShowSchemaTool(this.connectionManager),
+                ),
+            );
+            this._context.subscriptions.push(
+                vscode.lm.registerTool("mssql_connect", new ConnectTool(this.connectionManager)),
+            );
+            this._context.subscriptions.push(
+                vscode.lm.registerTool(
+                    "mssql_disconnect",
+                    new DisconnectTool(this.connectionManager),
+                ),
+            );
+            this._context.subscriptions.push(
+                vscode.lm.registerTool(
+                    "mssql_list_servers",
+                    new ListServersTool(this.connectionManager),
+                ),
             );
 
             return true;

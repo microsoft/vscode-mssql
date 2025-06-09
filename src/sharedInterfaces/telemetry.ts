@@ -94,6 +94,7 @@ export enum TelemetryActions {
     StartConversation = "StartConversation",
     GetQueryResultState = "GetQueryResultState",
     SavePlan = "SavePlan",
+    CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
 }
 
 /**

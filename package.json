@@ -1901,6 +1901,65 @@
                     }
                 ]
             }
+        ],
+        "languageModelTools": [
+            {
+              "name": "mssql_show_schema",
+              "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool requires an active db connection from the current active editor. This tool opens a graphical view of the database schema, including tables and relationships.",
+              "tags": [
+                "databases",
+                "mssql",
+                "schema",
+                "visualization"
+              ],
+              "canBeReferencedInPrompt": true,
+              "displayName": "Show Database Schema",
+              "toolReferenceName": "mssql_show_schema",
+              "userDescription": "Show database schema for a connected MSSQL database.",
+              "icon": "$(graph-scatter)"
+            },
+            {
+                "name": "mssql_connect",
+                "modelDescription": "Establish a connection to a server or specific database. Returns a connection ID.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection"
+                ],
+                "canBeReferencedInPrompt": true,
+                "displayName": "Connect to MSSQL Server or Database",
+                "toolReferenceName": "mssql_connect",
+                "userDescription": "Connect to a MSSQL server or database.",
+                "icon": "$(plug)"
+            },
+            {
+                "name": "mssql_disconnect",
+                "modelDescription": "Disconnect from a server or specific database. Returns a success message.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "disconnection"
+                ],
+                "canBeReferencedInPrompt": true,
+                "displayName": "Disconnect from MSSQL Server or Database",
+                "toolReferenceName": "mssql_disconnect",
+                "userDescription": "Disconnect from a MSSQL server or database.",
+                "icon": "$(debug-disconnect)"
+            },
+            {
+                "name": "mssql_list_servers",
+                "modelDescription": "List all available MSSQL servers. Returns a list of server names.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "server",
+                    "list"
+                ],
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Servers",
+                "toolReferenceName": "mssql_list_servers",
+                "userDescription": "List all available MSSQL servers."
+            }
         ]
     }
 }
