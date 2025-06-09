@@ -97,6 +97,7 @@
   },
   "Close": "Close",
   "Apply": "Apply",
+  "Next": "Next",
   "Clear Selection": "Clear Selection",
   "Find": "Find",
   "Find Next": "Find Next",
@@ -111,6 +112,8 @@
   },
   "Close Find": "Close Find",
   "Load": "Load",
+  "Finish": "Finish",
+  "Retry": "Retry",
   "Select": "Select",
   "Error": "Error",
   "Clear All": "Clear All",
@@ -168,7 +171,6 @@
   "Loading Table Designer": "Loading Table Designer",
   "Loading Report": "Loading Report",
   "Error loading preview": "Error loading preview",
-  "Retry": "Retry",
   "Update Database": "Update Database",
   "Generate Script": "Generate Script",
   "Publish": "Publish",
@@ -269,6 +271,7 @@
   "Paste connection string from clipboard": "Paste connection string from clipboard",
   "Paste": "Paste",
   "Search settings...": "Search settings...",
+  "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
@@ -302,7 +305,6 @@
   "Expand All": "Expand All",
   "Collapse All": "Collapse All",
   "Filter for any field...": "Filter for any field...",
-  "Next": "Next",
   "Previous": "Previous",
   "Expand": "Expand",
   "Collapse": "Collapse",
@@ -626,6 +628,26 @@
     ]
   },
   "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
+  "Loading deployment page...": "Loading deployment page...",
+  "Local SQL Server database container": "Local SQL Server database container",
+  "Instant Container Setup": "Instant Container Setup",
+  "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.": "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.",
+  "Simple Container Management": "Simple Container Management",
+  "Start, stop, and remove containers directly from the extension.": "Start, stop, and remove containers directly from the extension.",
+  "Choose the Right Version": "Choose the Right Version",
+  "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.": "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.",
+  "Learn more about SQL Server 2025 features": "Learn more about SQL Server 2025 features",
+  "Compare SQL Server editions": "Compare SQL Server editions",
+  "Configure and customize SQL Server containers": "Configure and customize SQL Server containers",
+  "Get Started": "Get Started",
+  "Getting Docker Ready...": "Getting Docker Ready...",
+  "Checking pre-requisites": "Checking pre-requisites",
+  "Create Container": "Create Container",
+  "Setting up": "Setting up",
+  "Getting container ready for connections": "Getting container ready for connections",
+  "Hide full error message": "Hide full error message",
+  "Show full error message": "Show full error message",
+  "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
   "Create New Connection Group": "Create New Connection Group",
   "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
     "message": "Edit Connection Group: {0}",
@@ -643,6 +665,7 @@
   "Remind Me Later": "Remind Me Later",
   "Don't Show Again": "Don't Show Again",
   "Learn More": "Learn More",
+  "Accept": "Accept",
   "View More": "View More",
   "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
   "Started query execution for document \"{0}\"/{0} is the document name": {
@@ -1067,8 +1090,8 @@
   "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
   "Edit Connection Profile": "Edit Connection Profile",
   "Connecting...": "Connecting...",
-  "Are you sure you want to delete {0}?/{0} is the node label": {
-    "message": "Are you sure you want to delete {0}?",
+  "Are you sure you want to remove {0}?/{0} is the node label": {
+    "message": "Are you sure you want to remove {0}?",
     "comment": [
       "{0} is the node label"
     ]
@@ -1167,6 +1190,112 @@
       "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum"
     ]
   },
+  "Create Local SQL Container": "Create Local SQL Container",
+  "{0} stopped successfully./{0} stopped successfully.": {
+    "message": "{0} stopped successfully.",
+    "comment": [
+      "{0} stopped successfully."
+    ]
+  },
+  "Failed to stop {0}./Failed to stop {0}.": {
+    "message": "Failed to stop {0}.",
+    "comment": [
+      "Failed to stop {0}."
+    ]
+  },
+  "{0} started successfully./{0} started successfully.": {
+    "message": "{0} started successfully.",
+    "comment": [
+      "{0} started successfully."
+    ]
+  },
+  "Starting {0}.../{0} is the container name": {
+    "message": "Starting {0}...",
+    "comment": [
+      "{0} is the container name"
+    ]
+  },
+  "Failed to start {0}./Failed to start {0}.": {
+    "message": "Failed to start {0}.",
+    "comment": [
+      "Failed to start {0}."
+    ]
+  },
+  "{0} deleted successfully./{0} deleted successfully.": {
+    "message": "{0} deleted successfully.",
+    "comment": [
+      "{0} deleted successfully."
+    ]
+  },
+  "Failed to delete {0}./Failed to delete {0}.": {
+    "message": "Failed to delete {0}.",
+    "comment": [
+      "Failed to delete {0}."
+    ]
+  },
+  "Select image": "Select image",
+  "Select the SQL Server Container Image": "Select the SQL Server Container Image",
+  "SQL Server {0} - latest/{0} is the SQL Server version": {
+    "message": "SQL Server {0} - latest",
+    "comment": [
+      "{0} is the SQL Server version"
+    ]
+  },
+  "SQL Server Container SA Password": "SQL Server Container SA Password",
+  "Please choose a unique name for the profile": "Please choose a unique name for the profile",
+  "Container Name": "Container Name",
+  "Choose a name for the SQL Server Docker Container": "Choose a name for the SQL Server Docker Container",
+  "Please choose a unique name for the container": "Please choose a unique name for the container",
+  "Port": "Port",
+  "Choose a port to host the SQL Server Docker Container": "Choose a port to host the SQL Server Docker Container",
+  "Please make sure the port is a number, and choose a port that is not in use": "Please make sure the port is a number, and choose a port that is not in use",
+  "Hostname": "Hostname",
+  "Choose a hostname for the container": "Choose a hostname for the container",
+  "Terms & Conditions": "Terms & Conditions",
+  "Accept the SQL Server EULA to deploy a SQL Server Docker container": "Accept the SQL Server EULA to deploy a SQL Server Docker container",
+  "Please Accept the SQL Server EULA": "Please Accept the SQL Server EULA",
+  "Checking if Docker is installed": "Checking if Docker is installed",
+  "Checking if Docker is installed on your machine": "Checking if Docker is installed on your machine",
+  "Docker is not installed or not in PATH. Please install Docker Desktop and try again.": "Docker is not installed or not in PATH. Please install Docker Desktop and try again.",
+  "Checking if Docker is started": "Checking if Docker is started",
+  "Checking if Docker is running on your machine. If not, we'll start it for you.": "Checking if Docker is running on your machine. If not, we'll start it for you.",
+  "Error running Docker commands. Please make sure Docker is running.": "Error running Docker commands. Please make sure Docker is running.",
+  "Checking Docker Engine Configuration": "Checking Docker Engine Configuration",
+  "Checking if the Docker Engine is configured correctly on your machine.": "Checking if the Docker Engine is configured correctly on your machine.",
+  "Creating Container": "Creating Container",
+  "Creating and starting your SQL Server Docker container": "Creating and starting your SQL Server Docker container",
+  "Setting up container": "Setting up container",
+  "Readying container for connections.": "Readying container for connections.",
+  "Connecting to Container": "Connecting to Container",
+  "Connecting to your SQL Server Docker container": "Connecting to your SQL Server Docker container",
+  "Please make your password 8-128 characters long.": "Please make your password 8-128 characters long.",
+  "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).": "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
+  "Unsupported platform for Docker: {0}/{0} is the platform name of the machine": {
+    "message": "Unsupported platform for Docker: {0}",
+    "comment": [
+      "{0} is the platform name of the machine"
+    ]
+  },
+  "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.": "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
+  "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.": "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
+  "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.": "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
+  "Docker failed to start within the timeout period. Please manually start Docker and try again.": "Docker failed to start within the timeout period. Please manually start Docker and try again.",
+  "Container failed to start within the timeout period. Please wait a few minutes and try again.": "Container failed to start within the timeout period. Please wait a few minutes and try again.",
+  "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.": "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
+  "Install Docker": "Install Docker",
+  "Starting Container...": "Starting Container...",
+  "Stopping Container...": "Stopping Container...",
+  "Deleting Container...": "Deleting Container...",
+  "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code./{0} is the container name": {
+    "message": "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.",
+    "comment": [
+      "{0} is the container name"
+    ]
+  },
+  "Configure Linux containers": "Configure Linux containers",
+  "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?": "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
+  "Switching to Linux containers was canceled. SQL Server only supports Linux containers.": "Switching to Linux containers was canceled. SQL Server only supports Linux containers.",
+  "Failed to start SQL Server container. Please check the error message for more details, and then try again.": "Failed to start SQL Server container. Please check the error message for more details, and then try again.",
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",
