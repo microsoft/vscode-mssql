@@ -1183,6 +1183,117 @@ export class MssqlChatAgent {
         });
     };
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
+    public static listServersToolConfirmationTitle = l10n.t("List Connections");
+    public static listServersToolConfirmationMessage = l10n.t(
+        "List all connections registered with the mssql extension?",
+    );
+    public static listServersToolInvocationMessage = l10n.t("Listing server connections");
+    public static connectToolConfirmationTitle = l10n.t("Connect to Server");
+    public static connectToolConfirmationMessageWithServerOnly = (serverName: string) => {
+        return l10n.t({
+            message: "Connect to server {0}?",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+    public static connectToolConfirmationMessageWithServerAndDatabase = (
+        serverName: string,
+        databaseName: string,
+    ) => {
+        return l10n.t({
+            message: "Connect to server {0} and database {1}?",
+            args: [serverName, databaseName],
+            comment: ["{0} is the server name", "{1} is the database name"],
+        });
+    };
+    public static connectToolInvocationMessageWithServerOnly = (serverName: string) => {
+        return l10n.t({
+            message: "Connecting to server {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+    public static connectToolInvocationMessageWithServerAndDatabase = (
+        serverName: string,
+        databaseName: string,
+    ) => {
+        return l10n.t({
+            message: "Connecting to server {0} and database {1}",
+            args: [serverName, databaseName],
+            comment: ["{0} is the server name", "{1} is the database name"],
+        });
+    };
+    public static connectToolServerNotFoundError = (serverName: string) => {
+        return l10n.t({
+            message: "Server {0} not found.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+    public static connectToolSuccessMessage = l10n.t("Successfully connected to server.");
+    public static connectToolFailMessage = l10n.t("Failed to connect to server.");
+    public static connectToolProfileNotFoundError = (profileId: string) => {
+        return l10n.t({
+            message: "Connection profile '{0}' not found.",
+            args: [profileId],
+            comment: ["{0} is the profile ID"],
+        });
+    };
+    public static connectToolInvalidInputError = () => {
+        return l10n.t("Either profileId or serverName must be provided.");
+    };
+    public static connectToolConfirmationMessageWithProfile = (profileId: string) => {
+        return l10n.t({
+            message: "Connect using profile {0}?",
+            args: [profileId],
+            comment: ["{0} is the profile ID"],
+        });
+    };
+    public static connectToolInvocationMessageWithProfile = (profileId: string) => {
+        return l10n.t({
+            message: "Connecting using profile {0}",
+            args: [profileId],
+            comment: ["{0} is the profile ID"],
+        });
+    };
+    public static disconnectToolConfirmationTitle = l10n.t("Disconnect");
+    public static disconnectToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Disconnect from connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static disconnectToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Disconnecting from connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static showSchemaToolConfirmationTitle = l10n.t("Show Schema");
+    public static showSchemaToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Show schema for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static showSchemaToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Showing schema for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static showSchemaToolNoConnectionError = (connectionId: string) => {
+        return l10n.t({
+            message: "No connection found for connectionId: {0}",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static showSchemaToolSuccessMessage = l10n.t("Schema visualization opened.");
 }
 
 export class QueryEditor {

@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import { expect } from "chai";
-import { createSqlAgentRequestHandler } from "../../src/chat/chatAgentRequestHandler";
+import { createSqlAgentRequestHandler } from "../../src/copilot/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Utils from "../../src/models/utils";

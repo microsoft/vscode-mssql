@@ -65,9 +65,13 @@ import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWe
 import { DefaultWebviewNotifications } from "./reactWebviewBaseController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
-import * as Prompts from "../chat/prompts";
+import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
+import { ConnectTool } from "../copilot/tools/connectTool";
+import { ListServersTool } from "../copilot/tools/listServersTool";
+import { DisconnectTool } from "../copilot/tools/disconnectTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
@@ -529,6 +533,43 @@ export default class MainController implements vscode.Disposable {
             );
             this._vscodeWrapper.onDidChangeConfiguration((params) =>
                 this.onDidChangeConfiguration(params),
+            );
+
+            this._context.subscriptions.push(
+                vscode.lm.registerTool(
+                    "mssql_show_schema",
+                    new ShowSchemaTool(
+                        this.connectionManager,
+                        async (connectionUri: string, database: string) => {
+                            const designer =
+                                await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                                    this._context,
+                                    this._vscodeWrapper,
+                                    this,
+                                    this.schemaDesignerService,
+                                    database,
+                                    undefined,
+                                    connectionUri,
+                                );
+                            designer.revealToForeground();
+                        },
+                    ),
+                ),
+            );
+            this._context.subscriptions.push(
+                vscode.lm.registerTool("mssql_connect", new ConnectTool(this.connectionManager)),
+            );
+            this._context.subscriptions.push(
+                vscode.lm.registerTool(
+                    "mssql_disconnect",
+                    new DisconnectTool(this.connectionManager),
+                ),
+            );
+            this._context.subscriptions.push(
+                vscode.lm.registerTool(
+                    "mssql_list_servers",
+                    new ListServersTool(this.connectionManager),
+                ),
             );
 
             return true;
@@ -1903,6 +1944,10 @@ export default class MainController implements vscode.Disposable {
 
     public set connectionManager(connectionManager: ConnectionManager) {
         this._connectionMgr = connectionManager;
+    }
+
+    public get untitledSqlDocumentService(): UntitledSqlDocumentService {
+        return this._untitledSqlDocumentService;
     }
 
     public set untitledSqlDocumentService(untitledSqlDocumentService: UntitledSqlDocumentService) {

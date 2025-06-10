@@ -522,6 +522,22 @@
     <trans-unit id="++CODE++4559fb568a70152599e0f4c5aeae4ca533de114086a7fbd57f5281732c9db33b">
       <source xml:lang="en">Connect to MSSQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54">
+      <source xml:lang="en">Connect to Server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3">
+      <source xml:lang="en">Connect to server {0} and database {1}?</source>
+      <note>{0} is the server name
+{1} is the database name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c629f4154b93588541a43212104dda942f74b6b1c384f17ed00ccd062e649fb4">
+      <source xml:lang="en">Connect to server {0}?</source>
+      <note>{0} is the server name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5">
+      <source xml:lang="en">Connect using profile {0}?</source>
+      <note>{0} is the profile ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
       <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
       <note>{0} is the server name
@@ -542,11 +558,24 @@
       <note>{0} is the server name
 {1} is the document name</note>
     </trans-unit>
+    <trans-unit id="++CODE++cdfa68f01c8258a3933e2cc436e46a47425d2c5cde4ad327b70a59615b4a4892">
+      <source xml:lang="en">Connecting to server {0}</source>
+      <note>{0} is the server name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d568f5700106a3d28657010405b5ef04ac5e6f31499216360661ba4f19256e15">
+      <source xml:lang="en">Connecting to server {0} and database {1}</source>
+      <note>{0} is the server name
+{1} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744">
       <source xml:lang="en">Connecting to your SQL Server Docker container</source>
     </trans-unit>
     <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
       <source xml:lang="en">Connecting to: </source>
+    </trans-unit>
+    <trans-unit id="++CODE++efb70e946b81dee71e5439537f7160292d511bb79830c8edd338f32e232cf183">
+      <source xml:lang="en">Connecting using profile {0}</source>
+      <note>{0} is the profile ID</note>
     </trans-unit>
     <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
       <source xml:lang="en">Connecting...</source>
@@ -572,6 +601,10 @@
     <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
       <source xml:lang="en">Connection not found for uri &quot;{0}&quot;.</source>
       <note>{0} is the uri</note>
+    </trans-unit>
+    <trans-unit id="++CODE++392f78e8df5a591be501949632cd689e0fd59c4e0233c8b002a2dce8518ad4e4">
+      <source xml:lang="en">Connection profile &apos;{0}&apos; not found.</source>
+      <note>{0} is the profile ID</note>
     </trans-unit>
     <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
       <source xml:lang="en">Connection string is required</source>
@@ -733,9 +766,17 @@
     <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
       <source xml:lang="en">Disconnect</source>
     </trans-unit>
+    <trans-unit id="++CODE++85b5093bef4e68ee847dba78ba2e33392c8998bb4d39598442f8713cdeec5c89">
+      <source xml:lang="en">Disconnect from connection &apos;{0}&apos;?</source>
+      <note>{0} is the connection ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
       <source xml:lang="en">Disconnected on document &quot;{0}&quot;</source>
       <note>{0} is the document name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b">
+      <source xml:lang="en">Disconnecting from connection &apos;{0}&apos;</source>
+      <note>{0} is the connection ID</note>
     </trans-unit>
     <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
       <source xml:lang="en">Dismiss</source>
@@ -786,6 +827,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
       <source xml:lang="en">Edit Table</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
+      <source xml:lang="en">Either profileId or serverName must be provided.</source>
     </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>
@@ -938,6 +982,9 @@
     <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
       <source xml:lang="en">Failed to apply changes: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the publish changes operation</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d6ca257a745c3035dfd24b1cf8bddd511b93f0c4ae8036dc0d88ece8501d4d13">
+      <source xml:lang="en">Failed to connect to server.</source>
     </trans-unit>
     <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
       <source xml:lang="en">Failed to connect: {0}</source>
@@ -1265,6 +1312,15 @@
       <source xml:lang="en">Line {0}</source>
       <note>{0} is the line number</note>
     </trans-unit>
+    <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
+      <source xml:lang="en">List Connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
+      <source xml:lang="en">List all connections registered with the mssql extension?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
+      <source xml:lang="en">Listing server connections</source>
+    </trans-unit>
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
     </trans-unit>
@@ -1427,6 +1483,10 @@
     </trans-unit>
     <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
       <source xml:lang="en">No changes detected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bb6f0c310647145d31546d24967be9eb8ebae90f640642e9fbb5d7713e6e8550">
+      <source xml:lang="en">No connection found for connectionId: {0}</source>
+      <note>{0} is the connection ID</note>
     </trans-unit>
     <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
       <source xml:lang="en">No connection profile to remove.</source>
@@ -1876,6 +1936,9 @@
     <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
       <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
     </trans-unit>
+    <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
+      <source xml:lang="en">Schema visualization opened.</source>
+    </trans-unit>
     <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
       <source xml:lang="en">Schema/Object Type</source>
     </trans-unit>
@@ -1966,6 +2029,10 @@
     <trans-unit id="++CODE++3e27420fb58defcc5b721d6bfdbb9c092230a888d571821f747f7bffec92f17c">
       <source xml:lang="en">Server name or ADO.NET connection string</source>
     </trans-unit>
+    <trans-unit id="++CODE++40c6cdb719db3469fb83c776d850e85fc70bdfa14e6685d6ac62061ac85b8eed">
+      <source xml:lang="en">Server {0} not found.</source>
+      <note>{0} is the server name</note>
+    </trans-unit>
     <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
       <source xml:lang="en">Set Default</source>
     </trans-unit>
@@ -1990,8 +2057,19 @@
     <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
       <source xml:lang="en">Show MSSQL output</source>
     </trans-unit>
+    <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
+      <source xml:lang="en">Show Schema</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
+    </trans-unit>
+    <trans-unit id="++CODE++523fa7449e8252600e65c811dcd62983315d0f9f528741627033a45754f591cf">
+      <source xml:lang="en">Show schema for connection &apos;{0}&apos;?</source>
+      <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9">
+      <source xml:lang="en">Showing schema for connection &apos;{0}&apos;</source>
+      <note>{0} is the connection ID</note>
     </trans-unit>
     <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
       <source xml:lang="en">Showplan XML</source>
@@ -2090,6 +2168,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5443b1422a140475d5703c916c7686007233ea92292881588670e73409a7f1cd">
       <source xml:lang="en">Succeeded with warning</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fbd52c8b91de95b69593d008ca2108476ccb1ea5a45657b3393d878499e3fe1f">
+      <source xml:lang="en">Successfully connected to server.</source>
     </trans-unit>
     <trans-unit id="++CODE++f0266af4455c8f348df74a77502b563a575637604e905429b302d78ec39c00e4">
       <source xml:lang="en">Successfully refreshed token for connection {0} with uri {1}, {2}</source>
