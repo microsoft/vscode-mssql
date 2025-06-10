@@ -6,7 +6,7 @@
 import * as cd from "../sharedInterfaces/containerDeploymentInterfaces";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { platform, version } from "os";
+import { platform } from "os";
 import { defaultContainerPort, localhost, sa, sqlAuthentication } from "../constants/constants";
 import { FormItemType, FormItemSpec, FormItemOptions } from "../sharedInterfaces/form";
 import MainController from "../controllers/mainController";
