@@ -264,4 +264,59 @@ suite("save results tests", () => {
             (error) => done(error),
         );
     });
+
+    test("CSV configuration options are properly applied", (done) => {
+        // setup mock filepath prompt
+        vscodeWrapper
+            .setup((x) => x.showSaveDialog(TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve(fileUri));
+
+        // setup mock configuration with custom delimiter and encoding
+        const mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
+        mockConfig
+            .setup((x) => x.get("saveAsCsv"))
+            .returns(() => ({
+                delimiter: "\t",
+                encoding: "utf-16le",
+                includeHeaders: false,
+                textIdentifier: "'",
+                lineSeparator: "\r\n",
+            }));
+        mockConfig
+            .setup((x) => x["saveAsCsv"])
+            .returns(() => ({
+                delimiter: "\t",
+                encoding: "utf-16le",
+                includeHeaders: false,
+                textIdentifier: "'",
+                lineSeparator: "\r\n",
+            }));
+
+        vscodeWrapper
+            .setup((x) => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns(() => mockConfig.object);
+
+        // setup mock sql tools server client
+        serverClient
+            .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .callback((type, params: SaveResultsAsCsvRequestParams) => {
+                try {
+                    // check if configuration options were properly applied
+                    assert.equal(params.delimiter, "\t");
+                    assert.equal(params.encoding, "utf-16le");
+                    assert.equal(params.includeHeaders, false);
+                    assert.equal(params.textIdentifier, "'");
+                    assert.equal(params.lineSeperator, "\r\n");
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            })
+            .returns(() => {
+                return Promise.resolve({ messages: undefined });
+            });
+
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
+        saveResults.onSaveResults(testFile, 0, 0, "csv", undefined);
+    });
 });
