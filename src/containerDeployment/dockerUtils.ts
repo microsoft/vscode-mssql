@@ -58,6 +58,7 @@ export const COMMANDS = {
     },
     SWITCH_ENGINE: (path: string) => `powershell -Command "& \\"${path}\\" -SwitchLinuxEngine"`,
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
+    GET_CONTAINERS_BY_NAME: `docker ps -a --format "{{.Names}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
     START_SQL_SERVER: (
         name: string,
@@ -423,7 +424,6 @@ export async function startDocker(): Promise<DockerCommandParams> {
 export async function restartContainer(containerName: string): Promise<boolean> {
     sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartContainer);
 
-    await startDocker();
     const isContainerRunning = await isDockerContainerRunning(containerName);
     if (isContainerRunning) return true; // Container is already running
     dockerLogger.appendLine(`Restarting container: ${containerName}`);
@@ -627,6 +627,42 @@ export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]
             `Error fetching SQL Server container versions: ${getErrorMessage(e)}`,
         );
         return [];
+    }
+}
+/**
+ * Prepares the given Docker container for command execution.
+ * This function checks if Docker is running and if the specified container exists.
+ */
+export async function prepareForDockerContainerCommand(
+    containerName: string,
+): Promise<DockerCommandParams> {
+    const startDockerResult = await startDocker();
+    if (!startDockerResult.success) return startDockerResult;
+
+    const containerExists = await checkContainerExists(containerName);
+
+    if (!containerExists) {
+        return {
+            success: false,
+            error: ContainerDeployment.containerDoesNotExistError,
+        };
+    }
+    return {
+        success: true,
+    };
+}
+
+/**
+ * Checks if a Docker container with the specified name exists.
+ */
+export async function checkContainerExists(name: string): Promise<boolean> {
+    try {
+        const stdout = await execCommand(COMMANDS.GET_CONTAINERS_BY_NAME);
+        const containers = stdout.split("\n").map((c) => c.trim());
+        return containers.includes(name);
+    } catch (e) {
+        dockerLogger.appendLine(`Error checking if container exists: ${getErrorMessage(e)}`);
+        return false;
     }
 }
 

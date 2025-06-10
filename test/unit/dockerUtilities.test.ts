@@ -444,18 +444,16 @@ suite("Docker Utilities", () => {
         const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
 
         // Case 1: Container is already running, should return success
-        execStub.onFirstCall().yields(null, "Docker Running"); // START_DOCKER
-        execStub.onSecondCall().yields(null, "testContainer"); // CHECK_CONTAINER_RUNNING
+        execStub.onFirstCall().yields(null, "testContainer"); // CHECK_CONTAINER_RUNNING
         let result = await dockerUtils.restartContainer("testContainer");
         assert.ok(result, "Should return success when container is already running");
         sinon.assert.calledOnce(sendActionEventStub);
         execStub.resetHistory();
 
         // Case 2: Container is not running, should restart and return success
-        execStub.onFirstCall().yields(null, "Docker Running"); // START_DOCKER
-        execStub.onSecondCall().yields(new Error("Container not running"), null); // CHECK_CONTAINER_RUNNING
-        execStub.onThirdCall().yields(null, "Container restarted"); // START_CONTAINER
-        execStub.onCall(4).yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
+        execStub.onFirstCall().yields(new Error("Container not running"), null); // CHECK_CONTAINER_RUNNING
+        execStub.onSecondCall().yields(null, "Container restarted"); // START_CONTAINER
+        execStub.onThirdCall().yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
         result = await dockerUtils.restartContainer("testContainer");
         assert.ok(result, "Should return success when container is restarted successfully");
         sinon.assert.calledTwice(sendActionEventStub);
@@ -567,6 +565,41 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.findAvailablePort(1433);
         assert.strictEqual(result, 1434, "Should return 1434 when 1433 is taken");
 
+        execStub.resetBehavior();
+    });
+
+    test("prepareForDockerContainerCommand: should prepare the command with correct parameters", async () => {
+        const containerName = "testContainer";
+        sandbox.stub(os, "platform").returns(Platform.Linux);
+        const execStub = sandbox.stub(childProcess, "exec");
+
+        // Docker is running, and container exists
+        execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
+        execStub.onSecondCall().yields(null, containerName); // GET_CONTAINERS_BY_NAME
+
+        let result = await dockerUtils.prepareForDockerContainerCommand(containerName);
+        assert.ok(result.success, "Should return true if container exists");
+
+        // Docker is running, container does not exist
+        execStub.resetBehavior();
+        execStub.resetHistory();
+
+        execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
+        execStub.onSecondCall().yields(null, "Container doesn't exist"); // GET_CONTAINERS_BY_NAME
+
+        result = await dockerUtils.prepareForDockerContainerCommand(containerName);
+        assert.ok(!result.success, "Should return false if container does not exist");
+        assert.strictEqual(result.error, ContainerDeployment.containerDoesNotExistError);
+
+        // finding container returns an error
+        execStub.resetBehavior();
+        execStub.resetHistory();
+        execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
+        execStub.onSecondCall().yields(new Error("Something went wrong"), null); // GET_CONTAINERS_BY_NAME
+
+        result = await dockerUtils.prepareForDockerContainerCommand(containerName);
+        assert.ok(!result.success, "Should return false if container does not exist");
+        assert.strictEqual(result.error, ContainerDeployment.containerDoesNotExistError);
         execStub.resetBehavior();
     });
 });
