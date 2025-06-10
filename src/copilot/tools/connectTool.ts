@@ -46,10 +46,9 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
             } as ConnectToolResult);
         }
 
-        const effectiveDatabase = database || profile.database || defaultDatabase;
         let connectionId = `${Constants.extensionName}/${serverName}`;
-        if (effectiveDatabase) {
-            connectionId += `/${effectiveDatabase}`;
+        if (database) {
+            connectionId += `/${database}`;
         }
 
         let success: boolean;
@@ -57,7 +56,7 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
         try {
             success = await this.connectionManager.connect(connectionId, {
                 ...profile,
-                database: effectiveDatabase,
+                database: database,
             });
             message = success ? loc.connectToolSuccessMessage : loc.connectToolFailMessage;
         } catch (err) {

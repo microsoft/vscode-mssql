@@ -1990,7 +1990,7 @@
             },
             {
                 "name": "mssql_connect",
-                "modelDescription": "Connect to an MSSQL database server using a server name and optional database name. The server name is retrieved from mssql_list_servers. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use $mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a string formatted as 'mssql/{server name}[/{database name}]', where if no database name is present it's the default database for the server.",
+                "modelDescription": "Connect to an MSSQL database server using a server name and optional database name. The server name must be retrieved from mssql_list_servers. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use $mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a string formatted as 'mssql/{server name}[/{database name}]', where if no database name is present it's the default database for the server.",
                 "tags": [
                     "databases",
                     "mssql",
