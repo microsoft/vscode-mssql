@@ -8,6 +8,7 @@ import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import { IConnectionInfo } from "vscode-mssql";
 
 export interface ShowSchemaToolParams {
     connectionId: string;
@@ -23,7 +24,7 @@ export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
 
     constructor(
         private connectionManager: ConnectionManager,
-        // private schemaDesignerService: SchemaDesignerService,
+        private showSchema: (connInfo: IConnectionInfo) => Promise<void>,
     ) {
         super();
     }
@@ -41,7 +42,8 @@ export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
                     message: loc.showSchemaToolNoConnectionError(connectionId),
                 });
             }
-            // TODO: Implement schema visualization logic
+
+            await this.showSchema(connInfo);
             return JSON.stringify({
                 success: true,
                 message: loc.showSchemaToolSuccessMessage,

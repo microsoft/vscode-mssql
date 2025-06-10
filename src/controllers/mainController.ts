@@ -530,7 +530,24 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.lm.registerTool(
                     "mssql_show_schema",
-                    new ShowSchemaTool(this.connectionManager),
+                    new ShowSchemaTool(
+                        this.connectionManager,
+                        async (connInfo: IConnectionInfo) => {
+                            console.log("connecting to schema designer for");
+                            console.log(connInfo);
+                            return;
+                            const designer =
+                                await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                                    this._context,
+                                    this._vscodeWrapper,
+                                    this,
+                                    this.schemaDesignerService,
+                                    "",
+                                    undefined,
+                                );
+                            designer.revealToForeground();
+                        },
+                    ),
                 ),
             );
             this._context.subscriptions.push(
