@@ -370,7 +370,7 @@ export class ConnectionUI {
         );
     }
 
-    public handleSelectedConnection(
+    private handleSelectedConnection(
         selection: IConnectionCredentialsQuickPickItem,
     ): Promise<IConnectionInfo> {
         return new Promise<IConnectionInfo>((resolve, reject) => {
