@@ -1334,6 +1334,12 @@
   },
   "Opening Publish Script. This may take a while...": "Opening Publish Script. This may take a while...",
   "Generating Report. This may take a while...": "Generating Report. This may take a while...",
+  "Failed to generate publish script: '{0}'/{0} is the error message returned from the generate script operation": {
+    "message": "Failed to generate publish script: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the generate script operation"
+    ]
+  },
   "Connect to MSSQL": "Connect to MSSQL",
   "Click to connect to a database": "Click to connect to a database",
   "Connecting": "Connecting",

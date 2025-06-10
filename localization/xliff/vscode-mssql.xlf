@@ -916,6 +916,10 @@
     <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
       <source xml:lang="en">Failed to fetch user tokens.</source>
     </trans-unit>
+    <trans-unit id="++CODE++fe1cb43be8ed9ac5acc09fb31eba382f60c86eaadf55b6931322b9b139162a9e">
+      <source xml:lang="en">Failed to generate publish script: &apos;{0}&apos;</source>
+      <note>{0} is the error message returned from the generate script operation</note>
+    </trans-unit>
     <trans-unit id="++CODE++cdf943bd7b320469af4343440384b361de46832547d9bc9c08b3bd9a90610364">
       <source xml:lang="en">Failed to generate script: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the generate script operation</note>
