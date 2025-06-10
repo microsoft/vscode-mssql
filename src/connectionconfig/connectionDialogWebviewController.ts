@@ -312,6 +312,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 await this._mainController.connectionManager.connectionStore.connectionConfig.addGroup(
                     addedGroup,
                 );
+                sendActionEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.SaveConnectionGroup,
+                    { newOrEdit: "new" },
+                );
             } catch (err) {
                 state.formError = getErrorMessage(err);
                 sendErrorEvent(

@@ -103,6 +103,7 @@ export enum TelemetryActions {
     GetQueryResultState = "GetQueryResultState",
     SavePlan = "SavePlan",
     SaveConnectionGroup = "SaveConnectionGroup",
+    DragAndDrop = "DragAndDrop",
 }
 
 /**

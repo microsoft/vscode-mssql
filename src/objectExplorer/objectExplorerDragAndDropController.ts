@@ -13,11 +13,13 @@ import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionStore } from "../models/connectionStore";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 interface ObjectExplorerDragMetadata {
     name: string;
     isConnectionOrGroup: boolean;
-    type?: "connection" | "group";
+    type?: "connection" | "connectionGroup";
     id?: string;
 }
 
@@ -30,26 +32,26 @@ export class ObjectExplorerDragAndDropController
     readonly dragMimeTypes = [OE_MIME_TYPE, TEXT_MIME_TYPE];
     readonly dropMimeTypes = [OE_MIME_TYPE];
 
-    private readonly logger: Logger;
+    private readonly _logger: Logger;
 
     constructor(
         vscodeWrapper: VscodeWrapper,
         private connectionStore: ConnectionStore,
     ) {
-        this.logger = Logger.create(vscodeWrapper.outputChannel, "DragAndDrop");
+        this._logger = Logger.create(vscodeWrapper.outputChannel, "DragAndDrop");
     }
 
     handleDrag(
         source: TreeNodeInfo[],
         dataTransfer: vscode.DataTransfer,
-        token: vscode.CancellationToken,
+        _token: vscode.CancellationToken,
     ): void {
         const item = source[0]; // Handle only the first item for simplicity
 
         if (item instanceof ConnectionNode || item instanceof ConnectionGroupNode) {
             const dragData: ObjectExplorerDragMetadata = {
                 name: item.label.toString(),
-                type: item instanceof ConnectionNode ? "connection" : "group",
+                type: item instanceof ConnectionNode ? "connection" : "connectionGroup",
                 id:
                     item instanceof ConnectionNode
                         ? item.connectionProfile.id
@@ -97,7 +99,7 @@ export class ObjectExplorerDragAndDropController
                         };
                     }
 
-                    this.logger.verbose(
+                    this._logger.verbose(
                         `Dragged ${dragData.type} '${dragData.name}' (ID: ${dragData.id}) onto group '${targetInfo.label}' (ID: ${targetInfo.id})`,
                     );
 
@@ -114,11 +116,27 @@ export class ObjectExplorerDragAndDropController
                         group.parentId = targetInfo.id;
                         await this.connectionStore.connectionConfig.updateGroup(group);
                     }
+
+                    sendActionEvent(TelemetryViews.ObjectExplorer, TelemetryActions.DragAndDrop, {
+                        dragType: dragData.type,
+                        dropTarget: target ? "connectionGroup" : "ROOT",
+                    });
                 }
             }
         } catch (err) {
-            this.logger.error("Failed to parse drag metadata:", getErrorMessage(err));
-            // TODO: telemetry
+            this._logger.error("Failed to parse drag metadata:", getErrorMessage(err));
+            sendErrorEvent(
+                TelemetryViews.ObjectExplorer,
+                TelemetryActions.DragAndDrop,
+                err,
+                true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+                {
+                    dragType: dragData.type,
+                    dropTarget: target ? "connectionGroup" : "ROOT",
+                },
+            );
         }
     }
 }
