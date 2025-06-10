@@ -67,8 +67,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
     private async initialize() {
         this.state.loadState = ApiStatus.Loading;
+        this.state.platform = platform();
+        const versions = await dockerUtils.getSqlServerContainerVersions();
         this.state.formState = {
-            version: "",
+            version: versions[0].value,
             password: "",
             savePassword: false,
             profileName: "",
@@ -77,8 +79,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             hostname: "",
             acceptEula: false,
         } as cd.DockerConnectionProfile;
-        this.state.platform = platform();
-        const versions = await dockerUtils.getSqlServerContainerVersions();
         this.state.formComponents = this.setFormComponents(versions);
         this.state.dockerSteps = dockerUtils.initializeDockerSteps();
         this.registerRpcHandlers();
