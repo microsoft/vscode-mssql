@@ -61,14 +61,23 @@ const useStyles = makeStyles({
     },
 });
 
+// A few known "good" colors from the Fluent color palette
+const colors = [
+    "#c50f1f", // colorPaletteCranberryBorderActive,
+    "#ff8c00", // colorPalettePeachBorderActive,
+    "#eaa300", // colorPaletteMarigoldBorderActive
+    "#107c10", // colorPaletteGreenBorderActive,
+    "#038387", // colorPaletteTealBorderActive,
+    "#00cc6a", // colorPaletteSeafoamBorderActive
+    "#0078d4", // colorPaletteBlueBorderActive,
+    "#7160e8", // colorPaletteLavenderBorderActive,
+    "#b146c2", // colorPaletteLilacBorderActive
+    "#bf0077", //colorPaletteMagentaBorderActive
+];
+
 /** Generates a random Hex color */
 function getRandomColor(): string {
-    const letters = "0123456789ABCDEF";
-    let color = "#";
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+    return colors[Math.floor(Math.random() * colors.length)];
 }
 
 export const ConnectionGroupDialog = ({
@@ -104,7 +113,9 @@ export const ConnectionGroupDialog = ({
             saveConnectionGroup({
                 name: groupName,
                 description: description || undefined,
-                color: new TinyColor(color).toHexString(false /* allow3Char */) || undefined,
+                color:
+                    new TinyColor(color).toHexString(false /* allow3Char */).toUpperCase() ||
+                    undefined,
             });
         }
     }
@@ -188,12 +199,20 @@ export const ConnectionGroupDialog = ({
                                                 color={new TinyColor(color).toHsv()}
                                                 onColorChange={handleChange}>
                                                 <ColorArea
-                                                    inputX={{ "aria-label": "Saturation" }}
-                                                    inputY={{ "aria-label": "Brightness" }}
+                                                    inputX={{
+                                                        "aria-label":
+                                                            Loc.connectionGroups.saturation,
+                                                    }}
+                                                    inputY={{
+                                                        "aria-label":
+                                                            Loc.connectionGroups.brightness,
+                                                    }}
                                                 />
                                                 <div className={styles.row}>
                                                     <div className={styles.sliders}>
-                                                        <ColorSlider aria-label="Hue" />
+                                                        <ColorSlider
+                                                            aria-label={Loc.connectionGroups.hue}
+                                                        />
                                                     </div>
                                                     <div
                                                         className={styles.previewColor}

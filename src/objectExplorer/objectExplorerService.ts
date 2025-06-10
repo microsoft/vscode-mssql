@@ -443,6 +443,8 @@ export class ObjectExplorerService {
                     parentNode.addChild(childNode);
 
                     if (parentNode.id !== rootId) {
+                        // set the parent node for the child group unless the parent is the root group
+                        // parent property is used to
                         childNode.parentNode = parentNode;
                     }
                 } else {

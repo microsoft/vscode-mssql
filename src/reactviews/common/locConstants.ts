@@ -748,6 +748,9 @@ export class LocConstants {
             color: l10n.t("Color"),
             chooseColor: l10n.t("Choose color"),
             saveConnectionGroup: l10n.t("Save Connection Group"),
+            hue: l10n.t("Hue"),
+            saturation: l10n.t("Saturation"),
+            brightness: l10n.t("Brightness"),
         };
     }
 
