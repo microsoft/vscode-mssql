@@ -8,7 +8,6 @@ import { Node, useReactFlow } from "@xyflow/react";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
 import { locConstants } from "../../common/locConstants";
-import eventBus from "./schemaDesignerEvents";
 import { SearchableItem, FindWidget } from "../../common/findWidget.component";
 // Adapter to make a flow Node compatible with SearchableItem
 class TableNodeItem implements SearchableItem {
@@ -47,7 +46,7 @@ export const SchemaDesignerFindTableWidget = ({
     const getSearchableItems = (): TableNodeItem[] => {
         const nodes = reactFlow.getNodes() as Array<Node<SchemaDesigner.Table>>;
         return nodes
-            .filter((node) => node.data && node.data.name)
+            .filter((node) => !node.hidden && node.data && node.data.name)
             .map((node) => new TableNodeItem(node));
     };
 
@@ -63,7 +62,9 @@ export const SchemaDesignerFindTableWidget = ({
             onItemSelected={handleItemSelected}
             searchLabel={locConstants.common.find}
             width="200px"
-            emitSearchEvent={(searchText) => eventBus.emit("onFindWidgetValueChange", searchText)}
+            emitSearchEvent={(searchText) => {
+                context.setFindTableText(searchText);
+            }}
             parentRef={parentRef}
         />
     );

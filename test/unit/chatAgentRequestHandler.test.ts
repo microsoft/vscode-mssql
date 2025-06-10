@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import { expect } from "chai";
-import { createSqlAgentRequestHandler } from "../../src/chat/chatAgentRequestHandler";
+import { createSqlAgentRequestHandler } from "../../src/copilot/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Utils from "../../src/models/utils";
@@ -14,9 +14,14 @@ import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
 import { GetNextMessageResponse, MessageType } from "../../src/models/contracts/copilot";
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
+import MainController from "../../src/controllers/mainController";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 
 suite("Chat Agent Request Handler Tests", () => {
     let mockCopilotService: TypeMoq.IMock<CopilotService>;
+    let mockMainController: TypeMoq.IMock<MainController>;
+    let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
+    let mockConnectionInfo: TypeMoq.IMock<ConnectionInfo>;
     let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let mockLmChat: TypeMoq.IMock<vscode.LanguageModelChat>;
@@ -86,6 +91,20 @@ suite("Chat Agent Request Handler Tests", () => {
         // Mock CopilotService
         mockCopilotService = TypeMoq.Mock.ofType<CopilotService>();
 
+        // Mock connectionManager
+        mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
+
+        // Mock ConnectionInfo
+        mockConnectionInfo = TypeMoq.Mock.ofType<ConnectionInfo>();
+        mockConnectionInfo.setup((x) => x.credentials.server).returns(() => "server");
+        mockConnectionInfo.setup((x) => x.credentials.database).returns(() => "database");
+
+        // Mock MainController
+        mockMainController = TypeMoq.Mock.ofType<MainController>();
+        mockMainController
+            .setup((x) => x.connectionManager)
+            .returns(() => mockConnectionManager.object);
+
         // Mock VscodeWrapper
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
         mockVscodeWrapper.setup((x) => x.activeTextEditorUri).returns(() => sampleConnectionUri);
@@ -137,10 +156,19 @@ suite("Chat Agent Request Handler Tests", () => {
                 })(),
             );
 
-        // Mock Language Model API
+        // Had to create a real object instead of using TypeMoq for the response object
+        const mockResponseObject = {
+            stream: (async function* () {
+                yield new vscode.LanguageModelTextPart(sampleReplyText);
+            })(),
+            text: (async function* () {
+                yield sampleReplyText;
+            })(),
+        };
+
         mockLmChat
             .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(mockLanguageModelChatResponse.object));
+            .returns(() => Promise.resolve(mockResponseObject));
 
         // Mock TextDocument for reference handling
         mockTextDocument = TypeMoq.Mock.ofType<vscode.TextDocument>();
@@ -184,6 +212,7 @@ suite("Chat Agent Request Handler Tests", () => {
             mockCopilotService.object,
             mockVscodeWrapper.object,
             mockContext.object,
+            mockMainController.object,
         );
 
         expect(handler).to.be.a("function");
@@ -197,6 +226,7 @@ suite("Chat Agent Request Handler Tests", () => {
             mockCopilotService.object,
             mockVscodeWrapper.object,
             mockContext.object,
+            mockMainController.object,
         );
 
         const result = await handler(
@@ -224,6 +254,11 @@ suite("Chat Agent Request Handler Tests", () => {
             )
             .returns(() => Promise.resolve(true));
 
+        // Mock the getConnectionInfo method to return a valid connection
+        mockConnectionManager
+            .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
+            .returns(() => mockConnectionInfo.object);
+
         // Mock the getNextMessage to return a Complete message type
         const completeResponse: GetNextMessageResponse = {
             conversationUri: sampleConversationUri,
@@ -248,6 +283,7 @@ suite("Chat Agent Request Handler Tests", () => {
             mockCopilotService.object,
             mockVscodeWrapper.object,
             mockContext.object,
+            mockMainController.object,
         );
 
         const result = await handler(
@@ -282,6 +318,43 @@ suite("Chat Agent Request Handler Tests", () => {
             TypeMoq.Times.once(),
         );
 
+        mockChatStream.verify(
+            (x) => x.markdown(TypeMoq.It.is((msg) => msg.toString().startsWith("> 🟢"))),
+            TypeMoq.Times.once(),
+        );
+
+        expect(result).to.deep.equal({
+            metadata: { command: "", correlationId: sampleCorrelationId },
+        });
+    });
+
+    test("Handles conversation with disconnected editor", async () => {
+        // Mock the getConnectionInfo method to return an invalid connection
+        mockConnectionManager
+            .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
+            .returns(() => {
+                return undefined;
+            });
+
+        const handler = createSqlAgentRequestHandler(
+            mockCopilotService.object,
+            mockVscodeWrapper.object,
+            mockContext.object,
+            mockMainController.object,
+        );
+
+        const result = await handler(
+            mockChatRequest.object,
+            mockChatContext.object,
+            mockChatStream.object,
+            mockToken.object,
+        );
+
+        mockChatStream.verify(
+            (x) => x.markdown(TypeMoq.It.is((msg) => msg.toString().startsWith("> ⚠️"))),
+            TypeMoq.Times.once(),
+        );
+
         expect(result).to.deep.equal({
             metadata: { command: "", correlationId: sampleCorrelationId },
         });
@@ -298,6 +371,11 @@ suite("Chat Agent Request Handler Tests", () => {
                 ),
             )
             .returns(() => Promise.resolve(true));
+
+        // Mock the getConnectionInfo method to return a valid connection
+        mockConnectionManager
+            .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
+            .returns(() => mockConnectionInfo.object);
 
         // First return a Fragment message type
         const fragmentResponse: GetNextMessageResponse = {
@@ -337,6 +415,7 @@ suite("Chat Agent Request Handler Tests", () => {
             mockCopilotService.object,
             mockVscodeWrapper.object,
             mockContext.object,
+            mockMainController.object,
         );
 
         await handler(
@@ -370,10 +449,16 @@ suite("Chat Agent Request Handler Tests", () => {
             )
             .throws(new Error("Connection failed"));
 
+        // Mock the getConnectionInfo method to return a valid connection
+        mockConnectionManager
+            .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
+            .returns(() => mockConnectionInfo.object);
+
         const handler = createSqlAgentRequestHandler(
             mockCopilotService.object,
             mockVscodeWrapper.object,
             mockContext.object,
+            mockMainController.object,
         );
 
         await handler(

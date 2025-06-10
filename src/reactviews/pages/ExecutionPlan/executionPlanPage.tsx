@@ -9,6 +9,7 @@ import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ExecutionPlanGraph } from "./executionPlanGraph";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -55,7 +56,10 @@ export const ExecutionPlanPage = () => {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
-                        <Spinner label="Loading execution plan..." labelPosition="below" />
+                        <Spinner
+                            label={locConstants.executionPlan.loadingExecutionPlan}
+                            labelPosition="below"
+                        />
                     </div>
                 );
             case ApiStatus.Loaded:

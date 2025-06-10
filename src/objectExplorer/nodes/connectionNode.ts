@@ -10,6 +10,8 @@ import { ConnectionProfile } from "../../models/connectionProfile";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as ConnInfo from "../../models/connectionInfo";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
+import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
+import { ContainerDeployment } from "../../constants/locConstants";
 
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
@@ -19,38 +21,47 @@ export const ICON_SERVER_DISCONNECTED = "Server_red";
 export const ICON_SERVER_CONNECTED = "Server_green";
 export const ICON_DATABASE_DISCONNECTED = "Database_red";
 export const ICON_DATABASE_CONNECTED = "Database_green";
+export const ICON_DOCKER_SERVER_DISCONNECTED = "DockerContainer_red";
+export const ICON_DOCKER_SERVER_CONNECTED = "DockerContainer_green";
 
 const createDisconnectedNodeContextValue = (
     connectionProfile: ConnectionProfile,
 ): vscodeMssql.TreeNodeContextValue => {
+    let nodeSubType = connectionProfile.database ? DATABASE_SUBTYPE : undefined;
+    if (connectionProfile.containerName) nodeSubType = disconnectedDockerContainer;
     return {
         type: SERVER_NODE_DISCONNECTED,
         filterable: false,
         hasFilters: false,
-        subType: connectionProfile.database ? DATABASE_SUBTYPE : undefined,
+        subType: nodeSubType,
     };
 };
 
 export class ConnectionNode extends TreeNodeInfo {
-    constructor(connectionProfile: ConnectionProfile) {
+    constructor(connectionProfile: ConnectionProfile, parentNode?: TreeNodeInfo) {
         const displayName = ConnInfo.getConnectionDisplayName(connectionProfile);
         super(
             displayName,
             createDisconnectedNodeContextValue(connectionProfile),
             vscode.TreeItemCollapsibleState.Collapsed,
-            undefined,
+            parentNode?.nodePath ?? "" + connectionProfile.id,
             undefined,
             SERVER_NODE_DISCONNECTED,
             undefined,
             connectionProfile,
-            undefined,
+            parentNode,
             undefined,
             undefined,
         );
         if (connectionProfile.database) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DATABASE_DISCONNECTED);
         } else {
-            this.iconPath = ObjectExplorerUtils.iconPath(ICON_SERVER_DISCONNECTED);
+            let iconName = ICON_SERVER_DISCONNECTED;
+            if (connectionProfile.containerName) {
+                iconName = ICON_DOCKER_SERVER_DISCONNECTED;
+                this.loadingLabel = ContainerDeployment.startingContainerLoadingLabel;
+            }
+            this.iconPath = ObjectExplorerUtils.iconPath(iconName);
         }
     }
 
@@ -72,7 +83,11 @@ export class ConnectionNode extends TreeNodeInfo {
             type: SERVER_NODE_CONNECTED,
             filterable: nodeInfo.filterableProperties?.length > 0,
             hasFilters: false,
-            subType: connectionProfile.database ? DATABASE_SUBTYPE : "",
+            subType: connectionProfile.database
+                ? DATABASE_SUBTYPE
+                : connectionProfile.containerName
+                  ? dockerContainer
+                  : "",
         };
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         this.nodePath = nodeInfo.nodePath;
@@ -88,7 +103,10 @@ export class ConnectionNode extends TreeNodeInfo {
         if (connectionProfile.database) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DATABASE_CONNECTED);
         } else {
-            this.iconPath = ObjectExplorerUtils.iconPath(ICON_SERVER_CONNECTED);
+            let iconName = ICON_SERVER_CONNECTED;
+            if (connectionProfile.containerName) iconName = ICON_DOCKER_SERVER_CONNECTED;
+
+            this.iconPath = ObjectExplorerUtils.iconPath(iconName);
         }
     }
 
@@ -116,8 +134,9 @@ export class ConnectionNode extends TreeNodeInfo {
         if (this.connectionProfile.database) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DATABASE_DISCONNECTED);
         } else {
-            // Note: This fixes a bug in the original code which used DatabaseConnectedIcon instead of ServerDisconnectedIcon
-            this.iconPath = ObjectExplorerUtils.iconPath(ICON_SERVER_DISCONNECTED);
+            let iconName = ICON_SERVER_DISCONNECTED;
+            if (this.connectionProfile.containerName) iconName = ICON_DOCKER_SERVER_DISCONNECTED;
+            this.iconPath = ObjectExplorerUtils.iconPath(iconName);
         }
     }
 }

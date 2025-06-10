@@ -10,14 +10,16 @@ import {
     SearchBox,
     Text,
     Button,
+    ListItem,
+    List,
 } from "@fluentui/react-components";
-import { List, ListItem } from "@fluentui/react-list-preview";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
-import { useReactFlow } from "@xyflow/react";
+import { Edge, Node, useReactFlow } from "@xyflow/react";
 import eventBus from "../schemaDesignerEvents";
+import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 
 export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);
@@ -46,11 +48,18 @@ export function FilterTablesButton() {
     }
 
     useEffect(() => {
-        const nodes = reactFlow.getNodes();
+        const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
         if (selectedTables.length === 0) {
             nodes.forEach((node) => {
                 reactFlow.updateNode(node.id, {
                     ...node,
+                    hidden: false,
+                });
+            });
+            edges.forEach((edge) => {
+                reactFlow.updateEdge(edge.id, {
+                    ...edge,
                     hidden: false,
                 });
             });
@@ -65,6 +74,26 @@ export function FilterTablesButton() {
                 } else {
                     reactFlow.updateNode(node.id, {
                         ...node,
+                        hidden: true,
+                    });
+                }
+            });
+            edges.forEach((edge) => {
+                const sourceNode = reactFlow.getNode(edge.source);
+                const targetNode = reactFlow.getNode(edge.target);
+                if (
+                    sourceNode &&
+                    targetNode &&
+                    selectedTables.includes(`${sourceNode.data.schema}.${sourceNode.data.name}`) &&
+                    selectedTables.includes(`${targetNode.data.schema}.${targetNode.data.name}`)
+                ) {
+                    reactFlow.updateEdge(edge.id, {
+                        ...edge,
+                        hidden: false,
+                    });
+                } else {
+                    reactFlow.updateEdge(edge.id, {
+                        ...edge,
                         hidden: true,
                     });
                 }

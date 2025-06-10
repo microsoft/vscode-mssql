@@ -15,6 +15,7 @@ export enum TelemetryViews {
     ConnectionPrompt = "ConnectionPrompt",
     WebviewController = "WebviewController",
     ObjectExplorerFilter = "ObjectExplorerFilter",
+    ContainerDeployment = "ContainerDeployment",
     TableDesigner = "TableDesigner",
     SchemaCompare = "SchemaCompare",
     UserSurvey = "UserSurvey",
@@ -23,6 +24,8 @@ export enum TelemetryViews {
     ExecutionPlan = "ExecutionPlan",
     AddFirewallRule = "AddFirewallRule",
     MssqlCopilot = "MssqlCopilot",
+    ConnectionGroup = "ConnectionGroup",
+    SchemaDesigner = "SchemaDesigner",
 }
 
 export enum TelemetryActions {
@@ -78,6 +81,12 @@ export enum TelemetryActions {
     SubmitGithubIssue = "SubmitGithubIssue",
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
+    StartContainerDeployment = "StartContainerDeployment",
+    CreateSQLContainer = "CreateSQLContainer",
+    ConnectToContainer = "ConnectToContainer",
+    StartContainer = "StartContainer",
+    StopContainer = "StopContainer",
+    DeleteContainer = "DeleteContainer",
     LoadFromConnectionString = "LoadFromConnectionString",
     MigrateLegacyConnections = "MigrateLegacyConnections",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
@@ -94,6 +103,12 @@ export enum TelemetryActions {
     StartConversation = "StartConversation",
     GetQueryResultState = "GetQueryResultState",
     SavePlan = "SavePlan",
+    CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
+    SaveConnectionGroup = "SaveConnectionGroup",
+    DragAndDrop = "DragAndDrop",
+    ExportToImage = "ExportToImage",
+    GetReport = "getReport",
+    PublishSession = "PublishSession",
 }
 
 /**

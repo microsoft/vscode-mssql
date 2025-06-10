@@ -35,7 +35,6 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
-import * as events from "events";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
@@ -112,7 +111,10 @@ export default class ConnectionManager {
     private _firewallService: FirewallService;
     public azureController: AzureController;
 
-    private _event: events.EventEmitter = new events.EventEmitter();
+    private _onConnectionsChangedEmitter: vscode.EventEmitter<void> =
+        new vscode.EventEmitter<void>();
+    public readonly onConnectionsChanged: vscode.Event<void> =
+        this._onConnectionsChangedEmitter.event;
 
     public initialized: Deferred<void> = new Deferred<void>();
 
@@ -1247,6 +1249,40 @@ export default class ConnectionManager {
     }
 
     /**
+     * Handles password-based credential authentication by prompting for password if needed.
+     * This method checks if a password is required and prompts the user if it's not saved or available.
+     *
+     * @param connectionCreds The connection credentials to process
+     * @returns Promise that resolves to true if password handling was successful, false if user cancelled
+     */
+    public async handlePasswordBasedCredentials(
+        connectionCreds: IConnectionInfo,
+    ): Promise<boolean> {
+        if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
+            // show password prompt if SQL Login and password isn't saved
+            let password = connectionCreds.password;
+            if (Utils.isEmpty(password)) {
+                if ((connectionCreds as IConnectionProfile).savePassword) {
+                    password = await this.connectionStore.lookupPassword(connectionCreds);
+                }
+
+                if (!password) {
+                    password = await this.connectionUI.promptForPassword();
+                    if (!password) {
+                        return false;
+                    }
+                }
+
+                if (connectionCreds.authenticationType !== Constants.azureMfa) {
+                    connectionCreds.azureAccountToken = undefined;
+                }
+                connectionCreds.password = password;
+            }
+        }
+        return true;
+    }
+
+    /**
      * create a new connection with the connectionCreds provided
      * @param fileUri
      * @param connectionCreds ConnectionInfo to connect with
@@ -1266,26 +1302,10 @@ export default class ConnectionManager {
             await this.confirmEntraTokenValidity(connectionCreds);
         }
 
-        if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
-            // show password prompt if SQL Login and password isn't saved
-            let password = connectionCreds.password;
-            if (Utils.isEmpty(password)) {
-                if ((connectionCreds as IConnectionProfile).savePassword) {
-                    password = await this.connectionStore.lookupPassword(connectionCreds);
-                }
-
-                if (!password) {
-                    password = await this.connectionUI.promptForPassword();
-                    if (!password) {
-                        return undefined;
-                    }
-                }
-
-                if (connectionCreds.authenticationType !== Constants.azureMfa) {
-                    connectionCreds.azureAccountToken = undefined;
-                }
-                connectionCreds.password = password;
-            }
+        // Handle password-based credentials
+        const passwordResult = await this.handlePasswordBasedCredentials(connectionCreds);
+        if (!passwordResult) {
+            return false;
         }
 
         let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
@@ -1426,23 +1446,14 @@ export default class ConnectionManager {
         return await connectionCompletePromise;
     }
 
-    /**
-     * Registers a listener that is triggered when the active connections change.
-     *
-     * @param listener - A callback function to be invoked when the "activeConnectionsChanged" event occurs.
-     */
-    public onActiveConnectionsChanged(listener: () => void): void {
-        this._event.on("activeConnectionsChanged", listener);
-    }
-
     private addActiveConnection(fileUri: string, connectionInfo: ConnectionInfo) {
         this._connections[fileUri] = connectionInfo;
-        this._event.emit("activeConnectionsChanged");
+        this._onConnectionsChangedEmitter.fire();
     }
 
     private removeActiveConnection(fileUri: string): void {
         delete this._connections[fileUri];
-        this._event.emit("activeConnectionsChanged");
+        this._onConnectionsChangedEmitter.fire();
     }
 
     public async onCancelConnect(): Promise<void> {

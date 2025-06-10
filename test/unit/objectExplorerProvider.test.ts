@@ -11,7 +11,6 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { expect, assert } from "chai";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { AddConnectionTreeNode } from "../../src/objectExplorer/nodes/addConnectionTreeNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { AccountSignInTreeNode } from "../../src/objectExplorer/nodes/accountSignInTreeNode";
@@ -21,7 +20,10 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
+import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
+import { ConnectionStore } from "../../src/models/connectionStore";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 
 suite("Object Explorer Provider Tests", function () {
     let objectExplorerService: TypeMoq.IMock<ObjectExplorerService>;
@@ -29,7 +31,9 @@ suite("Object Explorer Provider Tests", function () {
     let client: TypeMoq.IMock<SqlToolsServiceClient>;
     let objectExplorerProvider: ObjectExplorerProvider;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let outputChannel: TypeMoq.IMock<vscode.OutputChannel>;
     let testObjectExplorerService: ObjectExplorerService;
+    let connectionStore: TypeMoq.IMock<ConnectionStore>;
 
     setup(() => {
         let mockContext: TypeMoq.IMock<vscode.ExtensionContext> =
@@ -48,8 +52,25 @@ suite("Object Explorer Provider Tests", function () {
 
         vscodeWrapper.setup((v) => v.showErrorMessage(TypeMoq.It.isAnyString()));
 
+        outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
+        outputChannel.setup((c) => c.clear());
+        outputChannel.setup((c) => c.append(TypeMoq.It.isAny()));
+        outputChannel.setup((c) => c.show(TypeMoq.It.isAny()));
+
+        vscodeWrapper.setup((v) => v.outputChannel).returns(() => outputChannel.object);
+
         connectionManager.setup((c) => c.vscodeWrapper).returns(() => vscodeWrapper.object);
         connectionManager.object.vscodeWrapper = vscodeWrapper.object;
+
+        connectionStore = TypeMoq.Mock.ofType(
+            ConnectionStore,
+            TypeMoq.MockBehavior.Loose,
+            mockContext.object,
+        );
+
+        connectionStore.setup((c) => c.rootGroupId).returns(() => "root-group-id");
+
+        connectionManager.setup((cm) => cm.connectionStore).returns(() => connectionStore.object);
 
         objectExplorerProvider = new ObjectExplorerProvider(
             vscodeWrapper.object,
@@ -218,31 +239,60 @@ suite("Object Explorer Provider Tests", function () {
         );
     });
 
-    test("Test addConnectionNodeAtRightPosition", () => {
-        const connectionNode1 = new ConnectionNode({
-            id: "test_id",
-            profileName: "test_profile",
-        } as ConnectionProfile);
-        const connectionNode2 = new ConnectionNode({
-            id: "test_id_2",
-            profileName: "test_profile_2",
-        } as ConnectionProfile);
-        const connectionNode3 = new ConnectionNode({
-            id: "test_id_3",
-            profileName: "test_profile_3",
-        } as ConnectionProfile);
+    test("Test addConnectionNode", () => {
+        const rootNode = new ConnectionGroupNode({
+            id: "root-group-id",
+            name: ConnectionConfig.RootGroupName,
+        });
+        const connectionNode1 = new ConnectionNode(
+            {
+                id: "test_id",
+                profileName: "test_profile",
+                groupId: rootNode.id,
+            } as ConnectionProfile,
+            rootNode,
+        );
+        const connectionNode2 = new ConnectionNode(
+            {
+                id: "test_id_2",
+                profileName: "test_profile_2",
+                groupId: rootNode.id,
+            } as ConnectionProfile,
+            rootNode,
+        );
+        const connectionNode3 = new ConnectionNode(
+            {
+                id: "test_id_3",
+                profileName: "test_profile_3",
+                groupId: rootNode.id,
+            } as ConnectionProfile,
+            rootNode,
+        );
 
-        (testObjectExplorerService as any)._rootTreeNodeArray = [
-            connectionNode1,
-            connectionNode2,
-            connectionNode3,
-        ];
+        rootNode.addChild(connectionNode1);
+        rootNode.addChild(connectionNode2);
+        rootNode.addChild(connectionNode3);
 
-        const newConnectionNode = new ConnectionNode({
-            id: "test_id_4",
-            profileName: "test_profile_4",
-        } as ConnectionProfile);
-        (testObjectExplorerService as any).addConnectionNodeAtRightPosition(newConnectionNode);
+        (testObjectExplorerService as any)._connectionGroupNodes = new Map<
+            string,
+            ConnectionGroupNode
+        >([[rootNode.connectionGroup.id, rootNode]]);
+
+        (testObjectExplorerService as any)._connectionNodes = new Map<string, ConnectionNode>([
+            [connectionNode1.connectionProfile.id, connectionNode1],
+            [connectionNode2.connectionProfile.id, connectionNode2],
+            [connectionNode3.connectionProfile.id, connectionNode3],
+        ]);
+
+        const newConnectionNode = new ConnectionNode(
+            {
+                id: "test_id_4",
+                profileName: "test_profile_4",
+                groupId: rootNode.id,
+            } as ConnectionProfile,
+            rootNode,
+        );
+        (testObjectExplorerService as any).addConnectionNode(newConnectionNode);
         const rootTreeNodeArray = (testObjectExplorerService as any)._rootTreeNodeArray;
         // RootTreeNode should have a length of 4
         expect(rootTreeNodeArray.length, "RootTreeNode should have a length of 4").is.equal(4);
@@ -251,12 +301,16 @@ suite("Object Explorer Provider Tests", function () {
             "New connection node should be added at the end of the array",
         ).is.equal(newConnectionNode.label);
 
-        const newConnectionNode2 = new ConnectionNode({
-            id: "test_id_2",
-            profileName: "test_profile_2_renamed",
-        } as ConnectionProfile);
+        const newConnectionNode2 = new ConnectionNode(
+            {
+                id: "test_id_2",
+                profileName: "test_profile_2_renamed",
+                groupId: rootNode.id,
+            } as ConnectionProfile,
+            rootNode,
+        );
 
-        (testObjectExplorerService as any).addConnectionNodeAtRightPosition(newConnectionNode2);
+        (testObjectExplorerService as any).addConnectionNode(newConnectionNode2);
         const rootTreeNodeArray2 = (testObjectExplorerService as any)._rootTreeNodeArray;
         // RootTreeNode should have a length of 4
         expect(rootTreeNodeArray2.length, "RootTreeNode should have a length of 4").is.equal(4);
@@ -441,10 +495,10 @@ suite("Object Explorer Provider Tests", function () {
     });
 
     test("Test rootNodeConnections getter", () => {
-        let testConnections = [new ConnectionCredentials()];
-        objectExplorerService.setup((s) => s.rootNodeConnections).returns(() => testConnections);
-        let rootConnections = objectExplorerProvider.rootNodeConnections;
-        objectExplorerService.verify((s) => s.rootNodeConnections, TypeMoq.Times.once());
+        let testConnections = [new ConnectionProfile()];
+        objectExplorerService.setup((s) => s.connections).returns(() => testConnections);
+        let rootConnections = objectExplorerProvider.connections;
+        objectExplorerService.verify((s) => s.connections, TypeMoq.Times.once());
         assert.equal(rootConnections, testConnections);
     });
 });

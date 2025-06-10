@@ -87,6 +87,12 @@ jobs:
           cd ../pr
           yarn gulp package:online
 
+      - name: Setting up change icons
+        run: |
+          echo "better_change_icon=🟢" >> $GITHUB_ENV
+          echo "worse_change_icon=🔴" >> $GITHUB_ENV
+          echo "no_change_icon=⚪" >> $GITHUB_ENV
+
       - name: Calculate webview bundle sizes
         run: |
           main_file=$(du -sk ./main/out/src/reactviews/assets | cut -f1)
@@ -101,8 +107,13 @@ jobs:
           echo "pr_webview_bundle_size=$pr_file" >> $GITHUB_ENV
           echo "webview_size_diff=$size_diff" >> $GITHUB_ENV
           echo "webview_bundle_percentage_change=$percentage_change" >> $GITHUB_ENV
-          webview_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
-          echo "webview_text_color=$webview_text_color" >> $GITHUB_ENV
+          if [ "$percentage_change" -gt 0 ]; then
+            echo "webview_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          elif [ "$percentage_change" -lt 0 ]; then
+            echo "webview_change_icon=$better_change_icon" >> $GITHUB_ENV
+          else
+            echo "webview_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
 
       - name: Calculate vsix file sizes
         run: |
@@ -122,8 +133,13 @@ jobs:
           echo "pr_vsix_size=$pr_size" >> $GITHUB_ENV
           echo "vsix_size_diff=$size_diff" >> $GITHUB_ENV
           echo "vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
-          vsix_text_color=$(if [ $percentage_change -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
-          echo "vsix_text_color=$vsix_text_color" >> $GITHUB_ENV
+          if [ "$percentage_change" -gt 0 ]; then
+            echo "vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          elif [ "$percentage_change" -lt 0 ]; then
+            echo "vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
+          else
+            echo "vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
 
       - name: Run unit tests for PR branch
         run: |
@@ -268,17 +284,25 @@ jobs:
           echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
           # Calculate difference in line coverage rate
           echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_main" | bc)" >> $GITHUB_ENV
-          coverage_text_color=$(if [ $line_rate_diff -gt 0 ]; then echo "red"; else echo "lightgreen"; fi)
-          echo "coverage_text_color=$coverage_text_color" >> $GITHUB_ENV
+          # Save formatted line rate difference in env variable
+          line_rate_diff=$(printf "%.2f" $(echo "$line_rate_diff * 100" | bc))
+          echo "line_rate_diff=$line_rate_diff" >> $GITHUB_ENV
+          if [ $(echo "$line_rate_diff > 0" | bc) -eq 1 ]; then
+            echo "coverage_change_icon=$better_change_icon" >> $GITHUB_ENV
+          elif [ $(echo "$line_rate_diff < 0" | bc) -eq 1 ]; then
+            echo "coverage_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          else
+            echo "coverage_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
 
       - name: Write PR results to markdown
         run: |
           echo "### PR Changes" >> results.md
           echo "| Category                      | Main Branch        | PR Branch         | Difference           |" >> results.md
           echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
-          echo "| Code Coverage                | ${{ env.line_rate_main }}% | ${{ env.line_rate_pr }}% | ${{ '\$\${\color{' }}${{ env.coverage_text_color }}} ${{ env.line_rate_diff }}\\\\% ${{ '}\$\$' }} |" >> results.md
-          echo "| VSIX Size                    | ${{ env.main_vsix_size }} KB | ${{ env.pr_vsix_size }} KB | ${{ '\$\${\color{' }}${{ env.vsix_text_color }}} ${{ env.vsix_size_diff }} KB \space (${{ env.vsix_percentage_change }}\\\\%) ${{ '}\$\$' }} |" >> results.md
-          echo "| Webview Bundle Size          | ${{ env.main_webview_bundle_size }} KB | ${{ env.pr_webview_bundle_size }} KB | ${{ '\$\${\color{' }}${{ env.webview_text_color }}} ${{ env.webview_size_diff }} KB \space (${{ env.webview_bundle_percentage_change }}\\\\%) ${{ '}\$\$' }} |" >> results.md
+          echo "| Code Coverage                | ${{ env.line_rate_main }}% | ${{ env.line_rate_pr }}% | ${{ env.coverage_change_icon }} ${{ env.line_rate_diff }}%  |" >> results.md
+          echo "| VSIX Size                    | ${{ env.main_vsix_size }} KB | ${{ env.pr_vsix_size }} KB | ${{ env.vsix_change_icon }} ${{ env.vsix_size_diff }} KB ( ${{ env.vsix_percentage_change }}% ) |" >> results.md
+          echo "| Webview Bundle Size          | ${{ env.main_webview_bundle_size }} KB | ${{ env.pr_webview_bundle_size }} KB | ${{ env.webview_change_icon }} ${{ env.webview_size_diff }} KB ( ${{ env.webview_bundle_percentage_change }}% ) |" >> results.md
 
       - name: Find comment
         uses: peter-evans/find-comment@v3

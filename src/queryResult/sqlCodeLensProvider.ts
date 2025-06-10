@@ -9,12 +9,22 @@ import ConnectionManager from "../controllers/connectionManager";
 import { QueryEditor } from "../constants/locConstants";
 import { generateDatabaseDisplayName, generateServerDisplayName } from "../models/connectionInfo";
 
-export class SqlCodeLensProvider implements vscode.CodeLensProvider {
-    constructor(private _connectionManager: ConnectionManager) {}
+export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disposable {
+    private _disposables: vscode.Disposable[] = [];
+    private _codeLensChangedEmitter = new vscode.EventEmitter<void>();
+    public readonly onDidChangeCodeLenses?: vscode.Event<void> = this._codeLensChangedEmitter.event;
+
+    constructor(private _connectionManager: ConnectionManager) {
+        this._disposables.push(
+            this._connectionManager.onConnectionsChanged(() => {
+                this._codeLensChangedEmitter.fire();
+            }),
+        );
+    }
 
     public provideCodeLenses(
         document: vscode.TextDocument,
-        token: vscode.CancellationToken,
+        _token: vscode.CancellationToken,
     ): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
         const shouldShowActiveConnection = vscode.workspace
             .getConfiguration()
@@ -44,9 +54,14 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider {
     }
 
     public resolveCodeLens?(
-        codeLens: vscode.CodeLens,
-        token: vscode.CancellationToken,
+        _codeLens: vscode.CodeLens,
+        _token: vscode.CancellationToken,
     ): vscode.CodeLens | Thenable<vscode.CodeLens> {
         return undefined;
+    }
+
+    public dispose(): void {
+        this._disposables.forEach((d) => d.dispose());
+        this._disposables = [];
     }
 }
