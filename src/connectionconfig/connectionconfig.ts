@@ -227,7 +227,7 @@ export class ConnectionConfig implements IConnectionConfig {
         return this.writeConnectionGroupsToSettings(groups);
     }
 
-    public async removeGroup(id: string): Promise<void> {
+    public async removeGroup(id: string): Promise<boolean> {
         const connections = this.getConnectionsFromSettings();
 
         let connectionRemoved = false;
@@ -246,7 +246,7 @@ export class ConnectionConfig implements IConnectionConfig {
         const index = groups.findIndex((g) => g.id === id);
         if (index === -1) {
             this._logger.error(`Connection group with ID '${id}' not found when removing.`);
-            return Promise.resolve();
+            return false;
         }
         groups.splice(index, 1);
 
@@ -254,7 +254,9 @@ export class ConnectionConfig implements IConnectionConfig {
             await this.writeConnectionsToSettings(connections);
         }
 
-        return this.writeConnectionGroupsToSettings(groups);
+        await this.writeConnectionGroupsToSettings(groups);
+
+        return true;
     }
 
     public async updateGroup(updatedGroup: IConnectionGroup): Promise<void> {

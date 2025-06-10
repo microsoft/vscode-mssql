@@ -15,7 +15,11 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Logger } from "../../src/models/logger";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
+import {
+    IConnectionProfile,
+    IConnectionProfileWithSource,
+    IConnectionGroup,
+} from "../../src/models/interfaces";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { CloseSessionRequest } from "../../src/models/contracts/objectExplorer/closeSessionRequest";
@@ -69,6 +73,9 @@ suite("OE Service Tests", () => {
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+
+            sandbox.stub(mockConnectionStore, "rootGroupId").get(() => TEST_ROOT_GROUP_ID);
+
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
 
@@ -134,6 +141,49 @@ suite("OE Service Tests", () => {
             expect(result[1], "Second result should match mock profile 1").to.deep.equal(
                 mockProfiles[1],
             );
+        });
+
+        test("_rootTreeNodeArray should contain correct hierarchy of groups and connections", () => {
+            const topLevelGroups = createMockConnectionGroups(2); // two top-level groups under root
+            const subGroups = createMockConnectionGroups(2, topLevelGroups[0].id); // two subgroups under the first top-level group
+
+            const allGroups = [...topLevelGroups, ...subGroups];
+
+            const rootConnections = createMockConnectionProfiles(1);
+
+            // Create mock connections:
+            const connections = [
+                ...rootConnections, // 1 directly under root
+                ...createMockConnectionProfiles(2, topLevelGroups[0].id), // 2 under group0
+                ...createMockConnectionProfiles(1, topLevelGroups[1].id), // 1 under group1
+                ...createMockConnectionProfiles(2, subGroups[0].id), // 2 under subgroup0
+            ];
+
+            setUpOETreeRoot(objectExplorerService, connections, allGroups);
+
+            const rootTreeNodeArray: Array<ConnectionNode | ConnectionGroupNode> = (
+                objectExplorerService as any
+            )._rootTreeNodeArray;
+
+            expect(
+                rootTreeNodeArray.length,
+                "Root tree node array should only contain the root nodes",
+            ).to.equal(3);
+
+            const rootLevelNodes = {
+                groups: rootTreeNodeArray.filter((node) => node instanceof ConnectionGroupNode),
+                connections: rootTreeNodeArray.filter((node) => node instanceof ConnectionNode),
+            };
+
+            // Verify the root level groups are the ones we created
+            const rootGroupIds = rootLevelNodes.groups.map(
+                (node) => (node as ConnectionGroupNode).connectionGroup.id,
+            );
+            expect(rootGroupIds).to.have.members([topLevelGroups[0].id, topLevelGroups[1].id]);
+
+            // Verify the root level connection is the one we created
+            const rootConnection = rootLevelNodes.connections[0] as ConnectionNode;
+            expect(rootConnection.connectionProfile.id).to.equal(rootConnections[0].id);
         });
     });
 
@@ -3030,30 +3080,10 @@ suite("OE Service Tests", () => {
             sandbox.restore();
         });
 
-        function createMockConnectionProfiles(count: number): IConnectionProfileWithSource[] {
-            const profiles: IConnectionProfileWithSource[] = [];
-            for (let i = 0; i < count; i++) {
-                profiles.push({
-                    profileName: `profile${i}`,
-                    id: `conn${i}`,
-                    server: `server${i}`,
-                    database: `db${i}`,
-                    authenticationType: "SqlLogin",
-                    user: "",
-                    password: "",
-                    savePassword: false,
-                    groupId: TEST_ROOT_GROUP_ID,
-                } as IConnectionProfileWithSource);
-            }
-            return profiles;
-        }
-
         test("getRootNodes should return AddConnectionNodes when no saved connections exist", async () => {
             // Setup connection store to return empty array
             mockConnectionStore.readAllConnections.resolves([]);
-            mockConnectionStore.readAllConnectionGroups.resolves([
-                { id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupName },
-            ]);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
 
             // Setup getAddConnectionNodes to return a mock nodes
             const mockAddConnectionNodes = [
@@ -3109,9 +3139,7 @@ suite("OE Service Tests", () => {
             // Setup connection store to return connections (not empty)
             const mockConnections = createMockConnectionProfiles(2);
             mockConnectionStore.readAllConnections.resolves(mockConnections);
-            mockConnectionStore.readAllConnectionGroups.resolves([
-                { id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupName },
-            ]);
+            mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
 
             // Call the method
             const result = await (objectExplorerService as any).getRootNodes();
@@ -3159,6 +3187,141 @@ suite("OE Service Tests", () => {
                 expect(endFailedStub.called, "Telemetry end failed should not be called").to.be
                     .false; // We're letting the error propagate
             }
+        });
+
+        test("getRootNodes should return empty array when no groups or connections exist", async () => {
+            // Setup connection store to return empty arrays for both connections and groups
+            mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([]);
+
+            // Call the method
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            // Verify the result is an empty array
+            expect(result, "Result should be an empty array").to.be.an("array").that.is.empty;
+        });
+
+        test("getRootNodes should return groups and connections in correct order", async () => {
+            // Create two root-level groups and one root-level connection
+            const rootGroups = createMockConnectionGroups(2);
+            const rootConnections = createMockConnectionProfiles(1);
+
+            // Setup connection store to return the mock data
+            mockConnectionStore.readAllConnectionGroups.resolves([
+                createMockRootConnectionGroup(),
+                ...rootGroups,
+            ]);
+            mockConnectionStore.readAllConnections.resolves(rootConnections);
+
+            // Call the method
+            const result = await (objectExplorerService as any).getRootNodes();
+
+            // Verify we have all expected nodes
+            expect(result.length, "Should have 3 root nodes (2 groups + 1 connection)").to.equal(3);
+
+            // Verify groups come before connections
+            const firstTwoAreGroups = result
+                .slice(0, 2)
+                .every((node) => node instanceof ConnectionGroupNode);
+            const lastIsConnection = result[2] instanceof ConnectionNode;
+            expect(firstTwoAreGroups, "First two nodes should be groups").to.be.true;
+            expect(lastIsConnection, "Last node should be a connection").to.be.true;
+
+            // Verify the specific groups and connection
+            const resultGroupIds = result
+                .filter((node) => node instanceof ConnectionGroupNode)
+                .map((node) => (node as ConnectionGroupNode).connectionGroup.id);
+            expect(resultGroupIds).to.have.members([rootGroups[0].id, rootGroups[1].id]);
+
+            const resultConnection = result[2] as ConnectionNode;
+            expect(resultConnection.connectionProfile.id).to.equal(rootConnections[0].id);
+        });
+
+        test("getRootNodes should handle nested group hierarchy correctly", async () => {
+            // Set up mock data:
+            // ROOT
+            // ├── topLevelGroup
+            // │   ├── connection
+            // │   └── childGroup
+            // └── rootConnection
+
+            const topLevelGroups = createMockConnectionGroups(1);
+            const topLevelGroup = topLevelGroups[0];
+
+            const groupConnections = createMockConnectionProfiles(1, topLevelGroup.id);
+            const childGroups = createMockConnectionGroups(1, topLevelGroup.id);
+            const rootConnections = createMockConnectionProfiles(1); // at root level
+
+            mockConnectionStore.readAllConnectionGroups.resolves([
+                createMockRootConnectionGroup(),
+                ...topLevelGroups,
+                ...childGroups,
+            ]);
+            mockConnectionStore.readAllConnections.resolves([
+                ...groupConnections,
+                ...rootConnections,
+            ]);
+
+            await (objectExplorerService as any).getRootNodes();
+
+            // Verify the result:
+            const connectionGroupNodes = (objectExplorerService as any)
+                ._connectionGroupNodes as Map<string, ConnectionGroupNode>;
+            const connectionNodes = (objectExplorerService as any)._connectionNodes as Map<
+                string,
+                ConnectionNode
+            >;
+
+            // Verify top-level connection group
+            const topLevelGroupNode = connectionGroupNodes.get(topLevelGroup.id);
+            expect(topLevelGroupNode, "Top-level group node should exist").to.exist;
+            expect(
+                topLevelGroupNode.connectionGroup.id,
+                "Top-level group ID should match",
+            ).to.equal(topLevelGroup.id);
+            expect(topLevelGroupNode.connectionGroup.parentId, "Parent ID should match").to.equal(
+                topLevelGroup.parentId,
+            );
+            expect(topLevelGroupNode.parentNode, "parent of a top-level node should be undefined")
+                .to.be.undefined;
+            expect(
+                topLevelGroupNode.children.length,
+                "Top-level group should have 2 children",
+            ).to.equal(2);
+
+            // Verify root's children
+            const rootNode = connectionGroupNodes.get(TEST_ROOT_GROUP_ID);
+            expect(rootNode.children.length, "Root should have 2 children").to.equal(2);
+            expect(rootNode.children).to.include(topLevelGroupNode);
+
+            // Verify connection under root group
+            const groupConnection = connectionNodes.get(groupConnections[0].id);
+            expect(groupConnection, "Group connection should exist").to.exist;
+            expect(
+                (groupConnection.parentNode as ConnectionGroupNode)?.connectionGroup.id,
+            ).to.equal(topLevelGroup.id);
+
+            // Verify child group under root group
+            const childGroup = connectionGroupNodes.get(childGroups[0].id);
+            expect(childGroup, "Child group should exist").to.exist;
+            expect((childGroup.parentNode as ConnectionGroupNode)?.connectionGroup.id).to.equal(
+                topLevelGroup.id,
+            );
+
+            // Verify root-level connection
+            const topLevelConnection = connectionNodes.get(rootConnections[0].id);
+            expect(topLevelConnection, "Top-level connection should exist").to.exist;
+
+            expect(
+                topLevelConnection.connectionProfile.id,
+                "Top-level connection ID should match",
+            ).to.equal(rootConnections[0].id);
+            expect(topLevelConnection.connectionProfile.groupId, "Group ID should match").to.equal(
+                TEST_ROOT_GROUP_ID,
+            );
+
+            expect(topLevelConnection.parentNode).to.be.undefined;
+            expect(rootNode.children).to.include(topLevelConnection);
         });
     });
 
@@ -3428,9 +3591,54 @@ suite("OE Service Tests", () => {
 
 const TEST_ROOT_GROUP_ID = "test-root-group-id";
 
+function createMockConnectionProfiles(
+    count: number,
+    groupId: string = TEST_ROOT_GROUP_ID,
+): IConnectionProfileWithSource[] {
+    const profiles: IConnectionProfileWithSource[] = [];
+    for (let i = 0; i < count; i++) {
+        profiles.push({
+            profileName: `profile${i}`,
+            id: `${groupId}_conn${i}`,
+            server: `server${i}`,
+            database: `db${i}`,
+            authenticationType: "SqlLogin",
+            user: "",
+            password: "",
+            savePassword: false,
+            groupId: groupId,
+        } as IConnectionProfileWithSource);
+    }
+    return profiles;
+}
+
+function createMockRootConnectionGroup(): IConnectionGroup {
+    return {
+        id: TEST_ROOT_GROUP_ID,
+        name: ConnectionConfig.RootGroupName,
+    };
+}
+
+function createMockConnectionGroups(
+    count: number,
+    parentId: string = TEST_ROOT_GROUP_ID,
+): IConnectionGroup[] {
+    const groups: IConnectionGroup[] = [];
+    for (let i = 0; i < count; i++) {
+        groups.push({
+            id: `${parentId}_group${i}`,
+            name: `Group ${i}`,
+            parentId: parentId,
+            description: `Test group ${i}`,
+        });
+    }
+    return groups;
+}
+
 function setUpOETreeRoot(
     objectExplorerService: ObjectExplorerService,
     profiles: IConnectionProfile[],
+    groups: IConnectionGroup[] = [],
 ) {
     const rootNode = new ConnectionGroupNode({
         id: TEST_ROOT_GROUP_ID,
@@ -3442,13 +3650,23 @@ function setUpOETreeRoot(
     ]);
     (objectExplorerService as any)._connectionNodes = new Map<string, ConnectionNode>();
 
+    // First set up all connection group nodes
+    for (const group of groups) {
+        const parentNode = (objectExplorerService as any)._connectionGroupNodes.get(group.parentId);
+        if (parentNode) {
+            const groupNode = new ConnectionGroupNode(group);
+            (objectExplorerService as any)._connectionGroupNodes.set(group.id, groupNode);
+            parentNode.addChild(groupNode);
+        }
+    }
+
+    // Then set up all connection nodes
     for (const profile of profiles) {
         const parentNode = (objectExplorerService as any)._connectionGroupNodes.get(
             profile.groupId,
         );
 
         const connectionNode = new ConnectionNode(profile, parentNode);
-
         (objectExplorerService as any)._connectionNodes.set(profile.id, connectionNode);
         parentNode.addChild(connectionNode);
     }

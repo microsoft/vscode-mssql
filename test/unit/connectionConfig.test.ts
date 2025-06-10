@@ -208,134 +208,264 @@ suite("ConnectionConfig Tests", () => {
             ]);
         });
 
-        test("addConnection adds a new connection to profiles", async () => {
-            const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
-            await connConfig.initialized;
+        suite("Connections", () => {
+            test("addConnection adds a new connection to profiles", async () => {
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
 
-            // Add a connection
-            const newProfile: IConnectionProfile = {
-                id: undefined, // This should get populated
-                groupId: undefined, // This should get populated
-                server: "new-server",
-                database: "new-db",
-                authenticationType: "SqlLogin",
-                user: "user",
-                password: "password",
-                profileName: "New Profile",
-                savePassword: false,
-                emptyPasswordInput: false,
-            } as IConnectionProfile;
+                // Add a connection
+                const newProfile: IConnectionProfile = {
+                    id: undefined, // This should get populated
+                    groupId: undefined, // This should get populated
+                    server: "new-server",
+                    database: "new-db",
+                    authenticationType: "SqlLogin",
+                    user: "user",
+                    password: "password",
+                    profileName: "New Profile",
+                    savePassword: false,
+                    emptyPasswordInput: false,
+                } as IConnectionProfile;
 
-            await connConfig.addConnection(newProfile);
+                await connConfig.addConnection(newProfile);
 
-            const savedProfiles = mockGlobalConfigData.get(
-                Constants.connectionsArrayName,
-            ) as IConnectionProfile[];
+                const savedProfiles = mockGlobalConfigData.get(
+                    Constants.connectionsArrayName,
+                ) as IConnectionProfile[];
 
-            expect(savedProfiles).to.have.lengthOf(1);
-            expect(savedProfiles[0].id).to.not.be.undefined;
-            expect(savedProfiles[0].groupId).to.equal(rootGroupId);
-            expect(savedProfiles[0].server).to.equal("new-server");
-            expect(savedProfiles[0].database).to.equal("new-db");
-        });
+                expect(savedProfiles).to.have.lengthOf(1);
+                expect(savedProfiles[0].id).to.not.be.undefined;
+                expect(savedProfiles[0].groupId).to.equal(rootGroupId);
+                expect(savedProfiles[0].server).to.equal("new-server");
+                expect(savedProfiles[0].database).to.equal("new-db");
+            });
 
-        test("removeConnection removes an existing connection from profiles", async () => {
-            const testConnProfile = {
-                id: "profile-id",
-                groupId: rootGroupId,
-                server: "TestServer",
-                authenticationType: "Integrated",
-                profileName: "Test Profile",
-            } as IConnectionProfile;
-
-            mockGlobalConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
-
-            const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
-            await connConfig.initialized;
-
-            const result = await connConfig.removeConnection(testConnProfile);
-
-            expect(result, "Profile should have been found").to.be.true;
-            expect(mockGlobalConfigData.get(Constants.connectionsArrayName)).to.have.lengthOf(0);
-        });
-
-        test("getConnections filters out workspace connections that are missing IDs", async () => {
-            const testConnProfiles = [
-                {
-                    id: undefined, // missing ID won't get automatically populated for workspace connections
+            test("removeConnection removes an existing connection from profiles", async () => {
+                const testConnProfile = {
+                    id: "profile-id",
                     groupId: rootGroupId,
                     server: "TestServer",
                     authenticationType: "Integrated",
-                    profileName: "Test Profile One",
-                } as IConnectionProfile,
-                {
-                    id: undefined, // missing ID won't get automatically populated for workspace connections
-                    groupId: rootGroupId,
-                    server: "TestServer",
-                    authenticationType: "Integrated",
-                    profileName: "Test Profile Two",
-                } as IConnectionProfile,
-            ];
+                    profileName: "Test Profile",
+                } as IConnectionProfile;
 
-            mockWorkspaceConfigData.set(Constants.connectionsArrayName, testConnProfiles);
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
 
-            mockVscodeWrapper
-                .setup((x) => x.showErrorMessage(TypeMoq.It.isAny()))
-                .returns(() => {
-                    return Promise.resolve(undefined);
-                });
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
-            await connConfig.initialized;
+                const result = await connConfig.removeConnection(testConnProfile);
 
-            const result = await connConfig.getConnections(true /* getWorkspaceConnections */);
+                expect(result, "Profile should have been found").to.be.true;
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)).to.have.lengthOf(
+                    0,
+                );
+            });
 
-            expect(result).to.have.lengthOf(
-                0,
-                "Workspace connection missing ID should not be returned",
-            );
+            test("getConnections filters out workspace connections that are missing IDs", async () => {
+                const testConnProfiles = [
+                    {
+                        id: undefined, // missing ID won't get automatically populated for workspace connections
+                        groupId: rootGroupId,
+                        server: "TestServer",
+                        authenticationType: "Integrated",
+                        profileName: "Test Profile One",
+                    } as IConnectionProfile,
+                    {
+                        id: undefined, // missing ID won't get automatically populated for workspace connections
+                        groupId: rootGroupId,
+                        server: "TestServer",
+                        authenticationType: "Integrated",
+                        profileName: "Test Profile Two",
+                    } as IConnectionProfile,
+                ];
 
-            mockVscodeWrapper.verify(
-                (v) =>
-                    v.showErrorMessage(
-                        TypeMoq.It.is(
-                            (msg) =>
-                                msg.includes("Test Profile One") &&
-                                msg.includes("Test Profile Two"),
+                mockWorkspaceConfigData.set(Constants.connectionsArrayName, testConnProfiles);
+
+                mockVscodeWrapper
+                    .setup((x) => x.showErrorMessage(TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return Promise.resolve(undefined);
+                    });
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                const result = await connConfig.getConnections(true /* getWorkspaceConnections */);
+
+                expect(result).to.have.lengthOf(
+                    0,
+                    "Workspace connection missing ID should not be returned",
+                );
+
+                mockVscodeWrapper.verify(
+                    (v) =>
+                        v.showErrorMessage(
+                            TypeMoq.It.is(
+                                (msg) =>
+                                    msg.includes("Test Profile One") &&
+                                    msg.includes("Test Profile Two"),
+                            ),
                         ),
-                    ),
-                TypeMoq.Times.once(),
-            );
+                    TypeMoq.Times.once(),
+                );
+            });
+
+            test("getConnections filters out connections that are missing a server", async () => {
+                const testConnProfile = {
+                    id: "profile-id",
+                    groupId: rootGroupId,
+                    server: "", // missing server should result in this connection being ignored
+                    authenticationType: "Integrated",
+                    profileName: "Test Profile",
+                } as IConnectionProfile;
+
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
+
+                mockVscodeWrapper
+                    .setup((x) => x.showErrorMessage(TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return Promise.resolve(undefined);
+                    });
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                const result = await connConfig.getConnections(false /* getWorkspaceConnections */);
+
+                expect(result).to.have.lengthOf(
+                    0,
+                    "Connection missing server should not be returned",
+                );
+
+                mockVscodeWrapper.verify(
+                    (v) => v.showErrorMessage(TypeMoq.It.isAny()),
+                    TypeMoq.Times.once(),
+                );
+            });
+
+            test("updateConnection updates an existing connection profile", async () => {
+                const testConnProfile = {
+                    id: "profile-id",
+                    groupId: rootGroupId,
+                    server: "TestServer",
+                    authenticationType: "Integrated",
+                    profileName: "Test Profile",
+                } as IConnectionProfile;
+
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                const updatedProfile: IConnectionProfile = {
+                    ...testConnProfile,
+                    profileName: "Updated Profile",
+                };
+
+                await connConfig.updateConnection(updatedProfile);
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)).to.have.lengthOf(
+                    1,
+                );
+
+                expect(
+                    mockGlobalConfigData.get(Constants.connectionsArrayName)[0].profileName,
+                ).to.deep.equal("Updated Profile");
+            });
         });
 
-        test("getConnections filters out connections that are missing a server", async () => {
-            const testConnProfile = {
-                id: "profile-id",
-                groupId: rootGroupId,
-                server: "", // missing server should result in this connection being ignored
-                authenticationType: "Integrated",
-                profileName: "Test Profile",
-            } as IConnectionProfile;
+        suite("Connection Groups", () => {
+            test("addGroup adds a new connection group", async () => {
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
 
-            mockGlobalConfigData.set(Constants.connectionsArrayName, [testConnProfile]);
+                const newGroup: IConnectionGroup = {
+                    name: "Test Group",
+                    id: undefined, // This should get populated
+                    parentId: rootGroupId,
+                };
 
-            mockVscodeWrapper
-                .setup((x) => x.showErrorMessage(TypeMoq.It.isAny()))
-                .returns(() => {
-                    return Promise.resolve(undefined);
-                });
+                await connConfig.addGroup(newGroup);
 
-            const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
-            await connConfig.initialized;
+                const savedGroups = mockGlobalConfigData.get(
+                    Constants.connectionGroupsArrayName,
+                ) as IConnectionGroup[];
+                expect(savedGroups).to.have.lengthOf(2); // ROOT + new group
+                const addedGroup = savedGroups.find((g) => g.name === "Test Group");
+                expect(addedGroup).to.not.be.undefined;
+                expect(addedGroup?.id).to.not.be.undefined;
+                expect(addedGroup?.parentId).to.equal(rootGroupId);
+            });
 
-            const result = await connConfig.getConnections(false /* getWorkspaceConnections */);
+            test("removeGroup removes an existing group", async () => {
+                const testGroup = {
+                    name: "Test Group",
+                    id: "test-group-id",
+                    parentId: rootGroupId,
+                };
 
-            expect(result).to.have.lengthOf(0, "Connection missing server should not be returned");
+                mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                    { name: "ROOT", id: rootGroupId },
+                    testGroup,
+                ]);
 
-            mockVscodeWrapper.verify(
-                (v) => v.showErrorMessage(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                const result = await connConfig.removeGroup(testGroup.id);
+
+                expect(result, "Group should have been found and removed").to.be.true;
+                const savedGroups = mockGlobalConfigData.get(
+                    Constants.connectionGroupsArrayName,
+                ) as IConnectionGroup[];
+                expect(savedGroups).to.have.lengthOf(1); // Only ROOT remains
+                expect(savedGroups[0].name).to.equal("ROOT");
+            });
+
+            test("getGroups returns all connection groups", async () => {
+                const testGroups = [
+                    { name: "ROOT", id: rootGroupId },
+                    { name: "Group 1", id: "group1-id", parentId: rootGroupId },
+                    { name: "Group 2", id: "group2-id", parentId: rootGroupId },
+                ];
+
+                mockGlobalConfigData.set(Constants.connectionGroupsArrayName, testGroups);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                const groups = await connConfig.getGroups();
+
+                expect(groups).to.have.lengthOf(3);
+                expect(groups.map((g) => g.name)).to.have.members(["ROOT", "Group 1", "Group 2"]);
+            });
+
+            test("getGroupById returns the correct group", async () => {
+                const testGroups = [
+                    { name: "ROOT", id: rootGroupId },
+                    { name: "Test Group", id: "test-group-id", parentId: rootGroupId },
+                ];
+
+                mockGlobalConfigData.set(Constants.connectionGroupsArrayName, testGroups);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                const group = await connConfig.getGroupById("test-group-id");
+
+                expect(group).to.not.be.undefined;
+                expect(group?.name).to.equal("Test Group");
+                expect(group?.parentId).to.equal(rootGroupId);
+            });
+
+            test("getGroupById returns undefined for non-existent group", async () => {
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                const group = await connConfig.getGroupById("non-existent-id");
+
+                expect(group).to.be.undefined;
+            });
         });
     });
 });
