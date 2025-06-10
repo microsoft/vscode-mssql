@@ -730,7 +730,7 @@ export default class MainController implements vscode.Disposable {
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = this._vscodeWrapper.activeTextEditor;
         if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
-            await this.onDidOpenTextDocument(activeTextEditor.document);
+            this.onDidOpenTextDocument(activeTextEditor.document);
         }
         await this.sanitizeConnectionProfiles();
         await this.loadTokenCache();
@@ -2116,7 +2116,7 @@ export default class MainController implements vscode.Disposable {
 
     private async updateUri(oldUri: string, newUri: string) {
         // Transfer the connection to the new URI
-        await this._connectionMgr.transferFileConnection(oldUri, newUri);
+        await this._connectionMgr.copyConnectionToFile(oldUri, newUri);
 
         // Call STS  & Query Runner to update URI
         this._outputContentProvider.updateQueryRunnerUri(oldUri, newUri);
@@ -2152,7 +2152,7 @@ export default class MainController implements vscode.Disposable {
         this._connectionMgr.onDidOpenTextDocument(doc);
 
         if (this._previousActiveDocument && doc.languageId === Constants.languageId) {
-            void this._connectionMgr.transferFileConnection(
+            void this._connectionMgr.copyConnectionToFile(
                 this._previousActiveDocument.uri.toString(true),
                 doc.uri.toString(true),
                 true /* keepOldConnected */,
