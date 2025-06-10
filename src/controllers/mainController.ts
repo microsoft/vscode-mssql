@@ -72,6 +72,8 @@ import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
+import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
+import { deleteContainer, stopContainer } from "../containerDeployment/dockerUtils";
 
 /**
  * The main controller class that initializes the extension
@@ -214,6 +216,10 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdClearPooledConnections);
             this._event.on(Constants.cmdClearPooledConnections, async () => {
                 await this.onClearPooledConnections();
+            });
+            this.registerCommand(Constants.cmdDeployLocalDockerContainer);
+            this._event.on(Constants.cmdDeployLocalDockerContainer, () => {
+                this.onDeployContainer();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -892,7 +898,11 @@ export default class MainController implements vscode.Disposable {
         // Register the object explorer tree provider
         this._objectExplorerProvider =
             objectExplorerProvider ??
-            new ObjectExplorerProvider(this._vscodeWrapper, this._connectionMgr);
+            new ObjectExplorerProvider(
+                this._vscodeWrapper,
+                this._connectionMgr,
+                this.isRichExperiencesEnabled,
+            );
 
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
@@ -1248,6 +1258,126 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
+        // Start container command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdStartContainer,
+                async (node: TreeNodeInfo) => {
+                    if (!node) return;
+                    try {
+                        // doing it this way instead of directly calling startContainer
+                        // allows for the object explorer item loading UI to show
+                        this._objectExplorerProvider.deleteChildrenCache(node);
+                        await this._objectExplorerProvider.setNodeLoading(node);
+                        this._objectExplorerProvider.refresh(node);
+                        await this.objectExplorerTree.reveal(node, {
+                            select: true,
+                            focus: true,
+                            expand: true,
+                        });
+
+                        await this.connectionManager.connectionUI
+                            .saveProfile(node.connectionProfile as IConnectionProfile)
+                            .then(async () => {
+                                await this.createObjectExplorerSession(
+                                    node.connectionProfile as IConnectionProfile,
+                                );
+                            });
+                    } catch {
+                        vscode.window.showErrorMessage(
+                            LocalizedConstants.ContainerDeployment.failStartContainer(
+                                node.connectionProfile.containerName,
+                            ),
+                        );
+                    }
+                },
+            ),
+        );
+
+        // Stop container command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdStopContainer,
+                async (node: TreeNodeInfo) => {
+                    if (!node) return;
+
+                    const containerName = node.connectionProfile.containerName;
+
+                    node.loadingLabel =
+                        LocalizedConstants.ContainerDeployment.stoppingContainerLoadingLabel;
+                    await this._objectExplorerProvider.setNodeLoading(node);
+                    this._objectExplorerProvider.refresh(node);
+
+                    await stopContainer(containerName).then(async (stoppedSuccessfully) => {
+                        if (stoppedSuccessfully) {
+                            node.loadingLabel =
+                                LocalizedConstants.ContainerDeployment.startingContainerLoadingLabel;
+
+                            await this._objectExplorerProvider
+                                .disconnectNode(node as ConnectionNode)
+                                .then(() => this._objectExplorerProvider.refresh(undefined));
+                        }
+
+                        vscode.window.showInformationMessage(
+                            stoppedSuccessfully
+                                ? LocalizedConstants.ContainerDeployment.stoppedContainerSucessfully(
+                                      containerName,
+                                  )
+                                : LocalizedConstants.ContainerDeployment.failStopContainer(
+                                      containerName,
+                                  ),
+                        );
+                    });
+                },
+            ),
+        );
+        // Delete container command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDeleteContainer,
+                async (node: TreeNodeInfo) => {
+                    if (!node) return;
+
+                    const confirmation = await vscode.window.showInformationMessage(
+                        LocalizedConstants.ContainerDeployment.deleteContainerConfirmation(
+                            node.connectionProfile.containerName,
+                        ),
+                        { modal: true },
+                        LocalizedConstants.Common.delete,
+                    );
+
+                    if (confirmation === LocalizedConstants.Common.delete) {
+                        node.loadingLabel =
+                            LocalizedConstants.ContainerDeployment.deletingContainerLoadingLabel;
+                        await this._objectExplorerProvider.setNodeLoading(node);
+                        this._objectExplorerProvider.refresh(node);
+
+                        const containerName = node.connectionProfile.containerName;
+                        const deletedSuccessfully = await deleteContainer(containerName);
+                        vscode.window.showInformationMessage(
+                            deletedSuccessfully
+                                ? LocalizedConstants.ContainerDeployment.deletedContainerSucessfully(
+                                      containerName,
+                                  )
+                                : LocalizedConstants.ContainerDeployment.failDeleteContainer(
+                                      containerName,
+                                  ),
+                        );
+                        node.loadingLabel =
+                            LocalizedConstants.ContainerDeployment.startingContainerLoadingLabel;
+                        if (deletedSuccessfully) {
+                            // Delete node from tree
+                            await this._objectExplorerProvider.removeNode(
+                                node as ConnectionNode,
+                                false,
+                            );
+                            return this._objectExplorerProvider.refresh(undefined);
+                        }
+                    }
+                },
+            ),
+        );
+
         // Reveal Query Results command
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdrevealQueryResultPanel, () => {
@@ -1496,6 +1626,20 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    public onDeployContainer(): void {
+        sendActionEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.StartContainerDeployment,
+        );
+
+        const reactPanel = new ContainerDeploymentWebviewController(
+            this._context,
+            this._vscodeWrapper,
+            this,
+        );
+        reactPanel.revealToForeground();
     }
 
     /**
