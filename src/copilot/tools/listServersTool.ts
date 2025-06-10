@@ -40,7 +40,7 @@ export class ListServersTool extends ToolBase<undefined> {
             profileId: p.id,
             profileName: p.profileName,
             server: p.server,
-            database: p.database || "",
+            database: p.database || Constants.defaultDatabase,
         }));
         return JSON.stringify({ servers });
     }
