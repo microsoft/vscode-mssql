@@ -1042,6 +1042,12 @@ export class SchemaDesigner {
     }
     public static OpeningPublishScript = l10n.t("Opening Publish Script. This may take a while...");
     public static GeneratingReport = l10n.t("Generating Report. This may take a while...");
+    public static PublishScriptFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to generate publish script: '{0}'",
+            args: [errorMessage ? errorMessage : "Unknown"],
+            comment: ["{0} is the error message returned from the generate script operation"],
+        });
 }
 
 export class StatusBar {
