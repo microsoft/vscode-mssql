@@ -518,6 +518,10 @@
       <source xml:lang="en">Connect to server {0}?</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5">
+      <source xml:lang="en">Connect using profile {0}?</source>
+      <note>{0} is the profile ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
       <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
       <note>{0} is the server name
@@ -553,6 +557,10 @@
     <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
       <source xml:lang="en">Connecting to: </source>
     </trans-unit>
+    <trans-unit id="++CODE++efb70e946b81dee71e5439537f7160292d511bb79830c8edd338f32e232cf183">
+      <source xml:lang="en">Connecting using profile {0}</source>
+      <note>{0} is the profile ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
       <source xml:lang="en">Connecting...</source>
     </trans-unit>
@@ -574,6 +582,10 @@
     <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
       <source xml:lang="en">Connection not found for uri &quot;{0}&quot;.</source>
       <note>{0} is the uri</note>
+    </trans-unit>
+    <trans-unit id="++CODE++392f78e8df5a591be501949632cd689e0fd59c4e0233c8b002a2dce8518ad4e4">
+      <source xml:lang="en">Connection profile &apos;{0}&apos; not found.</source>
+      <note>{0} is the profile ID</note>
     </trans-unit>
     <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
       <source xml:lang="en">Connection string is required</source>
@@ -782,6 +794,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
       <source xml:lang="en">Edit Table</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
+      <source xml:lang="en">Either profileId or serverName must be provided.</source>
     </trans-unit>
     <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
       <source xml:lang="en">Enable &apos;Trust Server Certificate&apos;</source>

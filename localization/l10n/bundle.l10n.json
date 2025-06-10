@@ -1459,6 +1459,25 @@
   },
   "Successfully connected to server.": "Successfully connected to server.",
   "Failed to connect to server.": "Failed to connect to server.",
+  "Connection profile '{0}' not found./{0} is the profile ID": {
+    "message": "Connection profile '{0}' not found.",
+    "comment": [
+      "{0} is the profile ID"
+    ]
+  },
+  "Either profileId or serverName must be provided.": "Either profileId or serverName must be provided.",
+  "Connect using profile {0}?/{0} is the profile ID": {
+    "message": "Connect using profile {0}?",
+    "comment": [
+      "{0} is the profile ID"
+    ]
+  },
+  "Connecting using profile {0}/{0} is the profile ID": {
+    "message": "Connecting using profile {0}",
+    "comment": [
+      "{0} is the profile ID"
+    ]
+  },
   "Disconnect from connection '{0}'?/{0} is the connection ID": {
     "message": "Disconnect from connection '{0}'?",
     "comment": [

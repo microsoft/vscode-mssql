@@ -8,10 +8,12 @@ import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import { getErrorMessage } from "../../utils/utils";
 
 /** Parameters for the connect tool. */
 export interface ConnectToolParams {
-    serverName: string;
+    profileId?: string;
+    serverName?: string;
     database?: string;
 }
 
@@ -22,6 +24,16 @@ export interface ConnectToolResult {
     message?: string;
 }
 
+/** Types of connection profile matches found during the workflow. */
+export enum ConnectionMatchType {
+    ProfileId = "profileId",
+    ProfileNotFound = "profileNotFound",
+    ExactMatch = "exactMatch",
+    ServerMatch = "serverMatch",
+    NoServerMatch = "noServerMatch",
+    InvalidInput = "invalidInput",
+}
+
 export class ConnectTool extends ToolBase<ConnectToolParams> {
     public readonly toolName = Constants.copilotConnectToolName;
 
@@ -29,38 +41,104 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
         super();
     }
 
+    /**
+     * Finds a connection profile based on the workflow:
+     * 1. If profileId is provided, use that saved connection profile directly
+     * 2. If serverName/database combo is provided:
+     *    a) Look for exact match in saved connections and use it
+     *    b) If no exact match, look for saved connection with same server but different database
+     *    c) If no saved connection with same server exists, return null
+     */
+    private async findConnectionWithProperties(
+        profileId?: string,
+        serverName?: string,
+        database?: string,
+    ) {
+        const profiles = await this.connectionManager.connectionStore.readAllConnections();
+
+        // 1. If profileId is provided, use that saved connection profile directly
+        if (profileId) {
+            const profile = profiles.find((p) => p.id === profileId);
+            if (profile) {
+                return { profile, matchType: ConnectionMatchType.ProfileId };
+            }
+            return { profile: undefined, matchType: ConnectionMatchType.ProfileNotFound };
+        }
+
+        // 2. If serverName is provided, look for saved connections
+        if (serverName) {
+            // 2a. Look for exact match (same server and database)
+            if (database) {
+                const exactMatch = profiles.find(
+                    (p) => p.server === serverName && p.database === database,
+                );
+                if (exactMatch) {
+                    return { profile: exactMatch, matchType: ConnectionMatchType.ExactMatch };
+                }
+            }
+
+            // 2b. Look for saved connection with same server but different (or no specified) database
+            const serverMatch = profiles.find((p) => p.server === serverName);
+            if (serverMatch) {
+                return { profile: serverMatch, matchType: ConnectionMatchType.ServerMatch };
+            }
+
+            // 2c. No saved connection with same server exists
+            return { profile: undefined, matchType: ConnectionMatchType.NoServerMatch };
+        }
+
+        return { profile: undefined, matchType: ConnectionMatchType.InvalidInput };
+    }
+
     async call(
         options: vscode.LanguageModelToolInvocationOptions<ConnectToolParams>,
         _token: vscode.CancellationToken,
     ) {
-        // TODO: should we connect via the connection profile name or server/db name?
-        const { serverName, database } = options.input;
-        // Fetch all profiles and find the requested one
-        const profiles = await this.connectionManager.connectionStore.readAllConnections();
-        const profile = profiles.find((p) => p.server === serverName);
-        if (!profile) {
+        const { profileId, serverName, database } = options.input;
+
+        // Find the appropriate connection profile using our workflow
+        const result = await this.findConnectionWithProperties(profileId, serverName, database);
+        if (!result.profile) {
+            let errorMessage: string;
+            switch (result.matchType) {
+                case ConnectionMatchType.ProfileNotFound:
+                    errorMessage = loc.connectToolProfileNotFoundError(profileId!);
+                    break;
+                case ConnectionMatchType.NoServerMatch:
+                    errorMessage = loc.connectToolServerNotFoundError(serverName!);
+                    break;
+                case ConnectionMatchType.InvalidInput:
+                    errorMessage = loc.connectToolInvalidInputError();
+                    break;
+                default:
+                    errorMessage = loc.connectToolFailMessage;
+            }
             return JSON.stringify({
-                message: loc.connectToolServerNotFoundError(serverName),
+                message: errorMessage,
                 success: false,
             } as ConnectToolResult);
         }
 
-        let connectionId = `${Constants.extensionName}/${serverName}`;
-        if (database) {
-            connectionId += `/${database}`;
+        // Determine the connection ID and database to use
+        const targetServer = result.profile.server;
+        const targetDatabase = database || result.profile.database;
+
+        let connectionId = `${Constants.extensionName}/${targetServer}`;
+        if (targetDatabase) {
+            connectionId += `/${targetDatabase}`;
         }
 
         let success: boolean;
         let message: string;
         try {
             success = await this.connectionManager.connect(connectionId, {
-                ...profile,
-                database: database,
+                ...result.profile,
+                database: targetDatabase,
             });
             message = success ? loc.connectToolSuccessMessage : loc.connectToolFailMessage;
         } catch (err) {
             success = false;
-            message = err instanceof Error ? err.message : String(err);
+            message = getErrorMessage(err);
         }
         return JSON.stringify({ success, connectionId, message } as ConnectToolResult);
     }
@@ -69,17 +147,28 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
         options: vscode.LanguageModelToolInvocationPrepareOptions<ConnectToolParams>,
         _token: vscode.CancellationToken,
     ) {
-        const { serverName, database } = options.input;
-        const confirmationText = database
-            ? loc.connectToolConfirmationMessageWithServerAndDatabase(serverName, database)
-            : loc.connectToolConfirmationMessageWithServerOnly(serverName);
+        const { profileId, serverName, database } = options.input;
+
+        let confirmationText: string;
+        let invocationMessage: string;
+
+        if (profileId) {
+            confirmationText = loc.connectToolConfirmationMessageWithProfile(profileId);
+            invocationMessage = loc.connectToolInvocationMessageWithProfile(profileId);
+        } else {
+            confirmationText = database
+                ? loc.connectToolConfirmationMessageWithServerAndDatabase(serverName!, database)
+                : loc.connectToolConfirmationMessageWithServerOnly(serverName!);
+            invocationMessage = database
+                ? loc.connectToolInvocationMessageWithServerAndDatabase(serverName!, database)
+                : loc.connectToolInvocationMessageWithServerOnly(serverName!);
+        }
+
         const confirmationMessages = {
             title: `${Constants.extensionName}: ${loc.connectToolConfirmationTitle}`,
             message: new vscode.MarkdownString(confirmationText),
         };
-        const invocationMessage = database
-            ? loc.connectToolInvocationMessageWithServerAndDatabase(serverName, database)
-            : loc.connectToolInvocationMessageWithServerOnly(serverName);
+
         return { invocationMessage, confirmationMessages };
     }
 }

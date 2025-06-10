@@ -1214,6 +1214,30 @@ export class MssqlChatAgent {
     };
     public static connectToolSuccessMessage = l10n.t("Successfully connected to server.");
     public static connectToolFailMessage = l10n.t("Failed to connect to server.");
+    public static connectToolProfileNotFoundError = (profileId: string) => {
+        return l10n.t({
+            message: "Connection profile '{0}' not found.",
+            args: [profileId],
+            comment: ["{0} is the profile ID"],
+        });
+    };
+    public static connectToolInvalidInputError = () => {
+        return l10n.t("Either profileId or serverName must be provided.");
+    };
+    public static connectToolConfirmationMessageWithProfile = (profileId: string) => {
+        return l10n.t({
+            message: "Connect using profile {0}?",
+            args: [profileId],
+            comment: ["{0} is the profile ID"],
+        });
+    };
+    public static connectToolInvocationMessageWithProfile = (profileId: string) => {
+        return l10n.t({
+            message: "Connecting using profile {0}",
+            args: [profileId],
+            comment: ["{0} is the profile ID"],
+        });
+    };
     public static disconnectToolConfirmationTitle = l10n.t("Disconnect");
     public static disconnectToolConfirmationMessage = (connectionId: string) => {
         return l10n.t({
