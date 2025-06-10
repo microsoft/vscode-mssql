@@ -38,18 +38,18 @@ const createDisconnectedNodeContextValue = (
 };
 
 export class ConnectionNode extends TreeNodeInfo {
-    constructor(connectionProfile: ConnectionProfile) {
+    constructor(connectionProfile: ConnectionProfile, parentNode?: TreeNodeInfo) {
         const displayName = ConnInfo.getConnectionDisplayName(connectionProfile);
         super(
             displayName,
             createDisconnectedNodeContextValue(connectionProfile),
             vscode.TreeItemCollapsibleState.Collapsed,
-            undefined,
+            parentNode?.nodePath ?? "" + connectionProfile.id,
             undefined,
             SERVER_NODE_DISCONNECTED,
             undefined,
             connectionProfile,
-            undefined,
+            parentNode,
             undefined,
             undefined,
         );

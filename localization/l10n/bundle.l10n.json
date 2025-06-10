@@ -112,6 +112,7 @@
   },
   "Close Find": "Close Find",
   "Load": "Load",
+  "Select": "Select",
   "Finish": "Finish",
   "Retry": "Retry",
   "Error": "Error",
@@ -627,6 +628,21 @@
     ]
   },
   "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
+  "Create New Connection Group": "Create New Connection Group",
+  "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
+    "message": "Edit Connection Group: {0}",
+    "comment": [
+      "{0} is the name of the connection group being edited"
+    ]
+  },
+  "Enter connection group name": "Enter connection group name",
+  "Enter description (optional)": "Enter description (optional)",
+  "Color": "Color",
+  "Choose color": "Choose color",
+  "Save Connection Group": "Save Connection Group",
+  "Hue": "Hue",
+  "Saturation": "Saturation",
+  "Brightness": "Brightness",
   "Loading deployment page...": "Loading deployment page...",
   "Local SQL Server database container": "Local SQL Server database container",
   "Instant Container Setup": "Instant Container Setup",
@@ -1074,7 +1090,7 @@
   "Enable Experiences & Reload": "Enable Experiences & Reload",
   "Error loading; refresh to try again": "Error loading; refresh to try again",
   "No items": "No items",
-  "We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
+  "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
   "Edit Connection Profile": "Edit Connection Profile",
   "Connecting...": "Connecting...",
   "Are you sure you want to remove {0}?/{0} is the node label": {
@@ -1090,12 +1106,17 @@
       "{0} is the script type"
     ]
   },
-  "Select": "Select",
   "Insert": "Insert",
   "Update": "Update",
   "Execute": "Execute",
   "Alter": "Alter",
   "Signing in to Azure...": "Signing in to Azure...",
+  "Are you sure you want to delete {0}?  This will also delete all connections in this group./{0} is the group name": {
+    "message": "Are you sure you want to delete {0}?  This will also delete all connections in this group.",
+    "comment": [
+      "{0} is the group name"
+    ]
+  },
   "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
@@ -1104,11 +1125,14 @@
   "Tenant ID": "Tenant ID",
   "Select a tenant": "Select a tenant",
   "Tenant ID is required": "Tenant ID is required",
+  "Connection Group": "Connection Group",
   "Server is required": "Server is required",
   "User name is required": "User name is required",
   "Connection string is required": "Connection string is required",
   "Sign in": "Sign in",
   "Additional parameters": "Additional parameters",
+  "<Default>": "<Default>",
+  "Create Connection Group": "Create Connection Group",
   "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission./{0} is the subscription name{1} is the subscription id": {
     "message": "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.",
     "comment": [
@@ -1428,6 +1452,12 @@
   },
   "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
+  "Edit Connection Group - {0}/{0} is the connection group name": {
+    "message": "Edit Connection Group - {0}",
+    "comment": [
+      "{0} is the connection group name"
+    ]
+  },
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
