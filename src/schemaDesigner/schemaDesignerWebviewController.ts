@@ -31,6 +31,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         private databaseName: string,
         private treeNode: TreeNodeInfo,
         private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
+        private connectionUri?: string,
     ) {
         super(
             context,
@@ -188,7 +189,20 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                         sessionId: this._sessionId,
                     });
                     // Open the document in the editor with the connection
-                    void this.mainController.onNewQuery(this.treeNode, result?.script);
+                    if (this.treeNode) {
+                        void this.mainController.onNewQuery(this.treeNode, result?.script);
+                    } else if (this.connectionUri) {
+                        const editor =
+                            await this.mainController.untitledSqlDocumentService.newQuery(
+                                result?.script,
+                            );
+                        await this.mainController.connectionManager.connect(
+                            editor.document.uri.toString(true),
+                            this.mainController.connectionManager.getConnectionInfo(
+                                this.connectionUri,
+                            ).credentials,
+                        );
+                    }
                 },
             );
         });

@@ -34,11 +34,11 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
         options: vscode.LanguageModelToolInvocationOptions<ConnectToolParams>,
         _token: vscode.CancellationToken,
     ) {
+        // TODO: should we connect via the connection profile name or server/db name?
         const { serverName, database } = options.input;
         // Fetch all profiles and find the requested one
-        const profiles =
-            await this.connectionManager.connectionStore.getConnectionQuickpickItems(false);
-        const profile = profiles.find((p) => p.connectionCreds.server === serverName);
+        const profiles = await this.connectionManager.connectionStore.readAllConnections();
+        const profile = profiles.find((p) => p.server === serverName);
         if (!profile) {
             return JSON.stringify({
                 message: loc.connectToolServerNotFoundError(serverName),
@@ -46,11 +46,8 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
             } as ConnectToolResult);
         }
 
-        let creds = await this.connectionManager.connectionUI.handleSelectedConnection(profile);
-
-        const cleanedServerName = serverName.replace(/\//g, "_");
-        const effectiveDatabase = database || profile.connectionCreds.database || defaultDatabase;
-        let connectionId = `${Constants.extensionName}/${cleanedServerName}`;
+        const effectiveDatabase = database || profile.database || defaultDatabase;
+        let connectionId = `${Constants.extensionName}/${serverName}`;
         if (effectiveDatabase) {
             connectionId += `/${effectiveDatabase}`;
         }
@@ -59,7 +56,7 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
         let message: string;
         try {
             success = await this.connectionManager.connect(connectionId, {
-                ...creds,
+                ...profile,
                 database: effectiveDatabase,
             });
             message = success ? loc.connectToolSuccessMessage : loc.connectToolFailMessage;

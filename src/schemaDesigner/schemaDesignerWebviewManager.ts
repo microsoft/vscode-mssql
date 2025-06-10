@@ -36,20 +36,34 @@ export class SchemaDesignerWebviewManager {
         schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
         databaseName: string,
         treeNode: TreeNodeInfo,
+        connectionUri?: string,
     ): Promise<SchemaDesignerWebviewController> {
-        const connectionInfo = treeNode.connectionProfile;
-        connectionInfo.database = databaseName;
+        let connectionString: string | undefined;
+        let azureAccountToken: string | undefined;
+        if (treeNode) {
+            const connectionInfo = treeNode.connectionProfile;
+            connectionInfo.database = databaseName;
 
-        const connectionDetails =
-            await mainController.connectionManager.createConnectionDetails(connectionInfo);
+            const connectionDetails =
+                await mainController.connectionManager.createConnectionDetails(connectionInfo);
 
-        await mainController.connectionManager.confirmEntraTokenValidity(connectionInfo);
+            await mainController.connectionManager.confirmEntraTokenValidity(connectionInfo);
 
-        const connectionString = await mainController.connectionManager.getConnectionString(
-            connectionDetails,
-            true,
-            true,
-        );
+            connectionString = await mainController.connectionManager.getConnectionString(
+                connectionDetails,
+                true,
+                true,
+            );
+            azureAccountToken = connectionInfo.azureAccountToken;
+        } else if (connectionUri) {
+            var connInfo = mainController.connectionManager.getConnectionInfo(connectionUri);
+            connectionString = await mainController.connectionManager.getConnectionString(
+                connectionUri,
+                true,
+                true,
+            );
+            azureAccountToken = connInfo.credentials.azureAccountToken;
+        }
 
         const key = `${connectionString}-${databaseName}`;
         if (!this.schemaDesigners.has(key)) {
@@ -59,10 +73,11 @@ export class SchemaDesignerWebviewManager {
                 mainController,
                 schemaDesignerService,
                 connectionString,
-                connectionInfo.azureAccountToken,
+                azureAccountToken,
                 databaseName,
                 treeNode,
                 this.schemaDesignerCache,
+                connectionUri,
             );
             schemaDesigner.onDisposed(async () => {
                 this.schemaDesigners.delete(key);
@@ -91,6 +106,7 @@ export class SchemaDesignerWebviewManager {
                             schemaDesignerService,
                             databaseName,
                             treeNode,
+                            connectionUri,
                         );
                     }
                 }

@@ -8,7 +8,6 @@ import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
-import { IConnectionInfo } from "vscode-mssql";
 
 export interface ShowSchemaToolParams {
     connectionId: string;
@@ -24,7 +23,7 @@ export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
 
     constructor(
         private connectionManager: ConnectionManager,
-        private showSchema: (connInfo: IConnectionInfo) => Promise<void>,
+        private showSchema: (connectionUri: string, database: string) => Promise<void>,
     ) {
         super();
     }
@@ -35,15 +34,16 @@ export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
     ) {
         const { connectionId } = options.input;
         try {
-            const connInfo = this.connectionManager.getConnectionInfo(connectionId)?.credentials;
-            if (!connInfo) {
+            const connInfo = this.connectionManager.getConnectionInfo(connectionId);
+            const connCreds = connInfo?.credentials;
+            if (!connCreds) {
                 return JSON.stringify({
                     success: false,
                     message: loc.showSchemaToolNoConnectionError(connectionId),
                 });
             }
 
-            await this.showSchema(connInfo);
+            await this.showSchema(connectionId, connCreds.database);
             return JSON.stringify({
                 success: true,
                 message: loc.showSchemaToolSuccessMessage,

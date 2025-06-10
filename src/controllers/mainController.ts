@@ -538,18 +538,16 @@ export default class MainController implements vscode.Disposable {
                     "mssql_show_schema",
                     new ShowSchemaTool(
                         this.connectionManager,
-                        async (connInfo: IConnectionInfo) => {
-                            console.log("connecting to schema designer for");
-                            console.log(connInfo);
-                            return;
+                        async (connectionUri: string, database: string) => {
                             const designer =
                                 await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
                                     this._context,
                                     this._vscodeWrapper,
                                     this,
                                     this.schemaDesignerService,
-                                    "",
+                                    database,
                                     undefined,
+                                    connectionUri,
                                 );
                             designer.revealToForeground();
                         },
@@ -1898,6 +1896,10 @@ export default class MainController implements vscode.Disposable {
 
     public set connectionManager(connectionManager: ConnectionManager) {
         this._connectionMgr = connectionManager;
+    }
+
+    public get untitledSqlDocumentService(): UntitledSqlDocumentService {
+        return this._untitledSqlDocumentService;
     }
 
     public set untitledSqlDocumentService(untitledSqlDocumentService: UntitledSqlDocumentService) {
