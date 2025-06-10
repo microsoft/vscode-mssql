@@ -30,6 +30,8 @@ export async function generateConnectionComponents(
     connectionManager: ConnectionManager,
     azureAccountOptions: Promise<FormItemOptions[]>,
     azureActionButtons: Promise<FormItemActionButton[]>,
+    connectionGroupOptions: Promise<FormItemOptions[]>,
+    connectionGroupButton: Promise<FormItemActionButton>,
 ): Promise<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>> {
     // get list of connection options from Tools Service
     const capabilitiesResult: CapabilitiesResult = await connectionManager.client.sendRequest(
@@ -50,6 +52,7 @@ export async function generateConnectionComponents(
     const _mainOptionNames = new Set<string>([
         ...ConnectionDialogWebviewController.mainOptions,
         "profileName",
+        "groupId",
     ]);
 
     for (const option of connectionOptions) {
@@ -78,7 +81,13 @@ export async function generateConnectionComponents(
         }
     }
 
-    await completeFormComponents(result, await azureAccountOptions, await azureActionButtons);
+    await completeFormComponents(
+        result,
+        await azureAccountOptions,
+        await azureActionButtons,
+        await connectionGroupOptions,
+        await connectionGroupButton,
+    );
 
     return result;
 }
@@ -190,6 +199,8 @@ export async function completeFormComponents(
     components: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>,
     azureAccountOptions: FormItemOptions[],
     azureActionButtons: FormItemActionButton[],
+    connectionGroupOptions: FormItemOptions[],
+    connectionGroupButton: FormItemActionButton,
 ) {
     // Add additional components that are not part of the connection options
     components["profileName"] = {
@@ -197,6 +208,16 @@ export async function completeFormComponents(
         label: Loc.profileName,
         required: false,
         type: FormItemType.Input,
+        isAdvancedOption: false,
+    };
+
+    components["groupId"] = {
+        propertyName: "groupId",
+        label: Loc.connectionGroup,
+        required: false,
+        type: FormItemType.Dropdown,
+        options: connectionGroupOptions,
+        actionButtons: [connectionGroupButton],
         isAdvancedOption: false,
     };
 

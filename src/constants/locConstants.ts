@@ -579,7 +579,7 @@ export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
     public static NoItems = l10n.t("No items");
     public static FailedOEConnectionError = l10n.t(
-        "We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
+        "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
     );
     public static FailedOEConnectionErrorRetry = l10n.t("Retry");
     public static FailedOEConnectionErrorUpdate = l10n.t("Edit Connection Profile");
@@ -609,6 +609,15 @@ export class ObjectExplorer {
     public static ScriptExecuteLabel = l10n.t("Execute");
     public static ScriptAlterLabel = l10n.t("Alter");
     public static AzureSignInMessage = l10n.t("Signing in to Azure...");
+
+    public static ConnectionGroupDeletionConfirmation(groupName: string) {
+        return l10n.t({
+            message:
+                "Are you sure you want to delete {0}?  This will also delete all connections in this group.",
+            args: [groupName],
+            comment: ["{0} is the group name"],
+        });
+    }
 }
 
 export class ConnectionDialog {
@@ -621,6 +630,7 @@ export class ConnectionDialog {
     public static selectATenant = l10n.t("Select a tenant");
     public static tenantIdIsRequired = l10n.t("Tenant ID is required");
     public static profileName = l10n.t("Profile Name");
+    public static connectionGroup = l10n.t("Connection Group");
     public static serverIsRequired = l10n.t("Server is required");
     public static usernameIsRequired = l10n.t("User name is required");
     public static connectionString = l10n.t("Connection String");
@@ -628,6 +638,8 @@ export class ConnectionDialog {
     public static signIn = l10n.t("Sign in");
     public static additionalParameters = l10n.t("Additional parameters");
     public static connect = l10n.t("Connect");
+    public static default = l10n.t("<Default>");
+    public static createConnectionGroup = l10n.t("Create Connection Group");
 
     public static errorLoadingAzureDatabases(subscriptionName: string, subscriptionId: string) {
         return l10n.t({
@@ -1286,4 +1298,15 @@ export class MssqlChatAgent {
 
 export class QueryEditor {
     public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
+}
+
+export class ConnectionGroup {
+    public static createNewGroup = l10n.t("Create Connection Group");
+    public static editExistingGroup = (groupName: string) => {
+        return l10n.t({
+            message: "Edit Connection Group - {0}",
+            args: [groupName],
+            comment: ["{0} is the connection group name"],
+        });
+    };
 }

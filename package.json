@@ -80,6 +80,7 @@
         "@angular/router": "~3.1.2",
         "@angular/upgrade": "~2.1.2",
         "@azure/core-paging": "^1.6.2",
+        "@ctrl/tinycolor": "^4.1.0",
         "@dagrejs/dagre": "^1.1.4",
         "@eslint/compat": "^1.1.0",
         "@eslint/js": "^9.5.0",
@@ -428,6 +429,12 @@
                     "group": "navigation"
                 },
                 {
+                    "command": "mssql.connectionGroups.create",
+                    "when": "view == objectExplorer",
+                    "title": "%mssql.connectionGroups.create%",
+                    "group": "navigation"
+                },
+                {
                     "command": "mssql.startQueryHistoryCapture",
                     "when": "view == queryHistory && config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture",
                     "title": "%mssql.startQueryHistoryCapture%",
@@ -465,6 +472,22 @@
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "mssql.addObjectExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "title": "%mssql.addObjectExplorer%",
+                    "group": "0_MSSQL_connectionGroups@0"
+                },
+                {
+                    "command": "mssql.connectionGroups.edit",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "group": "0_MSSQL_connectionGroups@1"
+                },
+                {
+                    "command": "mssql.connectionGroups.delete",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "group": "0_MSSQL_connectionGroups@9"
+                },
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
@@ -552,13 +575,29 @@
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/ ",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
                     "group": "5_MSSQL_tree@9999"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",
                     "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "MS_SQL@11"
+                },
+                {
+                    "command": "mssql.addObjectExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "title": "%mssql.addObjectExplorer%",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "mssql.connectionGroups.edit",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "mssql.connectionGroups.delete",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "group": "inline@2"
                 },
                 {
                     "command": "mssql.filterNode",
@@ -592,7 +631,7 @@
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/ ",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
                     "group": "inline@9999"
                 },
                 {
@@ -646,7 +685,7 @@
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/"
                 },
                 {
                     "command": "mssql.scriptSelect",
@@ -1059,6 +1098,24 @@
                 "command": "mssql.copilot.rewriteQuery",
                 "title": "%mssql.copilot.rewriteQuery%",
                 "category": "MSSQL"
+            },
+            {
+                "command": "mssql.connectionGroups.create",
+                "title": "%mssql.connectionGroups.create%",
+                "category": "MSSQL",
+                "icon": "$(new-folder)"
+            },
+            {
+                "command": "mssql.connectionGroups.edit",
+                "title": "%mssql.connectionGroups.edit%",
+                "category": "MSSQL",
+                "icon": "$(edit)"
+            },
+            {
+                "command": "mssql.connectionGroups.delete",
+                "title": "%mssql.connectionGroups.delete%",
+                "category": "MSSQL",
+                "icon": "$(trash)"
             },
             {
                 "command": "mssql.deployLocalDockerContainer",
