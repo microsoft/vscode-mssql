@@ -6,6 +6,8 @@
 import * as vscode from "vscode";
 import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
+import * as Constants from "../../constants/constants";
+import { MssqlChatAgent as loc } from "../../constants/locConstants";
 
 export interface ShowSchemaToolParams {
     connectionId: string;
@@ -17,8 +19,7 @@ export interface ShowSchemaToolResult {
 }
 
 export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
-    public readonly toolName = "mssql_show_schema";
-    public readonly description = "Show the schema for an MSSQL connection.";
+    public readonly toolName = Constants.copilotShowSchemaToolName;
 
     constructor(
         private connectionManager: ConnectionManager,
@@ -37,14 +38,13 @@ export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
             if (!connInfo) {
                 return JSON.stringify({
                     success: false,
-                    message: `No connection found for connectionId: ${connectionId}`,
+                    message: loc.showSchemaToolNoConnectionError(connectionId),
                 });
             }
-            // Cast to concrete type to access the method
-            // await this.schemaDesignerService.createSchemaWebviewSession(connInfo);
+            // TODO: Implement schema visualization logic
             return JSON.stringify({
                 success: true,
-                message: "Schema visualization opened.",
+                message: loc.showSchemaToolSuccessMessage,
             });
         } catch (err) {
             return JSON.stringify({
@@ -59,12 +59,11 @@ export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
         _token: vscode.CancellationToken,
     ) {
         const { connectionId } = options.input;
-        return {
-            invocationMessage: `Showing schema for connection '${connectionId}'`,
-            confirmationMessages: {
-                title: "mssql: Show Schema",
-                message: new vscode.MarkdownString(`Show schema for connection '${connectionId}'?`),
-            },
+        const confirmationMessages = {
+            title: `${Constants.extensionName}: ${loc.showSchemaToolConfirmationTitle}`,
+            message: new vscode.MarkdownString(loc.showSchemaToolConfirmationMessage(connectionId)),
         };
+        const invocationMessage = loc.showSchemaToolInvocationMessage(connectionId);
+        return { invocationMessage, confirmationMessages };
     }
 }

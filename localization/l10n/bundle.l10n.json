@@ -1292,6 +1292,76 @@
     ]
   },
   "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
+  "List Connections": "List Connections",
+  "List all connections registered with the mssql extension?": "List all connections registered with the mssql extension?",
+  "Listing server connections": "Listing server connections",
+  "Connect to Server": "Connect to Server",
+  "Connect to server {0}?/{0} is the server name": {
+    "message": "Connect to server {0}?",
+    "comment": [
+      "{0} is the server name"
+    ]
+  },
+  "Connect to server {0} and database {1}?/{0} is the server name{1} is the database name": {
+    "message": "Connect to server {0} and database {1}?",
+    "comment": [
+      "{0} is the server name",
+      "{1} is the database name"
+    ]
+  },
+  "Connecting to server {0}/{0} is the server name": {
+    "message": "Connecting to server {0}",
+    "comment": [
+      "{0} is the server name"
+    ]
+  },
+  "Connecting to server {0} and database {1}/{0} is the server name{1} is the database name": {
+    "message": "Connecting to server {0} and database {1}",
+    "comment": [
+      "{0} is the server name",
+      "{1} is the database name"
+    ]
+  },
+  "Server {0} not found./{0} is the server name": {
+    "message": "Server {0} not found.",
+    "comment": [
+      "{0} is the server name"
+    ]
+  },
+  "Successfully connected to server.": "Successfully connected to server.",
+  "Failed to connect to server.": "Failed to connect to server.",
+  "Disconnect from connection '{0}'?/{0} is the connection ID": {
+    "message": "Disconnect from connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Disconnecting from connection '{0}'/{0} is the connection ID": {
+    "message": "Disconnecting from connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Show Schema": "Show Schema",
+  "Show schema for connection '{0}'?/{0} is the connection ID": {
+    "message": "Show schema for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Showing schema for connection '{0}'/{0} is the connection ID": {
+    "message": "Showing schema for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "No connection found for connectionId: {0}/{0} is the connection ID": {
+    "message": "No connection found for connectionId: {0}",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Schema visualization opened.": "Schema visualization opened.",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",

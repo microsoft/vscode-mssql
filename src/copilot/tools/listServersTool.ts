@@ -6,6 +6,8 @@
 import * as vscode from "vscode";
 import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
+import * as Constants from "../../constants/constants";
+import { MssqlChatAgent as loc } from "../../constants/locConstants";
 
 export interface ServerProfile {
     profileId: string;
@@ -21,15 +23,14 @@ export interface ListServersResult {
 
 /** Tool implementation for listing database servers from local profiles. */
 export class ListServersTool extends ToolBase<undefined> {
-    public readonly toolName = "mssql_list_servers";
-    public readonly description = "List all database servers registered with the MSSQL extension.";
+    public readonly toolName = Constants.copilotListServersToolName;
 
     constructor(private connectionManager: ConnectionManager) {
         super();
     }
 
     async call(
-        options: vscode.LanguageModelToolInvocationOptions<undefined>,
+        _options: vscode.LanguageModelToolInvocationOptions<undefined>,
         _token: vscode.CancellationToken,
     ) {
         // Fetch all servers from the connection store
@@ -45,18 +46,16 @@ export class ListServersTool extends ToolBase<undefined> {
     }
 
     async prepareInvocation(
-        options: vscode.LanguageModelToolInvocationPrepareOptions<undefined>,
+        _options: vscode.LanguageModelToolInvocationPrepareOptions<undefined>,
         _token: vscode.CancellationToken,
     ) {
         const confirmationMessages = {
-            title: "mssql: List Database Servers",
-            message: new vscode.MarkdownString(
-                "List all database servers registered with the mssql extension?",
-            ),
+            title: `${Constants.extensionName}: ${loc.listServersToolConfirmationTitle}`,
+            message: new vscode.MarkdownString(loc.listServersToolConfirmationMessage),
         };
 
         return {
-            invocationMessage: "Listing server connections",
+            invocationMessage: loc.listServersToolInvocationMessage,
             confirmationMessages,
         };
     }

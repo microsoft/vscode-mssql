@@ -6,21 +6,21 @@
 import * as vscode from "vscode";
 import ConnectionManager from "../../controllers/connectionManager";
 import { ToolBase } from "./toolBase";
+import * as Constants from "../../constants/constants";
+import { MssqlChatAgent as loc } from "../../constants/locConstants";
 
-/** Parameters for the connect tool. */
+/** Parameters for the disconnect tool. */
 export interface DisconnectToolParams {
     connectionId: string;
 }
 
-/** Result of the connect tool. */
+/** Result of the disconnect tool. */
 export interface DisconnectToolResult {
     success: boolean;
 }
 
-export const DISCONNECT_TOOL_NAME = "mssql_disconnect";
-
 export class DisconnectTool extends ToolBase<DisconnectToolParams> {
-    public readonly toolName = DISCONNECT_TOOL_NAME;
+    public readonly toolName = Constants.copilotDisconnectToolName;
 
     constructor(private connectionManager: ConnectionManager) {
         super();
@@ -41,12 +41,11 @@ export class DisconnectTool extends ToolBase<DisconnectToolParams> {
         _token: vscode.CancellationToken,
     ) {
         const { connectionId } = options.input;
-        const confirmationText = `Disconnect from connection '${connectionId}'?`;
         const confirmationMessages = {
-            title: `mssql: Disconnect`,
-            message: new vscode.MarkdownString(confirmationText),
+            title: `${Constants.extensionName}: ${loc.disconnectToolConfirmationTitle}`,
+            message: new vscode.MarkdownString(loc.disconnectToolConfirmationMessage(connectionId)),
         };
-        const invocationMessage = `Disconnecting from connection '${connectionId}'`;
+        const invocationMessage = loc.disconnectToolInvocationMessage(connectionId);
         return { invocationMessage, confirmationMessages };
     }
 }

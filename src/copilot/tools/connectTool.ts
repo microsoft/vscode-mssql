@@ -7,6 +7,8 @@ import * as vscode from "vscode";
 import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 import { defaultDatabase } from "../../constants/constants";
+import * as Constants from "../../constants/constants";
+import { MssqlChatAgent as loc } from "../../constants/locConstants";
 
 /** Parameters for the connect tool. */
 export interface ConnectToolParams {
@@ -21,12 +23,8 @@ export interface ConnectToolResult {
     message?: string;
 }
 
-export const CONNECT_TOOL_NAME = "mssql_connect";
-
 export class ConnectTool extends ToolBase<ConnectToolParams> {
-    public readonly toolName = CONNECT_TOOL_NAME;
-    public readonly description =
-        "Connect to a MSSQL server using server name and optional database name.";
+    public readonly toolName = Constants.copilotConnectToolName;
 
     constructor(private connectionManager: ConnectionManager) {
         super();
@@ -43,7 +41,7 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
         const profile = profiles.find((p) => p.connectionCreds.server === serverName);
         if (!profile) {
             return JSON.stringify({
-                message: `Server with name '${serverName}' not found.`,
+                message: loc.connectToolServerNotFoundError(serverName),
                 success: false,
             } as ConnectToolResult);
         }
@@ -52,7 +50,7 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
 
         const cleanedServerName = serverName.replace(/\//g, "_");
         const effectiveDatabase = database || profile.connectionCreds.database || defaultDatabase;
-        let connectionId = `mssql/${cleanedServerName}`;
+        let connectionId = `${Constants.extensionName}/${cleanedServerName}`;
         if (effectiveDatabase) {
             connectionId += `/${effectiveDatabase}`;
         }
@@ -64,7 +62,7 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
                 ...creds,
                 database: effectiveDatabase,
             });
-            message = success ? "Successfully connected." : "Failed to connect.";
+            message = success ? loc.connectToolSuccessMessage : loc.connectToolFailMessage;
         } catch (err) {
             success = false;
             message = err instanceof Error ? err.message : String(err);
@@ -78,13 +76,15 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
     ) {
         const { serverName, database } = options.input;
         const confirmationText = database
-            ? `Connect to server '${serverName}' and database '${database}'?`
-            : `Connect to server '${serverName}'?`;
+            ? loc.connectToolConfirmationMessageWithServerAndDatabase(serverName, database)
+            : loc.connectToolConfirmationMessageWithServerOnly(serverName);
         const confirmationMessages = {
-            title: "mssql: Connect to Database Server",
+            title: `${Constants.extensionName}: ${loc.connectToolConfirmationTitle}`,
             message: new vscode.MarkdownString(confirmationText),
         };
-        const invocationMessage = `Connecting to server '${serverName}'${database ? ` and database '${database}'` : ""}`;
+        const invocationMessage = database
+            ? loc.connectToolInvocationMessageWithServerAndDatabase(serverName, database)
+            : loc.connectToolInvocationMessageWithServerOnly(serverName);
         return { invocationMessage, confirmationMessages };
     }
 }

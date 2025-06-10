@@ -161,6 +161,10 @@ export const ruleNameRegex = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]?$/;
 export const configAzureAccount = "azureAccount";
 export const azureAccountProviderCredentials = "azureAccountProviderCredentials";
 export const msalCacheFileName = "accessTokenCache";
+export const copilotConnectToolName = "mssql_connect";
+export const copilotDisconnectToolName = "mssql_disconnect";
+export const copilotListServersToolName = "mssql_list_servers";
+export const copilotShowSchemaToolName = "mssql_show_schema";
 
 // Configuration Constants
 export const copyIncludeHeaders = "copyIncludeHeaders";
