@@ -86,7 +86,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 return;
             }
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportToImage, {
-                format: payload.format,
+                format: payload?.format,
             });
             if (payload.format === "svg") {
                 let fileContents = decodeURIComponent(payload.fileContents.split(",")[1]);
@@ -124,7 +124,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 this.schemaDesignerDetails = sessionResponse;
                 this._sessionId = sessionResponse.sessionId;
                 intializationActivity.end(ActivityStatus.Succeeded, undefined, {
-                    tableCount: sessionResponse.schema.tables.length,
+                    tableCount: sessionResponse?.schema?.tables?.length,
                 });
                 return sessionResponse;
             } catch (error) {
@@ -174,14 +174,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 reportActivity.end(
                     ActivityStatus.Succeeded,
                     {
-                        hasSchemaChanged: result.report.hasSchemaChanged.toString(),
-                        possibleDataLoss: result.report.dacReport.possibleDataLoss.toString(),
+                        hasSchemaChanged: result.report?.hasSchemaChanged?.toString(),
+                        possibleDataLoss: result.report?.dacReport?.possibleDataLoss?.toString(),
                         requireTableRecreation:
-                            result.report.dacReport.requireTableRecreation.toString(),
-                        hasWarnings: result.report.dacReport.hasWarnings.toString(),
+                            result.report.dacReport?.requireTableRecreation?.toString(),
+                        hasWarnings: result.report?.dacReport?.hasWarnings?.toString(),
                     },
                     {
-                        tableCount: payload.updatedSchema.tables.length,
+                        tableCount: payload.updatedSchema?.tables?.length,
                     },
                 );
 
@@ -205,7 +205,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     sessionId: this._sessionId,
                 });
                 publishActivity.end(ActivityStatus.Succeeded, undefined, {
-                    tableCount: payload.updatedSchema.tables.length,
+                    tableCount: payload.updatedSchema?.tables?.length,
                 });
                 this.updateCacheItem(undefined, false);
                 return {
@@ -254,7 +254,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                             ActivityStatus.Succeeded,
                             undefined,
                             result?.script
-                                ? { scriptLength: result.script.length }
+                                ? { scriptLength: result?.script?.length }
                                 : { scriptLength: 0 },
                         );
                         // Open the document in the editor with the connection
