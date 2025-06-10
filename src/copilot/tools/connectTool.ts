@@ -131,10 +131,17 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
         let success: boolean;
         let message: string;
         try {
-            success = await this.connectionManager.connect(connectionId, {
-                ...result.profile,
-                database: targetDatabase,
-            });
+            let connInfo = result.profile;
+            const handlePwdResult =
+                await this.connectionManager.handlePasswordBasedCredentials(connInfo);
+            if (handlePwdResult) {
+                success = await this.connectionManager.connect(connectionId, {
+                    ...connInfo,
+                    database: targetDatabase,
+                });
+            } else {
+                success = false;
+            }
             message = success ? loc.connectToolSuccessMessage : loc.connectToolFailMessage;
         } catch (err) {
             success = false;
