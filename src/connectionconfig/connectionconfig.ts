@@ -229,33 +229,46 @@ export class ConnectionConfig implements IConnectionConfig {
 
     public async removeGroup(id: string): Promise<boolean> {
         const connections = this.getConnectionsFromSettings();
+        const groups = this.getGroupsFromSettings();
 
+        // Find all subgroup IDs recursively
+        const groupsToRemove = new Set<string>();
+        const findChildGroups = (groupId: string) => {
+            groupsToRemove.add(groupId);
+            for (const group of groups) {
+                if (group.parentId === groupId) {
+                    findChildGroups(group.id);
+                }
+            }
+        };
+        findChildGroups(id);
+
+        // Remove all connections in the groups being removed
         let connectionRemoved = false;
-
-        for (const conn of connections) {
-            if (conn.groupId === id) {
+        const remainingConnections = connections.filter((conn) => {
+            if (groupsToRemove.has(conn.groupId)) {
                 this._logger.verbose(
-                    `Removing connection '${conn.id}' because its group '${id}' was removed`,
+                    `Removing connection '${conn.id}' because its group '${conn.groupId}' was removed`,
                 );
                 connectionRemoved = true;
-                this.removeConnectionHelper(conn, connections);
+                return false;
             }
-        }
+            return true;
+        });
 
-        const groups = this.getGroupsFromSettings();
-        const index = groups.findIndex((g) => g.id === id);
-        if (index === -1) {
+        // Remove all groups that were marked for removal
+        const remainingGroups = groups.filter((g) => !groupsToRemove.has(g.id));
+
+        if (remainingGroups.length === groups.length) {
             this._logger.error(`Connection group with ID '${id}' not found when removing.`);
             return false;
         }
-        groups.splice(index, 1);
 
         if (connectionRemoved) {
-            await this.writeConnectionsToSettings(connections);
+            await this.writeConnectionsToSettings(remainingConnections);
         }
 
-        await this.writeConnectionGroupsToSettings(groups);
-
+        await this.writeConnectionGroupsToSettings(remainingGroups);
         return true;
     }
 

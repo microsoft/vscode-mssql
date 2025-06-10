@@ -422,6 +422,60 @@ suite("ConnectionConfig Tests", () => {
                 expect(savedGroups[0].name).to.equal("ROOT");
             });
 
+            test("removeGroup removes child groups and their connections recursively", async () => {
+                // Set up test groups: Group A with children B and C
+                const groupA = { name: "Group A", id: "group-a", parentId: rootGroupId };
+                const groupB = { name: "Group B", id: "group-b", parentId: "group-a" };
+                const groupC = { name: "Group C", id: "group-c", parentId: "group-a" };
+
+                mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                    { name: "ROOT", id: rootGroupId },
+                    groupA,
+                    groupB,
+                    groupC,
+                ]);
+
+                // Set up test connections: one in Group B, one in Group A
+                const conn1 = {
+                    id: "conn1",
+                    groupId: "group-b",
+                    server: "server1",
+                    authenticationType: "Integrated",
+                    profileName: "Connection 1",
+                } as IConnectionProfile;
+
+                const conn2 = {
+                    id: "conn2",
+                    groupId: "group-a",
+                    server: "server2",
+                    authenticationType: "Integrated",
+                    profileName: "Connection 2",
+                } as IConnectionProfile;
+
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [conn1, conn2]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                // Remove Group A
+                const result = await connConfig.removeGroup(groupA.id);
+
+                expect(result, "Group should have been found and removed").to.be.true;
+
+                // Verify groups were removed
+                const savedGroups = mockGlobalConfigData.get(
+                    Constants.connectionGroupsArrayName,
+                ) as IConnectionGroup[];
+                expect(savedGroups).to.have.lengthOf(1, "Only ROOT group should remain");
+                expect(savedGroups[0].id).to.equal(rootGroupId);
+
+                // Verify connections were removed
+                const savedConnections = mockGlobalConfigData.get(
+                    Constants.connectionsArrayName,
+                ) as IConnectionProfile[];
+                expect(savedConnections).to.have.lengthOf(0, "All connections should be removed");
+            });
+
             test("getGroups returns all connection groups", async () => {
                 const testGroups = [
                     { name: "ROOT", id: rootGroupId },
