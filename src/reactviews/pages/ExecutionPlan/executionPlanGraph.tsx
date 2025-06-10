@@ -344,7 +344,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         ref={resizableRef}>
                         <div className={classes.resizer} onMouseDown={onMouseDown}></div>
                         <Popover open={propertiesClicked}>
-                            <div style={{ height: "100%" }} tabIndex={0}>
+                            <div>
                                 <PropertiesPane
                                     // guaranteed to be non-null
                                     executionPlanView={executionPlanView!}
