@@ -11,7 +11,7 @@ import {
 } from "../../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
-import { Keys } from "../../keys";
+import { Keys } from "../../../../common/keys";
 import { IDisposableDataProvider } from "../dataProvider";
 
 /**

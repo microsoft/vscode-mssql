@@ -24,6 +24,8 @@ export enum TelemetryViews {
     ExecutionPlan = "ExecutionPlan",
     AddFirewallRule = "AddFirewallRule",
     MssqlCopilot = "MssqlCopilot",
+    ConnectionGroup = "ConnectionGroup",
+    SchemaDesigner = "SchemaDesigner",
 }
 
 export enum TelemetryActions {
@@ -101,6 +103,11 @@ export enum TelemetryActions {
     StartConversation = "StartConversation",
     GetQueryResultState = "GetQueryResultState",
     SavePlan = "SavePlan",
+    SaveConnectionGroup = "SaveConnectionGroup",
+    DragAndDrop = "DragAndDrop",
+    ExportToImage = "ExportToImage",
+    GetReport = "getReport",
+    PublishSession = "PublishSession",
 }
 
 /**

@@ -7,6 +7,9 @@
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
+      <source xml:lang="en">&lt;Default&gt;</source>
+    </trans-unit>
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
@@ -146,6 +149,10 @@
     <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
       <source xml:lang="en">Are you sure you want to delete the selected items?</source>
     </trans-unit>
+    <trans-unit id="++CODE++06f1783b8fa5a8be694c26e8cea5b2bd668dd7beb434d1271155bae4e7f4a736">
+      <source xml:lang="en">Are you sure you want to delete {0}?  This will also delete all connections in this group.</source>
+      <note>{0} is the group name</note>
+    </trans-unit>
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
       <source xml:lang="en">Are you sure you want to disconnect?</source>
     </trans-unit>
@@ -242,6 +249,9 @@
     </trans-unit>
     <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
       <source xml:lang="en">Blanks</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
+      <source xml:lang="en">Brightness</source>
     </trans-unit>
     <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
       <source xml:lang="en">Browse Azure</source>
@@ -387,6 +397,9 @@
     <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
       <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
     </trans-unit>
+    <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
+      <source xml:lang="en">Choose color</source>
+    </trans-unit>
     <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
       <source xml:lang="en">Choose the Right Version</source>
     </trans-unit>
@@ -433,6 +446,9 @@
     </trans-unit>
     <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
       <source xml:lang="en">Collapse All</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
+      <source xml:lang="en">Color</source>
     </trans-unit>
     <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
       <source xml:lang="en">Column</source>
@@ -541,6 +557,9 @@
     <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
       <source xml:lang="en">Connection Error</source>
     </trans-unit>
+    <trans-unit id="++CODE++fea70af0cad96e7c97f889724e5dfe0e2d28cbf958e905f5e51ba2584c3d9458">
+      <source xml:lang="en">Connection Group</source>
+    </trans-unit>
     <trans-unit id="++CODE++d913a8ab7732ff7d26c8afceb2e2706c5c991762df193b236fd839bd3a616cb6">
       <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
     </trans-unit>
@@ -606,6 +625,9 @@
     <trans-unit id="++CODE++7aa0a3ede22306a6fe14f159fb12acfbb63bad17edf71486aa552c2cd757e5cd">
       <source xml:lang="en">Create As Script</source>
     </trans-unit>
+    <trans-unit id="++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d">
+      <source xml:lang="en">Create Connection Group</source>
+    </trans-unit>
     <trans-unit id="++CODE++71c1ec27a8c136ecdc781c1fd2364676155fbab7abf8837b9075eb3b9f9af7c0">
       <source xml:lang="en">Create Connection Profile</source>
     </trans-unit>
@@ -617,6 +639,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f7450e89276bf601752a2ef286965fb13e17c418012b0aa68be16f8941cc7321">
       <source xml:lang="en">Create Local SQL Container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
+      <source xml:lang="en">Create New Connection Group</source>
     </trans-unit>
     <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
       <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
@@ -748,6 +773,14 @@
     <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
       <source xml:lang="en">Edit</source>
     </trans-unit>
+    <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
+      <source xml:lang="en">Edit Connection Group - {0}</source>
+      <note>{0} is the connection group name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++82beb1b74986a2b292e8084ee59f9bedf5e0decc13f020369faebf40ce2981c7">
+      <source xml:lang="en">Edit Connection Group: {0}</source>
+      <note>{0} is the name of the connection group being edited</note>
+    </trans-unit>
     <trans-unit id="++CODE++a43dafda7f271d0796fb53cc6c2d8f302b8c8892ea0fed0b1096e9c7769f91c1">
       <source xml:lang="en">Edit Connection Profile</source>
     </trans-unit>
@@ -780,6 +813,12 @@
     </trans-unit>
     <trans-unit id="++CODE++1a77d555bedbf97481907d505c8c8ba64d32d3525b77122e16178dd4054c3c93">
       <source xml:lang="en">Ends With</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cad17aa68a83418367684821ea4734c877707d1f340846dc7b17b04a8a04c1c0">
+      <source xml:lang="en">Enter connection group name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423">
+      <source xml:lang="en">Enter description (optional)</source>
     </trans-unit>
     <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
       <source xml:lang="en">Enter new column width</source>
@@ -1109,6 +1148,9 @@
     <trans-unit id="++CODE++31a89f9bfc36d6f9ecf0a7e2e82cb5a9a0f1e7b1702f08bd3aced239c4f48a0b">
       <source xml:lang="en">How likely it is that you would recommend {0} to a friend or colleague?</source>
       <note>{0} is the feature name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
+      <source xml:lang="en">Hue</source>
     </trans-unit>
     <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
       <source xml:lang="en">I have read the summary and understand the potential risks.</source>
@@ -1761,6 +1803,9 @@
     <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
       <source xml:lang="en">Satisfied</source>
     </trans-unit>
+    <trans-unit id="++CODE++993f024b650eaf0f1c64118f6033c44b7c98d220539bcb51454ca578f6f2b477">
+      <source xml:lang="en">Saturation</source>
+    </trans-unit>
     <trans-unit id="++CODE++1509f561f2416598629b886ad7d3c05a7e221e4e0675c84bbff4ee6d9e03913d">
       <source xml:lang="en">Save</source>
     </trans-unit>
@@ -1769,6 +1814,9 @@
     </trans-unit>
     <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
       <source xml:lang="en">Save As</source>
+    </trans-unit>
+    <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
+      <source xml:lang="en">Save Connection Group</source>
     </trans-unit>
     <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
       <source xml:lang="en">Save Password</source>
@@ -2294,8 +2342,8 @@
     <trans-unit id="++CODE++d054fcb4284fd66975e378de56c04bda7b8e951e8e13f66834d9510e2b5461aa">
       <source xml:lang="en">We can&apos;t find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.</source>
     </trans-unit>
-    <trans-unit id="++CODE++f01e36aaf60d2146e1cf906fce3e055116bd19954ad018908f8a7cd8bd2a8b0c">
-      <source xml:lang="en">We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
+    <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
+      <source xml:lang="en">We couldn&apos;t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
     </trans-unit>
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
@@ -2486,6 +2534,9 @@
     <trans-unit id="mssql.addObjectExplorerLegacy">
       <source xml:lang="en">Add Connection (Legacy)</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroups.create">
+      <source xml:lang="en">Add Connection Group</source>
+    </trans-unit>
     <trans-unit id="mssql.addAadAccount">
       <source xml:lang="en">Add Microsoft Entra Account</source>
     </trans-unit>
@@ -2573,6 +2624,9 @@
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroups.delete">
+      <source xml:lang="en">Delete Connection Group</source>
+    </trans-unit>
     <trans-unit id="mssql.deleteContainer">
       <source xml:lang="en">Delete Container</source>
     </trans-unit>
@@ -2596,6 +2650,9 @@
     </trans-unit>
     <trans-unit id="mssql.editConnection">
       <source xml:lang="en">Edit Connection</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionGroups.edit">
+      <source xml:lang="en">Edit Connection Group</source>
     </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Edit Table</source>
