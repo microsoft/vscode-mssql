@@ -31,8 +31,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         private connectionString: string,
         private accessToken: string | undefined,
         private databaseName: string,
-        private treeNode: TreeNodeInfo,
         private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
+        private treeNode?: TreeNodeInfo,
         private connectionUri?: string,
     ) {
         super(
