@@ -194,6 +194,38 @@ export function registerCommonRequestHandlers(
             );
     });
 
+    webviewController.registerRequestHandler("copyAsCsv", async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            correlationId: correlationId,
+            format: "csv",
+        });
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .copyAsCsvRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+                message.includeHeaders,
+            );
+    });
+
+    webviewController.registerRequestHandler("copyAsJson", async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            correlationId: correlationId,
+            format: "json",
+        });
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .copyAsJsonRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+                message.includeHeaders,
+            );
+    });
+
     // Register request handlers for query result filters
     webviewController.registerRequestHandler("getFilters", async (message) => {
         return store.get(message.uri, SubKeys.Filter);
