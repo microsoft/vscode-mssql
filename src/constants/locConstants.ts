@@ -20,6 +20,7 @@ export class Common {
             comment: ["{0} is the action being confirmed"],
         });
     public static accept = l10n.t("Accept");
+    public static error = l10n.t("Error");
 }
 
 export let viewMore = l10n.t("View More");
@@ -884,6 +885,9 @@ export class ContainerDeployment {
     );
     public static startSqlServerContainerError = l10n.t(
         "Failed to start SQL Server container. Please check the error message for more details, and then try again.",
+    );
+    public static containerDoesNotExistError = l10n.t(
+        "Container does not exist. Would you like to remove the connection?",
     );
 }
 

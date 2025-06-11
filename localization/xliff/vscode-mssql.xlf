@@ -563,6 +563,9 @@
     <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
       <source xml:lang="en">Container Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
+      <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
+    </trans-unit>
     <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
       <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
     </trans-unit>
