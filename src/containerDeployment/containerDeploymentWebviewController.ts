@@ -7,7 +7,7 @@ import * as cd from "../sharedInterfaces/containerDeploymentInterfaces";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { platform } from "os";
-import { defaultContainerPort, localhost, sa, sqlAuthentication } from "../constants/constants";
+import { defaultPortNumber, localhost, sa, sqlAuthentication } from "../constants/constants";
 import { FormItemType, FormItemSpec, FormItemOptions } from "../sharedInterfaces/form";
 import MainController from "../controllers/mainController";
 import { FormWebviewController } from "../forms/formWebviewController";
@@ -67,8 +67,11 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
     private async initialize() {
         this.state.loadState = ApiStatus.Loading;
+        this.state.platform = platform();
+        const versions = await dockerUtils.getSqlServerContainerVersions();
+        this.state.formComponents = this.setFormComponents(versions);
         this.state.formState = {
-            version: "",
+            version: versions[0].value,
             password: "",
             savePassword: false,
             profileName: "",
@@ -77,9 +80,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             hostname: "",
             acceptEula: false,
         } as cd.DockerConnectionProfile;
-        this.state.platform = platform();
-        const versions = await dockerUtils.getSqlServerContainerVersions();
-        this.state.formComponents = this.setFormComponents(versions);
         this.state.dockerSteps = dockerUtils.initializeDockerSteps();
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
@@ -159,7 +159,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             }
 
             if (!state.formState.port) {
-                state.formState.port = await dockerUtils.findAvailablePort(defaultContainerPort);
+                state.formState.port = await dockerUtils.findAvailablePort(defaultPortNumber);
             }
 
             state.isDockerProfileValid = state.formErrors.length === 0;
