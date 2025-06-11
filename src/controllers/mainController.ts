@@ -75,7 +75,11 @@ import { DisconnectTool } from "../copilot/tools/disconnectTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
-import { deleteContainer, stopContainer } from "../containerDeployment/dockerUtils";
+import {
+    deleteContainer,
+    prepareForDockerContainerCommand,
+    stopContainer,
+} from "../containerDeployment/dockerUtils";
 
 /**
  * The main controller class that initializes the extension
@@ -1315,7 +1319,13 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdStartContainer,
                 async (node: TreeNodeInfo) => {
-                    if (!node) return;
+                    if (
+                        !node ||
+                        !node.connectionProfile ||
+                        !(await this.isContainerReadyForCommands(node))
+                    ) {
+                        return;
+                    }
                     try {
                         // doing it this way instead of directly calling startContainer
                         // allows for the object explorer item loading UI to show
@@ -1351,10 +1361,15 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdStopContainer,
                 async (node: TreeNodeInfo) => {
-                    if (!node) return;
+                    if (
+                        !node ||
+                        !node.connectionProfile ||
+                        !(await this.isContainerReadyForCommands(node))
+                    ) {
+                        return;
+                    }
 
                     const containerName = node.connectionProfile.containerName;
-
                     node.loadingLabel =
                         LocalizedConstants.ContainerDeployment.stoppingContainerLoadingLabel;
                     await this._objectExplorerProvider.setNodeLoading(node);
@@ -1388,7 +1403,13 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdDeleteContainer,
                 async (node: TreeNodeInfo) => {
-                    if (!node) return;
+                    if (
+                        !node ||
+                        !node.connectionProfile ||
+                        !(await this.isContainerReadyForCommands(node))
+                    ) {
+                        return;
+                    }
 
                     const confirmation = await vscode.window.showInformationMessage(
                         LocalizedConstants.ContainerDeployment.deleteContainerConfirmation(
@@ -2665,6 +2686,30 @@ export default class MainController implements vscode.Disposable {
         } else {
             return false;
         }
+    }
+
+    private async isContainerReadyForCommands(node: TreeNodeInfo): Promise<boolean> {
+        const containerName = node.connectionProfile?.containerName;
+        const prepResult = await prepareForDockerContainerCommand(containerName);
+        if (!prepResult.success) {
+            if (
+                prepResult.error ===
+                LocalizedConstants.ContainerDeployment.containerDoesNotExistError
+            ) {
+                node.loadingLabel = LocalizedConstants.Common.error;
+                const confirmation = await vscode.window.showInformationMessage(
+                    prepResult.error,
+                    { modal: true },
+                    LocalizedConstants.RemoveProfileLabel,
+                );
+                if (confirmation === LocalizedConstants.RemoveProfileLabel) {
+                    await this._objectExplorerProvider.removeNode(node as ConnectionNode, false);
+                }
+            } else {
+                vscode.window.showErrorMessage(prepResult.error);
+            }
+        }
+        return prepResult.success;
     }
 
     public removeAadAccount(prompter: IPrompter): void {
