@@ -1202,6 +1202,11 @@ Error:
         <source xml:lang="en">Failed to fetch user tokens.</source>
         <target state="translated">ユーザー トークンを取り込めませんでした。</target>
       </trans-unit>
+      <trans-unit id="++CODE++fe1cb43be8ed9ac5acc09fb31eba382f60c86eaadf55b6931322b9b139162a9e">
+        <source xml:lang="en">Failed to generate publish script: '{0}'</source>
+        <note>{0} is the error message returned from the generate script operation</note>
+        <target state="new">Failed to generate publish script: '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++cdf943bd7b320469af4343440384b361de46832547d9bc9c08b3bd9a90610364">
         <source xml:lang="en">Failed to generate script: '{0}'</source>
         <note>{0} is the error message returned from the generate script operation</note>
