@@ -303,6 +303,18 @@ export class SqlOutputContentProvider {
                 selection: ISlickRange[],
                 includeHeaders?: boolean,
             ) => this.copyRequestHandler(uri, batchId, resultsId, selection, includeHeaders),
+            copyAsCsv: (
+                batchId: number,
+                resultsId: number,
+                selection: ISlickRange[],
+                includeHeaders?: boolean,
+            ) => this.copyAsCsvRequestHandler(uri, batchId, resultsId, selection, includeHeaders),
+            copyAsJson: (
+                batchId: number,
+                resultsId: number,
+                selection: ISlickRange[],
+                includeHeaders?: boolean,
+            ) => this.copyAsJsonRequestHandler(uri, batchId, resultsId, selection, includeHeaders),
             getConfig: () => this.configRequestHandler(uri),
             getLocalizedTexts: () => Promise.resolve(LocalizedConstants),
             openLink: (content: string, columnName: string, linkType: string) =>

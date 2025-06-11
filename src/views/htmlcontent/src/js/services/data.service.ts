@@ -156,6 +156,38 @@ export class DataService implements OnDestroy {
     }
 
     /**
+     * Sends a request to copy results as CSV to the clipboard
+     * @param selection The selection range to copy
+     * @param batchId The batch ID of the batch to copy from
+     * @param resultId The result ID of the result to copy from
+     * @param includeHeaders Whether to include headers in the copy
+     */
+    copyAsCsv(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+        includeHeaders?: boolean,
+    ): void {
+        this._proxy.copyAsCsv(batchId, resultId, selection, includeHeaders);
+    }
+
+    /**
+     * Sends a request to copy results as JSON to the clipboard
+     * @param selection The selection range to copy
+     * @param batchId The batch ID of the batch to copy from
+     * @param resultId The result ID of the result to copy from
+     * @param includeHeaders Whether to include headers in the copy
+     */
+    copyAsJson(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+        includeHeaders?: boolean,
+    ): void {
+        this._proxy.copyAsJson(batchId, resultId, selection, includeHeaders);
+    }
+
+    /**
      * Sends a request to set the selection in the VScode window
      * @param selection The selection range in the VSCode Window
      */

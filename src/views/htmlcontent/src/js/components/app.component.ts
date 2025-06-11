@@ -240,6 +240,28 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 true,
             );
         },
+        "event.copyAsCsv": () => {
+            let activeGrid = this.activeGrid;
+            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+            selection = this.tryCombineSelectionsForResults(selection);
+            this.dataService.copyAsCsv(
+                selection,
+                this.renderedDataSets[activeGrid].batchId,
+                this.renderedDataSets[activeGrid].resultId,
+                true,
+            );
+        },
+        "event.copyAsJson": () => {
+            let activeGrid = this.activeGrid;
+            let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
+            selection = this.tryCombineSelectionsForResults(selection);
+            this.dataService.copyAsJson(
+                selection,
+                this.renderedDataSets[activeGrid].batchId,
+                this.renderedDataSets[activeGrid].resultId,
+                true,
+            );
+        },
         "event.maximizeGrid": () => {
             this.magnify(this.activeGrid);
         },
@@ -705,6 +727,12 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 break;
             case "copyAllHeaders":
                 this.dataService.copyResults(undefined, event.batchId, event.resultId, true);
+                break;
+            case "copyAsCsv":
+                this.dataService.copyAsCsv(event.selection, event.batchId, event.resultId, true);
+                break;
+            case "copyAsJson":
+                this.dataService.copyAsJson(event.selection, event.batchId, event.resultId, true);
                 break;
             default:
                 break;

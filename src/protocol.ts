@@ -26,6 +26,18 @@ export interface IServerProxy extends Disposable {
         selection: ISlickRange[],
         includeHeaders?: boolean,
     ): void;
+    copyAsCsv(
+        batchId: number,
+        resultsId: number,
+        selection: ISlickRange[],
+        includeHeaders?: boolean,
+    ): void;
+    copyAsJson(
+        batchId: number,
+        resultsId: number,
+        selection: ISlickRange[],
+        includeHeaders?: boolean,
+    ): void;
     getConfig(): Promise<IResultsConfig>;
     setEditorSelection(selectionData: ISelectionData): void;
     showWarning(message: string): void;
