@@ -1525,7 +1525,18 @@ export default class ConnectionManager {
         }
     }
 
-    public async transferFileConnection(oldFileUri: string, newFileUri: string): Promise<void> {
+    /**
+     * Copies the connection info from one file to another, optionally disconnecting the old file.
+     * @param oldFileUri File to copy the connection info from
+     * @param newFileUri File to copy the connection info to
+     * @param keepOldConnected Whether to keep the old file connected after copying the connection info.  Defaults to false.
+     * @returns
+     */
+    public async copyConnectionToFile(
+        oldFileUri: string,
+        newFileUri: string,
+        keepOldConnected: boolean = false,
+    ): Promise<void> {
         // Is the new file connected or the old file not connected?
         if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
@@ -1534,7 +1545,7 @@ export default class ConnectionManager {
         // Connect the saved uri and disconnect the untitled uri on successful connection
         let creds: IConnectionInfo = this._connections[oldFileUri].credentials;
         let result = await this.connect(newFileUri, creds);
-        if (result) {
+        if (result && !keepOldConnected) {
             await this.disconnect(oldFileUri);
         }
     }

@@ -2374,14 +2374,22 @@ suite("OE Service Tests", () => {
         let startActivityStub: sinon.SinonStub;
         let mockActivity: ActivityObject;
         let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+        let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
         let mockLogger: sinon.SinonStubbedInstance<Logger>;
 
         setup(() => {
             sandbox = sinon.createSandbox();
             const mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-            const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
+
+            mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionStore.readAllConnections.resolves([]);
+            sandbox.stub(mockConnectionStore, "rootGroupId").get(() => TEST_ROOT_GROUP_ID);
+
+            const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionManager.client = mockClient;
+            mockConnectionManager.connectionStore = mockConnectionStore;
+
             endStub = sandbox.stub();
             endFailedStub = sandbox.stub();
             mockActivity = {
@@ -2417,6 +2425,10 @@ suite("OE Service Tests", () => {
                 user: "testUser",
                 password: generateUUID(),
             } as IConnectionInfo;
+
+            // Preemptively set maps to insulate from getRootNodes() byproducts
+            objectExplorerService["_connectionGroupNodes"] = new Map();
+            objectExplorerService["_connectionNodes"] = new Map();
 
             // Call the method
             const result = await objectExplorerService.createSession(connectionInfo);
@@ -2480,6 +2492,10 @@ suite("OE Service Tests", () => {
                 ConnectionCredentials,
                 "createConnectionDetails",
             );
+
+            // Preemptively set maps to insulate from getRootNodes() byproducts
+            objectExplorerService["_connectionGroupNodes"] = new Map();
+            objectExplorerService["_connectionNodes"] = new Map();
 
             // Call the method
             const resultPromise = objectExplorerService.createSession();
@@ -2810,6 +2826,10 @@ suite("OE Service Tests", () => {
             (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
             (objectExplorerService as any).prepareConnectionProfile.resolves(undefined);
 
+            // Preemptively set maps to insulate from getRootNodes() byproducts
+            objectExplorerService["_connectionGroupNodes"] = new Map();
+            objectExplorerService["_connectionNodes"] = new Map();
+
             // Call the method
             await objectExplorerService.createSession(connectionInfo);
 
@@ -2979,6 +2999,10 @@ suite("OE Service Tests", () => {
                 ConnectionCredentials,
                 "createConnectionDetails",
             );
+
+            // Preemptively set maps to insulate from getRootNodes() byproducts
+            objectExplorerService["_connectionGroupNodes"] = new Map();
+            objectExplorerService["_connectionNodes"] = new Map();
 
             // Call the method without connection info
             const resultPromise = objectExplorerService.createSession();
@@ -3546,6 +3570,10 @@ suite("OE Service Tests", () => {
             // Setup prepareConnectionProfile to return undefined (user cancelled)
             (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
             (objectExplorerService as any).prepareConnectionProfile.resolves(undefined);
+
+            // Preemptively set maps to insulate from getRootNodes() byproducts
+            objectExplorerService["_connectionGroupNodes"] = new Map();
+            objectExplorerService["_connectionNodes"] = new Map();
 
             const connectionInfo: IConnectionInfo = {
                 server: "TestServer",

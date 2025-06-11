@@ -525,9 +525,15 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper.onDidCloseTextDocument(
                 async (params) => await this.onDidCloseTextDocument(params),
             );
+
             this._vscodeWrapper.onDidOpenTextDocument((params) =>
                 this.onDidOpenTextDocument(params),
             );
+
+            this._vscodeWrapper.onDidChangeActiveTextEditor((params) =>
+                this.onDidChangeActiveTextEditor(params),
+            );
+
             this._vscodeWrapper.onDidSaveTextDocument((params) =>
                 this.onDidSaveTextDocument(params),
             );
@@ -2347,7 +2353,7 @@ export default class MainController implements vscode.Disposable {
 
     private async updateUri(oldUri: string, newUri: string) {
         // Transfer the connection to the new URI
-        await this._connectionMgr.transferFileConnection(oldUri, newUri);
+        await this._connectionMgr.copyConnectionToFile(oldUri, newUri);
 
         // Call STS  & Query Runner to update URI
         this._outputContentProvider.updateQueryRunnerUri(oldUri, newUri);
@@ -2382,6 +2388,14 @@ export default class MainController implements vscode.Disposable {
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
+        if (this._previousActiveDocument && doc.languageId === Constants.languageId) {
+            void this._connectionMgr.copyConnectionToFile(
+                this._previousActiveDocument.uri.toString(true),
+                doc.uri.toString(true),
+                true /* keepOldConnected */,
+            );
+        }
+
         if (doc && doc.languageId === Constants.languageId) {
             // set encoding to false
             this._statusview.languageFlavorChanged(
@@ -2393,8 +2407,26 @@ export default class MainController implements vscode.Disposable {
         // Setup properties incase of rename
         this._lastOpenedTimer = new Utils.Timer();
         this._lastOpenedTimer.start();
+
         if (doc && doc.uri) {
             this._lastOpenedUri = doc.uri.toString(true);
+
+            // pre-opened tabs won't trigger onDidChangeActiveTextEditor, so set _previousActiveEditor here
+            this._previousActiveDocument =
+                doc.languageId === Constants.languageId ? doc : undefined;
+        }
+    }
+
+    /**
+     * Tracks the previous editor for the purposes of transferring connections to a newly-opened file.
+     * Set to undefined if the previous editor is not a SQL file (languageId === mssql).
+     */
+    private _previousActiveDocument: vscode.TextDocument | undefined;
+
+    public onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
+        if (editor?.document) {
+            this._previousActiveDocument =
+                editor.document.languageId === Constants.languageId ? editor.document : undefined;
         }
     }
 

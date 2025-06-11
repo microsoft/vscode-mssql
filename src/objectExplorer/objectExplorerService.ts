@@ -619,6 +619,13 @@ export class ObjectExplorerService {
     public async createSession(
         connectionInfo?: IConnectionInfo,
     ): Promise<CreateSessionResult | undefined> {
+        if (!this._rootTreeNodeArray) {
+            // Ensure root nodes are loaded.
+            // This is needed when connection attempts are made before OE has been activated
+            // e.g. User clicks connect button from Editor before ever viewing the OE panel
+            await this.getRootNodes();
+        }
+
         const createSessionActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.CreateSession,
