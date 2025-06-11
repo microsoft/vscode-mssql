@@ -10,6 +10,10 @@
         <source xml:lang="en">$(plug)  Connect to MSSQL</source>
         <target state="translated">$(plug)  Connect to MSSQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
+        <source xml:lang="en">&lt;Default&gt;</source>
+        <target state="new">&lt;Default&gt;</target>
+      </trans-unit>
       <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="translated">&lt;default&gt;</target>
@@ -193,6 +197,11 @@
         <source xml:lang="en">Are you sure you want to delete the selected items?</source>
         <target state="translated">선택한 항목을 삭제하시겠습니까?</target>
       </trans-unit>
+      <trans-unit id="++CODE++06f1783b8fa5a8be694c26e8cea5b2bd668dd7beb434d1271155bae4e7f4a736">
+        <source xml:lang="en">Are you sure you want to delete {0}?  This will also delete all connections in this group.</source>
+        <note>{0} is the group name</note>
+        <target state="new">Are you sure you want to delete {0}?  This will also delete all connections in this group.</target>
+      </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
         <target state="translated">연결을 끊으시겠습니까?</target>
@@ -319,6 +328,10 @@
       <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
         <source xml:lang="en">Blanks</source>
         <target state="translated">공백</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
+        <source xml:lang="en">Brightness</source>
+        <target state="new">Brightness</target>
       </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
@@ -506,6 +519,10 @@
         <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
         <target state="new">Choose a port to host the SQL Server Docker Container</target>
       </trans-unit>
+      <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
+        <source xml:lang="en">Choose color</source>
+        <target state="new">Choose color</target>
+      </trans-unit>
       <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
         <source xml:lang="en">Choose the Right Version</source>
         <target state="new">Choose the Right Version</target>
@@ -567,6 +584,10 @@
       <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
         <source xml:lang="en">Collapse All</source>
         <target state="translated">모두 축소</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
+        <source xml:lang="en">Color</source>
+        <target state="new">Color</target>
       </trans-unit>
       <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
         <source xml:lang="en">Column</source>
@@ -662,6 +683,26 @@
         <source xml:lang="en">Connect to MSSQL</source>
         <target state="translated">MSSQL에 연결</target>
       </trans-unit>
+      <trans-unit id="++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54">
+        <source xml:lang="en">Connect to Server</source>
+        <target state="new">Connect to Server</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3">
+        <source xml:lang="en">Connect to server {0} and database {1}?</source>
+        <note>{0} is the server name
+{1} is the database name</note>
+        <target state="new">Connect to server {0} and database {1}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c629f4154b93588541a43212104dda942f74b6b1c384f17ed00ccd062e649fb4">
+        <source xml:lang="en">Connect to server {0}?</source>
+        <note>{0} is the server name</note>
+        <target state="new">Connect to server {0}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5">
+        <source xml:lang="en">Connect using profile {0}?</source>
+        <note>{0} is the profile ID</note>
+        <target state="new">Connect using profile {0}?</target>
+      </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
         <note>{0} is the server name
@@ -687,6 +728,17 @@
 {1} is the document name</note>
         <target state="translated">문서 "{0}"에서 서버 "{1}"에 연결하는 중입니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++cdfa68f01c8258a3933e2cc436e46a47425d2c5cde4ad327b70a59615b4a4892">
+        <source xml:lang="en">Connecting to server {0}</source>
+        <note>{0} is the server name</note>
+        <target state="new">Connecting to server {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d568f5700106a3d28657010405b5ef04ac5e6f31499216360661ba4f19256e15">
+        <source xml:lang="en">Connecting to server {0} and database {1}</source>
+        <note>{0} is the server name
+{1} is the database name</note>
+        <target state="new">Connecting to server {0} and database {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744">
         <source xml:lang="en">Connecting to your SQL Server Docker container</source>
         <target state="new">Connecting to your SQL Server Docker container</target>
@@ -694,6 +746,11 @@
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">다음에 연결 중: </target>
+      </trans-unit>
+      <trans-unit id="++CODE++efb70e946b81dee71e5439537f7160292d511bb79830c8edd338f32e232cf183">
+        <source xml:lang="en">Connecting using profile {0}</source>
+        <note>{0} is the profile ID</note>
+        <target state="new">Connecting using profile {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
         <source xml:lang="en">Connecting...</source>
@@ -706,6 +763,10 @@
       <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
         <source xml:lang="en">Connection Error</source>
         <target state="translated">연결 오류</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fea70af0cad96e7c97f889724e5dfe0e2d28cbf958e905f5e51ba2584c3d9458">
+        <source xml:lang="en">Connection Group</source>
+        <target state="new">Connection Group</target>
       </trans-unit>
       <trans-unit id="++CODE++d913a8ab7732ff7d26c8afceb2e2706c5c991762df193b236fd839bd3a616cb6">
         <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
@@ -724,6 +785,11 @@
         <note>{0} is the uri</note>
         <target state="translated">"{0}" URI에 대한 연결을 찾지 못했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++392f78e8df5a591be501949632cd689e0fd59c4e0233c8b002a2dce8518ad4e4">
+        <source xml:lang="en">Connection profile '{0}' not found.</source>
+        <note>{0} is the profile ID</note>
+        <target state="new">Connection profile '{0}' not found.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">연결 문자열이 필요합니다.</target>
@@ -735,6 +801,10 @@
       <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
         <source xml:lang="en">Container Name</source>
         <target state="new">Container Name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
+        <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
+        <target state="new">Container does not exist. Would you like to remove the connection?</target>
       </trans-unit>
       <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
         <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
@@ -793,6 +863,10 @@
         <source xml:lang="en">Create As Script</source>
         <target state="translated">스크립트로 만들기</target>
       </trans-unit>
+      <trans-unit id="++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d">
+        <source xml:lang="en">Create Connection Group</source>
+        <target state="new">Create Connection Group</target>
+      </trans-unit>
       <trans-unit id="++CODE++71c1ec27a8c136ecdc781c1fd2364676155fbab7abf8837b9075eb3b9f9af7c0">
         <source xml:lang="en">Create Connection Profile</source>
         <target state="translated">연결 프로필 만들기</target>
@@ -808,6 +882,10 @@
       <trans-unit id="++CODE++f7450e89276bf601752a2ef286965fb13e17c418012b0aa68be16f8941cc7321">
         <source xml:lang="en">Create Local SQL Container</source>
         <target state="new">Create Local SQL Container</target>
+      </trans-unit>
+      <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
+        <source xml:lang="en">Create New Connection Group</source>
+        <target state="new">Create New Connection Group</target>
       </trans-unit>
       <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
         <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
@@ -927,10 +1005,20 @@
         <source xml:lang="en">Disconnect</source>
         <target state="translated">연결 끊기</target>
       </trans-unit>
+      <trans-unit id="++CODE++85b5093bef4e68ee847dba78ba2e33392c8998bb4d39598442f8713cdeec5c89">
+        <source xml:lang="en">Disconnect from connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Disconnect from connection '{0}'?</target>
+      </trans-unit>
       <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <note>{0} is the document name</note>
         <target state="translated">문서 "{0}"에서 연결을 끊음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b">
+        <source xml:lang="en">Disconnecting from connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Disconnecting from connection '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
@@ -980,6 +1068,16 @@
         <source xml:lang="en">Edit</source>
         <target state="translated">편집</target>
       </trans-unit>
+      <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
+        <source xml:lang="en">Edit Connection Group - {0}</source>
+        <note>{0} is the connection group name</note>
+        <target state="new">Edit Connection Group - {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++82beb1b74986a2b292e8084ee59f9bedf5e0decc13f020369faebf40ce2981c7">
+        <source xml:lang="en">Edit Connection Group: {0}</source>
+        <note>{0} is the name of the connection group being edited</note>
+        <target state="new">Edit Connection Group: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++a43dafda7f271d0796fb53cc6c2d8f302b8c8892ea0fed0b1096e9c7769f91c1">
         <source xml:lang="en">Edit Connection Profile</source>
         <target state="translated">연결 프로필 편집</target>
@@ -987,6 +1085,10 @@
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">테이블 편집</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
+        <source xml:lang="en">Either profileId or serverName must be provided.</source>
+        <target state="new">Either profileId or serverName must be provided.</target>
       </trans-unit>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
@@ -1023,6 +1125,14 @@
       <trans-unit id="++CODE++1a77d555bedbf97481907d505c8c8ba64d32d3525b77122e16178dd4054c3c93">
         <source xml:lang="en">Ends With</source>
         <target state="translated">다음으로 끝남</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cad17aa68a83418367684821ea4734c877707d1f340846dc7b17b04a8a04c1c0">
+        <source xml:lang="en">Enter connection group name</source>
+        <target state="new">Enter connection group name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423">
+        <source xml:lang="en">Enter description (optional)</source>
+        <target state="new">Enter description (optional)</target>
       </trans-unit>
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
@@ -1181,6 +1291,10 @@ Error:
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
         <note>{0} is the error message returned from the publish changes operation</note>
         <target state="translated">변경 내용을 적용하지 못했습니다. '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d6ca257a745c3035dfd24b1cf8bddd511b93f0c4ae8036dc0d88ece8501d4d13">
+        <source xml:lang="en">Failed to connect to server.</source>
+        <target state="new">Failed to connect to server.</target>
       </trans-unit>
       <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
         <source xml:lang="en">Failed to connect: {0}</source>
@@ -1460,6 +1574,10 @@ Error:
         <note>{0} is the feature name</note>
         <target state="translated">친구나 동료에게 {0}을(를) 추천할 가능성이 얼마나 되나요?</target>
       </trans-unit>
+      <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
+        <source xml:lang="en">Hue</source>
+        <target state="new">Hue</target>
+      </trans-unit>
       <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
         <source xml:lang="en">I have read the summary and understand the potential risks.</source>
         <target state="translated">요약을 읽고 잠재적인 위험을 이해했습니다.</target>
@@ -1602,6 +1720,18 @@ Error:
         <source xml:lang="en">Line {0}</source>
         <note>{0} is the line number</note>
         <target state="translated">선 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
+        <source xml:lang="en">List Connections</source>
+        <target state="new">List Connections</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
+        <source xml:lang="en">List all connections registered with the mssql extension?</source>
+        <target state="new">List all connections registered with the mssql extension?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
+        <source xml:lang="en">Listing server connections</source>
+        <target state="new">Listing server connections</target>
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
@@ -1819,6 +1949,11 @@ Error:
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
         <target state="translated">변경 내용이 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bb6f0c310647145d31546d24967be9eb8ebae90f640642e9fbb5d7713e6e8550">
+        <source xml:lang="en">No connection found for connectionId: {0}</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">No connection found for connectionId: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -2320,6 +2455,10 @@ Error:
         <source xml:lang="en">Satisfied</source>
         <target state="translated">만족</target>
       </trans-unit>
+      <trans-unit id="++CODE++993f024b650eaf0f1c64118f6033c44b7c98d220539bcb51454ca578f6f2b477">
+        <source xml:lang="en">Saturation</source>
+        <target state="new">Saturation</target>
+      </trans-unit>
       <trans-unit id="++CODE++1509f561f2416598629b886ad7d3c05a7e221e4e0675c84bbff4ee6d9e03913d">
         <source xml:lang="en">Save</source>
         <target state="translated">저장</target>
@@ -2331,6 +2470,10 @@ Error:
       <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
         <source xml:lang="en">Save As</source>
         <target state="translated">다른 이름으로 저장</target>
+      </trans-unit>
+      <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
+        <source xml:lang="en">Save Connection Group</source>
+        <target state="new">Save Connection Group</target>
       </trans-unit>
       <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
         <source xml:lang="en">Save Password</source>
@@ -2402,6 +2545,10 @@ Error:
       <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
         <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
         <target state="translated">스키마 디자이너 모델이 준비되었습니다. 이제 변경 내용을 게시할 수 있습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
+        <source xml:lang="en">Schema visualization opened.</source>
+        <target state="new">Schema visualization opened.</target>
       </trans-unit>
       <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
         <source xml:lang="en">Schema/Object Type</source>
@@ -2522,6 +2669,11 @@ Error:
         <source xml:lang="en">Server name or ADO.NET connection string</source>
         <target state="translated">서버 이름 또는 ADO.NET 연결 문자열</target>
       </trans-unit>
+      <trans-unit id="++CODE++40c6cdb719db3469fb83c776d850e85fc70bdfa14e6685d6ac62061ac85b8eed">
+        <source xml:lang="en">Server {0} not found.</source>
+        <note>{0} is the server name</note>
+        <target state="new">Server {0} not found.</target>
+      </trans-unit>
       <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
         <source xml:lang="en">Set Default</source>
         <target state="translated">기본값 설정</target>
@@ -2554,9 +2706,23 @@ Error:
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">MSSQL 출력 표시</target>
       </trans-unit>
+      <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
+        <source xml:lang="en">Show Schema</source>
+        <target state="new">Show Schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
         <source xml:lang="en">Show full error message</source>
         <target state="new">Show full error message</target>
+      </trans-unit>
+      <trans-unit id="++CODE++523fa7449e8252600e65c811dcd62983315d0f9f528741627033a45754f591cf">
+        <source xml:lang="en">Show schema for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Show schema for connection '{0}'?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9">
+        <source xml:lang="en">Showing schema for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Showing schema for connection '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
         <source xml:lang="en">Showplan XML</source>
@@ -2687,6 +2853,10 @@ Error:
       <trans-unit id="++CODE++5443b1422a140475d5703c916c7686007233ea92292881588670e73409a7f1cd">
         <source xml:lang="en">Succeeded with warning</source>
         <target state="translated">성공(경고 발생)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fbd52c8b91de95b69593d008ca2108476ccb1ea5a45657b3393d878499e3fe1f">
+        <source xml:lang="en">Successfully connected to server.</source>
+        <target state="new">Successfully connected to server.</target>
       </trans-unit>
       <trans-unit id="++CODE++f0266af4455c8f348df74a77502b563a575637604e905429b302d78ec39c00e4">
         <source xml:lang="en">Successfully refreshed token for connection {0} with uri {1}, {2}</source>
@@ -3025,9 +3195,9 @@ Error:
         <source xml:lang="en">We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.</source>
         <target state="new">We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.</target>
       </trans-unit>
-      <trans-unit id="++CODE++f01e36aaf60d2146e1cf906fce3e055116bd19954ad018908f8a7cd8bd2a8b0c">
-        <source xml:lang="en">We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
-        <target state="translated">현재 연결 정보를 사용하여 연결할 수 없습니다. 연결을 다시 시도하시겠습니까, 아니면 연결 프로필을 편집하시겠습니까?</target>
+      <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
+        <source xml:lang="en">We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
+        <target state="new">We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?</target>
       </trans-unit>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
@@ -3272,6 +3442,10 @@ Error:
         <source xml:lang="en">Add Connection (Legacy)</source>
         <target state="translated">연결 추가(레거시)</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroups.create">
+        <source xml:lang="en">Add Connection Group</source>
+        <target state="new">Add Connection Group</target>
+      </trans-unit>
       <trans-unit id="mssql.addAadAccount">
         <source xml:lang="en">Add Microsoft Entra Account</source>
         <target state="translated">Microsoft Entra 계정 추가</target>
@@ -3390,6 +3564,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Delete</source>
         <target state="translated">삭제</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionGroups.delete">
+        <source xml:lang="en">Delete Connection Group</source>
+        <target state="new">Delete Connection Group</target>
+      </trans-unit>
       <trans-unit id="mssql.deleteContainer">
         <source xml:lang="en">Delete Container</source>
         <target state="new">Delete Container</target>
@@ -3421,6 +3599,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection</source>
         <target state="translated">연결 편집</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroups.edit">
+        <source xml:lang="en">Edit Connection Group</source>
+        <target state="new">Edit Connection Group</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Edit Table</source>
