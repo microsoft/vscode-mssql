@@ -2742,7 +2742,7 @@
       <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
     </trans-unit>
     <trans-unit id="mssql.enableConnectionPooling">
-      <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;</source>
+      <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: &apos;MS SQL: Clear Pooled Connections&apos;. Note: May keep serverless databases active and prevent auto-pausing.</source>
     </trans-unit>
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
@@ -3162,7 +3162,7 @@
       <source xml:lang="en">[Optional] When set to &apos;true&apos;, the SQL Server SSL certificate is automatically trusted when the communication layer is encrypted using SSL. Set &apos;false&apos; for Azure SQL Database connection.</source>
     </trans-unit>
     <trans-unit id="mssql.connection.pooling">
-      <source xml:lang="en">[Optional] When set to &apos;true&apos;, the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
+      <source xml:lang="en">[Optional] When set to &apos;true&apos;, the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</source>
     </trans-unit>
     <trans-unit id="mssql.connection.multiSubnetFailover">
       <source xml:lang="en">[Optional] When set to &apos;true&apos;, the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>
