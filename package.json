@@ -1614,7 +1614,7 @@
                 "mssql.enableConnectionPooling": {
                     "type": "boolean",
                     "description": "%mssql.enableConnectionPooling%",
-                    "default": true
+                    "default": false
                 },
                 "mssql.format.alignColumnDefinitionsInColumns": {
                     "type": "boolean",
