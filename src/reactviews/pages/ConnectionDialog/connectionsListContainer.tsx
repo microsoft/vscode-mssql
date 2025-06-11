@@ -49,6 +49,11 @@ const useStyles = makeStyles({
                 visibility: "visible",
             },
         },
+        ":focus-within": {
+            [`& .${buttonContainer}`]: {
+                visibility: "visible",
+            },
+        },
     },
     horizontalCardImage: {
         width: "50px",
