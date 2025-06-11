@@ -3723,8 +3723,8 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
         <target state="translated">Permet d’activer les fonctionnalités basées sur l’interface utilisateur dans l’extension MSSQL pour des fonctionnalités enrichies et plus puissantes. Redémarrez Visual Studio Code après avoir modifié ce paramètre.</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
-        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
-        <target state="translated">Permet le groupement des connexions pour améliorer le niveau de performance global de connectivité. Ce paramètre est activé par défaut. Visual Studio Code doit être relancé lorsque la valeur est modifiée. Pour effacer les connexions groupées, exécutez la commande : « MS SQL : effacer les connexions groupées »</target>
+        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="new">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</target>
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
@@ -4293,8 +4293,8 @@ Vous pouvez également cliquer sur le bouton « Ouvrir dans un nouvel onglet �
         <target state="translated">[Facultatif] Quand la valeur est « true », le certificat SSL SQL Server est automatiquement approuvé si la couche de communication est chiffrée à l’aide de SSL. Définissez la valeur sur « false » pour la connexion à Azure SQL Database.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.pooling">
-        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
-        <target state="translated">[Facultatif] Quand la valeur est « true », l’objet de connexion est tiré du pool approprié ou, si nécessaire, est créé et ajouté au pool approprié.</target>
+        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="new">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.multiSubnetFailover">
         <source xml:lang="en">[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>

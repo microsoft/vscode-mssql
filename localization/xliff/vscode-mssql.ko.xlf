@@ -3723,8 +3723,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">MSSQL 확장에서 UI 기반 기능을 사용하여 더 다양하고 강력한 기능을 사용할 수 있습니다. 이 설정을 변경한 후 Visual Studio Code를 다시 시작하세요.</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
-        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
-        <target state="translated">연결 풀링을 사용하여 전반적인 연결 성능을 향상시킵니다. 이 설정은 기본적으로 사용하도록 설정되어 있습니다. 값이 변경되면 Visual Studio Code를 다시 시작해야 합니다. 풀된 연결을 지우려면 'MS SQL: 풀된 연결 지우기' 명령을 실행하세요.</target>
+        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="new">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</target>
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
@@ -4293,8 +4293,8 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[옵션] 'true'로 설정하면 SQL Server SSL 인증서는 통신 계층이 SSL을 사용해서 암호화될 경우 자동으로 신뢰할 수 있게 됩니다. Azure SQL Database 연결에 대해서는 'true'로 설정하세요.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.pooling">
-        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
-        <target state="translated">[옵션] 'true'로 설정하면 연결 개체를 적절한 풀에서 가져오거나, 필요한 경우 새로 만든 후 해당 풀에 추가합니다.</target>
+        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="new">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.multiSubnetFailover">
         <source xml:lang="en">[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>
