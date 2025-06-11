@@ -2384,6 +2384,7 @@ suite("OE Service Tests", () => {
 
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionStore.readAllConnections.resolves([]);
+            sandbox.stub(mockConnectionStore, "rootGroupId").get(() => TEST_ROOT_GROUP_ID);
 
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionManager.client = mockClient;
@@ -2425,8 +2426,9 @@ suite("OE Service Tests", () => {
                 password: generateUUID(),
             } as IConnectionInfo;
 
-            // Preemptively set _rootTreeNodeArray to insulate from getRootNodes() byproducts
-            objectExplorerService["_rootTreeNodeArray"] = [];
+            // Preemptively set maps to insulate from getRootNodes() byproducts
+            objectExplorerService["_connectionGroupNodes"] = new Map();
+            objectExplorerService["_connectionNodes"] = new Map();
 
             // Call the method
             const result = await objectExplorerService.createSession(connectionInfo);
@@ -2491,8 +2493,9 @@ suite("OE Service Tests", () => {
                 "createConnectionDetails",
             );
 
-            // Preemptively set _rootTreeNodeArray to insulate from getRootNodes() byproducts
-            objectExplorerService["_rootTreeNodeArray"] = [];
+            // Preemptively set maps to insulate from getRootNodes() byproducts
+            objectExplorerService["_connectionGroupNodes"] = new Map();
+            objectExplorerService["_connectionNodes"] = new Map();
 
             // Call the method
             const resultPromise = objectExplorerService.createSession();
@@ -2823,8 +2826,9 @@ suite("OE Service Tests", () => {
             (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
             (objectExplorerService as any).prepareConnectionProfile.resolves(undefined);
 
-            // Preemptively set _rootTreeNodeArray to insulate from getRootNodes() byproducts
-            objectExplorerService["_rootTreeNodeArray"] = [];
+            // Preemptively set maps to insulate from getRootNodes() byproducts
+            objectExplorerService["_connectionGroupNodes"] = new Map();
+            objectExplorerService["_connectionNodes"] = new Map();
 
             // Call the method
             await objectExplorerService.createSession(connectionInfo);
@@ -2996,8 +3000,9 @@ suite("OE Service Tests", () => {
                 "createConnectionDetails",
             );
 
-            // Preemptively set _rootTreeNodeArray to insulate from getRootNodes() byproducts
-            objectExplorerService["_rootTreeNodeArray"] = [];
+            // Preemptively set maps to insulate from getRootNodes() byproducts
+            objectExplorerService["_connectionGroupNodes"] = new Map();
+            objectExplorerService["_connectionNodes"] = new Map();
 
             // Call the method without connection info
             const resultPromise = objectExplorerService.createSession();
@@ -3566,8 +3571,9 @@ suite("OE Service Tests", () => {
             (objectExplorerService as any).prepareConnectionProfile = sandbox.stub();
             (objectExplorerService as any).prepareConnectionProfile.resolves(undefined);
 
-            // Preemptively set _rootTreeNodeArray to insulate from getRootNodes() byproducts
-            objectExplorerService["_rootTreeNodeArray"] = [];
+            // Preemptively set maps to insulate from getRootNodes() byproducts
+            objectExplorerService["_connectionGroupNodes"] = new Map();
+            objectExplorerService["_connectionNodes"] = new Map();
 
             const connectionInfo: IConnectionInfo = {
                 server: "TestServer",
