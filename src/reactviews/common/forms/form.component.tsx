@@ -25,6 +25,7 @@ import {
     FormState,
 } from "../../../sharedInterfaces/form";
 import { useEffect, useState } from "react";
+import { SearchableDropdown } from "../searchableDropdown.component";
 
 export const FormInput = <
     TForm,
@@ -277,6 +278,41 @@ export function generateFormComponent<
                         );
                     })}
                 </Dropdown>
+            );
+        case FormItemType.SearchableDropdown:
+            if (component.options === undefined) {
+                throw new Error("Dropdown component must have options");
+            }
+            const selectedOption = component.options.find(
+                (option) => option.value === formState[component.propertyName],
+            );
+            return (
+                <SearchableDropdown
+                    options={component.options.map((opt) => ({
+                        value: opt.value,
+                        text: opt.displayName,
+                    }))}
+                    placeholder={component.placeholder}
+                    searchBoxPlaceholder={component.searchBoxPlaceholder}
+                    selectedOption={
+                        selectedOption
+                            ? {
+                                  value: selectedOption.value,
+                                  text: selectedOption.displayName,
+                              }
+                            : undefined
+                    }
+                    onSelect={(option) => {
+                        context?.formAction({
+                            propertyName: component.propertyName,
+                            isAction: false,
+                            value: option.value,
+                        });
+                    }}
+                    size="small"
+                    clearable={true}
+                    {...props}
+                />
             );
         case FormItemType.Checkbox:
             return (

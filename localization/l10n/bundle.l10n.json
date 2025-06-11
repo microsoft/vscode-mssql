@@ -1133,6 +1133,8 @@
   "Additional parameters": "Additional parameters",
   "<Default>": "<Default>",
   "Create Connection Group": "Create Connection Group",
+  "Select a connection group": "Select a connection group",
+  "Search connection groups": "Search connection groups",
   "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission./{0} is the subscription name{1} is the subscription id": {
     "message": "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.",
     "comment": [

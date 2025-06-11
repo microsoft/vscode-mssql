@@ -215,10 +215,12 @@ export async function completeFormComponents(
         propertyName: "groupId",
         label: Loc.connectionGroup,
         required: false,
-        type: FormItemType.Dropdown,
+        type: FormItemType.SearchableDropdown,
         options: connectionGroupOptions,
         actionButtons: [connectionGroupButton],
         isAdvancedOption: false,
+        placeholder: Loc.selectConnectionGroup,
+        searchBoxPlaceholder: Loc.searchConnectionGroups,
     };
 
     components["savePassword"] = {
