@@ -66,6 +66,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                         connectionGroupSpec,
                     });
                 },
+                openCreateConnectionGroupDialog: function (): void {
+                    webviewState.extensionRpc.action("openCreateConnectionGroupDialog");
+                },
                 closeDialog: function (): void {
                     webviewState?.extensionRpc.action("closeDialog");
                 },
