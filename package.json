@@ -1902,6 +1902,69 @@
                     }
                 ]
             }
+        ],
+        "languageModelTools": [
+            {
+                "name": "mssql_query",
+                "modelDescription": "Run a formatted SQL query against a database. This query must not modify the database at all. Can include SELECT, SHOW, EXPLAIN etc. Do not include additional statements, e.g. SET search_path, in this query. It must only be a single, spacious, well formatted query with line breaks and tabs. The statement will be presented to the user, so focus on readability. Returns the results of the query. You MUST include a validation query to check the validity of EVERY literal values used in the SQL query. Do NOT skip this step.This tool is strictly read-only and executes a single statement only. On error, return clear error messages to the user.",
+                "tags": [
+                    "databases",
+                    "mssql"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "description": "The SQL query to execute, formatted in the style of a beautifier. Add comments to explain complex components.",
+                            "title": "SQL query",
+                            "type": "string"
+                        },
+                        "queryName": {
+                            "description": "Short descriptive name for the SQL query.",
+                            "title": "Query name",
+                            "type": "string"
+                        },
+                        "queryDescription": {
+                            "description": "A concise and clear description of the query to execute.",
+                            "title": "Query description",
+                            "type": "string"
+                        },
+                        "validationQueries": {
+                            "description": "A list of validation queries to use to ensure correctness. Use a validation query to check the validity of the literal values used in the SQL query. If the validation query fails, automatically fetch distinct values from the column being validated to identify potential alternatives, limiting to 50 entries. Use this data to adjust the query and retry without requiring user intervention. For example, if you use a literal value in a WHERE clause, use a validate_value_query like (SELECT 1 FROM table WHERE value = 'literal_value') and a fetch_distinct_values_query like (SELECT DISTINCT column_name FROM table LIMIT 50). Distinct values will be returned if the validation query fails. validation_queries can be empty if no validation is needed, but do NOT skip this step. All literal values must be validated.",
+                            "items": {
+                                "properties": {
+                                    "validateValueQuery": {
+                                        "title": "Validatevaluequery",
+                                        "type": "string"
+                                    },
+                                    "fetchDistinctValuesQuery": {
+                                        "title": "Fetchdistinctvaluesquery",
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "validateValueQuery",
+                                    "fetchDistinctValuesQuery"
+                                ],
+                                "title": "ValidationQuery",
+                                "type": "object"
+                            },
+                            "title": "Validation queries",
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "query",
+                        "queryName",
+                        "queryDescription"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Run a Query",
+                "toolReferenceName": "mssql_query",
+                "userDescription": "Run a SQL query on a connected database.",
+                "icon": "$(search)"
+            }
         ]
     }
 }

@@ -68,6 +68,7 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../chat/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { ToolService } from "../chat/toolService";
 
 /**
  * The main controller class that initializes the extension
@@ -107,6 +108,7 @@ export default class MainController implements vscode.Disposable {
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
+    public toolService: ToolService;
 
     /**
      * The main controller constructor
@@ -328,6 +330,10 @@ export default class MainController implements vscode.Disposable {
                 // reload immediately so that the changes take effect
                 await vscode.commands.executeCommand("workbench.action.reloadWindow");
             });
+
+            // Register Copilot tools
+            this.toolService = new ToolService(SqlToolsServerClient.instance, this._vscodeWrapper);
+            this.toolService.registerTools(this._context);
 
             const launchEditorChatWithPrompt = async (
                 prompt: string,

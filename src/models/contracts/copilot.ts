@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-languageclient";
+import { NotificationType, RequestType } from "vscode-languageclient";
 
 // GetNextMessage request/response
 export enum MessageType {
@@ -74,4 +74,52 @@ export class StartConversationRequest {
         void,
         void
     >("copilot/startconversation");
+}
+
+
+/**
+ * API for handling tool result subscriptions.
+ */
+export interface IToolResultHandler {
+    waitForResult<T>(responseId: string): Promise<T>;
+}
+
+/**
+ * Generic notification payload for tool results.
+ */
+export interface ToolResultNotification<T> {
+    responseId: string;
+    result?: T;
+    error?: string;
+}
+
+export interface MssqlToolRequestResponse {
+    responseId: string;
+}
+
+export namespace ToolResultNotification {
+    export const type = new NotificationType<ToolResultNotification<unknown>, void>(
+        "copilot/tools/result-notification",
+    );
+}
+
+// RunQuery request/response
+/** Parameters for the query tool. */
+export interface QueryToolParams {
+    connectionUri: string;
+    query: string;
+    queryName: string;
+    queryDescription: string;
+}
+
+/** Result of the query tool. */
+export interface RunQueryToolResult {
+    results: string;
+    errorMessage?: string;
+}
+
+export namespace RunQueryRequest {
+    export const type = new RequestType<QueryToolParams, MssqlToolRequestResponse, void, void>(
+        "copilot/tools/runquery",
+    );
 }
