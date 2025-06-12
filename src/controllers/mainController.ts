@@ -1080,16 +1080,42 @@ export default class MainController implements vscode.Disposable {
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupDelete);
         this._event.on(Constants.cmdConnectionGroupDelete, async (node: ConnectionGroupNode) => {
-            const result = await vscode.window.showInformationMessage(
-                LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmation(
-                    typeof node.label === "string" ? node.label : node.label.label,
-                ),
-                { modal: true },
-                LocalizedConstants.Common.delete,
-            );
-            if (result === LocalizedConstants.Common.delete) {
+            if (!(node instanceof ConnectionGroupNode)) {
+                return;
+            }
+
+            let result = undefined;
+
+            if (node.children.length > 0) {
+                result = await vscode.window.showInformationMessage(
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmationWithContents(
+                        typeof node.label === "string" ? node.label : node.label.label,
+                    ),
+                    { modal: true },
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeleteContents,
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupMoveContents,
+                );
+            } else {
+                result = await vscode.window.showInformationMessage(
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmationWithoutContents(
+                        typeof node.label === "string" ? node.label : node.label.label,
+                    ),
+                    { modal: true },
+                    LocalizedConstants.Common.delete,
+                );
+            }
+            if (
+                result === LocalizedConstants.ObjectExplorer.ConnectionGroupDeleteContents ||
+                result === LocalizedConstants.Common.delete
+            ) {
                 void this.connectionManager.connectionStore.connectionConfig.removeGroup(
                     node.connectionGroup.id,
+                    "delete",
+                );
+            } else if (result === LocalizedConstants.ObjectExplorer.ConnectionGroupMoveContents) {
+                void this.connectionManager.connectionStore.connectionConfig.removeGroup(
+                    node.connectionGroup.id,
+                    "move",
                 );
             }
         });

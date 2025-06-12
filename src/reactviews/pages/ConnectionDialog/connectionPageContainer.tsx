@@ -12,6 +12,7 @@ import {
     ConnectionDialogWebviewState,
     ConnectionInputMode,
     ConnectionStringDialogProps,
+    CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
@@ -32,6 +33,7 @@ import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
+import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
@@ -123,6 +125,19 @@ export const ConnectionInfoFormContainer = () => {
                     }
                     idx={0}
                     props={{ orientation: "horizontal" }}
+                    componentProps={{
+                        onSelect: (option: SearchableDropdownOptions) => {
+                            if (option.value === CREATE_NEW_GROUP_ID) {
+                                context.openCreateConnectionGroupDialog();
+                            } else {
+                                context.formAction({
+                                    propertyName: "groupId",
+                                    isAction: false,
+                                    value: option.value,
+                                });
+                            }
+                        },
+                    }}
                 />
 
                 <div className={formStyles.formComponentDiv}>
