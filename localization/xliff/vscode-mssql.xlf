@@ -149,8 +149,12 @@
     <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
       <source xml:lang="en">Are you sure you want to delete the selected items?</source>
     </trans-unit>
-    <trans-unit id="++CODE++06f1783b8fa5a8be694c26e8cea5b2bd668dd7beb434d1271155bae4e7f4a736">
-      <source xml:lang="en">Are you sure you want to delete {0}?  This will also delete all connections in this group.</source>
+    <trans-unit id="++CODE++64f0ebe202fcbb5561671715f3bff0cf6b5219648ffe9bca961824b243d4c5bc">
+      <source xml:lang="en">Are you sure you want to delete {0}?</source>
+      <note>{0} is the group name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++385283976b8f0e8427fe325fc18ae89e1da67c82ab64b4be415709193ae5b385">
+      <source xml:lang="en">Are you sure you want to delete {0}?  Choose whether to delete all contents or move them to root.</source>
       <note>{0} is the group name</note>
     </trans-unit>
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
@@ -747,6 +751,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2860bf10bd8d01c604f713ea3f60ccea6ef028fd2e7074a400fac50c569aa45c">
       <source xml:lang="en">Delete Confirmation</source>
+    </trans-unit>
+    <trans-unit id="++CODE++129eabad7bcc761eb7966091c2bc01163b650ca0613f42c58db97eae5420a7bb">
+      <source xml:lang="en">Delete Contents</source>
     </trans-unit>
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
@@ -1438,6 +1445,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1359626e7b6964345896285446db7977e67469251bb0cc52808db2a85ed940c1">
       <source xml:lang="en">Move Up</source>
+    </trans-unit>
+    <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
+      <source xml:lang="en">Move to Root</source>
     </trans-unit>
     <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
       <source xml:lang="en">NULL</source>

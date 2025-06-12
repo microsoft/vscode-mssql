@@ -1111,8 +1111,16 @@
   "Execute": "Execute",
   "Alter": "Alter",
   "Signing in to Azure...": "Signing in to Azure...",
-  "Are you sure you want to delete {0}?  This will also delete all connections in this group./{0} is the group name": {
-    "message": "Are you sure you want to delete {0}?  This will also delete all connections in this group.",
+  "Are you sure you want to delete {0}?  Choose whether to delete all contents or move them to root./{0} is the group name": {
+    "message": "Are you sure you want to delete {0}?  Choose whether to delete all contents or move them to root.",
+    "comment": [
+      "{0} is the group name"
+    ]
+  },
+  "Delete Contents": "Delete Contents",
+  "Move to Root": "Move to Root",
+  "Are you sure you want to delete {0}?/{0} is the group name": {
+    "message": "Are you sure you want to delete {0}?",
     "comment": [
       "{0} is the group name"
     ]
