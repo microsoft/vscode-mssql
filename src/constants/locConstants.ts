@@ -611,10 +611,21 @@ export class ObjectExplorer {
     public static ScriptAlterLabel = l10n.t("Alter");
     public static AzureSignInMessage = l10n.t("Signing in to Azure...");
 
-    public static ConnectionGroupDeletionConfirmation(groupName: string) {
+    public static ConnectionGroupDeletionConfirmationWithContents(groupName: string) {
         return l10n.t({
             message:
-                "Are you sure you want to delete {0}?  This will also delete all connections in this group.",
+                "Are you sure you want to delete {0}?  Choose whether to delete all contents or move them to root.",
+            args: [groupName],
+            comment: ["{0} is the group name"],
+        });
+    }
+
+    public static ConnectionGroupDeleteContents = l10n.t("Delete Contents");
+    public static ConnectionGroupMoveContents = l10n.t("Move to Root");
+
+    public static ConnectionGroupDeletionConfirmationWithoutContents(groupName: string) {
+        return l10n.t({
+            message: "Are you sure you want to delete {0}?",
             args: [groupName],
             comment: ["{0} is the group name"],
         });
