@@ -141,6 +141,30 @@ export class SqlOutputContentProvider {
             .queryRunner.exportCellsToClipboard(data, batchId, resultId, selection, headersFlag);
     }
 
+    public copyAsCsvRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+        includeHeaders?: boolean,
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsCsv(selection, batchId, resultId, includeHeaders);
+    }
+
+    public copyAsJsonRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+        includeHeaders?: boolean,
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsJson(selection, batchId, resultId, includeHeaders);
+    }
+
     public editorSelectionRequestHandler(uri: string, selection: ISelectionData): void {
         void this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection);
     }
@@ -279,6 +303,18 @@ export class SqlOutputContentProvider {
                 selection: ISlickRange[],
                 includeHeaders?: boolean,
             ) => this.copyRequestHandler(uri, batchId, resultsId, selection, includeHeaders),
+            copyAsCsv: (
+                batchId: number,
+                resultsId: number,
+                selection: ISlickRange[],
+                includeHeaders?: boolean,
+            ) => this.copyAsCsvRequestHandler(uri, batchId, resultsId, selection, includeHeaders),
+            copyAsJson: (
+                batchId: number,
+                resultsId: number,
+                selection: ISlickRange[],
+                includeHeaders?: boolean,
+            ) => this.copyAsJsonRequestHandler(uri, batchId, resultsId, selection, includeHeaders),
             getConfig: () => this.configRequestHandler(uri),
             getLocalizedTexts: () => Promise.resolve(LocalizedConstants),
             openLink: (content: string, columnName: string, linkType: string) =>

@@ -16,6 +16,8 @@ export let selectAll = "Select all";
 export let copyLabel = "Copy";
 export let copyWithHeadersLabel = "Copy with Headers";
 export let copyHeadersLabel = "Copy All Headers";
+export let copyAsCsvLabel = "Copy as CSV";
+export let copyAsJsonLabel = "Copy as JSON";
 
 /** Messages Pane Labels */
 export let executeQueryLabel = "Executing query...";
