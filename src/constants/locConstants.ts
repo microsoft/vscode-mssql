@@ -651,7 +651,7 @@ export class ConnectionDialog {
     public static additionalParameters = l10n.t("Additional parameters");
     public static connect = l10n.t("Connect");
     public static default = l10n.t("<Default>");
-    public static createConnectionGroup = l10n.t("Create Connection Group");
+    public static createConnectionGroup = l10n.t("+ Create Connection Group");
     public static selectConnectionGroup = l10n.t("Select a connection group");
     public static searchConnectionGroups = l10n.t("Search connection groups");
 

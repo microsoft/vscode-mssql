@@ -24,6 +24,7 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
     CreateConnectionGroupDialogProps,
+    CREATE_NEW_GROUP_ID,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
@@ -165,7 +166,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             getAccounts(this._mainController.azureAccountService, this.logger),
             this.getAzureActionButtons(),
             this.getConnectionGroups(),
-            this.getConnectionGroupButton(),
         );
 
         this.state.connectionComponents = {
@@ -344,6 +344,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState(state);
 
             return await this.connectHelper(state);
+        });
+
+        this.registerReducer("openCreateConnectionGroupDialog", async (state) => {
+            state.dialog = {
+                type: "createConnectionGroup",
+                props: {},
+            } as CreateConnectionGroupDialogProps;
+
+            return state;
         });
 
         this.registerReducer("closeDialog", async (state) => {
@@ -1018,23 +1027,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 displayName: Loc.default,
                 value: rootId,
             },
+            {
+                displayName: Loc.createConnectionGroup,
+                value: CREATE_NEW_GROUP_ID,
+            },
             ...result,
         ];
-    }
-
-    private async getConnectionGroupButton(): Promise<FormItemActionButton> {
-        return {
-            label: Loc.createConnectionGroup,
-            id: "createConnectionGroup",
-            callback: async () => {
-                this.state.dialog = {
-                    type: "createConnectionGroup",
-                    props: {},
-                } as CreateConnectionGroupDialogProps;
-
-                this.updateState();
-            },
-        };
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {

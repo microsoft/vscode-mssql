@@ -303,11 +303,15 @@ export function generateFormComponent<
                             : undefined
                     }
                     onSelect={(option) => {
-                        context?.formAction({
-                            propertyName: component.propertyName,
-                            isAction: false,
-                            value: option.value,
-                        });
+                        if (props.onSelect) {
+                            props.onSelect(option.value);
+                        } else {
+                            context?.formAction({
+                                propertyName: component.propertyName,
+                                isAction: false,
+                                value: option.value,
+                            });
+                        }
                     }}
                     size="small"
                     clearable={true}
