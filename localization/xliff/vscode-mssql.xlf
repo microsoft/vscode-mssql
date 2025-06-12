@@ -153,8 +153,8 @@
       <source xml:lang="en">Are you sure you want to delete {0}?</source>
       <note>{0} is the group name</note>
     </trans-unit>
-    <trans-unit id="++CODE++385283976b8f0e8427fe325fc18ae89e1da67c82ab64b4be415709193ae5b385">
-      <source xml:lang="en">Are you sure you want to delete {0}?  Choose whether to delete all contents or move them to root.</source>
+    <trans-unit id="++CODE++26c70151bceb55fb84b8e652a205659bd5736420cfa72a4e3fa92bdaa5a3b526">
+      <source xml:lang="en">Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.</source>
       <note>{0} is the group name</note>
     </trans-unit>
     <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
