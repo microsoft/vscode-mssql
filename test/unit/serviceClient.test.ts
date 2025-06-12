@@ -5,6 +5,7 @@
 
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
+import * as vscode from "vscode";
 import ServerProvider from "../../src/languageservice/server";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Logger, LogLevel } from "../../src/models/logger";
@@ -237,5 +238,56 @@ suite("Service Client tests", () => {
             );
             done();
         });
+    });
+
+    test("initializeLanguageConfiguration should exclude @ from word separators for T-SQL variables", () => {
+        // Mock vscode.languages.setLanguageConfiguration to capture the call
+        const mockSetLanguageConfiguration = TypeMoq.Mock.ofType<typeof vscode.languages.setLanguageConfiguration>();
+        let capturedLanguageId: string;
+        let capturedConfiguration: vscode.LanguageConfiguration;
+        
+        // Override the setLanguageConfiguration method to capture arguments
+        const originalSetLanguageConfiguration = vscode.languages.setLanguageConfiguration;
+        vscode.languages.setLanguageConfiguration = (languageId: string, configuration: vscode.LanguageConfiguration) => {
+            capturedLanguageId = languageId;
+            capturedConfiguration = configuration;
+            return { dispose: () => {} } as vscode.Disposable;
+        };
+
+        try {
+            let fixture: IFixture = {
+                installedServerPath: "test service path",
+                downloadedServerPath: undefined,
+                platformInfo: new PlatformInformation("win32", "x86_64", undefined),
+            };
+
+            setupMocks(fixture);
+            let serviceClient = new SqlToolsServiceClient(
+                testConfig.object,
+                testServiceProvider.object,
+                logger,
+                testStatusView.object,
+                vscodeWrapper.object,
+            );
+
+            // Call the private method using reflection to test language configuration
+            (serviceClient as any).initializeLanguageConfiguration();
+
+            // Verify that setLanguageConfiguration was called with correct parameters
+            assert.equal(capturedLanguageId, "sql", "Language ID should be 'sql'");
+            assert.notEqual(capturedConfiguration, undefined, "Language configuration should be defined");
+            assert.notEqual(capturedConfiguration.wordSeparators, undefined, "Word separators should be defined");
+            
+            // Verify that @ is not in the word separators (so it will be part of T-SQL variable names)
+            assert.equal(capturedConfiguration.wordSeparators!.includes("@"), false, "@ should not be included in word separators for T-SQL variables");
+            
+            // Verify that other common separators are still included
+            assert.equal(capturedConfiguration.wordSeparators!.includes(" "), true, "Space should still be a word separator");
+            assert.equal(capturedConfiguration.wordSeparators!.includes(","), true, "Comma should still be a word separator");
+            assert.equal(capturedConfiguration.wordSeparators!.includes("."), true, "Period should still be a word separator");
+        } finally {
+            // Restore the original method
+            vscode.languages.setLanguageConfiguration = originalSetLanguageConfiguration;
+        }
     });
 });

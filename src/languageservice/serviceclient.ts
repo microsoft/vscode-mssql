@@ -299,6 +299,10 @@ export default class SqlToolsServiceClient {
                 ["(", ")"],
             ],
 
+            // Customize word separators to include @ as part of T-SQL variable names
+            // Default VS Code word separators include @, but we want @ to be part of variable names in SQL
+            wordSeparators: "`~!#$%^&*()-=+[{]}\\|;:'\",.<>/?",
+
             __characterPairSupport: {
                 autoClosingPairs: [
                     { open: "{", close: "}" },
