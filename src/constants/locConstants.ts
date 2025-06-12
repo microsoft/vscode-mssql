@@ -614,7 +614,7 @@ export class ObjectExplorer {
     public static ConnectionGroupDeletionConfirmationWithContents(groupName: string) {
         return l10n.t({
             message:
-                "Are you sure you want to delete {0}?  Choose whether to delete all contents or move them to root.",
+                "Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.",
             args: [groupName],
             comment: ["{0} is the group name"],
         });
