@@ -15,7 +15,7 @@ import SqlToolsServerClient from "./languageservice/serviceclient";
 import { ConnectionProfile } from "./models/connectionProfile";
 import { FirewallRuleError } from "./languageservice/interfaces";
 import { RequestType } from "vscode-languageclient";
-import { createSqlAgentRequestHandler, ISqlChatResult } from "./chat/chatAgentRequestHandler";
+import { createSqlAgentRequestHandler, ISqlChatResult } from "./copilot/chatAgentRequestHandler";
 import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";

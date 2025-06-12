@@ -31,8 +31,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         private connectionString: string,
         private accessToken: string | undefined,
         private databaseName: string,
-        private treeNode: TreeNodeInfo,
         private schemaDesignerCache: Map<string, SchemaDesigner.SchemaDesignerCacheItem>,
+        private treeNode?: TreeNodeInfo,
+        private connectionUri?: string,
     ) {
         super(
             context,
@@ -258,7 +259,20 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                                 : { scriptLength: 0 },
                         );
                         // Open the document in the editor with the connection
-                        void this.mainController.onNewQuery(this.treeNode, result?.script);
+                        if (this.treeNode) {
+                            void this.mainController.onNewQuery(this.treeNode, result?.script);
+                        } else if (this.connectionUri) {
+                            const editor =
+                                await this.mainController.untitledSqlDocumentService.newQuery(
+                                    result?.script,
+                                );
+                            await this.mainController.connectionManager.connect(
+                                editor.document.uri.toString(true),
+                                this.mainController.connectionManager.getConnectionInfo(
+                                    this.connectionUri,
+                                ).credentials,
+                            );
+                        }
                     } catch (error) {
                         generateScriptActivity.endFailed(error, false);
                         vscode.window.showErrorMessage(

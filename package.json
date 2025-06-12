@@ -2015,6 +2015,129 @@
                     }
                 ]
             }
+        ],
+        "languageModelTools": [
+            {
+                "name": "mssql_show_schema",
+                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool requires an active db connection from the current active editor. This tool opens a graphical view of the database schema, including tables and relationships.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "schema",
+                    "visualization"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to use for schema visualization.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Show Database Schema",
+                "toolReferenceName": "mssql_show_schema",
+                "userDescription": "Show database schema for a connected MSSQL database.",
+                "icon": "$(graph-scatter)"
+            },
+            {
+                "name": "mssql_connect",
+                "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use $mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a string formatted as 'mssql/{server name}[/{database name}]', where if no database name is present it's the default database for the server.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "serverName": {
+                            "description": "Server name to connect to. Should be validated with mssql_list_servers.",
+                            "title": "Server Name",
+                            "type": "string"
+                        },
+                        "database": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "description": "Optional database name to connect to. If omitted, uses the server's default database.",
+                            "title": "Database Name"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile to use for connecting. Use ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'.",
+                            "title": "Profile ID",
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    "required": [
+                        "serverName"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Connect to MSSQL Server or Database",
+                "toolReferenceName": "mssql_connect",
+                "userDescription": "Connect to a MSSQL server or database.",
+                "icon": "$(plug)"
+            },
+            {
+                "name": "mssql_disconnect",
+                "modelDescription": "Disconnect from a server or specific database. Returns a success message.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "disconnection"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to disconnect.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Disconnect from MSSQL Server or Database",
+                "toolReferenceName": "mssql_disconnect",
+                "userDescription": "Disconnect from a MSSQL server or database.",
+                "icon": "$(debug-disconnect)"
+            },
+            {
+                "name": "mssql_list_servers",
+                "modelDescription": "List all available MSSQL servers. Returns a list of server names.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "server",
+                    "list"
+                ],
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Servers",
+                "toolReferenceName": "mssql_list_servers",
+                "userDescription": "List all available MSSQL servers."
+            }
         ]
     }
 }
