@@ -18,6 +18,10 @@
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="translated">&lt;default&gt;</target>
       </trans-unit>
+      <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
+        <source xml:lang="en">+ Create Connection Group</source>
+        <target state="new">+ Create Connection Group</target>
+      </trans-unit>
       <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
         <target state="translated">在執行此命令之前，SQL 編輯器必須聚焦</target>
@@ -197,10 +201,15 @@
         <source xml:lang="en">Are you sure you want to delete the selected items?</source>
         <target state="translated">您確定要刪除選取的項目嗎?</target>
       </trans-unit>
-      <trans-unit id="++CODE++06f1783b8fa5a8be694c26e8cea5b2bd668dd7beb434d1271155bae4e7f4a736">
-        <source xml:lang="en">Are you sure you want to delete {0}?  This will also delete all connections in this group.</source>
+      <trans-unit id="++CODE++64f0ebe202fcbb5561671715f3bff0cf6b5219648ffe9bca961824b243d4c5bc">
+        <source xml:lang="en">Are you sure you want to delete {0}?</source>
         <note>{0} is the group name</note>
-        <target state="new">Are you sure you want to delete {0}?  This will also delete all connections in this group.</target>
+        <target state="new">Are you sure you want to delete {0}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26c70151bceb55fb84b8e652a205659bd5736420cfa72a4e3fa92bdaa5a3b526">
+        <source xml:lang="en">Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.</source>
+        <note>{0} is the group name</note>
+        <target state="new">Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.</target>
       </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
@@ -976,6 +985,10 @@
       <trans-unit id="++CODE++2860bf10bd8d01c604f713ea3f60ccea6ef028fd2e7074a400fac50c569aa45c">
         <source xml:lang="en">Delete Confirmation</source>
         <target state="translated">刪除確認</target>
+      </trans-unit>
+      <trans-unit id="++CODE++129eabad7bcc761eb7966091c2bc01163b650ca0613f42c58db97eae5420a7bb">
+        <source xml:lang="en">Delete Contents</source>
+        <target state="new">Delete Contents</target>
       </trans-unit>
       <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
         <source xml:lang="en">Delete saved connection</source>
@@ -1886,6 +1899,10 @@ Error:
         <source xml:lang="en">Move Up</source>
         <target state="translated">上移</target>
       </trans-unit>
+      <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
+        <source xml:lang="en">Move to Root</source>
+        <target state="new">Move to Root</target>
+      </trans-unit>
       <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
         <source xml:lang="en">NULL</source>
         <target state="translated">NULL</target>
@@ -2566,6 +2583,10 @@ Error:
         <source xml:lang="en">Script copied to clipboard</source>
         <target state="translated">指令碼已複製到剪貼簿</target>
       </trans-unit>
+      <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
+        <source xml:lang="en">Search connection groups</source>
+        <target state="new">Search connection groups</target>
+      </trans-unit>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
         <target state="translated">搜尋選項...</target>
@@ -2597,6 +2618,10 @@ Error:
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
         <target state="translated">選取目標</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
+        <source xml:lang="en">Select a connection group</source>
+        <target state="new">Select a connection group</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -3723,8 +3748,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">在 MSSQL 延伸模組中啟用以 UI 為基礎的功能，以提供更豐富且更強大的功能。變更此設定後重新啟動 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
-        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
-        <target state="translated">啟用連線共用以改善整體連線效能。預設會啟用此設定。值變更時，需要重新啟動 Visual Studio Code。若要清除集區連線，請執行命令: 'MS SQL: 清除集區連線'</target>
+        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="new">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</target>
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
@@ -4293,8 +4318,8 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[選用] 設定為 'true' 時，當通訊層使用 SSL 加密時，系統會自動信任 SQL Server SSL 憑證。將 Azure SQL Database 連線設定為 'false'。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.pooling">
-        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
-        <target state="translated">[選項] 設定為 'true' 時，系統會從適當的集區中繪製連線物件；如果需要，也會建立該物件並新增到適當的集區中。</target>
+        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="new">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.multiSubnetFailover">
         <source xml:lang="en">[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>
