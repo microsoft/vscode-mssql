@@ -16,6 +16,8 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 import { getNonce } from "../utils/utils";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
+import { NotificationType, RequestHandler, RequestType } from "vscode-languageclient";
+import { generateGuid } from "../models/utils";
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides
@@ -36,6 +38,10 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         keyof Reducers,
         (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
     >;
+    private _notificationHandlers: {
+        [key: string]: (params: any) => void;
+    } = {};
+
     private _isFirstLoad: boolean = true;
     protected _loadStartTime: number = Date.now();
     private _endLoadActivity = startActivity(
@@ -76,7 +82,15 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                             reducer: message.method === "action" ? message.params.type : undefined,
                         },
                     );
-                    throw error;
+                    this.postMessage({
+                        type: "response",
+                        id: message.id,
+                        error: {
+                            name: error.name,
+                            message: error.message,
+                            stack: error.stack,
+                        },
+                    });
                 }
             } else {
                 const error = new Error(`No handler registered for method ${message.method}`);
@@ -84,9 +98,36 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                     type: this._sourceFile,
                     method: message.method,
                 });
-                throw error;
+                this.postMessage({
+                    type: "response",
+                    id: message.id,
+                    error: {
+                        name: error.name,
+                        message: error.message,
+                        stack: error.stack,
+                    },
+                });
+            }
+        } else if (message.type === "response") {
+            const handler = this._responseHandlers[message.id];
+            if (handler) {
+                if (message.error) {
+                    handler.reject(message.error);
+                } else {
+                    handler.resolve(message.result);
+                }
+                delete this._responseHandlers[message.id];
+            } else {
+                this.logger.warn(`No response handler registered for id ${message.id}`);
             }
         }
+    };
+
+    private _responseHandlers: {
+        [id: string]: {
+            resolve: (result: any) => void;
+            reject: (error: any) => void;
+        };
     };
 
     protected logger: Logger;
@@ -253,6 +294,22 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         this._webviewRequestHandlers["log"] = async (message: LogEvent) => {
             this.logger[message.level ?? "log"](message.message);
         };
+
+        this._webviewRequestHandlers["notification"] = async (message) => {
+            const handler = this._notificationHandlers[message.method];
+            if (handler) {
+                try {
+                    handler(message.params);
+                } catch (error) {
+                    this.logger.error(
+                        `Error in notification handler for ${message.method}:`,
+                        error,
+                    );
+                }
+            } else {
+                this.logger.warn(`No handler registered for notification ${message.method}`);
+            }
+        };
     }
 
     /**
@@ -276,6 +333,75 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         reducer: (state: State, payload: Reducers[Method]) => ReducerResponse<State>,
     ) {
         this._reducers[method] = reducer;
+    }
+
+    /**
+     * Registers a request handler for a specific request type.
+     * @param type The request type that the handler will handle
+     * @param handler The handler that will be called when the request is made
+     */
+    onRequest<P, R, E, RO>(type: RequestType<P, R, E, RO>, handler: RequestHandler<P, R, E>): void {
+        if (this._isDisposed) {
+            throw new Error("Cannot register request handler on disposed controller");
+        }
+        this._webviewRequestHandlers[type.method] = async (params: P) => {
+            try {
+                const result = await handler(params, undefined);
+                return result;
+            } catch (error) {
+                this.logger.error(`Error in request handler for ${type.method}:`, error);
+                throw error;
+            }
+        };
+    }
+
+    /**
+     * Registers a reducer that can be called from the webview.
+     */
+    sendRequest<P, R, E, RO>(type: RequestType<P, R, E, RO>, params: P): Thenable<R> {
+        if (this._isDisposed) {
+            return Promise.reject(new Error("Cannot send request on disposed controller"));
+        }
+        this.postMessage({
+            type: "request",
+            id: generateGuid(), // Generate a unique ID for the request
+            method: type.method,
+            params,
+        });
+        return new Promise<R>((resolve, reject) => {
+            this._responseHandlers[type.method] = {
+                resolve: (result: R) => {
+                    resolve(result);
+                },
+                reject: (error: E) => {
+                    reject(error);
+                },
+            };
+        });
+    }
+
+    /**
+     * Sends a notification to the webview. This is used to notify the webview of changes
+     * @param type The notification type that the webview will handle
+     * @param params The parameters that will be passed to the notification handler
+     */
+    sendNotification<P, RO>(type: NotificationType<P, RO>, params: P): void {
+        if (this._isDisposed) {
+            throw new Error("Cannot send notification on disposed controller");
+        }
+        this.postNotification(type.method, params);
+    }
+
+    onNotification<P, RO>(type: NotificationType<P, RO>, handler: (params: P) => void): void {
+        if (this._isDisposed) {
+            throw new Error("Cannot register notification handler on disposed controller");
+        }
+        this._notificationHandlers[type.method] = handler;
+        this._disposables.push({
+            dispose: () => {
+                delete this._notificationHandlers[type.method];
+            },
+        });
     }
 
     /**

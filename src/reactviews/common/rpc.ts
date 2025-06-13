@@ -37,22 +37,51 @@ export class WebviewRpc<Reducers> {
     private constructor(private _vscodeApi: WebviewApi<unknown>) {
         window.addEventListener("message", (event) => {
             const message = event.data;
-            if (message.type === "response") {
-                const { id, result, error } = message;
-                if (this._rpcHandlers[id]) {
-                    if (error) {
-                        this._rpcHandlers[id].reject(error);
-                    } else {
-                        this._rpcHandlers[id].resolve(result);
+            switch (message.type) {
+                case "response":
+                    const { id, result, error } = message;
+                    if (this._rpcHandlers[id]) {
+                        if (error) {
+                            this._rpcHandlers[id].reject(error);
+                        } else {
+                            this._rpcHandlers[id].resolve(result);
+                        }
+                        delete this._rpcHandlers[id];
                     }
-                    delete this._rpcHandlers[id];
-                }
-            }
-            if (message.type === "notification") {
-                const { method, params } = message;
-                if (this._methodSubscriptions[method]) {
-                    Object.values(this._methodSubscriptions[method]).forEach((cb) => cb(params));
-                }
+                    break;
+                case "request":
+                    const requestId = message.id;
+                    const requestMethod = message.method;
+                    const requestParams = message.params;
+                    try {
+                        if (this._rpcHandlers[requestId]) {
+                            // If a handler exists for this request, we can call it
+                            this._vscodeApi.postMessage({
+                                type: "response",
+                                id: requestId,
+                                result: this._rpcHandlers[requestId].resolve(requestParams),
+                            });
+                        }
+                    } catch (error) {
+                        // If an error occurs, we reject the promise with the error
+                        this._vscodeApi.postMessage({
+                            type: "response",
+                            id: requestId,
+                            error: error,
+                        });
+                    }
+
+                    break;
+                case "notification":
+                    const { method, params } = message;
+                    if (this._methodSubscriptions[method]) {
+                        Object.values(this._methodSubscriptions[method]).forEach((cb) =>
+                            cb(params),
+                        );
+                    }
+                    break;
+                default:
+                    console.warn(`Unknown message type: ${message.type}`);
             }
         });
     }
