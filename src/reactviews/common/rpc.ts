@@ -10,6 +10,7 @@ import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
+import { NotificationType, RequestHandler, RequestType } from "vscode-languageclient";
 
 /**
  * RPC to communicate with the extension.
@@ -23,6 +24,9 @@ export class WebviewRpc<Reducers> {
             reject: (error: unknown) => void;
         };
     } = {};
+    private _rpcMethodHandlers: {
+        [method: string]: RequestHandler<unknown, unknown, unknown>;
+    } = {};
     private _methodSubscriptions: {
         [method: string]: Record<string, (params: unknown) => void>;
     } = {};
@@ -35,7 +39,7 @@ export class WebviewRpc<Reducers> {
     }
 
     private constructor(private _vscodeApi: WebviewApi<unknown>) {
-        window.addEventListener("message", (event) => {
+        window.addEventListener("message", async (event) => {
             const message = event.data;
             switch (message.type) {
                 case "response":
@@ -54,13 +58,24 @@ export class WebviewRpc<Reducers> {
                     const requestMethod = message.method;
                     const requestParams = message.params;
                     try {
-                        if (this._rpcHandlers[requestId]) {
+                        if (this._rpcMethodHandlers[requestMethod]) {
                             // If a handler exists for this request, we can call it
-                            this._vscodeApi.postMessage({
-                                type: "response",
-                                id: requestId,
-                                result: this._rpcHandlers[requestId].resolve(requestParams),
-                            });
+                            const handler = this._rpcMethodHandlers[requestMethod];
+                            try {
+                                const result = await handler(requestParams, undefined!);
+                                this._vscodeApi.postMessage({
+                                    type: "response",
+                                    id: requestId,
+                                    result: result,
+                                });
+                            } catch (error) {
+                                // If the handler throws an error, we reject the promise with the error
+                                this._vscodeApi.postMessage({
+                                    type: "response",
+                                    id: requestId,
+                                    error: error,
+                                });
+                            }
                         }
                     } catch (error) {
                         // If an error occurs, we reject the promise with the error
@@ -130,5 +145,34 @@ export class WebviewRpc<Reducers> {
 
     public log(message: string, level?: LoggerLevel) {
         void this.call("log", { message, level } as LogEvent);
+    }
+
+    public onRequest<P, R, E, RO>(
+        type: RequestType<P, R, E, RO>,
+        handler: RequestHandler<P, R, E>,
+    ): void {
+        if (this._rpcMethodHandlers[type.method]) {
+            throw new Error(`Handler for method ${type.method} already exists.`);
+        }
+
+        this._rpcMethodHandlers[type.method] = handler;
+    }
+
+    public sendRequest<P, R, E, RO>(type: RequestType<P, R, E, RO>, params?: P): Promise<R> {
+        return this.call(type.method, params) as Promise<R>;
+    }
+
+    public sendNotification<P, RO>(type: NotificationType<P, RO>, params?: P): void {
+        void this.call(type.method, params);
+    }
+
+    public onNotification<P, RO>(
+        type: NotificationType<P, RO>,
+        handler: (params: P) => void,
+    ): void {
+        if (!this._methodSubscriptions[type.method]) {
+            this._methodSubscriptions[type.method] = {};
+        }
+        this._methodSubscriptions[type.method][type.method] = handler;
     }
 }
