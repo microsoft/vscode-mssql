@@ -49,6 +49,11 @@ const useStyles = makeStyles({
                 visibility: "visible",
             },
         },
+        ":focus-within": {
+            [`& .${buttonContainer}`]: {
+                visibility: "visible",
+            },
+        },
     },
     horizontalCardImage: {
         width: "50px",
@@ -191,6 +196,7 @@ export const ConnectionCard = ({
                                 appearance="subtle"
                                 onClick={actionButton.onClick}
                                 title={actionButton.tooltip}
+                                tabIndex={0}
                             />
                         </div>
                     )
