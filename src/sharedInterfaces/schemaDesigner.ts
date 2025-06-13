@@ -225,22 +225,31 @@ export namespace SchemaDesigner {
          * Session id for the schema designer session
          */
         sessionId: string;
-        /**
-         * Updated schema model
-         */
-        updatedSchema: Schema;
     }
 
     export interface GenerateScriptResponse {
         /**
          * Script to create the schema
          */
-        scripts: TableScript[];
+        script: string;
+    }
 
+    export interface GetDefinitionRequest {
         /**
-         * Combined script to create the schema
+         * Session id for the schema designer session
          */
-        combinedScript: string;
+        sessionId: string;
+        /**
+         * Table id for which the definition is requested
+         */
+        updatedSchema: Schema;
+    }
+
+    export interface GetDefinitionResponse {
+        /**
+         * Script for the schema
+         */
+        script: string;
     }
 
     export interface GetReportRequest {
@@ -257,19 +266,14 @@ export namespace SchemaDesigner {
 
     export interface GetReportResponse {
         /**
-         * List of reports
-         * This is the list of reports that indicates the changes made to the schema
+         * Has the schema changed
          */
-        reports: SchemaDesignerReport[];
+        hasSchemaChanged: boolean;
         /**
          * DacFx report
          * This is the DacFx report that indicates the changes made to the schema
          */
         dacReport: DacReport;
-        /**
-         * Script to update the schema
-         */
-        updateScript: string;
     }
 
     /**
@@ -322,6 +326,13 @@ export namespace SchemaDesigner {
          * Publishes the schema designer session
          */
         publishSession(request: PublishSessionRequest): Thenable<void>;
+
+        /**
+         * Gets the definition for the schema designer session
+         * @param request - Request parameters for getting the definition of a schema designer session
+         * @returns - Response for getting the definition of a schema designer session
+         */
+        getDefinition(request: GetDefinitionRequest): Thenable<GetDefinitionResponse>;
 
         /**
          * Gets the create as script for the schema designer session

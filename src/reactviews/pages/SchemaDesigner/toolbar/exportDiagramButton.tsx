@@ -26,6 +26,13 @@ export function ExportDiagramButton() {
         const reactFlowContainer = document.querySelector(".react-flow__viewport") as HTMLElement;
         const computedStyle = getComputedStyle(reactFlowContainer);
         const graphBackgroundColor = computedStyle.getPropertyValue("--vscode-editor-background");
+        if (!context) {
+            return;
+        }
+
+        // Ensure all nodes are visible before exporting
+        context.setRenderOnlyVisibleTables(false);
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for the nodes to be rendered
 
         const nodesBounds = getNodesBounds(getNodes().filter((node) => !node.hidden));
         const viewport = getViewportForBounds(
@@ -105,6 +112,7 @@ export function ExportDiagramButton() {
                     });
                 break;
         }
+        context.setRenderOnlyVisibleTables(true); // Reset to default state after export
     }
     return (
         <Menu>

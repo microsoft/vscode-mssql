@@ -1249,6 +1249,40 @@ export default class ConnectionManager {
     }
 
     /**
+     * Handles password-based credential authentication by prompting for password if needed.
+     * This method checks if a password is required and prompts the user if it's not saved or available.
+     *
+     * @param connectionCreds The connection credentials to process
+     * @returns Promise that resolves to true if password handling was successful, false if user cancelled
+     */
+    public async handlePasswordBasedCredentials(
+        connectionCreds: IConnectionInfo,
+    ): Promise<boolean> {
+        if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
+            // show password prompt if SQL Login and password isn't saved
+            let password = connectionCreds.password;
+            if (Utils.isEmpty(password)) {
+                if ((connectionCreds as IConnectionProfile).savePassword) {
+                    password = await this.connectionStore.lookupPassword(connectionCreds);
+                }
+
+                if (!password) {
+                    password = await this.connectionUI.promptForPassword();
+                    if (!password) {
+                        return false;
+                    }
+                }
+
+                if (connectionCreds.authenticationType !== Constants.azureMfa) {
+                    connectionCreds.azureAccountToken = undefined;
+                }
+                connectionCreds.password = password;
+            }
+        }
+        return true;
+    }
+
+    /**
      * create a new connection with the connectionCreds provided
      * @param fileUri
      * @param connectionCreds ConnectionInfo to connect with
@@ -1268,26 +1302,10 @@ export default class ConnectionManager {
             await this.confirmEntraTokenValidity(connectionCreds);
         }
 
-        if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
-            // show password prompt if SQL Login and password isn't saved
-            let password = connectionCreds.password;
-            if (Utils.isEmpty(password)) {
-                if ((connectionCreds as IConnectionProfile).savePassword) {
-                    password = await this.connectionStore.lookupPassword(connectionCreds);
-                }
-
-                if (!password) {
-                    password = await this.connectionUI.promptForPassword();
-                    if (!password) {
-                        return undefined;
-                    }
-                }
-
-                if (connectionCreds.authenticationType !== Constants.azureMfa) {
-                    connectionCreds.azureAccountToken = undefined;
-                }
-                connectionCreds.password = password;
-            }
+        // Handle password-based credentials
+        const passwordResult = await this.handlePasswordBasedCredentials(connectionCreds);
+        if (!passwordResult) {
+            return false;
         }
 
         let connectionPromise = new Promise<boolean>(async (resolve, reject) => {
@@ -1507,7 +1525,18 @@ export default class ConnectionManager {
         }
     }
 
-    public async transferFileConnection(oldFileUri: string, newFileUri: string): Promise<void> {
+    /**
+     * Copies the connection info from one file to another, optionally disconnecting the old file.
+     * @param oldFileUri File to copy the connection info from
+     * @param newFileUri File to copy the connection info to
+     * @param keepOldConnected Whether to keep the old file connected after copying the connection info.  Defaults to false.
+     * @returns
+     */
+    public async copyConnectionToFile(
+        oldFileUri: string,
+        newFileUri: string,
+        keepOldConnected: boolean = false,
+    ): Promise<void> {
         // Is the new file connected or the old file not connected?
         if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
@@ -1516,7 +1545,7 @@ export default class ConnectionManager {
         // Connect the saved uri and disconnect the untitled uri on successful connection
         let creds: IConnectionInfo = this._connections[oldFileUri].credentials;
         let result = await this.connect(newFileUri, creds);
-        if (result) {
+        if (result && !keepOldConnected) {
             await this.disconnect(oldFileUri);
         }
     }

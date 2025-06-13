@@ -7,7 +7,7 @@ import { makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext, useEffect } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { QueryResultPane } from "./queryResultPane";
-import { Keys } from "./keys";
+import { Keys } from "../../common/keys";
 
 const useStyles = makeStyles({
     root: {
