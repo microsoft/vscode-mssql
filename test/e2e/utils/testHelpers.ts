@@ -98,7 +98,7 @@ export async function executeQuery(vsCodePage: Page): Promise<void> {
 }
 
 export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
-    await vsCodePage.fill('textarea[class="inputarea monaco-mouse-cursor-text"]', text);
+    await vsCodePage.fill('div[class="native-edit-context"]', text);
 }
 
 export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promise<void> {
