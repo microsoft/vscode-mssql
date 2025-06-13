@@ -14,7 +14,7 @@ import {
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
-import { MouseEventHandler, useContext, useEffect, useState } from "react";
+import { KeyboardEventHandler, MouseEventHandler, useContext, useEffect, useState } from "react";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
@@ -81,7 +81,10 @@ export const ConnectionsListContainer = () => {
                     onClick={context.refreshConnectionsList}
                 />
             </div>
-            <div className={styles.main}>
+            <div
+                className={styles.main}
+                role="list"
+                aria-label={locConstants.connectionDialog.savedConnections}>
                 {// state may not be initialized yet due to async loading of context
                 context.state?.savedConnections.map((connection, index) => {
                     return (
@@ -110,7 +113,7 @@ export const ConnectionsListContainer = () => {
                     onClick={context.refreshConnectionsList}
                 />
             </div>
-            <Tree>
+            <Tree role="list" aria-label={locConstants.connectionDialog.recentConnections}>
                 {// state may not be initialized yet due to async loading of context
                 context.state?.recentConnections.map((connection, index) => {
                     return (
@@ -173,29 +176,45 @@ export const ConnectionCard = ({
         return undefined;
     }
 
+    const handleClick = () => {
+        context.loadConnection(connection);
+    };
+
+    const handleKeyDown: KeyboardEventHandler = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleClick();
+        }
+    };
+
     return (
-        <Card
-            className={styles.connectionContainer}
-            appearance="subtle"
-            onClick={() => {
-                context.loadConnection(connection);
-            }}>
-            <CardHeader
-                image={<ServerRegular fontSize={20} />}
-                header={displayName}
-                action={
-                    actionButton && (
-                        <div className={buttonContainer}>
-                            <Button
-                                icon={actionButton.icon}
-                                appearance="subtle"
-                                onClick={actionButton.onClick}
-                                title={actionButton.tooltip}
-                            />
-                        </div>
-                    )
-                }
-            />
-        </Card>
+        <div role="listitem">
+            <Card
+                className={styles.connectionContainer}
+                appearance="subtle"
+                onClick={handleClick}
+                role="button"
+                tabIndex={0}
+                aria-label={`Connect to ${displayName}`}
+                onKeyDown={handleKeyDown}>
+                <CardHeader
+                    image={<ServerRegular fontSize={20} />}
+                    header={displayName}
+                    action={
+                        actionButton && (
+                            <div className={buttonContainer}>
+                                <Button
+                                    icon={actionButton.icon}
+                                    appearance="subtle"
+                                    onClick={actionButton.onClick}
+                                    title={actionButton.tooltip}
+                                    aria-label={actionButton.tooltip}
+                                />
+                            </div>
+                        )
+                    }
+                />
+            </Card>
+        </div>
     );
 };
