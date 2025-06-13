@@ -196,6 +196,7 @@ export const ConnectionCard = ({
                                 appearance="subtle"
                                 onClick={actionButton.onClick}
                                 title={actionButton.tooltip}
+                                tabIndex={0}
                             />
                         </div>
                     )
