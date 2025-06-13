@@ -25,7 +25,6 @@ import {
     IMessage,
     IRange,
     ISelectionData,
-    DbCellValue,
 } from "../../../../../models/interfaces";
 import { DataService } from "./../services/data.service";
 import { ShortcutService } from "./../services/shortcuts.service";
@@ -38,6 +37,7 @@ import * as Utils from "./../utils";
 /** enableProdMode */
 import { enableProdMode } from "@angular/core";
 import { TelemetryActions, TelemetryViews } from "../../../../../sharedInterfaces/telemetry";
+import { DbCellValue } from "vscode-mssql";
 enableProdMode();
 
 // text selection helper library
