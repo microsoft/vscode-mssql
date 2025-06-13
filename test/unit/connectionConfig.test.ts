@@ -262,6 +262,52 @@ suite("ConnectionConfig Tests", () => {
                 );
             });
 
+            test("removeConnection does not write config if asked to remove a connection that doesn't exist", async () => {
+                const testConnProfile = {
+                    id: "profile-id",
+                    groupId: rootGroupId,
+                    server: "TestServer",
+                    authenticationType: "Integrated",
+                    profileName: "Test Profile",
+                } as IConnectionProfile;
+
+                // Set up initial connections with a different profile
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "different-profile-id",
+                        groupId: rootGroupId,
+                        server: "DifferentServer",
+                        authenticationType: "Integrated",
+                        profileName: "Different Profile",
+                    } as IConnectionProfile,
+                ]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                // Try to remove a profile that doesn't exist in the config
+                const result = await connConfig.removeConnection(testConnProfile);
+
+                expect(result, "Profile should not have been found").to.be.false;
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)).to.have.lengthOf(
+                    1,
+                );
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)[0].id).to.equal(
+                    "different-profile-id",
+                );
+
+                // Verify setConfiguration was not called
+                mockVscodeWrapper.verify(
+                    (v) =>
+                        v.setConfiguration(
+                            TypeMoq.It.isValue(Constants.extensionName),
+                            TypeMoq.It.isAny(),
+                            TypeMoq.It.isAny(),
+                        ),
+                    TypeMoq.Times.never(),
+                );
+            });
+
             test("getConnections filters out workspace connections that are missing IDs", async () => {
                 const testConnProfiles = [
                     {
