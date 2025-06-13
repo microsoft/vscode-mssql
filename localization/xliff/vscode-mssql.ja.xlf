@@ -3723,8 +3723,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">MSSQL 拡張機能で UI ベースの機能を有効にして、より充実した強力な機能を実現します。この設定を変更した後、Visual Studio Code を再起動します。</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
-        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
-        <target state="translated">接続プールを有効にして、全体的な接続パフォーマンスを向上させます。この設定は既定で有効になっています。値が変更された場合は Visual Studio Code を再起動する必要があります。プールされた接続をクリアするには、次のコマンドを実行します: 'MS SQL: プールされた接続のクリア'</target>
+        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="new">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</target>
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
@@ -4293,8 +4293,8 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[省略可能] 'true' を設定した場合、通信レイヤーが SSL で暗号化されていれば、SQL Server の SSL 証明書は自動的に信頼されます。Azure SQL Database 接続には 'false' を設定してください。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.pooling">
-        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
-        <target state="translated">[省略可能] 'true' に設定した場合、接続オブジェクトは適切なプールから取得されるか、または必要に応じて作成され、適切なプールに追加されます。</target>
+        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="new">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</target>
       </trans-unit>
       <trans-unit id="mssql.connection.multiSubnetFailover">
         <source xml:lang="en">[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>
