@@ -32,6 +32,7 @@
             _grid.onDragStart.subscribe(handleDragStart);
             _grid.onDragEnd.subscribe(handleDragEnd);
             _grid.onHeaderClick.subscribe(handleHeaderClick);
+            _grid.onHeaderContextMenu.subscribe(handleHeaderContextMenu);
             _grid.onColumnsResized.subscribe(handleColumnsResized);
         }
 
@@ -43,6 +44,7 @@
             _grid.onDragStart.unsubscribe(handleDragStart);
             _grid.onDragEnd.unsubscribe(handleDragEnd);
             _grid.onHeaderClick.unsubscribe(handleHeaderClick);
+            _grid.onHeaderContextMenu.unsubscribe(handleHeaderContextMenu);
             _grid.onColumnsResized.unsubscribe(handleColumnsResized);
         }
 
@@ -355,6 +357,122 @@
             }
             _grid.setActiveCell(newActiveRow, newActiveColumn);
             setSelectedRanges(_ranges);
+
+            e.stopImmediatePropagation();
+            return true;
+        }
+
+        function handleHeaderContextMenu(e, args): boolean {
+            if (!args || !args.column || !args.column.resizable) {
+                return false;
+            }
+
+            e.preventDefault();
+            let columnIndex = _grid.getColumnIndex(args.column.id);
+            
+            // Create context menu
+            let contextMenu = document.createElement("ul");
+            contextMenu.className = "header-context-menu";
+            contextMenu.style.position = "fixed";
+            contextMenu.style.left = e.pageX + "px";
+            contextMenu.style.top = e.pageY + "px";
+            contextMenu.style.background = "var(--vscode-menu-background, white)";
+            contextMenu.style.border = "1px solid var(--vscode-menu-border, #ccc)";
+            contextMenu.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+            contextMenu.style.zIndex = "1000";
+            contextMenu.style.padding = "4px 0";
+            contextMenu.style.margin = "0";
+            contextMenu.style.listStyle = "none";
+            contextMenu.style.fontSize = "13px";
+            contextMenu.style.fontFamily = "var(--vscode-font-family)";
+            contextMenu.style.color = "var(--vscode-menu-foreground, black)";
+            contextMenu.setAttribute("role", "menu");
+            contextMenu.setAttribute("aria-label", "Column header context menu");
+
+            // Auto resize option
+            let autoResizeItem = document.createElement("li");
+            autoResizeItem.textContent = "Auto Resize Column";
+            autoResizeItem.style.padding = "6px 12px";
+            autoResizeItem.style.cursor = "pointer";
+            autoResizeItem.style.borderBottom = "none";
+            autoResizeItem.setAttribute("role", "menuitem");
+            autoResizeItem.setAttribute("tabindex", "0");
+            autoResizeItem.addEventListener("mouseover", function() {
+                this.style.background = "var(--vscode-menu-selectionBackground, #e8e8e8)";
+            });
+            autoResizeItem.addEventListener("mouseout", function() {
+                this.style.background = "transparent";
+            });
+            autoResizeItem.addEventListener("click", function() {
+                // Trigger auto-resize by simulating double-click on resize handle
+                let headerColumns = _grid.getHeaderRow();
+                if (headerColumns) {
+                    let headerColumn = $(headerColumns).find('[data-column-id="' + args.column.id + '"]');
+                    if (headerColumn.length > 0) {
+                        let resizeHandle = headerColumn.find('.slick-resizable-handle');
+                        if (resizeHandle.length > 0) {
+                            let dblClickEvent = $.Event('dblclick');
+                            resizeHandle.trigger(dblClickEvent);
+                        }
+                    }
+                }
+                document.body.removeChild(contextMenu);
+            });
+
+            // Resize dialog option
+            let resizeItem = document.createElement("li");
+            resizeItem.textContent = "Resize Column...";
+            resizeItem.style.padding = "6px 12px";
+            resizeItem.style.cursor = "pointer";
+            resizeItem.setAttribute("role", "menuitem");
+            resizeItem.setAttribute("tabindex", "0");
+            resizeItem.addEventListener("mouseover", function() {
+                this.style.background = "var(--vscode-menu-selectionBackground, #e8e8e8)";
+            });
+            resizeItem.addEventListener("mouseout", function() {
+                this.style.background = "transparent";
+            });
+            resizeItem.addEventListener("click", function() {
+                showResizeDialog(columnIndex);
+                document.body.removeChild(contextMenu);
+            });
+
+            contextMenu.appendChild(autoResizeItem);
+            contextMenu.appendChild(resizeItem);
+            document.body.appendChild(contextMenu);
+
+            // Handle keyboard navigation
+            contextMenu.addEventListener("keydown", function(keyEvent) {
+                if (keyEvent.key === "Escape") {
+                    document.body.removeChild(contextMenu);
+                } else if (keyEvent.key === "ArrowDown") {
+                    keyEvent.preventDefault();
+                    let currentItem = document.activeElement;
+                    let nextItem = currentItem === autoResizeItem ? resizeItem : autoResizeItem;
+                    nextItem.focus();
+                } else if (keyEvent.key === "ArrowUp") {
+                    keyEvent.preventDefault();
+                    let currentItem = document.activeElement;
+                    let prevItem = currentItem === resizeItem ? autoResizeItem : resizeItem;
+                    prevItem.focus();
+                } else if (keyEvent.key === "Enter" || keyEvent.key === " ") {
+                    keyEvent.preventDefault();
+                    (document.activeElement as HTMLElement).click();
+                }
+            });
+
+            // Close menu when clicking outside
+            setTimeout(function() {
+                document.addEventListener("click", function closeMenu() {
+                    if (document.body.contains(contextMenu)) {
+                        document.body.removeChild(contextMenu);
+                    }
+                    document.removeEventListener("click", closeMenu);
+                });
+            }, 10);
+
+            // Focus first item
+            autoResizeItem.focus();
 
             e.stopImmediatePropagation();
             return true;
