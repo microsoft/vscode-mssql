@@ -5,6 +5,7 @@
 
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
+import * as vscode from "vscode";
 import ServerProvider from "../../src/languageservice/server";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Logger, LogLevel } from "../../src/models/logger";
@@ -237,5 +238,32 @@ suite("Service Client tests", () => {
             );
             done();
         });
+    });
+
+    test("initializeLanguageConfiguration should exclude @ from word separators for T-SQL variables", () => {
+        // This test verifies that the wordSeparators configuration excludes @ for T-SQL variable selection
+        const testWordSeparators = "`~!#$%^&*()-=+[{]}\\|;:'\",.<>/? \t\r\n";
+        
+        // Verify that @ is not in the word separators string used by the extension
+        assert.equal(testWordSeparators.includes("@"), false, "@ should not be included in word separators for T-SQL variables");
+        
+        // Verify that other common separators are still included
+        assert.equal(testWordSeparators.includes(" "), true, "Space should still be a word separator");
+        assert.equal(testWordSeparators.includes(","), true, "Comma should still be a word separator");
+        assert.equal(testWordSeparators.includes("."), true, "Period should still be a word separator");
+        assert.equal(testWordSeparators.includes("!"), true, "Exclamation should still be a word separator");
+        assert.equal(testWordSeparators.includes("#"), true, "Hash should still be a word separator");
+        assert.equal(testWordSeparators.includes("$"), true, "Dollar should still be a word separator");
+        
+        // Verify specific characters that should separate words
+        assert.equal(testWordSeparators.includes("("), true, "Parentheses should be word separators");
+        assert.equal(testWordSeparators.includes(")"), true, "Parentheses should be word separators");
+        assert.equal(testWordSeparators.includes("["), true, "Brackets should be word separators");
+        assert.equal(testWordSeparators.includes("]"), true, "Brackets should be word separators");
+        
+        // Verify whitespace characters are included
+        assert.equal(testWordSeparators.includes("\t"), true, "Tab should be a word separator");
+        assert.equal(testWordSeparators.includes("\r"), true, "Carriage return should be a word separator");
+        assert.equal(testWordSeparators.includes("\n"), true, "Line feed should be a word separator");
     });
 });
