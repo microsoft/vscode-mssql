@@ -10,7 +10,7 @@ import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
-import { NotificationType, RequestHandler, RequestType } from "vscode-languageclient";
+import { NotificationType, RequestHandler, RequestType } from "vscode-jsonrpc/browser";
 
 /**
  * RPC to communicate with the extension.
@@ -25,10 +25,10 @@ export class WebviewRpc<Reducers> {
         };
     } = {};
     private _rpcMethodHandlers: {
-        [method: string]: RequestHandler<unknown, unknown, unknown>;
+        [method: string]: (params: any) => any;
     } = {};
-    private _methodSubscriptions: {
-        [method: string]: Record<string, (params: unknown) => void>;
+    private _notificationHandlersMap: {
+        [method: string]: ((params: any) => void)[];
     } = {};
     private static _instance: WebviewRpc<any>;
     public static getInstance<Reducers>(vscodeApi: WebviewApi<unknown>): WebviewRpc<Reducers> {
@@ -62,7 +62,7 @@ export class WebviewRpc<Reducers> {
                             // If a handler exists for this request, we can call it
                             const handler = this._rpcMethodHandlers[requestMethod];
                             try {
-                                const result = await handler(requestParams, undefined!);
+                                const result = await handler(requestParams);
                                 this._vscodeApi.postMessage({
                                     type: "response",
                                     id: requestId,
@@ -89,8 +89,8 @@ export class WebviewRpc<Reducers> {
                     break;
                 case "notification":
                     const { method, params } = message;
-                    if (this._methodSubscriptions[method]) {
-                        Object.values(this._methodSubscriptions[method]).forEach((cb) =>
+                    if (this._notificationHandlersMap[method]) {
+                        Object.values(this._notificationHandlersMap[method]).forEach((cb) =>
                             cb(params),
                         );
                     }
@@ -128,13 +128,6 @@ export class WebviewRpc<Reducers> {
         void this.call("action", { type: method, payload });
     }
 
-    public subscribe(callerId: string, method: string, callback: (params: unknown) => void) {
-        if (!this._methodSubscriptions[method]) {
-            this._methodSubscriptions[method] = {};
-        }
-        this._methodSubscriptions[method][callerId] = callback;
-    }
-
     public sendActionEvent(event: WebviewTelemetryActionEvent) {
         void this.call("sendActionEvent", event);
     }
@@ -147,32 +140,34 @@ export class WebviewRpc<Reducers> {
         void this.call("log", { message, level } as LogEvent);
     }
 
-    public onRequest<P, R, E, RO>(
-        type: RequestType<P, R, E, RO>,
-        handler: RequestHandler<P, R, E>,
-    ): void {
+    public onRequest<P, R, E>(type: RequestType<P, R, E>, handler: RequestHandler<P, R, E>): void {
         if (this._rpcMethodHandlers[type.method]) {
             throw new Error(`Handler for method ${type.method} already exists.`);
         }
 
-        this._rpcMethodHandlers[type.method] = handler;
+        this._rpcMethodHandlers[type.method] = async (params) => {
+            try {
+                const result = await handler(params, undefined!);
+                return result;
+            } catch (error) {
+                // If the handler throws an error, we reject the promise with the error
+                throw error;
+            }
+        };
     }
 
-    public sendRequest<P, R, E, RO>(type: RequestType<P, R, E, RO>, params?: P): Promise<R> {
+    public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Promise<R> {
         return this.call(type.method, params) as Promise<R>;
     }
 
-    public sendNotification<P, RO>(type: NotificationType<P, RO>, params?: P): void {
+    public sendNotification<P>(type: NotificationType<P>, params?: P): void {
         void this.call(type.method, params);
     }
 
-    public onNotification<P, RO>(
-        type: NotificationType<P, RO>,
-        handler: (params: P) => void,
-    ): void {
-        if (!this._methodSubscriptions[type.method]) {
-            this._methodSubscriptions[type.method] = {};
+    public onNotification<P>(type: NotificationType<P>, handler: (params: P) => void): void {
+        if (!this._notificationHandlersMap[type.method]) {
+            this._notificationHandlersMap[type.method] = [];
         }
-        this._methodSubscriptions[type.method][type.method] = handler;
+        this._notificationHandlersMap[type.method].push(handler);
     }
 }

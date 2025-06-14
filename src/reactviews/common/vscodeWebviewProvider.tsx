@@ -12,7 +12,11 @@ import { LocConstants } from "./locConstants";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
 import { webviewTheme } from "./theme";
-import { ColorThemeKind } from "../../sharedInterfaces/webview";
+import {
+    ColorThemeChangeNotification,
+    ColorThemeKind,
+    StateChangeNotification,
+} from "../../sharedInterfaces/webview";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -105,12 +109,12 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
         void getLocalization();
     }, []);
 
-    extensionRpc.subscribe("vscodeWebviewProvider", "onDidChangeTheme", (params) => {
+    extensionRpc.onNotification(ColorThemeChangeNotification.type, (params) => {
         setTheme(params as ColorThemeKind);
     });
 
-    extensionRpc.subscribe("vscodeWebviewProvider", "updateState", (params) => {
-        setState(params as State);
+    extensionRpc.onNotification<State>(StateChangeNotification.type<State>(), (params) => {
+        setState(params);
     });
 
     function isInitialized(): boolean {

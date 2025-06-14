@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 
 import { TelemetryActions, TelemetryViews } from "./telemetry";
+import { NotificationType } from "vscode-jsonrpc/browser";
 
 export enum ApiStatus {
     NotStarted = "notStarted",
@@ -138,3 +139,45 @@ export interface WebviewContextProps<TState> {
     sendActionEvent(event: WebviewTelemetryActionEvent): void;
     sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
 }
+
+/**
+ * Color theme change event callback declaration.
+ */
+export namespace ColorThemeChangeNotification {
+    export const type = new NotificationType<ColorThemeKind>("onDidChangeColorTheme");
+}
+
+export namespace StateChangeNotification {
+    export function type<State>() {
+        return new NotificationType<State>("onDidChangeState");
+    }
+}
+
+// /**
+//  * An interface to type messages.
+//  */
+// export interface MessageType {
+//     readonly method: string;
+//     readonly numberOfParams: number;
+// }
+
+// /**
+//  * An abstract implementation of a MessageType.
+//  */
+// export declare abstract class AbstractMessageType implements MessageType {
+//     private _method;
+//     private _numberOfParams;
+//     constructor(_method: string, _numberOfParams: number);
+//     readonly method: string;
+//     readonly numberOfParams: number;
+// }
+
+// export declare class NotificationType<P, RO> extends AbstractMessageType {
+//     readonly _?: [P, RO];
+//     constructor(method: string);
+// }
+
+// export declare class RequestType<P, R, E, RO> extends AbstractMessageType {
+//     readonly _?: [P, R, E, RO];
+//     constructor(method: string);
+// }
