@@ -1,7 +1,7 @@
-name: Bug Report - MSSQL + GitHub Copilot
+name: Bug Report / Feature Request - MSSQL + GitHub Copilot
 description: File a bug report / feature request to help us improve GitHub Copilot integration with the MSSQL extension.
 title: "[GitHub Copilot - Bug] / Feature request: "
-labels: ["bug", "PrPr", "Area - GitHub Copilot", "Triage: Needed"]
+labels: ["Bug", "Enhancement", "PrPr", "Area - GitHub Copilot", "Triage: Needed"]
 assignees: []
 
 body:
@@ -76,6 +76,7 @@ body:
         • VS Code Version:
         • MSSQL Extension Version:
         • GitHub Copilot Version:
+        • Operating System:
         • Connection Type (SQL database in Fabric, Azure SQL, SQL Server, etc.):
 
   # Section for confirming issue search and willingness to work on the issue
