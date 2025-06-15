@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 
 import { TelemetryActions, TelemetryViews } from "./telemetry";
-import { NotificationType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 
 export enum ApiStatus {
     NotStarted = "notStarted",
@@ -140,6 +140,12 @@ export interface WebviewContextProps<TState> {
     sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
 }
 
+export enum MessageType {
+    Request = "request",
+    Response = "response",
+    Notification = "notification",
+}
+
 /**
  * Color theme change event callback declaration.
  */
@@ -147,8 +153,75 @@ export namespace ColorThemeChangeNotification {
     export const type = new NotificationType<ColorThemeKind>("onDidChangeColorTheme");
 }
 
+/**
+ * State change event callback declaration.
+ * This is used to notify the webview of state changes that it should be aware of.
+ */
 export namespace StateChangeNotification {
     export function type<State>() {
         return new NotificationType<State>("onDidChangeState");
     }
+}
+
+/**
+ * Request to get the current state of the webview.
+ */
+export namespace GetStateRequest {
+    export function type<State>() {
+        return new RequestType<void, State, void>("getState");
+    }
+}
+
+/**
+ * Request to get the current color theme of vscode.
+ */
+export namespace GetThemeRequest {
+    export const type = new RequestType<void, ColorThemeKind, void>("getTheme");
+}
+
+/**
+ * Request to send a telemetry action event from the webview to the extension host.
+ */
+export namespace SendActionEventRequest {
+    export const type = new RequestType<WebviewTelemetryActionEvent, void, void>("sendActionEvent");
+}
+
+export namespace SendErrorEventRequest {
+    export const type = new RequestType<WebviewTelemetryErrorEvent, void, void>("sendErrorEvent");
+}
+
+/**
+ * Request to get localized strings for the webview.
+ */
+export namespace GetLocalizationRequest {
+    export const type = new RequestType<void, string, void>("getLocalization");
+}
+
+/**
+ * Parameters for executing a command in the extension host from the webview.
+ */
+export interface ExecuteCommandParams {
+    command: string;
+    args?: any[];
+}
+
+/**
+ * Request to execute a command in the extension host from the webview.
+ */
+export namespace ExecuteCommandRequest {
+    export const type = new RequestType<ExecuteCommandParams, void, void>("executeCommand");
+}
+
+/**
+ * Request from the webview to get the platform information.
+ */
+export namespace GetPlatformRequest {
+    export const type = new RequestType<void, string, void>("getPlatform");
+}
+
+/**
+ * Logging request from the webview to the controller.
+ */
+export namespace LogRequest {
+    export const type = new RequestType<LogEvent, void, void>("log");
 }

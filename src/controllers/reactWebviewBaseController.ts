@@ -7,7 +7,18 @@ import * as vscode from "vscode";
 
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import {
+    ColorThemeChangeNotification,
+    ExecuteCommandParams,
+    ExecuteCommandRequest,
+    GetLocalizationRequest,
+    GetPlatformRequest,
+    GetStateRequest,
+    GetThemeRequest,
     LogEvent,
+    LogRequest,
+    SendActionEventRequest,
+    SendErrorEventRequest,
+    StateChangeNotification,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../sharedInterfaces/webview";
@@ -16,7 +27,7 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 import { getNonce } from "../utils/utils";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
-import { NotificationType, RequestHandler, RequestType } from "vscode-languageclient";
+import { NotificationType, RequestHandler, RequestType } from "vscode-jsonrpc/node";
 import { generateGuid } from "../models/utils";
 
 /**
@@ -203,19 +214,72 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     protected setupTheming() {
         this._disposables.push(
             vscode.window.onDidChangeActiveColorTheme((theme) => {
-                this.postNotification(DefaultWebviewNotifications.onDidChangeTheme, theme.kind);
+                this.sendNotification(ColorThemeChangeNotification.type, theme.kind);
             }),
         );
-        this.postNotification(
-            DefaultWebviewNotifications.onDidChangeTheme,
+        this.sendNotification(
+            ColorThemeChangeNotification.type,
             vscode.window.activeColorTheme.kind,
         );
     }
 
     private _registerDefaultRequestHandlers() {
-        this._webviewRequestHandlers["getState"] = () => {
+        this.onRequest(GetStateRequest.type<State>(), () => {
             return this.state;
-        };
+        });
+
+        this.onRequest(GetThemeRequest.type, () => {
+            return vscode.window.activeColorTheme.kind;
+        });
+
+        this.onRequest(SendActionEventRequest.type, (message: WebviewTelemetryActionEvent) => {
+            sendActionEvent(
+                message.telemetryView,
+                message.telemetryAction,
+                message.additionalProps,
+                message.additionalMeasurements,
+            );
+        });
+
+        this.onRequest(SendErrorEventRequest.type, (message: WebviewTelemetryErrorEvent) => {
+            sendErrorEvent(
+                message.telemetryView,
+                message.telemetryAction,
+                message.error,
+                message.includeErrorMessage,
+                message.errorCode,
+                message.errorType,
+                message.additionalProps,
+                message.additionalMeasurements,
+            );
+        });
+
+        this.onRequest(GetLocalizationRequest.type, async () => {
+            if (vscode.l10n.uri?.fsPath) {
+                const file = await vscode.workspace.fs.readFile(vscode.l10n.uri);
+                const fileContents = Buffer.from(file).toString();
+                return fileContents;
+            } else {
+                return undefined;
+            }
+        });
+
+        this.onRequest(ExecuteCommandRequest.type, async (params: ExecuteCommandParams) => {
+            if (!params?.command) {
+                this.logger.log("No command provided to execute");
+                return;
+            }
+            const args = params?.args ?? [];
+            return await vscode.commands.executeCommand(params.command, ...args);
+        });
+
+        this.onRequest(GetPlatformRequest.type, async () => {
+            return process.platform;
+        });
+
+        this.onRequest(LogRequest.type, async (message: LogEvent) => {
+            this.logger[message.level ?? "log"](message.message);
+        });
 
         this._webviewRequestHandlers["action"] = async (action) => {
             const reducer = this._reducers[action.type];
@@ -224,10 +288,6 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
             } else {
                 throw new Error(`No reducer registered for action ${action.type}`);
             }
-        };
-
-        this._webviewRequestHandlers["getTheme"] = () => {
-            return vscode.window.activeColorTheme.kind;
         };
 
         this._webviewRequestHandlers["loadStats"] = (message) => {
@@ -242,57 +302,6 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                 });
                 this._isFirstLoad = false;
             }
-        };
-
-        this._webviewRequestHandlers["sendActionEvent"] = (
-            message: WebviewTelemetryActionEvent,
-        ) => {
-            sendActionEvent(
-                message.telemetryView,
-                message.telemetryAction,
-                message.additionalProps,
-                message.additionalMeasurements,
-            );
-        };
-
-        this._webviewRequestHandlers["sendErrorEvent"] = (message: WebviewTelemetryErrorEvent) => {
-            sendErrorEvent(
-                message.telemetryView,
-                message.telemetryAction,
-                message.error,
-                message.includeErrorMessage,
-                message.errorCode,
-                message.errorType,
-                message.additionalProps,
-                message.additionalMeasurements,
-            );
-        };
-
-        this._webviewRequestHandlers["getLocalization"] = async () => {
-            if (vscode.l10n.uri?.fsPath) {
-                const file = await vscode.workspace.fs.readFile(vscode.l10n.uri);
-                const fileContents = Buffer.from(file).toString();
-                return fileContents;
-            } else {
-                return undefined;
-            }
-        };
-
-        this._webviewRequestHandlers["executeCommand"] = async (message) => {
-            if (!message?.command) {
-                console.log("No command provided to execute");
-                return;
-            }
-            const args = message?.args ?? [];
-            return await vscode.commands.executeCommand(message.command, ...args);
-        };
-
-        this._webviewRequestHandlers["getPlatform"] = async () => {
-            return process.platform;
-        };
-
-        this._webviewRequestHandlers["log"] = async (message: LogEvent) => {
-            this.logger[message.level ?? "log"](message.message);
         };
 
         this._webviewRequestHandlers["notification"] = async (message) => {
@@ -340,7 +349,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      * @param type The request type that the handler will handle
      * @param handler The handler that will be called when the request is made
      */
-    onRequest<P, R, E, RO>(type: RequestType<P, R, E, RO>, handler: RequestHandler<P, R, E>): void {
+    onRequest<P, R, E>(type: RequestType<P, R, E>, handler: RequestHandler<P, R, E>): void {
         if (this._isDisposed) {
             throw new Error("Cannot register request handler on disposed controller");
         }
@@ -358,7 +367,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     /**
      * Registers a reducer that can be called from the webview.
      */
-    sendRequest<P, R, E, RO>(type: RequestType<P, R, E, RO>, params: P): Thenable<R> {
+    sendRequest<P, R, E>(type: RequestType<P, R, E>, params: P): Thenable<R> {
         if (this._isDisposed) {
             return Promise.reject(new Error("Cannot send request on disposed controller"));
         }
@@ -385,14 +394,20 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      * @param type The notification type that the webview will handle
      * @param params The parameters that will be passed to the notification handler
      */
-    sendNotification<P, RO>(type: NotificationType<P, RO>, params: P): void {
+    sendNotification<P>(type: NotificationType<P>, params: P): void {
         if (this._isDisposed) {
             throw new Error("Cannot send notification on disposed controller");
         }
-        this.postNotification(type.method, params);
+        this.postMessage({ type: "notification", method: type.method, params });
     }
 
-    onNotification<P, RO>(type: NotificationType<P, RO>, handler: (params: P) => void): void {
+    /**
+     * Registers a notification handler for a specific notification type.
+     * This handler will be called when the webview sends a notification of that type.
+     * @param type The notification type that the handler will handle
+     * @param handler The handler that will be called when the notification is received
+     */
+    onNotification<P>(type: NotificationType<P>, handler: (params: P) => void): void {
         if (this._isDisposed) {
             throw new Error("Cannot register notification handler on disposed controller");
         }
@@ -418,7 +433,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      */
     public set state(value: State) {
         this._state = value;
-        this.postNotification(DefaultWebviewNotifications.updateState, value);
+        this.sendNotification(StateChangeNotification.type<State>(), value);
     }
 
     /**
@@ -434,15 +449,6 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      */
     public get isDisposed(): boolean {
         return this._isDisposed;
-    }
-
-    /**
-     * Posts a notification to the webview
-     * @param method The method name that the webview will use to handle the notification
-     * @param params The parameters that will be passed to the method
-     */
-    public postNotification(method: string, params: any) {
-        this.postMessage({ type: "notification", method, params });
     }
 
     /**
