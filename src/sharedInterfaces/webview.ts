@@ -152,32 +152,3 @@ export namespace StateChangeNotification {
         return new NotificationType<State>("onDidChangeState");
     }
 }
-
-// /**
-//  * An interface to type messages.
-//  */
-// export interface MessageType {
-//     readonly method: string;
-//     readonly numberOfParams: number;
-// }
-
-// /**
-//  * An abstract implementation of a MessageType.
-//  */
-// export declare abstract class AbstractMessageType implements MessageType {
-//     private _method;
-//     private _numberOfParams;
-//     constructor(_method: string, _numberOfParams: number);
-//     readonly method: string;
-//     readonly numberOfParams: number;
-// }
-
-// export declare class NotificationType<P, RO> extends AbstractMessageType {
-//     readonly _?: [P, RO];
-//     constructor(method: string);
-// }
-
-// export declare class RequestType<P, R, E, RO> extends AbstractMessageType {
-//     readonly _?: [P, R, E, RO];
-//     constructor(method: string);
-// }
