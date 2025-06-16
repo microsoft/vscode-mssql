@@ -13,6 +13,7 @@ import Sinon, * as sinon from "sinon";
 import { ReactWebviewBaseController } from "../../src/controllers/reactWebviewBaseController";
 import { stubTelemetry } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { MessageType } from "../../src/sharedInterfaces/webview";
 
 suite("ReactWebviewController Tests", () => {
     let controller: TestWebviewController;
@@ -182,10 +183,10 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should post notification to webview", () => {
-        controller.postMessage({ type: "notification", method: "test" });
+        controller.postMessage({ type: MessageType.Notification, method: "test" });
         assert.ok(
             controller._webview.postMessage.calledWith({
-                type: "notification",
+                type: MessageType.Notification,
                 method: "test",
             }),
             "Notification is not sent correctly",
@@ -229,10 +230,10 @@ suite("ReactWebviewController Tests", () => {
 
     test("Should not post message if disposed", () => {
         controller.dispose();
-        controller.postMessage({ type: "notification", method: "test" });
+        controller.postMessage({ type: MessageType.Notification, method: "test" });
         assert.ok(
             !controller._webview.postMessage.calledWith({
-                type: "notification",
+                type: MessageType.Notification,
                 method: "test",
             }),
             "Message is posted after dispose",
