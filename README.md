@@ -56,7 +56,6 @@ The [**MSSQL Extension for Visual Studio Code**](aka.ms/vscode-mssql) is designe
 - **GitHub Copilot Agent Mode (`Preview`)**
   - Use chat in Agent mode to connect, disconnect, or switch databases
   - List servers and view available connections
-  - Run SQL queries directly from chat
   - Show database schema contextually
   - Access all available Agent tools from the Agent Tools panel
 - **Local SQL Server Containers (`Preview`)**
