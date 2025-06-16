@@ -148,11 +148,11 @@ export enum MessageType {
 
 export interface WebviewRpcMessage {
     type: MessageType;
-    id?: number;
+    id?: string;
     method?: string;
     params?: unknown;
     result?: unknown;
-    error?: unknown;
+    error?: Error;
 }
 
 /**
@@ -239,9 +239,13 @@ export namespace LogNotification {
 }
 
 export namespace ReducerRequest {
-    export const type = new RequestType<{ type: string; payload?: unknown }, unknown, void>(
-        "action",
-    );
+    export function type<Reducers>() {
+        return new RequestType<
+            { type: keyof Reducers; payload?: Reducers[keyof Reducers] },
+            unknown,
+            void
+        >("action");
+    }
 }
 
 export interface LoadStatsParams {
@@ -250,4 +254,9 @@ export interface LoadStatsParams {
 
 export namespace LoadStatsNotification {
     export const type = new NotificationType<LoadStatsParams>("loadStats");
+}
+
+export interface PendingRequest {
+    resolve: (result: any) => void;
+    reject: (error: any) => void;
 }

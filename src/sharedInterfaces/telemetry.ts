@@ -51,6 +51,8 @@ export enum TelemetryActions {
     ResultPaneAction = "ResultPaneAction",
     Load = "Load",
     WebviewRequest = "WebviewRequest",
+    WebviewResponse = "WebviewResponse",
+    WebviewNotification = "WebviewNotification",
     Open = "Open",
     Submit = "Submit",
     Cancel = "Cancel",

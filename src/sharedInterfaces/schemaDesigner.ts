@@ -394,13 +394,18 @@ export namespace SchemaDesigner {
         isDirty: boolean;
     }
 
+    export interface PublishSessionParams {
+        schema: Schema;
+    }
     export interface PublishSessionResponse {
         success: boolean;
         error: string | undefined;
+        updatedSchema: Schema;
     }
-
     export namespace PublishSessionRequest {
-        export const type = new RequestType<void, PublishSessionResponse, void>("publishSession");
+        export const type = new RequestType<PublishSessionParams, PublishSessionResponse, void>(
+            "publishSession",
+        );
     }
 
     export namespace CloseSchemaDesignerNotification {

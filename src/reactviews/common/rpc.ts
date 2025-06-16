@@ -8,6 +8,7 @@ import {
     LoggerLevel,
     LogNotification,
     MessageType,
+    PendingRequest,
     ReducerRequest,
     SendActionEventNotification,
     SendErrorEventNotification,
@@ -16,19 +17,14 @@ import {
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
 import { NotificationType, RequestHandler, RequestType } from "vscode-jsonrpc/browser";
-
-interface PendingRequest {
-    resolve: (result: any) => void;
-    reject: (error: any) => void;
-}
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * RPC to communicate with the extension.
  * @template Reducers interface that contains definitions for all reducers and their payloads.
  */
 export class WebviewRpc<Reducers> {
-    private _rpcRequestId = 0;
-    private _pendingRequests = new Map<number, PendingRequest>();
+    private _pendingRequests = new Map<string, PendingRequest>();
     private _requestHandlers = new Map<string, RequestHandler<any, any, any>>();
     private _notificationHandlers = new Map<string, ((params: any) => void)[]>();
 
@@ -114,13 +110,13 @@ export class WebviewRpc<Reducers> {
         try {
             const result = await handler(params, undefined!);
             this._vscodeApi.postMessage({
-                type: "response",
+                type: MessageType.Response,
                 id,
                 result,
             });
         } catch (error) {
             this._vscodeApi.postMessage({
-                type: "response",
+                type: MessageType.Response,
                 id,
                 error,
             });
@@ -160,8 +156,8 @@ export class WebviewRpc<Reducers> {
         method: MethodName,
         payload?: Reducers[MethodName],
     ) {
-        void this.sendRequest(ReducerRequest.type, {
-            type: method as string,
+        void this.sendRequest(ReducerRequest.type<Reducers>(), {
+            type: method,
             payload: payload,
         });
     }
@@ -187,7 +183,7 @@ export class WebviewRpc<Reducers> {
     }
 
     public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Promise<R> {
-        const id = this._rpcRequestId++;
+        const id = uuidv4();
         return new Promise<R>((resolve, reject) => {
             this._pendingRequests.set(id, { resolve, reject });
             this._vscodeApi.postMessage({

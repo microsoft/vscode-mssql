@@ -421,7 +421,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     };
 
     const publishSession = async () => {
-        const response = await extensionRpc.sendRequest(SchemaDesigner.PublishSessionRequest.type);
+        const schema = flowUtils.extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+        const response = await extensionRpc.sendRequest(SchemaDesigner.PublishSessionRequest.type, {
+            schema: schema,
+        });
         return response;
     };
 
