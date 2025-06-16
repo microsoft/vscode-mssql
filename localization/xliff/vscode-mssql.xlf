@@ -1197,6 +1197,9 @@
     <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
       <source xml:lang="en">Hide full error message</source>
     </trans-unit>
+    <trans-unit id="++CODE++a60a56c584b3b05b1a95076a36edbab7131a447910cf21124efcb35f769502df">
+      <source xml:lang="en">Hide password</source>
+    </trans-unit>
     <trans-unit id="++CODE++7a364dd1e84a9c227a255eac46ca09a24bf78df77f50f95dec04e8899516908d">
       <source xml:lang="en">Hide this panel</source>
     </trans-unit>
@@ -2084,6 +2087,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
+      <source xml:lang="en">Show password</source>
     </trans-unit>
     <trans-unit id="++CODE++523fa7449e8252600e65c811dcd62983315d0f9f528741627033a45754f591cf">
       <source xml:lang="en">Show schema for connection &apos;{0}&apos;?</source>
