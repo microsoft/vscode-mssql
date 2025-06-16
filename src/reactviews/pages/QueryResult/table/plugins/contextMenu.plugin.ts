@@ -4,9 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    CopyHeadersRequest,
+    CopySelectionRequest,
+    CopyWithHeadersRequest,
+    DbCellValue,
     QueryResultReducers,
     QueryResultWebviewState,
     ResultSetSummary,
+    SendToClipboardRequest,
 } from "../../../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../../../common/locConstants";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
@@ -111,13 +116,16 @@ export class ContextMenu<T extends Slick.SlickData> {
                     let data = await this.dataProvider.getRangeAsync(range.start, range.length);
                     const dataArray = data.map((map) => {
                         const maxKey = Math.max(...Array.from(Object.keys(map)).map(Number)); // Get the maximum key
-                        return Array.from({ length: maxKey + 1 }, (_, index) => ({
-                            rowId: index,
-                            displayValue: map[index].displayValue || null,
-                        }));
+                        return Array.from(
+                            { length: maxKey + 1 },
+                            (_, index) =>
+                                ({
+                                    rowId: index,
+                                    displayValue: map[index].displayValue || null,
+                                }) as DbCellValue,
+                        );
                     });
-
-                    await this.webViewState.extensionRpc.call("sendToClipboard", {
+                    await this.webViewState.extensionRpc.sendRequest(SendToClipboardRequest.type, {
                         uri: this.uri,
                         data: dataArray,
                         batchId: this.resultSetSummary.batchId,
@@ -126,7 +134,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                         headersFlag: false,
                     });
                 } else {
-                    await this.webViewState.extensionRpc.call("copySelection", {
+                    await this.webViewState.extensionRpc.sendRequest(CopySelectionRequest.type, {
                         uri: this.uri,
                         batchId: this.resultSetSummary.batchId,
                         resultId: this.resultSetSummary.id,
@@ -147,13 +155,16 @@ export class ContextMenu<T extends Slick.SlickData> {
                     let data = await this.dataProvider.getRangeAsync(range.start, range.length);
                     const dataArray = data.map((map) => {
                         const maxKey = Math.max(...Array.from(Object.keys(map)).map(Number)); // Get the maximum key
-                        return Array.from({ length: maxKey + 1 }, (_, index) => ({
-                            rowId: index,
-                            displayValue: map[index].displayValue || null,
-                        }));
+                        return Array.from(
+                            { length: maxKey + 1 },
+                            (_, index) =>
+                                ({
+                                    rowId: index,
+                                    displayValue: map[index].displayValue || null,
+                                }) as DbCellValue,
+                        );
                     });
-
-                    await this.webViewState.extensionRpc.call("sendToClipboard", {
+                    await this.webViewState.extensionRpc.sendRequest(SendToClipboardRequest.type, {
                         uri: this.uri,
                         data: dataArray,
                         batchId: this.resultSetSummary.batchId,
@@ -162,7 +173,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                         headersFlag: true,
                     });
                 } else {
-                    await this.webViewState.extensionRpc.call("copyWithHeaders", {
+                    await this.webViewState.extensionRpc.sendRequest(CopyWithHeadersRequest.type, {
                         uri: this.uri,
                         batchId: this.resultSetSummary.batchId,
                         resultId: this.resultSetSummary.id,
@@ -173,7 +184,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 break;
             case "copy-headers":
                 this.queryResultContext.log("Copy Headers action triggered");
-                await this.webViewState.extensionRpc.call("copyHeaders", {
+                await this.webViewState.extensionRpc.sendRequest(CopyHeadersRequest.type, {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,

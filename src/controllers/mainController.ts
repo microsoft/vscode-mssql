@@ -62,7 +62,6 @@ import store, { SubKeys } from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
-import { DefaultWebviewNotifications } from "./reactWebviewBaseController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
@@ -80,6 +79,8 @@ import {
     prepareForDockerContainerCommand,
     stopContainer,
 } from "../containerDeployment/dockerUtils";
+import { StateChangeNotification } from "../sharedInterfaces/webview";
+import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 
 /**
  * The main controller class that initializes the extension
@@ -2412,9 +2413,8 @@ export default class MainController implements vscode.Disposable {
         if (state) {
             state.uri = newUri;
 
-            // Post a notification to the webview to update the state of the query result
-            this._queryResultWebviewController.postNotification(
-                DefaultWebviewNotifications.updateState,
+            this._queryResultWebviewController.sendNotification(
+                StateChangeNotification.type<QueryResultWebviewState>(),
                 state,
             );
 

@@ -14,10 +14,11 @@ import {
     GetPlatformRequest,
     GetStateRequest,
     GetThemeRequest,
+    LoadStatsNotification,
     LogEvent,
-    LogRequest,
-    SendActionEventRequest,
-    SendErrorEventRequest,
+    LogNotification,
+    SendActionEventNotification,
+    SendErrorEventNotification,
     StateChangeNotification,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
@@ -224,34 +225,58 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     }
 
     private _registerDefaultRequestHandlers() {
+        this.onNotification(
+            SendActionEventNotification.type,
+            (message: WebviewTelemetryActionEvent) => {
+                sendActionEvent(
+                    message.telemetryView,
+                    message.telemetryAction,
+                    message.additionalProps,
+                    message.additionalMeasurements,
+                );
+            },
+        );
+
+        this.onNotification(
+            SendErrorEventNotification.type,
+            (message: WebviewTelemetryErrorEvent) => {
+                sendErrorEvent(
+                    message.telemetryView,
+                    message.telemetryAction,
+                    message.error,
+                    message.includeErrorMessage,
+                    message.errorCode,
+                    message.errorType,
+                    message.additionalProps,
+                    message.additionalMeasurements,
+                );
+            },
+        );
+
+        this.onNotification(LogNotification.type, async (message: LogEvent) => {
+            this.logger[message.level ?? "log"](message.message);
+        });
+
+        this.onNotification(LoadStatsNotification.type, (message) => {
+            const timeStamp = message.loadCompleteTimeStamp;
+            const timeToLoad = timeStamp - this._loadStartTime;
+            if (this._isFirstLoad) {
+                console.log(
+                    `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
+                );
+                this._endLoadActivity.end(ActivityStatus.Succeeded, {
+                    type: this._sourceFile,
+                });
+                this._isFirstLoad = false;
+            }
+        });
+
         this.onRequest(GetStateRequest.type<State>(), () => {
             return this.state;
         });
 
         this.onRequest(GetThemeRequest.type, () => {
             return vscode.window.activeColorTheme.kind;
-        });
-
-        this.onRequest(SendActionEventRequest.type, (message: WebviewTelemetryActionEvent) => {
-            sendActionEvent(
-                message.telemetryView,
-                message.telemetryAction,
-                message.additionalProps,
-                message.additionalMeasurements,
-            );
-        });
-
-        this.onRequest(SendErrorEventRequest.type, (message: WebviewTelemetryErrorEvent) => {
-            sendErrorEvent(
-                message.telemetryView,
-                message.telemetryAction,
-                message.error,
-                message.includeErrorMessage,
-                message.errorCode,
-                message.errorType,
-                message.additionalProps,
-                message.additionalMeasurements,
-            );
         });
 
         this.onRequest(GetLocalizationRequest.type, async () => {
@@ -277,46 +302,12 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
             return process.platform;
         });
 
-        this.onRequest(LogRequest.type, async (message: LogEvent) => {
-            this.logger[message.level ?? "log"](message.message);
-        });
-
         this._webviewRequestHandlers["action"] = async (action) => {
             const reducer = this._reducers[action.type];
             if (reducer) {
                 this.state = await reducer(this.state, action.payload);
             } else {
                 throw new Error(`No reducer registered for action ${action.type}`);
-            }
-        };
-
-        this._webviewRequestHandlers["loadStats"] = (message) => {
-            const timeStamp = message.loadCompleteTimeStamp;
-            const timeToLoad = timeStamp - this._loadStartTime;
-            if (this._isFirstLoad) {
-                console.log(
-                    `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
-                );
-                this._endLoadActivity.end(ActivityStatus.Succeeded, {
-                    type: this._sourceFile,
-                });
-                this._isFirstLoad = false;
-            }
-        };
-
-        this._webviewRequestHandlers["notification"] = async (message) => {
-            const handler = this._notificationHandlers[message.method];
-            if (handler) {
-                try {
-                    handler(message.params);
-                } catch (error) {
-                    this.logger.error(
-                        `Error in notification handler for ${message.method}:`,
-                        error,
-                    );
-                }
-            } else {
-                this.logger.warn(`No handler registered for notification ${message.method}`);
             }
         };
     }
@@ -469,11 +460,6 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         this._disposables.forEach((d) => d.dispose());
         this._isDisposed = true;
     }
-}
-
-export enum DefaultWebviewNotifications {
-    updateState = "updateState",
-    onDidChangeTheme = "onDidChangeTheme",
 }
 
 export type ReducerResponse<T> = T | Promise<T>;

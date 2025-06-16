@@ -15,6 +15,10 @@ import { webviewTheme } from "./theme";
 import {
     ColorThemeChangeNotification,
     ColorThemeKind,
+    GetLocalizationRequest,
+    GetStateRequest,
+    GetThemeRequest,
+    LoadStatsNotification,
     StateChangeNotification,
 } from "../../sharedInterfaces/webview";
 
@@ -71,23 +75,23 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
 
     useEffect(() => {
         async function getTheme() {
-            const theme = await extensionRpc.call("getTheme");
-            setTheme(theme as ColorThemeKind);
+            const theme = await extensionRpc.sendRequest(GetThemeRequest.type);
+            setTheme(theme);
         }
 
         async function getState() {
-            const state = await extensionRpc.call("getState");
-            setState(state as State);
+            const state = await extensionRpc.sendRequest(GetStateRequest.type<State>());
+            setState(state);
         }
 
         async function loadStats() {
-            await extensionRpc.call("loadStats", {
+            extensionRpc.sendNotification(LoadStatsNotification.type, {
                 loadCompleteTimeStamp: Date.now(),
             });
         }
 
         async function getLocalization() {
-            const fileContents = (await extensionRpc.call("getLocalization")) as string;
+            const fileContents = await extensionRpc.sendRequest(GetLocalizationRequest.type);
             if (fileContents) {
                 await l10n.config({
                     contents: fileContents,

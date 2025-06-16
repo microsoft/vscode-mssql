@@ -146,6 +146,15 @@ export enum MessageType {
     Notification = "notification",
 }
 
+export interface WebviewRpcMessage {
+    type: MessageType;
+    id?: number;
+    method?: string;
+    params?: unknown;
+    result?: unknown;
+    error?: unknown;
+}
+
 /**
  * Color theme change event callback declaration.
  */
@@ -180,17 +189,6 @@ export namespace GetThemeRequest {
 }
 
 /**
- * Request to send a telemetry action event from the webview to the extension host.
- */
-export namespace SendActionEventRequest {
-    export const type = new RequestType<WebviewTelemetryActionEvent, void, void>("sendActionEvent");
-}
-
-export namespace SendErrorEventRequest {
-    export const type = new RequestType<WebviewTelemetryErrorEvent, void, void>("sendErrorEvent");
-}
-
-/**
  * Request to get localized strings for the webview.
  */
 export namespace GetLocalizationRequest {
@@ -220,8 +218,36 @@ export namespace GetPlatformRequest {
 }
 
 /**
- * Logging request from the webview to the controller.
+ * Notification to send an action event from the webview to the controller.
  */
-export namespace LogRequest {
-    export const type = new RequestType<LogEvent, void, void>("log");
+export namespace SendActionEventNotification {
+    export const type = new NotificationType<WebviewTelemetryActionEvent>("sendActionEvent");
+}
+
+/**
+ * Notification to send an error event from the webview to the controller.
+ */
+export namespace SendErrorEventNotification {
+    export const type = new NotificationType<WebviewTelemetryErrorEvent>("sendErrorEvent");
+}
+
+/**
+ * Notification to log a message from the webview to the controller.
+ */
+export namespace LogNotification {
+    export const type = new NotificationType<LogEvent>("log");
+}
+
+export namespace ReducerRequest {
+    export const type = new RequestType<{ type: string; payload?: unknown }, unknown, void>(
+        "action",
+    );
+}
+
+export interface LoadStatsParams {
+    loadCompleteTimeStamp: number;
+}
+
+export namespace LoadStatsNotification {
+    export const type = new NotificationType<LoadStatsParams>("loadStats");
 }
