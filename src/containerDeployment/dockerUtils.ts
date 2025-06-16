@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { exec } from "child_process";
-import { platform } from "os";
+import { arch, platform } from "os";
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeploymentInterfaces";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
@@ -213,7 +213,7 @@ export async function checkEngine(): Promise<DockerCommandParams> {
     if (platform() === Platform.Windows) {
         dockerCliPath = await getDockerPath("DockerCli.exe");
     }
-
+    if (platform() === Platform.Mac && arch() === "x64") return { success: true }; // No need to check Rosetta on x64 macOS
     const engineCommand = COMMANDS.CHECK_ENGINE[platform()];
     if (engineCommand === undefined) {
         return {
