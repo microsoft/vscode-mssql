@@ -184,10 +184,36 @@ export const ConnectionCard = ({
             appearance="subtle"
             onClick={() => {
                 context.loadConnection(connection);
-            }}>
+            }}
+            tabIndex={-1}>
             <CardHeader
                 image={<ServerRegular fontSize={20} />}
-                header={displayName}
+                header={
+                    <button
+                        style={{
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            margin: 0,
+                            textAlign: "left",
+                            cursor: "pointer",
+                            font: "inherit",
+                            color: "inherit",
+                        }}
+                        onClick={() => {
+                            context.loadConnection(connection);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                context.loadConnection(connection);
+                            }
+                        }}
+                        tabIndex={0}
+                        title={`Connect to ${displayName}`}>
+                        {displayName}
+                    </button>
+                }
                 action={
                     actionButton && (
                         <div className={buttonContainer}>
