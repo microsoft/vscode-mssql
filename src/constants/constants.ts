@@ -259,3 +259,4 @@ export enum Platform {
 }
 export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
+export const x64 = "x64";
