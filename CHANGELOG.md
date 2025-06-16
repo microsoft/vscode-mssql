@@ -5,7 +5,7 @@
 * Release status: GA
 ### What’s new in 1.33.0
 * Introduced Local SQL Server Containers (Public Preview) for local development — spin up SQL Server containers in seconds inside VS Code with SQL Server 2025 by default, no Docker commands needed
-* Introduced GitHub Copilot Agent Mode (Public Preview) to connect, disconnect, or switch databases, run queries, and explore and visualize schemas with smart, context-aware suggestions
+* Introduced GitHub Copilot Agent Mode (Public Preview) to connect, disconnect, or switch databases, and explore and visualize schemas with smart, context-aware suggestions
 * Added Connection Groups for organized connection management — group local, staging, and production connections for clearer structure and faster switching
 * Fixed query execution issues with GitHub Copilot
 * Improved connection pooling behavior for serverless databases
