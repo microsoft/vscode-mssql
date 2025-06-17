@@ -471,7 +471,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     /**
      * Registers a reducer that can be called from the webview.
      */
-    sendRequest<TParam, TResult, TError>(
+    public sendRequest<TParam, TResult, TError>(
         type: RequestType<TParam, TResult, TError>,
         params: TParam,
     ): Thenable<TResult> {
@@ -497,7 +497,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      * @param type The notification type that the webview will handle
      * @param params The parameters that will be passed to the notification handler
      */
-    sendNotification<TParams>(type: NotificationType<TParams>, params: TParams): void {
+    public sendNotification<TParams>(type: NotificationType<TParams>, params: TParams): void {
         if (this._isDisposed) {
             throw new Error("Cannot send notification on disposed controller");
         }
@@ -510,7 +510,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      * @param type The notification type that the handler will handle
      * @param handler The handler that will be called when the notification is received
      */
-    onNotification<TParams>(
+    public onNotification<TParams>(
         type: NotificationType<TParams>,
         handler: (params: TParams) => void,
     ): void {
