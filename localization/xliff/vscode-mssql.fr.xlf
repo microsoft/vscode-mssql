@@ -40,7 +40,7 @@
       </trans-unit>
       <trans-unit id="++CODE++89713b9c9c1b8f659c9f49db25e4a47886dd673fee248c3f650391f09a759cef">
         <source xml:lang="en">Accept</source>
-        <target state="new">Accept</target>
+        <target state="translated">Accepter</target>
       </trans-unit>
       <trans-unit id="++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34">
         <source xml:lang="en">Accept the SQL Server EULA to deploy a SQL Server Docker container</source>
@@ -204,7 +204,7 @@
       <trans-unit id="++CODE++64f0ebe202fcbb5561671715f3bff0cf6b5219648ffe9bca961824b243d4c5bc">
         <source xml:lang="en">Are you sure you want to delete {0}?</source>
         <note>{0} is the group name</note>
-        <target state="new">Are you sure you want to delete {0}?</target>
+        <target state="translated">Voulez-vous vraiment supprimer {0} ?</target>
       </trans-unit>
       <trans-unit id="++CODE++26c70151bceb55fb84b8e652a205659bd5736420cfa72a4e3fa92bdaa5a3b526">
         <source xml:lang="en">Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.</source>
@@ -218,7 +218,7 @@
       <trans-unit id="++CODE++8a6ddc1941c7b1576cc5674f2969dde12347408d66861ed151f2ed506588f42c">
         <source xml:lang="en">Are you sure you want to remove {0}?</source>
         <note>{0} is the node label</note>
-        <target state="new">Are you sure you want to remove {0}?</target>
+        <target state="translated">Voulez-vous vraiment supprimer {0} ?</target>
       </trans-unit>
       <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
         <source xml:lang="en">Are you sure you want to update the target?</source>
@@ -740,7 +740,7 @@
       <trans-unit id="++CODE++cdfa68f01c8258a3933e2cc436e46a47425d2c5cde4ad327b70a59615b4a4892">
         <source xml:lang="en">Connecting to server {0}</source>
         <note>{0} is the server name</note>
-        <target state="new">Connecting to server {0}</target>
+        <target state="translated">Connexion au serveur {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++d568f5700106a3d28657010405b5ef04ac5e6f31499216360661ba4f19256e15">
         <source xml:lang="en">Connecting to server {0} and database {1}</source>
@@ -1307,7 +1307,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++d6ca257a745c3035dfd24b1cf8bddd511b93f0c4ae8036dc0d88ece8501d4d13">
         <source xml:lang="en">Failed to connect to server.</source>
-        <target state="new">Failed to connect to server.</target>
+        <target state="translated">Échec de la connexion au serveur.</target>
       </trans-unit>
       <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
         <source xml:lang="en">Failed to connect: {0}</source>
@@ -1323,7 +1323,7 @@ Erreur :
       <trans-unit id="++CODE++21be0d0cbfd3dc3a4c9bbb0fc261d09ba6b93641dcbaba9f6202b815e5ccb3f2">
         <source xml:lang="en">Failed to delete {0}.</source>
         <note>Failed to delete {0}.</note>
-        <target state="new">Failed to delete {0}.</target>
+        <target state="translated">La suppression de {0} a échoué.</target>
       </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
@@ -1370,12 +1370,12 @@ Erreur :
       <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
         <source xml:lang="en">Failed to start {0}.</source>
         <note>Failed to start {0}.</note>
-        <target state="new">Failed to start {0}.</target>
+        <target state="translated">Échec du démarrage de {0}.</target>
       </trans-unit>
       <trans-unit id="++CODE++de0b1da84a5d216abd9f65d2a4f32a258f97126fc0bb19e0fb9fecd1e89ea514">
         <source xml:lang="en">Failed to stop {0}.</source>
         <note>Failed to stop {0}.</note>
-        <target state="new">Failed to stop {0}.</target>
+        <target state="translated">Échec de l'arrêt de {0}.</target>
       </trans-unit>
       <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
         <source xml:lang="en">Fetching {0} script...</source>
