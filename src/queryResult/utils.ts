@@ -153,7 +153,7 @@ export function registerCommonRequestHandlers(
             );
     });
 
-    webviewController.onRequest(qr.CopyHeadersRequest.type, async (message) => {
+    webviewController.onRequest(qr.CopySelectionRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
             correlationId: correlationId,
         });
@@ -184,7 +184,7 @@ export function registerCommonRequestHandlers(
         );
     });
 
-    webviewController.onRequest(qr.CopySelectionRequest.type, async (message) => {
+    webviewController.onRequest(qr.CopyWithHeadersRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyHeaders, {
             correlationId: correlationId,
         });
