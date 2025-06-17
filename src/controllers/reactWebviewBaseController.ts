@@ -64,7 +64,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
     >();
 
-    protected async _webviewMessageHandler(message: WebviewRpcMessage) {
+    protected _webviewMessageHandler = async (message: WebviewRpcMessage) => {
         switch (message.type) {
             case MessageType.Response:
                 await this._handleResponse(message);
@@ -79,9 +79,9 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                 this.logger.error(`Unknown message type: ${message.type}`);
                 return;
         }
-    }
+    };
 
-    private async _handleResponse(message: WebviewRpcMessage) {
+    private _handleResponse = async (message: WebviewRpcMessage) => {
         const responseActivity = startActivity(
             TelemetryViews.WebviewController,
             TelemetryActions.WebviewResponse,
@@ -130,9 +130,9 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         } else {
             pendingRequest.resolve(result);
         }
-    }
+    };
 
-    private async _handleRequest(message: WebviewRpcMessage) {
+    private _handleRequest = async (message: WebviewRpcMessage) => {
         const requestActivity = startActivity(
             TelemetryViews.WebviewController,
             TelemetryActions.WebviewRequest,
@@ -200,9 +200,9 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                 },
             });
         }
-    }
+    };
 
-    private async _handleNotification(message: WebviewRpcMessage) {
+    private _handleNotification = async (message: WebviewRpcMessage) => {
         const notificationActivity = startActivity(
             TelemetryViews.WebviewController,
             TelemetryActions.WebviewNotification,
@@ -267,7 +267,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                 method,
             });
         }
-    }
+    };
 
     protected logger: Logger;
 
