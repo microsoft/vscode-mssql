@@ -13,6 +13,20 @@ import Sinon, * as sinon from "sinon";
 import { ReactWebviewBaseController } from "../../src/controllers/reactWebviewBaseController";
 import { stubTelemetry } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import {
+    ColorThemeChangeNotification,
+    ExecuteCommandRequest,
+    GetLocalizationRequest,
+    GetStateRequest,
+    GetThemeRequest,
+    LoadStatsNotification,
+    MessageType,
+    ReducerRequest,
+    SendActionEventNotification,
+    SendErrorEventNotification,
+    StateChangeNotification,
+    WebviewRpcMessage,
+} from "../../src/sharedInterfaces/webview";
 
 suite("ReactWebviewController Tests", () => {
     let controller: TestWebviewController;
@@ -49,15 +63,41 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should register default request handlers", () => {
-        const handlers = (controller as any)._webviewRequestHandlers;
-        assert.ok("getState" in handlers, "getState handler is not registered");
-        assert.ok("action" in handlers, "dispatch handler is not registered");
-        assert.ok("getTheme" in handlers, "getTheme handler is not registered");
-        assert.ok("loadStats" in handlers, "loadStats handler is not registered");
-        assert.ok("sendActionEvent" in handlers, "sendActionEvent handler is not registered");
-        assert.ok("sendErrorEvent" in handlers, "sendErrorEvent handler is not registered");
-        assert.ok("getLocalization" in handlers, "getLocalization handler is not registered");
-        assert.ok("executeCommand" in handlers, "executeCommand handler is not registered");
+        const requestHandlers = (controller as any)._requestHandlers;
+        assert.ok(
+            requestHandlers.has(GetStateRequest.type().method),
+            "getState handler is not registered",
+        );
+        assert.ok(
+            requestHandlers.has(ReducerRequest.type().method),
+            "action handler is not registered",
+        );
+        assert.ok(
+            requestHandlers.has(GetThemeRequest.type.method),
+            "theme change handler is not registered",
+        );
+        assert.ok(
+            requestHandlers.has(GetLocalizationRequest.type.method),
+            "getLocalization handler is not registered",
+        );
+        assert.ok(
+            requestHandlers.has(ExecuteCommandRequest.type.method),
+            "executeCommand handler is not registered",
+        );
+
+        const notificationHandlers = (controller as any)._notificationHandlers;
+        assert.ok(
+            notificationHandlers.has(LoadStatsNotification.type.method),
+            "loadStats notification handler is not registered",
+        );
+        assert.ok(
+            notificationHandlers.has(SendActionEventNotification.type.method),
+            "sendActionEvent notification handler is not registered",
+        );
+        assert.ok(
+            notificationHandlers.has(SendErrorEventNotification.type.method),
+            "sendErrorEvent notification handler is not registered",
+        );
     });
 
     test("should register a new reducer", () => {
@@ -66,8 +106,8 @@ suite("ReactWebviewController Tests", () => {
         });
 
         controller.registerReducer("increment", reducer);
-        const reducers = (controller as any)._reducers;
-        assert.ok("increment" in reducers, "Reducer is not registered");
+        const reducers = (controller as any)._reducerHandlers;
+        assert.ok(reducers.has("increment"), "Reducer is not registered");
     });
 
     test("should handle getState request", async () => {
@@ -95,9 +135,9 @@ suite("ReactWebviewController Tests", () => {
         });
         controller.registerReducer("increment", reducer);
 
-        const message = {
-            type: "request",
-            method: "action",
+        const message: WebviewRpcMessage = {
+            type: MessageType.Request,
+            method: ReducerRequest.type().method,
             id: "1",
             params: { type: "increment", payload: { amount: 5 } },
         };
@@ -109,8 +149,8 @@ suite("ReactWebviewController Tests", () => {
         assert.deepStrictEqual(controller.state, { count: 5 }, "State is not updated correctly");
         assert.ok(
             controller._webview.postMessage.calledWith({
-                type: "notification",
-                method: "updateState",
+                type: MessageType.Notification,
+                method: StateChangeNotification.type().method,
                 params: { count: 5 },
             }),
             "Response is not sent correctly",
@@ -118,23 +158,26 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should throw error for 'action' request with unregistered reducer", async () => {
-        const message = {
-            type: "request",
-            method: "action",
+        const message: WebviewRpcMessage = {
+            type: MessageType.Request,
+            method: ReducerRequest.type().method,
             id: "1",
             params: { type: "unknown", payload: { amount: 5 } },
         };
 
-        try {
-            await (controller as any)._webviewMessageHandler(message);
-            assert.fail("Error is not thrown");
-        } catch (error) {
-            assert.strictEqual(
-                error.message,
-                "No reducer registered for action unknown",
-                "Error is not thrown correctly",
-            );
-        }
+        await (controller as any)._webviewMessageHandler(message);
+        assert.ok(
+            controller._webview.postMessage.calledWith({
+                type: MessageType.Response,
+                id: "1",
+                error: {
+                    message: "No reducer registered for action unknown",
+                    name: "Error",
+                    stack: sinon.match.string,
+                },
+            }),
+            "Error response is not sent correctly",
+        );
     });
 
     test("should handle getTheme request", async () => {
@@ -182,10 +225,10 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should post notification to webview", () => {
-        controller.postMessage({ type: "notification", method: "test" });
+        controller.postMessage({ type: MessageType.Notification, method: "test" });
         assert.ok(
             controller._webview.postMessage.calledWith({
-                type: "notification",
+                type: MessageType.Notification,
                 method: "test",
             }),
             "Notification is not sent correctly",
@@ -197,8 +240,8 @@ suite("ReactWebviewController Tests", () => {
         assert.deepStrictEqual(controller.state, { count: 5 }, "State is not updated correctly");
         assert.ok(
             controller._webview.postMessage.calledWith({
-                type: "notification",
-                method: "updateState",
+                type: MessageType.Notification,
+                method: StateChangeNotification.type().method,
                 params: { count: 5 },
             }),
             "Notification is not sent correctly",
@@ -210,8 +253,8 @@ suite("ReactWebviewController Tests", () => {
         assert.deepStrictEqual(controller.state, { count: 6 }, "State is not updated correctly");
         assert.ok(
             controller._webview.postMessage.calledWith({
-                type: "notification",
-                method: "updateState",
+                type: MessageType.Notification,
+                method: StateChangeNotification.type().method,
                 params: { count: 6 },
             }),
             "Notification is not sent correctly",
@@ -229,10 +272,10 @@ suite("ReactWebviewController Tests", () => {
 
     test("Should not post message if disposed", () => {
         controller.dispose();
-        controller.postMessage({ type: "notification", method: "test" });
+        controller.postMessage({ type: MessageType.Notification, method: "test" });
         assert.ok(
             !controller._webview.postMessage.calledWith({
-                type: "notification",
+                type: MessageType.Notification,
                 method: "test",
             }),
             "Message is posted after dispose",
@@ -254,8 +297,8 @@ suite("ReactWebviewController Tests", () => {
 
             assert.ok(
                 controller._webview.postMessage.calledWith({
-                    type: "notification",
-                    method: "onDidChangeTheme",
+                    type: MessageType.Notification,
+                    method: ColorThemeChangeNotification.type.method,
                     params: 2,
                 }),
                 "Theme is not sent correctly",
@@ -265,8 +308,8 @@ suite("ReactWebviewController Tests", () => {
 
             assert.ok(
                 controller._webview.postMessage.calledWith({
-                    type: "notification",
-                    method: "onDidChangeTheme",
+                    type: MessageType.Notification,
+                    method: ColorThemeChangeNotification.type.method,
                     params: 3,
                 }),
                 "Theme is not updated correctly",
@@ -291,38 +334,37 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("should handle 'sendActionEvent' request", async () => {
-        const message = {
-            type: "request",
-            method: "sendActionEvent",
-            id: "1",
-            params: { eventName: "testEvent", properties: { prop1: "val1" } },
+        (controller as any)._handleNotification = sandbox.stub();
+        const message: WebviewRpcMessage = {
+            type: MessageType.Notification,
+            method: SendActionEventNotification.type.method,
+            params: { prop1: "val1" },
         };
         await (controller as any)._webviewMessageHandler(message);
         assert.ok(
-            controller._webview.postMessage.calledWith({
-                type: "response",
-                id: "1",
-                result: undefined,
+            (controller as any)._handleNotification.calledWith({
+                type: MessageType.Notification,
+                method: SendActionEventNotification.type.method,
+                params: { prop1: "val1" },
             }),
-            "Response is not sent correctly",
         );
     });
 
     test("should handle 'sendErrorEvent' request", async () => {
-        const message = {
-            type: "request",
-            method: "sendErrorEvent",
-            id: "1",
-            params: { eventName: "testError", properties: { prop1: "val1" } },
+        (controller as any)._handleNotification = sandbox.stub();
+        const message: WebviewRpcMessage = {
+            type: MessageType.Notification,
+            method: SendErrorEventNotification.type.method,
+            params: { prop1: "val1" },
         };
         await (controller as any)._webviewMessageHandler(message);
         assert.ok(
-            controller._webview.postMessage.calledWith({
-                type: "response",
-                id: "1",
-                result: undefined,
+            (controller as any)._handleNotification.calledWith({
+                type: MessageType.Notification,
+                method: SendErrorEventNotification.type.method,
+                params: { prop1: "val1" },
             }),
-            "Response is not sent correctly",
+            "sendErrorEvent notification is not handled correctly",
         );
     });
 });

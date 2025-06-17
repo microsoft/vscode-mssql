@@ -7,7 +7,23 @@ import * as vscode from "vscode";
 
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import {
+    ColorThemeChangeNotification,
+    ExecuteCommandParams,
+    ExecuteCommandRequest,
+    GetLocalizationRequest,
+    GetPlatformRequest,
+    GetStateRequest,
+    GetThemeRequest,
+    LoadStatsNotification,
     LogEvent,
+    LogNotification,
+    MessageType,
+    PendingRequest,
+    ReducerRequest,
+    SendActionEventNotification,
+    SendErrorEventNotification,
+    StateChangeNotification,
+    WebviewRpcMessage,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../sharedInterfaces/webview";
@@ -16,6 +32,8 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 import { getNonce } from "../utils/utils";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
+import { NotificationType, RequestHandler, RequestType } from "vscode-jsonrpc/node";
+import { generateGuid } from "../models/utils";
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides
@@ -27,65 +45,227 @@ import VscodeWrapper from "./vscodeWrapper";
 export abstract class ReactWebviewBaseController<State, Reducers> implements vscode.Disposable {
     private _disposables: vscode.Disposable[] = [];
     private _isDisposed: boolean = false;
+    private _onDisposed: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+    public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
+
     private _state: State;
-    private _webviewRequestHandlers: { [key: string]: (params: any) => any } = {};
-    private _reducers: Record<
-        keyof Reducers,
-        (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
-    > = {} as Record<
-        keyof Reducers,
-        (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
-    >;
     private _isFirstLoad: boolean = true;
     protected _loadStartTime: number = Date.now();
     private _endLoadActivity = startActivity(
         TelemetryViews.WebviewController,
         TelemetryActions.Load,
     );
-    private _onDisposed: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
-    public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
-    protected _webviewMessageHandler = async (message) => {
-        if (message.type === "request") {
-            const endActivity = startActivity(
-                TelemetryViews.WebviewController,
-                TelemetryActions.WebviewRequest,
-            );
-            const handler = this._webviewRequestHandlers[message.method];
-            if (handler) {
-                try {
-                    const result = await handler(message.params);
-                    this.postMessage({
-                        type: "response",
-                        id: message.id,
-                        result,
-                    });
-                    endActivity.end(ActivityStatus.Succeeded, {
-                        type: this._sourceFile,
-                        method: message.method,
-                        reducer: message.method === "action" ? message.params.type : undefined,
-                    });
-                } catch (error) {
-                    endActivity.endFailed(
-                        error,
-                        false,
-                        "RequestHandlerFailed",
-                        "RequestHandlerFailed",
-                        {
-                            type: this._sourceFile,
-                            method: message.method,
-                            reducer: message.method === "action" ? message.params.type : undefined,
-                        },
-                    );
-                    throw error;
-                }
-            } else {
-                const error = new Error(`No handler registered for method ${message.method}`);
-                endActivity.endFailed(error, true, "NoHandlerRegistered", "NoHandlerRegistered", {
+
+    private _pendingRequests = new Map<string, PendingRequest>();
+    private _requestHandlers = new Map<string, RequestHandler<any, any, any>>();
+    private _notificationHandlers = new Map<string, ((params: any) => void)[]>();
+    private _reducerHandlers = new Map<
+        keyof Reducers,
+        (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
+    >();
+
+    protected _webviewMessageHandler = async (message: WebviewRpcMessage) => {
+        switch (message.type) {
+            case MessageType.Response:
+                await this._handleResponse(message);
+                break;
+            case MessageType.Request:
+                await this._handleRequest(message);
+                break;
+            case MessageType.Notification:
+                await this._handleNotification(message);
+                break;
+            default:
+                this.logger.error(`Unknown message type: ${message.type}`);
+                return;
+        }
+    };
+
+    private _handleResponse = async (message: WebviewRpcMessage) => {
+        const responseActivity = startActivity(
+            TelemetryViews.WebviewController,
+            TelemetryActions.WebviewResponse,
+        );
+        const { id, result, error } = message;
+        if (id === undefined) {
+            responseActivity.endFailed(
+                new Error("Received response without an id"),
+                true,
+                "InvalidResponse",
+                "InvalidResponse",
+                {
                     type: this._sourceFile,
-                    method: message.method,
-                });
-                throw error;
+                },
+            );
+            this.logger.error("Received response without an id");
+            return;
+        }
+        const pendingRequest = this._pendingRequests.get(id);
+        if (!pendingRequest) {
+            responseActivity.endFailed(
+                new Error(`No pending request found for id ${id}`),
+                true,
+                "NoPendingRequest",
+                "NoPendingRequest",
+                {
+                    type: this._sourceFile,
+                },
+            );
+            this.logger.warn(`No pending request found for id ${id}`);
+            return;
+        }
+
+        this._pendingRequests.delete(id);
+        if (error) {
+            responseActivity.endFailed(
+                error,
+                false,
+                "ResponseHandlerFailed",
+                "ResponseHandlerFailed",
+                {
+                    type: this._sourceFile,
+                },
+            );
+            pendingRequest.reject(error);
+        } else {
+            pendingRequest.resolve(result);
+        }
+    };
+
+    private _handleRequest = async (message: WebviewRpcMessage) => {
+        const requestActivity = startActivity(
+            TelemetryViews.WebviewController,
+            TelemetryActions.WebviewRequest,
+        );
+        const { id, method, params } = message;
+        if (!method || id === undefined) {
+            this.logger.error("Received request without method or id");
+            requestActivity.endFailed(
+                new Error("Received request without method or id"),
+                true,
+                "InvalidRequest",
+                "InvalidRequest",
+                {
+                    type: this._sourceFile,
+                },
+            );
+            return;
+        }
+
+        const handler = this._requestHandlers.get(method);
+        if (!handler) {
+            this.logger.warn(`No handler found for method ${method}`);
+            requestActivity.endFailed(
+                new Error(`No handler registered for method ${method}`),
+                true,
+                "NoHandlerRegistered",
+                "NoHandlerRegistered",
+                {
+                    type: this._sourceFile,
+                    method,
+                },
+            );
+            return;
+        }
+
+        try {
+            const result = await handler(params, undefined!); // Not supporting cancellation for now
+            this.postMessage({
+                type: MessageType.Response,
+                id,
+                result,
+            });
+            requestActivity.end(ActivityStatus.Succeeded, {
+                type: this._sourceFile,
+                method,
+            });
+        } catch (error) {
+            requestActivity.endFailed(
+                error,
+                false,
+                "RequestHandlerFailed",
+                "RequestHandlerFailed",
+                {
+                    type: this._sourceFile,
+                    method,
+                },
+            );
+            this.postMessage({
+                type: MessageType.Response,
+                id,
+                error: {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack,
+                },
+            });
+        }
+    };
+
+    private _handleNotification = async (message: WebviewRpcMessage) => {
+        const notificationActivity = startActivity(
+            TelemetryViews.WebviewController,
+            TelemetryActions.WebviewNotification,
+        );
+        const { method, params } = message;
+        if (!method) {
+            notificationActivity.endFailed(
+                new Error("Received notification without method"),
+                true,
+                "InvalidNotification",
+                "InvalidNotification",
+                {
+                    type: this._sourceFile,
+                },
+            );
+            this.logger.error("Received notification without method");
+            return;
+        }
+
+        const handlers = this._notificationHandlers.get(method);
+        if (!handlers) {
+            notificationActivity.endFailed(
+                new Error(`No handlers registered for notification method ${method}`),
+                true,
+                "NoNotificationHandlerRegistered",
+                "NoNotificationHandlerRegistered",
+                {
+                    type: this._sourceFile,
+                    method,
+                },
+            );
+            this.logger.warn(`No handlers found for notification method ${method}`);
+            return;
+        }
+
+        let errorCount = 0;
+        handlers.forEach((handler) => {
+            try {
+                handler(params);
+            } catch (error) {
+                errorCount++;
+                console.error(`Error in notification handler for ${method}:`, error);
             }
+        });
+        if (errorCount > 0) {
+            this.logger.error(`Error in ${errorCount} notification handlers for ${method}`);
+            notificationActivity.endFailed(
+                new Error(`Error in ${errorCount} notification handlers for ${method}`),
+                false,
+                "NotificationHandlerError",
+                "NotificationHandlerError",
+                {
+                    type: this._sourceFile,
+                    method,
+                    errorCount: errorCount.toString(),
+                },
+            );
+        } else {
+            this.logger.log(`Notification ${method} handled successfully`);
+            notificationActivity.end(ActivityStatus.Succeeded, {
+                type: this._sourceFile,
+                method,
+            });
         }
     };
 
@@ -162,34 +342,49 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     protected setupTheming() {
         this._disposables.push(
             vscode.window.onDidChangeActiveColorTheme((theme) => {
-                this.postNotification(DefaultWebviewNotifications.onDidChangeTheme, theme.kind);
+                this.sendNotification(ColorThemeChangeNotification.type, theme.kind);
             }),
         );
-        this.postNotification(
-            DefaultWebviewNotifications.onDidChangeTheme,
+        this.sendNotification(
+            ColorThemeChangeNotification.type,
             vscode.window.activeColorTheme.kind,
         );
     }
 
     private _registerDefaultRequestHandlers() {
-        this._webviewRequestHandlers["getState"] = () => {
-            return this.state;
-        };
+        this.onNotification(
+            SendActionEventNotification.type,
+            (message: WebviewTelemetryActionEvent) => {
+                sendActionEvent(
+                    message.telemetryView,
+                    message.telemetryAction,
+                    message.additionalProps,
+                    message.additionalMeasurements,
+                );
+            },
+        );
 
-        this._webviewRequestHandlers["action"] = async (action) => {
-            const reducer = this._reducers[action.type];
-            if (reducer) {
-                this.state = await reducer(this.state, action.payload);
-            } else {
-                throw new Error(`No reducer registered for action ${action.type}`);
-            }
-        };
+        this.onNotification(
+            SendErrorEventNotification.type,
+            (message: WebviewTelemetryErrorEvent) => {
+                sendErrorEvent(
+                    message.telemetryView,
+                    message.telemetryAction,
+                    message.error,
+                    message.includeErrorMessage,
+                    message.errorCode,
+                    message.errorType,
+                    message.additionalProps,
+                    message.additionalMeasurements,
+                );
+            },
+        );
 
-        this._webviewRequestHandlers["getTheme"] = () => {
-            return vscode.window.activeColorTheme.kind;
-        };
+        this.onNotification(LogNotification.type, async (message: LogEvent) => {
+            this.logger[message.level ?? "log"](message.message);
+        });
 
-        this._webviewRequestHandlers["loadStats"] = (message) => {
+        this.onNotification(LoadStatsNotification.type, (message) => {
             const timeStamp = message.loadCompleteTimeStamp;
             const timeToLoad = timeStamp - this._loadStartTime;
             if (this._isFirstLoad) {
@@ -201,33 +396,17 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                 });
                 this._isFirstLoad = false;
             }
-        };
+        });
 
-        this._webviewRequestHandlers["sendActionEvent"] = (
-            message: WebviewTelemetryActionEvent,
-        ) => {
-            sendActionEvent(
-                message.telemetryView,
-                message.telemetryAction,
-                message.additionalProps,
-                message.additionalMeasurements,
-            );
-        };
+        this.onRequest(GetStateRequest.type<State>(), () => {
+            return this.state;
+        });
 
-        this._webviewRequestHandlers["sendErrorEvent"] = (message: WebviewTelemetryErrorEvent) => {
-            sendErrorEvent(
-                message.telemetryView,
-                message.telemetryAction,
-                message.error,
-                message.includeErrorMessage,
-                message.errorCode,
-                message.errorType,
-                message.additionalProps,
-                message.additionalMeasurements,
-            );
-        };
+        this.onRequest(GetThemeRequest.type, () => {
+            return vscode.window.activeColorTheme.kind;
+        });
 
-        this._webviewRequestHandlers["getLocalization"] = async () => {
+        this.onRequest(GetLocalizationRequest.type, async () => {
             if (vscode.l10n.uri?.fsPath) {
                 const file = await vscode.workspace.fs.readFile(vscode.l10n.uri);
                 const fileContents = Buffer.from(file).toString();
@@ -235,33 +414,29 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
             } else {
                 return undefined;
             }
-        };
+        });
 
-        this._webviewRequestHandlers["executeCommand"] = async (message) => {
-            if (!message?.command) {
-                console.log("No command provided to execute");
+        this.onRequest(ExecuteCommandRequest.type, async (params: ExecuteCommandParams) => {
+            if (!params?.command) {
+                this.logger.log("No command provided to execute");
                 return;
             }
-            const args = message?.args ?? [];
-            return await vscode.commands.executeCommand(message.command, ...args);
-        };
+            const args = params?.args ?? [];
+            return await vscode.commands.executeCommand(params.command, ...args);
+        });
 
-        this._webviewRequestHandlers["getPlatform"] = async () => {
+        this.onRequest(GetPlatformRequest.type, async () => {
             return process.platform;
-        };
+        });
 
-        this._webviewRequestHandlers["log"] = async (message: LogEvent) => {
-            this.logger[message.level ?? "log"](message.message);
-        };
-    }
-
-    /**
-     * Register a request handler that the webview can call and get a response from.
-     * @param method The method name that the webview will use to call the handler
-     * @param handler The handler that will be called when the method is called
-     */
-    public registerRequestHandler(method: string, handler: (params: any) => any) {
-        this._webviewRequestHandlers[method] = handler;
+        this.onRequest(ReducerRequest.type<Reducers>(), async (action) => {
+            const reducer = this._reducerHandlers.get(action.type);
+            if (reducer) {
+                this.state = await reducer(this.state, action.payload);
+            } else {
+                throw new Error(`No reducer registered for action ${action.type as string}`);
+            }
+        });
     }
 
     /**
@@ -275,7 +450,77 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         method: Method,
         reducer: (state: State, payload: Reducers[Method]) => ReducerResponse<State>,
     ) {
-        this._reducers[method] = reducer;
+        this._reducerHandlers.set(method, reducer);
+    }
+
+    /**
+     * Registers a request handler for a specific request type.
+     * @param type The request type that the handler will handle
+     * @param handler The handler that will be called when the request is made
+     */
+    public onRequest<TParam, TResult, TError>(
+        type: RequestType<TParam, TResult, TError>,
+        handler: RequestHandler<TParam, TResult, TError>,
+    ): void {
+        if (this._isDisposed) {
+            throw new Error("Cannot register request handler on disposed controller");
+        }
+        this._requestHandlers.set(type.method, handler);
+    }
+
+    /**
+     * Registers a reducer that can be called from the webview.
+     */
+    public sendRequest<TParam, TResult, TError>(
+        type: RequestType<TParam, TResult, TError>,
+        params: TParam,
+    ): Thenable<TResult> {
+        if (this._isDisposed) {
+            return Promise.reject(new Error("Cannot send request on disposed controller"));
+        }
+        return new Promise<TResult>((resolve, reject) => {
+            this._pendingRequests.set(generateGuid(), {
+                resolve,
+                reject,
+            });
+            this.postMessage({
+                type: MessageType.Request,
+                id: generateGuid(), // Generate a unique ID for the request
+                method: type.method,
+                params,
+            } as WebviewRpcMessage);
+        });
+    }
+
+    /**
+     * Sends a notification to the webview. This is used to notify the webview of changes
+     * @param type The notification type that the webview will handle
+     * @param params The parameters that will be passed to the notification handler
+     */
+    public sendNotification<TParams>(type: NotificationType<TParams>, params: TParams): void {
+        if (this._isDisposed) {
+            throw new Error("Cannot send notification on disposed controller");
+        }
+        this.postMessage({ type: MessageType.Notification, method: type.method, params });
+    }
+
+    /**
+     * Registers a notification handler for a specific notification type.
+     * This handler will be called when the webview sends a notification of that type.
+     * @param type The notification type that the handler will handle
+     * @param handler The handler that will be called when the notification is received
+     */
+    public onNotification<TParams>(
+        type: NotificationType<TParams>,
+        handler: (params: TParams) => void,
+    ): void {
+        if (this._isDisposed) {
+            throw new Error("Cannot register notification handler on disposed controller");
+        }
+        if (!this._notificationHandlers.has(type.method)) {
+            this._notificationHandlers.set(type.method, []);
+        }
+        this._notificationHandlers.get(type.method)!.push(handler);
     }
 
     /**
@@ -292,7 +537,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      */
     public set state(value: State) {
         this._state = value;
-        this.postNotification(DefaultWebviewNotifications.updateState, value);
+        this.sendNotification(StateChangeNotification.type<State>(), value);
     }
 
     /**
@@ -311,19 +556,10 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     }
 
     /**
-     * Posts a notification to the webview
-     * @param method The method name that the webview will use to handle the notification
-     * @param params The parameters that will be passed to the method
-     */
-    public postNotification(method: string, params: any) {
-        this.postMessage({ type: "notification", method, params });
-    }
-
-    /**
      * Posts a message to the webview
      * @param message The message to post to the webview
      */
-    public postMessage(message: any) {
+    public postMessage(message: WebviewRpcMessage) {
         if (!this._isDisposed) {
             this._getWebview()?.postMessage(message);
         }
@@ -337,11 +573,6 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         this._disposables.forEach((d) => d.dispose());
         this._isDisposed = true;
     }
-}
-
-export enum DefaultWebviewNotifications {
-    updateState = "updateState",
-    onDidChangeTheme = "onDidChangeTheme",
 }
 
 export type ReducerResponse<T> = T | Promise<T>;

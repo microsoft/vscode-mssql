@@ -9,6 +9,7 @@ import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
+import { RequestType } from "vscode-jsonrpc/browser";
 
 export class ConnectionDialogWebviewState
     implements
@@ -212,4 +213,10 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
+}
+
+export namespace GetConnectionDisplayNameRequest {
+    export const type = new RequestType<IConnectionDialogProfile, string, void>(
+        "getConnectionDisplayName",
+    );
 }
