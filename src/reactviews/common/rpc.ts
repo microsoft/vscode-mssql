@@ -78,8 +78,8 @@ export class WebviewRpc<Reducers> {
             return;
         }
 
-        const handler = this._pendingRequests.get(id);
-        if (!handler) {
+        const pendingRequest = this._pendingRequests.get(id);
+        if (!pendingRequest) {
             console.warn(`No pending request found for id ${id}, ignoring response.`);
             return;
         }
@@ -87,9 +87,9 @@ export class WebviewRpc<Reducers> {
         this._pendingRequests.delete(id);
 
         if (error) {
-            handler.reject(error);
+            pendingRequest.reject(error);
         } else {
-            handler.resolve(result);
+            pendingRequest.resolve(result);
         }
     }
 
@@ -108,7 +108,7 @@ export class WebviewRpc<Reducers> {
         }
 
         try {
-            const result = await handler(params, undefined!);
+            const result = await handler(params, undefined!); // Not supporting cancellation for now
             this._vscodeApi.postMessage({
                 type: MessageType.Response,
                 id,
