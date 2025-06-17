@@ -184,7 +184,7 @@ export function registerCommonRequestHandlers(
         );
     });
 
-    webviewController.onRequest(qr.CopyWithHeadersRequest.type, async (message) => {
+    webviewController.onRequest(qr.CopyHeadersRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyHeaders, {
             correlationId: correlationId,
         });
