@@ -13,6 +13,7 @@ import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { Logger } from "../models/logger";
+import * as Constants from "../constants/constants";
 
 const CONNECTION_SHARING_PERMISSIONS_KEY = "mssql.connectionSharing.extensionPermissions";
 
@@ -431,7 +432,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         if (!extensionId) {
             this._logger.info("No extension ID provided, prompting user to select an extension.");
             const extensionQuickPickItems: vscode.QuickPickItem[] = vscode.extensions.all
-                .filter((ext) => ext.id !== "ms-mssql.mssql") // Exclude self
+                .filter((ext) => ext.id !== Constants.extensionId) // Exclude self
                 .map((extension) => ({
                     label: this.getExtensionDisplayName(extension.id),
                     detail: extension.id,
