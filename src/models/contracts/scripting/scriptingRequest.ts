@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType, RequestType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-languageclient";
 
 export interface IConnectionInfo {
     options: { [name: string]: any };
