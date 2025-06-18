@@ -50,6 +50,7 @@ export interface DockerConnectionProfile extends vscodeMssql.IConnectionInfo {
     profileName: string;
     savePassword: boolean;
     acceptEula: boolean;
+    groupId: string;
 }
 
 export interface ContainerDeploymentFormItemSpec

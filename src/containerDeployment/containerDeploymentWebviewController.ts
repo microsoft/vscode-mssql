@@ -25,6 +25,7 @@ import {
 import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
+import { getGroupIdItem } from "../connectionconfig/formComponentHelpers";
 
 export class ContainerDeploymentWebviewController extends FormWebviewController<
     cd.DockerConnectionProfile,
@@ -69,7 +70,9 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         this.state.loadState = ApiStatus.Loading;
         this.state.platform = platform();
         const versions = await dockerUtils.getSqlServerContainerVersions();
-        this.state.formComponents = this.setFormComponents(versions);
+        const groupOptions =
+            await this.mainController.connectionManager.connectionStore.getConnectionGroupOptions();
+        this.state.formComponents = this.setFormComponents(versions, groupOptions);
         this.state.formState = {
             version: versions[0].value,
             password: "",
@@ -79,6 +82,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             port: undefined,
             hostname: "",
             acceptEula: false,
+            groupId: groupOptions[0].value,
         } as cd.DockerConnectionProfile;
         this.state.dockerSteps = dockerUtils.initializeDockerSteps();
         this.registerRpcHandlers();
@@ -285,6 +289,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
     private setFormComponents(
         versions: FormItemOptions[],
+        groupOptions: FormItemOptions[],
     ): Record<
         string,
         FormItemSpec<
@@ -342,6 +347,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ConnectionDialog.profileName,
                 tooltip: profileNamePlaceholder,
             }),
+
+            groupId: createFormItem(
+                getGroupIdItem(groupOptions) as cd.ContainerDeploymentFormItemSpec,
+            ),
 
             containerName: createFormItem({
                 type: FormItemType.Input,

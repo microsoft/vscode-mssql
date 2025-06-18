@@ -208,16 +208,7 @@ export async function completeFormComponents(
         isAdvancedOption: false,
     };
 
-    components["groupId"] = {
-        propertyName: "groupId",
-        label: Loc.connectionGroup,
-        required: false,
-        type: FormItemType.SearchableDropdown,
-        options: connectionGroupOptions,
-        isAdvancedOption: false,
-        placeholder: Loc.selectConnectionGroup,
-        searchBoxPlaceholder: Loc.searchConnectionGroups,
-    };
+    components["groupId"] = getGroupIdItem(connectionGroupOptions) as ConnectionDialogFormItemSpec;
 
     components["savePassword"] = {
         propertyName: "savePassword",
@@ -312,5 +303,18 @@ export async function completeFormComponents(
             isValid: true,
             validationMessage: "",
         };
+    };
+}
+
+export function getGroupIdItem(connectionGroupOptions: FormItemOptions[]) {
+    return {
+        propertyName: "groupId",
+        label: Loc.connectionGroup,
+        required: false,
+        type: FormItemType.SearchableDropdown,
+        options: connectionGroupOptions,
+        isAdvancedOption: false,
+        placeholder: Loc.selectConnectionGroup,
+        searchBoxPlaceholder: Loc.searchConnectionGroups,
     };
 }

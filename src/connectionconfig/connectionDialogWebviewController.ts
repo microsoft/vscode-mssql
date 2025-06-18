@@ -24,7 +24,6 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
     CreateConnectionGroupDialogProps,
-    CREATE_NEW_GROUP_ID,
     GetConnectionDisplayNameRequest,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
@@ -166,7 +165,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this._mainController.connectionManager,
             getAccounts(this._mainController.azureAccountService, this.logger),
             this.getAzureActionButtons(),
-            this.getConnectionGroups(),
+            this.getConnectionGroups(this._mainController),
         );
 
         this.state.connectionComponents = {
@@ -337,7 +336,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             state.dialog = undefined;
 
-            state.formComponents.groupId.options = await this.getConnectionGroups();
+            state.formComponents.groupId.options = await this.getConnectionGroups(
+                this._mainController,
+            );
             state.connectionProfile.groupId = addedGroup.id;
             state.connectionGroups =
                 await this._mainController.connectionManager.connectionStore.connectionConfig.getGroups();
@@ -982,57 +983,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
     }
 
-    private async getConnectionGroups(): Promise<FormItemOptions[]> {
-        const rootId = this._mainController.connectionManager.connectionStore.rootGroupId;
-        let connectionGroups =
-            await this._mainController.connectionManager.connectionStore.readAllConnectionGroups();
-        connectionGroups = connectionGroups.filter((g) => g.id !== rootId);
-
-        // Count occurrences of group names to handle naming conflicts
-        const nameOccurrences = new Map<string, number>();
-        for (const group of connectionGroups) {
-            const count = nameOccurrences.get(group.name) || 0;
-            nameOccurrences.set(group.name, count + 1);
-        }
-
-        // Create a map of group IDs to their full paths
-        const groupById = new Map(connectionGroups.map((g) => [g.id, g]));
-
-        // Helper function to get parent path
-        const getParentPath = (group: IConnectionGroup): string => {
-            if (!group.parentId || group.parentId === rootId) {
-                return group.name;
-            }
-            const parent = groupById.get(group.parentId);
-            if (!parent) {
-                return group.name;
-            }
-            return `${getParentPath(parent)} > ${group.name}`;
-        };
-
-        const result = connectionGroups
-            .map((g) => {
-                // If there are naming conflicts, use the full path
-                const displayName = nameOccurrences.get(g.name) > 1 ? getParentPath(g) : g.name;
-
-                return {
-                    displayName,
-                    value: g.id,
-                };
-            })
-            .sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-        return [
-            {
-                displayName: Loc.default,
-                value: rootId,
-            },
-            {
-                displayName: Loc.createConnectionGroup,
-                value: CREATE_NEW_GROUP_ID,
-            },
-            ...result,
-        ];
+    private async getConnectionGroups(mainController: MainController): Promise<FormItemOptions[]> {
+        return mainController.connectionManager.connectionStore.getConnectionGroupOptions(true);
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
