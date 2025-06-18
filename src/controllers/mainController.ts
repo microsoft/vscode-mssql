@@ -2413,7 +2413,7 @@ export default class MainController implements vscode.Disposable {
         if (state) {
             state.uri = newUri;
 
-            this._queryResultWebviewController.sendNotification(
+            await this._queryResultWebviewController.sendNotification(
                 StateChangeNotification.type<QueryResultWebviewState>(),
                 state,
             );
