@@ -31,6 +31,9 @@
       <Item ItemId=";bundle.++CODE++00aaa2ec4a2146b807cc64a6f59880630adc5d451cd1a68a80e2d2ccf2d21bbc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connected to:]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connecté à :]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -73,6 +76,9 @@
       <Item ItemId=";bundle.++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading deployment page...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Chargement de la page de déploiement...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -97,18 +103,27 @@
       <Item ItemId=";bundle.++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} deleted successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La suppression de {0} a correctement réussi.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create New Connection Group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Créez un groupe de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connecting to your SQL Server Docker container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connexion à votre conteneur Docker SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -160,6 +175,9 @@
       <Item ItemId=";bundle.++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container does not exist. Would you like to remove the connection?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le conteneur n'existe pas. Voulez-vous supprimer la connexion ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -283,6 +301,9 @@
       <Item ItemId=";bundle.++CODE++09af7062beeeeb3b9e2346b91902b8e45ea936c57462ca09e997e7280b8f71dc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Creating and starting your SQL Server Docker container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Création et démarrage de votre conteneur Docker SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -298,6 +319,9 @@
       <Item ItemId=";bundle.++CODE++0a59729d88d37ed0f6bddc3a9a92d14b94528c315fec4cd3c70cd2d4bcabe1ff" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Choisissez parmi plusieurs versions de SQL Server, notamment SQL Server 2025 (préversion) avec des fonctionnalités d’IA intégrées telles que la recherche vectorielle et les améliorations JSON.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -529,6 +553,9 @@
       <Item ItemId=";bundle.++CODE++129eabad7bcc761eb7966091c2bc01163b650ca0613f42c58db97eae5420a7bb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete Contents]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Supprimer le contenu]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -661,6 +688,9 @@
       <Item ItemId=";bundle.++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Generating Report. This may take a while...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Génération du rapport. Cela peut prendre du temps...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -712,6 +742,9 @@
       <Item ItemId=";bundle.++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Starting Container...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Conteneur de départ...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -826,6 +859,9 @@
       <Item ItemId=";bundle.++CODE++1bc61380dfa94d79a64b67b2a483332c51a6263dcf5379519cd36b691f6469e3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} stopped successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} s’est arrêté avec succès.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -841,6 +877,9 @@
       <Item ItemId=";bundle.++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Créez un conteneur SQL Server en quelques secondes, aucune étape manuelle n’est requise. Gérez-le facilement à partir de l’extension MSSQL sans quitter VS Code.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -928,6 +967,9 @@
       <Item ItemId=";bundle.++CODE++2048d236cea5afafe8b7e125d9b86eb44250c4ac6f382bc412dca8e4188292fa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Veuillez vérifier que la virtualisation Rosetta est activée. Vous pouvez effectuer cette opération dans vos paramètres Docker Desktop.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -979,6 +1021,9 @@
       <Item ItemId=";bundle.++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose a port to host the SQL Server Docker Container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Choisissez un port pour héberger le conteneur Docker SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1021,6 +1066,9 @@
       <Item ItemId=";bundle.++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show Schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Afficher un schéma]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1045,18 +1093,27 @@
       <Item ItemId=";bundle.++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Stopping Container...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arrêt du conteneur...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Instant Container Setup]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Configuration instantanée du conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++2341d1c3197fc3205cd4550c118259316a51c665389e9a3c74db361c6e11d83a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking if Docker is running on your machine. If not, we'll start it for you.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vérification de l’exécution de Docker sur votre machine. Si ce n’est pas le cas, nous le démarrerons pour vous.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1135,12 +1192,18 @@
       <Item ItemId=";bundle.++CODE++26c70151bceb55fb84b8e652a205659bd5736420cfa72a4e3fa92bdaa5a3b526" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous vraiment supprimer {0} ?  Vous pouvez également supprimer ses connexions ou les déplacer vers le dossier racine.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Move to Root]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Déplacer vers la racine]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1201,6 +1264,9 @@
       <Item ItemId=";bundle.++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error running Docker commands. Please make sure Docker is running.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erreur lors de l'exécution des commandes Docker. Veuillez vérifier que Docker est en cours d’exécution.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1261,6 +1327,9 @@
       <Item ItemId=";bundle.++CODE++2af9bc0ac247853b98b854b657784c881cc649d3f1a660aafecd1b8b1a26d535" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Terms & Conditions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Conditions générales]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1294,6 +1363,9 @@
       <Item ItemId=";bundle.++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Local SQL Server database container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Conteneur de base de données SQL Server local]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1318,12 +1390,18 @@
       <Item ItemId=";bundle.++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please Accept the SQL Server EULA]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Veuillez accepter le CLUF de SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hostname]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nom d’hôte]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1402,12 +1480,18 @@
       <Item ItemId=";bundle.++CODE++3152aa1eecc4ae815f286d840683f8a27d00ed17af850886caef1ff5e3d9e122" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose a name for the SQL Server Docker Container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Choisir un nom pour le conteneur Docker SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Docker nécessite des autorisations root pour s’exécuter. Exécutez Docker avec sudo ou ajoutez votre utilisateur au groupe docker en utilisant sudo usermod -aG docker $USER. Ensuite, redémarrez votre machine et réessayez.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1459,12 +1543,18 @@
       <Item ItemId=";bundle.++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Install Docker]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Installer Docker]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Configure and customize SQL Server containers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Configurer et personnaliser les conteneurs SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1552,6 +1642,9 @@
       <Item ItemId=";bundle.++CODE++38ccc9db5b300e54116d6f6e8b8ee1420fea7792e8483c7368fdd964b6ecef0a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking pre-requisites]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vérification de la configuration requise]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1567,6 +1660,9 @@
       <Item ItemId=";bundle.++CODE++392f78e8df5a591be501949632cd689e0fd59c4e0233c8b002a2dce8518ad4e4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connection profile '{0}' not found.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Profil de connexion « {0} » introuvable.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1600,6 +1696,9 @@
       <Item ItemId=";bundle.++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Opening Publish Script. This may take a while...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ouverture du script de publication. Cela peut prendre du temps...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1624,6 +1723,9 @@
       <Item ItemId=";bundle.++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Starting {0}...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Démarrage de {0}...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1765,6 +1867,9 @@
       <Item ItemId=";bundle.++CODE++407c9ce5c11270b1d15836456ad1efdbe70f71f3c845186e535f82f02112be4e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Getting container ready for connections]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Préparation du conteneur pour les connexions]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1780,6 +1885,9 @@
       <Item ItemId=";bundle.++CODE++40c6cdb719db3469fb83c776d850e85fc70bdfa14e6685d6ac62061ac85b8eed" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Server {0} not found.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Serveur {0} introuvable.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1795,6 +1903,9 @@
       <Item ItemId=";bundle.++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking Docker Engine Configuration]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vérification de la configuration du moteur Docker]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1837,6 +1948,9 @@
       <Item ItemId=";bundle.++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Getting Docker Ready...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Préparation de Docker...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1906,6 +2020,9 @@
       <Item ItemId=";bundle.++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking if Docker is installed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vérification de l’installation de Docker]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1975,6 +2092,9 @@
       <Item ItemId=";bundle.++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create Connection Group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Créer un groupe de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2008,6 +2128,9 @@
       <Item ItemId=";bundle.++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Switching to Linux containers was canceled. SQL Server only supports Linux containers.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Le basculement vers des conteneurs Linux a été annulé. SQL Server prend uniquement en charge les conteneurs Linux.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2032,6 +2155,9 @@
       <Item ItemId=";bundle.++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Server ne prend pas en charge les conteneurs Windows. Basculez vers des conteneurs Linux dans les paramètres de Docker Desktop.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2101,6 +2227,9 @@
       <Item ItemId=";bundle.++CODE++4b0281fd3c02c610c7ff9f781b1666d54182ee7c48812ea9332055a7814872ad" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create Container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Créer un conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2179,6 +2308,9 @@
       <Item ItemId=";bundle.++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hue]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Teinte]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2203,6 +2335,9 @@
       <Item ItemId=";bundle.++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose the Right Version]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Choisir la bonne version]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2245,6 +2380,9 @@
       <Item ItemId=";bundle.++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search connection groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Recherche des groupes de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2269,6 +2407,9 @@
       <Item ItemId=";bundle.++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[List Connections]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Liste des connexions]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2293,6 +2434,9 @@
       <Item ItemId=";bundle.++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Learn more about SQL Server 2025 features]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[En savoir plus sur les fonctionnalités SQL Server 2025]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2308,6 +2452,9 @@
       <Item ItemId=";bundle.++CODE++523fa7449e8252600e65c811dcd62983315d0f9f528741627033a45754f591cf" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show schema for connection '{0}'?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous afficher le schéma pour la connexion « {0} » ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2395,6 +2542,9 @@
       <Item ItemId=";bundle.++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Listing server connections]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Liste des connexions au serveur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2626,6 +2776,9 @@
       <Item ItemId=";bundle.++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select the SQL Server Container Image]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionnez l’image conteneur SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2758,6 +2911,9 @@
       <Item ItemId=";bundle.++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Schema visualization opened.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visualisation de schéma ouverte.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2773,6 +2929,9 @@
       <Item ItemId=";bundle.++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to Server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Se connecter au serveur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2842,6 +3001,9 @@
       <Item ItemId=";bundle.++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Server {0} - latest]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL Server {0} – dernière version]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2965,6 +3127,9 @@
       <Item ItemId=";bundle.++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select image]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionner une image]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -2989,6 +3154,9 @@
       <Item ItemId=";bundle.++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Color]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Couleur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3013,6 +3181,9 @@
       <Item ItemId=";bundle.++CODE++6be7e803f4291ec5e83f38d2789fd4ea6c31923cdf1eedfa48564e33708cc5d3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking if Docker is started]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vérification de l’installation de Docker]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3037,6 +3208,9 @@
       <Item ItemId=";bundle.++CODE++6ca9d6623e40335fc13a80d426d2dd39b8c8a8b656c66b0d973cee8d5d49e4d9" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Docker failed to start within the timeout period. Please manually start Docker and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Échec du démarrage du Docker dans le délai imparti. Veuillez démarrer Docker manuellement et réessayez.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3070,6 +3244,9 @@
       <Item ItemId=";bundle.++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect using profile {0}?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous vous connecter à l’aide du profil {0} ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3166,6 +3343,9 @@
       <Item ItemId=";bundle.++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Port]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Port]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3199,6 +3379,9 @@
       <Item ItemId=";bundle.++CODE++741262e58e1274cef3f38a5aa8042fcf05db92d4ca8e9c9e573acd0e2242ba97" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking if the Docker Engine is configured correctly on your machine.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vérification de la configuration du moteur Docker sur votre machine.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3232,6 +3415,9 @@
       <Item ItemId=";bundle.++CODE++75053118ac86a00be268a5a2a66b8b40a5249559ce3fc76bb45463dcc532782d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking if Docker is installed on your machine]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Vérification de l’installation de Docker sur votre machine]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3256,6 +3442,9 @@
       <Item ItemId=";bundle.++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please make sure the port is a number, and choose a port that is not in use]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Veuillez vérifier que le port est un numéro et choisissez un port qui n’est pas utilisé]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3460,6 +3649,9 @@
       <Item ItemId=";bundle.++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Either profileId or serverName must be provided.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ProfileId ou serverName doit être fourni.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3502,6 +3694,9 @@
       <Item ItemId=";bundle.++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show full error message]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Afficher le message d’erreur complet]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3535,6 +3730,9 @@
       <Item ItemId=";bundle.++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disconnecting from connection '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Déconnexion de la connexion « {0} »]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3568,6 +3766,9 @@
       <Item ItemId=";bundle.++CODE++82beb1b74986a2b292e8084ee59f9bedf5e0decc13f020369faebf40ce2981c7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Edit Connection Group: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Modifier le groupe de connexion : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3601,6 +3802,9 @@
       <Item ItemId=";bundle.++CODE++84a2b1ae34166a218282ec6156f3af9c67f4ccb6c03ec1cc0a03d9b3792069aa" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Database - {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Base de données – {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3616,6 +3820,9 @@
       <Item ItemId=";bundle.++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Server Container SA Password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mot de passe de l’administrateur(-trice) du conteneur SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3640,6 +3847,9 @@
       <Item ItemId=";bundle.++CODE++85b5093bef4e68ee847dba78ba2e33392c8998bb4d39598442f8713cdeec5c89" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disconnect from connection '{0}'?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous vous déconnecter de la connexion « {0} » ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3700,6 +3910,9 @@
       <Item ItemId=";bundle.++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Hide full error message]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Masquer le message d’erreur complet]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3751,6 +3964,9 @@
       <Item ItemId=";bundle.++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Readying container for connections.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Préparation du conteneur pour les connexions.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3775,6 +3991,9 @@
       <Item ItemId=";bundle.++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container failed to start within the timeout period. Please wait a few minutes and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Échec du démarrage du conteneur dans le délai imparti. Veuillez patienter quelques minutes et réessayer.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3790,6 +4009,9 @@
       <Item ItemId=";bundle.++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Edit Connection Group - {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Modifier le groupe de connexion – {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -3958,6 +4180,9 @@
       <Item ItemId=";bundle.++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter description (optional)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Entrez une description (facultatif)]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4108,18 +4333,27 @@
       <Item ItemId=";bundle.++CODE++983f311018642b0ae60c71253b5735579906d43d260ea926ebe5e815b1c97abb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Get Started]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Prise en main]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++98a2e618e690165268025ae1d25d8d84ea575af666bdd7a5b719bc777e3d584f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Setting up container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Configuration du conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++993f024b650eaf0f1c64118f6033c44b7c98d220539bcb51454ca578f6f2b477" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Saturation]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Saturation]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4180,6 +4414,9 @@
       <Item ItemId=";bundle.++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Showing schema for connection '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Affichage du schéma pour la connexion « {0} »]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4231,6 +4468,9 @@
       <Item ItemId=";bundle.++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous vraiment supprimer le conteneur {0} ? Cette opération supprimera le conteneur et sa connexion de VS Code.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4462,12 +4702,18 @@
       <Item ItemId=";bundle.++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Deleting Container...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Suppression du conteneur...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++a5d38a76e9010d59374fafce6a3d75189df15be61859ee1ffa33da6e9cf97b05" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Docker is not installed or not in PATH. Please install Docker Desktop and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Docker n’est pas installé ou n’est pas dans le PATH. Veuillez installer Docker Desktop et réessayer.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4483,6 +4729,9 @@
       <Item ItemId=";bundle.++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Finish]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Terminer]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4588,6 +4837,9 @@
       <Item ItemId=";bundle.++CODE++aa9bb805dc517bc0164702b53526a013fbfece6dabeb9871e0b9910d23978c5e" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please choose a unique name for the profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Choisissez un nom unique pour le profil]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4639,6 +4891,9 @@
       <Item ItemId=";bundle.++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose color]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Choisissez une couleur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4780,6 +5035,9 @@
       <Item ItemId=";bundle.++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to server {0} and database {1}?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous vous connecter au serveur {0} et à la base de données {1} ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4795,6 +5053,9 @@
       <Item ItemId=";bundle.++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Configure Linux containers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Configurer des conteneurs Linux]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4819,6 +5080,9 @@
       <Item ItemId=";bundle.++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[<Default>]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[<Default>]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -4915,6 +5179,9 @@
       <Item ItemId=";bundle.++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[List all connections registered with the mssql extension?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous répertorier toutes les connexions enregistrées avec l’extension MSSQL ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5011,6 +5278,9 @@
       <Item ItemId=";bundle.++CODE++bb6f0c310647145d31546d24967be9eb8ebae90f640642e9fbb5d7713e6e8550" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No connection found for connectionId: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucune connexion trouvée pour \connectionId : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5071,6 +5341,9 @@
       <Item ItemId=";bundle.++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start, stop, and remove containers directly from the extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Démarrez, arrêtez et supprimez des conteneurs directement depuis l’extension.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5176,6 +5449,9 @@
       <Item ItemId=";bundle.++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unsupported platform for Docker: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Plateforme non prise en charge pour Docker : {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5281,6 +5557,9 @@
       <Item ItemId=";bundle.++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select a connection group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionnez un groupe de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5296,6 +5575,9 @@
       <Item ItemId=";bundle.++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading execution plan...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Chargement du plan d’exécution...]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5347,6 +5629,9 @@
       <Item ItemId=";bundle.++CODE++c629f4154b93588541a43212104dda942f74b6b1c384f17ed00ccd062e649fb4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to server {0}?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous vous connecter au serveur {0} ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5362,6 +5647,9 @@
       <Item ItemId=";bundle.++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Compare SQL Server editions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Comparer les éditions de SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5431,6 +5719,9 @@
       <Item ItemId=";bundle.++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nom du conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5446,6 +5737,9 @@
       <Item ItemId=";bundle.++CODE++cad17aa68a83418367684821ea4734c877707d1f340846dc7b17b04a8a04c1c0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter connection group name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Entrez le nom du groupe de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5488,6 +5782,9 @@
       <Item ItemId=";bundle.++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to start SQL Server container. Please check the error message for more details, and then try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Échec du démarrage du conteneur SQL Server. Veuillez vérifier le message d’erreur pour plus de détails, puis réessayez.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5584,6 +5881,9 @@
       <Item ItemId=";bundle.++CODE++d054fcb4284fd66975e378de56c04bda7b8e951e8e13f66834d9510e2b5461aa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nous ne trouvons pas l’emplacement de Docker Desktop sur votre ordinateur. Veuillez démarrer le bureau Docker manuellement et réessayez.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5626,6 +5926,9 @@
       <Item ItemId=";bundle.++CODE++d196df298e2df96370fbe47015195f865db9761ab45899b56376f17df4174a88" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Previous step failed. Please check the error message and try again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Échec de l’étape précédente. Veuillez vérifier le message d’erreur et réessayer.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5740,6 +6043,9 @@
       <Item ItemId=";bundle.++CODE++d568f5700106a3d28657010405b5ef04ac5e6f31499216360661ba4f19256e15" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connecting to server {0} and database {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Se connecter au serveur {0} et à la base de données {1}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5818,6 +6124,9 @@
       <Item ItemId=";bundle.++CODE++d81d6eb21f473c77ba01056237fcd372e9021b555b36efc68d24d22a5d608ba5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please make your password 8-128 characters long.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Veuillez définir votre mot de passe entre 8 et 128 caractères.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -5914,12 +6223,18 @@
       <Item ItemId=";bundle.++CODE++dbdf27e5db8d8cde8cc8a3b15f491db14868513a3253b62b194eb20cf414741a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Setting up]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Configuration]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";bundle.++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[+ Create Connection Group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Créer un groupe de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6052,6 +6367,9 @@
       <Item ItemId=";bundle.++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Connection Group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Enregistrer le groupe de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6085,6 +6403,9 @@
       <Item ItemId=";bundle.++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Accept the SQL Server EULA to deploy a SQL Server Docker container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Accepter le CLUF SQL Server pour déployer un conteneur Docker SQL Server]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6100,6 +6421,9 @@
       <Item ItemId=";bundle.++CODE++e22a8e55997a44b12ff4f976b12df9cf1fd9b41a7521198b72b15a3cb9952ed0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Votre mot de passe doit contenir des caractères appartenant au moins à trois des catégories suivantes – lettres majuscules, minuscules, chiffres (0-9) et caractères spéciaux (!, $, #, %, etc.).]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6322,6 +6646,9 @@
       <Item ItemId=";bundle.++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Creating Container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Création du conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6337,6 +6664,9 @@
       <Item ItemId=";bundle.++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} started successfully.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} a démarré correctement.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6352,6 +6682,9 @@
       <Item ItemId=";bundle.++CODE++e9867ec277676c80767b62a3ccde695a9fd4b9927c6541f6bfb0be08bed55596" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Please choose a unique name for the container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Choisissez un nom unique pour le conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6457,6 +6790,9 @@
       <Item ItemId=";bundle.++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Brightness]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Luminosité]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6526,6 +6862,9 @@
       <Item ItemId=";bundle.++CODE++efb70e946b81dee71e5439537f7160292d511bb79830c8edd338f32e232cf183" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connecting using profile {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connexion à l’aide du profil {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6559,6 +6898,9 @@
       <Item ItemId=";bundle.++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nous n’avons pas pu nous connecter à l’aide des informations de connexion actuelles. Voulez-vous essayer de vous connecter à nouveau ou modifier le profil de connexion ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6637,6 +6979,9 @@
       <Item ItemId=";bundle.++CODE++f374a2978746011d60b5e1785696b4f2c1fe9165edc4f876767d2f1282240cb2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose a hostname for the container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Choisissez un nom d’hôte pour le conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6697,6 +7042,9 @@
       <Item ItemId=";bundle.++CODE++f6cd8550a42862c96bedf199eb6415f9f6859b49211e35694080e73978042cf8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Server - {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Serveur – {0}]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6712,6 +7060,9 @@
       <Item ItemId=";bundle.++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Simple Container Management]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Gestion de conteneurs simples]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6736,6 +7087,9 @@
       <Item ItemId=";bundle.++CODE++f7450e89276bf601752a2ef286965fb13e17c418012b0aa68be16f8941cc7321" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create Local SQL Container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Créer un conteneur SQL local]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6850,6 +7204,9 @@
       <Item ItemId=";bundle.++CODE++fbd52c8b91de95b69593d008ca2108476ccb1ea5a45657b3393d878499e3fe1f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Successfully connected to server.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La connexion au serveur a abouti.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6865,6 +7222,9 @@
       <Item ItemId=";bundle.++CODE++fc83034782062ce727014f496892adc8087186e29e686533f40d6064c70e7c7c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connecting to Container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Connexion au conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6889,6 +7249,9 @@
       <Item ItemId=";bundle.++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Votre moteur Docker exécute actuellement des conteneurs Windows. SQL Server prend uniquement en charge les conteneurs Linux. Voulez-vous basculer vers des conteneurs Linux ?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6904,6 +7267,9 @@
       <Item ItemId=";bundle.++CODE++fe1cb43be8ed9ac5acc09fb31eba382f60c86eaadf55b6931322b9b139162a9e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to generate publish script: '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Échec de la génération du script de publication : « {0} »]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -6919,6 +7285,9 @@
       <Item ItemId=";bundle.++CODE++fea70af0cad96e7c97f889724e5dfe0e2d28cbf958e905f5e51ba2584c3d9458" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connection Group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Groupe de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7237,6 +7606,9 @@
       <Item ItemId=";package.mssql.connection.containerName" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; Indicates the name of local docker container the connection is on]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Optionnel]5D; Indique le nom du conteneur Docker local sur lequel la connexion est activée]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7387,8 +7759,8 @@
       <Item ItemId=";package.mssql.connection.pooling" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[[Optional]5D; When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Quand la valeur est « true », l’objet de connexion est tiré du pool approprié ou, si nécessaire, est créé et ajouté au pool approprié.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[Facultatif]5D; Quand la valeur est « true », l’objet de connexion est tiré du pool approprié ou, si nécessaire, est créé et ajouté au pool approprié. Remarque : cela peut maintenir les bases de données serverless actives et empêcher la mise en pause automatique.]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[[Optional]5D; When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.]]></Val>
@@ -7534,18 +7906,27 @@
       <Item ItemId=";package.mssql.connectionGroups.create" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add Connection Group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ajouter un groupe de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.connectionGroups.delete" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete Connection Group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Supprimer un groupe de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.connectionGroups.edit" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Edit Connection Group]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Modifier le groupe de connexion]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7642,6 +8023,9 @@
       <Item ItemId=";package.mssql.deleteContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Delete Container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Supprimer le conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7657,6 +8041,9 @@
       <Item ItemId=";package.mssql.deployLocalDockerContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create local SQL Container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Créer un conteneur SQL local]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -7729,8 +8116,8 @@
       <Item ItemId=";package.mssql.enableConnectionPooling" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.]]></Val>
-          <Tgt Cat="Text" Stat="Update" Orig="New">
-            <Val><![CDATA[Permet le groupement des connexions pour améliorer le niveau de performance global de connectivité. Ce paramètre est activé par défaut. Visual Studio Code doit être relancé lorsque la valeur est modifiée. Pour effacer les connexions groupées, exécutez la commande : « MS SQL : effacer les connexions groupées »]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Permet le groupement des connexions pour améliorer le niveau de performance global de connectivité. Ce paramètre est désactivé par défaut. Visual Studio Code doit être relancé lorsque la valeur est modifiée. Pour effacer les connexions groupées, exécutez la commande : « MS SQL : effacer les connexions groupées ». Remarque : cela peut maintenir les bases de données serverless actives et empêcher la mise en pause automatique.]]></Val>
           </Tgt>
           <Prev Cat="Text">
             <Val><![CDATA[Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections']]></Val>
@@ -7864,6 +8251,9 @@
       <Item ItemId=";package.mssql.hasConnections" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Indicates whether the user has defined any connection profiles in 'User Settings'.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Indique si l’utilisateur(-trice) a défini des profils de connexion dans « Paramètres utilisateur ».]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8638,6 +9028,9 @@
       <Item ItemId=";package.mssql.startContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Start Container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Démarrer le conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -8653,6 +9046,9 @@
       <Item ItemId=";package.mssql.stopContainer" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Stop Container]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arrêter le conteneur]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
