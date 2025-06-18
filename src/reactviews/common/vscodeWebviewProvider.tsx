@@ -85,7 +85,7 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
         }
 
         async function loadStats() {
-            extensionRpc.sendNotification(LoadStatsNotification.type, {
+            await extensionRpc.sendNotification(LoadStatsNotification.type, {
                 loadCompleteTimeStamp: Date.now(),
             });
         }

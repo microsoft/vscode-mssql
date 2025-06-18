@@ -167,8 +167,9 @@ export namespace ColorThemeChangeNotification {
  * This is used to notify the webview of state changes that it should be aware of.
  */
 export namespace StateChangeNotification {
+    const TYPE = new NotificationType("onDidChangeState");
     export function type<State>() {
-        return new NotificationType<State>("onDidChangeState");
+        return TYPE as NotificationType<State>;
     }
 }
 
@@ -176,8 +177,9 @@ export namespace StateChangeNotification {
  * Request to get the current state of the webview.
  */
 export namespace GetStateRequest {
+    const TYPE = new RequestType<void, void, void>("getState");
     export function type<State>() {
-        return new RequestType<void, State, void>("getState");
+        return TYPE as RequestType<void, State, void>;
     }
 }
 
