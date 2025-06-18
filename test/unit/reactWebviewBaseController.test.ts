@@ -46,11 +46,14 @@ suite("ReactWebviewController Tests", () => {
         controller = new TestWebviewController(mockContext, "testSource", {
             count: 0,
         });
-        (controller as any).initializeBase();
         // Stubs for methods
-        onRequestStub = sandbox.stub(controller, "onRequest");
-        onNotificationStub = sandbox.stub(controller, "onNotification");
-        sendNotificationStub = sandbox.stub(controller, "sendNotification");
+        onRequestStub = sandbox.stub();
+        onNotificationStub = sandbox.stub();
+        sendNotificationStub = sandbox.stub();
+        controller.onRequest = onRequestStub;
+        controller.onNotification = onNotificationStub;
+        controller.sendNotification = sendNotificationStub;
+        (controller as any).initializeBase();
     });
 
     teardown(() => {
@@ -66,14 +69,38 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should register default request handlers", () => {
-        onRequestStub.calledWith(GetStateRequest.type().method, sinon.match.any);
-        onRequestStub.calledWith(ReducerRequest.type().method, sinon.match.any);
-        onRequestStub.calledWith(GetThemeRequest.type.method, sinon.match.any);
-        onRequestStub.calledWith(GetLocalizationRequest.type.method, sinon.match.any);
-        onRequestStub.calledWith(ExecuteCommandRequest.type.method, sinon.match.any);
-        onNotificationStub.calledWith(LoadStatsNotification.type.method, sinon.match.any);
-        onNotificationStub.calledWith(SendActionEventNotification.type.method, sinon.match.any);
-        onNotificationStub.calledWith(SendErrorEventNotification.type.method, sinon.match.any);
+        assert.ok(
+            onRequestStub.calledWith(GetStateRequest.type(), sinon.match.any),
+            "GetStateRequest handler is not registered",
+        );
+        assert.ok(
+            onRequestStub.calledWith(ReducerRequest.type(), sinon.match.any),
+            "ReducerRequest handler is not registered",
+        );
+        assert.ok(
+            onRequestStub.calledWith(GetThemeRequest.type, sinon.match.any),
+            "GetThemeRequest handler is not registered",
+        );
+        assert.ok(
+            onRequestStub.calledWith(GetLocalizationRequest.type, sinon.match.any),
+            "GetLocalizationRequest handler is not registered",
+        );
+        assert.ok(
+            onRequestStub.calledWith(ExecuteCommandRequest.type, sinon.match.any),
+            "ExecuteCommandRequest handler is not registered",
+        );
+        assert.ok(
+            onNotificationStub.calledWith(LoadStatsNotification.type, sinon.match.any),
+            "LoadStatsNotification handler is not registered",
+        );
+        assert.ok(
+            onNotificationStub.calledWith(SendActionEventNotification.type, sinon.match.any),
+            "SendActionEventNotification handler is not registered",
+        );
+        assert.ok(
+            onNotificationStub.calledWith(SendErrorEventNotification.type, sinon.match.any),
+            "SendErrorEventNotification handler is not registered",
+        );
     });
 
     test("should register a new reducer", () => {
