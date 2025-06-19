@@ -5,11 +5,10 @@
 
 import { assert } from "chai";
 import * as TypeMoq from "typemoq";
-import { IServerInfo, MetadataType, ObjectMetadata } from "vscode-mssql";
+import { IScriptingObject, IServerInfo, MetadataType, ObjectMetadata } from "vscode-mssql";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import {
-    IScriptingObject,
     IScriptingResult,
     ScriptingRequest,
     ScriptOperation,
@@ -115,7 +114,7 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        let scriptingParams = scriptingService.createScriptingParams(
+        let scriptingParams = scriptingService.createScriptingParamsFromNode(
             testNode,
             "test_uri",
             ScriptOperation.Select,

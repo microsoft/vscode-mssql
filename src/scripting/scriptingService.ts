@@ -152,26 +152,26 @@ export class ScriptingService {
         return scriptingParams;
     }
 
+    public createScriptingParamsFromNode(
+        node: TreeNodeInfo,
+        uri: string,
+        operation: ScriptOperation,
+    ): IScriptingParams {
+        const serverInfo = this._connectionManager.getServerInfo(node.connectionProfile);
+        const scriptingObject = this.getObjectFromNode(node);
+        return this.createScriptingParams(serverInfo, scriptingObject, uri, operation);
+    }
+
     public async scriptTreeNode(
         node: TreeNodeInfo,
         uri: string,
         operation: ScriptOperation,
     ): Promise<string> {
-        const serverInfo = this._connectionManager.getServerInfo(node.connectionProfile);
-        const scriptingObject = this.getObjectFromNode(node);
-        const scriptingParams = this.createScriptingParams(
-            serverInfo,
-            scriptingObject,
-            uri,
-            operation,
-        );
+        const scriptingParams = this.createScriptingParamsFromNode(node, uri, operation);
         return this.script(scriptingParams);
     }
 
     public async script(scriptingParams: IScriptingParams): Promise<string> {
-        this._client.logger.verbose(
-            `Scripting params: ${JSON.stringify(scriptingParams, null, 2)}`,
-        );
         const result = await this._client.sendRequest(ScriptingRequest.type, scriptingParams);
         return result.script;
     }
