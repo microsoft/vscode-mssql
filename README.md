@@ -189,6 +189,11 @@ The following Visual Studio Code settings are available for the mssql extension.
     "event.saveAsExcel": ""
   }
 }
+
+// Status bar
+{
+  "mssql.statusBar.connectionInfoMaxLength"
+}
 ```
 
 See [customize options](https://github.com/Microsoft/vscode-mssql/wiki/customize-options) and [manage connection profiles](https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles) for more details.
