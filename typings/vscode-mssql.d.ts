@@ -2524,6 +2524,33 @@ declare module "vscode-mssql" {
         rows: DbCellValue[][];
     }
 
+    export interface IScriptingObject {
+        /**
+         * The database object type
+         */
+        type: string;
+
+        /**
+         * The schema of the database object
+         */
+        schema: string;
+
+        /**
+         * The database object name
+         */
+        name: string;
+
+        /**
+         * The parent object name which is needed for scripting subobjects like triggers or indexes
+         */
+        parentName?: string;
+
+        /**
+         * The parent object type name such as Table, View, etc.
+         */
+        parentTypeName?: string;
+    }
+
     /**
      * Interface for connection sharing service
      * This service allows external extensions to use connections established by the mssql extension.
@@ -2544,7 +2571,11 @@ declare module "vscode-mssql" {
          * @returns The connection URI if the connection is established successfully.
          * @throws Error if the connection cannot be established.
          */
-        connect(extensionId: string, connectionId: string, database?: string): Promise<string | undefined>;
+        connect(
+            extensionId: string,
+            connectionId: string,
+            database?: string,
+        ): Promise<string | undefined>;
         /**
          * Disconnect from a connection using the connection URI.
          * @param connectionUri The URI of the connection to disconnect from.
@@ -2585,5 +2616,17 @@ declare module "vscode-mssql" {
          * @param connectionUri The URI of the connection to list databases for.
          */
         listDatabases(connectionUri: string): Promise<string[]>;
+        /**
+         * Script an object from the database using the connection URI.
+         * @param connectionUri The URI of the connection to use for scripting.
+         * @param operation The operation to perform (e.g., ScriptCreate, ScriptDrop, etc.).
+         * @param scriptingObject The object to script, containing its type, schema, name, and parent information.
+         * @return A promise that resolves with the scripted SQL string, or undefined if the operation failed.
+         */
+        scriptObject(
+            connectionUri: string,
+            operation: ScriptOperation,
+            scriptingObject: IScriptingObject,
+        ): Promise<string | undefined>;
     }
 }

@@ -14,6 +14,8 @@ import { RequestType } from "vscode-languageclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { Logger } from "../models/logger";
 import * as Constants from "../constants/constants";
+import { ScriptingService } from "../scripting/scriptingService";
+import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 
 const CONNECTION_SHARING_PERMISSIONS_KEY = "mssql.connectionSharing.extensionPermissions";
 
@@ -51,6 +53,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         private readonly _client: SqlToolsServiceClient,
         private readonly _connectionManager: ConnectionManager,
         private readonly _vscodeWrapper: VscodeWrapper,
+        private readonly _scriptingService: ScriptingService,
     ) {
         this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionSharingService");
         this.registerCommands();
@@ -112,6 +115,17 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.listDatabases",
                 (connectionUri: string) => this.listDatabases(connectionUri),
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                "mssql.connectionSharing.scriptOperation",
+                (
+                    connectionUri: string,
+                    operation: ScriptOperation,
+                    scriptingObject: mssql.IScriptingObject,
+                ) => this.scriptObject(connectionUri, operation, scriptingObject),
             ),
         );
 
@@ -421,6 +435,25 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         this._logger.info(`Listing databases for connection URI: ${connectionUri}`);
         this.validateConnection(connectionUri);
         return await this._connectionManager.listDatabases(connectionUri);
+    }
+
+    public async scriptObject(
+        connectionUri: string,
+        operation: ScriptOperation,
+        scriptingObject: mssql.IScriptingObject,
+    ) {
+        this._logger.info(
+            `Executing script operation "${operation}" for connection URI: ${connectionUri}`,
+        );
+        this.validateConnection(connectionUri);
+        const serverInfo = this.getServerInfo(connectionUri); // Ensure connection is valid
+        const scriptingParams = this._scriptingService.createScriptingParams(
+            serverInfo,
+            scriptingObject,
+            connectionUri,
+            operation,
+        );
+        return await this._scriptingService.script(scriptingParams);
     }
 
     public async editConnectionSharingPermissions(

@@ -167,6 +167,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
             listDatabases: (connectionUri: string): Promise<string[]> => {
                 return controller.connectionSharingService.listDatabases(connectionUri);
             },
+            scriptObject: (connectionUri, operation, scriptingObject) => {
+                return controller.connectionSharingService.scriptObject(
+                    connectionUri,
+                    operation,
+                    scriptingObject,
+                );
+            },
         },
     };
 }

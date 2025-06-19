@@ -2,7 +2,6 @@ import { IConnectionProfile } from 'azdata';
 import * as vscode from 'vscode';
 import * as mssql from 'vscode-mssql';
 
-
 const EXTENSION_ID = 'ms-mssql.connection-sharing-sample';
 const MSSQL_EXTENSION_ID = 'ms-mssql.mssql';
 
@@ -144,6 +143,17 @@ async function connectionSharingWithApis() {
 		}
 
 		console.log('Database query results:', databaseListResults);
+
+
+		const script = await connectionSharingService.scriptObject(
+			databaseConnectionUri,
+			0,
+			{
+				name: "databases",
+				schema: "sys",
+				type: "Table",
+			}
+		);
 
 		await connectionSharingService.disconnect(databaseConnectionUri);
 		console.log(`Disconnected successfully from: ${databaseConnectionUri}`);
