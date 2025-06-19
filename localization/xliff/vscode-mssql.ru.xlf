@@ -12,7 +12,7 @@
       </trans-unit>
       <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
         <source xml:lang="en">&lt;Default&gt;</source>
-        <target state="new">&lt;Default&gt;</target>
+        <target state="translated">&lt;По умолчанию&gt;</target>
       </trans-unit>
       <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
         <source xml:lang="en">&lt;default&gt;</source>
