@@ -79,6 +79,7 @@ export const ConnectionsListContainer = () => {
                     icon={<ArrowClockwise16Filled />}
                     appearance="subtle"
                     onClick={context.refreshConnectionsList}
+                    title={locConstants.connectionDialog.refresh}
                 />
             </div>
             <div className={styles.main}>
@@ -108,6 +109,7 @@ export const ConnectionsListContainer = () => {
                     icon={<ArrowClockwise16Filled />}
                     appearance="subtle"
                     onClick={context.refreshConnectionsList}
+                    title={locConstants.connectionDialog.refresh}
                 />
             </div>
             <Tree>
