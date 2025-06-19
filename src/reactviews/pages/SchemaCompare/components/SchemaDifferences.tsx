@@ -10,6 +10,7 @@ import {
     useFluent,
     TableBody,
     TableCell,
+    TableCellLayout,
     TableRow,
     Table,
     TableHeader,
@@ -310,18 +311,32 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     onClick={() => onDiffSelected(index)}
                     appearance={appearance}
                     className={index === selectedDiffId ? classes.selectedRow : undefined}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{formatName(item.sourceValue)}</TableCell>
                     <TableCell>
-                        <Checkbox
-                            checked={item.included}
-                            onClick={() => handleIncludeExcludeNode(item, !item.included)}
-                            onKeyDown={(e) => toggleKeyDown(e, item, !item.included)}
-                            disabled={context.state.isIncludeExcludeAllOperationInProgress}
-                        />
+                        <TableCellLayout style={{ width: "100px !important" }}>
+                            {item.name}
+                        </TableCellLayout>
                     </TableCell>
-                    <TableCell>{getLabelForAction(item.updateAction as number)}</TableCell>
-                    <TableCell>{formatName(item.targetValue)}</TableCell>
+                    <TableCell>
+                        <TableCellLayout truncate>{formatName(item.sourceValue)}</TableCellLayout>
+                    </TableCell>
+                    <TableCell>
+                        <TableCellLayout>
+                            <Checkbox
+                                checked={item.included}
+                                onClick={() => handleIncludeExcludeNode(item, !item.included)}
+                                onKeyDown={(e) => toggleKeyDown(e, item, !item.included)}
+                                disabled={context.state.isIncludeExcludeAllOperationInProgress}
+                            />
+                        </TableCellLayout>
+                    </TableCell>
+                    <TableCell>
+                        <TableCellLayout>
+                            {getLabelForAction(item.updateAction as number)}
+                        </TableCellLayout>
+                    </TableCell>
+                    <TableCell>
+                        <TableCellLayout truncate>{formatName(item.targetValue)}</TableCellLayout>
+                    </TableCell>
                 </TableRow>
             );
         };
