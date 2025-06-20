@@ -19,6 +19,8 @@ import {
     useArrowNavigationGroup,
     DataGridHeader,
     DataGridHeaderCell,
+    TableColumnSizingOptions,
+    Text,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -75,6 +77,10 @@ const useStyles = makeStyles({
         borderRadius: "1px",
         backgroundColor: "var(--vscode-scrollbarSlider-background)",
         opacity: 0.5,
+    },
+    hideOverflow: {
+        overflow: "hidden",
+        whiteSpace: "nowrap",
     },
 });
 
@@ -196,14 +202,26 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 columnId: "type",
                 renderHeaderCell: () => loc.schemaCompare.type,
                 renderCell: (item) => {
-                    return <DataGridCell>{item.name}</DataGridCell>;
+                    return (
+                        <DataGridCell>
+                            <Text truncate className={classes.hideOverflow}>
+                                {item.name}
+                            </Text>
+                        </DataGridCell>
+                    );
                 },
             }),
             createTableColumn<DiffEntry>({
                 columnId: "sourceName",
                 renderHeaderCell: () => loc.schemaCompare.sourceName,
                 renderCell: (item) => {
-                    return <DataGridCell>{formatName(item.sourceValue)}</DataGridCell>;
+                    return (
+                        <DataGridCell>
+                            <Text truncate className={classes.hideOverflow}>
+                                {formatName(item.sourceValue)}
+                            </Text>
+                        </DataGridCell>
+                    );
                 },
             }),
             createTableColumn<DiffEntry>({
@@ -249,7 +267,9 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 renderCell: (item) => {
                     return (
                         <DataGridCell>
-                            {getLabelForAction(item.updateAction as number)}
+                            <Text truncate className={classes.hideOverflow}>
+                                {getLabelForAction(item.updateAction as number)}
+                            </Text>
                         </DataGridCell>
                     );
                 },
@@ -258,7 +278,13 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 columnId: "targetName",
                 renderHeaderCell: () => loc.schemaCompare.targetName,
                 renderCell: (item) => {
-                    return <DataGridCell>{formatName(item.targetValue)}</DataGridCell>;
+                    return (
+                        <DataGridCell>
+                            <Text truncate className={classes.hideOverflow}>
+                                {formatName(item.targetValue)}
+                            </Text>
+                        </DataGridCell>
+                    );
                 },
             }),
         ];
@@ -335,12 +361,34 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     key={rowId}
                     className={item.position === selectedDiffId ? classes.selectedRow : undefined}
                     style={style}
-                    onClick={() => onDiffSelected(item.position)}
-                    appearance={item.included ? ("brand" as const) : ("none" as const)}>
+                    onClick={() => onDiffSelected(item.position)}>
                     {({ renderCell }) => <>{renderCell(item)}</>}
                 </DataGridRow>
             );
         };
+
+        // const columnSizingOptions: TableColumnSizingOptions = {
+        //     type: {
+        //         // minWidth: 160,
+        //         // defaultWidth: 236,
+        //     },
+        //     sourceName: {
+        //         // minWidth: 250,
+        //         // defaultWidth: 406,
+        //     },
+        //     include: {
+        //         // minWidth: 60,
+        //         // defaultWidth: 60,
+        //     },
+        //     action: {
+        //         // minWidth: 100,
+        //         // defaultWidth: 149,
+        //     },
+        //     targetName: {
+        //         // minWidth: 450,
+        //         // defaultWidth: 669,
+        //     },
+        // };
 
         return (
             <div
@@ -351,6 +399,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     items={items}
                     columns={columns}
                     focusMode="composite"
+                    resizableColumns={true}
                     getRowId={(item) => (item as DiffEntry).position?.toString() ?? ""}>
                     <DataGridHeader>
                         <DataGridRow>
