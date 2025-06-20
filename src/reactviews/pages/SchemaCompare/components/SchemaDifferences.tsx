@@ -8,12 +8,6 @@ import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import {
     useScrollbarWidth,
     useFluent,
-    TableBody,
-    TableCell,
-    TableRow,
-    Table,
-    TableHeader,
-    TableHeaderCell,
     createTableColumn,
     useTableFeatures,
     useTableSelection,
@@ -22,6 +16,14 @@ import {
     Checkbox,
     makeStyles,
     Spinner,
+    useArrowNavigationGroup,
+    DataGrid,
+    DataGridHeader,
+    DataGridRow,
+    DataGridHeaderCell,
+    DataGridBody,
+    DataGridCell,
+    TableCellLayout,
 } from "@fluentui/react-components";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
@@ -101,6 +103,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         const [diffInclusionLevel, setDiffInclusionLevel] = React.useState<
             "allIncluded" | "allExcluded" | "mixed"
         >("allIncluded");
+        const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
 
         // Use the resizable hook
         const {
@@ -196,39 +199,71 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         const columns: TableColumnDefinition<DiffEntry>[] = [
             createTableColumn<DiffEntry>({
                 columnId: "type",
+                renderHeaderCell: () => loc.schemaCompare.type,
                 renderCell: (item) => {
-                    return <TableCell>{item.name}</TableCell>;
+                    return <TableCellLayout>{item.name}</TableCellLayout>;
                 },
             }),
             createTableColumn<DiffEntry>({
                 columnId: "sourceName",
+                renderHeaderCell: () => loc.schemaCompare.sourceName,
                 renderCell: (item) => {
-                    return <TableCell>{formatName(item.sourceValue)}</TableCell>;
+                    return <TableCellLayout>{formatName(item.sourceValue)}</TableCellLayout>;
                 },
             }),
             createTableColumn<DiffEntry>({
                 columnId: "include",
+                renderHeaderCell: () => {
+                    if (context.state.isIncludeExcludeAllOperationInProgress) {
+                        return (
+                            <Spinner
+                                size="extra-tiny"
+                                aria-label={loc.schemaCompare.includeExcludeAllOperationInProgress}
+                            />
+                        );
+                    }
+
+                    return (
+                        <Checkbox
+                            checked={
+                                diffInclusionLevel === "allIncluded"
+                                    ? true
+                                    : diffInclusionLevel === "mixed"
+                                      ? "mixed"
+                                      : false
+                            }
+                            onClick={() => handleIncludeExcludeAllNodes()}
+                            onKeyDown={toggleAllKeydown}
+                        />
+                    );
+                },
                 renderCell: (item) => {
                     return (
-                        <TableCell>
+                        <TableCellLayout>
                             <Checkbox
                                 checked={item.included}
                                 onClick={() => handleIncludeExcludeNode(item, !item.included)}
                             />
-                        </TableCell>
+                        </TableCellLayout>
                     );
                 },
             }),
             createTableColumn<DiffEntry>({
                 columnId: "action",
+                renderHeaderCell: () => loc.schemaCompare.action,
                 renderCell: (item) => {
-                    return <TableCell>{getLabelForAction(item.updateAction as number)}</TableCell>;
+                    return (
+                        <TableCellLayout>
+                            {getLabelForAction(item.updateAction as number)}
+                        </TableCellLayout>
+                    );
                 },
             }),
             createTableColumn<DiffEntry>({
                 columnId: "targetName",
+                renderHeaderCell: () => loc.schemaCompare.targetName,
                 renderCell: (item) => {
-                    return <TableCell>{formatName(item.targetValue)}</TableCell>;
+                    return <TableCellLayout>{formatName(item.targetValue)}</TableCellLayout>;
                 },
             }),
         ];
@@ -299,96 +334,33 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }
         };
 
-        const RenderRow = ({ index, style, data }: ReactWindowRenderFnProps) => {
-            const { item, appearance, onKeyDown } = data[index];
-            return (
-                <TableRow
-                    aria-rowindex={index + 2}
-                    style={style}
-                    key={item.position}
-                    onKeyDown={onKeyDown}
-                    onClick={() => onDiffSelected(index)}
-                    appearance={appearance}
-                    className={index === selectedDiffId ? classes.selectedRow : undefined}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{formatName(item.sourceValue)}</TableCell>
-                    <TableCell>
-                        <Checkbox
-                            checked={item.included}
-                            onClick={() => handleIncludeExcludeNode(item, !item.included)}
-                            onKeyDown={(e) => toggleKeyDown(e, item, !item.included)}
-                            disabled={context.state.isIncludeExcludeAllOperationInProgress}
-                        />
-                    </TableCell>
-                    <TableCell>{getLabelForAction(item.updateAction as number)}</TableCell>
-                    <TableCell>{formatName(item.targetValue)}</TableCell>
-                </TableRow>
-            );
-        };
-
         return (
             <div
                 className={classes.resizableContainer}
                 ref={resizableRef}
                 style={{ height: `${height}px` }}>
-                <Table
-                    noNativeElements
-                    aria-label="Table with selection"
-                    aria-rowcount={rows.length}
-                    style={{ minWidth: "650px" }}>
-                    <TableHeader>
-                        <TableRow aria-rowindex={1}>
-                            <TableHeaderCell className={classes.HeaderCellPadding}>
-                                {loc.schemaCompare.type}
-                            </TableHeaderCell>
-                            <TableHeaderCell className={classes.HeaderCellPadding}>
-                                {loc.schemaCompare.sourceName}
-                            </TableHeaderCell>
-                            <TableHeaderCell>
-                                {!context.state.isIncludeExcludeAllOperationInProgress && (
-                                    <Checkbox
-                                        checked={
-                                            diffInclusionLevel === "allIncluded"
-                                                ? true
-                                                : diffInclusionLevel === "mixed"
-                                                  ? "mixed"
-                                                  : false
-                                        }
-                                        onClick={() => handleIncludeExcludeAllNodes()}
-                                        onKeyDown={toggleAllKeydown}
-                                    />
+                <DataGrid
+                    items={items}
+                    columns={columns}
+                    getRowId={(item) => (item as DiffEntry).position?.toString() ?? ""}>
+                    <DataGridHeader>
+                        <DataGridRow>
+                            {({ renderHeaderCell }) => (
+                                <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                            )}
+                        </DataGridRow>
+                    </DataGridHeader>
+                    <DataGridBody<DiffEntry>>
+                        {({ item, rowId }) => (
+                            <DataGridRow<DiffEntry> key={rowId}>
+                                {({ renderCell }) => (
+                                    <DataGridCell>{renderCell(item)}</DataGridCell>
                                 )}
-                                {context.state.isIncludeExcludeAllOperationInProgress && (
-                                    <Spinner
-                                        size="extra-tiny"
-                                        aria-label={
-                                            loc.schemaCompare.includeExcludeAllOperationInProgress
-                                        }
-                                    />
-                                )}
-                            </TableHeaderCell>
-                            <TableHeaderCell className={classes.HeaderCellPadding}>
-                                {loc.schemaCompare.action}
-                            </TableHeaderCell>
-                            <TableHeaderCell className={classes.HeaderCellPadding}>
-                                {loc.schemaCompare.targetName}
-                            </TableHeaderCell>
-                            {/** Scrollbar alignment for the header */}
-                            <div role="presentation" style={{ width: scrollbarWidth }} />
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <List
-                            ref={listRef}
-                            height={height - 40} // Subtract header height
-                            itemCount={items.length}
-                            itemSize={45}
-                            width={"100%"}
-                            itemData={rows}>
-                            {RenderRow}
-                        </List>
-                    </TableBody>
-                </Table>
+                            </DataGridRow>
+                        )}
+                    </DataGridBody>
+                </DataGrid>
+
                 <div {...resizerProps} className={classes.resizer}>
                     <div className={classes.resizerHandle} />
                 </div>
