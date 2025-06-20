@@ -352,7 +352,9 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     </DataGridHeader>
                     <DataGridBody<DiffEntry>>
                         {({ item, rowId }) => (
-                            <DataGridRow<DiffEntry> key={rowId}>
+                            <DataGridRow<DiffEntry>
+                                key={rowId}
+                                onClick={() => onDiffSelected(item.position)}>
                                 {({ renderCell }) => (
                                     <DataGridCell>{renderCell(item)}</DataGridCell>
                                 )}
