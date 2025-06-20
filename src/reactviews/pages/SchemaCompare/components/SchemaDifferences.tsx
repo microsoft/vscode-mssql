@@ -7,9 +7,6 @@ import * as React from "react";
 import { FixedSizeList as List } from "react-window";
 import {
     createTableColumn,
-    useTableFeatures,
-    useTableSelection,
-    TableRowData as RowStateBase,
     TableColumnDefinition,
     Checkbox,
     makeStyles,
@@ -80,13 +77,6 @@ const useStyles = makeStyles({
         whiteSpace: "nowrap",
     },
 });
-
-interface TableRowData extends RowStateBase<DiffEntry> {
-    onClick: (e: React.MouseEvent) => void;
-    onKeyDown: (e: React.KeyboardEvent) => void;
-    selected: boolean;
-    appearance: "brand" | "none";
-}
 
 interface Props {
     onDiffSelected: (id: number) => void;
@@ -296,37 +286,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     }) as DiffEntry,
             );
         }
-
-        const {
-            getRows,
-            selection: { toggleRow },
-        } = useTableFeatures(
-            {
-                columns,
-                items,
-            },
-            [
-                useTableSelection({
-                    selectionMode: "multiselect",
-                }),
-            ],
-        );
-
-        const rows: TableRowData[] = getRows((row) => {
-            const selected = row.item.included;
-            return {
-                ...row,
-                onClick: (e: React.MouseEvent) => toggleRow(e, row.rowId),
-                onKeyDown: (e: React.KeyboardEvent) => {
-                    if (e.key === " ") {
-                        e.preventDefault();
-                        toggleRow(e, row.rowId);
-                    }
-                },
-                selected,
-                appearance: selected ? ("brand" as const) : ("none" as const),
-            };
-        });
 
         const toggleAllKeydown = (e: React.KeyboardEvent<HTMLDivElement>) => {
             if (e.key === " ") {
