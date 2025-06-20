@@ -17,14 +17,16 @@ import {
     makeStyles,
     Spinner,
     useArrowNavigationGroup,
-    DataGrid,
     DataGridHeader,
-    DataGridRow,
     DataGridHeaderCell,
-    DataGridBody,
-    DataGridCell,
-    TableCellLayout,
 } from "@fluentui/react-components";
+import {
+    DataGridBody,
+    DataGrid,
+    DataGridRow,
+    DataGridCell,
+    RowRenderer,
+} from "@fluentui-contrib/react-data-grid-react-window";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
 import { DiffEntry } from "vscode-mssql";
@@ -83,10 +85,6 @@ interface TableRowData extends RowStateBase<DiffEntry> {
     appearance: "brand" | "none";
 }
 
-interface ReactWindowRenderFnProps extends ListChildComponentProps {
-    data: TableRowData[];
-}
-
 interface Props {
     onDiffSelected: (id: number) => void;
     selectedDiffId: number;
@@ -96,14 +94,11 @@ interface Props {
 export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
     ({ onDiffSelected, selectedDiffId, siblingRef }, ref) => {
         const classes = useStyles();
-        const { targetDocument } = useFluent();
-        const scrollbarWidth = useScrollbarWidth({ targetDocument });
         const context = React.useContext(schemaCompareContext);
         const compareResult = context.state.schemaCompareResult;
         const [diffInclusionLevel, setDiffInclusionLevel] = React.useState<
             "allIncluded" | "allExcluded" | "mixed"
         >("allIncluded");
-        const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
 
         // Use the resizable hook
         const {
@@ -201,14 +196,14 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 columnId: "type",
                 renderHeaderCell: () => loc.schemaCompare.type,
                 renderCell: (item) => {
-                    return <TableCellLayout>{item.name}</TableCellLayout>;
+                    return <DataGridCell>{item.name}</DataGridCell>;
                 },
             }),
             createTableColumn<DiffEntry>({
                 columnId: "sourceName",
                 renderHeaderCell: () => loc.schemaCompare.sourceName,
                 renderCell: (item) => {
-                    return <TableCellLayout>{formatName(item.sourceValue)}</TableCellLayout>;
+                    return <DataGridCell>{formatName(item.sourceValue)}</DataGridCell>;
                 },
             }),
             createTableColumn<DiffEntry>({
@@ -239,12 +234,12 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 },
                 renderCell: (item) => {
                     return (
-                        <TableCellLayout>
+                        <DataGridCell>
                             <Checkbox
                                 checked={item.included}
                                 onClick={() => handleIncludeExcludeNode(item, !item.included)}
                             />
-                        </TableCellLayout>
+                        </DataGridCell>
                     );
                 },
             }),
@@ -253,9 +248,9 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 renderHeaderCell: () => loc.schemaCompare.action,
                 renderCell: (item) => {
                     return (
-                        <TableCellLayout>
+                        <DataGridCell>
                             {getLabelForAction(item.updateAction as number)}
-                        </TableCellLayout>
+                        </DataGridCell>
                     );
                 },
             }),
@@ -263,7 +258,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 columnId: "targetName",
                 renderHeaderCell: () => loc.schemaCompare.targetName,
                 renderCell: (item) => {
-                    return <TableCellLayout>{formatName(item.targetValue)}</TableCellLayout>;
+                    return <DataGridCell>{formatName(item.targetValue)}</DataGridCell>;
                 },
             }),
         ];
@@ -334,6 +329,19 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }
         };
 
+        const renderRow: RowRenderer<DiffEntry> = ({ item, rowId }, style) => {
+            return (
+                <DataGridRow<DiffEntry>
+                    key={rowId}
+                    className={item.position === selectedDiffId ? classes.selectedRow : undefined}
+                    style={style}
+                    onClick={() => onDiffSelected(item.position)}
+                    appearance={item.included ? ("brand" as const) : ("none" as const)}>
+                    {({ renderCell }) => <>{renderCell(item)}</>}
+                </DataGridRow>
+            );
+        };
+
         return (
             <div
                 className={classes.resizableContainer}
@@ -342,6 +350,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 <DataGrid
                     items={items}
                     columns={columns}
+                    focusMode="composite"
                     getRowId={(item) => (item as DiffEntry).position?.toString() ?? ""}>
                     <DataGridHeader>
                         <DataGridRow>
@@ -350,16 +359,8 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                             )}
                         </DataGridRow>
                     </DataGridHeader>
-                    <DataGridBody<DiffEntry>>
-                        {({ item, rowId }) => (
-                            <DataGridRow<DiffEntry>
-                                key={rowId}
-                                onClick={() => onDiffSelected(item.position)}>
-                                {({ renderCell }) => (
-                                    <DataGridCell>{renderCell(item)}</DataGridCell>
-                                )}
-                            </DataGridRow>
-                        )}
+                    <DataGridBody<DiffEntry> itemSize={45} height={height - 40} width={"100%"}>
+                        {renderRow}
                     </DataGridBody>
                 </DataGrid>
 
