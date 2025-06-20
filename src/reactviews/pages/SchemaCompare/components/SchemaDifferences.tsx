@@ -335,19 +335,11 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }
         };
 
-        const toggleKeyDown = (
-            e: React.KeyboardEvent<HTMLDivElement>,
-            diffEntry: DiffEntry,
-            include: boolean,
-        ) => {
+        const toggleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, diffEntry: DiffEntry) => {
             if (e.key === "Enter") {
                 if (diffEntry.position !== undefined) {
                     onDiffSelected(diffEntry.position);
                 }
-                e.preventDefault();
-            }
-            if (e.key === " ") {
-                handleIncludeExcludeNode(diffEntry, include);
                 e.preventDefault();
             }
         };
@@ -358,7 +350,8 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     key={rowId}
                     className={item.position === selectedDiffId ? classes.selectedRow : undefined}
                     style={style}
-                    onClick={() => onDiffSelected(item.position)}>
+                    onClick={() => onDiffSelected(item.position)}
+                    onKeyDown={(e) => toggleKeyDown(e, item)}>
                     {({ renderCell }) => <>{renderCell(item)}</>}
                 </DataGridRow>
             );
