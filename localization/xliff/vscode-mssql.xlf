@@ -2671,6 +2671,9 @@
     <trans-unit id="mssql.objectExplorerChatWithDatabase">
       <source xml:lang="en">Chat with this database (Preview)</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
+      <source xml:lang="en">Chat with this database in Agent mode (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.chooseLanguageFlavor">
       <source xml:lang="en">Choose SQL handler for this file</source>
     </trans-unit>

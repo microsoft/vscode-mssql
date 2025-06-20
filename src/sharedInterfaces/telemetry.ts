@@ -102,6 +102,7 @@ export enum TelemetryActions {
     ToolCallFailure = "ToolCallFailure",
     Feedback = "Feedback",
     ChatWithDatabase = "ChatWithDatabase",
+    ChatWithDatabaseInAgentMode = "ChatWithDatabaseInAgentMode",
     StartConversation = "StartConversation",
     GetQueryResultState = "GetQueryResultState",
     SavePlan = "SavePlan",
