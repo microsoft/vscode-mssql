@@ -308,7 +308,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         const columnSizingOptions: TableColumnSizingOptions = {
             type: {
                 minWidth: 100,
-                // defaultWidth: 236,
             },
             sourceName: {
                 minWidth: 200,
@@ -320,11 +319,9 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             },
             action: {
                 minWidth: 100,
-                // defaultWidth: 149,
             },
             targetName: {
                 minWidth: 200,
-                // defaultWidth: 400,
             },
         };
 
