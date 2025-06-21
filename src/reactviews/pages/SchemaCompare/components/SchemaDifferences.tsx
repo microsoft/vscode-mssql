@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as React from "react";
-import { FixedSizeList as List } from "react-window";
 import {
     createTableColumn,
     TableColumnDefinition,
@@ -104,16 +103,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             maxHeight: 800,
             siblingRef,
         });
-
-        // Add a reference to the List component
-        const listRef = React.useRef<List>(null);
-
-        // Use an effect to scroll to the selected row when selectedDiffId changes
-        React.useEffect(() => {
-            if (selectedDiffId >= 0 && listRef.current) {
-                listRef.current.scrollToItem(selectedDiffId, "center");
-            }
-        }, [selectedDiffId]);
 
         // Expose resizableRef via forwarded ref
         React.useImperativeHandle(ref, () => resizableRef.current!);
