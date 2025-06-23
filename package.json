@@ -587,7 +587,7 @@
                 {
                     "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
                     "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "MS_SQL@11"
+                    "group": "MS_SQL@12"
                 },
                 {
                     "command": "mssql.addObjectExplorer",

@@ -2668,12 +2668,6 @@
     <trans-unit id="mssql.changeDatabase">
       <source xml:lang="en">Change Database</source>
     </trans-unit>
-    <trans-unit id="mssql.objectExplorerChatWithDatabase">
-      <source xml:lang="en">Chat with this database (Preview)</source>
-    </trans-unit>
-    <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
-      <source xml:lang="en">Chat with this database in Agent mode (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.chooseLanguageFlavor">
       <source xml:lang="en">Choose SQL handler for this file</source>
     </trans-unit>
@@ -2952,6 +2946,12 @@
     </trans-unit>
     <trans-unit id="mssql.commandPaletteQueryHistory">
       <source xml:lang="en">Open Query History in Command Palette</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
+      <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorerChatWithDatabase">
+      <source xml:lang="en">Open in Copilot Ask Mode (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
