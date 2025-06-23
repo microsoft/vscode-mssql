@@ -585,6 +585,11 @@
                     "group": "MS_SQL@11"
                 },
                 {
+                    "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "group": "MS_SQL@12"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "title": "%mssql.addObjectExplorer%",
@@ -671,10 +676,6 @@
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
-                },
-                {
-                    "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Database)\\b/"
                 },
                 {
                     "command": "mssql.schemaCompare",
@@ -915,6 +916,11 @@
             {
                 "command": "mssql.objectExplorerChatWithDatabase",
                 "title": "%mssql.objectExplorerChatWithDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
+                "title": "%mssql.objectExplorerChatWithDatabaseInAgentMode%",
                 "category": "MS SQL"
             },
             {

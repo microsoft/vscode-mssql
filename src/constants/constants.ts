@@ -60,6 +60,7 @@ export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
+export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
 export const cmdRewriteQuery = "mssql.copilot.rewriteQuery";
 export const cmdAnalyzeQueryPerformance = "mssql.copilot.analyzeQueryPerformance";

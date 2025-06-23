@@ -438,6 +438,32 @@ export default class MainController implements vscode.Disposable {
                 }
             });
 
+            this.registerCommandWithArgs(Constants.cmdChatWithDatabaseInAgentMode);
+            this._event.on(
+                Constants.cmdChatWithDatabaseInAgentMode,
+                async (treeNodeInfo: TreeNodeInfo) => {
+                    sendActionEvent(
+                        TelemetryViews.MssqlCopilot,
+                        TelemetryActions.ChatWithDatabaseInAgentMode,
+                    );
+
+                    const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                    if (
+                        databaseName !== connectionCredentials.database &&
+                        databaseName !== LocalizedConstants.defaultDatabaseLabel
+                    ) {
+                        connectionCredentials.database = databaseName;
+                    } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
+                        connectionCredentials.database = "";
+                    }
+                    vscode.commands.executeCommand(
+                        "workbench.action.chat.openAgent",
+                        `Connect to ${connectionCredentials.server},${connectionCredentials.database}.`,
+                    );
+                },
+            );
+
             // -- EXPLAIN QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdExplainQuery, async () => {
