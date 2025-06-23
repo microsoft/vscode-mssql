@@ -3503,10 +3503,6 @@ Fehler:
         <source xml:lang="en">Change Database</source>
         <target state="translated">Datenbank ändern</target>
       </trans-unit>
-      <trans-unit id="mssql.objectExplorerChatWithDatabase">
-        <source xml:lang="en">Chat with this database (Preview)</source>
-        <target state="translated">Mit dieser Datenbank chatten (Vorschau)</target>
-      </trans-unit>
       <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
         <target state="translated">SQL-Handler für diese Datei auswählen</target>
@@ -3888,6 +3884,14 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.commandPaletteQueryHistory">
         <source xml:lang="en">Open Query History in Command Palette</source>
         <target state="translated">Abfrageverlauf in Befehlspalette öffnen</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
+        <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
+        <target state="new">Open in Copilot Agent mode (Preview)</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorerChatWithDatabase">
+        <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
+        <target state="new">Open in Copilot Ask mode (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
