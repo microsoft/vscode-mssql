@@ -2951,7 +2951,7 @@
       <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerChatWithDatabase">
-      <source xml:lang="en">Open in Copilot Ask Mode (Preview)</source>
+      <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>

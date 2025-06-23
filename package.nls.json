@@ -37,7 +37,7 @@
     "mssql.showGettingStarted": "Getting Started Guide",
     "mssql.newQuery": "New Query",
     "mssql.objectExplorerNewQuery": "New Query",
-    "mssql.objectExplorerChatWithDatabase": "Open in Copilot Ask Mode (Preview)",
+    "mssql.objectExplorerChatWithDatabase": "Open in Copilot Ask mode (Preview)",
     "mssql.objectExplorerChatWithDatabaseInAgentMode": "Open in Copilot Agent mode (Preview)",
     "mssql.copilot.editorSubmenu": "MSSQL Copilot (Preview)",
     "mssql.copilot.explainQuery": "Explain Query (Preview)",
