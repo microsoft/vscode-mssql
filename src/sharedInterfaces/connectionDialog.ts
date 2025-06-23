@@ -8,7 +8,11 @@ import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form"
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
-import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
+import {
+    ConnectionGroupConnectionProfile,
+    ConnectionGroupSpec,
+    ConnectionGroupState,
+} from "./connectionGroup";
 import { RequestType } from "vscode-jsonrpc/browser";
 
 export class ConnectionDialogWebviewState
@@ -41,7 +45,6 @@ export class ConnectionDialogWebviewState
     public azureServers: AzureSqlServerInfo[] = [];
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
-    public connectionGroups: IConnectionGroup[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public readyToConnect: boolean = false;
     public formError: string = "";
@@ -131,13 +134,14 @@ export enum ConnectionInputMode {
 
 // A Connection Profile contains all the properties of connection credentials, with additional
 // optional name and details on whether password should be saved
-export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
+export interface IConnectionDialogProfile
+    extends vscodeMssql.IConnectionInfo,
+        ConnectionGroupConnectionProfile {
     profileName?: string;
     savePassword?: boolean;
     emptyPasswordInput?: boolean;
     azureAuthType?: vscodeMssql.AzureAuthType;
     id?: string;
-    groupId?: string;
 }
 
 export interface IConnectionGroup {

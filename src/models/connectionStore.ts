@@ -636,12 +636,9 @@ export class ConnectionStore {
 
     /**
      * Get the options for connection groups.
-     * @param includeCreateOption If true, include an option to create a new connection group
      * @returns A promise that resolves to an array of FormItemOptions for connection groups.
      */
-    public async getConnectionGroupOptions(
-        includeCreateOption: boolean = false,
-    ): Promise<FormItemOptions[]> {
+    public async getConnectionGroupOptions(): Promise<FormItemOptions[]> {
         const rootId = this.rootGroupId;
         let connectionGroups = await this.readAllConnectionGroups();
         connectionGroups = connectionGroups.filter((g) => g.id !== rootId);
@@ -685,14 +682,10 @@ export class ConnectionStore {
                 displayName: LocalizedConstants.ConnectionDialog.default,
                 value: rootId,
             },
-            ...(includeCreateOption
-                ? [
-                      {
-                          displayName: LocalizedConstants.ConnectionDialog.createConnectionGroup,
-                          value: CREATE_NEW_GROUP_ID,
-                      },
-                  ]
-                : []),
+            {
+                displayName: LocalizedConstants.ConnectionDialog.createConnectionGroup,
+                value: CREATE_NEW_GROUP_ID,
+            },
             ...result,
         ];
     }

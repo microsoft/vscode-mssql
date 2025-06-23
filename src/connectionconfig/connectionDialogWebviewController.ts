@@ -23,7 +23,6 @@ import {
     TrustServerCertDialogProps,
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
-    CreateConnectionGroupDialogProps,
     GetConnectionDisplayNameRequest,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
@@ -71,7 +70,10 @@ import {
 } from "../constants/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
-import { createConnectionGroupFromSpec } from "../controllers/connectionGroupWebviewController";
+import {
+    createConnectionGroup,
+    openConnectionGroupDialog,
+} from "../controllers/connectionGroupWebviewController";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -306,55 +308,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("createConnectionGroup", async (state, payload) => {
-            const addedGroup = createConnectionGroupFromSpec(payload.connectionGroupSpec);
+            const updatedState = (await createConnectionGroup(
+                payload.connectionGroupSpec,
+                this._mainController.connectionManager.connectionStore,
+                TelemetryViews.ConnectionDialog,
+                state,
+                state.formError,
+                state.connectionProfile,
+            )) as ConnectionDialogWebviewState;
 
-            try {
-                await this._mainController.connectionManager.connectionStore.connectionConfig.addGroup(
-                    addedGroup,
-                );
-                sendActionEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.SaveConnectionGroup,
-                    { newOrEdit: "new" },
-                );
-            } catch (err) {
-                state.formError = getErrorMessage(err);
-                sendErrorEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.SaveConnectionGroup,
-                    err,
-                    false, // includeErrorMessage
-                    undefined, // errorCode
-                    err.Name, // errorType
-                    {
-                        failure: err.Name,
-                    },
-                );
-            }
+            this.updateState(updatedState);
 
-            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.SaveConnectionGroup);
-
-            state.dialog = undefined;
-
-            state.formComponents.groupId.options = await this.getConnectionGroups(
-                this._mainController,
-            );
-            state.connectionProfile.groupId = addedGroup.id;
-            state.connectionGroups =
-                await this._mainController.connectionManager.connectionStore.connectionConfig.getGroups();
-
-            this.updateState(state);
-
-            return await this.connectHelper(state);
+            return await this.connectHelper(updatedState);
         });
 
         this.registerReducer("openCreateConnectionGroupDialog", async (state) => {
-            state.dialog = {
-                type: "createConnectionGroup",
-                props: {},
-            } as CreateConnectionGroupDialogProps;
-
-            return state;
+            return openConnectionGroupDialog(state) as ConnectionDialogWebviewState;
         });
 
         this.registerReducer("closeDialog", async (state) => {
@@ -984,7 +953,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async getConnectionGroups(mainController: MainController): Promise<FormItemOptions[]> {
-        return mainController.connectionManager.connectionStore.getConnectionGroupOptions(true);
+        return mainController.connectionManager.connectionStore.getConnectionGroupOptions();
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {

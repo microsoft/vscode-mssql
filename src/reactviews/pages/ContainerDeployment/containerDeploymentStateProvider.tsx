@@ -47,6 +47,14 @@ const ContainerDeploymentStateProvider: React.FC<ContainerDeploymentProviderProp
                 checkDockerProfile: function (): void {
                     webviewState?.extensionRpc.action("checkDockerProfile", {});
                 },
+                createConnectionGroup: function (connectionGroupSpec): void {
+                    webviewState?.extensionRpc.action("createConnectionGroup", {
+                        connectionGroupSpec: connectionGroupSpec,
+                    });
+                },
+                toggleConnectionGroupDialog: function (): void {
+                    webviewState?.extensionRpc.action("toggleConnectionGroupDialog", {});
+                },
                 dispose: function (): void {
                     webviewState?.extensionRpc.action("dispose", {});
                 },

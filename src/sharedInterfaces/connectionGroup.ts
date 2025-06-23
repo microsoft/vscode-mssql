@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IConnectionInfo } from "vscode-mssql";
 import { WebviewContextProps } from "./webview";
 
 /**
@@ -41,4 +42,8 @@ export interface ConnectionGroupSpec {
     name: string;
     description?: string;
     color?: string;
+}
+
+export interface ConnectionGroupConnectionProfile extends IConnectionInfo {
+    groupId?: string;
 }

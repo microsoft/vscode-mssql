@@ -6,6 +6,8 @@
 import * as vscodeMssql from "vscode-mssql";
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormEvent, FormItemSpec, FormState } from "./form";
+import { IDialogProps } from "./connectionDialog";
+import { ConnectionGroupSpec, ConnectionGroupConnectionProfile } from "./connectionGroup";
 
 export class ContainerDeploymentWebviewState
     implements
@@ -25,6 +27,7 @@ export class ContainerDeploymentWebviewState
     > = {};
     formErrors: string[] = [];
     platform: string = "";
+    dialog: IDialogProps | undefined;
     /** Used for container name validation within the form */
     isValidContainerName: boolean = false;
     /** Used for port number validation within the form */
@@ -44,13 +47,14 @@ export class ContainerDeploymentWebviewState
     }
 }
 
-export interface DockerConnectionProfile extends vscodeMssql.IConnectionInfo {
+export interface DockerConnectionProfile
+    extends vscodeMssql.IConnectionInfo,
+        ConnectionGroupConnectionProfile {
     version: string;
     hostname: string;
     profileName: string;
     savePassword: boolean;
     acceptEula: boolean;
-    groupId: string;
 }
 
 export interface ContainerDeploymentFormItemSpec
@@ -95,6 +99,16 @@ export interface ContainerDeploymentContextProps
     resetDockerStepState(): void;
 
     /**
+     * Creates a connection group based on the provided spec.
+     */
+    createConnectionGroup(connectionGroupSpec: ConnectionGroupSpec): void;
+
+    /**
+     * Toggles the visibility of the connection group dialog.
+     */
+    toggleConnectionGroupDialog(): void;
+
+    /**
      * Cleans up and disposes of resources used by the deployment context.
      */
     dispose(): void;
@@ -123,6 +137,18 @@ export interface ContainerDeploymentReducers {
     formAction: {
         event: FormEvent<DockerConnectionProfile>;
     };
+
+    /**
+     * Handles the action of creating a connection group.
+     */
+    createConnectionGroup: {
+        connectionGroupSpec: ConnectionGroupSpec;
+    };
+
+    /**
+     * Handles the action of opening/closing the connection group dialog.
+     */
+    toggleConnectionGroupDialog: {};
 
     /**
      * Reducer for cleanup and disposal logic.

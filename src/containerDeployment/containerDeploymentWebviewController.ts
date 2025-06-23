@@ -26,6 +26,10 @@ import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { getGroupIdItem } from "../connectionconfig/formComponentHelpers";
+import {
+    createConnectionGroup,
+    openConnectionGroupDialog,
+} from "../controllers/connectionGroupWebviewController";
 
 export class ContainerDeploymentWebviewController extends FormWebviewController<
     cd.DockerConnectionProfile,
@@ -167,6 +171,29 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             }
 
             state.isDockerProfileValid = state.formErrors.length === 0;
+            return state;
+        });
+
+        this.registerReducer("createConnectionGroup", async (state, payload) => {
+            const updatedState = (await createConnectionGroup(
+                payload.connectionGroupSpec,
+                this.mainController.connectionManager.connectionStore,
+                TelemetryViews.ContainerDeployment,
+                state,
+                state.formErrors,
+                state.formState,
+            )) as cd.ContainerDeploymentWebviewState;
+            this.updateState(updatedState);
+            return updatedState;
+        });
+
+        this.registerReducer("toggleConnectionGroupDialog", async (state) => {
+            // Close dialog if it is open
+            if (state.dialog) {
+                state.dialog = undefined;
+            } else {
+                state = openConnectionGroupDialog(state) as cd.ContainerDeploymentWebviewState;
+            }
             return state;
         });
 
