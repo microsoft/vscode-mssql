@@ -3503,10 +3503,6 @@ Error:
         <source xml:lang="en">Change Database</source>
         <target state="translated">데이터베이스 변경</target>
       </trans-unit>
-      <trans-unit id="mssql.objectExplorerChatWithDatabase">
-        <source xml:lang="en">Chat with this database (Preview)</source>
-        <target state="translated">이 데이터베이스와 채팅(미리 보기)</target>
-      </trans-unit>
       <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
         <target state="translated">이 파일에 대한 SQL 처리기 선택</target>
@@ -3888,6 +3884,14 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.commandPaletteQueryHistory">
         <source xml:lang="en">Open Query History in Command Palette</source>
         <target state="translated">명령 팔레트에서 쿼리 기록 열기</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
+        <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
+        <target state="new">Open in Copilot Agent mode (Preview)</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorerChatWithDatabase">
+        <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
+        <target state="new">Open in Copilot Ask mode (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
