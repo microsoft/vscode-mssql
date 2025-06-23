@@ -298,8 +298,12 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     key={rowId}
                     className={item.position === selectedDiffId ? classes.selectedRow : undefined}
                     style={style}
-                    onClick={() => onDiffSelected(item.position)}
-                    onKeyDown={(e) => toggleKeyDown(e, item)}>
+                    onClick={() => {
+                        if (item.position !== undefined) {
+                            onDiffSelected(item.position);
+                        }
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => toggleKeyDown(e, item)}>
                     {({ renderCell }) => <>{renderCell(item)}</>}
                 </DataGridRow>
             );
