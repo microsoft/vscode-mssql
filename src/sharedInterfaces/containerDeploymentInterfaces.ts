@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscodeMssql from "vscode-mssql";
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormEvent, FormItemSpec, FormState } from "./form";
-import { IDialogProps } from "./connectionDialog";
+import { IConnectionDialogProfile, IDialogProps } from "./connectionDialog";
 import { ConnectionGroupSpec } from "./connectionGroup";
 
 export class ContainerDeploymentWebviewState
@@ -47,7 +46,7 @@ export class ContainerDeploymentWebviewState
     }
 }
 
-export interface DockerConnectionProfile extends vscodeMssql.IConnectionInfo {
+export interface DockerConnectionProfile extends IConnectionDialogProfile {
     version: string;
     hostname: string;
     profileName: string;

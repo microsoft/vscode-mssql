@@ -131,6 +131,7 @@ export enum ConnectionInputMode {
 // optional name and details on whether password should be saved
 export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     profileName?: string;
+    groupId?: string;
     savePassword?: boolean;
     emptyPasswordInput?: boolean;
     azureAuthType?: vscodeMssql.AzureAuthType;
