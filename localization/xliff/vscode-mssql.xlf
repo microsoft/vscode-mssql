@@ -3142,6 +3142,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
     </trans-unit>
+    <trans-unit id="mssql.statusBar.enableConnectionColor">
+      <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
     </trans-unit>
