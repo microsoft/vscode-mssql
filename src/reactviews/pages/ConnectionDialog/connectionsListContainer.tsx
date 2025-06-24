@@ -19,6 +19,7 @@ import { MouseEventHandler, useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
+import { Keys } from "../../common/keys";
 
 const buttonContainer = "buttonContainer";
 
@@ -50,6 +51,11 @@ const useStyles = makeStyles({
             },
         },
         ":focus-within": {
+            [`& .${buttonContainer}`]: {
+                visibility: "visible",
+            },
+        },
+        ":focus": {
             [`& .${buttonContainer}`]: {
                 visibility: "visible",
             },
@@ -182,45 +188,39 @@ export const ConnectionCard = ({
         <Card
             className={styles.connectionContainer}
             appearance="subtle"
+            tabIndex={0}
             onClick={() => {
                 context.loadConnection(connection);
             }}
-            tabIndex={-1}>
+            onKeyDown={(e) => {
+                if (e.key === Keys.Enter || e.key === Keys.Space) {
+                    e.preventDefault();
+                    context.loadConnection(connection);
+                }
+            }}
+            title={locConstants.connectionDialog.connectTo(displayName)}
+            role="button"
+            style={{ cursor: "pointer" }}>
             <CardHeader
                 image={<ServerRegular fontSize={20} />}
-                header={
-                    <button
-                        style={{
-                            background: "none",
-                            border: "none",
-                            padding: 0,
-                            margin: 0,
-                            textAlign: "left",
-                            cursor: "pointer",
-                            font: "inherit",
-                            color: "inherit",
-                        }}
-                        onClick={() => {
-                            context.loadConnection(connection);
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                context.loadConnection(connection);
-                            }
-                        }}
-                        tabIndex={0}
-                        title={`Connect to ${displayName}`}>
-                        {displayName}
-                    </button>
-                }
+                header={<Text>{displayName}</Text>}
                 action={
                     actionButton && (
                         <div className={buttonContainer}>
                             <Button
                                 icon={actionButton.icon}
                                 appearance="subtle"
-                                onClick={actionButton.onClick}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    actionButton.onClick(e);
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === Keys.Enter || e.key === Keys.Space) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        actionButton.onClick(e as any);
+                                    }
+                                }}
                                 title={actionButton.tooltip}
                                 tabIndex={0}
                             />

@@ -200,6 +200,12 @@ export class LocConstants {
             advancedSettings: l10n.t("Advanced"),
             testConnection: l10n.t("Test Connection"),
             connectToDatabase: l10n.t("Connect to Database"),
+            connectTo: (profileName: string) =>
+                l10n.t({
+                    message: "Connect to {0}",
+                    args: [profileName],
+                    comment: ["{0} is the name of the connection profile"],
+                }),
             parameters: l10n.t("Parameters"),
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
