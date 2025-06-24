@@ -11,7 +11,8 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as ConnInfo from "../models/connectionInfo";
 import * as ConnectionContracts from "../models/contracts/connection";
 import * as Utils from "../models/utils";
-import { IConnectionGroup } from "../models/interfaces";
+import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
+import { ConnectionStore } from "../models/connectionStore";
 
 // Status bar element for each file in the editor
 class FileStatusBar {
@@ -42,6 +43,8 @@ class FileStatusBar {
     public currentLanguageServiceStatus: string;
 
     public queryTimer: NodeJS.Timeout;
+
+    public connectionId: string;
 }
 
 export default class StatusView implements vscode.Disposable {
@@ -49,6 +52,7 @@ export default class StatusView implements vscode.Disposable {
     private _lastShownStatusBar: FileStatusBar;
     private _onDidChangeActiveTextEditorEvent: vscode.Disposable;
     private _onDidCloseTextDocumentEvent: vscode.Disposable;
+    private _connectionStore: ConnectionStore;
 
     constructor(private _vscodeWrapper?: VscodeWrapper) {
         if (!this._vscodeWrapper) {
@@ -80,6 +84,10 @@ export default class StatusView implements vscode.Disposable {
         }
         this._onDidChangeActiveTextEditorEvent.dispose();
         this._onDidCloseTextDocumentEvent.dispose();
+    }
+
+    public setConnectionStore(connectionStore: ConnectionStore): void {
+        this._connectionStore = connectionStore;
     }
 
     // Create status bar item if needed
@@ -166,6 +174,7 @@ export default class StatusView implements vscode.Disposable {
         bar.statusConnection.tooltip = LocalizedConstants.StatusBar.notConnectedTooltip;
         bar.statusConnection.command = Constants.cmdConnect;
         bar.statusConnection.color = undefined;
+        bar.connectionId = undefined;
         this.showStatusBarItem(fileUri, bar.statusConnection);
         bar.statusLanguageService.text = "";
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
@@ -176,24 +185,51 @@ export default class StatusView implements vscode.Disposable {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.text = `$(loading~spin) ${LocalizedConstants.StatusBar.connectingLabel}`;
         bar.statusConnection.command = Constants.cmdDisconnect;
+        bar.statusConnection.color = undefined;
         bar.statusConnection.tooltip =
             LocalizedConstants.connectingTooltip + ConnInfo.getTooltip(connCreds);
+        bar.connectionId = (connCreds as IConnectionDialogProfile).id || undefined;
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
-    public connectSuccess(
+    public async connectSuccess(
         fileUri: string,
         connCreds: IConnectionInfo,
         serverInfo: IServerInfo,
-        connGroup?: IConnectionGroup,
-    ): void {
+    ): Promise<void> {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdChooseDatabase;
         bar.statusConnection.text = `$(check) ${ConnInfo.getConnectionDisplayString(connCreds, true)}`;
         bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
-        bar.statusConnection.color = connGroup?.color;
+        bar.connectionId = (connCreds as IConnectionDialogProfile).id || undefined;
+
+        bar.statusConnection.color = await this.getConnectionColor(bar.connectionId);
         this.showStatusBarItem(fileUri, bar.statusConnection);
         this.sqlCmdModeChanged(fileUri, false);
+    }
+
+    public async updateConnectionColors(): Promise<void> {
+        for (const fileUri of Object.keys(this._statusBars)) {
+            const bar = this._statusBars[fileUri];
+            bar.statusConnection.color = await this.getConnectionColor(bar.connectionId);
+            // this.showStatusBarItem(fileUri, bar.statusConnection);
+        }
+    }
+
+    private async getConnectionColor(
+        connectionId: string | undefined,
+    ): Promise<string | undefined> {
+        if (
+            !this._connectionStore ||
+            !connectionId ||
+            this._vscodeWrapper
+                .getConfiguration()
+                .get<boolean>(Constants.configStatusBarEnableConnectionColor) !== true
+        ) {
+            return undefined;
+        }
+
+        return (await this._connectionStore.getGroupForConnectionId(connectionId))?.color;
     }
 
     public connectError(

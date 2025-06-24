@@ -542,7 +542,7 @@ export default class ConnectionManager {
                 connectionInfo.credentials.database = event.connection.databaseName;
                 connectionInfo.credentials.user = event.connection.userName;
 
-                self._statusView.connectSuccess(
+                void self._statusView.connectSuccess(
                     event.ownerUri,
                     connectionInfo.credentials,
                     connectionInfo.serverInfo,
@@ -650,11 +650,7 @@ export default class ConnectionManager {
         connection.errorNumber = undefined;
         connection.errorMessage = undefined;
 
-        const connGroup = this.connectionStore.connectionConfig.getGroupById(
-            (connection.credentials as IConnectionProfile).groupId,
-        );
-
-        this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo, connGroup);
+        void this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
         this.statusView.languageServiceStatusChanged(
             fileUri,
             LocalizedConstants.updatingIntelliSenseStatus,

@@ -225,6 +225,7 @@ export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
 export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
+export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
