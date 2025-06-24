@@ -14,6 +14,7 @@ import {
     DataGridHeaderCell,
     Text,
     TableColumnSizingOptions,
+    mergeClasses,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -77,6 +78,12 @@ const useStyles = makeStyles({
     },
     alignSpinner: {
         marginLeft: "8px",
+    },
+    dataGridHeader: {
+        backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
+    },
+    dataGridRowHeight: {
+        height: "30px !important",
     },
 });
 
@@ -302,11 +309,17 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         };
 
         const renderRow: RowRenderer<DiffEntry> = ({ item, rowId }, style) => {
+            const newStyle = { ...style, height: 30, top: item.position * 30 }; // Set a fixed height for the row
+            console.log(style);
             return (
                 <DataGridRow<DiffEntry>
                     key={rowId}
-                    className={item.position === selectedDiffId ? classes.selectedRow : undefined}
-                    style={style}
+                    className={
+                        item.position === selectedDiffId
+                            ? mergeClasses(classes.selectedRow, classes.dataGridRowHeight)
+                            : classes.dataGridRowHeight
+                    }
+                    style={newStyle}
                     onClick={() => {
                         if (item.position !== undefined) {
                             onDiffSelected(item.position);
@@ -349,15 +362,16 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                     focusMode="composite"
                     resizableColumns={true}
                     columnSizingOptions={columnSizingOptions}
-                    getRowId={(item) => (item as DiffEntry).position?.toString() ?? ""}>
-                    <DataGridHeader>
+                    getRowId={(item) => (item as DiffEntry).position?.toString() ?? ""}
+                    size="extra-small">
+                    <DataGridHeader className={classes.dataGridHeader}>
                         <DataGridRow>
                             {({ renderHeaderCell }) => (
                                 <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
                             )}
                         </DataGridRow>
                     </DataGridHeader>
-                    <DataGridBody<DiffEntry> itemSize={45} height={height - 40} width={"100%"}>
+                    <DataGridBody<DiffEntry> itemSize={30} height={height - 40} width={"100%"}>
                         {renderRow}
                     </DataGridBody>
                 </DataGrid>
