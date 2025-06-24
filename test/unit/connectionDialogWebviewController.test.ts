@@ -307,18 +307,24 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     "Default input mode should be Parameters",
                 );
 
-                await controller["_reducers"].setConnectionInputType(controller.state, {
-                    inputMode: ConnectionInputMode.AzureBrowse,
-                });
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.AzureBrowse,
+                    },
+                );
 
                 expect(controller.state.selectedInputMode).to.equal(
                     ConnectionInputMode.AzureBrowse,
                     "Should set connection input type to AzureBrowse",
                 );
 
-                await controller["_reducers"].setConnectionInputType(controller.state, {
-                    inputMode: ConnectionInputMode.Parameters,
-                });
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.Parameters,
+                    },
+                );
 
                 expect(controller.state.selectedInputMode).to.equal(
                     ConnectionInputMode.Parameters,
@@ -332,9 +338,12 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 stubConfirmVscodeAzureSignin(sandbox);
                 stubFetchServersFromAzure(sandbox);
 
-                await controller["_reducers"].setConnectionInputType(controller.state, {
-                    inputMode: ConnectionInputMode.AzureBrowse,
-                });
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.AzureBrowse,
+                    },
+                );
 
                 // validate that subscriptions and servers are loaded correctly
 
@@ -378,7 +387,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: AuthenticationType.Integrated,
             } as IConnectionDialogProfile;
 
-            await controller["_reducers"].loadConnection(controller.state, {
+            await controller["_reducerHandlers"].get("loadConnection")(controller.state, {
                 connection: testConnection,
             });
 
@@ -455,7 +464,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     authenticationType: AuthenticationType.SqlLogin,
                 } as IConnectionDialogProfile;
 
-                await controller["_reducers"].connect(controller.state, {});
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
 
                 expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
                 expect(
@@ -481,7 +490,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("Filter change cancelled", async () => {
                 stubPromptForAzureSubscriptionFilter(sandbox, false);
 
-                await controller["_reducers"].filterAzureSubscriptions(controller.state, {});
+                await controller["_reducerHandlers"].get("filterAzureSubscriptions")(
+                    controller.state,
+                    {},
+                );
 
                 const stub = (controller["loadAllAzureServers"] = sandbox.stub().resolves());
 
@@ -500,7 +512,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     "No subscriptions should be loaded initially",
                 ).to.have.lengthOf(0);
 
-                await controller["_reducers"].filterAzureSubscriptions(controller.state, {});
+                await controller["_reducerHandlers"].get("filterAzureSubscriptions")(
+                    controller.state,
+                    {},
+                );
 
                 expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
                 expect(
