@@ -14,7 +14,6 @@ import {
     DataGridHeaderCell,
     Text,
     TableColumnSizingOptions,
-    mergeClasses,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -81,9 +80,6 @@ const useStyles = makeStyles({
     },
     dataGridHeader: {
         backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
-    },
-    dataGridRowHeight: {
-        height: "30px !important",
     },
 });
 
@@ -309,17 +305,11 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         };
 
         const renderRow: RowRenderer<DiffEntry> = ({ item, rowId }, style) => {
-            const newStyle = { ...style, height: 30, top: item.position * 30 }; // Set a fixed height for the row
-            console.log(style);
             return (
                 <DataGridRow<DiffEntry>
                     key={rowId}
-                    className={
-                        item.position === selectedDiffId
-                            ? mergeClasses(classes.selectedRow, classes.dataGridRowHeight)
-                            : classes.dataGridRowHeight
-                    }
-                    style={newStyle}
+                    className={item.position === selectedDiffId ? classes.selectedRow : undefined}
+                    style={style}
                     onClick={() => {
                         if (item.position !== undefined) {
                             onDiffSelected(item.position);
