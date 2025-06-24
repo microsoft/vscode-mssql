@@ -203,7 +203,7 @@ export const ConnectionCard = ({
             style={{ cursor: "pointer" }}>
             <CardHeader
                 image={<ServerRegular fontSize={20} />}
-                header={<Text>{displayName}</Text>}
+                header={displayName}
                 action={
                     actionButton && (
                         <div className={buttonContainer}>
