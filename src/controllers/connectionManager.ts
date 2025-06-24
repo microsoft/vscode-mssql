@@ -650,7 +650,11 @@ export default class ConnectionManager {
         connection.errorNumber = undefined;
         connection.errorMessage = undefined;
 
-        this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
+        const connGroup = this.connectionStore.connectionConfig.getGroupById(
+            (connection.credentials as IConnectionProfile).groupId,
+        );
+
+        this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo, connGroup);
         this.statusView.languageServiceStatusChanged(
             fileUri,
             LocalizedConstants.updatingIntelliSenseStatus,
