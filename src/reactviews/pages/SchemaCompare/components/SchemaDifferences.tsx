@@ -75,6 +75,9 @@ const useStyles = makeStyles({
         overflow: "hidden",
         whiteSpace: "nowrap",
     },
+    alignSpinner: {
+        marginLeft: "8px",
+    },
 });
 
 interface Props {
@@ -205,10 +208,15 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 renderHeaderCell: () => {
                     if (context.state.isIncludeExcludeAllOperationInProgress) {
                         return (
-                            <Spinner
-                                size="extra-tiny"
-                                aria-label={loc.schemaCompare.includeExcludeAllOperationInProgress}
-                            />
+                            <div>
+                                <Spinner
+                                    size="extra-tiny"
+                                    aria-label={
+                                        loc.schemaCompare.includeExcludeAllOperationInProgress
+                                    }
+                                    className={classes.alignSpinner}
+                                />
+                            </div>
                         );
                     }
 
@@ -232,6 +240,7 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                             <Checkbox
                                 checked={item.included}
                                 onClick={() => handleIncludeExcludeNode(item, !item.included)}
+                                disabled={context.state.isIncludeExcludeAllOperationInProgress}
                             />
                         </DataGridCell>
                     );
