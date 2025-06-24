@@ -554,6 +554,16 @@ export class ConnectionStore {
         return groups;
     }
 
+    public async getGroupForConnectionId(
+        connectionId: string,
+    ): Promise<IConnectionGroup | undefined> {
+        const connProfile = await this._connectionConfig.getConnectionById(connectionId);
+        if (connProfile) {
+            return this._connectionConfig.getGroupById(connProfile.groupId);
+        }
+        return undefined;
+    }
+
     public async readAllConnections(
         includeRecentConnections: boolean = false,
     ): Promise<IConnectionProfileWithSource[]> {

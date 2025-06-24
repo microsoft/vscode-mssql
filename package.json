@@ -1623,6 +1623,12 @@
                     "description": "%mssql.enableConnectionPooling%",
                     "default": false
                 },
+                "mssql.statusBar.enableConnectionColor": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.enableConnectionColor%",
+                    "default": false,
+                    "scope": "window"
+                },
                 "mssql.format.alignColumnDefinitionsInColumns": {
                     "type": "boolean",
                     "description": "%mssql.format.alignColumnDefinitionsInColumns%",
