@@ -93,7 +93,7 @@ suite("AddFirewallRuleWebviewController Tests", () => {
         test("closeDialog", async () => {
             await finishSetup();
 
-            await controller["_reducers"].closeDialog(controller.state, {});
+            await controller["_reducerHandlers"].get("closeDialog")(controller.state, {});
 
             expect(controller.isDisposed).to.be.true;
             expect(await controller.dialogResult).to.be.false;

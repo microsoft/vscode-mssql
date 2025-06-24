@@ -25,6 +25,7 @@ import {
     ConnectionStringDialogProps,
     CreateConnectionGroupDialogProps,
     CREATE_NEW_GROUP_ID,
+    GetConnectionDisplayNameRequest,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
@@ -527,8 +528,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             return state;
         });
-
-        this.registerRequestHandler("getConnectionDisplayName", async (payload) => {
+        this.onRequest(GetConnectionDisplayNameRequest.type, async (payload) => {
             return getConnectionDisplayName(payload);
         });
 

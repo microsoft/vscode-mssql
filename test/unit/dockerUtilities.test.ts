@@ -151,6 +151,7 @@ suite("Docker Utilities", () => {
     test("checkEngine: combined test covering multiple scenarios", async () => {
         // Stub platform and dependent modules
         const platformStub = sandbox.stub(os, "platform");
+        const archStub = sandbox.stub(os, "arch");
         const execStub = sandbox.stub(childProcess, "exec");
         const messageStub = sandbox.stub(vscode.window, "showInformationMessage");
 
@@ -208,6 +209,7 @@ suite("Docker Utilities", () => {
 
         // 5. Command fails on Mac (e.g., permissions error)
         platformStub.returns(Platform.Mac);
+        archStub.returns("arm");
         execStub.resetBehavior();
         execStub.yields(new Error("Rosetta not Enabled"), undefined);
 
@@ -215,6 +217,12 @@ suite("Docker Utilities", () => {
         assert.ok(!result.success);
         assert.strictEqual(result.fullErrorText, "Rosetta not Enabled");
         assert.strictEqual(result.error, ContainerDeployment.rosettaError);
+
+        // Intel Mac, command succeeds
+        archStub.returns("x64");
+        execStub.resetBehavior();
+        result = await dockerUtils.checkEngine();
+        assert.ok(result.success);
     });
 
     test("validateContainerName: handles various input scenarios", async () => {

@@ -133,9 +133,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     }, []);
 
     const initializeSchemaDesigner = async () => {
-        const model = (await extensionRpc.call(
-            "initializeSchemaDesigner",
-        )) as SchemaDesigner.CreateSessionResponse;
+        const model = await extensionRpc.sendRequest(
+            SchemaDesigner.InitializeSchemaDesignerRequest.type,
+        );
 
         const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(model.schema);
 
@@ -164,17 +164,15 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
             reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
         );
-        const result = (await extensionRpc.call("getDefinition", {
+        const result = await extensionRpc.sendRequest(SchemaDesigner.GetDefinitionRequest.type, {
             updatedSchema: schema,
-        })) as SchemaDesigner.GetDefinitionResponse;
+        });
         return result.script;
     };
 
     // Reducer callers
     const saveAsFile = (fileProps: SchemaDesigner.ExportFileOptions) => {
-        void extensionRpc.call("exportToFile", {
-            ...fileProps,
-        });
+        void extensionRpc.sendNotification(SchemaDesigner.ExportToFileNotification.type, fileProps);
     };
 
     const getReport = async () => {
@@ -186,28 +184,31 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return;
         }
 
-        const result = await extensionRpc.call("getReport", {
+        const result = await extensionRpc.sendRequest(SchemaDesigner.GetReportWebviewRequest.type, {
             updatedSchema: schema,
         });
         return result;
     };
 
     const copyToClipboard = (text: string) => {
-        void extensionRpc.call("copyToClipboard", {
+        void extensionRpc.sendNotification(SchemaDesigner.CopyToClipboardNotification.type, {
             text: text,
         });
     };
 
     const openInEditor = (text: string) => {
-        void extensionRpc.call("openInEditor", {
+        void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type, {
             text: text,
         });
     };
 
     const openInEditorWithConnection = (text: string) => {
-        void extensionRpc.call("openInEditorWithConnection", {
-            text: text,
-        });
+        void extensionRpc.sendNotification(
+            SchemaDesigner.OpenInEditorWithConnectionNotification.type,
+            {
+                text: text,
+            },
+        );
     };
 
     const extractSchema = () => {
@@ -423,12 +424,18 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     };
 
     const publishSession = async () => {
-        const response = await extensionRpc.call("publishSession");
+        const schema = flowUtils.extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+        const response = await extensionRpc.sendRequest(SchemaDesigner.PublishSessionRequest.type, {
+            schema: schema,
+        });
         return response;
     };
 
     const closeDesigner = () => {
-        void extensionRpc.call("closeDesigner", {});
+        void extensionRpc.sendNotification(SchemaDesigner.CloseSchemaDesignerNotification.type);
     };
 
     const resetUndoRedoState = () => {

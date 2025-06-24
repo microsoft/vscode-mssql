@@ -50,6 +50,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         "mssql.agent",
         createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context, controller),
     );
+    participant.iconPath = vscode.Uri.joinPath(
+        context.extensionUri,
+        "images",
+        "mssql-chat-avatar.jpg",
+    );
 
     const receiveFeedbackDisposable = participant.onDidReceiveFeedback(
         (feedback: vscode.ChatResultFeedback) => {
