@@ -21,7 +21,7 @@ import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.compon
 import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
-} from "../../../sharedInterfaces/connectionDialog";
+} from "../../../sharedInterfaces/connectionGroup";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
@@ -123,7 +123,7 @@ export const ContainerInputForm: React.FC = () => {
                         <ConnectionGroupDialog
                             state={(state.state.dialog as CreateConnectionGroupDialogProps).props}
                             saveConnectionGroup={state.createConnectionGroup}
-                            closeDialog={state.toggleConnectionGroupDialog}
+                            closeDialog={() => state.setConnectionGroupDialogState(true)} // isOpen is true when closing the dialog
                         />
                     )}
                     {renderFormFields(false)}
@@ -141,7 +141,7 @@ export const ContainerInputForm: React.FC = () => {
                         componentProps={{
                             onSelect: (option: SearchableDropdownOptions) => {
                                 if (option.value === CREATE_NEW_GROUP_ID) {
-                                    state.toggleConnectionGroupDialog();
+                                    state.setConnectionGroupDialogState(false); // isOpen is false when opening the dialog
                                 } else {
                                     state.formAction({
                                         propertyName: "groupId",

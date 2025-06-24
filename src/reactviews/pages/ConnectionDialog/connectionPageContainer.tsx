@@ -12,11 +12,13 @@ import {
     ConnectionDialogWebviewState,
     ConnectionInputMode,
     ConnectionStringDialogProps,
-    CREATE_NEW_GROUP_ID,
-    CreateConnectionGroupDialogProps,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
 } from "../../../sharedInterfaces/connectionDialog";
+import {
+    CREATE_NEW_GROUP_ID,
+    CreateConnectionGroupDialogProps,
+} from "../../../sharedInterfaces/connectionGroup";
 import { Field, Image, Link, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
 import { Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";

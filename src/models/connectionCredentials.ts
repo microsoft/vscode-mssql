@@ -22,6 +22,7 @@ export class ConnectionCredentials implements IConnectionInfo {
     public tenantId: string | undefined;
     public port: number;
     public authenticationType: string;
+    public groupId: string;
     public azureAccountToken: string | undefined;
     public expiresOn: number | undefined;
     public encrypt: string | boolean;
@@ -109,6 +110,7 @@ export class ConnectionCredentials implements IConnectionInfo {
         details.options["packetSize"] = credentials.packetSize;
         details.options["typeSystemVersion"] = credentials.typeSystemVersion;
         details.options["containerName"] = credentials.containerName;
+        details.options["groupId"] = credentials.groupId;
 
         return details;
     }
@@ -129,6 +131,7 @@ export class ConnectionCredentials implements IConnectionInfo {
             user: options["user"],
             password: options["password"],
             authenticationType: options["authenticationType"],
+            groupId: options["groupId"],
             azureAccountToken: options["azureAccountToken"],
             encrypt: options["encrypt"],
             trustServerCertificate: options["trustServerCertificate"],

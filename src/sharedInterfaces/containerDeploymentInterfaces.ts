@@ -7,7 +7,7 @@ import * as vscodeMssql from "vscode-mssql";
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormEvent, FormItemSpec, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
-import { ConnectionGroupSpec, ConnectionGroupConnectionProfile } from "./connectionGroup";
+import { ConnectionGroupSpec } from "./connectionGroup";
 
 export class ContainerDeploymentWebviewState
     implements
@@ -47,9 +47,7 @@ export class ContainerDeploymentWebviewState
     }
 }
 
-export interface DockerConnectionProfile
-    extends vscodeMssql.IConnectionInfo,
-        ConnectionGroupConnectionProfile {
+export interface DockerConnectionProfile extends vscodeMssql.IConnectionInfo {
     version: string;
     hostname: string;
     profileName: string;
@@ -104,9 +102,10 @@ export interface ContainerDeploymentContextProps
     createConnectionGroup(connectionGroupSpec: ConnectionGroupSpec): void;
 
     /**
-     * Toggles the visibility of the connection group dialog.
+     * Sets the visibility of the connection group dialog based on the provided state.
+     * @param isOpen - A boolean indicating whether the dialog should be open or closed.
      */
-    toggleConnectionGroupDialog(): void;
+    setConnectionGroupDialogState(isOpen: boolean): void;
 
     /**
      * Cleans up and disposes of resources used by the deployment context.
@@ -148,7 +147,7 @@ export interface ContainerDeploymentReducers {
     /**
      * Handles the action of opening/closing the connection group dialog.
      */
-    toggleConnectionGroupDialog: {};
+    setConnectionGroupDialogState: { isOpen: boolean };
 
     /**
      * Reducer for cleanup and disposal logic.

@@ -22,13 +22,13 @@ import {
     passwordPrompt,
     profileNamePlaceholder,
 } from "../constants/locConstants";
-import { IConnectionProfile } from "../models/interfaces";
+import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
-import { getGroupIdItem } from "../connectionconfig/formComponentHelpers";
+import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import {
     createConnectionGroup,
-    openConnectionGroupDialog,
+    getDefaultConnectionGroupDialogProps,
 } from "../controllers/connectionGroupWebviewController";
 
 export class ContainerDeploymentWebviewController extends FormWebviewController<
@@ -75,7 +75,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         this.state.platform = platform();
         const versions = await dockerUtils.getSqlServerContainerVersions();
         const groupOptions =
-            await this.mainController.connectionManager.connectionStore.getConnectionGroupOptions();
+            await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
         this.state.formComponents = this.setFormComponents(versions, groupOptions);
         this.state.formState = {
             version: versions[0].value,
@@ -175,24 +175,37 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("createConnectionGroup", async (state, payload) => {
-            const updatedState = (await createConnectionGroup(
-                payload.connectionGroupSpec,
-                this.mainController.connectionManager.connectionStore,
-                TelemetryViews.ContainerDeployment,
-                state,
-                state.formErrors,
-                state.formState,
-            )) as cd.ContainerDeploymentWebviewState;
-            this.updateState(updatedState);
-            return updatedState;
+            const createConnectionGroupResult: IConnectionGroup | string =
+                await createConnectionGroup(
+                    payload.connectionGroupSpec,
+                    this.mainController.connectionManager,
+                    TelemetryViews.ConnectionDialog,
+                );
+            if (typeof createConnectionGroupResult === "string") {
+                // If the result is a string, it means there was an error creating the group
+                state.formErrors.push(createConnectionGroupResult);
+            } else {
+                // If the result is an IConnectionGroup, it means the group was created successfully
+                state.formState.groupId = createConnectionGroupResult.id;
+            }
+
+            state.formComponents.groupId.options =
+                await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
+
+            state.dialog = undefined;
+
+            this.updateState(state);
+            return state;
         });
 
-        this.registerReducer("toggleConnectionGroupDialog", async (state) => {
+        this.registerReducer("setConnectionGroupDialogState", async (state, payload) => {
             // Close dialog if it is open
-            if (state.dialog) {
+            if (payload.isOpen) {
                 state.dialog = undefined;
             } else {
-                state = openConnectionGroupDialog(state) as cd.ContainerDeploymentWebviewState;
+                state = getDefaultConnectionGroupDialogProps(
+                    state,
+                ) as cd.ContainerDeploymentWebviewState;
             }
             return state;
         });
@@ -376,7 +389,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             }),
 
             groupId: createFormItem(
-                getGroupIdItem(groupOptions) as cd.ContainerDeploymentFormItemSpec,
+                getGroupIdFormItem(groupOptions) as cd.ContainerDeploymentFormItemSpec,
             ),
 
             containerName: createFormItem({

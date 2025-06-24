@@ -58,6 +58,7 @@ function createTestCredentials(): IConnectionInfo {
         tenantId: "test-tenant-id",
         port: 1234,
         authenticationType: AuthenticationTypes[AuthenticationTypes.SqlLogin],
+        groupId: "test-group-id",
         azureAccountToken: "",
         expiresOn: 0,
         encrypt: "Optional",

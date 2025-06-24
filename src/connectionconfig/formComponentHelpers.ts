@@ -208,7 +208,9 @@ export async function completeFormComponents(
         isAdvancedOption: false,
     };
 
-    components["groupId"] = getGroupIdItem(connectionGroupOptions) as ConnectionDialogFormItemSpec;
+    components["groupId"] = getGroupIdFormItem(
+        connectionGroupOptions,
+    ) as ConnectionDialogFormItemSpec;
 
     components["savePassword"] = {
         propertyName: "savePassword",
@@ -306,7 +308,7 @@ export async function completeFormComponents(
     };
 }
 
-export function getGroupIdItem(connectionGroupOptions: FormItemOptions[]) {
+export function getGroupIdFormItem(connectionGroupOptions: FormItemOptions[]) {
     return {
         propertyName: "groupId",
         label: Loc.connectionGroup,

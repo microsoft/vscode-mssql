@@ -8,11 +8,7 @@ import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form"
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
-import {
-    ConnectionGroupConnectionProfile,
-    ConnectionGroupSpec,
-    ConnectionGroupState,
-} from "./connectionGroup";
+import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
 import { RequestType } from "vscode-jsonrpc/browser";
 
 export class ConnectionDialogWebviewState
@@ -86,7 +82,6 @@ export interface ConnectionStringDialogProps extends IDialogProps {
     connectionString: string;
     connectionStringError?: string;
 }
-
 export interface CreateConnectionGroupDialogProps extends IDialogProps {
     type: "createConnectionGroup";
     props: ConnectionGroupState;
@@ -134,22 +129,12 @@ export enum ConnectionInputMode {
 
 // A Connection Profile contains all the properties of connection credentials, with additional
 // optional name and details on whether password should be saved
-export interface IConnectionDialogProfile
-    extends vscodeMssql.IConnectionInfo,
-        ConnectionGroupConnectionProfile {
+export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     profileName?: string;
     savePassword?: boolean;
     emptyPasswordInput?: boolean;
     azureAuthType?: vscodeMssql.AzureAuthType;
     id?: string;
-}
-
-export interface IConnectionGroup {
-    id: string;
-    name: string;
-    parentId?: string;
-    color?: string;
-    description?: string;
 }
 
 export interface ConnectionDialogContextProps
@@ -184,8 +169,6 @@ export enum AuthenticationType {
     Integrated = "Integrated",
     AzureMFA = "AzureMFA",
 }
-
-export const CREATE_NEW_GROUP_ID = "CREATE_NEW_GROUP";
 
 export interface ConnectionDialogReducers extends FormReducers<IConnectionDialogProfile> {
     setConnectionInputType: {

@@ -72,7 +72,7 @@ import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
 import {
     createConnectionGroup,
-    openConnectionGroupDialog,
+    getDefaultConnectionGroupDialogProps,
 } from "../controllers/connectionGroupWebviewController";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
@@ -308,22 +308,32 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("createConnectionGroup", async (state, payload) => {
-            const updatedState = (await createConnectionGroup(
-                payload.connectionGroupSpec,
-                this._mainController.connectionManager.connectionStore,
-                TelemetryViews.ConnectionDialog,
-                state,
-                state.formError,
-                state.connectionProfile,
-            )) as ConnectionDialogWebviewState;
+            const createConnectionGroupResult: IConnectionGroup | string =
+                await createConnectionGroup(
+                    payload.connectionGroupSpec,
+                    this._mainController.connectionManager,
+                    TelemetryViews.ConnectionDialog,
+                );
+            if (typeof createConnectionGroupResult === "string") {
+                // If the result is a string, it means there was an error creating the group
+                state.formError = createConnectionGroupResult;
+            } else {
+                // If the result is an IConnectionGroup, it means the group was created successfully
+                state.connectionProfile.groupId = createConnectionGroupResult.id;
+            }
 
-            this.updateState(updatedState);
+            state.formComponents.groupId.options =
+                await this._mainController.connectionManager.connectionUI.getConnectionGroupOptions();
 
-            return await this.connectHelper(updatedState);
+            state.dialog = undefined;
+
+            this.updateState(state);
+
+            return await this.connectHelper(state);
         });
 
         this.registerReducer("openCreateConnectionGroupDialog", async (state) => {
-            return openConnectionGroupDialog(state) as ConnectionDialogWebviewState;
+            return getDefaultConnectionGroupDialogProps(state) as ConnectionDialogWebviewState;
         });
 
         this.registerReducer("closeDialog", async (state) => {
@@ -953,7 +963,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async getConnectionGroups(mainController: MainController): Promise<FormItemOptions[]> {
-        return mainController.connectionManager.connectionStore.getConnectionGroupOptions();
+        return mainController.connectionManager.connectionUI.getConnectionGroupOptions();
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {

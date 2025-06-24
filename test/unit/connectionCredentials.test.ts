@@ -326,6 +326,7 @@ suite("ConnectionCredentials Tests", () => {
                 tenantId: "testTenantId",
                 port: 1234,
                 authenticationType: AuthenticationTypes[AuthenticationTypes.SqlLogin],
+                groupId: "test-group-id",
                 azureAccountToken: "testToken",
                 expiresOn: 5678,
                 encrypt: "Strict",

@@ -10,7 +10,7 @@ import {
     ConnectionGroupState,
     ConnectionGroupReducers,
     ConnectionGroupSpec,
-    ConnectionGroupConnectionProfile,
+    CreateConnectionGroupDialogProps,
 } from "../sharedInterfaces/connectionGroup";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -20,9 +20,7 @@ import * as Loc from "../constants/locConstants";
 import { IConnectionGroup } from "../models/interfaces";
 import * as Utils from "../models/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
-import { ConnectionStore } from "../models/connectionStore";
-import { FormState } from "../sharedInterfaces/form";
-import { CreateConnectionGroupDialogProps } from "../sharedInterfaces/connectionDialog";
+import ConnectionManager from "./connectionManager";
 
 /**
  * Controller for the Add Firewall Rule dialog
@@ -130,9 +128,9 @@ export function createConnectionGroupFromSpec(spec: ConnectionGroupState): IConn
 }
 
 /**
- * Opens the connection group dialog with the initial state.
+ * Shared function to get the default properties for the Create Connection Group dialog.
  */
-export function openConnectionGroupDialog(state) {
+export function getDefaultConnectionGroupDialogProps(state) {
     state.dialog = {
         type: "createConnectionGroup",
         props: {},
@@ -143,37 +141,26 @@ export function openConnectionGroupDialog(state) {
 
 /**
  * Shared function for controllers to create a connection group from the provided spec.
- * This function will add the group to the connection store and update the form state of the controller.
+ * This function will add the group to the connection store.
  * @param connectionGroupSpec - The specification for the connection group to create.
- * @param connectionStore - The connection store to add the group to.
+ * @param connectionManager - The connection manager to use for adding the group.
  * @param telemetryView - The telemetry view to send events to.
- * @param state - The form state of the controller.
- * @param formErrorObject - An object to store any error messages that occur during the creation process.
- * @param connectionProfile - The connection profile to update with the new group ID.
- * @return A promise that resolves to the updated form state.
+ * @return A promise that resolves to the created connection group or an error message.
  */
 export async function createConnectionGroup(
     connectionGroupSpec: ConnectionGroupSpec,
-    connectionStore: ConnectionStore,
+    connectionManager: ConnectionManager,
     telemetryView: TelemetryViews,
-    state: FormState<any, any, any>,
-    formErrorObject: string | string[],
-    connectionProfile: ConnectionGroupConnectionProfile,
-): Promise<FormState<any, any, any>> {
+): Promise<IConnectionGroup | string> {
     const addedGroup = createConnectionGroupFromSpec(connectionGroupSpec);
 
     try {
-        await connectionStore.connectionConfig.addGroup(addedGroup);
+        await connectionManager.connectionStore.connectionConfig.addGroup(addedGroup);
         sendActionEvent(telemetryView, TelemetryActions.SaveConnectionGroup, {
             newOrEdit: "new",
         });
     } catch (err) {
         const errorMessage = getErrorMessage(err);
-        if (Array.isArray(formErrorObject)) {
-            formErrorObject.push(errorMessage);
-        } else {
-            formErrorObject = errorMessage;
-        }
         sendErrorEvent(
             telemetryView,
             TelemetryActions.SaveConnectionGroup,
@@ -185,15 +172,17 @@ export async function createConnectionGroup(
                 failure: err.Name,
             },
         );
+        return errorMessage;
     }
 
     sendActionEvent(telemetryView, TelemetryActions.SaveConnectionGroup);
-    state.formComponents.groupId.options = await connectionStore.getConnectionGroupOptions();
+    // state.formComponents.groupId.options = await connectionStore.getConnectionGroupOptions();
 
-    // Close the dialog
-    if ("dialog" in state) {
-        state.dialog = undefined;
-    }
-    connectionProfile.groupId = addedGroup.id;
-    return state;
+    // // Close the dialog
+    // if ("dialog" in state) {
+    //     state.dialog = undefined;
+    // }
+    // connectionProfile.groupId = addedGroup.id;
+    // return state;
+    return addedGroup;
 }

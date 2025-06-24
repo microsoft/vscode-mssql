@@ -24,8 +24,6 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
 import { Deferred } from "../protocol";
-import { FormItemOptions } from "../sharedInterfaces/form";
-import { CREATE_NEW_GROUP_ID } from "../sharedInterfaces/connectionDialog";
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -632,62 +630,6 @@ export class ConnectionStore {
         });
 
         return output;
-    }
-
-    /**
-     * Get the options for connection groups.
-     * @returns A promise that resolves to an array of FormItemOptions for connection groups.
-     */
-    public async getConnectionGroupOptions(): Promise<FormItemOptions[]> {
-        const rootId = this.rootGroupId;
-        let connectionGroups = await this.readAllConnectionGroups();
-        connectionGroups = connectionGroups.filter((g) => g.id !== rootId);
-
-        // Count occurrences of group names to handle naming conflicts
-        const nameOccurrences = new Map<string, number>();
-        for (const group of connectionGroups) {
-            const count = nameOccurrences.get(group.name) || 0;
-            nameOccurrences.set(group.name, count + 1);
-        }
-
-        // Create a map of group IDs to their full paths
-        const groupById = new Map(connectionGroups.map((g) => [g.id, g]));
-
-        // Helper function to get parent path
-        const getParentPath = (group: IConnectionGroup): string => {
-            if (!group.parentId || group.parentId === rootId) {
-                return group.name;
-            }
-            const parent = groupById.get(group.parentId);
-            if (!parent) {
-                return group.name;
-            }
-            return `${getParentPath(parent)} > ${group.name}`;
-        };
-
-        const result = connectionGroups
-            .map((g) => {
-                // If there are naming conflicts, use the full path
-                const displayName = nameOccurrences.get(g.name) > 1 ? getParentPath(g) : g.name;
-
-                return {
-                    displayName,
-                    value: g.id,
-                };
-            })
-            .sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-        return [
-            {
-                displayName: LocalizedConstants.ConnectionDialog.default,
-                value: rootId,
-            },
-            {
-                displayName: LocalizedConstants.ConnectionDialog.createConnectionGroup,
-                value: CREATE_NEW_GROUP_ID,
-            },
-            ...result,
-        ];
     }
 
     private async loadProfiles(

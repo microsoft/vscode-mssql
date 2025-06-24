@@ -285,6 +285,11 @@ declare module "vscode-mssql" {
         authenticationType: string;
 
         /**
+         * Gets or sets the name of the connection's container group
+         */
+        groupId: string | undefined;
+
+        /**
          * Gets or sets the azure account token to use.
          */
         azureAccountToken: string | undefined;

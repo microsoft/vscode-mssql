@@ -20,7 +20,7 @@ import {
 } from "../../src/sharedInterfaces/containerDeploymentInterfaces";
 import * as telemetry from "../../src/telemetry/telemetry";
 import { AddLocalContainerConnectionTreeNode } from "../../src/containerDeployment/addLocalContainerConnectionTreeNode";
-import { ConnectionStore } from "../../src/models/connectionStore";
+import { ConnectionUI } from "../../src/views/connectionUI";
 
 suite("ContainerDeploymentWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -64,14 +64,14 @@ suite("ContainerDeploymentWebviewController", () => {
             TypeMoq.MockBehavior.Loose,
             mockContext,
         );
-        const mockConnectionStore = TypeMoq.Mock.ofType<ConnectionStore>();
-        mockConnectionStore
+        const mockConnectionUI = TypeMoq.Mock.ofType<ConnectionUI>();
+        mockConnectionUI
             .setup((x) => x.getConnectionGroupOptions())
             .returns(() =>
                 Promise.resolve([{ displayName: "defaultGroupIdName", value: "Default Group" }]),
             );
 
-        connectionManager.setup((x) => x.connectionStore).returns(() => mockConnectionStore.object);
+        connectionManager.setup((x) => x.connectionUI).returns(() => mockConnectionUI.object);
 
         mainController = new MainController(
             mockContext,
