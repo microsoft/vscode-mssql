@@ -159,8 +159,9 @@ export class ConnectionConfig implements IConnectionConfig {
         let profiles = await this.getConnections(false /* getWorkspaceConnections */);
 
         const found = this.removeConnectionHelper(profile, profiles);
-
-        await this.writeConnectionsToSettings(profiles);
+        if (found) {
+            await this.writeConnectionsToSettings(profiles);
+        }
         return found;
     }
 
