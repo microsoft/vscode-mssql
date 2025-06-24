@@ -62,7 +62,6 @@ import store, { SubKeys } from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
-import { DefaultWebviewNotifications } from "./reactWebviewBaseController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
@@ -80,6 +79,8 @@ import {
     prepareForDockerContainerCommand,
     stopContainer,
 } from "../containerDeployment/dockerUtils";
+import { StateChangeNotification } from "../sharedInterfaces/webview";
+import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 
 /**
  * The main controller class that initializes the extension
@@ -436,6 +437,32 @@ export default class MainController implements vscode.Disposable {
                     );
                 }
             });
+
+            this.registerCommandWithArgs(Constants.cmdChatWithDatabaseInAgentMode);
+            this._event.on(
+                Constants.cmdChatWithDatabaseInAgentMode,
+                async (treeNodeInfo: TreeNodeInfo) => {
+                    sendActionEvent(
+                        TelemetryViews.MssqlCopilot,
+                        TelemetryActions.ChatWithDatabaseInAgentMode,
+                    );
+
+                    const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                    if (
+                        databaseName !== connectionCredentials.database &&
+                        databaseName !== LocalizedConstants.defaultDatabaseLabel
+                    ) {
+                        connectionCredentials.database = databaseName;
+                    } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
+                        connectionCredentials.database = "";
+                    }
+                    vscode.commands.executeCommand(
+                        "workbench.action.chat.openAgent",
+                        `Connect to ${connectionCredentials.server},${connectionCredentials.database}.`,
+                    );
+                },
+            );
 
             // -- EXPLAIN QUERY --
             this._context.subscriptions.push(
@@ -1086,16 +1113,42 @@ export default class MainController implements vscode.Disposable {
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupDelete);
         this._event.on(Constants.cmdConnectionGroupDelete, async (node: ConnectionGroupNode) => {
-            const result = await vscode.window.showInformationMessage(
-                LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmation(
-                    typeof node.label === "string" ? node.label : node.label.label,
-                ),
-                { modal: true },
-                LocalizedConstants.Common.delete,
-            );
-            if (result === LocalizedConstants.Common.delete) {
+            if (!(node instanceof ConnectionGroupNode)) {
+                return;
+            }
+
+            let result = undefined;
+
+            if (node.children.length > 0) {
+                result = await vscode.window.showInformationMessage(
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmationWithContents(
+                        typeof node.label === "string" ? node.label : node.label.label,
+                    ),
+                    { modal: true },
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeleteContents,
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupMoveContents,
+                );
+            } else {
+                result = await vscode.window.showInformationMessage(
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmationWithoutContents(
+                        typeof node.label === "string" ? node.label : node.label.label,
+                    ),
+                    { modal: true },
+                    LocalizedConstants.Common.delete,
+                );
+            }
+            if (
+                result === LocalizedConstants.ObjectExplorer.ConnectionGroupDeleteContents ||
+                result === LocalizedConstants.Common.delete
+            ) {
                 void this.connectionManager.connectionStore.connectionConfig.removeGroup(
                     node.connectionGroup.id,
+                    "delete",
+                );
+            } else if (result === LocalizedConstants.ObjectExplorer.ConnectionGroupMoveContents) {
+                void this.connectionManager.connectionStore.connectionConfig.removeGroup(
+                    node.connectionGroup.id,
+                    "move",
                 );
             }
         });
@@ -2386,9 +2439,8 @@ export default class MainController implements vscode.Disposable {
         if (state) {
             state.uri = newUri;
 
-            // Post a notification to the webview to update the state of the query result
-            this._queryResultWebviewController.postNotification(
-                DefaultWebviewNotifications.updateState,
+            await this._queryResultWebviewController.sendNotification(
+                StateChangeNotification.type<QueryResultWebviewState>(),
                 state,
             );
 

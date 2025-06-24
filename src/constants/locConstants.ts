@@ -611,10 +611,21 @@ export class ObjectExplorer {
     public static ScriptAlterLabel = l10n.t("Alter");
     public static AzureSignInMessage = l10n.t("Signing in to Azure...");
 
-    public static ConnectionGroupDeletionConfirmation(groupName: string) {
+    public static ConnectionGroupDeletionConfirmationWithContents(groupName: string) {
         return l10n.t({
             message:
-                "Are you sure you want to delete {0}?  This will also delete all connections in this group.",
+                "Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.",
+            args: [groupName],
+            comment: ["{0} is the group name"],
+        });
+    }
+
+    public static ConnectionGroupDeleteContents = l10n.t("Delete Contents");
+    public static ConnectionGroupMoveContents = l10n.t("Move to Root");
+
+    public static ConnectionGroupDeletionConfirmationWithoutContents(groupName: string) {
+        return l10n.t({
+            message: "Are you sure you want to delete {0}?",
             args: [groupName],
             comment: ["{0} is the group name"],
         });
@@ -640,7 +651,9 @@ export class ConnectionDialog {
     public static additionalParameters = l10n.t("Additional parameters");
     public static connect = l10n.t("Connect");
     public static default = l10n.t("<Default>");
-    public static createConnectionGroup = l10n.t("Create Connection Group");
+    public static createConnectionGroup = l10n.t("+ Create Connection Group");
+    public static selectConnectionGroup = l10n.t("Select a connection group");
+    public static searchConnectionGroups = l10n.t("Search connection groups");
 
     public static errorLoadingAzureDatabases(subscriptionName: string, subscriptionId: string) {
         return l10n.t({

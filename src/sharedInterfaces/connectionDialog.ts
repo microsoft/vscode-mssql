@@ -9,6 +9,7 @@ import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
+import { RequestType } from "vscode-jsonrpc/browser";
 
 export class ConnectionDialogWebviewState
     implements
@@ -160,6 +161,7 @@ export interface ConnectionDialogContextProps
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
+    openCreateConnectionGroupDialog: () => void;
     createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
@@ -179,6 +181,8 @@ export enum AuthenticationType {
     AzureMFA = "AzureMFA",
 }
 
+export const CREATE_NEW_GROUP_ID = "CREATE_NEW_GROUP";
+
 export interface ConnectionDialogReducers extends FormReducers<IConnectionDialogProfile> {
     setConnectionInputType: {
         inputMode: ConnectionInputMode;
@@ -196,6 +200,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     createConnectionGroup: {
         connectionGroupSpec: ConnectionGroupSpec;
     };
+    openCreateConnectionGroupDialog: {};
     closeDialog: {};
     filterAzureSubscriptions: {};
     refreshConnectionsList: {};
@@ -208,4 +213,10 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
+}
+
+export namespace GetConnectionDisplayNameRequest {
+    export const type = new RequestType<IConnectionDialogProfile, string, void>(
+        "getConnectionDisplayName",
+    );
 }
