@@ -2144,6 +2144,95 @@
                 "displayName": "List MSSQL Servers",
                 "toolReferenceName": "mssql_list_servers",
                 "userDescription": "List all available MSSQL servers."
+            },
+            {
+                "name": "mssql_list_databases",
+                "modelDescription": "List all available databases for a connected MSSQL server. Returns a list of database names.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list databases for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Databases",
+                "toolReferenceName": "mssql_list_databases",
+                "userDescription": "List all available databases for a connected MSSQL server.",
+                "icon": "$(database)"
+            },
+            {
+                "name": "mssql_get_connection_details",
+                "modelDescription": "Get connection details for a specific connection ID. Returns connection information including server, database, authentication type, and user details.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection",
+                    "details"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to get details for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Get MSSQL Connection Details",
+                "toolReferenceName": "mssql_get_connection_details",
+                "userDescription": "Get connection details for a specific MSSQL connection.",
+                "icon": "$(info)"
+            },
+            {
+                "name": "mssql_change_database",
+                "modelDescription": "Change the database for an existing MSSQL connection. Disconnects from current database and reconnects to the specified database using the same connection credentials.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection",
+                    "change"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to change database for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database name to switch to.",
+                            "title": "Database Name",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId",
+                        "database"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Change MSSQL Database",
+                "toolReferenceName": "mssql_change_database",
+                "userDescription": "Change the database for an existing MSSQL connection.",
+                "icon": "$(arrow-swap)"
             }
         ]
     }
