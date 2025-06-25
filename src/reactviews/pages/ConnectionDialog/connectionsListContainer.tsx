@@ -10,7 +10,6 @@ import {
     CardHeader,
     Slot,
     Text,
-    Tree,
     makeStyles,
     tokens,
 } from "@fluentui/react-components";
@@ -82,7 +81,7 @@ export const ConnectionsListContainer = () => {
 
     return (
         <div>
-            <div className={styles.paneTitle}>
+            <div className={styles.paneTitle} id="saved-connections-heading">
                 <Text weight="semibold" className={styles.paneTitle}>
                     {locConstants.connectionDialog.savedConnections}
                 </Text>
@@ -92,7 +91,7 @@ export const ConnectionsListContainer = () => {
                     onClick={context.refreshConnectionsList}
                 />
             </div>
-            <div className={styles.main}>
+            <div className={styles.main} role="region" aria-labelledby="saved-connections-heading">
                 {// state may not be initialized yet due to async loading of context
                 context.state?.savedConnections.map((connection, index) => {
                     return (
@@ -111,7 +110,7 @@ export const ConnectionsListContainer = () => {
                     );
                 })}
             </div>
-            <div className={styles.paneTitle}>
+            <div className={styles.paneTitle} id="recent-connections-heading">
                 <Text weight="semibold" className={styles.paneTitle}>
                     {locConstants.connectionDialog.recentConnections}
                 </Text>
@@ -121,7 +120,7 @@ export const ConnectionsListContainer = () => {
                     onClick={context.refreshConnectionsList}
                 />
             </div>
-            <Tree>
+            <div className={styles.main} role="region" aria-labelledby="recent-connections-heading">
                 {// state may not be initialized yet due to async loading of context
                 context.state?.recentConnections.map((connection, index) => {
                     return (
@@ -139,7 +138,7 @@ export const ConnectionsListContainer = () => {
                         />
                     );
                 })}
-            </Tree>
+            </div>
         </div>
     );
 };
@@ -199,6 +198,7 @@ export const ConnectionCard = ({
                 }
             }}
             title={locConstants.connectionDialog.connectTo(displayName)}
+            aria-label={locConstants.connectionDialog.connectTo(displayName)}
             role="button"
             style={{ cursor: "pointer" }}>
             <CardHeader
@@ -222,6 +222,7 @@ export const ConnectionCard = ({
                                     }
                                 }}
                                 title={actionButton.tooltip}
+                                aria-label={`${actionButton.tooltip} for ${displayName}`}
                                 tabIndex={0}
                             />
                         </div>
