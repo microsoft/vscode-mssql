@@ -20,6 +20,8 @@ export let copyHeadersLabel = "Copy All Headers";
 /** Messages Pane Labels */
 export let executeQueryLabel = "Executing query...";
 export let messagePaneLabel = "Messages";
+export let messages = "Messages";
+export let queryExecutionMessages = "Query execution messages";
 export let lineSelectorFormatted = "Line {0}";
 export let elapsedTimeLabel = "Total execution time: {0}";
 

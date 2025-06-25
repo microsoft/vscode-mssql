@@ -119,9 +119,9 @@ const template = `
         (contextmenu)="openMessagesContextMenu($event)"
         (mousedown)="onMouseDown($event)" 
         role="log" 
-        aria-label="Query execution messages">
+        [attr.aria-label]="Constants.queryExecutionMessages">
         <br>
-        <table id="messageTable" role="presentation" aria-label="Messages">
+        <table id="messageTable" role="presentation" [attr.aria-label]="Constants.messages">
             <colgroup>
                 <col span="1" class="wide">
             </colgroup>
