@@ -102,9 +102,9 @@ export interface ContainerDeploymentContextProps
 
     /**
      * Sets the visibility of the connection group dialog based on the provided state.
-     * @param isOpen - A boolean indicating whether the dialog should be open or closed.
+     * @param shouldOpen - A boolean indicating whether the dialog should be open or closed.
      */
-    setConnectionGroupDialogState(isOpen: boolean): void;
+    setConnectionGroupDialogState(shouldOpen: boolean): void;
 
     /**
      * Cleans up and disposes of resources used by the deployment context.
@@ -146,7 +146,7 @@ export interface ContainerDeploymentReducers {
     /**
      * Handles the action of opening/closing the connection group dialog.
      */
-    setConnectionGroupDialogState: { isOpen: boolean };
+    setConnectionGroupDialogState: { shouldOpen: boolean };
 
     /**
      * Reducer for cleanup and disposal logic.

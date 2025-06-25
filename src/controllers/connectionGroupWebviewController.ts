@@ -176,13 +176,5 @@ export async function createConnectionGroup(
     }
 
     sendActionEvent(telemetryView, TelemetryActions.SaveConnectionGroup);
-    // state.formComponents.groupId.options = await connectionStore.getConnectionGroupOptions();
-
-    // // Close the dialog
-    // if ("dialog" in state) {
-    //     state.dialog = undefined;
-    // }
-    // connectionProfile.groupId = addedGroup.id;
-    // return state;
     return addedGroup;
 }

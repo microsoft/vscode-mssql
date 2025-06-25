@@ -53,9 +53,9 @@ const ContainerDeploymentStateProvider: React.FC<ContainerDeploymentProviderProp
                         connectionGroupSpec: connectionGroupSpec,
                     });
                 },
-                setConnectionGroupDialogState: function (isOpen: boolean): void {
+                setConnectionGroupDialogState: function (shouldOpen: boolean): void {
                     webviewState?.extensionRpc.action("setConnectionGroupDialogState", {
-                        isOpen: isOpen,
+                        shouldOpen: shouldOpen,
                     });
                 },
                 dispose: function (): void {

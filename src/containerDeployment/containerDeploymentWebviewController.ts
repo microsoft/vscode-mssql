@@ -199,13 +199,12 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("setConnectionGroupDialogState", async (state, payload) => {
-            // Close dialog if it is open
-            if (payload.isOpen) {
-                state.dialog = undefined;
-            } else {
+            if (payload.shouldOpen) {
                 state = getDefaultConnectionGroupDialogProps(
                     state,
                 ) as cd.ContainerDeploymentWebviewState;
+            } else {
+                state.dialog = undefined;
             }
             return state;
         });

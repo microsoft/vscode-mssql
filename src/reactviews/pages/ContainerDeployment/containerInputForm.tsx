@@ -123,7 +123,7 @@ export const ContainerInputForm: React.FC = () => {
                         <ConnectionGroupDialog
                             state={(state.state.dialog as CreateConnectionGroupDialogProps).props}
                             saveConnectionGroup={state.createConnectionGroup}
-                            closeDialog={() => state.setConnectionGroupDialogState(true)} // isOpen is true when closing the dialog
+                            closeDialog={() => state.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
                     )}
                     {renderFormFields(false)}
