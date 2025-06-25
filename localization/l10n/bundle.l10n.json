@@ -1592,6 +1592,18 @@
       "{1} is the database name"
     ]
   },
+  "Successfully changed to database: {0}/{0} is the database name": {
+    "message": "Successfully changed to database: {0}",
+    "comment": [
+      "{0} is the database name"
+    ]
+  },
+  "Failed to connect to database: {0}/{0} is the database name": {
+    "message": "Failed to connect to database: {0}",
+    "comment": [
+      "{0} is the database name"
+    ]
+  },
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Create Connection Group": "Create Connection Group",
   "Edit Connection Group - {0}/{0} is the connection group name": {

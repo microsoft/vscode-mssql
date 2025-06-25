@@ -42,12 +42,36 @@ export class ChangeDatabaseTool extends ToolBase<ChangeDatabaseToolParams> {
                 });
             }
 
-            // TODO: Implement actual database change logic
-            console.log(`TODO: Change to database: ${database}`);
+            // Check if the connection is currently connected
+            if (!this.connectionManager.isConnected(connectionId)) {
+                return JSON.stringify({
+                    success: false,
+                    message: loc.noConnectionError(connectionId),
+                });
+            }
 
-            return JSON.stringify({
-                success: true,
-            } as ChangeDatabaseToolResult);
+            // Create new connection credentials with the new database
+            const newConnectionCreds = { ...connCreds };
+            newConnectionCreds.database = database;
+
+            // Disconnect from current database and reconnect to new one
+            await this.connectionManager.disconnect(connectionId);
+            const connectResult = await this.connectionManager.connect(
+                connectionId,
+                newConnectionCreds,
+            );
+
+            if (connectResult) {
+                return JSON.stringify({
+                    success: true,
+                    message: loc.changeDatabaseToolSuccessMessage(database),
+                } as ChangeDatabaseToolResult);
+            } else {
+                return JSON.stringify({
+                    success: false,
+                    message: loc.changeDatabaseToolFailMessage(database),
+                } as ChangeDatabaseToolResult);
+            }
         } catch (err) {
             return JSON.stringify({
                 success: false,

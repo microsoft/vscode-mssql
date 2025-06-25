@@ -1009,6 +1009,10 @@
       <source xml:lang="en">Failed to apply changes: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the publish changes operation</note>
     </trans-unit>
+    <trans-unit id="++CODE++6e543be4255a8c4362baca16d0850278f1d95a7df9cd38f4b94ecbda4abe57e5">
+      <source xml:lang="en">Failed to connect to database: {0}</source>
+      <note>{0} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++d6ca257a745c3035dfd24b1cf8bddd511b93f0c4ae8036dc0d88ece8501d4d13">
       <source xml:lang="en">Failed to connect to server.</source>
     </trans-unit>
@@ -2225,6 +2229,10 @@
     </trans-unit>
     <trans-unit id="++CODE++5443b1422a140475d5703c916c7686007233ea92292881588670e73409a7f1cd">
       <source xml:lang="en">Succeeded with warning</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2e71037756b80741dc7aff95ef179d5a25c08df7a40cd7b16af9a5edb6f64047">
+      <source xml:lang="en">Successfully changed to database: {0}</source>
+      <note>{0} is the database name</note>
     </trans-unit>
     <trans-unit id="++CODE++fbd52c8b91de95b69593d008ca2108476ccb1ea5a45657b3393d878499e3fe1f">
       <source xml:lang="en">Successfully connected to server.</source>

@@ -1362,6 +1362,20 @@ export class MssqlChatAgent {
             comment: ["{0} is the connection ID", "{1} is the database name"],
         });
     };
+    public static changeDatabaseToolSuccessMessage = (database: string) => {
+        return l10n.t({
+            message: "Successfully changed to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
+        });
+    };
+    public static changeDatabaseToolFailMessage = (database: string) => {
+        return l10n.t({
+            message: "Failed to connect to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
+        });
+    };
 }
 
 export class QueryEditor {
