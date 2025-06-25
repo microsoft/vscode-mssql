@@ -4,25 +4,24 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as React from "react";
-import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import {
-    useScrollbarWidth,
-    useFluent,
-    TableBody,
-    TableCell,
-    TableRow,
-    Table,
-    TableHeader,
-    TableHeaderCell,
     createTableColumn,
-    useTableFeatures,
-    useTableSelection,
-    TableRowData as RowStateBase,
     TableColumnDefinition,
     Checkbox,
     makeStyles,
     Spinner,
+    DataGridHeader,
+    DataGridHeaderCell,
+    Text,
+    TableColumnSizingOptions,
 } from "@fluentui/react-components";
+import {
+    DataGridBody,
+    DataGrid,
+    DataGridRow,
+    DataGridCell,
+    RowRenderer,
+} from "@fluentui-contrib/react-data-grid-react-window";
 import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
 import { DiffEntry } from "vscode-mssql";
@@ -72,18 +71,17 @@ const useStyles = makeStyles({
         backgroundColor: "var(--vscode-scrollbarSlider-background)",
         opacity: 0.5,
     },
+    hideTextOverflow: {
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+    },
+    alignSpinner: {
+        marginLeft: "8px",
+    },
+    dataGridHeader: {
+        backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
+    },
 });
-
-interface TableRowData extends RowStateBase<DiffEntry> {
-    onClick: (e: React.MouseEvent) => void;
-    onKeyDown: (e: React.KeyboardEvent) => void;
-    selected: boolean;
-    appearance: "brand" | "none";
-}
-
-interface ReactWindowRenderFnProps extends ListChildComponentProps {
-    data: TableRowData[];
-}
 
 interface Props {
     onDiffSelected: (id: number) => void;
@@ -94,8 +92,6 @@ interface Props {
 export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
     ({ onDiffSelected, selectedDiffId, siblingRef }, ref) => {
         const classes = useStyles();
-        const { targetDocument } = useFluent();
-        const scrollbarWidth = useScrollbarWidth({ targetDocument });
         const context = React.useContext(schemaCompareContext);
         const compareResult = context.state.schemaCompareResult;
         const [diffInclusionLevel, setDiffInclusionLevel] = React.useState<
@@ -113,16 +109,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             maxHeight: 800,
             siblingRef,
         });
-
-        // Add a reference to the List component
-        const listRef = React.useRef<List>(null);
-
-        // Use an effect to scroll to the selected row when selectedDiffId changes
-        React.useEffect(() => {
-            if (selectedDiffId >= 0 && listRef.current) {
-                listRef.current.scrollToItem(selectedDiffId, "center");
-            }
-        }, [selectedDiffId]);
 
         // Expose resizableRef via forwarded ref
         React.useImperativeHandle(ref, () => resizableRef.current!);
@@ -196,39 +182,97 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
         const columns: TableColumnDefinition<DiffEntry>[] = [
             createTableColumn<DiffEntry>({
                 columnId: "type",
+                renderHeaderCell: () => loc.schemaCompare.type,
                 renderCell: (item) => {
-                    return <TableCell>{item.name}</TableCell>;
+                    return (
+                        <DataGridCell>
+                            <Text truncate className={classes.hideTextOverflow}>
+                                {item.name}
+                            </Text>
+                        </DataGridCell>
+                    );
                 },
             }),
             createTableColumn<DiffEntry>({
                 columnId: "sourceName",
+                renderHeaderCell: () => loc.schemaCompare.sourceName,
                 renderCell: (item) => {
-                    return <TableCell>{formatName(item.sourceValue)}</TableCell>;
+                    return (
+                        <DataGridCell>
+                            <Text truncate className={classes.hideTextOverflow}>
+                                {formatName(item.sourceValue)}
+                            </Text>
+                        </DataGridCell>
+                    );
                 },
             }),
             createTableColumn<DiffEntry>({
                 columnId: "include",
+                renderHeaderCell: () => {
+                    if (context.state.isIncludeExcludeAllOperationInProgress) {
+                        return (
+                            <div>
+                                <Spinner
+                                    size="extra-tiny"
+                                    aria-label={
+                                        loc.schemaCompare.includeExcludeAllOperationInProgress
+                                    }
+                                    className={classes.alignSpinner}
+                                />
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <Checkbox
+                            checked={
+                                diffInclusionLevel === "allIncluded"
+                                    ? true
+                                    : diffInclusionLevel === "mixed"
+                                      ? "mixed"
+                                      : false
+                            }
+                            onClick={() => handleIncludeExcludeAllNodes()}
+                            onKeyDown={toggleAllKeydown}
+                        />
+                    );
+                },
                 renderCell: (item) => {
                     return (
-                        <TableCell>
+                        <DataGridCell>
                             <Checkbox
                                 checked={item.included}
                                 onClick={() => handleIncludeExcludeNode(item, !item.included)}
+                                disabled={context.state.isIncludeExcludeAllOperationInProgress}
                             />
-                        </TableCell>
+                        </DataGridCell>
                     );
                 },
             }),
             createTableColumn<DiffEntry>({
                 columnId: "action",
+                renderHeaderCell: () => loc.schemaCompare.action,
                 renderCell: (item) => {
-                    return <TableCell>{getLabelForAction(item.updateAction as number)}</TableCell>;
+                    return (
+                        <DataGridCell>
+                            <Text truncate className={classes.hideTextOverflow}>
+                                {getLabelForAction(item.updateAction as number)}
+                            </Text>
+                        </DataGridCell>
+                    );
                 },
             }),
             createTableColumn<DiffEntry>({
                 columnId: "targetName",
+                renderHeaderCell: () => loc.schemaCompare.targetName,
                 renderCell: (item) => {
-                    return <TableCell>{formatName(item.targetValue)}</TableCell>;
+                    return (
+                        <DataGridCell>
+                            <Text truncate className={classes.hideTextOverflow}>
+                                {formatName(item.targetValue)}
+                            </Text>
+                        </DataGridCell>
+                    );
                 },
             }),
         ];
@@ -244,37 +288,6 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             );
         }
 
-        const {
-            getRows,
-            selection: { toggleRow },
-        } = useTableFeatures(
-            {
-                columns,
-                items,
-            },
-            [
-                useTableSelection({
-                    selectionMode: "multiselect",
-                }),
-            ],
-        );
-
-        const rows: TableRowData[] = getRows((row) => {
-            const selected = row.item.included;
-            return {
-                ...row,
-                onClick: (e: React.MouseEvent) => toggleRow(e, row.rowId),
-                onKeyDown: (e: React.KeyboardEvent) => {
-                    if (e.key === " ") {
-                        e.preventDefault();
-                        toggleRow(e, row.rowId);
-                    }
-                },
-                selected,
-                appearance: selected ? ("brand" as const) : ("none" as const),
-            };
-        });
-
         const toggleAllKeydown = (e: React.KeyboardEvent<HTMLDivElement>) => {
             if (e.key === " ") {
                 handleIncludeExcludeAllNodes();
@@ -282,48 +295,50 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
             }
         };
 
-        const toggleKeyDown = (
-            e: React.KeyboardEvent<HTMLDivElement>,
-            diffEntry: DiffEntry,
-            include: boolean,
-        ) => {
+        const toggleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, diffEntry: DiffEntry) => {
             if (e.key === "Enter") {
                 if (diffEntry.position !== undefined) {
                     onDiffSelected(diffEntry.position);
                 }
                 e.preventDefault();
             }
-            if (e.key === " ") {
-                handleIncludeExcludeNode(diffEntry, include);
-                e.preventDefault();
-            }
         };
 
-        const RenderRow = ({ index, style, data }: ReactWindowRenderFnProps) => {
-            const { item, appearance, onKeyDown } = data[index];
+        const renderRow: RowRenderer<DiffEntry> = ({ item, rowId }, style) => {
             return (
-                <TableRow
-                    aria-rowindex={index + 2}
+                <DataGridRow<DiffEntry>
+                    key={rowId}
+                    className={item.position === selectedDiffId ? classes.selectedRow : undefined}
                     style={style}
-                    key={item.position}
-                    onKeyDown={onKeyDown}
-                    onClick={() => onDiffSelected(index)}
-                    appearance={appearance}
-                    className={index === selectedDiffId ? classes.selectedRow : undefined}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{formatName(item.sourceValue)}</TableCell>
-                    <TableCell>
-                        <Checkbox
-                            checked={item.included}
-                            onClick={() => handleIncludeExcludeNode(item, !item.included)}
-                            onKeyDown={(e) => toggleKeyDown(e, item, !item.included)}
-                            disabled={context.state.isIncludeExcludeAllOperationInProgress}
-                        />
-                    </TableCell>
-                    <TableCell>{getLabelForAction(item.updateAction as number)}</TableCell>
-                    <TableCell>{formatName(item.targetValue)}</TableCell>
-                </TableRow>
+                    onClick={() => {
+                        if (item.position !== undefined) {
+                            onDiffSelected(item.position);
+                        }
+                    }}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => toggleKeyDown(e, item)}>
+                    {({ renderCell }) => <>{renderCell(item)}</>}
+                </DataGridRow>
             );
+        };
+
+        const columnSizingOptions: TableColumnSizingOptions = {
+            type: {
+                minWidth: 100,
+            },
+            sourceName: {
+                minWidth: 200,
+                defaultWidth: 350,
+            },
+            include: {
+                minWidth: 60,
+                defaultWidth: 60,
+            },
+            action: {
+                minWidth: 100,
+            },
+            targetName: {
+                minWidth: 200,
+            },
         };
 
         return (
@@ -331,64 +346,26 @@ export const SchemaDifferences = React.forwardRef<HTMLDivElement, Props>(
                 className={classes.resizableContainer}
                 ref={resizableRef}
                 style={{ height: `${height}px` }}>
-                <Table
-                    noNativeElements
-                    aria-label="Table with selection"
-                    aria-rowcount={rows.length}
-                    style={{ minWidth: "650px" }}>
-                    <TableHeader>
-                        <TableRow aria-rowindex={1}>
-                            <TableHeaderCell className={classes.HeaderCellPadding}>
-                                {loc.schemaCompare.type}
-                            </TableHeaderCell>
-                            <TableHeaderCell className={classes.HeaderCellPadding}>
-                                {loc.schemaCompare.sourceName}
-                            </TableHeaderCell>
-                            <TableHeaderCell>
-                                {!context.state.isIncludeExcludeAllOperationInProgress && (
-                                    <Checkbox
-                                        checked={
-                                            diffInclusionLevel === "allIncluded"
-                                                ? true
-                                                : diffInclusionLevel === "mixed"
-                                                  ? "mixed"
-                                                  : false
-                                        }
-                                        onClick={() => handleIncludeExcludeAllNodes()}
-                                        onKeyDown={toggleAllKeydown}
-                                    />
-                                )}
-                                {context.state.isIncludeExcludeAllOperationInProgress && (
-                                    <Spinner
-                                        size="extra-tiny"
-                                        aria-label={
-                                            loc.schemaCompare.includeExcludeAllOperationInProgress
-                                        }
-                                    />
-                                )}
-                            </TableHeaderCell>
-                            <TableHeaderCell className={classes.HeaderCellPadding}>
-                                {loc.schemaCompare.action}
-                            </TableHeaderCell>
-                            <TableHeaderCell className={classes.HeaderCellPadding}>
-                                {loc.schemaCompare.targetName}
-                            </TableHeaderCell>
-                            {/** Scrollbar alignment for the header */}
-                            <div role="presentation" style={{ width: scrollbarWidth }} />
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <List
-                            ref={listRef}
-                            height={height - 40} // Subtract header height
-                            itemCount={items.length}
-                            itemSize={45}
-                            width={"100%"}
-                            itemData={rows}>
-                            {RenderRow}
-                        </List>
-                    </TableBody>
-                </Table>
+                <DataGrid
+                    items={items}
+                    columns={columns}
+                    focusMode="composite"
+                    resizableColumns={true}
+                    columnSizingOptions={columnSizingOptions}
+                    getRowId={(item) => (item as DiffEntry).position?.toString() ?? ""}
+                    size="extra-small">
+                    <DataGridHeader className={classes.dataGridHeader}>
+                        <DataGridRow>
+                            {({ renderHeaderCell }) => (
+                                <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                            )}
+                        </DataGridRow>
+                    </DataGridHeader>
+                    <DataGridBody<DiffEntry> itemSize={30} height={height - 40} width={"100%"}>
+                        {renderRow}
+                    </DataGridBody>
+                </DataGrid>
+
                 <div {...resizerProps} className={classes.resizer}>
                     <div className={classes.resizerHandle} />
                 </div>
