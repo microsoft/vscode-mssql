@@ -96,12 +96,17 @@ table {
 }
 
 #messageTable td {
-    padding-right: 20px;
+    padding: 6px 20px 6px 6px;
     color: var(--color-content);
+    border-bottom: 1px solid var(--vscode-menu-border);
 }
 
 #messageTable th {
     text-align: left;
+    padding: 6px 20px 6px 6px;
+    border-bottom: 2px solid var(--vscode-menu-border);
+    font-weight: 600;
+    background-color: var(--vscode-editor-background);
 }
 
 #messageTable tbody tr:last-child > td {
