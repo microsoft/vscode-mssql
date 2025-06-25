@@ -117,9 +117,11 @@ const template = `
     </div>
     <div id="messages" class="scrollable messages" [class.hidden]="!messageActive"
         (contextmenu)="openMessagesContextMenu($event)"
-        (mousedown)="onMouseDown($event)">
+        (mousedown)="onMouseDown($event)" 
+        role="log" 
+        aria-label="Query execution messages">
         <br>
-        <table id="messageTable">
+        <table id="messageTable" role="presentation" aria-label="Messages">
             <colgroup>
                 <col span="1" class="wide">
             </colgroup>
