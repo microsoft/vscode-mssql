@@ -2026,7 +2026,7 @@
         "languageModelTools": [
             {
                 "name": "mssql_show_schema",
-                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool requires an active db connection from the current active editor. This tool opens a graphical view of the database schema, including tables and relationships.",
+                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool takes a connection ID as input and opens a graphical view of the database schema, including tables and relationships.",
                 "tags": [
                     "databases",
                     "mssql",
