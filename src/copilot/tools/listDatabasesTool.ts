@@ -8,28 +8,27 @@ import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import { getErrorMessage } from "../../utils/utils";
 
-export interface ShowSchemaToolParams {
+export interface ListDatabasesToolParams {
     connectionId: string;
 }
 
-export interface ShowSchemaToolResult {
+export interface ListDatabasesToolResult {
     success: boolean;
     message?: string;
+    databases: string[];
 }
 
-export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
-    public readonly toolName = Constants.copilotShowSchemaToolName;
+export class ListDatabasesTool extends ToolBase<ListDatabasesToolParams> {
+    public readonly toolName = Constants.copilotListDatabasesToolName;
 
-    constructor(
-        private connectionManager: ConnectionManager,
-        private showSchema: (connectionUri: string, database: string) => Promise<void>,
-    ) {
+    constructor(private connectionManager: ConnectionManager) {
         super();
     }
 
     async call(
-        options: vscode.LanguageModelToolInvocationOptions<ShowSchemaToolParams>,
+        options: vscode.LanguageModelToolInvocationOptions<ListDatabasesToolParams>,
         _token: vscode.CancellationToken,
     ) {
         const { connectionId } = options.input;
@@ -42,30 +41,32 @@ export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
                     message: loc.noConnectionError(connectionId),
                 });
             }
+            const databases = await this.connectionManager.listDatabases(connectionId);
 
-            await this.showSchema(connectionId, connCreds.database);
             return JSON.stringify({
                 success: true,
-                message: loc.showSchemaToolSuccessMessage,
+                databases,
             });
         } catch (err) {
             return JSON.stringify({
                 success: false,
-                message: err instanceof Error ? err.message : String(err),
+                message: getErrorMessage(err),
             });
         }
     }
 
     async prepareInvocation(
-        options: vscode.LanguageModelToolInvocationPrepareOptions<ShowSchemaToolParams>,
+        options: vscode.LanguageModelToolInvocationPrepareOptions<ListDatabasesToolParams>,
         _token: vscode.CancellationToken,
     ) {
         const { connectionId } = options.input;
         const confirmationMessages = {
-            title: `${Constants.extensionName}: ${loc.showSchemaToolConfirmationTitle}`,
-            message: new vscode.MarkdownString(loc.showSchemaToolConfirmationMessage(connectionId)),
+            title: `${Constants.extensionName}: ${loc.listDatabasesToolConfirmationTitle}`,
+            message: new vscode.MarkdownString(
+                loc.listDatabasesToolConfirmationMessage(connectionId),
+            ),
         };
-        const invocationMessage = loc.showSchemaToolInvocationMessage(connectionId);
+        const invocationMessage = loc.listDatabasesToolInvocationMessage(connectionId);
         return { invocationMessage, confirmationMessages };
     }
 }

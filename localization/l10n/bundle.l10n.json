@@ -1551,6 +1551,47 @@
     ]
   },
   "Schema visualization opened.": "Schema visualization opened.",
+  "Get Connection Details": "Get Connection Details",
+  "Get connection details for connection '{0}'?/{0} is the connection ID": {
+    "message": "Get connection details for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Getting connection details for connection '{0}'/{0} is the connection ID": {
+    "message": "Getting connection details for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "List Databases": "List Databases",
+  "List databases for connection '{0}'?/{0} is the connection ID": {
+    "message": "List databases for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing databases for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing databases for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Change Database": "Change Database",
+  "Change database to '{1}' for connection '{0}'?/{0} is the connection ID{1} is the database name": {
+    "message": "Change database to '{1}' for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID",
+      "{1} is the database name"
+    ]
+  },
+  "Changing database to '{1}' for connection '{0}'/{0} is the connection ID{1} is the database name": {
+    "message": "Changing database to '{1}' for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID",
+      "{1} is the database name"
+    ]
+  },
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Create Connection Group": "Create Connection Group",
   "Edit Connection Group - {0}/{0} is the connection group name": {

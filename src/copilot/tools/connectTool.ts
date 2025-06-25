@@ -9,6 +9,7 @@ import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
+import { randomUUID } from "crypto";
 
 /** Parameters for the connect tool. */
 export interface ConnectToolParams {
@@ -119,14 +120,9 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
             } as ConnectToolResult);
         }
 
-        // Determine the connection ID and database to use
-        const targetServer = result.profile.server;
+        // Determine the database to use
         const targetDatabase = database || result.profile.database;
-
-        let connectionId = `${Constants.extensionName}/${targetServer}`;
-        if (targetDatabase) {
-            connectionId += `/${targetDatabase}`;
-        }
+        let connectionId = randomUUID();
 
         let success: boolean;
         let message: string;
