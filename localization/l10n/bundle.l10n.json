@@ -115,6 +115,7 @@
   "Select": "Select",
   "Finish": "Finish",
   "Retry": "Retry",
+  "Refresh": "Refresh",
   "Show password": "Show password",
   "Hide password": "Hide password",
   "Error": "Error",
@@ -377,7 +378,6 @@
       "{0} is the number of selected tables"
     ]
   },
-  "Refresh": "Refresh",
   "Publish Changes": "Publish Changes",
   "Edit Table": "Edit Table",
   "Open in Editor": "Open in Editor",
