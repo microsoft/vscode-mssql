@@ -109,7 +109,7 @@ export function initializeDockerSteps(): DockerStep[] {
             headerText: ContainerDeployment.startDockerEngineHeader,
             bodyText: ContainerDeployment.startDockerEngineBody,
             errorLink:
-                platform() === Platform.Windows
+                platform() === Platform.Windows && arch() === x64
                     ? "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers"
                     : undefined,
             errorLinkText: ContainerDeployment.configureLinuxContainers,
@@ -211,16 +211,23 @@ export async function checkDockerInstallation(): Promise<DockerCommandParams> {
  */
 export async function checkEngine(): Promise<DockerCommandParams> {
     let dockerCliPath = "";
-    if (platform() === Platform.Windows) {
-        dockerCliPath = await getDockerPath("DockerCli.exe");
-    }
     if (platform() === Platform.Mac && arch() === x64) return { success: true }; // No need to check Rosetta on x64 macOS
+    if (platform() !== Platform.Mac && arch() !== x64) {
+        return {
+            success: false,
+            error: ContainerDeployment.unsupportedDockerArchitectureError(arch()),
+        };
+    }
     const engineCommand = COMMANDS.CHECK_ENGINE[platform()];
     if (engineCommand === undefined) {
         return {
             success: false,
             error: ContainerDeployment.unsupportedDockerPlatformError(platform()),
         };
+    }
+
+    if (platform() === Platform.Windows) {
+        dockerCliPath = await getDockerPath("DockerCli.exe");
     }
 
     try {
