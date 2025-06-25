@@ -43,7 +43,8 @@ button[role="combobox"] .placeholder {
     color: var(--vscode-input-placeholderForeground) !important;
 }
 
-.fui-Option:hover {
+.fui-Option:hover,
+.fui-Option:active {
     background-color: var(--vscode-dropdown-background);
     color: var(--vscode-dropdown-foreground);
 }
