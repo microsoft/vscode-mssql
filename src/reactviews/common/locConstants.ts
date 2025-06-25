@@ -51,6 +51,7 @@ export class LocConstants {
             select: l10n.t("Select"),
             finish: l10n.t("Finish"),
             retry: l10n.t("Retry"),
+            refresh: l10n.t("Refresh"),
             showPassword: l10n.t("Show password"),
             hidePassword: l10n.t("Hide password"),
         };

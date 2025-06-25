@@ -88,6 +88,8 @@ export const ConnectionsListContainer = () => {
                 <Button
                     icon={<ArrowClockwise16Filled />}
                     appearance="subtle"
+                    title={locConstants.common.refresh}
+                    aria-label={locConstants.common.refresh}
                     onClick={context.refreshConnectionsList}
                 />
             </div>
@@ -117,6 +119,8 @@ export const ConnectionsListContainer = () => {
                 <Button
                     icon={<ArrowClockwise16Filled />}
                     appearance="subtle"
+                    title={locConstants.common.refresh}
+                    aria-label={locConstants.common.refresh}
                     onClick={context.refreshConnectionsList}
                 />
             </div>
