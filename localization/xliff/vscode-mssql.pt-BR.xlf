@@ -4147,6 +4147,10 @@ Confira o plano estimado sem executar a consulta ou visualize o plano de consult
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">Visualizar um Plano de Consulta</target>
       </trans-unit>
+      <trans-unit id="mssql.statusBar.enableConnectionColor">
+        <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
+        <target state="new">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">Quando habilitados, os objetos de banco de dados no Pesquisador de Objetos serão categorizados por esquema.</target>
