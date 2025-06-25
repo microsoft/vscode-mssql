@@ -178,7 +178,10 @@ export const msalCacheFileName = "accessTokenCache";
 export const copilotConnectToolName = "mssql_connect";
 export const copilotDisconnectToolName = "mssql_disconnect";
 export const copilotListServersToolName = "mssql_list_servers";
+export const copilotListDatabasesToolName = "mssql_list_databases";
+export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotShowSchemaToolName = "mssql_show_schema";
+export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 
 // Configuration Constants
 export const copyIncludeHeaders = "copyIncludeHeaders";

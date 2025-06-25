@@ -71,6 +71,9 @@ import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
 import { DisconnectTool } from "../copilot/tools/disconnectTool";
+import { GetConnectionDetailsTool } from "../copilot/tools/getConnectionDetailsTool";
+import { ChangeDatabaseTool } from "../copilot/tools/changeDatabaseTool";
+import { ListDatabasesTool } from "../copilot/tools/listDatabasesTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
@@ -459,7 +462,7 @@ export default class MainController implements vscode.Disposable {
                     }
                     vscode.commands.executeCommand(
                         "workbench.action.chat.openAgent",
-                        `Connect to ${connectionCredentials.server},${connectionCredentials.database}.`,
+                        `Connect to ${connectionCredentials.server},${connectionCredentials.database}${connectionCredentials.profileName ? ` using profile ${connectionCredentials.profileName}` : ""}.`,
                     );
                 },
             );
@@ -572,45 +575,79 @@ export default class MainController implements vscode.Disposable {
                 this.onDidChangeConfiguration(params),
             );
 
-            this._context.subscriptions.push(
-                vscode.lm.registerTool(
-                    "mssql_show_schema",
-                    new ShowSchemaTool(
-                        this.connectionManager,
-                        async (connectionUri: string, database: string) => {
-                            const designer =
-                                await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
-                                    this._context,
-                                    this._vscodeWrapper,
-                                    this,
-                                    this.schemaDesignerService,
-                                    database,
-                                    undefined,
-                                    connectionUri,
-                                );
-                            designer.revealToForeground();
-                        },
-                    ),
-                ),
-            );
-            this._context.subscriptions.push(
-                vscode.lm.registerTool("mssql_connect", new ConnectTool(this.connectionManager)),
-            );
-            this._context.subscriptions.push(
-                vscode.lm.registerTool(
-                    "mssql_disconnect",
-                    new DisconnectTool(this.connectionManager),
-                ),
-            );
-            this._context.subscriptions.push(
-                vscode.lm.registerTool(
-                    "mssql_list_servers",
-                    new ListServersTool(this.connectionManager),
-                ),
-            );
+            this.registerLanguageModelTools();
 
             return true;
         }
+    }
+
+    /**
+     * Helper method to register all language model tools
+     */
+    private registerLanguageModelTools(): void {
+        // Register mssql_connect tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool("mssql_connect", new ConnectTool(this.connectionManager)),
+        );
+
+        // Register mssql_disconnect tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool("mssql_disconnect", new DisconnectTool(this.connectionManager)),
+        );
+
+        // Register mssql_list_servers tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                "mssql_list_servers",
+                new ListServersTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_list_databases tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                "mssql_list_databases",
+                new ListDatabasesTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_get_connection_details tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                "mssql_get_connection_details",
+                new GetConnectionDetailsTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_change_database tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                "mssql_change_database",
+                new ChangeDatabaseTool(this.connectionManager),
+            ),
+        );
+        // Register mssql_show_schema tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                "mssql_show_schema",
+                new ShowSchemaTool(
+                    this.connectionManager,
+                    async (connectionUri: string, database: string) => {
+                        const designer =
+                            await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                                this._context,
+                                this._vscodeWrapper,
+                                this,
+                                this.schemaDesignerService,
+                                database,
+                                undefined,
+                                connectionUri,
+                            );
+                        designer.revealToForeground();
+                    },
+                ),
+            ),
+        );
     }
 
     /**
