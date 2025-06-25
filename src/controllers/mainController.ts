@@ -462,7 +462,7 @@ export default class MainController implements vscode.Disposable {
                     }
                     vscode.commands.executeCommand(
                         "workbench.action.chat.openAgent",
-                        `Connect to ${connectionCredentials.server},${connectionCredentials.database}.`,
+                        `Connect to ${connectionCredentials.server},${connectionCredentials.database}${connectionCredentials.profileName ? ` using profile ${connectionCredentials.profileName}` : ""}.`,
                     );
                 },
             );
