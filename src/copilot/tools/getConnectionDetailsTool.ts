@@ -23,7 +23,15 @@ export interface GetConnectionDetailsToolResult {
 
 type IConnectionInfoSubset = Pick<
     IConnectionInfo,
-    "server" | "database" | "authenticationType" | "user" | "email" | "accountId" | "tenantId"
+    | "server"
+    | "database"
+    | "authenticationType"
+    | "user"
+    | "email"
+    | "accountId"
+    | "tenantId"
+    | "trustServerCertificate"
+    | "applicationIntent"
 >;
 
 export class GetConnectionDetailsTool extends ToolBase<GetConnectionDetailsToolParams> {
@@ -47,7 +55,17 @@ export class GetConnectionDetailsTool extends ToolBase<GetConnectionDetailsToolP
                     message: loc.noConnectionError(connectionId),
                 } as GetConnectionDetailsToolResult);
             }
-            const res = { ...connCreds } as IConnectionInfoSubset;
+            const res: IConnectionInfoSubset = {
+                server: connCreds.server,
+                database: connCreds.database,
+                authenticationType: connCreds.authenticationType,
+                user: connCreds.user,
+                email: connCreds.email,
+                accountId: connCreds.accountId,
+                tenantId: connCreds.tenantId,
+                trustServerCertificate: connCreds.trustServerCertificate,
+                applicationIntent: connCreds.applicationIntent,
+            };
 
             return JSON.stringify({
                 success: true,

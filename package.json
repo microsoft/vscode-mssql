@@ -2054,7 +2054,7 @@
             },
             {
                 "name": "mssql_connect",
-                "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use $mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a UUID",
+                "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a UUID.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2202,7 +2202,7 @@
             },
             {
                 "name": "mssql_change_database",
-                "modelDescription": "Change the database for an existing MSSQL connection. Disconnects from current database and reconnects to the specified database using the same connection credentials.",
+                "modelDescription": "Change the database for an existing MSSQL connection. Before changing, consider using mssql_list_databases to show available database options to the user. Disconnects from current database and reconnects to the specified database using the same connection credentials.",
                 "tags": [
                     "databases",
                     "mssql",
