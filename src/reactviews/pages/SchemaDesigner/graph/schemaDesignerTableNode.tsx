@@ -18,7 +18,7 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
@@ -161,34 +161,26 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
 // TableHeader component for the table title and subtitle
 const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
     const styles = useStyles();
-    const [searchText, setSearchText] = useState<string>("");
-
-    useEffect(() => {
-        // Store the search text in state when the event is triggered
-        const handleSearch = (text: string) => {
-            setSearchText(text);
-        };
-        eventBus.on("onFindWidgetValueChange", handleSearch);
-        return () => {
-            eventBus.off("onFindWidgetValueChange", handleSearch);
-        };
-    });
+    const context = useContext(SchemaDesignerContext);
 
     // Function to highlight text based on search
     const highlightText = (text: string) => {
-        if (!searchText || searchText.trim() === "") {
+        if (!context.findTableText || context.findTableText.trim() === "") {
             return <span>{text}</span>;
         }
 
         // Case insensitive search
-        const regex = new RegExp(`(${searchText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+        const regex = new RegExp(
+            `(${context.findTableText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+            "gi",
+        );
         const parts = text.split(regex);
 
         return (
             <>
                 {parts.map((part, index) => {
                     // Check if this part matches the search text (case insensitive)
-                    const isMatch = part.toLowerCase() === searchText.toLowerCase();
+                    const isMatch = part.toLowerCase() === context.findTableText.toLowerCase();
                     return isMatch ? (
                         <span
                             key={index}

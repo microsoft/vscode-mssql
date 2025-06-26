@@ -31,6 +31,7 @@ export class LocConstants {
                 }),
             close: l10n.t("Close"),
             apply: l10n.t("Apply"),
+            next: l10n.t("Next"),
             clearSelection: l10n.t("Clear Selection"),
             find: l10n.t("Find"),
             findNext: l10n.t("Find Next"),
@@ -47,6 +48,11 @@ export class LocConstants {
                 }),
             closeFind: l10n.t("Close Find"),
             load: l10n.t("Load"),
+            select: l10n.t("Select"),
+            finish: l10n.t("Finish"),
+            retry: l10n.t("Retry"),
+            showPassword: l10n.t("Show password"),
+            hidePassword: l10n.t("Hide password"),
         };
     }
 
@@ -196,6 +202,12 @@ export class LocConstants {
             advancedSettings: l10n.t("Advanced"),
             testConnection: l10n.t("Test Connection"),
             connectToDatabase: l10n.t("Connect to Database"),
+            connectTo: (profileName: string) =>
+                l10n.t({
+                    message: "Connect to {0}",
+                    args: [profileName],
+                    comment: ["{0} is the name of the connection profile"],
+                }),
             parameters: l10n.t("Parameters"),
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
@@ -251,6 +263,7 @@ export class LocConstants {
 
     public get executionPlan() {
         return {
+            loadingExecutionPlan: l10n.t("Loading execution plan..."),
             queryCostRelativeToScript: (index: number, costPercentage: string) =>
                 l10n.t({
                     message: "Query {0}:  Query cost (relative to the script):  {1}%",
@@ -382,12 +395,25 @@ export class LocConstants {
             export: l10n.t("Export"),
             addTable: l10n.t("Add Table"),
             autoArrange: l10n.t("Auto Arrange"),
-            filter: l10n.t("Filter"),
+            autoArrangeConfirmation: l10n.t("Auto Arrange Confirmation"),
+            autoArrangeConfirmationContent: l10n.t(
+                "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?",
+            ),
+            filter: (selectedTablesCount: number) => {
+                if (selectedTablesCount === 0) {
+                    return l10n.t("Filter");
+                } else {
+                    return l10n.t({
+                        message: "Filter ({0})",
+                        args: [selectedTablesCount],
+                        comment: ["{0} is the number of selected tables"],
+                    });
+                }
+            },
             clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
             refresh: l10n.t("Refresh"),
             publishChanges: l10n.t("Publish Changes"),
-            viewCode: l10n.t("View Code"),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
             changedTables: l10n.t("Changed Tables"),
@@ -574,6 +600,16 @@ export class LocConstants {
             noAction: l10n.t("No Action"),
             possibleDataLoss: l10n.t("Possible Data Loss detected. Please review the changes."),
             hasWarnings: l10n.t("Warnings detected. Please review the changes."),
+            definition: l10n.t("Definition"),
+            copy: l10n.t("Copy"),
+            close: l10n.t("Close"),
+            deleteConfirmation: l10n.t("Delete Confirmation"),
+            deleteConfirmationContent: l10n.t(
+                "Are you sure you want to delete the selected items?",
+            ),
+            undo: l10n.t("Undo"),
+            redo: l10n.t("Redo"),
+            searchTables: l10n.t("Search tables..."),
         };
     }
 
@@ -700,6 +736,62 @@ export class LocConstants {
                 }),
             includeExcludeAllOperationInProgress: l10n.t(
                 "Processing include or exclude all differences operation.",
+            ),
+        };
+    }
+
+    public get connectionGroups() {
+        return {
+            createNew: l10n.t("Create New Connection Group"),
+            editConnectionGroup: (groupName: string) =>
+                l10n.t({
+                    message: "Edit Connection Group: {0}",
+                    args: [groupName],
+                    comment: ["{0} is the name of the connection group being edited"],
+                }),
+            name: l10n.t("Name"),
+            enterConnectionGroupName: l10n.t("Enter connection group name"),
+            description: l10n.t("Description"),
+            enterDescription: l10n.t("Enter description (optional)"),
+            color: l10n.t("Color"),
+            chooseColor: l10n.t("Choose color"),
+            saveConnectionGroup: l10n.t("Save Connection Group"),
+            hue: l10n.t("Hue"),
+            saturation: l10n.t("Saturation"),
+            brightness: l10n.t("Brightness"),
+        };
+    }
+
+    public get containerDeployment() {
+        return {
+            loadingDeploymentPage: l10n.t("Loading deployment page..."),
+            sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
+            instantContainerSetup: l10n.t("Instant Container Setup"),
+            instantContainerDescription: l10n.t(
+                "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.",
+            ),
+            simpleManagement: l10n.t("Simple Container Management"),
+            simpleManagementDescription: l10n.t(
+                "Start, stop, and remove containers directly from the extension.",
+            ),
+            chooseTheRightVersion: l10n.t("Choose the Right Version"),
+            chooseTheRightVersionDescription: l10n.t(
+                "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.",
+            ),
+            learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
+            sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
+            configureAndCustomizeSqlServer: l10n.t("Configure and customize SQL Server containers"),
+            getStarted: l10n.t("Get Started"),
+            gettingDockerReady: l10n.t("Getting Docker Ready..."),
+            checkingPrerequisites: l10n.t("Checking pre-requisites"),
+            advancedOptions: l10n.t("Advanced Options"),
+            createContainer: l10n.t("Create Container"),
+            settingUp: l10n.t("Setting up"),
+            gettingContainerReadyForConnection: l10n.t("Getting container ready for connections"),
+            hideFullErrorMessage: l10n.t("Hide full error message"),
+            showFullErrorMessage: l10n.t("Show full error message"),
+            previousStepFailed: l10n.t(
+                "Previous step failed. Please check the error message and try again.",
             ),
         };
     }

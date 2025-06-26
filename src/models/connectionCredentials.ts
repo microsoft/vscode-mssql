@@ -52,6 +52,7 @@ export class ConnectionCredentials implements IConnectionInfo {
     public packetSize: number | undefined;
     public typeSystemVersion: string | undefined;
     public connectionString: string | undefined;
+    public containerName: string | undefined;
 
     /**
      * Create a connection details contract from connection credentials.
@@ -107,6 +108,7 @@ export class ConnectionCredentials implements IConnectionInfo {
         details.options["multipleActiveResultSets"] = credentials.multipleActiveResultSets;
         details.options["packetSize"] = credentials.packetSize;
         details.options["typeSystemVersion"] = credentials.typeSystemVersion;
+        details.options["containerName"] = credentials.containerName;
 
         return details;
     }
@@ -159,6 +161,7 @@ export class ConnectionCredentials implements IConnectionInfo {
             accountId: options["accountId"],
             tenantId: options["tenantId"],
             expiresOn: options["expiresOn"],
+            containerName: options["containerName"],
         };
 
         return connInfo;

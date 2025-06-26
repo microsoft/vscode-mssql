@@ -30,6 +30,7 @@ export async function generateConnectionComponents(
     connectionManager: ConnectionManager,
     azureAccountOptions: Promise<FormItemOptions[]>,
     azureActionButtons: Promise<FormItemActionButton[]>,
+    connectionGroupOptions: Promise<FormItemOptions[]>,
 ): Promise<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>> {
     // get list of connection options from Tools Service
     const capabilitiesResult: CapabilitiesResult = await connectionManager.client.sendRequest(
@@ -50,6 +51,7 @@ export async function generateConnectionComponents(
     const _mainOptionNames = new Set<string>([
         ...ConnectionDialogWebviewController.mainOptions,
         "profileName",
+        "groupId",
     ]);
 
     for (const option of connectionOptions) {
@@ -78,7 +80,12 @@ export async function generateConnectionComponents(
         }
     }
 
-    await completeFormComponents(result, await azureAccountOptions, await azureActionButtons);
+    await completeFormComponents(
+        result,
+        await azureAccountOptions,
+        await azureActionButtons,
+        await connectionGroupOptions,
+    );
 
     return result;
 }
@@ -190,6 +197,7 @@ export async function completeFormComponents(
     components: Partial<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>>,
     azureAccountOptions: FormItemOptions[],
     azureActionButtons: FormItemActionButton[],
+    connectionGroupOptions: FormItemOptions[],
 ) {
     // Add additional components that are not part of the connection options
     components["profileName"] = {
@@ -198,6 +206,17 @@ export async function completeFormComponents(
         required: false,
         type: FormItemType.Input,
         isAdvancedOption: false,
+    };
+
+    components["groupId"] = {
+        propertyName: "groupId",
+        label: Loc.connectionGroup,
+        required: false,
+        type: FormItemType.SearchableDropdown,
+        options: connectionGroupOptions,
+        isAdvancedOption: false,
+        placeholder: Loc.selectConnectionGroup,
+        searchBoxPlaceholder: Loc.searchConnectionGroups,
     };
 
     components["savePassword"] = {

@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    Button,
     Menu,
     MenuItem,
     MenuList,
     MenuPopover,
     MenuTrigger,
-    ToolbarButton,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
@@ -26,8 +26,15 @@ export function ExportDiagramButton() {
         const reactFlowContainer = document.querySelector(".react-flow__viewport") as HTMLElement;
         const computedStyle = getComputedStyle(reactFlowContainer);
         const graphBackgroundColor = computedStyle.getPropertyValue("--vscode-editor-background");
+        if (!context) {
+            return;
+        }
 
-        const nodesBounds = getNodesBounds(getNodes());
+        // Ensure all nodes are visible before exporting
+        context.setRenderOnlyVisibleTables(false);
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for the nodes to be rendered
+
+        const nodesBounds = getNodesBounds(getNodes().filter((node) => !node.hidden));
         const viewport = getViewportForBounds(
             nodesBounds,
             nodesBounds.width,
@@ -105,16 +112,18 @@ export function ExportDiagramButton() {
                     });
                 break;
         }
+        context.setRenderOnlyVisibleTables(true); // Reset to default state after export
     }
     return (
         <Menu>
             <MenuTrigger disableButtonEnhancement>
-                <ToolbarButton
-                    icon={<FluentIcons.ArrowExportUp16Filled />}
-                    title={locConstants.schemaDesigner.export}
-                    appearance="subtle">
+                <Button
+                    size="small"
+                    appearance="subtle"
+                    icon={<FluentIcons.ArrowExportUp16Regular />}
+                    title={locConstants.schemaDesigner.export}>
                     {locConstants.schemaDesigner.export}
-                </ToolbarButton>
+                </Button>
             </MenuTrigger>
 
             <MenuPopover>

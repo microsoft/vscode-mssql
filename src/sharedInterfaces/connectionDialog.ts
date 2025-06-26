@@ -8,6 +8,8 @@ import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form"
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
+import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
+import { RequestType } from "vscode-jsonrpc/browser";
 
 export class ConnectionDialogWebviewState
     implements
@@ -39,6 +41,7 @@ export class ConnectionDialogWebviewState
     public azureServers: AzureSqlServerInfo[] = [];
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
+    public connectionGroups: IConnectionGroup[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public readyToConnect: boolean = false;
     public formError: string = "";
@@ -58,7 +61,11 @@ export class ConnectionDialogWebviewState
 }
 
 export interface IDialogProps {
-    type: "trustServerCert" | "addFirewallRule" | "loadFromConnectionString";
+    type:
+        | "trustServerCert"
+        | "addFirewallRule"
+        | "loadFromConnectionString"
+        | "createConnectionGroup";
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {
@@ -75,6 +82,11 @@ export interface ConnectionStringDialogProps extends IDialogProps {
     type: "loadFromConnectionString";
     connectionString: string;
     connectionStringError?: string;
+}
+
+export interface CreateConnectionGroupDialogProps extends IDialogProps {
+    type: "createConnectionGroup";
+    props: ConnectionGroupState;
 }
 
 export interface AzureSubscriptionInfo {
@@ -128,6 +140,14 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     groupId?: string;
 }
 
+export interface IConnectionGroup {
+    id: string;
+    name: string;
+    parentId?: string;
+    color?: string;
+    description?: string;
+}
+
 export interface ConnectionDialogContextProps
     extends FormContextProps<
         IConnectionDialogProfile,
@@ -141,6 +161,8 @@ export interface ConnectionDialogContextProps
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
+    openCreateConnectionGroupDialog: () => void;
+    createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
     deleteSavedConnection(connection: IConnectionDialogProfile): void;
@@ -159,6 +181,8 @@ export enum AuthenticationType {
     AzureMFA = "AzureMFA",
 }
 
+export const CREATE_NEW_GROUP_ID = "CREATE_NEW_GROUP";
+
 export interface ConnectionDialogReducers extends FormReducers<IConnectionDialogProfile> {
     setConnectionInputType: {
         inputMode: ConnectionInputMode;
@@ -173,6 +197,10 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     addFirewallRule: {
         firewallRuleSpec: FirewallRuleSpec;
     };
+    createConnectionGroup: {
+        connectionGroupSpec: ConnectionGroupSpec;
+    };
+    openCreateConnectionGroupDialog: {};
     closeDialog: {};
     filterAzureSubscriptions: {};
     refreshConnectionsList: {};
@@ -185,4 +213,10 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
+}
+
+export namespace GetConnectionDisplayNameRequest {
+    export const type = new RequestType<IConnectionDialogProfile, string, void>(
+        "getConnectionDisplayName",
+    );
 }

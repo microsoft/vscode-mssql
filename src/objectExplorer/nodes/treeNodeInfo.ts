@@ -10,6 +10,7 @@ import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
+import { generateGuid } from "../../models/utils";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -25,6 +26,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _filterableProperties: vscodeMssql.NodeFilterProperty[];
     private _filters: vscodeMssql.NodeFilter[];
     private _originalLabel: string;
+    private _loadingLabel: string;
 
     /**
      * Use this flag to force a refresh of the node in the next expansion.
@@ -68,9 +70,9 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this.id = this.generateId();
     }
 
-    // Gernating a unique ID for the node
+    // Generating a unique ID for the node
     protected generateId(): string {
-        return `${this._connectionProfile?.id}-${this._nodePath}-${Date.now()}`;
+        return `${this._connectionProfile?.id}-${this._nodePath}-${generateGuid()}`;
     }
 
     public static fromNodeInfo(
@@ -140,6 +142,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
     public get parentNode(): TreeNodeInfo {
         return this._parentNode;
+    }
+
+    public get loadingLabel(): string {
+        return this._loadingLabel;
     }
 
     /**
@@ -225,6 +231,9 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         this.contextValue = this._convertToContextValue(value);
     }
 
+    public set loadingLabel(value: string) {
+        this._loadingLabel = value;
+    }
     public updateConnectionProfile(value: IConnectionProfile): void {
         this._connectionProfile = value;
     }

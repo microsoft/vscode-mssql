@@ -97,6 +97,7 @@
   },
   "Close": "Close",
   "Apply": "Apply",
+  "Next": "Next",
   "Clear Selection": "Clear Selection",
   "Find": "Find",
   "Find Next": "Find Next",
@@ -111,6 +112,11 @@
   },
   "Close Find": "Close Find",
   "Load": "Load",
+  "Select": "Select",
+  "Finish": "Finish",
+  "Retry": "Retry",
+  "Show password": "Show password",
+  "Hide password": "Hide password",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -167,7 +173,6 @@
   "Loading Table Designer": "Loading Table Designer",
   "Loading Report": "Loading Report",
   "Error loading preview": "Error loading preview",
-  "Retry": "Retry",
   "Update Database": "Update Database",
   "Generate Script": "Generate Script",
   "Publish": "Publish",
@@ -227,6 +232,12 @@
   "Advanced": "Advanced",
   "Test Connection": "Test Connection",
   "Connect to Database": "Connect to Database",
+  "Connect to {0}/{0} is the name of the connection profile": {
+    "message": "Connect to {0}",
+    "comment": [
+      "{0} is the name of the connection profile"
+    ]
+  },
   "Parameters": "Parameters",
   "Connection String": "Connection String",
   "Browse Azure": "Browse Azure",
@@ -268,6 +279,7 @@
   "Paste connection string from clipboard": "Paste connection string from clipboard",
   "Paste": "Paste",
   "Search settings...": "Search settings...",
+  "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
     "comment": [
@@ -301,7 +313,6 @@
   "Expand All": "Expand All",
   "Collapse All": "Collapse All",
   "Filter for any field...": "Filter for any field...",
-  "Next": "Next",
   "Previous": "Previous",
   "Expand": "Expand",
   "Collapse": "Collapse",
@@ -357,10 +368,17 @@
   "Export": "Export",
   "Add Table": "Add Table",
   "Auto Arrange": "Auto Arrange",
+  "Auto Arrange Confirmation": "Auto Arrange Confirmation",
+  "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?": "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?",
   "Filter": "Filter",
+  "Filter ({0})/{0} is the number of selected tables": {
+    "message": "Filter ({0})",
+    "comment": [
+      "{0} is the number of selected tables"
+    ]
+  },
   "Refresh": "Refresh",
   "Publish Changes": "Publish Changes",
-  "View Code": "View Code",
   "Edit Table": "Edit Table",
   "Open in Editor": "Open in Editor",
   "Changed Tables": "Changed Tables",
@@ -526,6 +544,12 @@
   "No Action": "No Action",
   "Possible Data Loss detected. Please review the changes.": "Possible Data Loss detected. Please review the changes.",
   "Warnings detected. Please review the changes.": "Warnings detected. Please review the changes.",
+  "Definition": "Definition",
+  "Delete Confirmation": "Delete Confirmation",
+  "Are you sure you want to delete the selected items?": "Are you sure you want to delete the selected items?",
+  "Undo": "Undo",
+  "Redo": "Redo",
+  "Search tables...": "Search tables...",
   "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
   "No schema differences were found.": "No schema differences were found.",
   "Initializing comparison, this might take a while...": "Initializing comparison, this might take a while...",
@@ -612,11 +636,47 @@
     ]
   },
   "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
+  "Create New Connection Group": "Create New Connection Group",
+  "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
+    "message": "Edit Connection Group: {0}",
+    "comment": [
+      "{0} is the name of the connection group being edited"
+    ]
+  },
+  "Enter connection group name": "Enter connection group name",
+  "Enter description (optional)": "Enter description (optional)",
+  "Color": "Color",
+  "Choose color": "Choose color",
+  "Save Connection Group": "Save Connection Group",
+  "Hue": "Hue",
+  "Saturation": "Saturation",
+  "Brightness": "Brightness",
+  "Loading deployment page...": "Loading deployment page...",
+  "Local SQL Server database container": "Local SQL Server database container",
+  "Instant Container Setup": "Instant Container Setup",
+  "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.": "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.",
+  "Simple Container Management": "Simple Container Management",
+  "Start, stop, and remove containers directly from the extension.": "Start, stop, and remove containers directly from the extension.",
+  "Choose the Right Version": "Choose the Right Version",
+  "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.": "Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.",
+  "Learn more about SQL Server 2025 features": "Learn more about SQL Server 2025 features",
+  "Compare SQL Server editions": "Compare SQL Server editions",
+  "Configure and customize SQL Server containers": "Configure and customize SQL Server containers",
+  "Get Started": "Get Started",
+  "Getting Docker Ready...": "Getting Docker Ready...",
+  "Checking pre-requisites": "Checking pre-requisites",
+  "Create Container": "Create Container",
+  "Setting up": "Setting up",
+  "Getting container ready for connections": "Getting container ready for connections",
+  "Hide full error message": "Hide full error message",
+  "Show full error message": "Show full error message",
+  "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
   "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
   "Remind Me Later": "Remind Me Later",
   "Don't Show Again": "Don't Show Again",
   "Learn More": "Learn More",
+  "Accept": "Accept",
   "View More": "View More",
   "View mssql for Visual Studio Code release notes?": "View mssql for Visual Studio Code release notes?",
   "Started query execution for document \"{0}\"/{0} is the document name": {
@@ -669,7 +729,6 @@
       "{1} is the error message"
     ]
   },
-  "Connection Errors": "Connection Errors",
   "Server connection in progress. Do you want to cancel?": "Server connection in progress. Do you want to cancel?",
   "Confirm to clear recent connections list": "Confirm to clear recent connections list",
   "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.": "To use this command, Open a .sql file -or- Change editor language to \"SQL\" -or- Select T-SQL text in the active SQL editor.",
@@ -695,7 +754,7 @@
   "Microsoft Entra Id - Universal w/ MFA Support": "Microsoft Entra Id - Universal w/ MFA Support",
   "Azure Code Grant": "Azure Code Grant",
   "Azure Device Code": "Azure Device Code",
-  "Azure Logs": "Azure Logs",
+  "MSSQL - Azure Auth Logs": "MSSQL - Azure Auth Logs",
   "Open": "Open",
   "Ignore Tenant": "Ignore Tenant",
   "Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process./{0} is the tenant name{1} is the tenant id{2} is the resource": {
@@ -1039,11 +1098,11 @@
   "Enable Experiences & Reload": "Enable Experiences & Reload",
   "Error loading; refresh to try again": "Error loading; refresh to try again",
   "No items": "No items",
-  "We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
+  "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
   "Edit Connection Profile": "Edit Connection Profile",
   "Connecting...": "Connecting...",
-  "Are you sure you want to delete {0}?/{0} is the node label": {
-    "message": "Are you sure you want to delete {0}?",
+  "Are you sure you want to remove {0}?/{0} is the node label": {
+    "message": "Are you sure you want to remove {0}?",
     "comment": [
       "{0} is the node label"
     ]
@@ -1055,12 +1114,25 @@
       "{0} is the script type"
     ]
   },
-  "Select": "Select",
   "Insert": "Insert",
   "Update": "Update",
   "Execute": "Execute",
   "Alter": "Alter",
   "Signing in to Azure...": "Signing in to Azure...",
+  "Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder./{0} is the group name": {
+    "message": "Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.",
+    "comment": [
+      "{0} is the group name"
+    ]
+  },
+  "Delete Contents": "Delete Contents",
+  "Move to Root": "Move to Root",
+  "Are you sure you want to delete {0}?/{0} is the group name": {
+    "message": "Are you sure you want to delete {0}?",
+    "comment": [
+      "{0} is the group name"
+    ]
+  },
   "Connection Dialog": "Connection Dialog",
   "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
@@ -1069,11 +1141,16 @@
   "Tenant ID": "Tenant ID",
   "Select a tenant": "Select a tenant",
   "Tenant ID is required": "Tenant ID is required",
+  "Connection Group": "Connection Group",
   "Server is required": "Server is required",
   "User name is required": "User name is required",
   "Connection string is required": "Connection string is required",
   "Sign in": "Sign in",
   "Additional parameters": "Additional parameters",
+  "<Default>": "<Default>",
+  "+ Create Connection Group": "+ Create Connection Group",
+  "Select a connection group": "Select a connection group",
+  "Search connection groups": "Search connection groups",
   "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission./{0} is the subscription name{1} is the subscription id": {
     "message": "Error loading Azure databases for subscription {0} ({1}).  Confirm that you have permission.",
     "comment": [
@@ -1134,6 +1211,113 @@
       "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum"
     ]
   },
+  "Create Local SQL Container": "Create Local SQL Container",
+  "{0} stopped successfully./{0} stopped successfully.": {
+    "message": "{0} stopped successfully.",
+    "comment": [
+      "{0} stopped successfully."
+    ]
+  },
+  "Failed to stop {0}./Failed to stop {0}.": {
+    "message": "Failed to stop {0}.",
+    "comment": [
+      "Failed to stop {0}."
+    ]
+  },
+  "{0} started successfully./{0} started successfully.": {
+    "message": "{0} started successfully.",
+    "comment": [
+      "{0} started successfully."
+    ]
+  },
+  "Starting {0}.../{0} is the container name": {
+    "message": "Starting {0}...",
+    "comment": [
+      "{0} is the container name"
+    ]
+  },
+  "Failed to start {0}./Failed to start {0}.": {
+    "message": "Failed to start {0}.",
+    "comment": [
+      "Failed to start {0}."
+    ]
+  },
+  "{0} deleted successfully./{0} deleted successfully.": {
+    "message": "{0} deleted successfully.",
+    "comment": [
+      "{0} deleted successfully."
+    ]
+  },
+  "Failed to delete {0}./Failed to delete {0}.": {
+    "message": "Failed to delete {0}.",
+    "comment": [
+      "Failed to delete {0}."
+    ]
+  },
+  "Select image": "Select image",
+  "Select the SQL Server Container Image": "Select the SQL Server Container Image",
+  "SQL Server {0} - latest/{0} is the SQL Server version": {
+    "message": "SQL Server {0} - latest",
+    "comment": [
+      "{0} is the SQL Server version"
+    ]
+  },
+  "SQL Server Container SA Password": "SQL Server Container SA Password",
+  "Please choose a unique name for the profile": "Please choose a unique name for the profile",
+  "Container Name": "Container Name",
+  "Choose a name for the SQL Server Docker Container": "Choose a name for the SQL Server Docker Container",
+  "Please choose a unique name for the container": "Please choose a unique name for the container",
+  "Port": "Port",
+  "Choose a port to host the SQL Server Docker Container": "Choose a port to host the SQL Server Docker Container",
+  "Please make sure the port is a number, and choose a port that is not in use": "Please make sure the port is a number, and choose a port that is not in use",
+  "Hostname": "Hostname",
+  "Choose a hostname for the container": "Choose a hostname for the container",
+  "Terms & Conditions": "Terms & Conditions",
+  "Accept the SQL Server EULA to deploy a SQL Server Docker container": "Accept the SQL Server EULA to deploy a SQL Server Docker container",
+  "Please Accept the SQL Server EULA": "Please Accept the SQL Server EULA",
+  "Checking if Docker is installed": "Checking if Docker is installed",
+  "Checking if Docker is installed on your machine": "Checking if Docker is installed on your machine",
+  "Docker is not installed or not in PATH. Please install Docker Desktop and try again.": "Docker is not installed or not in PATH. Please install Docker Desktop and try again.",
+  "Checking if Docker is started": "Checking if Docker is started",
+  "Checking if Docker is running on your machine. If not, we'll start it for you.": "Checking if Docker is running on your machine. If not, we'll start it for you.",
+  "Error running Docker commands. Please make sure Docker is running.": "Error running Docker commands. Please make sure Docker is running.",
+  "Checking Docker Engine Configuration": "Checking Docker Engine Configuration",
+  "Checking if the Docker Engine is configured correctly on your machine.": "Checking if the Docker Engine is configured correctly on your machine.",
+  "Creating Container": "Creating Container",
+  "Creating and starting your SQL Server Docker container": "Creating and starting your SQL Server Docker container",
+  "Setting up container": "Setting up container",
+  "Readying container for connections.": "Readying container for connections.",
+  "Connecting to Container": "Connecting to Container",
+  "Connecting to your SQL Server Docker container": "Connecting to your SQL Server Docker container",
+  "Please make your password 8-128 characters long.": "Please make your password 8-128 characters long.",
+  "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).": "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
+  "Unsupported platform for Docker: {0}/{0} is the platform name of the machine": {
+    "message": "Unsupported platform for Docker: {0}",
+    "comment": [
+      "{0} is the platform name of the machine"
+    ]
+  },
+  "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.": "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
+  "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.": "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
+  "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.": "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
+  "Docker failed to start within the timeout period. Please manually start Docker and try again.": "Docker failed to start within the timeout period. Please manually start Docker and try again.",
+  "Container failed to start within the timeout period. Please wait a few minutes and try again.": "Container failed to start within the timeout period. Please wait a few minutes and try again.",
+  "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.": "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
+  "Install Docker": "Install Docker",
+  "Starting Container...": "Starting Container...",
+  "Stopping Container...": "Stopping Container...",
+  "Deleting Container...": "Deleting Container...",
+  "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code./{0} is the container name": {
+    "message": "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.",
+    "comment": [
+      "{0} is the container name"
+    ]
+  },
+  "Configure Linux containers": "Configure Linux containers",
+  "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?": "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
+  "Switching to Linux containers was canceled. SQL Server only supports Linux containers.": "Switching to Linux containers was canceled. SQL Server only supports Linux containers.",
+  "Failed to start SQL Server container. Please check the error message for more details, and then try again.": "Failed to start SQL Server container. Please check the error message for more details, and then try again.",
+  "Container does not exist. Would you like to remove the connection?": "Container does not exist. Would you like to remove the connection?",
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",
@@ -1185,6 +1369,20 @@
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",
   "Schema Designer": "Schema Designer",
+  "{0} (Preview)/{0} is the database name": {
+    "message": "{0} (Preview)",
+    "comment": [
+      "{0} is the database name"
+    ]
+  },
+  "Opening Publish Script. This may take a while...": "Opening Publish Script. This may take a while...",
+  "Generating Report. This may take a while...": "Generating Report. This may take a while...",
+  "Failed to generate publish script: '{0}'/{0} is the error message returned from the generate script operation": {
+    "message": "Failed to generate publish script: '{0}'",
+    "comment": [
+      "{0} is the error message returned from the generate script operation"
+    ]
+  },
   "Connect to MSSQL": "Connect to MSSQL",
   "Click to connect to a database": "Click to connect to a database",
   "Connecting": "Connecting",
@@ -1206,6 +1404,220 @@
     "comment": [
       "{0} is the connection id",
       "{1} is the error message"
+    ]
+  },
+  "No model found.": "No model found.",
+  "No tools to process.": "No tools to process.",
+  "You are not connected to any database.": "You are not connected to any database.",
+  "Connected to:": "Connected to:",
+  "Server - {0}/{0} is the server name": {
+    "message": "Server - {0}",
+    "comment": [
+      "{0} is the server name"
+    ]
+  },
+  "Database - {0}/{0} is the database name": {
+    "message": "Database - {0}",
+    "comment": [
+      "{0} is the database name"
+    ]
+  },
+  "Using {0} ({1}).../{0} is the model name{1} is whether the model can send requests": {
+    "message": "Using {0} ({1})...",
+    "comment": [
+      "{0} is the model name",
+      "{1} is whether the model can send requests"
+    ]
+  },
+  "Tool lookup for: {0} - {1}./{0} is the part name{1} is the part input": {
+    "message": "Tool lookup for: {0} - {1}.",
+    "comment": [
+      "{0} is the part name",
+      "{1} is the part input"
+    ]
+  },
+  "Got invalid tool use parameters: \"{0}\". ({1})/{0} is the part input{1} is the error message": {
+    "message": "Got invalid tool use parameters: \"{0}\". ({1})",
+    "comment": [
+      "{0} is the part input",
+      "{1} is the error message"
+    ]
+  },
+  "Calling tool: {0} with {1}./{0} is the tool function name{1} is the SQL tool parameters": {
+    "message": "Calling tool: {0} with {1}.",
+    "comment": [
+      "{0} is the tool function name",
+      "{1} is the SQL tool parameters"
+    ]
+  },
+  "The requested model could not be found. Please check model availability or try a different model.": "The requested model could not be found. Please check model availability or try a different model.",
+  "Access denied. Please ensure you have the necessary permissions to use this tool or model.": "Access denied. Please ensure you have the necessary permissions to use this tool or model.",
+  "Usage limits exceeded. Try again later, or consider optimizing your requests.": "Usage limits exceeded. Try again later, or consider optimizing your requests.",
+  "I'm sorry, I can only assist with SQL-related questions.": "I'm sorry, I can only assist with SQL-related questions.",
+  "An unexpected error occurred with the language model. Please try again.": "An unexpected error occurred with the language model. Please try again.",
+  "Using {0} to process your request.../{0} is the model name that will be processing the request": {
+    "message": "Using {0} to process your request...",
+    "comment": [
+      "{0} is the model name that will be processing the request"
+    ]
+  },
+  "The language model did not return any output.": "The language model did not return any output.",
+  "An error occurred while processing your request.": "An error occurred while processing your request.",
+  "An error occurred: {0}/{0} is the error message": {
+    "message": "An error occurred: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
+  "List Connections": "List Connections",
+  "List all connections registered with the mssql extension?": "List all connections registered with the mssql extension?",
+  "Listing server connections": "Listing server connections",
+  "Connect to Server": "Connect to Server",
+  "Connect to server {0}?/{0} is the server name": {
+    "message": "Connect to server {0}?",
+    "comment": [
+      "{0} is the server name"
+    ]
+  },
+  "Connect to server {0} and database {1}?/{0} is the server name{1} is the database name": {
+    "message": "Connect to server {0} and database {1}?",
+    "comment": [
+      "{0} is the server name",
+      "{1} is the database name"
+    ]
+  },
+  "Connecting to server {0}/{0} is the server name": {
+    "message": "Connecting to server {0}",
+    "comment": [
+      "{0} is the server name"
+    ]
+  },
+  "Connecting to server {0} and database {1}/{0} is the server name{1} is the database name": {
+    "message": "Connecting to server {0} and database {1}",
+    "comment": [
+      "{0} is the server name",
+      "{1} is the database name"
+    ]
+  },
+  "Server {0} not found./{0} is the server name": {
+    "message": "Server {0} not found.",
+    "comment": [
+      "{0} is the server name"
+    ]
+  },
+  "Successfully connected to server.": "Successfully connected to server.",
+  "Failed to connect to server.": "Failed to connect to server.",
+  "Connection profile '{0}' not found./{0} is the profile ID": {
+    "message": "Connection profile '{0}' not found.",
+    "comment": [
+      "{0} is the profile ID"
+    ]
+  },
+  "Either profileId or serverName must be provided.": "Either profileId or serverName must be provided.",
+  "Connect using profile {0}?/{0} is the profile ID": {
+    "message": "Connect using profile {0}?",
+    "comment": [
+      "{0} is the profile ID"
+    ]
+  },
+  "Connecting using profile {0}/{0} is the profile ID": {
+    "message": "Connecting using profile {0}",
+    "comment": [
+      "{0} is the profile ID"
+    ]
+  },
+  "Disconnect from connection '{0}'?/{0} is the connection ID": {
+    "message": "Disconnect from connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Disconnecting from connection '{0}'/{0} is the connection ID": {
+    "message": "Disconnecting from connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Show Schema": "Show Schema",
+  "Show schema for connection '{0}'?/{0} is the connection ID": {
+    "message": "Show schema for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Showing schema for connection '{0}'/{0} is the connection ID": {
+    "message": "Showing schema for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "No connection found for connectionId: {0}/{0} is the connection ID": {
+    "message": "No connection found for connectionId: {0}",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Schema visualization opened.": "Schema visualization opened.",
+  "Get Connection Details": "Get Connection Details",
+  "Get connection details for connection '{0}'?/{0} is the connection ID": {
+    "message": "Get connection details for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Getting connection details for connection '{0}'/{0} is the connection ID": {
+    "message": "Getting connection details for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "List Databases": "List Databases",
+  "List databases for connection '{0}'?/{0} is the connection ID": {
+    "message": "List databases for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing databases for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing databases for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Change Database": "Change Database",
+  "Change database to '{1}' for connection '{0}'?/{0} is the connection ID{1} is the database name": {
+    "message": "Change database to '{1}' for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID",
+      "{1} is the database name"
+    ]
+  },
+  "Changing database to '{1}' for connection '{0}'/{0} is the connection ID{1} is the database name": {
+    "message": "Changing database to '{1}' for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID",
+      "{1} is the database name"
+    ]
+  },
+  "Successfully changed to database: {0}/{0} is the database name": {
+    "message": "Successfully changed to database: {0}",
+    "comment": [
+      "{0} is the database name"
+    ]
+  },
+  "Failed to connect to database: {0}/{0} is the database name": {
+    "message": "Failed to connect to database: {0}",
+    "comment": [
+      "{0} is the database name"
+    ]
+  },
+  "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
+  "Create Connection Group": "Create Connection Group",
+  "Edit Connection Group - {0}/{0} is the connection group name": {
+    "message": "Edit Connection Group - {0}",
+    "comment": [
+      "{0} is the connection group name"
     ]
   },
   "Azure sign in failed.": "Azure sign in failed.",

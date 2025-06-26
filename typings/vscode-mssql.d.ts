@@ -436,6 +436,12 @@ declare module "vscode-mssql" {
          * Gets or sets the connection string to use for this connection.
          */
         connectionString: string | undefined;
+
+        /**
+         * Gets or sets the name of the connection's container; undefined if the
+         * connection is not hosted by a container
+         */
+        containerName: string | undefined;
     }
 
     // If this enum changes, please update the SharedExtractTarget enum in schemaCompare.ts

@@ -3,10 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType, RequestType } from "vscode-languageclient";
+import { RequestType } from "vscode-languageclient";
 import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 
 export namespace SchemaDesignerRequests {
+    /**
+     * Represents a request to create a schema designer session
+     */
     export namespace CreateSession {
         export const type = new RequestType<
             SchemaDesigner.CreateSessionRequest,
@@ -16,12 +19,18 @@ export namespace SchemaDesignerRequests {
         >("schemaDesigner/createSession");
     }
 
+    /**
+     * Represents a request to dispose a schema designer session
+     */
     export namespace DisposeSession {
         export const type = new RequestType<SchemaDesigner.DisposeSessionRequest, void, void, void>(
             "schemaDesigner/disposeSession",
         );
     }
 
+    /**
+     * Represents a request to generate a script for the schema designer changes
+     */
     export namespace GenerateScript {
         export const type = new RequestType<
             SchemaDesigner.GenerateScriptRequest,
@@ -31,12 +40,21 @@ export namespace SchemaDesignerRequests {
         >("schemaDesigner/generateScript");
     }
 
-    export namespace SchemaReady {
-        export const type = new NotificationType<SchemaDesigner.SchemaDesignerSession, void>(
-            "schemaDesigner/schemaReady",
-        );
+    /**
+     * Represents a request to get the definition of a schema designer session
+     */
+    export namespace GetDefinition {
+        export const type = new RequestType<
+            SchemaDesigner.GetDefinitionRequest,
+            SchemaDesigner.GetDefinitionResponse,
+            void,
+            void
+        >("schemaDesigner/getDefinition");
     }
 
+    /**
+     * Represents a request to get the report of a schema designer session
+     */
     export namespace GetReport {
         export const type = new RequestType<
             SchemaDesigner.GetReportRequest,
@@ -46,6 +64,9 @@ export namespace SchemaDesignerRequests {
         >("schemaDesigner/getReport");
     }
 
+    /**
+     * Represents a notification to update the schema designer model
+     */
     export namespace PublishSession {
         export const type = new RequestType<SchemaDesigner.PublishSessionRequest, void, void, void>(
             "schemaDesigner/publishSession",

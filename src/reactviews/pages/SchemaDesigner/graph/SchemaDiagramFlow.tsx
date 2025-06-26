@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
     ReactFlow,
     MiniMap,
@@ -29,6 +29,14 @@ import "./schemaDesignerFlowColors.css";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner.js";
 import { flowUtils, foreignKeyUtils, namingUtils } from "../schemaDesignerUtils.js";
 import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    DialogTrigger,
     Toast,
     ToastBody,
     Toaster,
@@ -38,6 +46,7 @@ import {
 } from "@fluentui/react-components";
 import eventBus from "../schemaDesignerEvents.js";
 import { v4 as uuidv4 } from "uuid";
+import { locConstants } from "../../../common/locConstants.js";
 
 // Component configuration
 const NODE_TYPES: NodeTypes = {
@@ -63,6 +72,12 @@ export const SchemaDesignerFlow = () => {
     const [relationshipEdges, setRelationshipEdges, onEdgesChange] = useEdgesState<
         Edge<SchemaDesigner.ForeignKey>
     >([]);
+
+    const deleteNodeConfirmationPromise = useRef<
+        ((value: boolean | PromiseLike<boolean>) => void) | undefined
+    >(undefined);
+
+    const [open, setOpen] = useState(false);
 
     useEffect(() => {
         const intialize = async () => {
@@ -207,6 +222,14 @@ export const SchemaDesignerFlow = () => {
         return validationResult.isValid;
     };
 
+    const deleteElementsConfirmation = async () => {
+        setOpen(true);
+        const dialogResponse = await new Promise<boolean>((resolve) => {
+            deleteNodeConfirmationPromise.current = resolve;
+        });
+        return dialogResponse;
+    };
+
     return (
         <div style={{ width: "100vw", height: "100vh" }}>
             <Toaster toasterId={toasterId} position="top-end" />
@@ -218,6 +241,7 @@ export const SchemaDesignerFlow = () => {
                 onEdgesChange={onEdgesChange}
                 onConnect={handleConnect}
                 onConnectEnd={handleConnectEnd}
+                onlyRenderVisibleElements={context.renderOnlyVisibleTables}
                 proOptions={{
                     hideAttribution: true,
                 }}
@@ -230,12 +254,59 @@ export const SchemaDesignerFlow = () => {
                 onNodeDragStop={() => {
                     eventBus.emit("pushState");
                 }}
+                onBeforeDelete={async (props) => {
+                    if (props.nodes.length === 0 && props.edges.length === 0) {
+                        return true;
+                    }
+                    return await deleteElementsConfirmation();
+                }}
                 minZoom={0.05}
                 fitView>
                 <Controls />
                 <MiniMap pannable zoomable />
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             </ReactFlow>
+            <Dialog
+                open={open}
+                onOpenChange={(_event, data) => {
+                    setOpen(data.open);
+                }}>
+                <DialogSurface>
+                    <DialogBody>
+                        <DialogTitle>{locConstants.schemaDesigner.deleteConfirmation}</DialogTitle>
+                        <DialogContent>
+                            {locConstants.schemaDesigner.deleteConfirmationContent}
+                        </DialogContent>
+
+                        <DialogActions>
+                            <DialogTrigger disableButtonEnhancement>
+                                <Button
+                                    appearance="primary"
+                                    onClick={() => {
+                                        if (!deleteNodeConfirmationPromise.current) {
+                                            return;
+                                        }
+                                        deleteNodeConfirmationPromise.current(true);
+                                    }}>
+                                    {locConstants.schemaDesigner.delete}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogTrigger disableButtonEnhancement>
+                                <Button
+                                    appearance="secondary"
+                                    onClick={() => {
+                                        if (!deleteNodeConfirmationPromise.current) {
+                                            return;
+                                        }
+                                        deleteNodeConfirmationPromise.current(false);
+                                    }}>
+                                    {locConstants.schemaDesigner.cancel}
+                                </Button>
+                            </DialogTrigger>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
         </div>
     );
 };
