@@ -11,14 +11,24 @@ import {
     ScriptOperation,
     IScriptingObject,
     IScriptOptions,
+    ScriptingProgressNotification,
 } from "../models/contracts/scripting/scriptingRequest";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import * as vscode from "vscode";
 
 export class ScriptingService {
     private _client: SqlToolsServiceClient;
 
     constructor(private _connectionManager: ConnectionManager) {
         this._client = this._connectionManager.client;
+        this._client.onNotification(ScriptingProgressNotification.type, (params) => {
+            this._client.logger.verbose(JSON.stringify(params));
+            if (params.errorMessage) {
+                const errorText = `Scripting progress error: ${params.errorMessage} - ${params.errorDetails}`;
+                this._client.logger.error(errorText);
+                vscode.window.showErrorMessage(errorText);
+            }
+        });
     }
 
     public static getScriptCompatibility(serverMajorVersion: number, serverMinorVersion: number) {

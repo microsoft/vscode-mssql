@@ -33,6 +33,7 @@ import { ACTIONBAR_WIDTH_PX, SCROLLBAR_PX, TABLE_ALIGN_PX } from "./table/table"
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateProvider";
 import { hasResultsOrMessages, splitMessages } from "./queryResultUtils";
+import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     root: {
@@ -261,7 +262,7 @@ export const QueryResultPane = () => {
                     fontSize: `${state.fontSettings.fontSize ?? 12}px`,
                 }}>
                 <ResultGrid
-                    loadFunc={(offset: number, count: number): Thenable<any[]> => {
+                    loadFunc={async (offset: number, count: number): Promise<any[]> => {
                         console.debug("getRows rpc call", {
                             uri: state?.uri,
                             batchId: batchId,
@@ -269,40 +270,40 @@ export const QueryResultPane = () => {
                             rowStart: offset,
                             numberOfRows: count,
                         });
-                        return webViewState.extensionRpc
-                            .call("getRows", {
+                        const response = await webViewState.extensionRpc.sendRequest(
+                            qr.GetRowsRequest.type,
+                            {
                                 uri: state?.uri,
                                 batchId: batchId,
                                 resultId: resultId,
                                 rowStart: offset,
                                 numberOfRows: count,
-                            })
-                            .then((response) => {
-                                if (!response) {
-                                    return [];
-                                }
-                                let r = response as qr.ResultSetSubset;
-                                var columnLength =
-                                    state?.resultSetSummaries[batchId][resultId]?.columnInfo
-                                        ?.length;
-                                return r.rows.map((r) => {
-                                    let dataWithSchema: {
-                                        [key: string]: any;
-                                    } = {};
-                                    // skip the first column since its a number column
-                                    for (let i = 1; columnLength && i < columnLength + 1; i++) {
-                                        const displayValue = r[i - 1].displayValue ?? "";
-                                        const ariaLabel = displayValue;
-                                        dataWithSchema[(i - 1).toString()] = {
-                                            displayValue: displayValue,
-                                            ariaLabel: ariaLabel,
-                                            isNull: r[i - 1].isNull,
-                                            invariantCultureDisplayValue: displayValue,
-                                        };
-                                    }
-                                    return dataWithSchema;
-                                });
-                            });
+                            },
+                        );
+
+                        if (!response) {
+                            return [];
+                        }
+                        let r = response as qr.ResultSetSubset;
+                        var columnLength =
+                            state?.resultSetSummaries[batchId][resultId]?.columnInfo?.length;
+                        return r.rows.map((r) => {
+                            let dataWithSchema: {
+                                [key: string]: any;
+                            } = {};
+                            // skip the first column since its a number column
+                            for (let i = 1; columnLength && i < columnLength + 1; i++) {
+                                const displayValue = r[i - 1].displayValue ?? "";
+                                const ariaLabel = displayValue;
+                                dataWithSchema[(i - 1).toString()] = {
+                                    displayValue: displayValue,
+                                    ariaLabel: ariaLabel,
+                                    isNull: r[i - 1].isNull,
+                                    invariantCultureDisplayValue: displayValue,
+                                };
+                            }
+                            return dataWithSchema;
+                        });
                     }}
                     ref={(gridRef) => (gridRefs.current[gridCount] = gridRef!)}
                     resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
@@ -412,10 +413,13 @@ export const QueryResultPane = () => {
                                 <Link
                                     className={classes.messagesLink}
                                     onClick={async () => {
-                                        await webViewState.extensionRpc.call("setEditorSelection", {
-                                            uri: item.link?.uri,
-                                            selectionData: item.selection,
-                                        });
+                                        await webViewState.extensionRpc.sendRequest(
+                                            qr.SetEditorSelectionRequest.type,
+                                            {
+                                                uri: item.link?.uri,
+                                                selectionData: item.selection,
+                                            },
+                                        );
                                     }}
                                     inline>
                                     {item?.link?.text}
@@ -500,9 +504,9 @@ export const QueryResultPane = () => {
     //#endregion
 
     const getWebviewLocation = async () => {
-        const res = (await webViewState.extensionRpc.call("getWebviewLocation", {
+        const res = await webViewState.extensionRpc.sendRequest(qr.GetWebviewLocationRequest.type, {
             uri: state?.uri,
-        })) as string;
+        });
         setWebviewLocation(res);
     };
     const [webviewLocation, setWebviewLocation] = useState("");
@@ -522,7 +526,7 @@ export const QueryResultPane = () => {
                 <Link
                     className={classes.hidePanelLink}
                     onClick={async () => {
-                        await webViewState.extensionRpc.call("executeCommand", {
+                        await webViewState.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
                             command: "workbench.action.closePanel",
                         });
                     }}>
@@ -566,9 +570,12 @@ export const QueryResultPane = () => {
                         iconPosition="after"
                         appearance="subtle"
                         onClick={async () => {
-                            await webViewState.extensionRpc.call("openInNewTab", {
-                                uri: state?.uri,
-                            });
+                            await webViewState.extensionRpc.sendRequest(
+                                qr.OpenInNewTabRequest.type,
+                                {
+                                    uri: state?.uri,
+                                },
+                            );
                         }}
                         title={locConstants.queryResult.openResultInNewTab}
                         style={{ marginTop: "4px", marginBottom: "4px" }}>

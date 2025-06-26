@@ -1,5 +1,38 @@
 # Change Log
 
+## Version 1.33.0
+* Release date: June 18, 2025
+* Release status: GA
+### What’s new in 1.33.0
+* Introduced Local SQL Server Containers (Public Preview) for local development — spin up SQL Server containers in seconds inside VS Code with SQL Server 2025 by default, no Docker commands needed
+* Introduced GitHub Copilot Agent Mode (Public Preview) to connect, disconnect, or switch databases, and explore and visualize schemas with smart, context-aware suggestions
+* Added Connection Groups for organized connection management — group local, staging, and production connections for clearer structure and faster switching
+* Fixed query execution issues with GitHub Copilot
+* Improved connection pooling behavior for serverless databases
+* Fixed JSON export handling for decimal values in Query Results
+* Fixed Schema Compare dropdown selection
+* Enhanced Schema Designer usability — faster loading, better filters, improved auto-arrange, clearer export options, and UI refinements
+
+## Version 1.32.1
+* Release date: June 2, 2025
+* Release status: GA
+### What's new in 1.32.1
+* Fixed an issue where Group By Schema was not working in some cases
+* Added server connection status labels to MSSQL integration with GitHub Copilot
+
+## Version 1.32.0
+* Release date: May 19, 2025
+* Release status: GA
+### What’s new in 1.32.0
+* Released general availability of the modern UI—new Connection dialog, Object Explorer filtering, Table Designer, Query Results pane, and Query Plan Visualizer
+* Introduced GitHub Copilot integration (Preview) for AI‑powered SQL assistance—generate T‑SQL and ORM code, explore schemas, optimize queries, and streamline database development workflows
+* Introduced Schema Designer (Preview) for visual database schema modeling and editing—code‑free
+* Added vector datatype support in Object Explorer, scripting operations, and Table Designer
+* Fixed Schema Compare (Preview) issues related to comparison and scripting
+* Improved connection reliability by resolving login failure errors and VPN-related hangs
+* Enhanced Query Results stability by fixing white screen when moving panels and results disappearing on save
+* Fixed Object Explorer scripting errors in various scenarios
+
 ## Version 1.31.1
 * Release date: May 2, 2025
 * Release status: GA
@@ -10,7 +43,7 @@
 * Release date: April 30, 2025
 * Release status: GA
 ### What’s new in 1.31.0
-* Introduced Schema Compare to visually compare and script out schema differences
+* Introduced Schema Compare (Preview) to visually compare and script out schema differences
 * Enhanced Query Results experience with live execution timing summary metrics and stability improvements on large result sets
 * Improved connection workflow with smarter retries streamlined error handling and seamless AAD sign-in support
 * Resolved Fabric SQL Database connectivity issues for more reliable cloud access

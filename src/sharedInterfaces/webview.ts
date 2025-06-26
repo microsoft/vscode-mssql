@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 
 import { TelemetryActions, TelemetryViews } from "./telemetry";
+import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 
 export enum ApiStatus {
     NotStarted = "notStarted",
@@ -137,4 +138,127 @@ export interface WebviewContextProps<TState> {
     log(message: string, level?: LoggerLevel): void;
     sendActionEvent(event: WebviewTelemetryActionEvent): void;
     sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
+}
+
+export enum MessageType {
+    Request = "request",
+    Response = "response",
+    Notification = "notification",
+}
+
+export interface WebviewRpcMessage {
+    type: MessageType;
+    id?: string;
+    method?: string;
+    params?: unknown;
+    result?: unknown;
+    error?: Error;
+}
+
+/**
+ * Color theme change event callback declaration.
+ */
+export namespace ColorThemeChangeNotification {
+    export const type = new NotificationType<ColorThemeKind>("onDidChangeColorTheme");
+}
+
+/**
+ * State change event callback declaration.
+ * This is used to notify the webview of state changes that it should be aware of.
+ */
+export namespace StateChangeNotification {
+    const TYPE = new NotificationType("onDidChangeState");
+    export function type<State>() {
+        return TYPE as NotificationType<State>;
+    }
+}
+
+/**
+ * Request to get the current state of the webview.
+ */
+export namespace GetStateRequest {
+    const TYPE = new RequestType<void, void, void>("getState");
+    export function type<State>() {
+        return TYPE as RequestType<void, State, void>;
+    }
+}
+
+/**
+ * Request to get the current color theme of vscode.
+ */
+export namespace GetThemeRequest {
+    export const type = new RequestType<void, ColorThemeKind, void>("getTheme");
+}
+
+/**
+ * Request to get localized strings for the webview.
+ */
+export namespace GetLocalizationRequest {
+    export const type = new RequestType<void, string, void>("getLocalization");
+}
+
+/**
+ * Parameters for executing a command in the extension host from the webview.
+ */
+export interface ExecuteCommandParams {
+    command: string;
+    args?: any[];
+}
+
+/**
+ * Request to execute a command in the extension host from the webview.
+ */
+export namespace ExecuteCommandRequest {
+    export const type = new RequestType<ExecuteCommandParams, void, void>("executeCommand");
+}
+
+/**
+ * Request from the webview to get the platform information.
+ */
+export namespace GetPlatformRequest {
+    export const type = new RequestType<void, string, void>("getPlatform");
+}
+
+/**
+ * Notification to send an action event from the webview to the controller.
+ */
+export namespace SendActionEventNotification {
+    export const type = new NotificationType<WebviewTelemetryActionEvent>("sendActionEvent");
+}
+
+/**
+ * Notification to send an error event from the webview to the controller.
+ */
+export namespace SendErrorEventNotification {
+    export const type = new NotificationType<WebviewTelemetryErrorEvent>("sendErrorEvent");
+}
+
+/**
+ * Notification to log a message from the webview to the controller.
+ */
+export namespace LogNotification {
+    export const type = new NotificationType<LogEvent>("log");
+}
+
+export namespace ReducerRequest {
+    export function type<Reducers>() {
+        return new RequestType<
+            { type: keyof Reducers; payload?: Reducers[keyof Reducers] },
+            unknown,
+            void
+        >("action");
+    }
+}
+
+export interface LoadStatsParams {
+    loadCompleteTimeStamp: number;
+}
+
+export namespace LoadStatsNotification {
+    export const type = new NotificationType<LoadStatsParams>("loadStats");
+}
+
+export interface PendingRequest {
+    resolve: (result: any) => void;
+    reject: (error: any) => void;
 }

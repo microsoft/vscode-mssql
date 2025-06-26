@@ -150,7 +150,7 @@ export default [
                     bracketSameLine: true,
                 },
             ],
-            "custom-eslint-rules/ban-reactview-imports": "error",
+            "custom-eslint-rules/banned-imports": "error",
         },
     },
 ];

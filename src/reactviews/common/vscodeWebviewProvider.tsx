@@ -12,7 +12,15 @@ import { LocConstants } from "./locConstants";
 import { WebviewApi } from "vscode-webview";
 import { WebviewRpc } from "./rpc";
 import { webviewTheme } from "./theme";
-import { ColorThemeKind } from "../../sharedInterfaces/webview";
+import {
+    ColorThemeChangeNotification,
+    ColorThemeKind,
+    GetLocalizationRequest,
+    GetStateRequest,
+    GetThemeRequest,
+    LoadStatsNotification,
+    StateChangeNotification,
+} from "../../sharedInterfaces/webview";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -67,23 +75,23 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
 
     useEffect(() => {
         async function getTheme() {
-            const theme = await extensionRpc.call("getTheme");
-            setTheme(theme as ColorThemeKind);
+            const theme = await extensionRpc.sendRequest(GetThemeRequest.type);
+            setTheme(theme);
         }
 
         async function getState() {
-            const state = await extensionRpc.call("getState");
-            setState(state as State);
+            const state = await extensionRpc.sendRequest(GetStateRequest.type<State>());
+            setState(state);
         }
 
         async function loadStats() {
-            await extensionRpc.call("loadStats", {
+            await extensionRpc.sendNotification(LoadStatsNotification.type, {
                 loadCompleteTimeStamp: Date.now(),
             });
         }
 
         async function getLocalization() {
-            const fileContents = (await extensionRpc.call("getLocalization")) as string;
+            const fileContents = await extensionRpc.sendRequest(GetLocalizationRequest.type);
             if (fileContents) {
                 await l10n.config({
                     contents: fileContents,
@@ -105,12 +113,12 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
         void getLocalization();
     }, []);
 
-    extensionRpc.subscribe("vscodeWebviewProvider", "onDidChangeTheme", (params) => {
+    extensionRpc.onNotification(ColorThemeChangeNotification.type, (params) => {
         setTheme(params as ColorThemeKind);
     });
 
-    extensionRpc.subscribe("vscodeWebviewProvider", "updateState", (params) => {
-        setState(params as State);
+    extensionRpc.onNotification<State>(StateChangeNotification.type<State>(), (params) => {
+        setState(params);
     });
 
     function isInitialized(): boolean {

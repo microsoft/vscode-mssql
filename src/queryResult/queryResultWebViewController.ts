@@ -9,7 +9,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { ReactWebviewViewController } from "../controllers/reactWebviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { randomUUID } from "crypto";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -81,6 +81,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                             fontFamily: this.getFontFamilyConfig(),
                         },
                         autoSizeColumns: this.getAutoSizeColumnsConfig(),
+                        inMemoryDataProcessingThreshold:
+                            this.getInMemoryDataProcessingThresholdConfig(),
                     };
                 }
             });
@@ -119,6 +121,14 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
+                if (e.affectsConfiguration("mssql.resultsGrid.inMemoryDataProcessingThreshold")) {
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.inMemoryDataProcessingThreshold = this.vscodeWrapper
+                            .getConfiguration(Constants.extensionName)
+                            .get(Constants.configInMemoryDataProcessingThreshold);
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                }
             });
         }
     }
@@ -147,7 +157,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     }
 
     private registerRpcHandlers() {
-        this.registerRequestHandler("openInNewTab", async (message) => {
+        this.onRequest(qr.OpenInNewTabRequest.type, async (message) => {
             void this.createPanelController(message.uri);
 
             if (this.shouldShowDefaultQueryResultToDocumentPrompt) {
@@ -195,8 +205,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     );
             }
         });
-        this.registerRequestHandler("getWebviewLocation", async () => {
+        this.onRequest(qr.GetWebviewLocationRequest.type, async () => {
             return qr.QueryResultWebviewLocation.Panel;
+        });
+        this.onRequest(qr.ShowFilterDisabledMessageRequest.type, async () => {
+            this.vscodeWrapper.showInformationMessage(
+                LocalizedConstants.inMemoryDataProcessingThresholdExceeded,
+            );
         });
         registerCommonRequestHandlers(this, this._correlationId);
     }
@@ -253,6 +268,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 fontFamily: this.getFontFamilyConfig(),
             },
             autoSizeColumns: this.getAutoSizeColumnsConfig(),
+            inMemoryDataProcessingThreshold: this.getInMemoryDataProcessingThresholdConfig(),
         };
         this._queryResultStateMap.set(uri, currentState);
     }
@@ -261,6 +277,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this.vscodeWrapper
             .getConfiguration(Constants.extensionName)
             .get(Constants.configAutoColumnSizing);
+    }
+
+    public getInMemoryDataProcessingThresholdConfig(): number {
+        return this.vscodeWrapper
+            .getConfiguration(Constants.extensionName)
+            .get(Constants.configInMemoryDataProcessingThreshold);
     }
 
     public getFontSizeConfig(): number {
@@ -309,7 +331,17 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         var res = this._queryResultStateMap.get(uri);
         if (!res) {
             // This should never happen
-            throw new Error(`No query result state found for uri ${uri}`);
+
+            const error = new Error(`No query result state found for uri ${uri}`);
+
+            sendErrorEvent(
+                TelemetryViews.QueryResult,
+                TelemetryActions.GetQueryResultState,
+                error,
+                false, // includeErrorMessage
+            );
+
+            throw error;
         }
         return res;
     }

@@ -73,6 +73,10 @@ export interface FormItemSpec<
      */
     placeholder?: string;
     /**
+     * Placeholder text for the search box in a searchable dropdown
+     */
+    searchBoxPlaceholder?: string;
+    /**
      * Validation callback for the form item
      */
     validate?: (state: TState, value: string | boolean | number) => FormItemValidationState;
@@ -139,4 +143,5 @@ export enum FormItemType {
     Password = "password",
     Button = "button",
     TextArea = "textarea",
+    SearchableDropdown = "searchableDropdown",
 }

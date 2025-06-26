@@ -3,7 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Tab, TabList, makeStyles, shorthands } from "@fluentui/react-components";
+import {
+    Button,
+    Tab,
+    TabList,
+    makeStyles,
+    shorthands,
+    List,
+    ListItem,
+} from "@fluentui/react-components";
 import {
     ChevronDownFilled,
     ChevronUpFilled,
@@ -19,7 +27,6 @@ import {
     InputBoxProperties,
     TableProperties,
 } from "../../../sharedInterfaces/tableDesigner";
-import { List, ListItem } from "@fluentui/react-list-preview";
 
 import Editor from "@monaco-editor/react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";

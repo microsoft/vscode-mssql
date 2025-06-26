@@ -5,7 +5,7 @@
 
 import * as assert from "assert";
 import * as sinon from "sinon";
-// eslint-disable-next-line custom-eslint-rules/ban-reactview-imports
+// eslint-disable-next-line custom-eslint-rules/banned-imports
 import { selectionSummaryHelper } from "../../src/reactviews/pages/QueryResult/table/plugins/cellSelectionModel.plugin";
 import { SelectionSummaryStats } from "../../src/sharedInterfaces/queryResult";
 

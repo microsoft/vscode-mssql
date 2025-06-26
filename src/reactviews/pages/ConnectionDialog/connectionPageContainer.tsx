@@ -12,6 +12,8 @@ import {
     ConnectionDialogWebviewState,
     ConnectionInputMode,
     ConnectionStringDialogProps,
+    CREATE_NEW_GROUP_ID,
+    CreateConnectionGroupDialogProps,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
 } from "../../../sharedInterfaces/connectionDialog";
@@ -30,6 +32,8 @@ import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
+import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
@@ -87,6 +91,13 @@ export const ConnectionInfoFormContainer = () => {
                         dialogProps={context.state.dialog as ConnectionStringDialogProps}
                     />
                 )}
+                {context.state.dialog?.type === "createConnectionGroup" && (
+                    <ConnectionGroupDialog
+                        state={(context.state.dialog as CreateConnectionGroupDialogProps).props}
+                        saveConnectionGroup={context.createConnectionGroup}
+                        closeDialog={context.closeDialog}
+                    />
+                )}
 
                 <FormField<
                     IConnectionDialogProfile,
@@ -100,6 +111,33 @@ export const ConnectionInfoFormContainer = () => {
                     }
                     idx={0}
                     props={{ orientation: "horizontal" }}
+                />
+
+                <FormField<
+                    IConnectionDialogProfile,
+                    ConnectionDialogWebviewState,
+                    ConnectionDialogFormItemSpec,
+                    ConnectionDialogContextProps
+                >
+                    context={context}
+                    component={
+                        context.state.formComponents["groupId"] as ConnectionDialogFormItemSpec
+                    }
+                    idx={0}
+                    props={{ orientation: "horizontal" }}
+                    componentProps={{
+                        onSelect: (option: SearchableDropdownOptions) => {
+                            if (option.value === CREATE_NEW_GROUP_ID) {
+                                context.openCreateConnectionGroupDialog();
+                            } else {
+                                context.formAction({
+                                    propertyName: "groupId",
+                                    isAction: false,
+                                    value: option.value,
+                                });
+                            }
+                        },
+                    }}
                 />
 
                 <div className={formStyles.formComponentDiv}>

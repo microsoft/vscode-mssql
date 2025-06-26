@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ColumnFilterState, SortProperties } from "../../../../sharedInterfaces/queryResult";
 import { IDisposableDataProvider } from "./dataProvider";
 import { SortDirection } from "./plugins/headerFilter.plugin";
 
@@ -41,29 +42,6 @@ export interface ITableConfiguration<T extends Slick.SlickData> {
     columns?: Slick.Column<T>[];
     sorter?: ITableSorter<T>;
 }
-
-export enum SortProperties {
-    ASC = "ASC",
-    DESC = "DESC",
-    NONE = "NONE", // no sort
-}
-
-export interface ColumnFilterState {
-    filterValues: string[];
-    sorted?: SortProperties;
-    seachText?: string;
-    columnDef: string;
-}
-
-/**
- * Maps all the column filters for a specific grid ID
- */
-export type GridColumnMap = Record<string, ColumnFilterMap[]>;
-
-/**
- * Maps the column filter state for a specific column
- */
-export type ColumnFilterMap = Record<string, ColumnFilterState[]>;
 
 export interface GridFilters {
     gridId: string;

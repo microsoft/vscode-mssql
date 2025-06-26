@@ -65,7 +65,7 @@ export function registerCommonRequestHandlers(
             ? webviewController
             : webviewController.getQueryResultWebviewViewController();
 
-    webviewController.registerRequestHandler("getRows", async (message) => {
+    webviewController.onRequest(qr.GetRowsRequest.type, async (message) => {
         const result = await webviewViewController
             .getSqlOutputContentProvider()
             .rowRequestHandler(
@@ -105,7 +105,8 @@ export function registerCommonRequestHandlers(
         webviewViewController.setQueryResultState(message.uri, currentState);
         return result;
     });
-    webviewController.registerRequestHandler("setEditorSelection", async (message) => {
+
+    webviewController.onRequest(qr.SetEditorSelectionRequest.type, async (message) => {
         if (!message.uri || !message.selectionData) {
             console.warn(
                 `Invalid setEditorSelection request.  Uri: ${message.uri}; selectionData: ${JSON.stringify(message.selectionData)}`,
@@ -117,11 +118,12 @@ export function registerCommonRequestHandlers(
             .getSqlOutputContentProvider()
             .editorSelectionRequestHandler(message.uri, message.selectionData);
     });
-    webviewController.registerRequestHandler("saveResults", async (message) => {
+
+    webviewController.onRequest(qr.SaveResultsWebviewRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.SaveResults, {
             correlationId: correlationId,
             format: message.format,
-            selection: message.selection,
+            selection: JSON.stringify(message.selection),
             origin: message.origin,
         });
         return await webviewViewController
@@ -135,7 +137,7 @@ export function registerCommonRequestHandlers(
             );
     });
 
-    webviewController.registerRequestHandler("sendToClipboard", async (message) => {
+    webviewController.onRequest(qr.SendToClipboardRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
             correlationId: correlationId,
         });
@@ -151,7 +153,7 @@ export function registerCommonRequestHandlers(
             );
     });
 
-    webviewController.registerRequestHandler("copySelection", async (message) => {
+    webviewController.onRequest(qr.CopySelectionRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
             correlationId: correlationId,
         });
@@ -165,7 +167,8 @@ export function registerCommonRequestHandlers(
                 false,
             );
     });
-    webviewController.registerRequestHandler("copyWithHeaders", async (message) => {
+
+    webviewController.onRequest(qr.CopyWithHeadersRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResultsHeaders, {
             correlationId: correlationId,
             format: undefined,
@@ -180,7 +183,8 @@ export function registerCommonRequestHandlers(
             true, //copy headers flag
         );
     });
-    webviewController.registerRequestHandler("copyHeaders", async (message) => {
+
+    webviewController.onRequest(qr.CopyHeadersRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyHeaders, {
             correlationId: correlationId,
         });
@@ -195,30 +199,23 @@ export function registerCommonRequestHandlers(
     });
 
     // Register request handlers for query result filters
-    webviewController.registerRequestHandler("getFilters", async (message) => {
+    webviewController.onRequest(qr.GetFiltersRequest.type, async (message) => {
         return store.get(message.uri, SubKeys.Filter);
     });
 
-    webviewController.registerRequestHandler("setFilters", async (message) => {
+    webviewController.onRequest(qr.SetFiltersRequest.type, async (message) => {
         store.set(message.uri, SubKeys.Filter, message.filters);
-        return true;
     });
 
-    webviewController.registerRequestHandler("setColumnWidths", async (message) => {
+    webviewController.onRequest(qr.SetColumnWidthsRequest.type, async (message) => {
         store.set(message.uri, SubKeys.ColumnWidth, message.columnWidths);
-        return true;
     });
 
-    webviewController.registerRequestHandler("getColumnWidths", async (message) => {
+    webviewController.onRequest(qr.GetColumnWidthsRequest.type, async (message) => {
         return store.get(message.uri, SubKeys.ColumnWidth);
     });
 
-    webviewController.registerRequestHandler("deleteFilter", async (message) => {
-        store.delete(message.uri, SubKeys.Filter);
-        return true;
-    });
-
-    webviewController.registerRequestHandler("setSelectionSummary", async (message) => {
+    webviewController.onRequest(qr.SetSelectionSummaryRequest.type, async (message) => {
         const controller =
             webviewController instanceof QueryResultWebviewPanelController
                 ? webviewController.getQueryResultWebviewViewController()

@@ -1,0 +1,81 @@
+name: Feature Request - MSSQL Extension for VS Code
+description: Suggest an idea or enhancement for the MSSQL extension.
+title: "[Feature Request]: "
+labels: ["Enhancement", "Triage: Needed", "User-filed"]
+assignees: []
+
+body:
+  # Introductory message to thank the user and set expectations
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for suggesting a feature!
+        We appreciate your input and ideas to help improve the MSSQL extension.
+
+  # Section for describing the feature
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: Describe the feature or enhancement you'd like to see.
+      placeholder: |
+        I would like the MSSQL extension to...
+        This would help me because...
+    validations:
+      required: true
+
+  # Section for explaining the problem being solved
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and Motivation
+      description: What problem would this feature solve? How would it improve your workflow?
+      placeholder: |
+        Currently, I'm unable to...
+        This causes me to...
+        With this feature, I could...
+    validations:
+      required: true
+
+  # Section for selecting relevant areas
+  - type: checkboxes
+    id: related-area
+    attributes:
+      label: Related Area
+      description: Select all areas this feature would enhance.
+      options:
+        - label: Connection dialog
+        - label: Query results panel
+        - label: Query editor
+        - label: Object Explorer
+        - label: Table Designer
+        - label: Schema Compare
+        - label: Schema Designer
+        - label: Local container
+        - label: GitHub Copilot integration
+        - label: Query Plan Visualizer
+        - label: Other (please describe below)
+
+  - type: textarea
+    id: other-related-area
+    attributes:
+      label: If you selected "Other", please describe the area
+      description: Only fill this if you selected "Other" above.
+      placeholder: Describe the feature area here...
+    validations:
+      required: false
+
+  # Section for confirming issue search and willingness to work on the issue
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have searched existing feature requests and couldn't find a match
+          required: true
+        - label: I want to help implement this feature
+
+  # Closing message to thank the user
+  - type: markdown
+    attributes:
+      value: "Thank you for your feature suggestion! We'll review it and get back to you soon. 🚀"

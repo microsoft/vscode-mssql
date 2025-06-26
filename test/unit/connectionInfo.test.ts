@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { getConnectionDisplayName } from "../../src/models/connectionInfo";
+import * as ConnectionInfo from "../../src/models/connectionInfo";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import * as Constants from "../../src/constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
 import { IConnectionProfile } from "../../src/models/interfaces";
+import * as sinon from "sinon";
 
 suite("connectionInfo", () => {
     suite("getConnectionDisplayName", () => {
@@ -20,7 +21,7 @@ suite("connectionInfo", () => {
                 user: "testUser",
             } as IConnectionInfo;
 
-            const result = getConnectionDisplayName(connection);
+            const result = ConnectionInfo.getConnectionDisplayName(connection);
             expect(result).to.equal("testServer, testDatabase (testUser)");
         });
 
@@ -31,13 +32,13 @@ suite("connectionInfo", () => {
                 user: "testUser",
             } as IConnectionInfo;
 
-            let result = getConnectionDisplayName(connection);
+            let result = ConnectionInfo.getConnectionDisplayName(connection);
             expect(result).to.equal(
                 `testServer, ${LocalizedConstants.defaultDatabaseLabel} (testUser)`,
             );
 
             connection.database = "";
-            result = getConnectionDisplayName(connection);
+            result = ConnectionInfo.getConnectionDisplayName(connection);
             expect(result).to.equal(
                 `testServer, ${LocalizedConstants.defaultDatabaseLabel} (testUser)`,
             );
@@ -51,7 +52,7 @@ suite("connectionInfo", () => {
                 email: "testEmail@example.com",
             } as IConnectionInfo;
 
-            const result = getConnectionDisplayName(connection);
+            const result = ConnectionInfo.getConnectionDisplayName(connection);
             expect(result).to.equal("testServer, testDatabase (testEmail@example.com)");
         });
 
@@ -62,7 +63,7 @@ suite("connectionInfo", () => {
                 authenticationType: "OtherAuthType",
             } as IConnectionInfo;
 
-            const result = getConnectionDisplayName(connection);
+            const result = ConnectionInfo.getConnectionDisplayName(connection);
             expect(result).to.equal("testServer, testDatabase (OtherAuthType)");
         });
 
@@ -75,8 +76,99 @@ suite("connectionInfo", () => {
                 profileName: "Test Profile Name",
             } as IConnectionProfile;
 
-            const result = getConnectionDisplayName(connection);
+            const result = ConnectionInfo.getConnectionDisplayName(connection);
             expect(result).to.equal("Test Profile Name");
+        });
+    });
+
+    suite("getConnectionDisplayString", () => {
+        // Setup common test variables
+        const mockServer = "test-server";
+        const mockDatabase = "test-database";
+        const mockUser = "test-user";
+
+        let sandbox: sinon.SinonSandbox;
+        let getUserNameStub: sinon.SinonStub;
+
+        setup(() => {
+            // Create a sandbox for isolated sinon mocks
+            sandbox = sinon.createSandbox();
+
+            // Stub the getUserNameOrDomainLogin function
+            getUserNameStub = sandbox.stub(ConnectionInfo, "getUserNameOrDomainLogin");
+
+            // Set default constants values
+            sandbox.stub(LocalizedConstants, "defaultDatabaseLabel").value("default-db");
+            sandbox.stub(Constants, "maxDisplayedStatusTextLength").value(30);
+        });
+
+        teardown(() => {
+            // Restore all stubbed methods after each test
+            sandbox.restore();
+        });
+
+        test("returns formatted string with server, database and user", () => {
+            // Arrange
+            const creds: IConnectionInfo = {
+                server: mockServer,
+                database: mockDatabase,
+                user: mockUser,
+            } as IConnectionInfo;
+            getUserNameStub.returns(mockUser);
+
+            // Act
+            const result = ConnectionInfo.getConnectionDisplayString(creds);
+
+            // Assert
+            expect(result).to.equal(`${mockServer} : $(database) ${mockDatabase} : ${mockUser}`);
+        });
+
+        test("returns formatted string with server and database when user is not present", () => {
+            // Arrange
+            const creds: IConnectionInfo = {
+                server: mockServer,
+                database: mockDatabase,
+            } as IConnectionInfo;
+            getUserNameStub.returns("");
+
+            // Act
+            const result = ConnectionInfo.getConnectionDisplayString(creds);
+
+            // Assert
+            expect(result).to.equal(`${mockServer} : $(database) ${mockDatabase}`);
+        });
+
+        test("uses default database label when database is not provided", () => {
+            // Arrange
+            const creds: IConnectionInfo = {
+                server: mockServer,
+                user: mockUser,
+            } as IConnectionInfo;
+            getUserNameStub.returns(mockUser);
+
+            // Act
+            const result = ConnectionInfo.getConnectionDisplayString(creds);
+
+            // Assert
+            expect(result).to.equal(`${mockServer} : $(database) default-db : ${mockUser}`);
+        });
+
+        test("trims result when trim is true and result is longer than max length", () => {
+            // Arrange
+            const longServer = "very-long-server-name-that-exceeds-the-maximum-length";
+            const creds: IConnectionInfo = {
+                server: longServer,
+                database: mockDatabase,
+            } as IConnectionInfo;
+            getUserNameStub.returns(mockUser);
+
+            // Act
+            const result = ConnectionInfo.getConnectionDisplayString(creds, true);
+
+            // Assert
+            const expectedText = `${longServer} : $(database) ${mockDatabase} : ${mockUser}`;
+            const trimmedExpected = expectedText.slice(0, 30) + " \u2026";
+            expect(result).to.equal(trimmedExpected);
         });
     });
 });

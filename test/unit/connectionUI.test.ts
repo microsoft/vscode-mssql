@@ -84,13 +84,6 @@ suite("Connection UI tests", () => {
         );
     });
 
-    test("showConnectionErrors should show errors in the output channel", () => {
-        connectionUI.showConnectionErrors(TypeMoq.It.isAnyString());
-        outputChannel.verify((c) => c.clear(), TypeMoq.Times.once());
-        outputChannel.verify((c) => c.append(TypeMoq.It.isAny()), TypeMoq.Times.once());
-        outputChannel.verify((c) => c.show(true), TypeMoq.Times.once());
-    });
-
     test("showConnections with recent and new connection", async () => {
         let item: IConnectionCredentialsQuickPickItem = {
             connectionCreds: undefined,

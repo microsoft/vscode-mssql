@@ -78,9 +78,8 @@ export class ReactWebviewViewController<State, Reducers>
         };
 
         this._webviewView.webview.html = this._getHtmlTemplate();
-        this.registerDisposable(
-            this._webviewView.webview.onDidReceiveMessage(this._webviewMessageHandler),
-        );
+
+        this.updateConnectionWebview(this._webviewView.webview);
         this.initializeBase();
     }
 }

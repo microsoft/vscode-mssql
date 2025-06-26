@@ -25,6 +25,8 @@ import {
     FormState,
 } from "../../../sharedInterfaces/form";
 import { useEffect, useState } from "react";
+import { SearchableDropdown } from "../searchableDropdown.component";
+import { locConstants } from "../locConstants";
 
 export const FormInput = <
     TForm,
@@ -93,7 +95,17 @@ export const FormInput = <
                             onClick={() => setShowPassword(!showPassword)}
                             icon={showPassword ? <EyeRegular /> : <EyeOffRegular />}
                             appearance="transparent"
-                            size="small"></Button>
+                            size="small"
+                            aria-label={
+                                showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }
+                            title={
+                                showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }></Button>
                     }
                     {...props}
                 />
@@ -152,15 +164,27 @@ export const FormField = <
                 required={component.required}
                 // @ts-ignore there's a bug in the typings somewhere, so ignoring this line to avoid angering type-checker
                 label={
-                    component.tooltip
-                        ? {
-                              children: (_: unknown, slotProps: LabelProps) => (
-                                  <InfoLabel {...slotProps} info={component.tooltip}>
-                                      {component.label}
-                                  </InfoLabel>
-                              ),
-                          }
-                        : component.label
+                    // The html here shouldn't need to be sanitized, and should be safe
+                    // because it's only ever set by forms internal to the extension
+                    component.tooltip ? (
+                        {
+                            children: (_: unknown, slotProps: LabelProps) => (
+                                <InfoLabel {...slotProps} info={component.tooltip}>
+                                    <span
+                                        dangerouslySetInnerHTML={{
+                                            __html: component.label,
+                                        }}
+                                    />
+                                </InfoLabel>
+                            ),
+                        }
+                    ) : (
+                        <span
+                            dangerouslySetInnerHTML={{
+                                __html: component.label,
+                            }}
+                        />
+                    )
                 }
                 {...props}
                 style={{ color: tokens.colorNeutralForeground1 }}>
@@ -176,10 +200,7 @@ export const FormField = <
                         return (
                             <Button
                                 key={idx + actionButton.id}
-                                appearance="outline"
-                                style={{
-                                    width: "120px",
-                                }}
+                                style={{ width: "auto", whiteSpace: "nowrap" }}
                                 onClick={() =>
                                     context?.formAction({
                                         propertyName: component.propertyName,
@@ -268,6 +289,45 @@ export function generateFormComponent<
                         );
                     })}
                 </Dropdown>
+            );
+        case FormItemType.SearchableDropdown:
+            if (component.options === undefined) {
+                throw new Error("Dropdown component must have options");
+            }
+            const selectedOption = component.options.find(
+                (option) => option.value === formState[component.propertyName],
+            );
+            return (
+                <SearchableDropdown
+                    options={component.options.map((opt) => ({
+                        value: opt.value,
+                        text: opt.displayName,
+                    }))}
+                    placeholder={component.placeholder}
+                    searchBoxPlaceholder={component.searchBoxPlaceholder}
+                    selectedOption={
+                        selectedOption
+                            ? {
+                                  value: selectedOption.value,
+                                  text: selectedOption.displayName,
+                              }
+                            : undefined
+                    }
+                    onSelect={(option) => {
+                        if (props.onSelect) {
+                            props.onSelect(option.value);
+                        } else {
+                            context?.formAction({
+                                propertyName: component.propertyName,
+                                isAction: false,
+                                value: option.value,
+                            });
+                        }
+                    }}
+                    size="small"
+                    clearable={true}
+                    {...props}
+                />
             );
         case FormItemType.Checkbox:
             return (

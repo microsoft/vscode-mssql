@@ -6,7 +6,7 @@
 // Adopted and converted to typescript from https://github.com/danny-sg/slickgrid-spreadsheet-plugins/blob/master/ext.headerfilter.js
 // heavily modified
 
-import { ColumnFilterState, FilterableColumn, GridColumnMap, SortProperties } from "../interfaces";
+import { FilterableColumn } from "../interfaces";
 import { append, $ } from "../dom";
 import { IDisposableDataProvider, instanceOfIDisposableDataProvider } from "../dataProvider";
 import "../../../../media/table.css";
@@ -18,8 +18,14 @@ import { EventManager } from "../../../../common/eventManager";
 
 import { QueryResultContextProps } from "../../queryResultStateProvider";
 import {
+    ColumnFilterState,
+    GetFiltersRequest,
+    GridColumnMap,
     QueryResultReducers,
     QueryResultWebviewState,
+    SetFiltersRequest,
+    ShowFilterDisabledMessageRequest,
+    SortProperties,
 } from "../../../../../sharedInterfaces/queryResult";
 import { ColorThemeKind } from "../../../../../sharedInterfaces/webview";
 
@@ -142,6 +148,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
             this._eventManager.addEventListener(sortButton, "click", async (e: Event) => {
                 e.stopPropagation();
                 e.preventDefault();
+                if (!this.enabled) {
+                    await this.webviewState.extensionRpc.sendRequest(
+                        ShowFilterDisabledMessageRequest.type,
+                    );
+                    return;
+                }
                 this.columnDef = jQuery(sortButton).data("column"); //TODO: fix, shouldn't assign in the event handler
                 let columnFilterState: ColumnFilterState = {
                     columnDef: this.columnDef.id!,
@@ -216,6 +228,10 @@ export class HeaderFilter<T extends Slick.SlickData> {
     }
 
     private async showFilter(filterButton: HTMLElement) {
+        if (!this.enabled) {
+            await this.webviewState.extensionRpc.sendRequest(ShowFilterDisabledMessageRequest.type);
+            return;
+        }
         let $menuButton: JQuery<HTMLElement> | undefined;
         const target = withNullAsUndefined(filterButton);
         if (target) {
@@ -333,23 +349,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
         jQuery(document).on("click", `#close-popup-${this.columnDef.id}`, () => {
             closePopup($popup);
             this.activePopup = null;
-        });
-
-        // Sorting button click handlers
-        jQuery(document).on("click", "#sort-ascending", (_e: JQuery.ClickEvent) => {
-            void this.handleMenuItemClick("sort-asc", this.columnDef);
-            closePopup($popup);
-            this.activePopup = null;
-            this.grid.setSortColumn(this.columnDef.id!, true);
-            this.columnDef.sorted = SortProperties.ASC;
-        });
-
-        jQuery(document).on("click", "#sort-descending", (_e: JQuery.ClickEvent) => {
-            void this.handleMenuItemClick("sort-desc", this.columnDef);
-            closePopup($popup);
-            this.activePopup = null;
-            this.grid.setSortColumn(this.columnDef.id!, false);
-            this.columnDef.sorted = SortProperties.DESC;
         });
 
         jQuery(document).on("click", `#apply-${this.columnDef.id}`, async () => {
@@ -491,9 +490,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
             };
             if (this.queryResultContext.state.uri) {
                 // Get the current filters from the query result singleton store
-                let gridColumnMapArray = (await this.webviewState.extensionRpc.call("getFilters", {
-                    uri: this.queryResultContext.state.uri,
-                })) as GridColumnMap[];
+                let gridColumnMapArray = await this.webviewState.extensionRpc.sendRequest(
+                    GetFiltersRequest.type,
+                    {
+                        uri: this.queryResultContext.state.uri,
+                    },
+                );
                 if (!gridColumnMapArray) {
                     gridColumnMapArray = [];
                 }
@@ -502,7 +504,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     gridColumnMapArray,
                     columnDef.id!,
                 );
-                await this.webviewState.extensionRpc.call("setFilters", {
+                await this.webviewState.extensionRpc.sendRequest(SetFiltersRequest.type, {
                     uri: this.queryResultContext.state.uri,
                     filters: gridColumnMapArray,
                 });
@@ -531,14 +533,17 @@ export class HeaderFilter<T extends Slick.SlickData> {
             this.queryResultContext.log("no uri set for query result state");
             return;
         }
-        let currentFiltersArray = (await this.webviewState.extensionRpc.call("getFilters", {
-            uri: this.queryResultContext.state.uri,
-        })) as GridColumnMap[];
+        let currentFiltersArray = await this.webviewState.extensionRpc.sendRequest(
+            GetFiltersRequest.type,
+            {
+                uri: this.queryResultContext.state.uri,
+            },
+        );
         if (!currentFiltersArray) {
             currentFiltersArray = [];
         }
         newStateArray = this.combineFilters(currentFiltersArray, newState, columnId);
-        await this.webviewState.extensionRpc.call("setFilters", {
+        await this.webviewState.extensionRpc.sendRequest(SetFiltersRequest.type, {
             uri: this.queryResultContext.state.uri,
             filters: newStateArray,
         });

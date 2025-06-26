@@ -16,9 +16,9 @@ import {
     CredentialsQuickPickItemType,
     AuthenticationTypes,
     IConnectionProfileWithSource,
+    IConnectionGroup,
 } from "../models/interfaces";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
-import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
@@ -48,7 +48,7 @@ export class ConnectionStore {
         }
 
         if (!this._connectionConfig) {
-            this._connectionConfig = new ConnectionConfig();
+            this._connectionConfig = new ConnectionConfig(this.vscodeWrapper);
         }
     }
 
@@ -143,7 +143,7 @@ export class ConnectionStore {
         return cred.join(ConnectionStore.CRED_SEPARATOR);
     }
 
-    public get connectionConfig(): IConnectionConfig {
+    public get connectionConfig(): ConnectionConfig {
         return this._connectionConfig;
     }
 
@@ -272,7 +272,7 @@ export class ConnectionStore {
         profile: IConnectionProfile,
         forceWritePlaintextPassword?: boolean,
     ): Promise<IConnectionProfile> {
-        this._connectionConfig.populateMissingIds(profile);
+        await this._connectionConfig.populateMissingConnectionIds(profile);
 
         // Add the profile to the saved list, taking care to clear out the password field if necessary
         let savedProfile: IConnectionProfile;
@@ -549,6 +549,21 @@ export class ConnectionStore {
         await this.saveProfile(profile);
     }
 
+    public async readAllConnectionGroups(): Promise<IConnectionGroup[]> {
+        const groups = await this._connectionConfig.getGroups();
+        return groups;
+    }
+
+    public async getGroupForConnectionId(
+        connectionId: string,
+    ): Promise<IConnectionGroup | undefined> {
+        const connProfile = await this._connectionConfig.getConnectionById(connectionId);
+        if (connProfile) {
+            return this._connectionConfig.getGroupById(connProfile.groupId);
+        }
+        return undefined;
+    }
+
     public async readAllConnections(
         includeRecentConnections: boolean = false,
     ): Promise<IConnectionProfileWithSource[]> {
@@ -564,6 +579,7 @@ export class ConnectionStore {
 
         connResults = connResults.concat(configConnections);
 
+        // Include recent connections, if specified
         if (includeRecentConnections) {
             const recentConnections = this.getRecentlyUsedConnections().map((c) => {
                 const conn = c as IConnectionProfileWithSource;
@@ -574,13 +590,43 @@ export class ConnectionStore {
             connResults = connResults.concat(recentConnections);
         }
 
-        // TODO re-add deduplication logic from old method
+        // Deduplicate connections by ID
+        const uniqueConnections = new Map<string, IConnectionProfileWithSource>();
+        let dupeCount = 0;
 
-        this._logger.logDebug(
-            `readAllConnections(): ${connResults.length} connections${includeRecentConnections ? ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)` : "; excluded recent"}`,
-        );
+        for (const conn of connResults) {
+            if (!uniqueConnections.has(conn.id)) {
+                uniqueConnections.set(conn.id, conn);
+            } else {
+                dupeCount++;
+                this._logger.verbose(
+                    `Duplicate connection ID found: ${conn.id}. Ignoring duplicate connection.`,
+                );
+            }
+        }
+
+        connResults = Array.from(uniqueConnections.values());
+
+        let logMessage = `readAllConnections(): ${connResults.length} connections found`;
+
+        if (includeRecentConnections) {
+            logMessage += ` (${configConnections.length} from config, ${connResults.length - configConnections.length} from recent)`;
+        } else {
+            logMessage += "; excluded recent";
+        }
+
+        if (dupeCount > 0) {
+            logMessage += `; ${dupeCount} duplicate connections ignored`;
+        }
+
+        this._logger.logDebug(logMessage);
 
         return connResults;
+    }
+
+    /** Gets the groupId for connections  */
+    public get rootGroupId(): string {
+        return this.connectionConfig.getRootGroup().id;
     }
 
     public async getConnectionQuickpickItems(

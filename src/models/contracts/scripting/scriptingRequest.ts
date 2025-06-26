@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-languageclient";
 
 export interface IConnectionInfo {
     options: { [name: string]: any };
@@ -309,5 +309,20 @@ export namespace ScriptingRequest {
      */
     export const type = new RequestType<IScriptingParams, IScriptingResult, void, void>(
         "scripting/script",
+    );
+}
+
+export interface ScriptingProgressNotificationParams {
+    scirptingObject: IScriptingObject[];
+    status: string;
+    completedCount: number;
+    totalCount: number;
+    errorDetails: string;
+    errorMessage: string;
+}
+
+export namespace ScriptingProgressNotification {
+    export const type = new NotificationType<ScriptingProgressNotificationParams, void>(
+        "scripting/scriptProgressNotification",
     );
 }
