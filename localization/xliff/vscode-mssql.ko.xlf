@@ -707,6 +707,11 @@
         <note>{0} is the server name</note>
         <target state="translated">서버 {0}에 연결하시겠습니까?</target>
       </trans-unit>
+      <trans-unit id="++CODE++ea9acac28e2644caf0dd7884eec71c1a92d541701276abf4acd5de8d04aa8af9">
+        <source xml:lang="en">Connect to {0}</source>
+        <note>{0} is the name of the connection profile</note>
+        <target state="new">Connect to {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5">
         <source xml:lang="en">Connect using profile {0}?</source>
         <note>{0} is the profile ID</note>
