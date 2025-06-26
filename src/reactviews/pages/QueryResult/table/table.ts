@@ -372,8 +372,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         return this._grid;
     }
 
-    setData(data: Array<T>): void;
-    setData(data: TableDataView<T>): void;
+    setData(data: Array<T>, scrollToTop?: boolean): void;
+    setData(data: TableDataView<T>, scrollToTop?: boolean): void;
     setData(data: Array<T> | TableDataView<T>, scrollToTop?: boolean): void {
         if (data instanceof TableDataView) {
             this._data = data;
@@ -430,6 +430,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         if (scrollTop > 0) {
             this._grid.scrollTo(scrollTop);
         }
+    }
+
+    /**
+     * Scrolls the grid to the top
+     */
+    public scrollToTop(): void {
+        this._grid.scrollTo(0);
     }
 
     get columns(): Slick.Column<T>[] {
