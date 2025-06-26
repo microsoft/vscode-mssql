@@ -587,18 +587,24 @@ export default class MainController implements vscode.Disposable {
     private registerLanguageModelTools(): void {
         // Register mssql_connect tool
         this._context.subscriptions.push(
-            vscode.lm.registerTool("mssql_connect", new ConnectTool(this.connectionManager)),
+            vscode.lm.registerTool(
+                Constants.copilotConnectToolName,
+                new ConnectTool(this.connectionManager),
+            ),
         );
 
         // Register mssql_disconnect tool
         this._context.subscriptions.push(
-            vscode.lm.registerTool("mssql_disconnect", new DisconnectTool(this.connectionManager)),
+            vscode.lm.registerTool(
+                Constants.copilotDisconnectToolName,
+                new DisconnectTool(this.connectionManager),
+            ),
         );
 
         // Register mssql_list_servers tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_list_servers",
+                Constants.copilotListServersToolName,
                 new ListServersTool(this.connectionManager),
             ),
         );
@@ -606,7 +612,7 @@ export default class MainController implements vscode.Disposable {
         // Register mssql_list_databases tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_list_databases",
+                Constants.copilotListDatabasesToolName,
                 new ListDatabasesTool(this.connectionManager),
             ),
         );
@@ -614,7 +620,7 @@ export default class MainController implements vscode.Disposable {
         // Register mssql_get_connection_details tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_get_connection_details",
+                Constants.copilotGetConnectionDetailsToolName,
                 new GetConnectionDetailsTool(this.connectionManager),
             ),
         );
@@ -622,14 +628,14 @@ export default class MainController implements vscode.Disposable {
         // Register mssql_change_database tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_change_database",
+                Constants.copilotChangeDatabaseToolName,
                 new ChangeDatabaseTool(this.connectionManager),
             ),
         );
         // Register mssql_show_schema tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_show_schema",
+                Constants.copilotShowSchemaToolName,
                 new ShowSchemaTool(
                     this.connectionManager,
                     async (connectionUri: string, database: string) => {
