@@ -3954,11 +3954,11 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
-        <target state="new">Open in Copilot Agent mode (Preview)</target>
+        <target state="translated">在 Copilot 代理模式下打开(预览)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
         <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
-        <target state="new">Open in Copilot Ask mode (Preview)</target>
+        <target state="translated">在 Copilot 询问模式下打开(预览)</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -4216,7 +4216,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.statusBar.enableConnectionColor">
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
-        <target state="new">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</target>
+        <target state="translated">启用后，使用连接组的颜色对连接状态栏项进行着色。默认情况下禁用此设置。 此操作直接使用连接组文件夹的颜色，并且不会更改它，以确保与当前 VS Code 主题的对比度。用户应选择适合其主题的连接组颜色。</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

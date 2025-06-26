@@ -3954,11 +3954,11 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
-        <target state="new">Open in Copilot Agent mode (Preview)</target>
+        <target state="translated">Abrir en modo de agente de Copilot (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
         <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
-        <target state="new">Open in Copilot Ask mode (Preview)</target>
+        <target state="translated">Abrir en modo Pregúntale a Copilot (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -4216,7 +4216,7 @@ Vea el plan estimado sin ejecutar la consulta, o vea el plan de consulta real de
       </trans-unit>
       <trans-unit id="mssql.statusBar.enableConnectionColor">
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
-        <target state="new">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</target>
+        <target state="translated">Cuando se habilita, colorea el elemento de la barra de estado de la conexión con el color del grupo de conexión. Esta configuración está deshabilitada de forma predeterminada.  Esto usa el color de la carpeta del grupo de conexiones directamente y no lo modifica para garantizar el contraste con el tema VS Code actual. Los usuarios deben elegir colores del grupo de conexiones que funcionen bien con su tema.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

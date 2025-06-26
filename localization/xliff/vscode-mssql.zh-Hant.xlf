@@ -3954,11 +3954,11 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
-        <target state="new">Open in Copilot Agent mode (Preview)</target>
+        <target state="translated">在 Copilot Agent 模式中開啟 (預覽)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
         <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
-        <target state="new">Open in Copilot Ask mode (Preview)</target>
+        <target state="translated">在 Copilot Ask 模式中開啟 (預覽)</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -4216,7 +4216,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.statusBar.enableConnectionColor">
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
-        <target state="new">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</target>
+        <target state="translated">啟用後，系統會將連線狀態列項目以連線群組的顏色進行著色。預設會停用此設定。 這會直接使用連線群組資料夾的顏色，且不會進行調整，以確保與目前的 VS Code 主題具有足夠的對比度。使用者應選擇適合其主題的連線群組顏色。</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
