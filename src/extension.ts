@@ -19,6 +19,7 @@ import { createSqlAgentRequestHandler, ISqlChatResult } from "./copilot/chatAgen
 import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
+import { AzureAccountManagementController } from "./controllers/azureAccountManagementController";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -41,6 +42,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         "setContext",
         "mssql.copilot.isGHCInstalled",
         !!copilotExtension,
+    );
+
+    // Register the Azure Account Management command
+    context.subscriptions.push(
+        vscode.commands.registerCommand("mssql.azureAccountManagement", () => {
+            const dialog = new AzureAccountManagementController(context, vscodeWrapper);
+            dialog.revealToForeground();
+        }),
     );
 
     // Exposed for testing purposes

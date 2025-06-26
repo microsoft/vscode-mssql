@@ -24,6 +24,8 @@ import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureS
 import { configSelectedAzureSubscriptions } from "../constants/constants";
 import { Logger } from "../models/logger";
 
+export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
+
 //#region VS Code integration
 
 /**
