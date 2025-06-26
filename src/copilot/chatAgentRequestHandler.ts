@@ -69,7 +69,7 @@ export const createSqlAgentRequestHandler = (
         const logger = getLogger();
         let conversationUri = getNextConversationUri();
         let connectionUri = vscodeWrapper.activeTextEditorUri;
-        logger.info("In handler");
+        logger.verbose("In handler");
         logger.logDebug(
             `Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`,
         );
@@ -90,12 +90,12 @@ export const createSqlAgentRequestHandler = (
         async function findEditorFromReferences(
             references: readonly vscode.ChatPromptReference[],
         ): Promise<vscode.TextEditor | undefined> {
-            logger.info("in findEditorFromReferences");
+            logger.verbose("in findEditorFromReferences");
             const tabGroups = vscode.window.tabGroups.all;
 
             // Function to check if document is SQL
             function isSqlDocument(document: vscode.TextDocument): boolean {
-                logger.info("in isSqlDocument");
+                logger.verbose("in isSqlDocument");
                 logger.logDebug(`Checking if document is SQL: ${document.languageId}`);
                 // Check if the document is an SQL file
                 // You can add more language IDs as needed
@@ -103,7 +103,7 @@ export const createSqlAgentRequestHandler = (
                 const sqlLanguageIds = ["sql", "mssql"];
                 const isSql = sqlLanguageIds.includes(document.languageId);
                 logger.logDebug(`Is SQL document: ${isSql ? "Yes" : "No"}`);
-                logger.info("Exiting isSqlDocument");
+                logger.verbose("Exiting isSqlDocument");
                 return isSql;
             }
 
@@ -197,7 +197,7 @@ export const createSqlAgentRequestHandler = (
                 }
             }
 
-            logger.info("Exiting findEditorFromReferences");
+            logger.verbose("Exiting findEditorFromReferences");
             logger.logDebug("No matching editor found in tab groups. Returning undefined.");
             return undefined;
         }
@@ -456,7 +456,7 @@ export const createSqlAgentRequestHandler = (
         correlationId: string,
         logger: Logger,
     ): Promise<GetNextMessageResponse> {
-        logger.info("in processToolCalls");
+        logger.verbose("in processToolCalls");
 
         if (sqlTools.length === 0) {
             sendErrorEvent(
@@ -537,7 +537,7 @@ export const createSqlAgentRequestHandler = (
         referenceTexts: string[],
         logger: Logger,
     ): vscode.LanguageModelChatMessage[] {
-        logger.info("in prepareRequestMessages");
+        logger.verbose("in prepareRequestMessages");
 
         // Get all messages from requestMessages
         const requestMessages = result.requestMessages;
@@ -657,7 +657,7 @@ export const createSqlAgentRequestHandler = (
         tools: LanguageModelChatTool[],
         logger: Logger,
     ): vscode.LanguageModelChatTool[] {
-        logger.info("in mapRequestTools...");
+        logger.verbose("in mapRequestTools...");
         return tools.map(
             (tool): vscode.LanguageModelChatTool => ({
                 name: tool.functionName,
@@ -678,7 +678,7 @@ export const createSqlAgentRequestHandler = (
         toolsCalled: { tool: LanguageModelChatTool; parameters: string }[];
         printTextout: boolean;
     }> {
-        logger.logDebug("in processResponseParts...");
+        logger.verbose("in processResponseParts...");
         const toolsCalled: {
             tool: LanguageModelChatTool;
             parameters: string;
@@ -726,7 +726,7 @@ export const createSqlAgentRequestHandler = (
         tools: { tool: LanguageModelChatTool; parameters: string }[];
         print: boolean;
     }> {
-        logger.info("in handleRequestLLMMessage");
+        logger.verbose("in handleRequestLLMMessage");
         const requestTools = mapRequestTools(result.tools, logger);
         const options: vscode.LanguageModelChatRequestOptions = {
             justification: "Azure SQL Copilot agent requires access to language model.",
@@ -768,7 +768,7 @@ export const createSqlAgentRequestHandler = (
         sqlTool: LanguageModelChatTool | undefined;
         sqlToolParameters: string | undefined;
     }> {
-        logger.info("in processToolCall");
+        logger.verbose("in processToolCall");
         // Initialize variables to return
         let sqlTool: LanguageModelChatTool | undefined;
         let sqlToolParameters: string | undefined;
@@ -839,7 +839,7 @@ export const createSqlAgentRequestHandler = (
         correlationId: string,
         logger: Logger,
     ): void {
-        logger.info("in handleLanguageModelError");
+        logger.verbose("in handleLanguageModelError");
         logger.error("Language Model Error:", getErrorMessage(err), "Code:", err.code);
 
         const errorMessages: Record<string, string> = {
@@ -875,7 +875,7 @@ export const createSqlAgentRequestHandler = (
         correlationId: string,
         logger: Logger,
     ): Promise<void> {
-        logger.info("in sendToDefaultLanguageModel");
+        logger.verbose("in sendToDefaultLanguageModel");
         try {
             logger.info(`Using ${model.name} to process your request...`);
             stream.progress(loc.usingModelToProcessRequest(model.name));
@@ -928,7 +928,7 @@ export const createSqlAgentRequestHandler = (
         correlationId: string,
         logger: Logger,
     ): void {
-        logger.info("in handleError");
+        logger.verbose("in handleError");
 
         if (err instanceof vscode.LanguageModelError) {
             handleLanguageModelError(err, stream, correlationId, logger);
