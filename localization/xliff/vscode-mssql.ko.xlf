@@ -4147,6 +4147,10 @@ See the estimated plan without running the query, or view the actual query plan 
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">쿼리 계획 시각화</target>
       </trans-unit>
+      <trans-unit id="mssql.statusBar.enableConnectionColor">
+        <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
+        <target state="new">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">사용하도록 설정하면 개체 탐색기의 데이터베이스 개체가 스키마로 분류됩니다.</target>
