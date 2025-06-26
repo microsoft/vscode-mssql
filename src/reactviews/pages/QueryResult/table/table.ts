@@ -374,18 +374,62 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 
     setData(data: Array<T>): void;
     setData(data: TableDataView<T>): void;
-    setData(data: Array<T> | TableDataView<T>): void {
+    setData(data: Array<T> | TableDataView<T>, scrollToTop?: boolean): void {
         if (data instanceof TableDataView) {
             this._data = data;
         } else {
             this._data = new TableDataView<T>(data);
         }
-        this._grid.setData(this._data, true);
+        this._grid.setData(this._data, scrollToTop ?? false);
         this.updateRowCount();
     }
 
     getData(): IDisposableDataProvider<T> {
         return this._data;
+    }
+
+    /**
+     * Gets the current scroll position of the grid
+     */
+    public getScrollPosition(): { scrollTop: number; scrollLeft: number } {
+        const canvasElement = this._grid.getCanvasNode();
+        if (canvasElement && canvasElement.parentElement) {
+            const scrollableElement = this.findScrollableParent(canvasElement);
+            return {
+                scrollTop: scrollableElement?.scrollTop ?? 0,
+                scrollLeft: scrollableElement?.scrollLeft ?? 0,
+            };
+        }
+        return { scrollTop: 0, scrollLeft: 0 };
+    }
+
+    /**
+     * Finds the scrollable parent element
+     */
+    private findScrollableParent(element: HTMLElement): HTMLElement | null {
+        let parent = element.parentElement;
+        while (parent) {
+            const style = window.getComputedStyle(parent);
+            if (
+                style.overflow === "auto" ||
+                style.overflow === "scroll" ||
+                style.overflowY === "auto" ||
+                style.overflowY === "scroll"
+            ) {
+                return parent;
+            }
+            parent = parent.parentElement;
+        }
+        return element.parentElement; // fallback to immediate parent
+    }
+
+    /**
+     * Restores the scroll position of the grid
+     */
+    public restoreScrollPosition(scrollTop: number): void {
+        if (scrollTop > 0) {
+            this._grid.scrollTo(scrollTop);
+        }
     }
 
     get columns(): Slick.Column<T>[] {
