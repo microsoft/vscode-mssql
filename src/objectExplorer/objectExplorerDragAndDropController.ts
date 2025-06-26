@@ -59,10 +59,12 @@ export class ObjectExplorerDragAndDropController
                 isConnectionOrGroup: true,
             };
             dataTransfer.set(OE_MIME_TYPE, new vscode.DataTransferItem(dragData));
-            dataTransfer.set(
-                TEXT_MIME_TYPE,
-                new vscode.DataTransferItem(ObjectExplorerUtils.getQualifiedName(item)),
-            );
+            if (item instanceof ConnectionNode) {
+                dataTransfer.set(
+                    TEXT_MIME_TYPE,
+                    new vscode.DataTransferItem(ObjectExplorerUtils.getQualifiedName(item)),
+                );
+            }
         } else {
             dataTransfer.set(
                 TEXT_MIME_TYPE,
