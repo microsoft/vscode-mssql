@@ -9,14 +9,7 @@
 
 import "../../../media/table.css";
 import { TableDataView } from "./tableDataView";
-import {
-    ITableSorter,
-    ITableConfiguration,
-    ITableStyles,
-    FilterableColumn,
-    GridColumnMap,
-    ColumnFilterState,
-} from "./interfaces";
+import { ITableSorter, ITableConfiguration, ITableStyles, FilterableColumn } from "./interfaces";
 import * as DOM from "./dom";
 
 import { IDisposableDataProvider } from "./dataProvider";
@@ -25,9 +18,13 @@ import { mixin } from "./objects";
 import { HeaderFilter } from "./plugins/headerFilter.plugin";
 import { ContextMenu } from "./plugins/contextMenu.plugin";
 import {
+    ColumnFilterState,
+    GetColumnWidthsRequest,
+    GetFiltersRequest,
     QueryResultReducers,
     QueryResultWebviewState,
     ResultSetSummary,
+    SetColumnWidthsRequest,
 } from "../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 import { QueryResultContextProps } from "../queryResultStateProvider";
@@ -207,9 +204,12 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                 .getColumns()
                 .slice(1)
                 .map((v) => v.width);
-            let currentColumnSizes = await this.webViewState.extensionRpc.call("getColumnWidths", {
-                uri: this.queryResultContext.state.uri,
-            });
+            let currentColumnSizes = await this.webViewState.extensionRpc.sendRequest(
+                GetColumnWidthsRequest.type,
+                {
+                    uri: this.queryResultContext.state.uri,
+                },
+            );
             if (currentColumnSizes === columnSizes) {
                 return;
             }
@@ -218,7 +218,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                 uri: this.queryResultContext.state.uri,
                 columnWidths: columnSizes,
             };
-            await this.webViewState.extensionRpc.call("setColumnWidths", message);
+
+            await this.webViewState.extensionRpc.sendRequest(SetColumnWidthsRequest.type, message);
         });
 
         this.style(styles);
@@ -226,9 +227,12 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     public async restoreColumnWidths(): Promise<void> {
-        const columnWidthArray = (await this.webViewState.extensionRpc.call("getColumnWidths", {
-            uri: this.queryResultContext.state.uri,
-        })) as number[];
+        const columnWidthArray = await this.webViewState.extensionRpc.sendRequest(
+            GetColumnWidthsRequest.type,
+            {
+                uri: this.queryResultContext.state.uri,
+            },
+        );
         if (!columnWidthArray) {
             return;
         }
@@ -251,9 +255,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     public async setupFilterState(): Promise<boolean> {
         let sortColumn: Slick.Column<T> | undefined = undefined;
         let sortDirection: boolean | undefined = undefined;
-        const filterMapArray = (await this.webViewState.extensionRpc.call("getFilters", {
-            uri: this.queryResultContext.state.uri,
-        })) as GridColumnMap[];
+        const filterMapArray = await this.webViewState.extensionRpc.sendRequest(
+            GetFiltersRequest.type,
+            {
+                uri: this.queryResultContext.state.uri,
+            },
+        );
+
         if (!filterMapArray) {
             return false;
         }

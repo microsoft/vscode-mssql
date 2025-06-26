@@ -1,5 +1,25 @@
 # Change Log
 
+## Version 1.33.0
+* Release date: June 18, 2025
+* Release status: GA
+### What’s new in 1.33.0
+* Introduced Local SQL Server Containers (Public Preview) for local development — spin up SQL Server containers in seconds inside VS Code with SQL Server 2025 by default, no Docker commands needed
+* Introduced GitHub Copilot Agent Mode (Public Preview) to connect, disconnect, or switch databases, and explore and visualize schemas with smart, context-aware suggestions
+* Added Connection Groups for organized connection management — group local, staging, and production connections for clearer structure and faster switching
+* Fixed query execution issues with GitHub Copilot
+* Improved connection pooling behavior for serverless databases
+* Fixed JSON export handling for decimal values in Query Results
+* Fixed Schema Compare dropdown selection
+* Enhanced Schema Designer usability — faster loading, better filters, improved auto-arrange, clearer export options, and UI refinements
+
+## Version 1.32.1
+* Release date: June 2, 2025
+* Release status: GA
+### What's new in 1.32.1
+* Fixed an issue where Group By Schema was not working in some cases
+* Added server connection status labels to MSSQL integration with GitHub Copilot
+
 ## Version 1.32.0
 * Release date: May 19, 2025
 * Release status: GA

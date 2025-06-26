@@ -8,14 +8,22 @@ import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
 import "./schemaDesigner.css";
 import { SchemaDesignerToolbar } from "./toolbar/schemaDesignerToolbar";
 import { SchemaDesignerEditorDrawer } from "./editor/schemaDesignerEditorDrawer";
-import { SchemaDesignerCodeDrawer } from "./schemaDesignerCodeDrawer";
+import { SchemaDesignerDefinitionsPanel } from "./schemaDesignerDefinitionsPanel";
 import { SchemaDesignerFlow } from "./graph/SchemaDiagramFlow";
 import { SchemaDesignerFindTableWidget } from "./schemaDesignerFindTables";
-import { Spinner } from "@fluentui/react-components";
+import { makeStyles, Spinner } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
+const useStyles = makeStyles({
+    resizeHandle: {
+        height: "2px",
+        backgroundColor: "var(--vscode-editorWidget-border)",
+    },
+});
 export const SchemaDesignerPage = () => {
     const context = useContext(SchemaDesignerContext);
+    const classes = useStyles();
 
     if (!context) {
         return undefined;
@@ -25,11 +33,16 @@ export const SchemaDesignerPage = () => {
         <>
             <SchemaDesignerEditorDrawer />
             <MainLayout>
-                <GraphContainer>
-                    <SchemaDesignerToolbar />
-                    <SchemaDesignerFlow />
-                </GraphContainer>
-                <SchemaDesignerCodeDrawer />
+                <PanelGroup direction="vertical">
+                    <Panel defaultSize={100}>
+                        <GraphContainer>
+                            <SchemaDesignerToolbar />
+                            <SchemaDesignerFlow />
+                        </GraphContainer>
+                    </Panel>
+                    <PanelResizeHandle className={classes.resizeHandle} />
+                    <SchemaDesignerDefinitionsPanel />
+                </PanelGroup>
                 {!context.isInitialized && <LoadingOverlay />}
             </MainLayout>
         </>
@@ -59,10 +72,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 const GraphContainer = ({ children }: { children: React.ReactNode }) => (
     <div
         style={{
-            maxHeight: "100%",
-            minHeight: "60%",
             flex: 1,
             width: "100%",
+            height: "100%",
             display: "flex",
             flexDirection: "column",
             position: "relative",

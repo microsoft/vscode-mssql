@@ -157,7 +157,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     }
 
     private registerRpcHandlers() {
-        this.registerRequestHandler("openInNewTab", async (message) => {
+        this.onRequest(qr.OpenInNewTabRequest.type, async (message) => {
             void this.createPanelController(message.uri);
 
             if (this.shouldShowDefaultQueryResultToDocumentPrompt) {
@@ -205,10 +205,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     );
             }
         });
-        this.registerRequestHandler("getWebviewLocation", async () => {
+        this.onRequest(qr.GetWebviewLocationRequest.type, async () => {
             return qr.QueryResultWebviewLocation.Panel;
         });
-        this.registerRequestHandler("showFilterDisabledMessage", () => {
+        this.onRequest(qr.ShowFilterDisabledMessageRequest.type, async () => {
             this.vscodeWrapper.showInformationMessage(
                 LocalizedConstants.inMemoryDataProcessingThresholdExceeded,
             );

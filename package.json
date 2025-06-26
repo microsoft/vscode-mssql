@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.32.0",
+    "version": "1.34.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -80,12 +80,12 @@
         "@angular/router": "~3.1.2",
         "@angular/upgrade": "~2.1.2",
         "@azure/core-paging": "^1.6.2",
+        "@ctrl/tinycolor": "^4.1.0",
         "@dagrejs/dagre": "^1.1.4",
         "@eslint/compat": "^1.1.0",
         "@eslint/js": "^9.5.0",
         "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
-        "@fluentui/react-components": "^9.55.1",
-        "@fluentui/react-list-preview": "^0.3.6",
+        "@fluentui/react-components": "^9.64.0",
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
         "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
         "@monaco-editor/react": "^4.6.0",
@@ -164,6 +164,7 @@
         "react-dom": "^18.3.1",
         "react-markdown": "^9.0.1",
         "react-resizable": "^3.0.5",
+        "react-resizable-panels": "^3.0.2",
         "react-router-dom": "^6.24.1",
         "remap-istanbul": "0.9.6",
         "rxjs": "5.0.0-beta.12",
@@ -176,10 +177,11 @@
         "ts-node": "^10.9.2",
         "typemoq": "^1.7.0",
         "typescript": "^5.6.2",
-        "typescript-eslint": "^8.7.0",
+        "typescript-eslint": "^8.34.0",
         "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
         "vite": "^6.2.7",
         "vite-plugin-istanbul": "^7.0.0",
+        "vscode-jsonrpc": "^8.2.1",
         "vscode-nls-dev": "2.0.1",
         "xliff": "^6.2.1",
         "xml2js": "^0.6.2",
@@ -428,6 +430,12 @@
                     "group": "navigation"
                 },
                 {
+                    "command": "mssql.connectionGroups.create",
+                    "when": "view == objectExplorer",
+                    "title": "%mssql.connectionGroups.create%",
+                    "group": "navigation"
+                },
+                {
                     "command": "mssql.startQueryHistoryCapture",
                     "when": "view == queryHistory && config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture",
                     "title": "%mssql.startQueryHistoryCapture%",
@@ -456,9 +464,31 @@
                     "when": "view == objectExplorer && config.mssql.objectExplorer.groupBySchema",
                     "title": "%mssql.objectExplorer.disableGroupBySchema%",
                     "group": "navigation"
+                },
+                {
+                    "command": "mssql.deployLocalDockerContainer",
+                    "when": "mssql.hasConnections && config.mssql.enableRichExperiences && view == objectExplorer",
+                    "title": "%mssql.deployLocalDockerContainer%",
+                    "group": "navigation"
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "mssql.addObjectExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "title": "%mssql.addObjectExplorer%",
+                    "group": "0_MSSQL_connectionGroups@0"
+                },
+                {
+                    "command": "mssql.connectionGroups.edit",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "group": "0_MSSQL_connectionGroups@1"
+                },
+                {
+                    "command": "mssql.connectionGroups.delete",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "group": "0_MSSQL_connectionGroups@9"
+                },
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
@@ -546,13 +576,34 @@
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/ ",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
                     "group": "5_MSSQL_tree@9999"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",
                     "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "MS_SQL@11"
+                },
+                {
+                    "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "group": "MS_SQL@12"
+                },
+                {
+                    "command": "mssql.addObjectExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "title": "%mssql.addObjectExplorer%",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "mssql.connectionGroups.edit",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "mssql.connectionGroups.delete",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
+                    "group": "inline@2"
                 },
                 {
                     "command": "mssql.filterNode",
@@ -586,7 +637,7 @@
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/ ",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
                     "group": "inline@9999"
                 },
                 {
@@ -607,16 +658,24 @@
                     "command": "mssql.deleteQueryHistory",
                     "when": "view == queryHistory && viewItem == queryHistoryNode",
                     "group": "MS_SQL@3"
+                },
+                {
+                    "command": "mssql.stopContainer",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer)\\b/"
+                },
+                {
+                    "command": "mssql.deleteContainer",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer)\\b/"
+                },
+                {
+                    "command": "mssql.startContainer",
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer)\\b/"
                 }
             ],
             "commandPalette": [
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
-                },
-                {
-                    "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Database)\\b/"
                 },
                 {
                     "command": "mssql.schemaCompare",
@@ -628,7 +687,7 @@
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!disconnectedServer\\b)[^,]+/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/"
                 },
                 {
                     "command": "mssql.scriptSelect",
@@ -860,6 +919,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
+                "title": "%mssql.objectExplorerChatWithDatabaseInAgentMode%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.removeObjectExplorerNode",
                 "title": "%mssql.removeObjectExplorerNode%",
                 "category": "MS SQL"
@@ -1041,6 +1105,52 @@
                 "command": "mssql.copilot.rewriteQuery",
                 "title": "%mssql.copilot.rewriteQuery%",
                 "category": "MSSQL"
+            },
+            {
+                "command": "mssql.connectionGroups.create",
+                "title": "%mssql.connectionGroups.create%",
+                "category": "MSSQL",
+                "icon": "$(new-folder)"
+            },
+            {
+                "command": "mssql.connectionGroups.edit",
+                "title": "%mssql.connectionGroups.edit%",
+                "category": "MSSQL",
+                "icon": "$(edit)"
+            },
+            {
+                "command": "mssql.connectionGroups.delete",
+                "title": "%mssql.connectionGroups.delete%",
+                "category": "MSSQL",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "mssql.deployLocalDockerContainer",
+                "title": "%mssql.deployLocalDockerContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/newContainer_dark.svg",
+                    "light": "media/newContainer_light.svg"
+                }
+            },
+            {
+                "command": "mssql.stopContainer",
+                "title": "%mssql.stopContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.deleteContainer",
+                "title": "%mssql.deleteContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.startContainer",
+                "title": "%mssql.startContainer%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -1384,9 +1494,20 @@
                             "emptyPasswordInput": {
                                 "type": "boolean",
                                 "description": "%mssql.connection.emptyPasswordInput%"
+                            },
+                            "containerName": {
+                                "type": "string",
+                                "default": "",
+                                "description": "%mssql.connection.containerName%"
                             }
                         }
                     },
+                    "scope": "resource"
+                },
+                "mssql.hasConnections": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.hasConnections%",
                     "scope": "resource"
                 },
                 "mssql.shortcuts": {
@@ -1500,7 +1621,13 @@
                 "mssql.enableConnectionPooling": {
                     "type": "boolean",
                     "description": "%mssql.enableConnectionPooling%",
-                    "default": true
+                    "default": false
+                },
+                "mssql.statusBar.enableConnectionColor": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.enableConnectionColor%",
+                    "default": false,
+                    "scope": "window"
                 },
                 "mssql.format.alignColumnDefinitionsInColumns": {
                     "type": "boolean",
@@ -1789,6 +1916,11 @@
                     "default": false,
                     "description": "%mssql.query.alwaysEncryptedParameterization%"
                 },
+                "mssql.query.showActiveConnectionAsCodeLensSuggestion": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.query.showActiveConnectionAsCodeLensSuggestion%"
+                },
                 "mssql.ignorePlatformWarning": {
                     "type": "boolean",
                     "description": "%mssql.ignorePlatformWarning%",
@@ -1895,6 +2027,218 @@
                         ]
                     }
                 ]
+            }
+        ],
+        "languageModelTools": [
+            {
+                "name": "mssql_show_schema",
+                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool takes a connection ID as input and opens a graphical view of the database schema, including tables and relationships.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "schema",
+                    "visualization"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to use for schema visualization.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Show Database Schema",
+                "toolReferenceName": "mssql_show_schema",
+                "userDescription": "Show database schema for a connected MSSQL database.",
+                "icon": "$(graph-scatter)"
+            },
+            {
+                "name": "mssql_connect",
+                "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a UUID.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "serverName": {
+                            "description": "Server name to connect to. Should be validated with mssql_list_servers.",
+                            "title": "Server Name",
+                            "type": "string"
+                        },
+                        "database": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "description": "Optional database name to connect to. If omitted, uses the server's default database.",
+                            "title": "Database Name"
+                        },
+                        "profileId": {
+                            "description": "ID of a saved connection profile to use for connecting. Use ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'.",
+                            "title": "Profile ID",
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ]
+                        }
+                    },
+                    "required": [
+                        "serverName"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Connect to MSSQL Server or Database",
+                "toolReferenceName": "mssql_connect",
+                "userDescription": "Connect to a MSSQL server or database.",
+                "icon": "$(plug)"
+            },
+            {
+                "name": "mssql_disconnect",
+                "modelDescription": "Disconnect from a server or specific database. Returns a success message.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "disconnection"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to disconnect.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Disconnect from MSSQL Server or Database",
+                "toolReferenceName": "mssql_disconnect",
+                "userDescription": "Disconnect from a MSSQL server or database.",
+                "icon": "$(debug-disconnect)"
+            },
+            {
+                "name": "mssql_list_servers",
+                "modelDescription": "List all available MSSQL servers. Returns a list of server names.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "server",
+                    "list"
+                ],
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Servers",
+                "toolReferenceName": "mssql_list_servers",
+                "userDescription": "List all available MSSQL servers."
+            },
+            {
+                "name": "mssql_list_databases",
+                "modelDescription": "List all available databases for a connected MSSQL server. Returns a list of database names.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list databases for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Databases",
+                "toolReferenceName": "mssql_list_databases",
+                "userDescription": "List all available databases for a connected MSSQL server.",
+                "icon": "$(database)"
+            },
+            {
+                "name": "mssql_get_connection_details",
+                "modelDescription": "Get connection details for a specific connection ID. Returns connection information including server, database, authentication type, and user details.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection",
+                    "details"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to get details for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Get MSSQL Connection Details",
+                "toolReferenceName": "mssql_get_connection_details",
+                "userDescription": "Get connection details for a specific MSSQL connection.",
+                "icon": "$(info)"
+            },
+            {
+                "name": "mssql_change_database",
+                "modelDescription": "Change the database for an existing MSSQL connection. Before changing, consider using mssql_list_databases to show available database options to the user. Disconnects from current database and reconnects to the specified database using the same connection credentials.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection",
+                    "change"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to change database for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database name to switch to.",
+                            "title": "Database Name",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId",
+                        "database"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Change MSSQL Database",
+                "toolReferenceName": "mssql_change_database",
+                "userDescription": "Change the database for an existing MSSQL connection.",
+                "icon": "$(arrow-swap)"
             }
         ]
     }

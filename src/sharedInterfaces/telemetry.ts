@@ -15,6 +15,7 @@ export enum TelemetryViews {
     ConnectionPrompt = "ConnectionPrompt",
     WebviewController = "WebviewController",
     ObjectExplorerFilter = "ObjectExplorerFilter",
+    ContainerDeployment = "ContainerDeployment",
     TableDesigner = "TableDesigner",
     SchemaCompare = "SchemaCompare",
     UserSurvey = "UserSurvey",
@@ -23,6 +24,8 @@ export enum TelemetryViews {
     ExecutionPlan = "ExecutionPlan",
     AddFirewallRule = "AddFirewallRule",
     MssqlCopilot = "MssqlCopilot",
+    ConnectionGroup = "ConnectionGroup",
+    SchemaDesigner = "SchemaDesigner",
 }
 
 export enum TelemetryActions {
@@ -47,7 +50,9 @@ export enum TelemetryActions {
     ExpandNode = "ExpandNode",
     ResultPaneAction = "ResultPaneAction",
     Load = "Load",
-    WebviewRequest = "WebviewRequest",
+    ReceivedFromWebview = "ReceivedFromWebview",
+    SentToWebview = "SentToWebview",
+    Reducer = "Reducer",
     Open = "Open",
     Submit = "Submit",
     Cancel = "Cancel",
@@ -78,6 +83,12 @@ export enum TelemetryActions {
     SubmitGithubIssue = "SubmitGithubIssue",
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
+    StartContainerDeployment = "StartContainerDeployment",
+    CreateSQLContainer = "CreateSQLContainer",
+    ConnectToContainer = "ConnectToContainer",
+    StartContainer = "StartContainer",
+    StopContainer = "StopContainer",
+    DeleteContainer = "DeleteContainer",
     LoadFromConnectionString = "LoadFromConnectionString",
     MigrateLegacyConnections = "MigrateLegacyConnections",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
@@ -91,9 +102,16 @@ export enum TelemetryActions {
     ToolCallFailure = "ToolCallFailure",
     Feedback = "Feedback",
     ChatWithDatabase = "ChatWithDatabase",
+    ChatWithDatabaseInAgentMode = "ChatWithDatabaseInAgentMode",
     StartConversation = "StartConversation",
     GetQueryResultState = "GetQueryResultState",
     SavePlan = "SavePlan",
+    CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
+    SaveConnectionGroup = "SaveConnectionGroup",
+    DragAndDrop = "DragAndDrop",
+    ExportToImage = "ExportToImage",
+    GetReport = "getReport",
+    PublishSession = "PublishSession",
 }
 
 /**

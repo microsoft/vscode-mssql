@@ -5,28 +5,75 @@
 
 import { WebviewApi } from "vscode-webview";
 import {
-    LogEvent,
     LoggerLevel,
+    LogNotification,
+    ReducerRequest,
+    SendActionEventNotification,
+    SendErrorEventNotification,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
+import {
+    AbstractMessageReader,
+    AbstractMessageWriter,
+    CancellationToken,
+    createMessageConnection,
+    DataCallback,
+    Disposable,
+    Emitter,
+    Message,
+    MessageConnection,
+    MessageReader,
+    MessageWriter,
+    NotificationType,
+    RequestHandler,
+    RequestType,
+} from "vscode-jsonrpc/browser";
+
+class WebviewRpcMessageReader extends AbstractMessageReader implements MessageReader {
+    private _onData: Emitter<Message>;
+    constructor() {
+        super();
+        this._onData = new Emitter<Message>();
+        window.addEventListener("message", (event) => {
+            this._onData.fire(event.data as Message);
+        });
+    }
+    listen(callback: DataCallback): Disposable {
+        return this._onData.event(callback);
+    }
+}
+
+class WebviewRpcMessageWriter extends AbstractMessageWriter implements MessageWriter {
+    constructor(private _vscodeApi: WebviewApi<unknown>) {
+        super();
+    }
+    write(msg: Message): Promise<void> {
+        this._vscodeApi.postMessage(msg);
+        return Promise.resolve();
+    }
+    end(): void {}
+}
 
 /**
  * RPC to communicate with the extension.
  * @template Reducers interface that contains definitions for all reducers and their payloads.
  */
 export class WebviewRpc<Reducers> {
-    private _rpcRequestId = 0;
-    private _rpcHandlers: {
-        [id: number]: {
-            resolve: (result: unknown) => void;
-            reject: (error: unknown) => void;
-        };
-    } = {};
-    private _methodSubscriptions: {
-        [method: string]: Record<string, (params: unknown) => void>;
-    } = {};
+    public connection: MessageConnection;
+
+    /**
+     * Singleton instance of the WebviewRpc class.
+     * @param vscodeApi The WebviewApi instance to communicate with the extension.
+     * @returns The singleton instance of WebviewRpc.
+     */
     private static _instance: WebviewRpc<any>;
+    /**
+     * Get the singleton instance of the WebviewRpc class.
+     * This method ensures that only one instance of the WebviewRpc class is created.
+     * @param vscodeApi The WebviewApi instance to communicate with the extension.
+     * @returns The singleton instance of WebviewRpc.
+     */
     public static getInstance<Reducers>(vscodeApi: WebviewApi<unknown>): WebviewRpc<Reducers> {
         if (!WebviewRpc._instance) {
             WebviewRpc._instance = new WebviewRpc<Reducers>(vscodeApi);
@@ -34,41 +81,13 @@ export class WebviewRpc<Reducers> {
         return WebviewRpc._instance;
     }
 
-    private constructor(private _vscodeApi: WebviewApi<unknown>) {
-        window.addEventListener("message", (event) => {
-            const message = event.data;
-            if (message.type === "response") {
-                const { id, result, error } = message;
-                if (this._rpcHandlers[id]) {
-                    if (error) {
-                        this._rpcHandlers[id].reject(error);
-                    } else {
-                        this._rpcHandlers[id].resolve(result);
-                    }
-                    delete this._rpcHandlers[id];
-                }
-            }
-            if (message.type === "notification") {
-                const { method, params } = message;
-                if (this._methodSubscriptions[method]) {
-                    Object.values(this._methodSubscriptions[method]).forEach((cb) => cb(params));
-                }
-            }
-        });
-    }
-
-    /**
-     * Call a method on the extension. Use this method when you expect a response object from the extension.
-     * @param method name of the method to call
-     * @param params parameters to pass to the method
-     * @returns a promise that resolves to the result of the method call
-     */
-    public call(method: string, params?: unknown): Promise<unknown> {
-        const id = this._rpcRequestId++;
-        this._vscodeApi.postMessage({ type: "request", id, method, params });
-        return new Promise((resolve, reject) => {
-            this._rpcHandlers[id] = { resolve, reject };
-        });
+    private constructor(_vscodeApi: WebviewApi<unknown>) {
+        //this._setupMessageListener();
+        this.connection = createMessageConnection(
+            new WebviewRpcMessageReader(),
+            new WebviewRpcMessageWriter(_vscodeApi),
+        );
+        this.connection.listen();
     }
 
     /**
@@ -81,25 +100,41 @@ export class WebviewRpc<Reducers> {
         method: MethodName,
         payload?: Reducers[MethodName],
     ) {
-        void this.call("action", { type: method, payload });
-    }
-
-    public subscribe(callerId: string, method: string, callback: (params: unknown) => void) {
-        if (!this._methodSubscriptions[method]) {
-            this._methodSubscriptions[method] = {};
-        }
-        this._methodSubscriptions[method][callerId] = callback;
+        void this.sendRequest(ReducerRequest.type<Reducers>(), {
+            type: method,
+            payload: payload,
+        });
     }
 
     public sendActionEvent(event: WebviewTelemetryActionEvent) {
-        void this.call("sendActionEvent", event);
+        void this.sendNotification(SendActionEventNotification.type, event);
     }
 
     public sendErrorEvent(event: WebviewTelemetryErrorEvent) {
-        void this.call("sendErrorEvent", event);
+        void this.sendNotification(SendErrorEventNotification.type, event);
     }
 
     public log(message: string, level?: LoggerLevel) {
-        void this.call("log", { message, level } as LogEvent);
+        void this.sendNotification(LogNotification.type, { message, level });
+    }
+
+    public onRequest<P, R, E>(type: RequestType<P, R, E>, handler: RequestHandler<P, R, E>): void {
+        this.connection.onRequest(type, handler);
+    }
+
+    public sendRequest<P, R, E>(
+        type: RequestType<P, R, E>,
+        params?: P,
+        token?: CancellationToken,
+    ): Promise<R> {
+        return this.connection.sendRequest(type, params, token);
+    }
+
+    public async sendNotification<P>(type: NotificationType<P>, params?: P): Promise<void> {
+        return this.connection.sendNotification(type, params);
+    }
+
+    public onNotification<P>(type: NotificationType<P>, handler: (params: P) => void): void {
+        this.connection.onNotification(type, handler);
     }
 }

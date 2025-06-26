@@ -19,6 +19,8 @@ export class Common {
             args: [action],
             comment: ["{0} is the action being confirmed"],
         });
+    public static accept = l10n.t("Accept");
+    public static error = l10n.t("Error");
 }
 
 export let viewMore = l10n.t("View More");
@@ -85,7 +87,6 @@ export function msgConnectionErrorPasswordExpired(errorNumber: number, errorMess
         comment: ["{0} is the error number", "{1} is the error message"],
     });
 }
-export let connectionErrorChannelName = l10n.t("Connection Errors");
 export let msgPromptCancelConnect = l10n.t("Server connection in progress. Do you want to cancel?");
 export let msgPromptClearRecentConnections = l10n.t("Confirm to clear recent connections list");
 export let msgOpenSqlFile = l10n.t(
@@ -117,7 +118,7 @@ export let authTypeSql = l10n.t("SQL Login");
 export let authTypeAzureActiveDirectory = l10n.t("Microsoft Entra Id - Universal w/ MFA Support");
 export let azureAuthTypeCodeGrant = l10n.t("Azure Code Grant");
 export let azureAuthTypeDeviceCode = l10n.t("Azure Device Code");
-export let azureLogChannelName = l10n.t("Azure Logs");
+export let azureLogChannelName = l10n.t("MSSQL - Azure Auth Logs");
 export let azureConsentDialogOpen = l10n.t("Open");
 export let azureConsentDialogIgnore = l10n.t("Ignore Tenant");
 export function azureConsentDialogBody(tenantName: string, tenantId: string, resource: string) {
@@ -579,14 +580,14 @@ export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
     public static NoItems = l10n.t("No items");
     public static FailedOEConnectionError = l10n.t(
-        "We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
+        "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
     );
     public static FailedOEConnectionErrorRetry = l10n.t("Retry");
     public static FailedOEConnectionErrorUpdate = l10n.t("Edit Connection Profile");
     public static Connecting = l10n.t("Connecting...");
     public static NodeDeletionConfirmation(nodeLabel: string) {
         return l10n.t({
-            message: "Are you sure you want to delete {0}?",
+            message: "Are you sure you want to remove {0}?",
             args: [nodeLabel],
             comment: ["{0} is the node label"],
         });
@@ -609,6 +610,26 @@ export class ObjectExplorer {
     public static ScriptExecuteLabel = l10n.t("Execute");
     public static ScriptAlterLabel = l10n.t("Alter");
     public static AzureSignInMessage = l10n.t("Signing in to Azure...");
+
+    public static ConnectionGroupDeletionConfirmationWithContents(groupName: string) {
+        return l10n.t({
+            message:
+                "Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.",
+            args: [groupName],
+            comment: ["{0} is the group name"],
+        });
+    }
+
+    public static ConnectionGroupDeleteContents = l10n.t("Delete Contents");
+    public static ConnectionGroupMoveContents = l10n.t("Move to Root");
+
+    public static ConnectionGroupDeletionConfirmationWithoutContents(groupName: string) {
+        return l10n.t({
+            message: "Are you sure you want to delete {0}?",
+            args: [groupName],
+            comment: ["{0} is the group name"],
+        });
+    }
 }
 
 export class ConnectionDialog {
@@ -621,6 +642,7 @@ export class ConnectionDialog {
     public static selectATenant = l10n.t("Select a tenant");
     public static tenantIdIsRequired = l10n.t("Tenant ID is required");
     public static profileName = l10n.t("Profile Name");
+    public static connectionGroup = l10n.t("Connection Group");
     public static serverIsRequired = l10n.t("Server is required");
     public static usernameIsRequired = l10n.t("User name is required");
     public static connectionString = l10n.t("Connection String");
@@ -628,6 +650,10 @@ export class ConnectionDialog {
     public static signIn = l10n.t("Sign in");
     public static additionalParameters = l10n.t("Additional parameters");
     public static connect = l10n.t("Connect");
+    public static default = l10n.t("<Default>");
+    public static createConnectionGroup = l10n.t("+ Create Connection Group");
+    public static selectConnectionGroup = l10n.t("Select a connection group");
+    public static searchConnectionGroups = l10n.t("Search connection groups");
 
     public static errorLoadingAzureDatabases(subscriptionName: string, subscriptionId: string) {
         return l10n.t({
@@ -731,6 +757,163 @@ export class QueryResult {
                 "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum",
             ],
         });
+}
+
+export class ContainerDeployment {
+    public static createLocalSqlContainer = l10n.t("Create Local SQL Container");
+    public static stoppedContainerSucessfully = (name: string) =>
+        l10n.t({
+            message: "{0} stopped successfully.",
+            args: [name],
+            comment: ["{0} stopped successfully."],
+        });
+    public static failStopContainer = (name: string) =>
+        l10n.t({
+            message: "Failed to stop {0}.",
+            args: [name],
+            comment: ["Failed to stop {0}."],
+        });
+    public static startedContainerSucessfully = (name: string) =>
+        l10n.t({
+            message: "{0} started successfully.",
+            args: [name],
+            comment: ["{0} started successfully."],
+        });
+    public static startingContainer = (name: string) =>
+        l10n.t({
+            message: "Starting {0}...",
+            args: [name],
+            comment: ["{0} is the container name"],
+        });
+    public static failStartContainer = (name: string) =>
+        l10n.t({
+            message: "Failed to start {0}.",
+            args: [name],
+            comment: ["Failed to start {0}."],
+        });
+    public static deletedContainerSucessfully = (name: string) =>
+        l10n.t({
+            message: "{0} deleted successfully.",
+            args: [name],
+            comment: ["{0} deleted successfully."],
+        });
+    public static failDeleteContainer = (name: string) =>
+        l10n.t({
+            message: "Failed to delete {0}.",
+            args: [name],
+            comment: ["Failed to delete {0}."],
+        });
+    public static selectImage = l10n.t("Select image");
+    public static selectImageTooltip = l10n.t("Select the SQL Server Container Image");
+    public static sqlServerVersionImage = (version: string) =>
+        l10n.t({
+            message: "SQL Server {0} - latest",
+            args: [version],
+            comment: ["{0} is the SQL Server version"],
+        });
+    public static sqlServerPasswordTooltip = l10n.t("SQL Server Container SA Password");
+    public static pleaseChooseUniqueProfileName = l10n.t(
+        "Please choose a unique name for the profile",
+    );
+    public static containerName = l10n.t("Container Name");
+    public static containerNameTooltip = l10n.t(
+        "Choose a name for the SQL Server Docker Container",
+    );
+    public static pleaseChooseUniqueContainerName = l10n.t(
+        "Please choose a unique name for the container",
+    );
+    public static port = l10n.t("Port");
+    public static portTooltip = l10n.t("Choose a port to host the SQL Server Docker Container");
+    public static pleaseChooseUnusedPort = l10n.t(
+        "Please make sure the port is a number, and choose a port that is not in use",
+    );
+    public static hostname = l10n.t("Hostname");
+    public static hostnameTooltip = l10n.t("Choose a hostname for the container");
+    public static termsAndConditions = l10n.t("Terms & Conditions");
+    public static acceptSqlServerEulaTooltip = l10n.t(
+        "Accept the SQL Server EULA to deploy a SQL Server Docker container",
+    );
+    public static acceptSqlServerEula = l10n.t("Please Accept the SQL Server EULA");
+    public static dockerInstallHeader = l10n.t("Checking if Docker is installed");
+    public static dockerInstallBody = l10n.t("Checking if Docker is installed on your machine");
+    public static dockerInstallError = l10n.t(
+        "Docker is not installed or not in PATH. Please install Docker Desktop and try again.",
+    );
+    public static startDockerHeader = l10n.t("Checking if Docker is started");
+    public static startDockerBody = l10n.t(
+        "Checking if Docker is running on your machine. If not, we'll start it for you.",
+    );
+    public static dockerError = l10n.t(
+        "Error running Docker commands. Please make sure Docker is running.",
+    );
+    public static startDockerEngineHeader = l10n.t("Checking Docker Engine Configuration");
+    public static startDockerEngineBody = l10n.t(
+        "Checking if the Docker Engine is configured correctly on your machine.",
+    );
+    public static creatingContainerHeader = l10n.t("Creating Container");
+    public static creatingContainerBody = l10n.t(
+        "Creating and starting your SQL Server Docker container",
+    );
+    public static settingUpContainerHeader = l10n.t("Setting up container");
+    public static settingUpContainerBody = l10n.t("Readying container for connections.");
+    public static connectingToContainerHeader = l10n.t("Connecting to Container");
+    public static connectingToContainerBody = l10n.t(
+        "Connecting to your SQL Server Docker container",
+    );
+    public static passwordLengthError = l10n.t("Please make your password 8-128 characters long.");
+    public static passwordComplexityError = l10n.t(
+        "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
+    );
+    public static unsupportedDockerPlatformError = (platform: string) =>
+        l10n.t({
+            message: "Unsupported platform for Docker: {0}",
+            args: [platform],
+            comment: ["{0} is the platform name of the machine"],
+        });
+    public static rosettaError = l10n.t(
+        "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
+    );
+    public static windowsContainersError = l10n.t(
+        "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
+    );
+    public static linuxDockerPermissionsError = l10n.t(
+        "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
+    );
+    public static dockerFailedToStartWithinTimeout = l10n.t(
+        "Docker failed to start within the timeout period. Please manually start Docker and try again.",
+    );
+    public static containerFailedToStartWithinTimeout = l10n.t(
+        "Container failed to start within the timeout period. Please wait a few minutes and try again.",
+    );
+    public static dockerDesktopPathError = l10n.t(
+        "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
+    );
+    public static installDocker = l10n.t("Install Docker");
+    public static msgCreateLocalSqlContainer = l10n.t("Create Local SQL Container");
+    public static startingContainerLoadingLabel = l10n.t("Starting Container...");
+    public static stoppingContainerLoadingLabel = l10n.t("Stopping Container...");
+    public static deletingContainerLoadingLabel = l10n.t("Deleting Container...");
+    public static deleteContainerConfirmation = (containerName: string) => {
+        return l10n.t({
+            message:
+                "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.",
+            args: [containerName],
+            comment: ["{0} is the container name"],
+        });
+    };
+    public static configureLinuxContainers = l10n.t("Configure Linux containers");
+    public static switchToLinuxContainersConfirmation = l10n.t(
+        "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
+    );
+    public static switchToLinuxContainersCanceled = l10n.t(
+        "Switching to Linux containers was canceled. SQL Server only supports Linux containers.",
+    );
+    public static startSqlServerContainerError = l10n.t(
+        "Failed to start SQL Server container. Please check the error message for more details, and then try again.",
+    );
+    public static containerDoesNotExistError = l10n.t(
+        "Container does not exist. Would you like to remove the connection?",
+    );
 }
 
 export class UserSurvey {
@@ -886,6 +1069,14 @@ export class SchemaDesigner {
             comment: ["{0} is the database name"],
         });
     }
+    public static OpeningPublishScript = l10n.t("Opening Publish Script. This may take a while...");
+    public static GeneratingReport = l10n.t("Generating Report. This may take a while...");
+    public static PublishScriptFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to generate publish script: '{0}'",
+            args: [errorMessage ? errorMessage : "Unknown"],
+            comment: ["{0} is the error message returned from the generate script operation"],
+        });
 }
 
 export class StatusBar {
@@ -930,6 +1121,21 @@ export class MssqlChatAgent {
     public static noModelFound = l10n.t("No model found.");
     public static noToolsToProcess = l10n.t("No tools to process.");
     public static notConnected = l10n.t("You are not connected to any database.");
+    public static connectedTo = l10n.t("Connected to:");
+    public static server = (serverName: string) => {
+        return l10n.t({
+            message: "Server - {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+    public static database = (databaseName: string) => {
+        return l10n.t({
+            message: "Database - {0}",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    };
     public static usingModel = (modelName: string, canSendRequest: boolean | undefined) => {
         return l10n.t({
             message: "Using {0} ({1})...",
@@ -994,4 +1200,195 @@ export class MssqlChatAgent {
         });
     };
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
+    public static listServersToolConfirmationTitle = l10n.t("List Connections");
+    public static listServersToolConfirmationMessage = l10n.t(
+        "List all connections registered with the mssql extension?",
+    );
+    public static listServersToolInvocationMessage = l10n.t("Listing server connections");
+    public static connectToolConfirmationTitle = l10n.t("Connect to Server");
+    public static connectToolConfirmationMessageWithServerOnly = (serverName: string) => {
+        return l10n.t({
+            message: "Connect to server {0}?",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+    public static connectToolConfirmationMessageWithServerAndDatabase = (
+        serverName: string,
+        databaseName: string,
+    ) => {
+        return l10n.t({
+            message: "Connect to server {0} and database {1}?",
+            args: [serverName, databaseName],
+            comment: ["{0} is the server name", "{1} is the database name"],
+        });
+    };
+    public static connectToolInvocationMessageWithServerOnly = (serverName: string) => {
+        return l10n.t({
+            message: "Connecting to server {0}",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+    public static connectToolInvocationMessageWithServerAndDatabase = (
+        serverName: string,
+        databaseName: string,
+    ) => {
+        return l10n.t({
+            message: "Connecting to server {0} and database {1}",
+            args: [serverName, databaseName],
+            comment: ["{0} is the server name", "{1} is the database name"],
+        });
+    };
+    public static connectToolServerNotFoundError = (serverName: string) => {
+        return l10n.t({
+            message: "Server {0} not found.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+    public static connectToolSuccessMessage = l10n.t("Successfully connected to server.");
+    public static connectToolFailMessage = l10n.t("Failed to connect to server.");
+    public static connectToolProfileNotFoundError = (profileId: string) => {
+        return l10n.t({
+            message: "Connection profile '{0}' not found.",
+            args: [profileId],
+            comment: ["{0} is the profile ID"],
+        });
+    };
+    public static connectToolInvalidInputError = () => {
+        return l10n.t("Either profileId or serverName must be provided.");
+    };
+    public static connectToolConfirmationMessageWithProfile = (profileId: string) => {
+        return l10n.t({
+            message: "Connect using profile {0}?",
+            args: [profileId],
+            comment: ["{0} is the profile ID"],
+        });
+    };
+    public static connectToolInvocationMessageWithProfile = (profileId: string) => {
+        return l10n.t({
+            message: "Connecting using profile {0}",
+            args: [profileId],
+            comment: ["{0} is the profile ID"],
+        });
+    };
+    public static disconnectToolConfirmationTitle = l10n.t("Disconnect");
+    public static disconnectToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Disconnect from connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static disconnectToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Disconnecting from connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static showSchemaToolConfirmationTitle = l10n.t("Show Schema");
+    public static showSchemaToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Show schema for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static showSchemaToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Showing schema for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static noConnectionError = (connectionId: string) => {
+        return l10n.t({
+            message: "No connection found for connectionId: {0}",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static showSchemaToolSuccessMessage = l10n.t("Schema visualization opened.");
+    public static getConnectionDetailsToolConfirmationTitle = l10n.t("Get Connection Details");
+    public static getConnectionDetailsToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Get connection details for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static getConnectionDetailsToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Getting connection details for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static listDatabasesToolConfirmationTitle = l10n.t("List Databases");
+    public static listDatabasesToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List databases for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static listDatabasesToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing databases for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static changeDatabaseToolConfirmationTitle = l10n.t("Change Database");
+    public static changeDatabaseToolConfirmationMessage = (
+        connectionId: string,
+        database: string,
+    ) => {
+        return l10n.t({
+            message: "Change database to '{1}' for connection '{0}'?",
+            args: [connectionId, database],
+            comment: ["{0} is the connection ID", "{1} is the database name"],
+        });
+    };
+    public static changeDatabaseToolInvocationMessage = (
+        connectionId: string,
+        database: string,
+    ) => {
+        return l10n.t({
+            message: "Changing database to '{1}' for connection '{0}'",
+            args: [connectionId, database],
+            comment: ["{0} is the connection ID", "{1} is the database name"],
+        });
+    };
+    public static changeDatabaseToolSuccessMessage = (database: string) => {
+        return l10n.t({
+            message: "Successfully changed to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
+        });
+    };
+    public static changeDatabaseToolFailMessage = (database: string) => {
+        return l10n.t({
+            message: "Failed to connect to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
+        });
+    };
+}
+
+export class QueryEditor {
+    public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
+}
+
+export class ConnectionGroup {
+    public static createNewGroup = l10n.t("Create Connection Group");
+    public static editExistingGroup = (groupName: string) => {
+        return l10n.t({
+            message: "Edit Connection Group - {0}",
+            args: [groupName],
+            comment: ["{0} is the connection group name"],
+        });
+    };
 }

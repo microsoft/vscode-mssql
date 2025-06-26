@@ -23,6 +23,9 @@ import {
     TrustServerCertDialogProps,
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
+    CreateConnectionGroupDialogProps,
+    CREATE_NEW_GROUP_ID,
+    GetConnectionDisplayNameRequest,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
@@ -54,6 +57,7 @@ import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
+    IConnectionGroup,
     IConnectionProfile,
     IConnectionProfileWithSource,
 } from "../models/interfaces";
@@ -68,6 +72,7 @@ import {
 } from "../constants/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
+import { createConnectionGroupFromSpec } from "../controllers/connectionGroupWebviewController";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -103,6 +108,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         private _mainController: MainController,
         private _objectExplorerProvider: ObjectExplorerProvider,
         connectionToEdit?: IConnectionInfo,
+        initialConnectionGroup?: IConnectionGroup,
     ) {
         super(
             context,
@@ -129,7 +135,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         this.registerRpcHandlers();
-        void this.initializeDialog(connectionToEdit)
+        void this.initializeDialog(connectionToEdit, initialConnectionGroup)
             .then(() => {
                 this.updateState();
                 this.initialized.resolve();
@@ -151,12 +157,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             });
     }
 
-    private async initializeDialog(connectionToEdit: IConnectionInfo) {
+    private async initializeDialog(
+        connectionToEdit: IConnectionInfo,
+        initialConnectionGroup?: IConnectionGroup,
+    ) {
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
             this._mainController.connectionManager,
-            getAccounts(this._mainController.azureAccountService),
+            getAccounts(this._mainController.azureAccountService, this.logger),
             this.getAzureActionButtons(),
+            this.getConnectionGroups(),
         );
 
         this.state.connectionComponents = {
@@ -211,6 +221,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     "loadConnectionToEdit", // errorType
                 );
             }
+        }
+
+        if (initialConnectionGroup) {
+            this.state.connectionProfile.groupId = initialConnectionGroup.id;
         }
 
         await this.updateItemVisibility();
@@ -292,6 +306,56 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return await this.connectHelper(state);
         });
 
+        this.registerReducer("createConnectionGroup", async (state, payload) => {
+            const addedGroup = createConnectionGroupFromSpec(payload.connectionGroupSpec);
+
+            try {
+                await this._mainController.connectionManager.connectionStore.connectionConfig.addGroup(
+                    addedGroup,
+                );
+                sendActionEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.SaveConnectionGroup,
+                    { newOrEdit: "new" },
+                );
+            } catch (err) {
+                state.formError = getErrorMessage(err);
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.SaveConnectionGroup,
+                    err,
+                    false, // includeErrorMessage
+                    undefined, // errorCode
+                    err.Name, // errorType
+                    {
+                        failure: err.Name,
+                    },
+                );
+            }
+
+            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.SaveConnectionGroup);
+
+            state.dialog = undefined;
+
+            state.formComponents.groupId.options = await this.getConnectionGroups();
+            state.connectionProfile.groupId = addedGroup.id;
+            state.connectionGroups =
+                await this._mainController.connectionManager.connectionStore.connectionConfig.getGroups();
+
+            this.updateState(state);
+
+            return await this.connectHelper(state);
+        });
+
+        this.registerReducer("openCreateConnectionGroupDialog", async (state) => {
+            state.dialog = {
+                type: "createConnectionGroup",
+                props: {},
+            } as CreateConnectionGroupDialogProps;
+
+            return state;
+        });
+
         this.registerReducer("closeDialog", async (state) => {
             state.dialog = undefined;
             return state;
@@ -299,7 +363,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("filterAzureSubscriptions", async (state) => {
             try {
-                if (await promptForAzureSubscriptionFilter(state)) {
+                if (await promptForAzureSubscriptionFilter(state, this.logger)) {
                     await this.loadAllAzureServers(state);
                 }
             } catch (err) {
@@ -464,8 +528,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             return state;
         });
-
-        this.registerRequestHandler("getConnectionDisplayName", async (payload) => {
+        this.onRequest(GetConnectionDisplayNameRequest.type, async (payload) => {
             return getConnectionDisplayName(payload);
         });
 
@@ -514,6 +577,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const tenants = await getTenants(
                 this._mainController.azureAccountService,
                 this.state.connectionProfile.accountId,
+                this.logger,
             );
             if (tenants.length === 1) {
                 hiddenProperties.push("tenantId");
@@ -534,7 +598,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.selectedInputMode === ConnectionInputMode.Parameters ||
             state.selectedInputMode === ConnectionInputMode.AzureBrowse
         ) {
-            return state.connectionComponents.mainOptions;
+            return [...state.connectionComponents.mainOptions, "groupId"];
         }
         return ["connectionString", "profileName"];
     }
@@ -730,16 +794,19 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.updateState();
 
             this.state.connectionStatus = ApiStatus.Loaded;
+
             await this._mainController.objectExplorerTree.reveal(node, {
                 focus: true,
                 select: true,
                 expand: true,
             });
+
             await this.panel.dispose();
             this.dispose();
             UserSurvey.getInstance().promptUserForNPSFeedback();
         } catch (error) {
             this.state.connectionStatus = ApiStatus.Error;
+            this.state.formError = getErrorMessage(error);
 
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,
@@ -915,6 +982,59 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
     }
 
+    private async getConnectionGroups(): Promise<FormItemOptions[]> {
+        const rootId = this._mainController.connectionManager.connectionStore.rootGroupId;
+        let connectionGroups =
+            await this._mainController.connectionManager.connectionStore.readAllConnectionGroups();
+        connectionGroups = connectionGroups.filter((g) => g.id !== rootId);
+
+        // Count occurrences of group names to handle naming conflicts
+        const nameOccurrences = new Map<string, number>();
+        for (const group of connectionGroups) {
+            const count = nameOccurrences.get(group.name) || 0;
+            nameOccurrences.set(group.name, count + 1);
+        }
+
+        // Create a map of group IDs to their full paths
+        const groupById = new Map(connectionGroups.map((g) => [g.id, g]));
+
+        // Helper function to get parent path
+        const getParentPath = (group: IConnectionGroup): string => {
+            if (!group.parentId || group.parentId === rootId) {
+                return group.name;
+            }
+            const parent = groupById.get(group.parentId);
+            if (!parent) {
+                return group.name;
+            }
+            return `${getParentPath(parent)} > ${group.name}`;
+        };
+
+        const result = connectionGroups
+            .map((g) => {
+                // If there are naming conflicts, use the full path
+                const displayName = nameOccurrences.get(g.name) > 1 ? getParentPath(g) : g.name;
+
+                return {
+                    displayName,
+                    value: g.id,
+                };
+            })
+            .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+        return [
+            {
+                displayName: Loc.default,
+                value: rootId,
+            },
+            {
+                displayName: Loc.createConnectionGroup,
+                value: CREATE_NEW_GROUP_ID,
+            },
+            ...result,
+        ];
+    }
+
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
         const actionButtons: FormItemActionButton[] = [];
         actionButtons.push({
@@ -923,7 +1043,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             callback: async () => {
                 const account = await this._mainController.azureAccountService.addAccount();
                 this.logger.verbose(
-                    `Added Azure account '${account.displayInfo}', ${account.key.id}`,
+                    `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
                 );
 
                 const accountsComponent = this.getFormComponent(this.state, "accountId");
@@ -935,13 +1055,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 accountsComponent.options = await getAccounts(
                     this._mainController.azureAccountService,
+                    this.logger,
+                );
+
+                this.logger.verbose(
+                    `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
                 );
 
                 this.state.connectionProfile.accountId = account.key.id;
 
-                this.logger.verbose(
-                    `Read ${accountsComponent.options.length} Azure accounts, selecting '${account.key.id}'`,
-                );
+                this.logger.verbose(`Selecting '${account.key.id}'`);
 
                 this.updateState();
                 await this.handleAzureMFAEdits("accountId");
@@ -956,15 +1079,28 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 (account) => account.displayInfo.userId === this.state.connectionProfile.accountId,
             );
             if (account) {
-                const session =
-                    await this._mainController.azureAccountService.getAccountSecurityToken(
-                        account,
-                        undefined,
+                let isTokenExpired = false;
+                try {
+                    const session =
+                        await this._mainController.azureAccountService.getAccountSecurityToken(
+                            account,
+                            undefined,
+                        );
+                    isTokenExpired = !AzureController.isTokenValid(
+                        session.token,
+                        session.expiresOn,
                     );
-                const isTokenExpired = !AzureController.isTokenValid(
-                    session.token,
-                    session.expiresOn,
-                );
+                } catch (err) {
+                    this.logger.verbose(
+                        `Error getting token or checking validity; prompting for refresh. Error: ${getErrorMessage(err)}`,
+                    );
+
+                    this.vscodeWrapper.showErrorMessage(
+                        "Error validating Entra authentication token; you may need to refresh your token.",
+                    );
+
+                    isTokenExpired = true;
+                }
 
                 if (isTokenExpired) {
                     actionButtons.push({
@@ -979,12 +1115,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                                     this.state.connectionProfile.accountId,
                             );
                             if (account) {
-                                const session =
-                                    await this._mainController.azureAccountService.getAccountSecurityToken(
-                                        account,
-                                        undefined,
+                                try {
+                                    const session =
+                                        await this._mainController.azureAccountService.getAccountSecurityToken(
+                                            account,
+                                            undefined,
+                                        );
+                                    this.logger.log("Token refreshed", session.expiresOn);
+                                } catch (err) {
+                                    this.logger.error(
+                                        `Error refreshing token: ${getErrorMessage(err)}`,
                                     );
-                                this.logger.log("Token refreshed", session.expiresOn);
+                                }
                             }
                         },
                     });
@@ -1016,6 +1158,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 tenants = await getTenants(
                     this._mainController.azureAccountService,
                     this.state.connectionProfile.accountId,
+                    this.logger,
                 );
                 if (tenantComponent) {
                     tenantComponent.options = tenants;
@@ -1040,6 +1183,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 tenants = await getTenants(
                     this._mainController.azureAccountService,
                     this.state.connectionProfile.accountId,
+                    this.logger,
                 );
                 if (tenantComponent) {
                     tenantComponent.options = tenants;

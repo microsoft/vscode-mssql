@@ -20,7 +20,10 @@ export const connectionConfigFilename = "settings.json";
 export const connectionsArrayName = "connections";
 export const connectionGroupsArrayName = "connectionGroups";
 export const disconnectedServerNodeType = "disconnectedServer";
+export const disconnected = "disconnected";
 export const serverLabel = "Server";
+export const disconnectedDockerContainer = "disconnectedDockerContainer";
+export const dockerContainer = "DockerContainer";
 export const folderLabel = "Folder";
 export const database_green = "Database_green";
 export const database_red = "Database_red";
@@ -52,8 +55,12 @@ export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
 export const cmdAddObjectExplorer = "mssql.addObjectExplorer";
 export const cmdAddObjectExplorerLegacy = "mssql.addObjectExplorerLegacy";
+export const cmdConnectionGroupCreate = "mssql.connectionGroups.create";
+export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
+export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
+export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
 export const cmdRewriteQuery = "mssql.copilot.rewriteQuery";
 export const cmdAnalyzeQueryPerformance = "mssql.copilot.analyzeQueryPerformance";
@@ -96,6 +103,10 @@ export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
 export const cmdDesignSchema = "mssql.designSchema";
+export const cmdDeployLocalDockerContainer = "mssql.deployLocalDockerContainer";
+export const cmdStopContainer = "mssql.stopContainer";
+export const cmdDeleteContainer = "mssql.deleteContainer";
+export const cmdStartContainer = "mssql.startContainer";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -129,6 +140,9 @@ export const outputContentTypeEditorSelection = "setEditorSelection";
 export const outputContentTypeShowError = "showError";
 export const outputContentTypeShowWarning = "showWarning";
 export const outputServiceLocalhost = "http://localhost:";
+export const localhost = "localhost";
+export const localhostIP = "127.0.0.1";
+export const defaultContainerName = "sql_server_container";
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
 export const untitledSaveTimeThreshold = 50.0;
@@ -161,6 +175,13 @@ export const ruleNameRegex = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]?$/;
 export const configAzureAccount = "azureAccount";
 export const azureAccountProviderCredentials = "azureAccountProviderCredentials";
 export const msalCacheFileName = "accessTokenCache";
+export const copilotConnectToolName = "mssql_connect";
+export const copilotDisconnectToolName = "mssql_disconnect";
+export const copilotListServersToolName = "mssql_list_servers";
+export const copilotListDatabasesToolName = "mssql_list_databases";
+export const copilotChangeDatabaseToolName = "mssql_change_database";
+export const copilotShowSchemaToolName = "mssql_show_schema";
+export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 
 // Configuration Constants
 export const copyIncludeHeaders = "copyIncludeHeaders";
@@ -205,6 +226,9 @@ export const configInMemoryDataProcessingThreshold = "resultsGrid.inMemoryDataPr
 export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
+export const configShowActiveConnectionAsCodeLensSuggestion =
+    "mssql.query.showActiveConnectionAsCodeLensSuggestion";
+export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
@@ -239,3 +263,5 @@ export enum Platform {
     Linux = "linux",
 }
 export const isRichExperiencesEnabledDefault = true;
+export const sa = "SA";
+export const x64 = "x64";

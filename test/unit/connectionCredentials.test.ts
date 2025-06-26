@@ -356,6 +356,7 @@ suite("ConnectionCredentials Tests", () => {
                 packetSize: 37,
                 typeSystemVersion: "testTypeSystemVersion",
                 connectionString: "testConnectionString",
+                containerName: "",
             };
 
             const connDetails = ConnectionCredentials.createConnectionDetails(originalConnInfo);
