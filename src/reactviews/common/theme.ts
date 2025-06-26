@@ -18,13 +18,13 @@ export const webviewTheme: fluentui.Theme = {
     colorBrandBackground2Hover: "var(--vscode-button-hoverBackground)",
     colorBrandForeground2: "var(--vscode-list-inactiveSelectionForeground)",
     colorNeutralForegroundOnBrand: "var(--vscode-button-foreground)",
-    colorNeutralBackground1Hover: "var(--vscode-button-secondaryHoverBackground)",
+    colorNeutralBackground1Hover: "var(--vscode-dropdown-background)",
     colorNeutralForeground1Hover: "var(--vscode-editor-foreground)",
     colorNeutralBackgroundInverted: "var(--vscode-editor-selectionBackground)",
     /**
      * Background color for a pressed state of a secondary button.
      */
-    colorNeutralBackground1Pressed: "var(--vscode-button-secondaryHoverBackground)",
+    colorNeutralBackground1Pressed: "var(--vscode-dropdown-background)",
     /**
      * Foreground color for a pressed state of a secondary button.
      */
