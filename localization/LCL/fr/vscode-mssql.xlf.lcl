@@ -8430,9 +8430,21 @@
       </Item>
       <Item ItemId=";package.mssql.objectExplorerChatWithDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Chat with this database (Preview)]]></Val>
+          <Val><![CDATA[Open in Copilot Ask mode (Preview)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Converser avec cette base de données (Préversion)]]></Val>
+            <Val><![CDATA[Ouvrir en mode Copilot Ask (version préliminaire)]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Chat with this database (Preview)]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.objectExplorerChatWithDatabaseInAgentMode" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open in Copilot Agent mode (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ouvrir en mode Assistant Copilot (version préliminaire)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9039,6 +9051,15 @@
           <Val><![CDATA[Start Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Démarrer la capture de l’historique des requêtes]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.statusBar.enableConnectionColor" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lorsque cette option est activée, elle colorise l'élément de la barre d'état de connexion avec la couleur du groupe de connexions. Ce paramètre est désactivé par défaut.  Cette option utilise directement la couleur du dossier du groupe de connexions et ne la modifie pas afin de garantir un contraste avec le thème actuel de VS Code. Les utilisateurs doivent choisir des couleurs de groupe de connexions qui s'harmonisent bien avec leur thème.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
