@@ -16,7 +16,7 @@ import * as vscode from "vscode";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { sqlPlanLanguageId } from "../constants/constants";
 import { executionPlanFileFilter } from "../constants/locConstants";
 
@@ -37,6 +37,7 @@ export async function saveExecutionPlan(
     if (saveUri) {
         // Write the content to the new file
         void vscode.workspace.fs.writeFile(saveUri, Buffer.from(payload.sqlPlanContent));
+        sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.SavePlan);
     }
 
     return state;
@@ -92,7 +93,9 @@ export async function createExecutionPlanGraphs(
     let newState = {
         ...state.executionPlanState,
     };
+
     const startTime = performance.now(); // timer for telemetry
+
     for (const plan of xmlPlans) {
         const planFile: ExecutionPlanGraphInfo = {
             graphFileContent: plan,
@@ -104,9 +107,18 @@ export async function createExecutionPlanGraphs(
             );
             newState.loadState = ApiStatus.Loaded;
         } catch (e) {
-            // malformed xml
+            // Errors out on first instance of malformed xml
             newState.loadState = ApiStatus.Error;
             newState.errorMessage = getErrorMessage(e);
+            state.executionPlanState = newState;
+
+            sendErrorEvent(
+                TelemetryViews.ExecutionPlan,
+                TelemetryActions.OpenExecutionPlan,
+                e,
+                true, // includeErrorMessage
+            );
+            return state;
         }
     }
 

@@ -394,34 +394,8 @@ const ForeignKeyCard = ({
             <div className={classes.row}>
                 <Field style={{ flex: 1 }} size="small">
                     <Label>{locConstants.schemaDesigner.targetTable}</Label>
-                    <Dropdown
-                        size="small"
-                        value={`${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`}
-                        selectedOptions={[
-                            `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
-                        ]}
-                        multiselect={false}
-                        onOptionSelect={(_e, data) => {
-                            if (!data.optionText || !context.schema) return;
-
-                            const targetTable = tableUtils.getTableFromDisplayName(
-                                context.schema,
-                                data.optionText,
-                            );
-
-                            // When target table changes, update reference info and reset column mappings
-                            const defaultTargetColumn = targetTable.columns[0]?.name || "";
-
-                            onUpdate(index, {
-                                ...foreignKey,
-                                referencedTableName: targetTable.name,
-                                referencedSchemaName: targetTable.schema,
-                                referencedColumns: [defaultTargetColumn],
-                            });
-                        }}
-                        style={{ minWidth: "auto" }}>
-                        {allTables
-                            .slice()
+                    <SearchableDropdown
+                        options={allTables
                             .sort((a, b) => {
                                 const displayNameA = `${a.schema}.${a.name}`;
                                 const displayNameB = `${b.schema}.${b.name}`;
@@ -429,15 +403,33 @@ const ForeignKeyCard = ({
                                     .toLowerCase()
                                     .localeCompare(displayNameB.toLowerCase());
                             })
-                            .map((table) => {
-                                const displayName = `${table.schema}.${table.name}`;
-                                return (
-                                    <Option key={`table-option-${table.name}`} value={displayName}>
-                                        {displayName}
-                                    </Option>
-                                );
-                            })}
-                    </Dropdown>
+                            .map((table) => ({
+                                displayName: `${table.schema}.${table.name}`,
+                                value: `${table.schema}.${table.name}`,
+                            }))}
+                        selectedOption={{
+                            text: `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
+                            value: `${foreignKey.referencedSchemaName}.${foreignKey.referencedTableName}`,
+                        }}
+                        onSelect={(selected) => {
+                            if (!selected.value || !context.schema) return;
+                            const targetTable = tableUtils.getTableFromDisplayName(
+                                context.schema,
+                                selected.value,
+                            );
+                            // When target table changes, update reference info and reset column mappings
+                            const defaultTargetColumn = targetTable.columns[0]?.name || "";
+                            onUpdate(index, {
+                                ...foreignKey,
+                                referencedTableName: targetTable.name,
+                                referencedSchemaName: targetTable.schema,
+                                referencedColumns: [defaultTargetColumn],
+                                columns: [context.table.columns[0]?.name || ""],
+                            });
+                        }}
+                        style={{ minWidth: "auto" }}
+                        size="small"
+                    />
                 </Field>
             </div>
 

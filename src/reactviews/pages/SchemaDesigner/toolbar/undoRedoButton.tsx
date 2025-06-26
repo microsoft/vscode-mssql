@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ToolbarButton } from "@fluentui/react-components";
+import { Button } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import eventBus from "../schemaDesignerEvents";
 import { useEffect, useState } from "react";
+import { locConstants } from "../../../common/locConstants";
 
 export function UndoRedoButtons() {
     const [isUndoEnabled, setIsUndoEnabled] = useState(false);
@@ -23,26 +24,28 @@ export function UndoRedoButtons() {
     }, []);
     return (
         <>
-            <ToolbarButton
+            <Button
+                size="small"
+                appearance="subtle"
                 icon={<FluentIcons.ArrowUndo16Regular />}
                 onClick={() => {
                     eventBus.emit("undo");
                 }}
                 disabled={!isUndoEnabled}
-                title={"Undo"}
-                appearance="subtle">
-                {"Undo"}
-            </ToolbarButton>
-            <ToolbarButton
+                title={locConstants.schemaDesigner.undo}>
+                {locConstants.schemaDesigner.undo}
+            </Button>
+            <Button
+                size="small"
+                appearance="subtle"
                 icon={<FluentIcons.ArrowRedo16Regular />}
                 onClick={() => {
                     eventBus.emit("redo");
                 }}
                 disabled={!isRedoEnabled}
-                title={"Redo"}
-                appearance="subtle">
-                {"Redo"}
-            </ToolbarButton>
+                title={locConstants.schemaDesigner.redo}>
+                {locConstants.schemaDesigner.redo}
+            </Button>
         </>
     );
 }

@@ -8,11 +8,15 @@ import {
     QueryResultWebviewState,
     QueryResultReducers,
     ResultSetSummary,
+    CopySelectionRequest,
+    SendToClipboardRequest,
+    DbCellValue,
 } from "../../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
-import { Keys } from "../../keys";
+import { Keys } from "../../../../common/keys";
 import { IDisposableDataProvider } from "../dataProvider";
+import { GetPlatformRequest } from "../../../../../sharedInterfaces/webview";
 
 /**
  * Implements the various additional navigation keybindings we want out of slickgrid
@@ -48,7 +52,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         let handled = false;
-        let platform = await this.webViewState.extensionRpc.call("getPlatform");
+        let platform = await this.webViewState.extensionRpc.sendRequest(GetPlatformRequest.type);
         if (platform === "darwin") {
             // Cmd + C
             if (e.metaKey && e.key === Keys.c) {
@@ -91,22 +95,26 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
             let data = await this.dataProvider.getRangeAsync(range.start, range.length);
             const dataArray = data.map((map) => {
                 const maxKey = Math.max(...Array.from(Object.keys(map)).map(Number)); // Get the maximum key
-                return Array.from({ length: maxKey + 1 }, (_, index) => ({
-                    rowId: index,
-                    displayValue: map[index].displayValue || null,
-                }));
+                return Array.from(
+                    { length: maxKey + 1 },
+                    (_, index) =>
+                        ({
+                            rowId: index,
+                            displayValue: map[index].displayValue || null,
+                            isNull: map[index].isNull || false,
+                        }) as DbCellValue,
+                );
             });
-
-            await this.webViewState.extensionRpc.call("sendToClipboard", {
-                uri: this.uri,
+            await this.webViewState.extensionRpc.sendRequest(SendToClipboardRequest.type, {
+                uri: uri,
                 data: dataArray,
-                batchId: this.resultSetSummary.batchId,
-                resultId: this.resultSetSummary.id,
+                batchId: resultSetSummary.batchId,
+                resultId: resultSetSummary.id,
                 selection: selection,
-                headersFlag: false,
+                headersFlag: false, // Assuming headers are not needed for in-memory data
             });
         } else {
-            await webViewState.extensionRpc.call("copySelection", {
+            await webViewState.extensionRpc.sendRequest(CopySelectionRequest.type, {
                 uri: uri,
                 batchId: resultSetSummary.batchId,
                 resultId: resultSetSummary.id,

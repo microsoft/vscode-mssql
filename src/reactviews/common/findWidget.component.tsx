@@ -86,6 +86,9 @@ const useStyles = makeStyles({
         opacity: "1",
         transform: "translateY(0)",
     },
+    invisible: {
+        display: "none",
+    },
     srOnly: {
         position: "absolute",
         width: "1px",
@@ -286,7 +289,7 @@ export function FindWidget<T extends SearchableItem>({
             ref={containerRef}
             role="search"
             aria-label={searchLabel}
-            className={`${styles.floatingContainer} ${isVisible ? styles.visible : ""}`}
+            className={`${styles.floatingContainer} ${isVisible ? styles.visible : styles.invisible}`}
             style={{ zIndex: zIndex }}>
             <SearchBox
                 size="small"

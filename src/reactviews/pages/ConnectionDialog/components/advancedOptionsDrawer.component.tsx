@@ -28,6 +28,7 @@ import {
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
 } from "../../../../sharedInterfaces/connectionDialog";
+import { useAccordionStyles } from "../../../common/styles";
 
 export const AdvancedOptionsDrawer = ({
     isAdvancedDrawerOpen,
@@ -39,6 +40,7 @@ export const AdvancedOptionsDrawer = ({
     const context = useContext(ConnectionDialogContext);
     const [searchSettingsText, setSearchSettingText] = useState<string>("");
     const [userOpenedSections, setUserOpenedSections] = useState<string[]>(["General"]);
+    const accordionStyles = useAccordionStyles();
 
     if (context === undefined) {
         return undefined;
@@ -119,7 +121,10 @@ export const AdvancedOptionsDrawer = ({
                         .filter((group) => doesGroupHaveVisibleOptions(group))
                         .map((group, groupIndex) => {
                             return (
-                                <AccordionItem value={group.groupName} key={groupIndex}>
+                                <AccordionItem
+                                    value={group.groupName}
+                                    key={groupIndex}
+                                    className={accordionStyles.accordionItem}>
                                     <AccordionHeader>{group.groupName}</AccordionHeader>
                                     <AccordionPanel>
                                         {group.options

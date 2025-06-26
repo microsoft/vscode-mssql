@@ -42,6 +42,7 @@ import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
+import { cmdAddObjectExplorer } from "../constants/constants";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -116,12 +117,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         void this.start(node);
         this.registerRpcHandlers();
 
-        this.connectionMgr.onActiveConnectionsChanged(() => {
-            const activeServers = this.getActiveServersList();
-            this.state.activeServers = activeServers;
+        this.registerDisposable(
+            this.connectionMgr.onConnectionsChanged(() => {
+                const activeServers = this.getActiveServersList();
+                this.state.activeServers = activeServers;
 
-            this.updateState();
-        });
+                this.updateState();
+            }),
+        );
     }
 
     /**
@@ -338,7 +341,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("openAddNewConnectionDialog", (state) => {
-            vscode.commands.executeCommand("mssql.addObjectExplorerPreview");
+            vscode.commands.executeCommand(cmdAddObjectExplorer);
 
             return state;
         });
@@ -1015,6 +1018,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 startTime: Date.now().toString(),
             },
         );
+
+        if (payload.sourceEndpointInfo.endpointType === mssql.SchemaCompareEndpointType.Project) {
+            payload.sourceEndpointInfo.targetScripts = await this.getProjectScriptFiles(
+                payload.sourceEndpointInfo.projectFilePath,
+            );
+        }
+        if (payload.targetEndpointInfo.endpointType === mssql.SchemaCompareEndpointType.Project) {
+            payload.targetEndpointInfo.targetScripts = await this.getProjectScriptFiles(
+                payload.targetEndpointInfo.projectFilePath,
+            );
+        }
 
         const result = await compare(
             this.operationId,

@@ -1,65 +1,115 @@
-[![Build and Test (Unit + E2E)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml/badge.svg?branch=main&event=push)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml)
+[![Build and Test (Unit + E2E)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml)
 ![GitHub Discussions](https://img.shields.io/github/discussions/microsoft/vscode-mssql)
 
 # MSSQL extension for Visual Studio Code
 
-This extension is designed to help developers seamlessly work with their databases, simplifying the use of SQL Server, SQL Database in Fabric, and all Azure SQL offerings — including Azure SQL Database, Azure SQL Managed Instance, and SQL Server on Azure VMs — as the backend for their applications.
-With a rich set of features, the MSSQL extension for Visual Studio Code enhances the development experience, offering functionalities such as:
+The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql) is designed to empower developers by providing a seamless and modern database development experience. Our goal is to make SQL development more productive and intuitive by integrating essential features such as schema management, query execution, and AI-powered assistance.
 
-- **Connect to Microsoft SQL Server and Azure SQL Database**: Seamlessly connect to your databases to manage and query data. The new **Connection Dialog (`Preview`)** offers a more intuitive interface, with options for entering parameters, connection strings, or browsing Azure databases. The Recent Connections panel provides quick access to previously used servers.
-- **Create and manage connection profiles**: Easily manage multiple connection profiles and quickly reconnect using your most recently used connections.
+## General Availability Features
+
+- **Connect to your databases**: Seamlessly manage your database connections
+  - Connect to **SQL database in Fabric, Azure SQL, and SQL Server** using a user-friendly interface
+  - Use an intuitive Connection Dialog to enter parameters, paste a connection string, or browse Azure resources
+  - Access recent connections quickly from a dedicated panel
+  - Use Microsoft Entra ID authentication for secure access
+  - Manage multiple connection profiles for different environments
+  - Reconnect to frequently used databases in just a few clicks
+  - Organize your connections into color-coded groups to manage local, staging, and production environments side by side.
+- **Execute queries and View Results**: Run your scripts and view results in a simple, yet powerful, grid with improved data visualization features:
+  - View results in a unified interface alongside the integrated terminal and output panels or in their own tab.
+  - Sort results by clicking on column headers.
+  - Easily copy results with or without headers for use in other applications.
+  - Export results to multiple formats, including JSON, Excel, and CSV.
+  - Enhanced experience with live execution timing summary metrics and stability improvements on large result sets
+  - View estimated plan and actual plan for T-SQL queries.
 - **Enhanced T-SQL Editing Experience**: Write T-SQL scripts with a range of powerful features, including:
   - IntelliSense for faster and more accurate coding.
   - Go to Definition for exploring database objects.
   - T-SQL snippets to speed up repetitive tasks.
   - Syntax colorizations and T-SQL error validations.
   - Support for the `GO` batch separator.
-- **Execute queries and View Results (`Preview`)**: Run your scripts and view results in a simple, yet powerful, grid with improved data visualization features:
-  - View results in a unified interface alongside the integrated terminal and output panels or in their own tab.
-  - Sort results by clicking on column headers.
-  - Easily copy results with or without headers for use in other applications.
-  - Export results to multiple formats, including JSON, Excel, and CSV.
-  - View estimated plan and actual plan for T-SQL queries.
-- **Object Explorer (`Preview`)**: Navigate through your database objects, such as databases, tables, views, and programmability items. Enhanced filtering allows you to filter database objects by properties like name, owner, or creation date, making it easier to locate specific objects within large database hierarchies.
-- **Table Designer (`Preview`)**: A visual tool for creating and managing tables in your databases. Design every aspect of the table's structure, including:
+- **Object Explorer**: Navigate and manage your database structure with ease
+  - Browse databases, tables, views, and programmability objects
+  - Expand or collapse objects to explore hierarchy visually
+  - Use enhanced filters to quickly locate items by name, owner, or creation date
+  - Streamline development in large databases with fast object access
+- **Table Designer**: A visual tool for creating and managing tables in your databases. Design every aspect of the table's structure, including:
   - Adding columns, setting data types, and specifying default values.
   - Defining primary keys and managing indexes to improve query performance.
   - Setting up foreign keys to maintain data integrity across tables.
   - Configuring advanced options like check constraints.
-  - **Script As Create**: Automatically generate T-SQL scripts for your table design and apply changes directly to the database.
-- **Query Plan Visualizer (`Preview`)**: Analyze SQL query performance with detailed execution plans. Key features include:
-  - **Node Navigation**: Interact with each step in the execution plan, including collapsing or expanding nodes for a simplified view.
-  - **Zoom Controls**: Zoom in or out to adjust the level of detail, or use "zoom to fit" for a complete view of the plan.
-  - **Metrics and Highlighting**: Highlight key performance indicators, such as elapsed time or subtree cost, to identify bottlenecks in query execution.
-- **Schema Compare (Preview)**: Effortless schema synchronization and management
+  - Automatically generate T-SQL scripts for your table design and apply changes directly to the database.
+- **Query Plan Visualizer**: Analyze SQL query performance with detailed execution plans. Key features include:
+  - Interact with each step in the execution plan, including collapsing or expanding nodes for a simplified view.
+  - Zoom in or out to adjust the level of detail, or use "zoom to fit" for a complete view of the plan.
+  - Highlight key performance indicators, such as elapsed time or subtree cost, to identify bottlenecks in query execution.
+- **Customizable Extension Options**: Configure command shortcuts, appearance, and other settings to personalize your development experience.
+
+## Public Preview Features
+
+- **GitHub Copilot Integration (`Preview`)**: Boost your productivity with AI-assisted SQL development
+  - Get intelligent code completions and suggestions for T-SQL as you type
+  - Build complex queries using natural language prompts
+  - Explain stored procedures, views, and joins to speed up onboarding and debugging
+  - Generate schema objects or test data in seconds
+  - Identify risky patterns and improve SQL security practices
+- **GitHub Copilot Agent Mode (`Preview`)**
+  - Use chat in Agent mode to connect, disconnect, or switch databases
+  - List servers and view available connections
+  - Show database schema contextually
+  - Access all available Agent tools from the Agent Tools panel
+- **Local SQL Server Containers (`Preview`)**
+  - Create and manage SQL Server containers locally without Docker commands
+  - Use SQL Server 2025 by default with vector and AI-ready features
+  - Auto-connect with a ready-to-use connection profile
+  - Start, stop, restart, or delete containers from the connection panel
+  - Automatic port conflict detection and resolution
+  - Customize container name, hostname, port, and version
+- **Schema Designer (`Preview`)**: Visual schema modeling and editing—code-free
+  - Design, view, and manage database schemas using an intuitive drag-and-drop GUI
+  - Add or modify tables, columns, primary keys, and foreign key relationships without writing T-SQL
+  - Preview schema changes instantly as read-only T-SQL in the built-in code pane
+  - Navigate large schemas easily with search, mini-map, zoom, and auto-layout
+  - Export diagrams to share with your team or include in documentation
+  - Push updates to your database using the built-in deployment
+- **Schema Compare (`Preview`)**: Effortless schema synchronization and management
   - Compare schemas between two databases, DACPAC files, or SQL projects and see additions, removals, and modifications at a glance
   - Filter and exclude specific differences before syncing
   - Apply changes directly or generate a deployment script for later use
   - Save comparisons to rerun or audit schema changes
-- **Customizable Extension Options**: Configure command shortcuts, appearance, and other settings to personalize your development experience.
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
-Get started today and experience a streamlined SQL development workflow with **mssql** for Visual Studio Code!
+## Get Started and Learn More
 
-* See [the mssql extension tutorial] for the step by step guide.
-* See [the SQL developer tutorial] to develop an app with C#, Java, Node.js, PHP, Python and R with SQL Server databases.
-* Discover more about developing locally with Azure SQL Database by following the [Azure SQL local development overview](https://learn.microsoft.com/azure/azure-sql/database/local-dev-experience-overview).
-* Explore a variety of resources for Azure SQL Database development by visiting [Azure SQL Database developer resources](https://azure.microsoft.com/en-us/products/azure-sql/database#tabs-pill-bar-oc0283_tab2).
+- [Get started with the MSSQL extension](https://aka.ms/mssql-getting-started): Step-by-step tutorial to connect and query your first database
+- [SQL Developer tutorial](https://aka.ms/sqldev): Build full-stack apps using SQL Server with C#, Java, Node.js, Python, and more
+- [Local development with Azure SQL](https://learn.microsoft.com/azure/azure-sql/database/local-dev-experience-overview): Learn how to develop locally with Azure SQL Database
+- [Dev Containers for Azure SQL](https://aka.ms/azuresql-devcontainers-docs): Set up repeatable dev environments using Dev Containers
+- [MSSQL extension documentation](https://aka.ms/vscode-mssql-docs): In-depth guides and reference documentation
+- [GitHub Copilot with MSSQL](https://aka.ms/vscode-mssql-copilot-docs): Use Copilot to write, explain, and refactor T-SQL
+- [Blog: New MSSQL extension UI](https://aka.ms/vscode-mssql-blog): Learn about the enhanced user experience in VS Code
+- [Roadmap](https://aka.ms/vscode-mssql-roadmap): See what's coming next
+- [Join the Discussion](https://aka.ms/vscode-mssql-discussions): Ask questions, suggest features, and engage with the community
 
-## Using
+## Using the MSSQL Extension
 
-* First, install [Visual Studio Code] then install **mssql** extension by pressing **F1** or **ctrl+shift+p** to open command palette, select **Install Extension** and type **mssql**.
-    * For macOS, you will need to install OpenSSL. Follow the install pre-requisite steps from [DotNet Core instructions].
-* Open an existing file with a .sql file extension or open a new text file (**ctrl+n**) and change the language mode to SQL by pressing **ctrl+k,m** and select **SQL**. **mssql** commands and functionalities are enabled in the SQL language mode in Visual Studio Code editor.
-* Create a new connection profile using command palette by pressing **F1**, type **sqlman** to run **MS SQL: Manage Connection Profile** command. Select **Create**. See [manage connection profiles] for more information about how to create and edit connection profiles in your User Settings (settings.json) file.
-* Connect to a database by pressing **F1** and type **sqlcon** to run **MS SQL: Connect** command, then select a connection profile. You can also use a shortcut (**ctrl+shift+c**).
-* Write T-SQL script in the editor using IntelliSense and Snippets. Type **sql** in the editor to list T-SQL Snippets.
-* Execute T-SQL script or selection of statements in the script by pressing **F1** and type **sqlex** to run **MS SQL: Execute Query** command. You can also use a shortcut (**ctrl+shift+e**). See [customize shortcuts] to learn about change shortcut key bindings to **mssql** commands.
-* View the T-SQL script execution results and messages in result view.
+Follow these steps to get started with the MSSQL extension:
 
-## Commands
-The extension provides several commands in the Command Palette for working with ```.sql``` files:
+1. Install [Visual Studio Code](https://code.visualstudio.com/#alt-downloads) and then install the **MSSQL extension** from the Extensions view or via the command palette (`F1`, then type `Install Extensions`).
+2. macOS users: Install OpenSSL. See the [DotNet Core instructions](https://www.microsoft.com/net/core) for prerequisites.
+3. Open or create a `.sql` file. To manually set language mode, press `Ctrl+K M` and select **SQL**.
+4. Press `F1`, type `MS SQL: Manage Connection Profile`, and follow the prompts to create a profile. See [manage connection profiles](https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles) for advanced options.
+5. Connect to a database using `F1` > `MS SQL: Connect` or the shortcut `Ctrl+Shift+C`.
+6. Write your T-SQL script using IntelliSense and snippets. Type `sql` to explore available snippets.
+7. Run queries by selecting **MS SQL: Execute Query** from the Command Palette (`F1`), or use the shortcut:
+  - **Windows/Linux**: `Ctrl+Shift+E`
+  - **macOS**: `Cmd+Shift+E`
+   View results in the result pane.
+8. Customize shortcuts via the command palette or in your `settings.json`. See [customize shortcuts](https://github.com/Microsoft/vscode-mssql/wiki/customize-shortcuts) for help.
+
+## Command Palette Commands
+The extension provides several commands in the Command Palette for working with ```.sql``` files. Here are some of the most commonly used commands:
 * **MS SQL: Connect** to SQL Server, Azure SQL Database or SQL Data Warehouse using connection profiles or recent connections.
     * **Create Connection Profile** to create a new connection profile and connect.
 * **MS SQL: Disconnect** from SQL Server, Azure SQL Database or SQL Data Warehouse in the editor session.
@@ -72,59 +122,79 @@ The extension provides several commands in the Command Palette for working with 
     * **Remove** an existing connection profile using command palette's step-by-step UI guide.
     * **Clear Recent Connection List** to clear the history of recent connections.
 
-## Options
+## Extension Settings
 The following Visual Studio Code settings are available for the mssql extension. These can be set in user preferences (cmd+,) or workspace settings ```(.vscode/settings.json)```.
-See [customize options] and [manage connection profiles] for more details.
 
 ```javascript
+// General Settings
 {
-    "mssql.maxRecentConnections": 5,
-    "mssql.connections":[],
-    "mssql.shortcuts": {
-        "event.toggleResultPane": "ctrl+alt+r",
-        "event.toggleMessagePane": "ctrl+alt+y",
-        "event.prevGrid": "ctrl+up",
-        "event.nextGrid": "ctrl+down",
-        "event.copySelection": "ctrl+c",
-        "event.maximizeGrid": "",
-        "event.selectAll": "",
-        "event.saveAsJSON": "",
-        "event.saveAsCSV": "",
-        "event.saveAsExcel": ""
-    },
-    "mssql.messagesDefaultOpen": true,
-    "mssql.logDebugInfo": false,
-    "mssql.saveAsCsv.includeHeaders": true,
-    "mssql.saveAsCsv.delimiter": ",",
-    "mssql.saveAsCsv.lineSeparator": null,
-    "mssql.saveAsCsv.textIdentifier": "\"",
-    "mssql.saveAsCsv.encoding": "utf-8",
-    "mssql.intelliSense.enableIntelliSense": true,
-    "mssql.intelliSense.enableErrorChecking": true,
-    "mssql.intelliSense.enableSuggestions": true,
-    "mssql.intelliSense.enableQuickInfo": true,
-    "mssql.intelliSense.lowerCaseSuggestions": false,
-    "mssql.resultsFontFamily": null,
-    "mssql.resultsFontSize": null,
-    "mssql.copyIncludeHeaders": false,
-    "mssql.copyRemoveNewLine" : true,
-    "mssql.splitPaneSelection": "next",
-    "mssql.format.alignColumnDefinitionsInColumns": false,
-    "mssql.format.datatypeCasing": "none",
-    "mssql.format.keywordCasing": "none",
-    "mssql.format.placeCommasBeforeNextStatement": false,
-    "mssql.format.placeSelectStatementReferencesOnNewLine": false,
-    "mssql.applyLocalization": false,
-    "mssql.query.displayBitAsNumber": true,
-    "mssql.persistQueryResultTabs": false,
-    "mssql.enableRichExperiences": true,
-    "mssql.openQueryResultsInTabByDefault": false
-    "mssql.enableNewQueryResultsFeature": false
+  "mssql.maxRecentConnections": 5,
+  "mssql.enableRichExperiences": true,
+  "mssql.openQueryResultsInTabByDefault": false,
+  "mssql.logDebugInfo": false,
+  "mssql.messagesDefaultOpen": true,
+  "mssql.applyLocalization": false
+}
+
+// IntelliSense
+{
+  "mssql.intelliSense.enableIntelliSense": true,
+  "mssql.intelliSense.enableErrorChecking": true,
+  "mssql.intelliSense.enableSuggestions": true,
+  "mssql.intelliSense.enableQuickInfo": true,
+  "mssql.intelliSense.lowerCaseSuggestions": false
+}
+
+// Results and Grid
+{
+  "mssql.resultsFontFamily": null,
+  "mssql.resultsFontSize": null,
+  "mssql.copyIncludeHeaders": false,
+  "mssql.copyRemoveNewLine": true,
+  "mssql.saveAsCsv.includeHeaders": true,
+  "mssql.saveAsCsv.delimiter": ",",
+  "mssql.saveAsCsv.lineSeparator": null,
+  "mssql.saveAsCsv.textIdentifier": "\"",
+  "mssql.saveAsCsv.encoding": "utf-8",
+  "mssql.splitPaneSelection": "next",
+  "mssql.persistQueryResultTabs": false
+}
+
+// Query Formatting
+{
+  "mssql.format.alignColumnDefinitionsInColumns": false,
+  "mssql.format.datatypeCasing": "none",
+  "mssql.format.keywordCasing": "none",
+  "mssql.format.placeCommasBeforeNextStatement": false,
+  "mssql.format.placeSelectStatementReferencesOnNewLine": false
+}
+
+// Query Execution
+{
+  "mssql.query.displayBitAsNumber": true
+}
+
+// Shortcuts
+{
+  "mssql.shortcuts": {
+    "event.toggleResultPane": "ctrl+alt+r",
+    "event.toggleMessagePane": "ctrl+alt+y",
+    "event.prevGrid": "ctrl+up",
+    "event.nextGrid": "ctrl+down",
+    "event.copySelection": "ctrl+c",
+    "event.maximizeGrid": "",
+    "event.selectAll": "",
+    "event.saveAsJSON": "",
+    "event.saveAsCSV": "",
+    "event.saveAsExcel": ""
+  }
 }
 ```
 
+See [customize options](https://github.com/Microsoft/vscode-mssql/wiki/customize-options) and [manage connection profiles](https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles) for more details.
+
 ## Change Log
-See the [change log] for a detailed list of changes in each version.
+See the [change log](https://github.com/Microsoft/vscode-mssql/blob/main/CHANGELOG.md) for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 
@@ -142,46 +212,24 @@ Currently this extension supports the following operating systems:
 * Linux arm64
 
 ## Offline Installation
-The extension will download and install a required SqlToolsService package during activation. For machines with no Internet access, you can still use the extension by choosing the
-`Install from VSIX...` option in the Extension view and installing a bundled release from our [Releases](https://github.com/Microsoft/vscode-mssql/releases) page.
-Each operating system has a .vsix file with the required service included. Pick the file for your OS, download and install to get started.
-We recommend you choose a full release and ignore any alpha or beta releases as these are our daily builds used in testing.
+The extension will download and install a required SqlToolsService package during activation. For machines with no Internet access, you can still use the extension by choosing the `Install from VSIX...` option in the extension view and installing a bundled release from our [Releases](https://github.com/Microsoft/vscode-mssql/releases) page.
+
+Each operating system has a `.vsix` file with the required service included. Pick the file for your OS, download and install to get started. We recommend you choose a full release and ignore any alpha or beta releases as these are our daily builds used in testing.
 
 ## Support
-Support for this extension is provided on our [GitHub Issue Tracker]. You can submit a [bug report], a [feature suggestion] or participate in [discussions].
+Support for this extension is provided via [GitHub issues](https://github.com/Microsoft/vscode-mssql/issues). You can submit a [bug report](https://aka.ms/vscode-mssql-bug), a [feature suggestion](https://aka.ms/vscode-mssql-feature-request) or participate in [discussions](https://aka.ms/vscode-mssql-discussions).
 
 ## Contributing to the Extension
-See the [developer documentation] for details on how to contribute to this extension.
+See the [developer documentation](https://github.com/Microsoft/vscode-mssql/wiki/contributing) for details on how to contribute to this extension.
 
 ## Code of Conduct
-This project has adopted the [Microsoft Open Source Code of Conduct]. For more information see the [Code of Conduct FAQ] or contact [opencode@microsoft.com] with any additional questions or comments.
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Telemetry
 This extension collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data and you can disable telemetry as described in the VS Code [disable telemetry reporting](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) documentation.
 
 ## Privacy Statement
-The [Microsoft Enterprise and Developer Privacy Statement] describes the privacy statement of this software.
+The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7) describes the privacy statement of this software.
 
 ## License
-This extension is [licensed under the MIT License]. Please see the [third-party notices] file for additional copyright notices and license terms applicable to portions of the software.
-
-[the mssql extension tutorial]:https://aka.ms/mssql-getting-started
-[the SQL Developer tutorial]: https://aka.ms/sqldev
-[Visual Studio Code]: https://code.visualstudio.com/#alt-downloads
-[DotNet Core instructions]:https://www.microsoft.com/net/core
-[manage connection profiles]:https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles
-[customize shortcuts]:https://github.com/Microsoft/vscode-mssql/wiki/customize-shortcuts
-[customize options]:https://github.com/Microsoft/vscode-mssql/wiki/customize-options
-[change log]: https://github.com/Microsoft/vscode-mssql/blob/main/CHANGELOG.md
-[GitHub Issue Tracker]:https://github.com/Microsoft/vscode-mssql/issues
-[bug report]:https://github.com/Microsoft/vscode-mssql/issues/new
-[feature suggestion]:https://github.com/Microsoft/vscode-mssql/issues/new
-[developer documentation]:https://github.com/Microsoft/vscode-mssql/wiki/contributing
-[Microsoft Enterprise and Developer Privacy Statement]:https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7
-[licensed under the MIT License]: https://github.com/Microsoft/vscode-mssql/blob/main/LICENSE.txt
-[third-party notices]: https://github.com/Microsoft/vscode-mssql/blob/main/ThirdPartyNotices.txt
-[Microsoft Open Source Code of Conduct]:https://opensource.microsoft.com/codeofconduct/
-[Code of Conduct FAQ]:https://opensource.microsoft.com/codeofconduct/faq/
-[opencode@microsoft.com]:mailto:opencode@microsoft.com
-[#669]:https://github.com/Microsoft/vscode-mssql/issues/669
-
+This extension is [licensed under the MIT License](https://github.com/Microsoft/vscode-mssql/blob/main/LICENSE.txt). Please see the [third-party notices](https://github.com/Microsoft/vscode-mssql/blob/main/ThirdPartyNotices.txt) file for additional copyright notices and license terms applicable to portions of the software.

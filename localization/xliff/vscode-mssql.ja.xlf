@@ -6,9 +6,21 @@
         <source xml:lang="en"> is required.</source>
         <target state="translated"> 必須です。</target>
       </trans-unit>
+      <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
+        <source xml:lang="en">$(plug)  Connect to MSSQL</source>
+        <target state="translated">$(plug)  MSSQL への接続</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
+        <source xml:lang="en">&lt;Default&gt;</source>
+        <target state="translated">&lt;Default&gt;</target>
+      </trans-unit>
       <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="translated">&lt;既定&gt;</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
+        <source xml:lang="en">+ Create Connection Group</source>
+        <target state="translated">+ 接続グループの作成</target>
       </trans-unit>
       <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
@@ -25,6 +37,18 @@
       <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
         <target state="translated">このエディター セッションのクエリは既に実行中です。このクエリをキャンセルするか、完了まで待ってください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++89713b9c9c1b8f659c9f49db25e4a47886dd673fee248c3f650391f09a759cef">
+        <source xml:lang="en">Accept</source>
+        <target state="translated">承認</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34">
+        <source xml:lang="en">Accept the SQL Server EULA to deploy a SQL Server Docker container</source>
+        <target state="translated">SQL Server Docker コンテナーをデプロイするには、SQL Server EULA に同意します</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fa0563b6f04578f7a2a7cff43aed611c4835bbb2f3a21dfed76a0601a1d63859">
+        <source xml:lang="en">Access denied. Please ensure you have the necessary permissions to use this tool or model.</source>
+        <target state="translated">アクセスが拒否されました。このツールまたはモデルを使用するために必要なアクセス許可があることを確認してください。</target>
       </trans-unit>
       <trans-unit id="++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372">
         <source xml:lang="en">Access token expired for connection {0} with uri {1}</source>
@@ -124,7 +148,7 @@
       </trans-unit>
       <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
         <source xml:lang="en">Alter</source>
-        <target state="new">Alter</target>
+        <target state="translated">変更</target>
       </trans-unit>
       <trans-unit id="++CODE++1888bd4ce917e9c8cecde43608d69624f56668f86f1bbe4331494db33fb52578">
         <source xml:lang="en">Always show in new tab</source>
@@ -134,10 +158,27 @@
         <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
         <target state="translated">ノードの更新中にエラーが発生しました。詳細については、MSSQL 出力チャネルを参照してください。</target>
       </trans-unit>
+      <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
+        <source xml:lang="en">An error occurred while processing your request.</source>
+        <target state="translated">要求の処理中にエラーが発生しました。</target>
+      </trans-unit>
       <trans-unit id="++CODE++8cf147a84fa5b378df2fb1c8d2001b12404768f0de0871a152ed488136a3b350">
         <source xml:lang="en">An error occurred while removing Microsoft Entra account: {0}</source>
         <note>{0} is the error message</note>
         <target state="translated">Microsoft Entra アカウントの削除中にエラーが発生しました: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
+        <source xml:lang="en">An error occurred: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">エラーが発生しました: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8b8fe298945f010c0411318ce29f36e4d4da70cdd0d28299dc0b64e7c8866e74">
+        <source xml:lang="en">An unexpected error occurred with the language model. Please try again.</source>
+        <target state="translated">言語モデルで予期しないエラーが発生しました。もう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++82fcdad573baa3443513b5c61196ed142a07d6b967afc2778c8932549a5ad455">
+        <source xml:lang="en">An unknown error occurred. Please try again.</source>
+        <target state="translated">不明なエラーが発生しました。もう一度お試しください。</target>
       </trans-unit>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
@@ -151,14 +192,33 @@
         <source xml:lang="en">Apply changes to target</source>
         <target state="translated">ターゲットに変更を適用する</target>
       </trans-unit>
-      <trans-unit id="++CODE++d06cb9591349a9b98151fca38054ea9703b643b570f3b4557f3d2c07d76a7403">
+      <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
+        <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
+        <note>{0} is the container name</note>
+        <target state="translated">コンテナー {0} を削除しますか?これにより、コンテナーとその接続の両方が VS Code から削除されます。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
+        <source xml:lang="en">Are you sure you want to delete the selected items?</source>
+        <target state="translated">選択されたアイテムを削除しますか?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++64f0ebe202fcbb5561671715f3bff0cf6b5219648ffe9bca961824b243d4c5bc">
         <source xml:lang="en">Are you sure you want to delete {0}?</source>
-        <note>{0} is the node label</note>
-        <target state="new">Are you sure you want to delete {0}?</target>
+        <note>{0} is the group name</note>
+        <target state="translated">{0} を削除しますか?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26c70151bceb55fb84b8e652a205659bd5736420cfa72a4e3fa92bdaa5a3b526">
+        <source xml:lang="en">Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.</source>
+        <note>{0} is the group name</note>
+        <target state="translated">{0} を削除しますか? 接続を削除することも、ルート フォルダーに移動することもできます。</target>
       </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
         <target state="translated">切断しますか?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8a6ddc1941c7b1576cc5674f2969dde12347408d66861ed151f2ed506588f42c">
+        <source xml:lang="en">Are you sure you want to remove {0}?</source>
+        <note>{0} is the node label</note>
+        <target state="translated">{0} を削除しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
         <source xml:lang="en">Are you sure you want to update the target?</source>
@@ -185,11 +245,11 @@
         <source xml:lang="en">Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</source>
         <note>{0} is the account display name
 {1} is the tenant id</note>
-        <target state="new">Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</target>
+        <target state="translated">アカウント '{0}' (テナント '{1}') の認証エラーです。これを解決するには、トークン キャッシュをクリアする必要があります。これにより、接続されているすべてのアカウントからサインアウトされます。</target>
       </trans-unit>
       <trans-unit id="++CODE++b1b511843263fa8435aafed7abebc29efd242c576fd5d386e04e349e7288e092">
         <source xml:lang="en">Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</source>
-        <target state="new">Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</target>
+        <target state="translated">アカウントの認証エラーです。これを解決するには、トークン キャッシュをクリアする必要があります。これにより、接続されているすべてのアカウントからサインアウトされます。</target>
       </trans-unit>
       <trans-unit id="++CODE++439a99b0935fb17d372edb14b699ddd05330257d8c40b464365c1129bdf94d6a">
         <source xml:lang="en">Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.</source>
@@ -202,6 +262,14 @@
       <trans-unit id="++CODE++d58bbb838e095ea400fb432477d5657a6b5a32da8da836299f4f7e20020bb42d">
         <source xml:lang="en">Auto Arrange</source>
         <target state="translated">自動整列</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ebe205c96ccbd815b1ba5c318ebfad7ce72d76dfea65929bf8c5203cd0c72a93">
+        <source xml:lang="en">Auto Arrange Confirmation</source>
+        <target state="translated">自動配置の確認</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
+        <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
+        <target state="translated">自動配置では、最適なレイアウト アルゴリズムに基づいて、すべてのダイアグラム要素の位置が自動的に変更されます。作成したカスタム配置は失われます。スキーマ図の自動配置に進みますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
         <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
@@ -228,10 +296,6 @@
       <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
         <source xml:lang="en">Azure Device Code</source>
         <target state="translated">Azure デバイス コード</target>
-      </trans-unit>
-      <trans-unit id="++CODE++dd0c9a87e191fd735e4b79b2006a4804b2190b078a05aff1ea23945f37b309c2">
-        <source xml:lang="en">Azure Logs</source>
-        <target state="translated">Azure ログ</target>
       </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
@@ -274,6 +338,10 @@
         <source xml:lang="en">Blanks</source>
         <target state="translated">空白</target>
       </trans-unit>
+      <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
+        <source xml:lang="en">Brightness</source>
+        <target state="translated">輝度</target>
+      </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
         <target state="translated">Azure を参照</target>
@@ -281,6 +349,12 @@
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
         <target state="translated">CSV</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d9a998bc5b0b1a8720c33d843590e55895977f19f6d8f56e440c778b673ab17a">
+        <source xml:lang="en">Calling tool: {0} with {1}.</source>
+        <note>{0} is the tool function name
+{1} is the SQL tool parameters</note>
+        <target state="translated">通話ツール: {1} を使用して {0}。</target>
       </trans-unit>
       <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
         <source xml:lang="en">Cancel</source>
@@ -386,6 +460,34 @@
         <source xml:lang="en">Check Constraints</source>
         <target state="translated">CHECK 制約</target>
       </trans-unit>
+      <trans-unit id="++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0">
+        <source xml:lang="en">Checking Docker Engine Configuration</source>
+        <target state="translated">Docker エンジンの構成の確認</target>
+      </trans-unit>
+      <trans-unit id="++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4">
+        <source xml:lang="en">Checking if Docker is installed</source>
+        <target state="translated">Docker がインストールされているかどうかを確認しています</target>
+      </trans-unit>
+      <trans-unit id="++CODE++75053118ac86a00be268a5a2a66b8b40a5249559ce3fc76bb45463dcc532782d">
+        <source xml:lang="en">Checking if Docker is installed on your machine</source>
+        <target state="translated">マシンに Docker がインストールされているかどうかを確認しています</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2341d1c3197fc3205cd4550c118259316a51c665389e9a3c74db361c6e11d83a">
+        <source xml:lang="en">Checking if Docker is running on your machine. If not, we'll start it for you.</source>
+        <target state="translated">マシンで Docker が実行されているかどうかを確認しています。そうでない場合は、お客様のためのに Microsoft が開始します。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6be7e803f4291ec5e83f38d2789fd4ea6c31923cdf1eedfa48564e33708cc5d3">
+        <source xml:lang="en">Checking if Docker is started</source>
+        <target state="translated">Docker が開始されているかどうかを確認中</target>
+      </trans-unit>
+      <trans-unit id="++CODE++741262e58e1274cef3f38a5aa8042fcf05db92d4ca8e9c9e573acd0e2242ba97">
+        <source xml:lang="en">Checking if the Docker Engine is configured correctly on your machine.</source>
+        <target state="translated">マシンで Docker エンジンが正しく構成されているかどうかを確認しています。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++38ccc9db5b300e54116d6f6e8b8ee1420fea7792e8483c7368fdd964b6ecef0a">
+        <source xml:lang="en">Checking pre-requisites</source>
+        <target state="translated">前提条件の確認</target>
+      </trans-unit>
       <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
         <source xml:lang="en">Choose An Action</source>
         <target state="translated">アクションの選択</target>
@@ -414,6 +516,26 @@
         <source xml:lang="en">Choose a database from the list below</source>
         <target state="translated">下の一覧からデータベースを選択してください</target>
       </trans-unit>
+      <trans-unit id="++CODE++f374a2978746011d60b5e1785696b4f2c1fe9165edc4f876767d2f1282240cb2">
+        <source xml:lang="en">Choose a hostname for the container</source>
+        <target state="translated">コンテナーのホスト名を選択する</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3152aa1eecc4ae815f286d840683f8a27d00ed17af850886caef1ff5e3d9e122">
+        <source xml:lang="en">Choose a name for the SQL Server Docker Container</source>
+        <target state="translated">SQL Server Docker コンテナーの名前を選択する</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
+        <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
+        <target state="translated">SQL Server Docker コンテナーをホストするポートを選択する</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
+        <source xml:lang="en">Choose color</source>
+        <target state="translated">色の選択</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
+        <source xml:lang="en">Choose the Right Version</source>
+        <target state="translated">適切なバージョンの選択</target>
+      </trans-unit>
       <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
         <source xml:lang="en">Circular reference detected: '{0}' → '{1}' creates a cycle</source>
         <note>{0} is source table
@@ -438,11 +560,11 @@
       </trans-unit>
       <trans-unit id="++CODE++8046678782bb5feaf7131b03db70b9f5f66007fcc8b0c670c186db149edeb041">
         <source xml:lang="en">Clear Sort</source>
-        <target state="new">Clear Sort</target>
+        <target state="translated">並べ替えをクリア</target>
       </trans-unit>
       <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
         <source xml:lang="en">Clear cache and refresh token</source>
-        <target state="new">Clear cache and refresh token</target>
+        <target state="translated">キャッシュのクリアと更新トークン</target>
       </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
@@ -471,6 +593,10 @@
       <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
         <source xml:lang="en">Collapse All</source>
         <target state="translated">すべて折りたたむ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
+        <source xml:lang="en">Color</source>
+        <target state="translated">色</target>
       </trans-unit>
       <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
         <source xml:lang="en">Column</source>
@@ -530,9 +656,21 @@
         <source xml:lang="en">Compare</source>
         <target state="translated">比較</target>
       </trans-unit>
+      <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
+        <source xml:lang="en">Compare SQL Server editions</source>
+        <target state="translated">SQL Server エディションの比較</target>
+      </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
         <target state="translated">比較の詳細</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
+        <source xml:lang="en">Configure Linux containers</source>
+        <target state="translated">Linux コンテナーの構成</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
+        <source xml:lang="en">Configure and customize SQL Server containers</source>
+        <target state="translated">SQL Server コンテナーの構成とカスタマイズ</target>
       </trans-unit>
       <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
         <source xml:lang="en">Confirm to clear recent connections list</source>
@@ -552,7 +690,32 @@
       </trans-unit>
       <trans-unit id="++CODE++4559fb568a70152599e0f4c5aeae4ca533de114086a7fbd57f5281732c9db33b">
         <source xml:lang="en">Connect to MSSQL</source>
-        <target state="new">Connect to MSSQL</target>
+        <target state="translated">MSSQL への接続</target>
+      </trans-unit>
+      <trans-unit id="++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54">
+        <source xml:lang="en">Connect to Server</source>
+        <target state="translated">サーバーに接続</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3">
+        <source xml:lang="en">Connect to server {0} and database {1}?</source>
+        <note>{0} is the server name
+{1} is the database name</note>
+        <target state="translated">サーバー {0} とデータベース {1} に接続しますか?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c629f4154b93588541a43212104dda942f74b6b1c384f17ed00ccd062e649fb4">
+        <source xml:lang="en">Connect to server {0}?</source>
+        <note>{0} is the server name</note>
+        <target state="translated">サーバー {0} に接続しますか?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ea9acac28e2644caf0dd7884eec71c1a92d541701276abf4acd5de8d04aa8af9">
+        <source xml:lang="en">Connect to {0}</source>
+        <note>{0} is the name of the connection profile</note>
+        <target state="new">Connect to {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5">
+        <source xml:lang="en">Connect using profile {0}?</source>
+        <note>{0} is the profile ID</note>
+        <target state="translated">プロファイル {0} を使用して接続しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
@@ -561,9 +724,17 @@
 {2} is the server info</note>
         <target state="translated">ドキュメント "{0}" でサーバー "{1}" に接続しました。サーバー情報: {2}</target>
       </trans-unit>
+      <trans-unit id="++CODE++00aaa2ec4a2146b807cc64a6f59880630adc5d451cd1a68a80e2d2ccf2d21bbc">
+        <source xml:lang="en">Connected to:</source>
+        <target state="translated">接続先:</target>
+      </trans-unit>
       <trans-unit id="++CODE++d403c686f6a1048014bdd230f59963271b0123ea48245754fc9f264b962a2182">
         <source xml:lang="en">Connecting</source>
         <target state="translated">接続中</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fc83034782062ce727014f496892adc8087186e29e686533f40d6064c70e7c7c">
+        <source xml:lang="en">Connecting to Container</source>
+        <target state="translated">コンテナーに接続中</target>
       </trans-unit>
       <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
@@ -571,25 +742,45 @@
 {1} is the document name</note>
         <target state="translated">ドキュメント "{0}" でサーバー "{1}" に接続中です。</target>
       </trans-unit>
+      <trans-unit id="++CODE++cdfa68f01c8258a3933e2cc436e46a47425d2c5cde4ad327b70a59615b4a4892">
+        <source xml:lang="en">Connecting to server {0}</source>
+        <note>{0} is the server name</note>
+        <target state="translated">サーバー {0} に接続しています</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d568f5700106a3d28657010405b5ef04ac5e6f31499216360661ba4f19256e15">
+        <source xml:lang="en">Connecting to server {0} and database {1}</source>
+        <note>{0} is the server name
+{1} is the database name</note>
+        <target state="translated">サーバー {0} とデータベース {1} への接続中</target>
+      </trans-unit>
+      <trans-unit id="++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744">
+        <source xml:lang="en">Connecting to your SQL Server Docker container</source>
+        <target state="translated">SQL Server Docker コンテナーへの接続</target>
+      </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">次の場所に接続します:</target>
       </trans-unit>
+      <trans-unit id="++CODE++efb70e946b81dee71e5439537f7160292d511bb79830c8edd338f32e232cf183">
+        <source xml:lang="en">Connecting using profile {0}</source>
+        <note>{0} is the profile ID</note>
+        <target state="translated">プロファイル {0} を使用した接続</target>
+      </trans-unit>
       <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
         <source xml:lang="en">Connecting...</source>
-        <target state="new">Connecting...</target>
+        <target state="translated">接続中...</target>
       </trans-unit>
       <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
         <source xml:lang="en">Connection Dialog</source>
-        <target state="new">Connection Dialog</target>
+        <target state="translated">接続ダイアログ</target>
       </trans-unit>
       <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
         <source xml:lang="en">Connection Error</source>
         <target state="translated">接続エラー</target>
       </trans-unit>
-      <trans-unit id="++CODE++52d8d284995954ca5f68adbc705bb4ff2a930cc1ff2a3885a1002ff477394eee">
-        <source xml:lang="en">Connection Errors</source>
-        <target state="translated">接続エラー</target>
+      <trans-unit id="++CODE++fea70af0cad96e7c97f889724e5dfe0e2d28cbf958e905f5e51ba2584c3d9458">
+        <source xml:lang="en">Connection Group</source>
+        <target state="translated">接続グループ</target>
       </trans-unit>
       <trans-unit id="++CODE++d913a8ab7732ff7d26c8afceb2e2706c5c991762df193b236fd839bd3a616cb6">
         <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
@@ -608,6 +799,11 @@
         <note>{0} is the uri</note>
         <target state="translated">URI "{0}" の接続が見つかりません。</target>
       </trans-unit>
+      <trans-unit id="++CODE++392f78e8df5a591be501949632cd689e0fd59c4e0233c8b002a2dce8518ad4e4">
+        <source xml:lang="en">Connection profile '{0}' not found.</source>
+        <note>{0} is the profile ID</note>
+        <target state="translated">接続プロファイル '{0}' が見つかりません。</target>
+      </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">接続文字列が必要です</target>
@@ -615,6 +811,18 @@
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
         <target state="translated">この外部キーに名前を追加することを検討してください</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
+        <source xml:lang="en">Container Name</source>
+        <target state="translated">コンテナー名</target>
+      </trans-unit>
+      <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
+        <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
+        <target state="translated">コンテナーが存在しません。接続を削除しますか?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
+        <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
+        <target state="translated">タイムアウト期間内にコンテナーを開始できませんでした。数分たってから、もう一度やり直してください。</target>
       </trans-unit>
       <trans-unit id="++CODE++2eaecb3d0cf1282f01fc09568b63dc633753a0dbf337365d929d9c28df3d6ca4">
         <source xml:lang="en">Contains</source>
@@ -669,13 +877,33 @@
         <source xml:lang="en">Create As Script</source>
         <target state="translated">スクリプトとして作成</target>
       </trans-unit>
+      <trans-unit id="++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d">
+        <source xml:lang="en">Create Connection Group</source>
+        <target state="translated">接続グループの作成</target>
+      </trans-unit>
       <trans-unit id="++CODE++71c1ec27a8c136ecdc781c1fd2364676155fbab7abf8837b9075eb3b9f9af7c0">
         <source xml:lang="en">Create Connection Profile</source>
         <target state="translated">接続プロファイルの作成</target>
       </trans-unit>
+      <trans-unit id="++CODE++4b0281fd3c02c610c7ff9f781b1666d54182ee7c48812ea9332055a7814872ad">
+        <source xml:lang="en">Create Container</source>
+        <target state="translated">コンテナーの作成</target>
+      </trans-unit>
       <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
         <source xml:lang="en">Create Firewall Rule</source>
         <target state="translated">ファイアウォール規則を作成する</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f7450e89276bf601752a2ef286965fb13e17c418012b0aa68be16f8941cc7321">
+        <source xml:lang="en">Create Local SQL Container</source>
+        <target state="translated">ローカル SQL コンテナーの作成</target>
+      </trans-unit>
+      <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
+        <source xml:lang="en">Create New Connection Group</source>
+        <target state="translated">新しい接続グループの作成</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
+        <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
+        <target state="translated">SQL Server コンテナーを数秒で作成できます。手動の手順は必要ありません。VS Code を離れずに MSSQL 拡張機能から簡単に確認できます。</target>
       </trans-unit>
       <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
         <source xml:lang="en">Create a new firewall rule</source>
@@ -685,6 +913,14 @@
         <source xml:lang="en">Create new firewall rule for {0}</source>
         <note>{0} is the server name that the firewall rule will be created for</note>
         <target state="translated">{0} の新しいファイアウォール規則を作成する</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8">
+        <source xml:lang="en">Creating Container</source>
+        <target state="translated">コンテナーの作成中</target>
+      </trans-unit>
+      <trans-unit id="++CODE++09af7062beeeeb3b9e2346b91902b8e45ea936c57462ca09e997e7280b8f71dc">
+        <source xml:lang="en">Creating and starting your SQL Server Docker container</source>
+        <target state="translated">SQL Server Docker コンテナーの作成と開始</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -714,6 +950,11 @@
         <source xml:lang="en">Database</source>
         <target state="translated">データベース</target>
       </trans-unit>
+      <trans-unit id="++CODE++84a2b1ae34166a218282ec6156f3af9c67f4ccb6c03ec1cc0a03d9b3792069aa">
+        <source xml:lang="en">Database - {0}</source>
+        <note>{0} is the database name</note>
+        <target state="translated">データベース - {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++667dd91d86c6b574073536489e39f0c5ab034846a63d946e8ef9f7bedeb1f4fb">
         <source xml:lang="en">Database Project</source>
         <target state="translated">データベース プロジェクト</target>
@@ -730,6 +971,10 @@
         <source xml:lang="en">Default Value</source>
         <target state="translated">既定値</target>
       </trans-unit>
+      <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
+        <source xml:lang="en">Definition</source>
+        <target state="translated">定義</target>
+      </trans-unit>
       <trans-unit id="++CODE++b6ca9a06ebcc8ea511648b46b103859960924b42fa98231c0ca4b69b84943687">
         <source xml:lang="en">DefinitionRequestCompleted</source>
         <target state="translated">DefinitionRequestCompleted</target>
@@ -742,9 +987,21 @@
         <source xml:lang="en">Delete</source>
         <target state="translated">削除</target>
       </trans-unit>
+      <trans-unit id="++CODE++2860bf10bd8d01c604f713ea3f60ccea6ef028fd2e7074a400fac50c569aa45c">
+        <source xml:lang="en">Delete Confirmation</source>
+        <target state="translated">削除の確認</target>
+      </trans-unit>
+      <trans-unit id="++CODE++129eabad7bcc761eb7966091c2bc01163b650ca0613f42c58db97eae5420a7bb">
+        <source xml:lang="en">Delete Contents</source>
+        <target state="translated">コンテンツの削除</target>
+      </trans-unit>
       <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
         <source xml:lang="en">Delete saved connection</source>
         <target state="translated">保存された接続の削除</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
+        <source xml:lang="en">Deleting Container...</source>
+        <target state="translated">コンテナーを削除しています...</target>
       </trans-unit>
       <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
         <source xml:lang="en">Description</source>
@@ -766,10 +1023,20 @@
         <source xml:lang="en">Disconnect</source>
         <target state="translated">切断</target>
       </trans-unit>
+      <trans-unit id="++CODE++85b5093bef4e68ee847dba78ba2e33392c8998bb4d39598442f8713cdeec5c89">
+        <source xml:lang="en">Disconnect from connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">接続 '{0}' から切断しますか?</target>
+      </trans-unit>
       <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <note>{0} is the document name</note>
         <target state="translated">ドキュメント "{0}" で切断されました</target>
+      </trans-unit>
+      <trans-unit id="++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b">
+        <source xml:lang="en">Disconnecting from connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">接続 '{0}' から切断しています</target>
       </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
@@ -799,6 +1066,18 @@
         <source xml:lang="en">Do you want to always display query results in a new tab instead of the query pane?</source>
         <target state="translated">クエリ ウィンドウではなく新しいタブにクエリ結果を自動的に表示しますか?</target>
       </trans-unit>
+      <trans-unit id="++CODE++6ca9d6623e40335fc13a80d426d2dd39b8c8a8b656c66b0d973cee8d5d49e4d9">
+        <source xml:lang="en">Docker failed to start within the timeout period. Please manually start Docker and try again.</source>
+        <target state="translated">タイムアウト期間内に Docker を起動できませんでした。Docker を手動で起動して、もう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a5d38a76e9010d59374fafce6a3d75189df15be61859ee1ffa33da6e9cf97b05">
+        <source xml:lang="en">Docker is not installed or not in PATH. Please install Docker Desktop and try again.</source>
+        <target state="translated">Docker が PATH にインストールされていないか、またはインストールされていません。Docker Desktop をインストールして、もう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1">
+        <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
+        <target state="translated">Docker を実行するには、ルートアクセス許可が必要です。sudo で Docker を実行するか、sudo usermod -aG docker $USERを使用して docker グループにユーザーを追加してください。次に、コンピューターを再起動して再試行してください。</target>
+      </trans-unit>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
         <target state="translated">再表示しない</target>
@@ -807,13 +1086,27 @@
         <source xml:lang="en">Edit</source>
         <target state="translated">編集</target>
       </trans-unit>
+      <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
+        <source xml:lang="en">Edit Connection Group - {0}</source>
+        <note>{0} is the connection group name</note>
+        <target state="translated">接続グループの編集 - {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++82beb1b74986a2b292e8084ee59f9bedf5e0decc13f020369faebf40ce2981c7">
+        <source xml:lang="en">Edit Connection Group: {0}</source>
+        <note>{0} is the name of the connection group being edited</note>
+        <target state="translated">接続グループの編集: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++a43dafda7f271d0796fb53cc6c2d8f302b8c8892ea0fed0b1096e9c7769f91c1">
         <source xml:lang="en">Edit Connection Profile</source>
-        <target state="new">Edit Connection Profile</target>
+        <target state="translated">接続プロファイルの編集</target>
       </trans-unit>
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">テーブルの編集</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
+        <source xml:lang="en">Either profileId or serverName must be provided.</source>
+        <target state="translated">profileId または serverName を指定する必要があります。</target>
       </trans-unit>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
@@ -850,6 +1143,14 @@
       <trans-unit id="++CODE++1a77d555bedbf97481907d505c8c8ba64d32d3525b77122e16178dd4054c3c93">
         <source xml:lang="en">Ends With</source>
         <target state="translated">次で終わる</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cad17aa68a83418367684821ea4734c877707d1f340846dc7b17b04a8a04c1c0">
+        <source xml:lang="en">Enter connection group name</source>
+        <target state="translated">接続グループ名を入力してください</target>
+      </trans-unit>
+      <trans-unit id="++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423">
+        <source xml:lang="en">Enter description (optional)</source>
+        <target state="translated">説明の入力 (省略可)</target>
       </trans-unit>
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
@@ -924,13 +1225,17 @@ Error:
 {1}</source>
         <note>{0} is the connection id
 {1} is the error message</note>
-        <target state="new">Error migrating connection ID {0} to new format.  Please recreate this connection to use it.
-Error:
+        <target state="translated">接続 ID {0} を新しい形式に移行中にエラーが発生しました。 この接続を使用するには、再作成してください。
+エラー:
 {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++619d1a6dc49f043552f7b8d14e6483de4a2caf1c8270d6168a642c8eccc3a752">
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">エディターでコンテンツを開くときにエラーが発生しました。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
+        <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
+        <target state="translated">Docker コマンドの実行でエラーが発生しました。Docker が実行されていることを確認してください。</target>
       </trans-unit>
       <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
         <source xml:lang="en">Error when refreshing token</source>
@@ -966,7 +1271,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
         <source xml:lang="en">Execute</source>
-        <target state="new">Execute</target>
+        <target state="translated">実行</target>
       </trans-unit>
       <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
         <source xml:lang="en">Executing query...</source>
@@ -1005,6 +1310,10 @@ Error:
         <note>{0} is the error message returned from the publish changes operation</note>
         <target state="translated">変更を適用できませんでした: '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++d6ca257a745c3035dfd24b1cf8bddd511b93f0c4ae8036dc0d88ece8501d4d13">
+        <source xml:lang="en">Failed to connect to server.</source>
+        <target state="translated">サーバーに接続できませんでした。</target>
+      </trans-unit>
       <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
         <source xml:lang="en">Failed to connect: {0}</source>
         <note>{0} is the error message</note>
@@ -1016,9 +1325,19 @@ Error:
 {1} is the error</note>
         <target state="translated">ID: {0} の資格情報を削除できませんでした。 {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++21be0d0cbfd3dc3a4c9bbb0fc261d09ba6b93641dcbaba9f6202b815e5ccb3f2">
+        <source xml:lang="en">Failed to delete {0}.</source>
+        <note>Failed to delete {0}.</note>
+        <target state="translated">{0}を削除できませんでした。</target>
+      </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
         <target state="translated">ユーザー トークンを取り込めませんでした。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe1cb43be8ed9ac5acc09fb31eba382f60c86eaadf55b6931322b9b139162a9e">
+        <source xml:lang="en">Failed to generate publish script: '{0}'</source>
+        <note>{0} is the error message returned from the generate script operation</note>
+        <target state="translated">発行スクリプトを生成できませんでした: '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++cdf943bd7b320469af4343440384b361de46832547d9bc9c08b3bd9a90610364">
         <source xml:lang="en">Failed to generate script: '{0}'</source>
@@ -1049,10 +1368,24 @@ Error:
         <note>{0} is the error message returned from the save scmp operation</note>
         <target state="translated">scmp ファイルを保存できませんでした: '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
+        <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
+        <target state="translated">コンテナー SQL Server を開始できませんでした。詳細については、エラー メッセージを確認してから、もう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
+        <source xml:lang="en">Failed to start {0}.</source>
+        <note>Failed to start {0}.</note>
+        <target state="translated">{0} を開始できませんでした。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++de0b1da84a5d216abd9f65d2a4f32a258f97126fc0bb19e0fb9fecd1e89ea514">
+        <source xml:lang="en">Failed to stop {0}.</source>
+        <note>Failed to stop {0}.</note>
+        <target state="translated">{0} を停止できませんでした。</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
         <source xml:lang="en">Fetching {0} script...</source>
         <note>{0} is the script type</note>
-        <target state="new">Fetching {0} script...</target>
+        <target state="translated">スクリプト {0} をフェッチしています...</target>
       </trans-unit>
       <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
         <source xml:lang="en">File</source>
@@ -1061,6 +1394,11 @@ Error:
       <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
         <source xml:lang="en">Filter</source>
         <target state="translated">フィルター</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a76057f27f2880792cf681fd60ca7b9043463252597c22b60eb5beca29292017">
+        <source xml:lang="en">Filter ({0})</source>
+        <note>{0} is the number of selected tables</note>
+        <target state="translated">フィルター ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
         <source xml:lang="en">Filter Azure subscriptions</source>
@@ -1093,6 +1431,10 @@ Error:
       <trans-unit id="++CODE++bf0e5179cb962af6329b97f24951139ae47f60ff00cdcd1ccbacd816608b6866">
         <source xml:lang="en">Find Previous</source>
         <target state="translated">前を検索</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
+        <source xml:lang="en">Finish</source>
+        <target state="translated">終了</target>
       </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
@@ -1183,13 +1525,35 @@ Error:
         <source xml:lang="en">Generate script to deploy changes to target</source>
         <target state="translated">ターゲットに変更をデプロイするスクリプトを生成します</target>
       </trans-unit>
+      <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
+        <source xml:lang="en">Generating Report. This may take a while...</source>
+        <target state="translated">レポートを生成しています。これには時間がかかる場合があります...</target>
+      </trans-unit>
       <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
         <source xml:lang="en">Generating report, this might take a while...</source>
         <target state="translated">レポートを生成しています。これには時間がかかる場合があります...</target>
       </trans-unit>
+      <trans-unit id="++CODE++983f311018642b0ae60c71253b5735579906d43d260ea926ebe5e815b1c97abb">
+        <source xml:lang="en">Get Started</source>
+        <target state="translated">開始する</target>
+      </trans-unit>
+      <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
+        <source xml:lang="en">Getting Docker Ready...</source>
+        <target state="translated">Docker の準備中...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++407c9ce5c11270b1d15836456ad1efdbe70f71f3c845186e535f82f02112be4e">
+        <source xml:lang="en">Getting container ready for connections</source>
+        <target state="translated">接続のためにコンテナーを準備中</target>
+      </trans-unit>
       <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
         <source xml:lang="en">Getting definition ...</source>
         <target state="translated">定義を取得中...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++60c3ae4830143b646d9d70611c2ad5961faeca804e4713b5b768087167d1772b">
+        <source xml:lang="en">Got invalid tool use parameters: "{0}". ({1})</source>
+        <note>{0} is the part input
+{1} is the error message</note>
+        <target state="translated">無効なツール使用パラメーターを取得しました: "{0}"。({1})</target>
       </trans-unit>
       <trans-unit id="++CODE++774b3dff4a0e941fad0742c915bd93885c9cb15f769f2c92c2ea384b69780f51">
         <source xml:lang="en">Greater Than</source>
@@ -1203,6 +1567,10 @@ Error:
         <source xml:lang="en">Help</source>
         <target state="translated">ヘルプ</target>
       </trans-unit>
+      <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
+        <source xml:lang="en">Hide full error message</source>
+        <target state="translated">完全なエラー メッセージを非表示にする</target>
+      </trans-unit>
       <trans-unit id="++CODE++7a364dd1e84a9c227a255eac46ca09a24bf78df77f50f95dec04e8899516908d">
         <source xml:lang="en">Hide this panel</source>
         <target state="translated">このパネルを非表示</target>
@@ -1210,6 +1578,10 @@ Error:
       <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
         <source xml:lang="en">Highlight Expensive Operation</source>
         <target state="translated">負荷の高い操作を強調表示する</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e">
+        <source xml:lang="en">Hostname</source>
+        <target state="translated">ホスト名</target>
       </trans-unit>
       <trans-unit id="++CODE++cdcc527989217aea79f51128ad3c86fa74d6c9def496f199f6b8d9728791d3b4">
         <source xml:lang="en">How likely it is that you would recommend the MSSQL extension to a friend or colleague?</source>
@@ -1220,9 +1592,17 @@ Error:
         <note>{0} is the feature name</note>
         <target state="translated">友人や同僚に {0} を勧める可能性はどのくらいありますか?</target>
       </trans-unit>
+      <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
+        <source xml:lang="en">Hue</source>
+        <target state="translated">色相</target>
+      </trans-unit>
       <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
         <source xml:lang="en">I have read the summary and understand the potential risks.</source>
         <target state="translated">概要を読み、潜在的なリスクを理解しました。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
+        <source xml:lang="en">I'm sorry, I can only assist with SQL-related questions.</source>
+        <target state="translated">申し訳ございません。SQL 関連の質問のみを支援できます。</target>
       </trans-unit>
       <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
         <source xml:lang="en">Ignore Tenant</source>
@@ -1258,7 +1638,15 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
         <source xml:lang="en">Insert</source>
-        <target state="new">Insert</target>
+        <target state="translated">挿入</target>
+      </trans-unit>
+      <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
+        <source xml:lang="en">Install Docker</source>
+        <target state="translated">Docker のインストール</target>
+      </trans-unit>
+      <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
+        <source xml:lang="en">Instant Container Setup</source>
+        <target state="translated">インスタント コンテナーのセットアップ</target>
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
@@ -1322,6 +1710,10 @@ Error:
         <source xml:lang="en">Learn More</source>
         <target state="translated">詳細情報</target>
       </trans-unit>
+      <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
+        <source xml:lang="en">Learn more about SQL Server 2025 features</source>
+        <target state="translated">SQL Server 2025 の機能の詳細情報</target>
+      </trans-unit>
       <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
         <source xml:lang="en">Length</source>
         <target state="translated">長さ</target>
@@ -1346,6 +1738,18 @@ Error:
         <source xml:lang="en">Line {0}</source>
         <note>{0} is the line number</note>
         <target state="translated">行 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
+        <source xml:lang="en">List Connections</source>
+        <target state="translated">接続の一覧表示</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
+        <source xml:lang="en">List all connections registered with the mssql extension?</source>
+        <target state="translated">MSSQL 拡張機能に登録されているすべての接続を一覧表示しますか?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
+        <source xml:lang="en">Listing server connections</source>
+        <target state="translated">サーバー接続の一覧表示</target>
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
@@ -1379,9 +1783,21 @@ Error:
         <source xml:lang="en">Loading Table Designer</source>
         <target state="translated">テーブル デザイナーを読み込んでいます</target>
       </trans-unit>
+      <trans-unit id="++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2">
+        <source xml:lang="en">Loading deployment page...</source>
+        <target state="translated">デプロイ ページを読み込んでいます...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
+        <source xml:lang="en">Loading execution plan...</source>
+        <target state="translated">実行プランを読み込んでいます...</target>
+      </trans-unit>
       <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
         <source xml:lang="en">Loading...</source>
-        <target state="new">Loading...</target>
+        <target state="translated">読み込み中...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
+        <source xml:lang="en">Local SQL Server database container</source>
+        <target state="translated">ローカル SQL Server データベース コンテナー</target>
       </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
@@ -1390,6 +1806,10 @@ Error:
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
         <target state="translated">MSSQL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++28c3a8199a6dcd1373eb25c32820524f38fbba49d1e1fb378bd30dfb6d61ec2d">
+        <source xml:lang="en">MSSQL - Azure Auth Logs</source>
+        <target state="translated">MSSQL - Azure 認証ログ</target>
       </trans-unit>
       <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
         <source xml:lang="en">MSSQL Feedback</source>
@@ -1414,6 +1834,10 @@ Error:
       <trans-unit id="++CODE++305fd6adb2295a939e62e4fed83349c610aa4e1840280503e6b64c8042dccd16">
         <source xml:lang="en">Max Length</source>
         <target state="translated">最大長</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3cb29430462001e8edb74afebb929c2e967e7eac89679c4d549a8305ec4a2fe7">
+        <source xml:lang="en">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</source>
+        <target state="translated">フィルター/並べ替えに使用する行の最大数を超えました。更新するには、[ユーザーの設定] に移動し、設定を変更します: mssql.resultsGrid.inMemoryDataProcessingThreshold</target>
       </trans-unit>
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
@@ -1480,6 +1904,10 @@ Error:
         <source xml:lang="en">Move Up</source>
         <target state="translated">上へ移動</target>
       </trans-unit>
+      <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
+        <source xml:lang="en">Move to Root</source>
+        <target state="translated">ルートに移動</target>
+      </trans-unit>
       <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
         <source xml:lang="en">NULL</source>
         <target state="translated">null 値</target>
@@ -1544,6 +1972,11 @@ Error:
         <source xml:lang="en">No changes detected</source>
         <target state="translated">変更は検出されませんでした</target>
       </trans-unit>
+      <trans-unit id="++CODE++bb6f0c310647145d31546d24967be9eb8ebae90f640642e9fbb5d7713e6e8550">
+        <source xml:lang="en">No connection found for connectionId: {0}</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">connectionId: {0} の接続が見つかりません</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
         <target state="translated">削除する接続プロファイルがありません。</target>
@@ -1555,6 +1988,10 @@ Error:
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
         <target state="translated">項目がありません</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
+        <source xml:lang="en">No model found.</source>
+        <target state="translated">モデルが見つかりません。</target>
       </trans-unit>
       <trans-unit id="++CODE++c933cd0d45861a20699df513967542bc9b448f409d362d9bec4e7443dd96f403">
         <source xml:lang="en">No need to refresh Microsoft Entra acccount token for connection {0} with uri {1}</source>
@@ -1577,6 +2014,10 @@ Error:
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">使用できるサブスクリプションがありません。サブスクリプション フィルターを調整して、もう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
+        <source xml:lang="en">No tools to process.</source>
+        <target state="translated">処理するツールがありません。</target>
       </trans-unit>
       <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
         <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
@@ -1628,7 +2069,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
         <source xml:lang="en">Object Explorer Filter</source>
-        <target state="new">Object Explorer Filter</target>
+        <target state="translated">オブジェクト エクスプローラー フィルター</target>
       </trans-unit>
       <trans-unit id="++CODE++149f598e7edb5433f886c75bb1bf9e22c7129d29754a8bdc6223eee95384047c">
         <source xml:lang="en">Object Type</source>
@@ -1694,6 +2135,10 @@ Error:
         <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
         <target state="translated">接続するには、OpenSSL バージョン 1.0.1 以上が必要です。</target>
       </trans-unit>
+      <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
+        <source xml:lang="en">Opening Publish Script. This may take a while...</source>
+        <target state="translated">発行スクリプトを開いています。これには時間がかかる場合があります...</target>
+      </trans-unit>
       <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
         <source xml:lang="en">Operator</source>
         <target state="translated">演算子</target>
@@ -1756,6 +2201,38 @@ Error:
         <note>{0} is the path of the node in the object explorer</note>
         <target state="translated">パス: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++0a59729d88d37ed0f6bddc3a9a92d14b94528c315fec4cd3c70cd2d4bcabe1ff">
+        <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.</source>
+        <target state="translated">ベクトル検索や JSON 拡張機能などの組み込みの AI 機能を備えた SQL Server 2025 (プレビュー) など、複数のSQL Server バージョンから選択できます。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
+        <source xml:lang="en">Please Accept the SQL Server EULA</source>
+        <target state="translated">SQL Server EULA に同意してください</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e9867ec277676c80767b62a3ccde695a9fd4b9927c6541f6bfb0be08bed55596">
+        <source xml:lang="en">Please choose a unique name for the container</source>
+        <target state="translated">コンテナーの一意の名前を選択してください</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aa9bb805dc517bc0164702b53526a013fbfece6dabeb9871e0b9910d23978c5e">
+        <source xml:lang="en">Please choose a unique name for the profile</source>
+        <target state="translated">プロファイルの一意の名前を選択してください</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2048d236cea5afafe8b7e125d9b86eb44250c4ac6f382bc412dca8e4188292fa">
+        <source xml:lang="en">Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.</source>
+        <target state="translated">Rosetta Virtualization が有効になっていることを確認してください。これは、Docker Desktop の設定内で行うことができます。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
+        <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
+        <target state="translated">ポートが数字であることを確認し、使用されていないポートを選択してください</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d81d6eb21f473c77ba01056237fcd372e9021b555b36efc68d24d22a5d608ba5">
+        <source xml:lang="en">Please make your password 8-128 characters long.</source>
+        <target state="translated">パスワードの長さが 8 ~ 128 文字になるようにしてください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
+        <source xml:lang="en">Port</source>
+        <target state="translated">ポート</target>
+      </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
         <target state="translated">データ損失の可能性が検出されました。変更点をレビューしてください。</target>
@@ -1788,6 +2265,10 @@ Error:
         <source xml:lang="en">Previous pending reconnection for uri {0}, succeeded.</source>
         <note>{0} is the uri</note>
         <target state="translated">URI {0} に対する、前回の保留中の再接続に成功しました。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d196df298e2df96370fbe47015195f865db9761ab45899b56376f17df4174a88">
+        <source xml:lang="en">Previous step failed. Please check the error message and try again.</source>
+        <target state="translated">前の手順に失敗しました。エラー メッセージを確認して、もう一度お試しください。</target>
       </trans-unit>
       <trans-unit id="++CODE++92022c2f45b6a9ba92c51438e6fed444d69673e4bd6c529e3ea8f0a8bfe1e969">
         <source xml:lang="en">Primary Key</source>
@@ -1872,6 +2353,10 @@ Error:
         <source xml:lang="en">Read more</source>
         <target state="translated">詳細情報</target>
       </trans-unit>
+      <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
+        <source xml:lang="en">Readying container for connections.</source>
+        <target state="translated">接続用のコンテナーを準備を完了しています。</target>
+      </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
         <target state="translated">最近の接続</target>
@@ -1879,6 +2364,10 @@ Error:
       <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
         <source xml:lang="en">Recent connections list cleared</source>
         <target state="translated">最近の接続の一覧がクリアされました</target>
+      </trans-unit>
+      <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
+        <source xml:lang="en">Redo</source>
+        <target state="translated">やり直す</target>
       </trans-unit>
       <trans-unit id="++CODE++d49d10a2017dc4911588fbe91abdc783a6eb59caf6b52432ddae0399d838014d">
         <source xml:lang="en">Referenced column '{0}' not found</source>
@@ -1967,6 +2456,19 @@ Error:
         <source xml:lang="en">SQL Plan Files</source>
         <target state="translated">SQL プラン ファイル</target>
       </trans-unit>
+      <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
+        <source xml:lang="en">SQL Server Container SA Password</source>
+        <target state="translated">SQL Server コンテナー SA パスワード</target>
+      </trans-unit>
+      <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
+        <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
+        <target state="translated">SQL Server は Windows コンテナーをサポートしていません。Docker Desktop の設定で Linux コンテナーに切り替えてください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
+        <source xml:lang="en">SQL Server {0} - latest</source>
+        <note>{0} is the SQL Server version</note>
+        <target state="translated">SQL Server {0} - 最新</target>
+      </trans-unit>
       <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
         <source xml:lang="en">SVG</source>
         <target state="translated">SVG</target>
@@ -1974,6 +2476,10 @@ Error:
       <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
         <source xml:lang="en">Satisfied</source>
         <target state="translated">満足</target>
+      </trans-unit>
+      <trans-unit id="++CODE++993f024b650eaf0f1c64118f6033c44b7c98d220539bcb51454ca578f6f2b477">
+        <source xml:lang="en">Saturation</source>
+        <target state="translated">彩度</target>
       </trans-unit>
       <trans-unit id="++CODE++1509f561f2416598629b886ad7d3c05a7e221e4e0675c84bbff4ee6d9e03913d">
         <source xml:lang="en">Save</source>
@@ -1986,6 +2492,10 @@ Error:
       <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
         <source xml:lang="en">Save As</source>
         <target state="translated">名前を付けて保存</target>
+      </trans-unit>
+      <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
+        <source xml:lang="en">Save Connection Group</source>
+        <target state="translated">接続グループの保存</target>
       </trans-unit>
       <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
         <source xml:lang="en">Save Password</source>
@@ -2052,11 +2562,15 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++15b5d02ad3478e97181969698b48fe22f92298cc513e992be78922dc8f3ffe9c">
         <source xml:lang="en">Schema Designer</source>
-        <target state="new">Schema Designer</target>
+        <target state="translated">スキーマ デザイナー</target>
       </trans-unit>
       <trans-unit id="++CODE++04073026831053dab587997eca3ee2c8445a80a9f9395820b6a48ac4cb4449b1">
         <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
         <target state="translated">スキーマ デザイナー モデルの準備ができました。変更を発行できるようになりました。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
+        <source xml:lang="en">Schema visualization opened.</source>
+        <target state="translated">スキーマの視覚化が開かれています。</target>
       </trans-unit>
       <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
         <source xml:lang="en">Schema/Object Type</source>
@@ -2074,13 +2588,21 @@ Error:
         <source xml:lang="en">Script copied to clipboard</source>
         <target state="translated">スクリプトがクリップボードにコピーされました</target>
       </trans-unit>
+      <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
+        <source xml:lang="en">Search connection groups</source>
+        <target state="translated">接続グループの検索</target>
+      </trans-unit>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
         <target state="translated">検索オプション...</target>
       </trans-unit>
       <trans-unit id="++CODE++6801207d5994165123a10ab767fd9439130fae500f8c407877ae5070843b906d">
         <source xml:lang="en">Search settings...</source>
-        <target state="new">Search settings...</target>
+        <target state="translated">検索設定...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
+        <source xml:lang="en">Search tables...</source>
+        <target state="translated">テーブルの検索...</target>
       </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
@@ -2088,7 +2610,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
-        <target state="new">Select</target>
+        <target state="translated">選択</target>
       </trans-unit>
       <trans-unit id="++CODE++d1ec69e64b9609d089aae09f7adc5c566d2cd222f8d8325f0ab3b523f0ac2690">
         <source xml:lang="en">Select All</source>
@@ -2101,6 +2623,10 @@ Error:
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
         <target state="translated">ターゲットの選択</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
+        <source xml:lang="en">Select a connection group</source>
+        <target state="translated">接続グループを選択する</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -2124,6 +2650,10 @@ Error:
         <source xml:lang="en">Select an account</source>
         <target state="translated">アカウントを選択してください</target>
       </trans-unit>
+      <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
+        <source xml:lang="en">Select image</source>
+        <target state="translated">イメージの選択</target>
+      </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
         <target state="translated">削除するプロファイルを選択します</target>
@@ -2132,6 +2662,10 @@ Error:
         <source xml:lang="en">Select subscriptions</source>
         <target state="translated">サブスクリプションの選択</target>
       </trans-unit>
+      <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
+        <source xml:lang="en">Select the SQL Server Container Image</source>
+        <target state="translated">SQL Server コンテナー イメージを選択する</target>
+      </trans-unit>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
         <target state="translated">選択した Microsoft Entra アカウントが正常に削除されました。</target>
@@ -2139,6 +2673,11 @@ Error:
       <trans-unit id="++CODE++aef7de28d52977f1b5cd0fecfdc151717610adf41e0aa33b4d9f7522a43337ef">
         <source xml:lang="en">Server</source>
         <target state="translated">サーバー</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6cd8550a42862c96bedf199eb6415f9f6859b49211e35694080e73978042cf8">
+        <source xml:lang="en">Server - {0}</source>
+        <note>{0} is the server name</note>
+        <target state="translated">サーバー - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
         <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
@@ -2160,6 +2699,11 @@ Error:
         <source xml:lang="en">Server name or ADO.NET connection string</source>
         <target state="translated">サーバー名または ADO.NET 接続文字列</target>
       </trans-unit>
+      <trans-unit id="++CODE++40c6cdb719db3469fb83c776d850e85fc70bdfa14e6685d6ac62061ac85b8eed">
+        <source xml:lang="en">Server {0} not found.</source>
+        <note>{0} is the server name</note>
+        <target state="translated">サーバー {0} が見つかりません。</target>
+      </trans-unit>
       <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
         <source xml:lang="en">Set Default</source>
         <target state="translated">既定値を設定</target>
@@ -2167,6 +2711,14 @@ Error:
       <trans-unit id="++CODE++7dcc1c2a0bebbc604d5c15ae5e2a764048d5936bda66f0137af772be71d7a145">
         <source xml:lang="en">Set Null</source>
         <target state="translated">NULL を設定</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dbdf27e5db8d8cde8cc8a3b15f491db14868513a3253b62b194eb20cf414741a">
+        <source xml:lang="en">Setting up</source>
+        <target state="translated">セットアップしています</target>
+      </trans-unit>
+      <trans-unit id="++CODE++98a2e618e690165268025ae1d25d8d84ea575af666bdd7a5b719bc777e3d584f">
+        <source xml:lang="en">Setting up container</source>
+        <target state="translated">コンテナーのセットアップ</target>
       </trans-unit>
       <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
         <source xml:lang="en">Settings</source>
@@ -2183,6 +2735,24 @@ Error:
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">MSSQL 出力の表示</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
+        <source xml:lang="en">Show Schema</source>
+        <target state="translated">スキーマの表示</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
+        <source xml:lang="en">Show full error message</source>
+        <target state="translated">完全なエラー メッセージの表示</target>
+      </trans-unit>
+      <trans-unit id="++CODE++523fa7449e8252600e65c811dcd62983315d0f9f528741627033a45754f591cf">
+        <source xml:lang="en">Show schema for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">接続 '{0}' のスキーマを表示しますか?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9">
+        <source xml:lang="en">Showing schema for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">接続 '{0}' のスキーマを表示しています</target>
       </trans-unit>
       <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
         <source xml:lang="en">Showplan XML</source>
@@ -2214,7 +2784,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
         <source xml:lang="en">Signing in to Azure...</source>
-        <target state="new">Signing in to Azure...</target>
+        <target state="translated">Azure にサインインしています...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
+        <source xml:lang="en">Simple Container Management</source>
+        <target state="translated">シンプルなコンテナー管理</target>
       </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>
@@ -2248,6 +2822,10 @@ Error:
         <source xml:lang="en">Start IP Address</source>
         <target state="translated">開始 IP アドレス</target>
       </trans-unit>
+      <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
+        <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
+        <target state="translated">拡張機能からコンテナーを直接開始、停止、削除します。</target>
+      </trans-unit>
       <trans-unit id="++CODE++26254424b6f10bfd397e77bc2c93c10fc436795145ee5f2a09b27d54518ec9d6">
         <source xml:lang="en">Started executing query at </source>
         <target state="translated">次の場所でクエリの実行を開始しました:</target>
@@ -2261,6 +2839,15 @@ Error:
         <source xml:lang="en">Started saving results to </source>
         <target state="translated">次の場所への結果の保存を開始しました:</target>
       </trans-unit>
+      <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
+        <source xml:lang="en">Starting Container...</source>
+        <target state="translated">コンテナーを開始しています...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
+        <source xml:lang="en">Starting {0}...</source>
+        <note>{0} is the container name</note>
+        <target state="translated">{0} を開始しています...</target>
+      </trans-unit>
       <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
         <source xml:lang="en">Starts With</source>
         <target state="translated">次で始まる</target>
@@ -2268,6 +2855,10 @@ Error:
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
         <target state="translated">停止</target>
+      </trans-unit>
+      <trans-unit id="++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9">
+        <source xml:lang="en">Stopping Container...</source>
+        <target state="translated">コンテナーを停止しています...</target>
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
@@ -2293,6 +2884,10 @@ Error:
         <source xml:lang="en">Succeeded with warning</source>
         <target state="translated">警告付きで成功</target>
       </trans-unit>
+      <trans-unit id="++CODE++fbd52c8b91de95b69593d008ca2108476ccb1ea5a45657b3393d878499e3fe1f">
+        <source xml:lang="en">Successfully connected to server.</source>
+        <target state="translated">サーバーに正常に接続されました。</target>
+      </trans-unit>
       <trans-unit id="++CODE++f0266af4455c8f348df74a77502b563a575637604e905429b302d78ec39c00e4">
         <source xml:lang="en">Successfully refreshed token for connection {0} with uri {1}, {2}</source>
         <note>{0} is the connection id
@@ -2315,6 +2910,10 @@ Error:
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
         <target state="translated">MSAL に切り替える</target>
+      </trans-unit>
+      <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
+        <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
+        <target state="translated">Linux コンテナーへの切り替えは取り消されました。SQL Server は Linux コンテナーのみをサポートしています。</target>
       </trans-unit>
       <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
         <source xml:lang="en">Table</source>
@@ -2366,6 +2965,10 @@ Error:
         <source xml:lang="en">Tenant ID is required</source>
         <target state="translated">テナント ID が必要です</target>
       </trans-unit>
+      <trans-unit id="++CODE++2af9bc0ac247853b98b854b657784c881cc649d3f1a660aafecd1b8b1a26d535">
+        <source xml:lang="en">Terms &amp; Conditions</source>
+        <target state="translated">使用条件</target>
+      </trans-unit>
       <trans-unit id="++CODE++c02977b07ec93816f236c57b4c30d4544904e87e0a43a1daf344c229594320b9">
         <source xml:lang="en">Test Connection</source>
         <target state="translated">テスト接続</target>
@@ -2394,7 +2997,7 @@ Error:
       <trans-unit id="++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e">
         <source xml:lang="en">The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.</source>
         <note>{0} is the connection ID for the connection that has been ignored</note>
-        <target state="new">The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.</target>
+        <target state="translated">ID '{0}' の接続には 'server' プロパティが設定されていないため、無視されます。 この接続を使用するには、'server' プロパティを設定してください。</target>
       </trans-unit>
       <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
         <source xml:lang="en">The description of the check constraint.</source>
@@ -2433,9 +3036,13 @@ Error:
 
  {0}</source>
         <note>{0} is the list of display names for the connections that have been ignored</note>
-        <target state="new">The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. 
+        <target state="translated">次のワークスペースまたはワークスペース フォルダーの接続には 'id' プロパティがないため、無視されます。 この接続を使用するには、手動で 'id' プロパティを追加してください。
 
  {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
+        <source xml:lang="en">The language model did not return any output.</source>
+        <target state="translated">言語モデルは出力を返しませんでした。</target>
       </trans-unit>
       <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
         <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
@@ -2468,6 +3075,10 @@ Error:
       <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
         <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
         <target state="translated">最近の接続の一覧はクリアされましたが、関連付けられている資格情報の削除中にエラーが発生しました。MSSQL 出力チャネルのエラーを表示します。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
+        <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
+        <target state="translated">要求されたモデルが見つかりませんでした。モデルの可用性を確認するか、別のモデルをお試しください。</target>
       </trans-unit>
       <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
         <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
@@ -2503,6 +3114,12 @@ Error:
         <source xml:lang="en">Toggle Tooltips</source>
         <target state="translated">ツールヒントの切り替え</target>
       </trans-unit>
+      <trans-unit id="++CODE++10b7ff2efd404627d5a929c6fb2a97fa57867f169fbf1016834477571a4cedb2">
+        <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
+        <note>{0} is the part name
+{1} is the part input</note>
+        <target state="translated">ツール検索の対象: {0} - {1}。</target>
+      </trans-unit>
       <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
         <source xml:lang="en">Total execution time: {0}</source>
         <note>{0} is the elapsed time</note>
@@ -2524,9 +3141,18 @@ Error:
         <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
         <target state="translated">テナントを取得するためのプロキシ エージェント オプションを読み取ることができません。</target>
       </trans-unit>
+      <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
+        <source xml:lang="en">Undo</source>
+        <target state="translated">元に戻す</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
+        <source xml:lang="en">Unsupported platform for Docker: {0}</source>
+        <note>{0} is the platform name of the machine</note>
+        <target state="translated">Docker でサポートされていないプラットフォーム: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291">
         <source xml:lang="en">Update</source>
-        <target state="new">Update</target>
+        <target state="translated">更新</target>
       </trans-unit>
       <trans-unit id="++CODE++6f32c6efd3fd051f5df8f5a6926828722e2734a8b2138751abf9363a674550bd">
         <source xml:lang="en">Update Database</source>
@@ -2535,6 +3161,10 @@ Error:
       <trans-unit id="++CODE++92294188e79b2a13584eb3e6120f971c94ada2a387f3199a4cd3cb17039f9d37">
         <source xml:lang="en">Updating IntelliSense...</source>
         <target state="translated">IntelliSense を更新しています...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c83ce937073615b8c93e7c38ed529e567ff2c01f291f92e3b4d08245018f362b">
+        <source xml:lang="en">Usage limits exceeded. Try again later, or consider optimizing your requests.</source>
+        <target state="translated">使用制限を超えました。後でもう一度お試しになるか、要求の最適化を検討してください。</target>
       </trans-unit>
       <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
         <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
@@ -2552,6 +3182,17 @@ Error:
         <source xml:lang="en">User name is required</source>
         <target state="translated">ユーザー名は必須です</target>
       </trans-unit>
+      <trans-unit id="++CODE++1806851cf9209ecb674faf6fe227aa165f6dbc4df5d05ea9f0cc71e3d00245c7">
+        <source xml:lang="en">Using {0} ({1})...</source>
+        <note>{0} is the model name
+{1} is whether the model can send requests</note>
+        <target state="translated">{0} ({1}) を使用しています...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d31cf428966542cd931bd382d445f06e61e26c9a6c5aaf4227dffd0bfd18e97c">
+        <source xml:lang="en">Using {0} to process your request...</source>
+        <note>{0} is the model name that will be processing the request</note>
+        <target state="translated">{0} を使用して要求を処理します...</target>
+      </trans-unit>
       <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
         <source xml:lang="en">Value</source>
         <target state="translated">値</target>
@@ -2563,10 +3204,6 @@ Error:
       <trans-unit id="++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6">
         <source xml:lang="en">Very Satisfied</source>
         <target state="translated">非常に満足</target>
-      </trans-unit>
-      <trans-unit id="++CODE++d56bf62b4b9935c64d1da0afbf5f5c86b0301ca7bebad0086c8ce3085ae5ab06">
-        <source xml:lang="en">View Code</source>
-        <target state="translated">コードの表示</target>
       </trans-unit>
       <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
         <source xml:lang="en">View More</source>
@@ -2584,9 +3221,13 @@ Error:
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">警告が検出されました。変更点をレビューしてください。</target>
       </trans-unit>
-      <trans-unit id="++CODE++f01e36aaf60d2146e1cf906fce3e055116bd19954ad018908f8a7cd8bd2a8b0c">
-        <source xml:lang="en">We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
-        <target state="new">We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</target>
+      <trans-unit id="++CODE++d054fcb4284fd66975e378de56c04bda7b8e951e8e13f66834d9510e2b5461aa">
+        <source xml:lang="en">We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.</source>
+        <target state="translated">お使いのマシン上に Docker Desktop の場所が見つかりません。Docker Desktop を手動で起動して、もう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
+        <source xml:lang="en">We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
+        <target state="translated">現在の接続情報を使用して接続できませんでした。接続を再試行しますか、または接続プロファイルを編集しますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
@@ -2600,9 +3241,17 @@ Error:
         <source xml:lang="en">Yes</source>
         <target state="translated">はい</target>
       </trans-unit>
+      <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
+        <source xml:lang="en">You are not connected to any database.</source>
+        <target state="translated">どのデータベースにも接続されていません。</target>
+      </trans-unit>
       <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
         <source xml:lang="en">You must review and accept the terms to proceed</source>
         <target state="translated">続行するには、条件を確認して同意する必要があります</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe">
+        <source xml:lang="en">Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?</source>
+        <target state="translated">現在、Docker エンジンは Windows コンテナーを実行しています。SQL Server は Linux コンテナーのみをサポートしています。Linux コンテナーに切り替えますか?</target>
       </trans-unit>
       <trans-unit id="++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4">
         <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
@@ -2618,6 +3267,10 @@ Error:
       <trans-unit id="++CODE++a687a5a3cf1800c09d10d73ae6c128de7b617482ef262db645470c6f4ae9d54d">
         <source xml:lang="en">Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
         <target state="translated">クライアント IP アドレスにサーバーへのアクセス権がありません。アクセスを有効にするには、Microsoft Entra アカウントを追加し、新しいファイアウォール規則を作成してください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e22a8e55997a44b12ff4f976b12df9cf1fd9b41a7521198b72b15a3cb9952ed0">
+        <source xml:lang="en">Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).</source>
+        <target state="translated">パスワードには、大文字、小文字、数字 (0 ~ 9)、特殊文字 (!、$、#、% など) の少なくとも 3 つのカテゴリの文字が含まれている必要があります。</target>
       </trans-unit>
       <trans-unit id="++CODE++5dc504d43e14657bd7f0298bc51688ba1bb0b809a8060f3b9106ca9411db9cd4">
         <source xml:lang="en">Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
@@ -2707,6 +3360,11 @@ Error:
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">updatingIntelliSense</target>
       </trans-unit>
+      <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
+        <source xml:lang="en">{0} (Preview)</source>
+        <note>{0} is the database name</note>
+        <target state="translated">{0} (プレビュー)</target>
+      </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (フィルター処理済み)</target>
@@ -2715,6 +3373,11 @@ Error:
         <source xml:lang="en">{0} column data</source>
         <note>{0} is the number of columns</note>
         <target state="translated">{0} 列データ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
+        <source xml:lang="en">{0} deleted successfully.</source>
+        <note>{0} deleted successfully.</note>
+        <target state="translated">{0} が正常に削除されました。</target>
       </trans-unit>
       <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
         <source xml:lang="en">{0} errors</source>
@@ -2746,6 +3409,16 @@ Error:
         <source xml:lang="en">{0} properties</source>
         <note>{0} is the object type</note>
         <target state="translated">{0} 個のプロパティ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
+        <source xml:lang="en">{0} started successfully.</source>
+        <note>{0} started successfully.</note>
+        <target state="translated">{0} が正常に開始されました。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1bc61380dfa94d79a64b67b2a483332c51a6263dcf5379519cd36b691f6469e3">
+        <source xml:lang="en">{0} stopped successfully.</source>
+        <note>{0} stopped successfully.</note>
+        <target state="translated">{0} が正常に停止しました。</target>
       </trans-unit>
       <trans-unit id="++CODE++c4777dc358a4dd9d44e2865392ea9fb6b761d10b718279ab38df4f72f5645fa7">
         <source xml:lang="en">{0} warnings</source>
@@ -2797,7 +3470,11 @@ Error:
       </trans-unit>
       <trans-unit id="mssql.addObjectExplorerLegacy">
         <source xml:lang="en">Add Connection (Legacy)</source>
-        <target state="new">Add Connection (Legacy)</target>
+        <target state="translated">接続の追加 (レガシ)</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroups.create">
+        <source xml:lang="en">Add Connection Group</source>
+        <target state="translated">接続グループの追加</target>
       </trans-unit>
       <trans-unit id="mssql.addAadAccount">
         <source xml:lang="en">Add Microsoft Entra Account</source>
@@ -2813,7 +3490,7 @@ Error:
       </trans-unit>
       <trans-unit id="mssql.copilot.analyzeQueryPerformance">
         <source xml:lang="en">Analyze Query Performance (Preview)</source>
-        <target state="new">Analyze Query Performance (Preview)</target>
+        <target state="translated">クエリ パフォーマンスの分析 (プレビュー)</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumns">
         <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
@@ -2830,10 +3507,6 @@ Error:
       <trans-unit id="mssql.changeDatabase">
         <source xml:lang="en">Change Database</source>
         <target state="translated">データベースの変更</target>
-      </trans-unit>
-      <trans-unit id="mssql.objectExplorerChatWithDatabase">
-        <source xml:lang="en">Chat with this database (Preview)</source>
-        <target state="new">Chat with this database (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
@@ -2883,6 +3556,10 @@ Error:
         <source xml:lang="en">Connections</source>
         <target state="translated">接続</target>
       </trans-unit>
+      <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
+        <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
+        <target state="translated">メモリ内でフィルター処理と並べ替えを実行できる行の最大数を制御します。この数を超えた場合、並べ替えとフィルター処理は無効になります。警告: これを増やすと、パフォーマンスに影響を与える可能性があります。</target>
+      </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
         <target state="translated">すべてコピー</target>
@@ -2905,9 +3582,21 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">データベースに新しいテーブルを作成するか、テーブル デザイナーを使用して既存のテーブルを編集します。
 変更が完了したら、[発行] ボタンをクリックして変更をデータベースに送信します。</target>
       </trans-unit>
+      <trans-unit id="mssql.deployLocalDockerContainer">
+        <source xml:lang="en">Create local SQL Container</source>
+        <target state="translated">ローカル SQL コンテナーの作成</target>
+      </trans-unit>
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
         <target state="translated">削除</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroups.delete">
+        <source xml:lang="en">Delete Connection Group</source>
+        <target state="translated">接続グループの削除</target>
+      </trans-unit>
+      <trans-unit id="mssql.deleteContainer">
+        <source xml:lang="en">Delete Container</source>
+        <target state="translated">コンテナーの削除</target>
       </trans-unit>
       <trans-unit id="mssql.designSchema">
         <source xml:lang="en">Design Schema (Preview)</source>
@@ -2935,7 +3624,11 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection</source>
-        <target state="new">Edit Connection</target>
+        <target state="translated">接続の編集</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroups.edit">
+        <source xml:lang="en">Edit Connection Group</source>
+        <target state="translated">接続グループの編集</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Edit Table</source>
@@ -3056,8 +3749,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">MSSQL 拡張機能で UI ベースの機能を有効にして、より充実した強力な機能を実現します。この設定を変更した後、Visual Studio Code を再起動します。</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
-        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
-        <target state="translated">接続プールを有効にして、全体的な接続パフォーマンスを向上させます。この設定は既定で有効になっています。値が変更された場合は Visual Studio Code を再起動する必要があります。プールされた接続をクリアするには、次のコマンドを実行します: 'MS SQL: プールされた接続のクリア'</target>
+        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="translated">接続プールを有効にして、全体的な接続パフォーマンスを向上させます。この設定は既定では無効になっています。値が変更された場合は Visual Studio Code を再起動する必要があります。プールされた接続をクリアするには、次のコマンドを実行します: 'MS SQL: Clear Pooled Connections'。注: サーバーレス データベースをアクティブな状態に保ち、自動一時停止を防ぐことができます。</target>
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
@@ -3069,7 +3762,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.showExecutionPlanInResults">
         <source xml:lang="en">Estimated Plan</source>
-        <target state="new">Estimated Plan</target>
+        <target state="translated">推定プラン</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -3081,7 +3774,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
         <source xml:lang="en">Explain Query (Preview)</source>
-        <target state="new">Explain Query (Preview)</target>
+        <target state="translated">クエリの説明 (プレビュー)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.description">
         <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
@@ -3089,7 +3782,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.filterNode">
         <source xml:lang="en">Filter</source>
-        <target state="new">Filter</target>
+        <target state="translated">フィルター</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.title">
         <source xml:lang="en">Filter your Object Explorer Tree</source>
@@ -3107,9 +3800,13 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Give Feedback</source>
         <target state="translated">フィードバックを送信します</target>
       </trans-unit>
+      <trans-unit id="mssql.hasConnections">
+        <source xml:lang="en">Indicates whether the user has defined any connection profiles in 'User Settings'.</source>
+        <target state="translated">ユーザーが [ユーザー設定] で接続プロファイルを定義しているかどうかを示します。</target>
+      </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot (Preview)</source>
-        <target state="new">MSSQL Copilot (Preview)</target>
+        <target state="translated">MSSQL Copilot (プレビュー)</target>
       </trans-unit>
       <trans-unit id="mssql.Configuration">
         <source xml:lang="en">MSSQL configuration</source>
@@ -3193,6 +3890,14 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Open Query History in Command Palette</source>
         <target state="translated">コマンド パレットで Query History を開く</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
+        <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
+        <target state="new">Open in Copilot Agent mode (Preview)</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorerChatWithDatabase">
+        <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
+        <target state="new">Open in Copilot Ask mode (Preview)</target>
+      </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
         <target state="translated">Query History キャプチャの一時停止</target>
@@ -3207,7 +3912,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="extension.queryResult">
         <source xml:lang="en">Query Results</source>
-        <target state="new">Query Results</target>
+        <target state="translated">クエリ結果</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.altText">
         <source xml:lang="en">Query editor and query results pane</source>
@@ -3239,7 +3944,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query (Preview)</source>
-        <target state="new">Rewrite Query (Preview)</target>
+        <target state="translated">クエリの書き換え (プレビュー)</target>
       </trans-unit>
       <trans-unit id="mssql.runQueryHistory">
         <source xml:lang="en">Run Query</source>
@@ -3273,9 +3978,9 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">上位 1000 を選択する</target>
       </trans-unit>
-      <trans-unit id="mssql.selectedSubscriptions">
-        <source xml:lang="en">Selected Subscriptions</source>
-        <target state="translated">選択したサブスクリプション</target>
+      <trans-unit id="mssql.selectedAzureSubscriptions">
+        <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
+        <target state="translated">サーバーとデータベースを参照および管理するために選択された Azure サブスクリプション</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
@@ -3345,6 +4050,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
         <target state="translated">select ステートメント内のオブジェクトへの参照は別々の行に分割する必要がありますか?例: 'SELECT C1, C2 FROM T1' の場合、C1 と C2 の両方が別々の行に配置されます</target>
       </trans-unit>
+      <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
+        <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
+        <target state="translated">エディターの上部に CodeLens の提案としてアクティブな SQL 接続の詳細を表示し、すばやく表示します。</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.title">
         <source xml:lang="en">Sort and Filter Query Results</source>
         <target state="translated">クエリ結果の並べ替えとフィルター</target>
@@ -3357,9 +4066,17 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
         <target state="translated">クエリ結果を並べ替えてフィルター処理し、必要なデータをすばやく見つけます。</target>
       </trans-unit>
+      <trans-unit id="mssql.startContainer">
+        <source xml:lang="en">Start Container</source>
+        <target state="translated">コンテナーの開始</target>
+      </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
         <target state="translated">Query History キャプチャの開始</target>
+      </trans-unit>
+      <trans-unit id="mssql.stopContainer">
+        <source xml:lang="en">Stop Container</source>
+        <target state="translated">コンテナーの停止</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
@@ -3403,7 +4120,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.legacySetting.deprecationMessage">
         <source xml:lang="en">This setting will be removed in a future release.</source>
-        <target state="new">This setting will be removed in a future release.</target>
+        <target state="translated">この設定は今後のリリースで削除される予定です。</target>
       </trans-unit>
       <trans-unit id="mssql.toggleSqlCmd">
         <source xml:lang="en">Toggle SQLCMD Mode</source>
@@ -3425,15 +4142,19 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.useLegacyConnectionExperience.description">
         <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
-        <target state="new">Use the legacy connection experience instead of the modern experience.</target>
+        <target state="translated">最新のエクスペリエンスではなく、レガシ接続エクスペリエンスを使用します。</target>
       </trans-unit>
       <trans-unit id="mssql.useLegacyQueryResultExperience.description">
         <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
-        <target state="new">Use the legacy query result experience instead of the modern experience.</target>
+        <target state="translated">最新のエクスペリエンスではなく、レガシ クエリ結果エクスペリエンスを使用します。</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">クエリ プランを視覚化する</target>
+      </trans-unit>
+      <trans-unit id="mssql.statusBar.enableConnectionColor">
+        <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
+        <target state="new">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
@@ -3492,6 +4213,10 @@ You can also click the 'Open in New Tab' button to view your query results in th
       <trans-unit id="mssql.connection.currentLanguage">
         <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
         <target state="translated">[省略可能] SQL Server の言語設定を示します。</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.containerName">
+        <source xml:lang="en">[Optional] Indicates the name of local docker container the connection is on</source>
+        <target state="translated">[省略可能] 接続がオンになっているローカル Docker コンテナーの名前を示します</target>
       </trans-unit>
       <trans-unit id="mssql.connection.emptyPasswordInput">
         <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
@@ -3606,8 +4331,8 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[省略可能] 'true' を設定した場合、通信レイヤーが SSL で暗号化されていれば、SQL Server の SSL 証明書は自動的に信頼されます。Azure SQL Database 接続には 'false' を設定してください。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.pooling">
-        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
-        <target state="translated">[省略可能] 'true' に設定した場合、接続オブジェクトは適切なプールから取得されるか、または必要に応じて作成され、適切なプールに追加されます。</target>
+        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="translated">[省略可能] 'true' に設定した場合、接続オブジェクトは適切なプールから取得されるか、または必要に応じて作成され、適切なプールに追加されます。注: サーバーレス データベースをアクティブな状態に保ち、自動一時停止を防ぐことができます。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.multiSubnetFailover">
         <source xml:lang="en">[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>

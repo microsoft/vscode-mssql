@@ -21,10 +21,11 @@ import {
     Tab,
     TabList,
     TabValue,
+    List,
+    ListItem,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../../common/locConstants";
-import { List, ListItem } from "@fluentui/react-list-preview";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
 

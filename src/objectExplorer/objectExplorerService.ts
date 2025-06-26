@@ -25,15 +25,11 @@ import {
     CloseSessionResponse,
 } from "../models/contracts/objectExplorer/closeSessionRequest";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
-import {
-    AuthenticationTypes,
-    IConnectionProfile,
-    IConnectionProfileWithSource,
-} from "../models/interfaces";
+import { AuthenticationTypes, IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import * as LocalizedConstants from "../constants/locConstants";
 import { AddConnectionTreeNode } from "./nodes/addConnectionTreeNode";
 import { AccountSignInTreeNode } from "./nodes/accountSignInTreeNode";
-import { ConnectTreeNode } from "./nodes/connectTreeNode";
+import { ConnectTreeNode, TreeNodeType } from "./nodes/connectTreeNode";
 import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
@@ -57,9 +53,17 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import {
+    checkIfConnectionIsDockerContainer,
+    restartContainer,
+} from "../containerDeployment/dockerUtils";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
+import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
+import { getConnectionDisplayName } from "../models/connectionInfo";
+import { AddLocalContainerConnectionTreeNode } from "../containerDeployment/addLocalContainerConnectionTreeNode";
+import { getErrorMessage } from "../utils/utils";
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -77,7 +81,27 @@ export class ObjectExplorerService {
      * we expand a node. The key is the node and the value is the array of children.
      */
     private _treeNodeToChildrenMap: Map<vscode.TreeItem, vscode.TreeItem[]>;
-    private _rootTreeNodeArray: Array<TreeNodeInfo>;
+
+    private _connectionNodes = new Map<string, ConnectionNode>();
+    private _connectionGroupNodes = new Map<string, ConnectionGroupNode>();
+    private get _rootTreeNodeArray(): Array<TreeNodeInfo> {
+        const result = [];
+
+        const rootId = this._connectionManager.connectionStore.rootGroupId;
+
+        if (!this._connectionGroupNodes.has(rootId)) {
+            this._logger.error(
+                "Root server group is not defined. Cannot get root nodes for Object Explorer.",
+            );
+            return [];
+        }
+
+        for (const child of this._connectionGroupNodes.get(rootId)?.children || []) {
+            result.push(child);
+        }
+
+        return result;
+    }
 
     /**
      * Map of pending session creations
@@ -98,6 +122,7 @@ export class ObjectExplorerService {
         private _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _refreshCallback: (node: TreeNodeInfo) => void,
+        private _isRichExperienceEnabled: boolean = true,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -234,6 +259,7 @@ export class ObjectExplorerService {
                     `Expand node response: ${JSON.stringify(result)} for sessionId ${sessionId}`,
                 );
                 if (!result) {
+                    promise.resolve(undefined);
                     return undefined;
                 }
 
@@ -261,7 +287,7 @@ export class ObjectExplorerService {
                         this._logger.error(
                             `Expand node failed: ${result.errorMessage} for sessionId ${sessionId}`,
                         );
-                        this._connectionManager.vscodeWrapper.showErrorMessage(result.errorMessage);
+                        this._vscodeWrapper.showErrorMessage(result.errorMessage);
                     }
                     const errorNode = new ExpandErrorNode(node, result.errorMessage);
                     this._treeNodeToChildrenMap.set(node, [errorNode]);
@@ -273,9 +299,7 @@ export class ObjectExplorerService {
                 this._logger.error(
                     `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
                 );
-                await this._connectionManager.vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.msgUnableToExpand,
-                );
+                await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
                 promise.resolve(undefined);
                 return undefined;
             }
@@ -288,13 +312,13 @@ export class ObjectExplorerService {
      * Clean all children of the node
      * @param node Node to cleanup
      */
-    private cleanNodeChildren(node: vscode.TreeItem): void {
+    public cleanNodeChildren(node: vscode.TreeItem): void {
         if (this._treeNodeToChildrenMap.has(node)) {
             let stack = this._treeNodeToChildrenMap.get(node);
             while (stack.length > 0) {
                 let child = stack.pop();
                 if (this._treeNodeToChildrenMap.has(child)) {
-                    stack.concat(this._treeNodeToChildrenMap.get(child));
+                    stack.push(...this._treeNodeToChildrenMap.get(child));
                 }
                 this._treeNodeToChildrenMap.delete(child);
             }
@@ -317,40 +341,15 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Get nodes from saved connections
-     */
-    private async getSavedConnectionNodes(): Promise<TreeNodeInfo[]> {
-        const result: TreeNodeInfo[] = [];
-
-        let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
-        // Remove any connections that have duplicated IDs
-        if (savedConnections.length > 0) {
-            const uniqueConnections = new Map<string, IConnectionProfileWithSource>();
-            for (const conn of savedConnections) {
-                if (!uniqueConnections.has(conn.id)) {
-                    uniqueConnections.set(conn.id, conn);
-                } else {
-                    this._logger.verbose(
-                        `Duplicate connection ID found: ${conn.id}. Ignoring duplicate connection.`,
-                    );
-                }
-            }
-            savedConnections = Array.from(uniqueConnections.values());
-        }
-        for (const conn of savedConnections) {
-            const connectionNode = new ConnectionNode(conn);
-            result.push(connectionNode);
-        }
-
-        return result;
-    }
-
-    /**
      * Helper to show the Add Connection node; only displayed when there are no saved connections
      */
-    private getAddConnectionNode(): AddConnectionTreeNode[] {
-        this._rootTreeNodeArray = [];
-        return [new AddConnectionTreeNode()];
+    private getAddConnectionNodes(): AddConnectionTreeNode[] {
+        let nodeList = [new AddConnectionTreeNode()];
+        if (this._isRichExperienceEnabled) {
+            nodeList.push(new AddLocalContainerConnectionTreeNode());
+        }
+
+        return nodeList;
     }
 
     /**
@@ -365,11 +364,15 @@ export class ObjectExplorerService {
 
     // Main method that routes to the appropriate handler
     public async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        if (element) {
-            return this.getNodeChildren(element);
-        } else {
+        if (!element) {
             return this.getRootNodes();
         }
+
+        if (element instanceof ConnectionGroupNode) {
+            return element.children;
+        }
+
+        return this.getNodeChildren(element);
     }
 
     /**
@@ -385,27 +388,112 @@ export class ObjectExplorerService {
                 nodeType: "root",
             },
         );
+
+        const rootId = this._connectionManager.connectionStore.rootGroupId;
+        const serverGroups =
+            await this._connectionManager.connectionStore.readAllConnectionGroups();
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
 
         // if there are no saved connections, show the add connection node
-        if (savedConnections.length === 0) {
-            this._logger.verbose("No saved connections found. Showing add connection node.");
+        if (
+            savedConnections.length === 0 &&
+            serverGroups.length === 1 &&
+            serverGroups[0].id === rootId
+        ) {
+            this._logger.verbose(
+                "No saved connections or groups found. Showing add connection node.",
+            );
             getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
                 childrenCount: 0,
             });
-            return this.getAddConnectionNode();
+            return this.getAddConnectionNodes();
         }
 
-        let result: TreeNodeInfo[] = [];
-        if (this._rootTreeNodeArray) {
-            this._logger.verbose("Using cached root tree node array.");
-            result = this.sortByServerName(this._rootTreeNodeArray);
-        } else {
-            this._logger.verbose("Reading saved connections from connection store.");
-            this._rootTreeNodeArray = await this.getSavedConnectionNodes();
-            this._logger.verbose(`Found ${this._rootTreeNodeArray.length} saved connections.`);
-            result = this.sortByServerName(this._rootTreeNodeArray);
+        const newConnectionGroupNodes = new Map<string, ConnectionGroupNode>();
+        const newConnectionNodes = new Map<string, ConnectionNode>();
+
+        void vscode.commands.executeCommand(
+            "setContext",
+            "mssql.hasConnections",
+            savedConnections.length > 0,
+        );
+
+        // Add all group nodes from settings first
+        for (const group of serverGroups) {
+            const groupNode = new ConnectionGroupNode(group);
+
+            if (this._connectionGroupNodes.has(group.id)) {
+                groupNode.id = this._connectionGroupNodes.get(group.id).id;
+            }
+
+            newConnectionGroupNodes.set(group.id, groupNode);
         }
+
+        // Populate group hierarchy - add each group as a child to its parent
+        for (const group of serverGroups) {
+            // Skip the root group as it has no parent
+            if (group.id === rootId) {
+                continue;
+            }
+
+            if (group.parentId && newConnectionGroupNodes.has(group.parentId)) {
+                const parentNode = newConnectionGroupNodes.get(group.parentId);
+                const childNode = newConnectionGroupNodes.get(group.id);
+
+                if (parentNode && childNode) {
+                    parentNode.addChild(childNode);
+
+                    if (parentNode.id !== rootId) {
+                        // set the parent node for the child group unless the parent is the root group
+                        // parent property is used to
+                        childNode.parentNode = parentNode;
+                    }
+                } else {
+                    this._logger.error(
+                        `Child group '${group.name}' with ID '${group.id}' does not have a valid parent group (${group.parentId}).`,
+                    );
+                }
+            } else {
+                this._logger.error(
+                    `Group '${group.name}' with ID '${group.id}' does not have a valid parent group ID.  This should have been corrected when reading server groups from settings.`,
+                );
+            }
+        }
+
+        // Add connections as children of their respective groups
+        for (const connection of savedConnections) {
+            if (connection.groupId && newConnectionGroupNodes.has(connection.groupId)) {
+                const groupNode = newConnectionGroupNodes.get(connection.groupId);
+
+                let connectionNode: ConnectionNode;
+
+                if (this._connectionNodes.has(connection.id)) {
+                    connectionNode = this._connectionNodes.get(connection.id);
+                    connectionNode.updateConnectionProfile(connection);
+                    connectionNode.label = getConnectionDisplayName(connection);
+                } else {
+                    connectionNode = new ConnectionNode(
+                        connection,
+                        groupNode.id === rootId ? undefined : groupNode,
+                    );
+                }
+
+                connectionNode.parentNode = groupNode.id === rootId ? undefined : groupNode;
+
+                newConnectionNodes.set(connection.id, connectionNode);
+                groupNode.addChild(connectionNode);
+            } else {
+                this._logger.error(
+                    `Connection '${getConnectionDisplayName(connection)}' with ID '${connection.id}' does not have a valid group ID.  This should have been corrected when reading connections from settings.`,
+                );
+            }
+        }
+
+        this._connectionGroupNodes = newConnectionGroupNodes;
+        this._connectionNodes = newConnectionNodes;
+
+        const result = [...this._rootTreeNodeArray];
+
         getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
             nodeCount: result.length,
         });
@@ -425,6 +513,7 @@ export class ObjectExplorerService {
                 return this._treeNodeToChildrenMap.get(element);
             }
         }
+
         /**
          * If no children are cached, return a temporary loading node to keep the UI responsive
          * and trigger the async call to fetch real children.
@@ -433,13 +522,24 @@ export class ObjectExplorerService {
          * one blocked operation can delay the other.
          */
         void this.getOrCreateNodeChildrenWithSession(element);
+        return this.setLoadingUiForNode(element);
+    }
+
+    /**
+     * Sets a loading UI for the given node.
+     * This is used to show a loading spinner while the children are being fetched/ other node operations are being performed.
+     * @param element The node to set the loading UI for
+     * @returns A loading node that will be displayed in the tree
+     */
+    public async setLoadingUiForNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
         const loadingNode = new vscode.TreeItem(
-            LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
+            element.loadingLabel ?? LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
             vscode.TreeItemCollapsibleState.None,
         );
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
         this._treeNodeToChildrenMap.set(element, [loadingNode]);
-        return [loadingNode];
+
+        return this._treeNodeToChildrenMap.get(element);
     }
 
     /**
@@ -520,6 +620,13 @@ export class ObjectExplorerService {
     public async createSession(
         connectionInfo?: IConnectionInfo,
     ): Promise<CreateSessionResult | undefined> {
+        if (!this._rootTreeNodeArray) {
+            // Ensure root nodes are loaded.
+            // This is needed when connection attempts are made before OE has been activated
+            // e.g. User clicks connect button from Editor before ever viewing the OE panel
+            await this.getRootNodes();
+        }
+
         const createSessionActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.CreateSession,
@@ -529,9 +636,11 @@ export class ObjectExplorerService {
             },
             undefined,
         );
+
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
 
         if (!connectionProfile) {
+            this._logger.error("Failed to prepare connection profile");
             return undefined;
         }
 
@@ -558,7 +667,7 @@ export class ObjectExplorerService {
             const sessionCreationResult = await sessionCreatedResponse;
             if (sessionCreationResult.success) {
                 this._logger.verbose(
-                    `Session created successfully for with session ID ${sessionCreationResult.sessionId}`,
+                    `Session created successfully with session ID ${sessionCreationResult.sessionId}`,
                 );
                 this._pendingSessionCreations.delete(sessionIdResponse.sessionId);
                 const successResponse = await this.handleSessionCreationSuccess(
@@ -616,10 +725,44 @@ export class ObjectExplorerService {
             return undefined;
         }
 
+        // Check if connection is a Docker container
+        const serverName = connectionProfile.connectionString
+            ? connectionProfile.connectionString.match(/^Server=([^;]+)/)?.[1]
+            : connectionProfile.server;
+
+        if (serverName && !connectionProfile.containerName) {
+            const containerName = await checkIfConnectionIsDockerContainer(serverName);
+            if (containerName) {
+                connectionProfile.containerName = containerName;
+            }
+            // if the connnection is a docker container, make sure to set the container name for future use
+            await this._connectionManager.connectionStore.saveProfile(connectionProfile);
+        }
+
         if (!connectionProfile.id) {
             connectionProfile.id = Utils.generateGuid();
         }
 
+        // Local container, ensure it is started
+        if (connectionProfile.containerName) {
+            sendActionEvent(
+                TelemetryViews.ContainerDeployment,
+                TelemetryActions.ConnectToContainer,
+            );
+            try {
+                // start docker and docker container
+                const alreadyRunning = await restartContainer(connectionProfile.containerName);
+                this._logger.verbose(
+                    alreadyRunning
+                        ? `Docker container "${connectionProfile.containerName}" is already running.`
+                        : `Docker container "${connectionProfile.containerName}" has been restarted.`,
+                );
+            } catch (error) {
+                this._logger.error(
+                    `Error when attempting to ensure container "${connectionProfile.containerName}" is started.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
+                );
+            }
+        }
         if (connectionProfile.connectionString) {
             if (connectionProfile.savePassword) {
                 // look up connection string
@@ -721,7 +864,7 @@ export class ObjectExplorerService {
         if (!connectionNode) {
             isNewConnection = true;
             connectionNode = new ConnectionNode(connectionProfile);
-            this._rootTreeNodeArray.push(connectionNode);
+            this._connectionNodes.set(connectionProfile.id, connectionNode);
         } else {
             connectionNode.updateConnectionProfile(connectionProfile);
         }
@@ -729,7 +872,7 @@ export class ObjectExplorerService {
         connectionNode.updateToConnectedState({
             nodeInfo: successResponse.rootNode,
             sessionId: successResponse.sessionId,
-            parentNode: undefined,
+            parentNode: connectionNode.parentNode,
             connectionProfile: connectionProfile,
         });
 
@@ -742,16 +885,18 @@ export class ObjectExplorerService {
             await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile);
         }
         if (isNewConnection) {
-            this.addConnectionNodeAtRightPosition(connectionNode);
+            this.addConnectionNode(connectionNode);
         }
         // remove the sign in node once the session is created
         if (this._treeNodeToChildrenMap.has(connectionNode)) {
             this._treeNodeToChildrenMap.delete(connectionNode);
         }
 
+        const finalNode = this.getConnectionNodeFromProfile(connectionProfile);
+
         return {
             sessionId: successResponse.sessionId,
-            connectionNode: this.getConnectionNodeFromProfile(connectionProfile),
+            connectionNode: finalNode,
         };
     }
 
@@ -856,7 +1001,7 @@ export class ObjectExplorerService {
             return tokenAdded;
         } else {
             this._logger.error("Session creation failed: " + error);
-            this._connectionManager.vscodeWrapper.showErrorMessage(error);
+            this._vscodeWrapper.showErrorMessage(error);
         }
         return false;
     }
@@ -881,27 +1026,26 @@ export class ObjectExplorerService {
                 providerSettings.resources.databaseResource,
             );
             if (!azureAccountToken) {
-                this._client.logger.verbose(
-                    "Access token could not be refreshed for connection profile.",
-                );
+                this._logger.verbose("Access token could not be refreshed for connection profile.");
                 let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-                await this._connectionManager.vscodeWrapper
-                    .showErrorMessage(errorMessage, LocalizedConstants.refreshTokenLabel)
-                    .then(async (result) => {
-                        if (result === LocalizedConstants.refreshTokenLabel) {
-                            let updatedProfile = await azureController.populateAccountProperties(
-                                profile,
-                                this._connectionManager.accountStore,
-                                providerSettings.resources.databaseResource,
-                            );
-                            connectionCredentials.azureAccountToken =
-                                updatedProfile.azureAccountToken;
-                            connectionCredentials.expiresOn = updatedProfile.expiresOn;
-                        } else {
-                            this._client.logger.error("Credentials not refreshed by user.");
-                            return undefined;
-                        }
-                    });
+
+                const response = await this._vscodeWrapper.showErrorMessage(
+                    errorMessage,
+                    LocalizedConstants.refreshTokenLabel,
+                );
+
+                if (response === LocalizedConstants.refreshTokenLabel) {
+                    let updatedProfile = await azureController.populateAccountProperties(
+                        profile,
+                        this._connectionManager.accountStore,
+                        providerSettings.resources.databaseResource,
+                    );
+                    connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
+                    connectionCredentials.expiresOn = updatedProfile.expiresOn;
+                } else {
+                    this._logger.error("Credentials not refreshed by user.");
+                    return undefined;
+                }
             } else {
                 connectionCredentials.azureAccountToken = azureAccountToken.token;
                 connectionCredentials.expiresOn = azureAccountToken.expiresOn;
@@ -917,15 +1061,15 @@ export class ObjectExplorerService {
                 },
                 async (progress, token) => {
                     token.onCancellationRequested(() => {
-                        this._client.logger.verbose("Azure sign in cancelled by user.");
+                        this._logger.verbose("Azure sign in cancelled by user.");
                         resolve(false);
                     });
                     try {
                         await refreshTask();
                         resolve(true);
                     } catch (error) {
-                        this._client.logger.error("Error refreshing account: " + error);
-                        this._connectionManager.vscodeWrapper.showErrorMessage(error.message);
+                        this._logger.error("Error refreshing account: " + error);
+                        this._vscodeWrapper.showErrorMessage(error.message);
                         resolve(false);
                     }
                 },
@@ -957,10 +1101,15 @@ export class ObjectExplorerService {
         }
 
         await this.disconnectNode(node);
-        const index = this._rootTreeNodeArray.indexOf(node, 0);
-        if (index > -1) {
-            this._rootTreeNodeArray.splice(index, 1);
+
+        if (this._connectionNodes.has(node.connectionProfile.id)) {
+            this._connectionNodes.delete(node.connectionProfile.id);
+        } else {
+            this._logger.error(
+                `Connection node with ID ${node.connectionProfile.id} not found in connection nodes map.`,
+            );
         }
+
         this._refreshCallback(undefined); // Refresh tree root.
         await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
     }
@@ -981,15 +1130,27 @@ export class ObjectExplorerService {
     /**
      * Remove multiple connection nodes from the OE tree.
      * @param connections Connection info of the nodes to remove.
+     * @returns True if ALL provided connections were removed successfully, false otherwise.
      */
-    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
+    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<boolean> {
+        const notFound: string[] = [];
+
         for (let conn of connections) {
-            for (let node of this._rootTreeNodeArray) {
-                if (Utils.isSameConnectionInfo(node.connectionProfile, conn)) {
-                    await this.removeNode(node as ConnectionNode, false);
-                }
+            const node = this.getConnectionNodeFromProfile(conn as IConnectionProfile);
+            if (node) {
+                await this.removeNode(node as ConnectionNode, false);
+            } else {
+                notFound.push((conn as IConnectionProfile).id);
             }
         }
+
+        if (notFound.length > 0) {
+            this._logger.error(
+                `Expected to remove ${connections.length} nodes, but did not find: ${notFound.join(", ")}.`,
+            );
+        }
+
+        return notFound.length === 0;
     }
 
     /**
@@ -998,31 +1159,29 @@ export class ObjectExplorerService {
      */
     public addDisconnectedNode(connectionCredentials: IConnectionProfile): void {
         const connectionNode = new ConnectionNode(connectionCredentials);
-        this.addConnectionNodeAtRightPosition(connectionNode);
+        this.updateNode(connectionNode);
     }
 
     /**
-     * Adds a connection node to the OE tree at the right position based on its label.
+     * Adds a connection node to the OE tree.
      * @param connectionNode The connection node to add.
      * This will replace any existing node with the same connection profile.
      */
-    private addConnectionNodeAtRightPosition(connectionNode: ConnectionNode): void {
-        // Remove any existing node with the same connection profile
-        const existingNodeIndex = this._rootTreeNodeArray.findIndex((node) =>
-            Utils.isSameConnectionInfo(node.connectionProfile, connectionNode.connectionProfile),
+    private addConnectionNode(connectionNode: ConnectionNode): void {
+        const oldNode = this._connectionNodes.get(connectionNode.connectionProfile.id);
+
+        this._logger.verbose(
+            `${oldNode ? "Updating" : "Adding"} connection node: ${connectionNode.label}`,
         );
-        if (existingNodeIndex !== -1) {
-            this._rootTreeNodeArray.splice(existingNodeIndex, 1);
+
+        if (oldNode) {
+            this._connectionGroupNodes.get(oldNode.connectionProfile.groupId)?.removeChild(oldNode);
         }
 
-        const index = this._rootTreeNodeArray.findIndex(
-            (node) => (node.label as string).localeCompare(connectionNode.label as string) > 0,
-        );
-        if (index === -1) {
-            this._rootTreeNodeArray.push(connectionNode);
-        } else {
-            this._rootTreeNodeArray.splice(index, 0, connectionNode);
-        }
+        this._connectionNodes.set(connectionNode.connectionProfile.id, connectionNode);
+        this._connectionGroupNodes
+            .get(connectionNode.connectionProfile.groupId)
+            ?.addChild(connectionNode);
     }
 
     /**
@@ -1044,7 +1203,7 @@ export class ObjectExplorerService {
 
         if (response && response.success) {
             if (response.sessionId !== node.sessionId) {
-                this._client.logger.error("Session ID mismatch in closeSession() response");
+                this._logger.error("Session ID mismatch in closeSession() response");
             }
 
             const nodeUri = this.getNodeIdentifier(node);
@@ -1065,36 +1224,95 @@ export class ObjectExplorerService {
         if (node.sessionId) {
             return node.sessionId;
         } else {
-            this._client.logger.error("Node does not have a session ID");
+            this._logger.error("Node does not have a session ID");
             return ObjectExplorerUtils.getNodeUri(node); // TODO: can this removed entirely?  ideally, every node has a session ID associated with it
         }
     }
 
+    public updateNode(node: TreeNodeInfo): void {
+        if (node instanceof ConnectTreeNode) {
+            node = getParentNode(node);
+        }
+
+        if (node instanceof ConnectionGroupNode) {
+            this._connectionGroupNodes.set(node.id, node);
+        } else {
+            this._connectionNodes.set(node.connectionProfile.id, node as ConnectionNode);
+        }
+    }
+
+    public addServerGroupNode(group: IConnectionGroup): void {
+        const groupNode = new ConnectionGroupNode(group);
+        this.updateNode(groupNode);
+    }
+
     /**
-     * Gets the connection node from the profile.
+     * Gets the connection node from the profile by recursively searching through the tree.
      * @param connectionProfile The connection profile to get the node for
      * @returns The connection node for the profile, or undefined if not found.
      */
     private getConnectionNodeFromProfile(
         connectionProfile: IConnectionProfile,
     ): ConnectionNode | undefined {
-        return this._rootTreeNodeArray.find((node) =>
-            Utils.isSameConnectionInfo(node.connectionProfile, connectionProfile),
-        ) as ConnectionNode;
+        const foundNode = this._connectionNodes.get(connectionProfile.id);
+
+        if (!foundNode) {
+            this._logger.verbose(
+                `Connection node not found for profile with ID: ${connectionProfile.id}`,
+            );
+        }
+
+        return foundNode;
     }
 
     /**
-     * Deletes the children of a node from the tree node to children map.
-     * @param node The node to delete the children for
+     * @deprecated Use rootNodeConnections instead
      */
-    public deleteChildren(node: TreeNodeInfo): void {
-        if (this._treeNodeToChildrenMap.has(node)) {
-            this._treeNodeToChildrenMap.delete(node);
-        }
-    }
-
-    public get rootNodeConnections(): IConnectionInfo[] {
+    public get rootNodeConnectionsOld(): IConnectionInfo[] {
         const connections = this._rootTreeNodeArray.map((node) => node.connectionProfile);
         return connections;
     }
+
+    public get connections(): IConnectionProfile[] {
+        return [...this._connectionNodes.values()].map((node) => node.connectionProfile);
+    }
+
+    public get connectionGroups(): IConnectionGroup[] {
+        return [...this._connectionGroupNodes.values()].map((node) => node.connectionGroup);
+    }
+
+    public getConnectionNodeById(id: string): ConnectionNode | undefined {
+        if (!id) {
+            return undefined;
+        }
+
+        const connectionNode = this._connectionNodes.get(id);
+        if (!connectionNode) {
+            this._logger.error(`Connection node with ID ${id} not found.`);
+        }
+
+        return connectionNode;
+    }
+
+    public getServerGroupNodeById(id: string): ConnectionGroupNode | undefined {
+        if (!id) {
+            return undefined;
+        }
+
+        const serverGroupNode = this._connectionGroupNodes.get(id);
+        if (!serverGroupNode) {
+            this._logger.error(`Server group node with ID ${id} not found.`);
+        }
+
+        return serverGroupNode;
+    }
+}
+
+export function getParentNode(node: TreeNodeType): TreeNodeInfo {
+    node = node.parentNode;
+    if (!(node instanceof TreeNodeInfo)) {
+        vscode.window.showErrorMessage(LocalizedConstants.nodeErrorMessage);
+        throw new Error(`Parent node was not TreeNodeInfo.`);
+    }
+    return node;
 }

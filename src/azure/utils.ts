@@ -97,7 +97,7 @@ export function getEnableConnectionPoolingConfig(): boolean {
             return val;
         }
     }
-    return true; // default setting
+    return false; // default setting
 }
 
 export function getAppDataPath(): string {

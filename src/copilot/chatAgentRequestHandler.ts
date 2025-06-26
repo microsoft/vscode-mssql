@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as Utils from "../models/utils";
 import { CopilotService } from "../services/copilotService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import * as Constants from "../constants/constants";
 import {
     GetNextMessageResponse,
@@ -23,6 +23,8 @@ import {
     TelemetryViews,
 } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
+import { MssqlChatAgent as loc } from "../constants/locConstants";
+import MainController from "../controllers/mainController";
 import { Logger } from "../models/logger";
 
 export interface ISqlChatResult extends vscode.ChatResult {
@@ -36,11 +38,15 @@ const MODEL_SELECTOR: vscode.LanguageModelChatSelector = {
     vendor: "copilot",
     family: "gpt-4o",
 };
+const DISCONNECTED_LABEL_PREFIX = "> ⚠️";
+const CONNECTED_LABEL_PREFIX = "> 🟢";
+const SERVER_DATABASE_LABEL_PREFIX = "> ➖";
 
 export const createSqlAgentRequestHandler = (
     copilotService: CopilotService,
     vscodeWrapper: VscodeWrapper,
     context: vscode.ExtensionContext,
+    controller: MainController,
 ): vscode.ChatRequestHandler => {
     const getNextConversationUri = (() => {
         let idCounter = 1;
@@ -258,7 +264,7 @@ export const createSqlAgentRequestHandler = (
                 activity.endFailed(new Error("No chat model found."), true, undefined, undefined, {
                     correlationId: correlationId,
                 });
-                stream.markdown("No model found.");
+                stream.markdown(loc.noModelFound);
                 return { metadata: { command: "", correlationId: correlationId } };
             }
 
@@ -269,17 +275,24 @@ export const createSqlAgentRequestHandler = (
             logger.info(copilotDebugLogging ? "Debug logging enabled." : "Debug logging disabled.");
             if (copilotDebugLogging) {
                 stream.progress(
-                    `Using ${model.name} (${context.languageModelAccessInformation.canSendRequest(model)})...`,
+                    loc.usingModel(
+                        model.name,
+                        context.languageModelAccessInformation.canSendRequest(model),
+                    ),
                 );
             }
 
-            if (!connectionUri) {
-                logger.info("No connection URI found. Sending prompt to default language model.");
+            const connection = controller.connectionManager.getConnectionInfo(connectionUri);
+            if (!connectionUri || !connection) {
+                logger.info(
+                    "No connection URI/connection was found. Sending prompt to default language model.",
+                );
 
                 activity.update({
                     correlationId: correlationId,
                     message: "No connection URI found. Sending prompt to default language model.",
                 });
+                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.notConnected}\n\n`);
                 await sendToDefaultLanguageModel(
                     prompt,
                     model,
@@ -291,6 +304,12 @@ export const createSqlAgentRequestHandler = (
                 );
                 return { metadata: { command: "", correlationId: correlationId } };
             }
+
+            var connectionMessage =
+                `${CONNECTED_LABEL_PREFIX} ${loc.connectedTo}  \n` +
+                `${SERVER_DATABASE_LABEL_PREFIX} ${loc.server(connection.credentials.server)}  \n` +
+                `${SERVER_DATABASE_LABEL_PREFIX} ${loc.database(connection.credentials.database)}\n\n`;
+            stream.markdown(connectionMessage);
 
             const success = await copilotService.startConversation(
                 conversationUri,
@@ -339,10 +358,12 @@ export const createSqlAgentRequestHandler = (
                 // Process tool calls and get the result
                 logger.info("Processing tool calls and awaiting for the result...");
                 const result = await processToolCalls(
+                    stream,
                     sqlTools,
                     conversationUri,
                     replyText,
                     copilotService,
+                    correlationId,
                     logger,
                 );
 
@@ -419,38 +440,95 @@ export const createSqlAgentRequestHandler = (
         return { metadata: { command: "", correlationId: correlationId } };
     };
 
+    async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+        const timeout = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Operation timed out")), ms),
+        );
+        return Promise.race([promise, timeout]);
+    }
+
     async function processToolCalls(
+        stream: vscode.ChatResponseStream,
         sqlTools: { tool: LanguageModelChatTool; parameters: string }[],
         conversationUri: string,
         replyText: string,
         copilotService: CopilotService,
+        correlationId: string,
         logger: Logger,
     ): Promise<GetNextMessageResponse> {
         logger.info("in processToolCalls");
 
         if (sqlTools.length === 0) {
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error("No tools to process."),
+                true,
+                undefined,
+                undefined,
+                { correlationId: correlationId },
+            );
+
             logger.error("No tools to process.");
-            throw new Error("No tools to process.");
+            throw new Error(loc.noToolsToProcess);
         }
 
         let result: GetNextMessageResponse;
         for (const toolCall of sqlTools) {
-            logger.logDebug(`Getting next message for conversationUri: ${conversationUri}`);
-            result = await copilotService.getNextMessage(
-                conversationUri,
-                replyText,
-                toolCall.tool,
-                toolCall.parameters,
-            );
+            try {
+                logger.logDebug(`Getting next message for conversationUri: ${conversationUri}`);
 
-            if (result.messageType === MessageType.Complete) {
-                logger.logDebug(`Message type is complete for conversationUri: ${conversationUri}`);
-                break;
+                result = await withTimeout(
+                    copilotService.getNextMessage(
+                        conversationUri,
+                        replyText,
+                        toolCall.tool,
+                        toolCall.parameters,
+                    ),
+                    60000, // timeout in milliseconds
+                );
+
+                if (result.messageType === MessageType.Complete) {
+                    logger.logDebug(
+                        `Message type is complete for conversationUri: ${conversationUri}`,
+                    );
+                    break;
+                }
+            } catch (error) {
+                logger.error(`Tool call failed or timed out:`, error);
+
+                // Log telemetry for the unhandled error
+                sendErrorEvent(
+                    TelemetryViews.MssqlCopilot,
+                    TelemetryActions.Error,
+                    error instanceof Error ? error : new Error("Unknown tool call error"),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        correlationId: correlationId,
+                        toolName: toolCall?.tool?.functionName || "Unknown",
+                    },
+                );
+
+                // Gracefully warn the user in markdown
+                stream.markdown(
+                    "⚠️ This message couldn't be processed. If this issue persists, please check the logs and [open an issue](https://aka.ms/vscode-mssql-copilot-feedback) on GitHub for this Preview release.",
+                );
+
+                result = undefined;
+
+                break; // Exit the loop if a tool call fails or times out
             }
         }
 
+        if (!result) {
+            logger.error("All tool calls failed or timed out.");
+            throw new Error("All tool calls failed or timed out.");
+        }
+
         logger.logDebug(`Finished processing tool calls for conversationUri: ${conversationUri}`);
-        return result!;
+        return result;
     }
 
     function prepareRequestMessages(
@@ -460,49 +538,119 @@ export const createSqlAgentRequestHandler = (
         logger: Logger,
     ): vscode.LanguageModelChatMessage[] {
         logger.info("in prepareRequestMessages");
-        // Separate system messages from the requestMessages
 
-        logger.info("Getting system messages");
-        const systemMessages = result.requestMessages
-            .filter((message: LanguageModelRequestMessage) => message.role === MessageRole.System)
+        // Get all messages from requestMessages
+        const requestMessages = result.requestMessages;
+
+        // Find the index of the first non-system message
+        const firstNonSystemIndex = requestMessages.findIndex(
+            (message: LanguageModelRequestMessage) => message.role !== MessageRole.System,
+        );
+
+        logger.info("Getting initial system messages");
+
+        // Extract initial system messages (ones that appear before any user message)
+        const initialSystemMessages = requestMessages
+            .slice(0, firstNonSystemIndex === -1 ? requestMessages.length : firstNonSystemIndex)
             .map((message: LanguageModelRequestMessage) =>
                 vscode.LanguageModelChatMessage.Assistant(message.text),
             );
 
         logger.info("Getting history messages");
+
+        // Convert history messages with optional prefix marker
+        const historyPrefix = "[HISTORY] "; // Can be empty string if no marker is desired
+
         const historyMessages = context.history
             .map((historyItem) => {
                 if ("prompt" in historyItem) {
-                    return vscode.LanguageModelChatMessage.User(historyItem.prompt);
-                } else {
+                    // Handle user messages - simple text
+                    return vscode.LanguageModelChatMessage.User(historyPrefix + historyItem.prompt);
+                } else if ("response" in historyItem && Array.isArray(historyItem.response)) {
+                    // Extract content from assistant responses
                     const responseContent = historyItem.response
-                        .map((part) => ("content" in part ? part.content : ""))
+                        .filter((part) => part !== null && part !== undefined)
+                        .map((part) => {
+                            // Handle the specific nested object structure with part.value.value
+                            if (
+                                part &&
+                                typeof part.value === "object" &&
+                                part.value !== null &&
+                                typeof part.value.value === "string"
+                            ) {
+                                return part.value.value;
+                            }
+
+                            // Try accessing through value() function
+                            if (part && typeof part.value === "function") {
+                                try {
+                                    const fnResult = part.value();
+                                    // Additional check - if function returns an object with value property
+                                    if (
+                                        typeof fnResult === "object" &&
+                                        fnResult &&
+                                        typeof fnResult.value === "string"
+                                    ) {
+                                        return fnResult.value;
+                                    }
+                                    return typeof fnResult === "string" ? fnResult : "";
+                                } catch (e) {
+                                    console.error("Error accessing response value:", e);
+                                    return "";
+                                }
+                            }
+
+                            // Fallback to content property if present
+                            if (part && typeof part.content === "string") {
+                                return part.content;
+                            }
+
+                            return "";
+                        })
                         .join("");
+
                     return responseContent.trim()
-                        ? vscode.LanguageModelChatMessage.Assistant(responseContent)
+                        ? vscode.LanguageModelChatMessage.Assistant(historyPrefix + responseContent)
                         : undefined;
                 }
+                return undefined;
             })
             .filter((msg): msg is vscode.LanguageModelChatMessage => msg !== undefined);
 
-        // Include the reference messages
-        // TODO: should we cut off the reference message or send a warning if it is too long? (especially without selection)
         logger.info("Getting reference messages");
+        // Include reference messages with optional marker
+        const referencePrefix = "[REFERENCE] "; // Can be empty string if no marker is desired
         const referenceMessages = referenceTexts
-            ? referenceTexts.map((text) => vscode.LanguageModelChatMessage.Assistant(text))
+            ? referenceTexts.map((text) =>
+                  vscode.LanguageModelChatMessage.Assistant(referencePrefix + text),
+              )
             : [];
 
-        //Get the new user messages (non-system messages from requestMessages)
-        logger.info("Getting user messages...");
-        const userMessages = result.requestMessages
-            .filter((message: LanguageModelRequestMessage) => message.role !== MessageRole.System)
-            .map((message: LanguageModelRequestMessage) =>
-                vscode.LanguageModelChatMessage.User(message.text),
-            );
+        // If there are no non-system messages
+        if (firstNonSystemIndex === -1) {
+            return [...initialSystemMessages, ...historyMessages, ...referenceMessages];
+        }
 
-        // Combine messages in appropriate order
+        logger.info("Getting remaining messages...");
+        // Process the remaining messages, preserving their original order
+        const remainingMessages = requestMessages
+            .slice(firstNonSystemIndex)
+            .map((message: LanguageModelRequestMessage) => {
+                if (message.role === MessageRole.System) {
+                    return vscode.LanguageModelChatMessage.Assistant(message.text);
+                } else {
+                    return vscode.LanguageModelChatMessage.User(message.text);
+                }
+            });
+
         logger.info("Returning combined messages...");
-        return [...systemMessages, ...historyMessages, ...referenceMessages, ...userMessages];
+        // Combine messages in the desired order
+        return [
+            ...initialSystemMessages,
+            ...historyMessages,
+            ...referenceMessages,
+            ...remainingMessages,
+        ];
     }
 
     function mapRequestTools(
@@ -635,7 +783,7 @@ export const createSqlAgentRequestHandler = (
         if (!tool) {
             logger.logDebug(`No tool was found for: ${part.name} - ${JSON.stringify(part.input)}}`);
             if (copilotDebugLogging) {
-                stream.markdown(`Tool lookup for: ${part.name} - ${JSON.stringify(part.input)}.`);
+                stream.markdown(loc.toolLookupFor(part.name, JSON.stringify(part.input)));
             }
             return { sqlTool, sqlToolParameters };
         }
@@ -646,18 +794,32 @@ export const createSqlAgentRequestHandler = (
         try {
             sqlToolParameters = JSON.stringify(part.input);
         } catch (err) {
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error(
+                    `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
+                ),
+                false,
+                undefined,
+                undefined,
+                {
+                    correlationId: correlationId,
+                },
+            );
+
             logger.error(
-                `Got invalid tool use parameters: ${JSON.stringify(part.input)} - (${getErrorMessage(err)})`,
+                `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
             );
             throw new Error(
-                `Got invalid tool use parameters: "${JSON.stringify(part.input)}". (${getErrorMessage(err)})`,
+                loc.gotInvalidToolUseParameters(JSON.stringify(part.input), getErrorMessage(err)),
             );
         }
 
         // Log tool call
         logger.logDebug(`Calling tool: ${tool.functionName} with ${sqlToolParameters}`);
         if (copilotDebugLogging) {
-            stream.progress(`Calling tool: ${tool.functionName} with ${sqlToolParameters}`);
+            stream.progress(loc.callingTool(tool.functionName, sqlToolParameters));
         }
 
         sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ToolCall, {
@@ -681,26 +843,25 @@ export const createSqlAgentRequestHandler = (
         logger.error("Language Model Error:", getErrorMessage(err), "Code:", err.code);
 
         const errorMessages: Record<string, string> = {
-            model_not_found:
-                "The requested model could not be found. Please check model availability or try a different model.",
-            no_permission:
-                "Access denied. Please ensure you have the necessary permissions to use this tool or model.",
-            quote_limit_exceeded:
-                "Usage limits exceeded. Try again later, or consider optimizing your requests.",
-            off_topic: "I'm sorry, I can only assist with SQL-related questions.",
+            model_not_found: loc.modelNotFoundError,
+            no_permission: loc.noPermissionError,
+            quote_limit_exceeded: loc.quoteLimitExceededError,
+            off_topic: loc.offTopicError,
         };
 
-        const errorMessage =
-            errorMessages[err.code] ||
-            "An unexpected error occurred with the language model. Please try again.";
+        const errorMessage = errorMessages[err.code] || loc.unexpectedError;
 
-        sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.Error, {
-            errorCode: err.code || "Unknown",
-            errorName: err.name || "Unknown",
-            errorMessage: errorMessage,
-            originalErrorMessage: err.message || "",
-            correlationId: correlationId,
-        });
+        sendErrorEvent(
+            TelemetryViews.MssqlCopilot,
+            TelemetryActions.Error,
+            new Error(getErrorMessage(err)),
+            false,
+            err.code || "Unknown",
+            err.name || "Unknown",
+            {
+                correlationId: correlationId,
+            },
+        );
 
         stream.markdown(errorMessage);
     }
@@ -717,7 +878,7 @@ export const createSqlAgentRequestHandler = (
         logger.info("in sendToDefaultLanguageModel");
         try {
             logger.info(`Using ${model.name} to process your request...`);
-            stream.progress(`Using ${model.name} to process your request...`);
+            stream.progress(loc.usingModelToProcessRequest(model.name));
 
             const messages = [vscode.LanguageModelChatMessage.User(prompt.trim())];
             const options: vscode.LanguageModelChatRequestOptions = {
@@ -748,21 +909,15 @@ export const createSqlAgentRequestHandler = (
                     correlationId: correlationId,
                     message: "The default language model did not return any output.",
                 });
-                stream.markdown("The language model did not return any output.");
+                stream.markdown(loc.languageModelDidNotReturnAnyOutput);
             }
         } catch (err) {
-            logger.error("Error in fallback to default language model call:", getErrorMessage(err));
-            activity.endFailed(
-                new Error("Fallback to default language model call failed."),
-                true,
-                undefined,
-                undefined,
-                {
-                    correlationId: correlationId,
-                    errorMessage: getErrorMessage(err),
-                },
-            );
-            stream.markdown("An error occurred while processing your request.");
+            activity.endFailed(new Error(getErrorMessage(err)), false, undefined, undefined, {
+                correlationId: correlationId,
+                errorMessage: "Fallback to default language model call failed.",
+            });
+            logger.error("Error in fallback language model call:", getErrorMessage(err));
+            stream.markdown(loc.errorOccurredWhileProcessingRequest);
         }
         logger.info("Finished sending request to default language model.");
     }
@@ -782,10 +937,41 @@ export const createSqlAgentRequestHandler = (
                 message: err.message,
                 stack: err.stack,
             });
-            stream.markdown("An error occurred: " + err.message);
+
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error(`An error occurred with: ${getErrorMessage(err)}`),
+                false,
+                undefined,
+                undefined,
+                {
+                    correlationId: correlationId,
+                },
+            );
+
+            console.error("Unhandled Error:", {
+                message: err.message,
+                stack: err.stack,
+            });
+
+            stream.markdown(loc.errorOccurredWith(err.message));
         } else {
             logger.error("Unknown Error Type:", getErrorMessage(err));
-            stream.markdown("An unknown error occurred. Please try again.");
+
+            sendErrorEvent(
+                TelemetryViews.MssqlCopilot,
+                TelemetryActions.Error,
+                new Error(`Unknown Error Type: ${getErrorMessage(err)}`),
+                false,
+                undefined,
+                undefined,
+                {
+                    correlationId: correlationId,
+                },
+            );
+
+            stream.markdown(loc.unknownErrorOccurred);
         }
 
         logger.info("Finished handling error.");
