@@ -2952,6 +2952,9 @@
     <trans-unit id="mssql.manageProfiles">
       <source xml:lang="en">Manage Connection Profiles</source>
     </trans-unit>
+    <trans-unit id="mssql.manageAzureAccounts">
+      <source xml:lang="en">Manage Microsoft Entra Accounts</source>
+    </trans-unit>
     <trans-unit id="mssql.query.maxXmlCharsToStore">
       <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>
     </trans-unit>
