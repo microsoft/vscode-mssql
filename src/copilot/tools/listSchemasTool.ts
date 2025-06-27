@@ -9,6 +9,9 @@ import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
+import SqlToolsServiceClient from "../../languageservice/serviceclient";
+import { RequestType } from "vscode-languageclient";
+import { SimpleExecuteResult } from "./interfaces";
 
 export interface ListSchemasToolParams {
     connectionId: string;
@@ -23,7 +26,10 @@ export interface ListSchemasToolResult {
 export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
     public readonly toolName = Constants.copilotListSchemasToolName;
 
-    constructor(private connectionManager: ConnectionManager) {
+    constructor(
+        private connectionManager: ConnectionManager,
+        private client: SqlToolsServiceClient,
+    ) {
         super();
     }
 
@@ -41,8 +47,21 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
                     message: loc.noConnectionError(connectionId),
                 });
             }
-            // TODO : Implement logic to list schemas
-            const schemas = [];
+
+            const result = await this.client.sendRequest(
+                new RequestType<
+                    { ownerUri: string; queryString: string },
+                    SimpleExecuteResult,
+                    void,
+                    void
+                >("query/simpleexecute"),
+                {
+                    ownerUri: connectionId,
+                    queryString:
+                        "SELECT name AS SchemaName FROM sys.schemas WHERE name NOT IN ('sys', 'information_schema') ORDER BY name",
+                },
+            );
+            const schemas = this.getSchemaNamesFromResult(result);
 
             return JSON.stringify({
                 success: true,
@@ -54,6 +73,27 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
                 message: getErrorMessage(err),
             });
         }
+    }
+
+    private getSchemaNamesFromResult(result: SimpleExecuteResult): string[] {
+        if (!result || !result.rows || result.rows.length === 0) {
+            return [];
+        }
+
+        const schemaNames: string[] = [];
+
+        // Extract schema names from each row
+        // Assuming the query returns schema names in the first column
+        for (const row of result.rows) {
+            if (row && row.length > 0 && row[0] && !row[0].isNull) {
+                const schemaName = row[0].displayValue.trim();
+                if (schemaName) {
+                    schemaNames.push(schemaName);
+                }
+            }
+        }
+
+        return schemaNames;
     }
 
     async prepareInvocation(

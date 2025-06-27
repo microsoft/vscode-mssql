@@ -9,6 +9,9 @@ import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
+import SqlToolsServiceClient from "../../languageservice/serviceclient";
+import { RequestType } from "vscode-languageclient";
+import { SimpleExecuteResult } from "./interfaces";
 
 export interface ListFunctionsToolParams {
     connectionId: string;
@@ -23,7 +26,10 @@ export interface ListFunctionsToolResult {
 export class ListFunctionsTool extends ToolBase<ListFunctionsToolParams> {
     public readonly toolName = Constants.copilotListFunctionsToolName;
 
-    constructor(private connectionManager: ConnectionManager) {
+    constructor(
+        private connectionManager: ConnectionManager,
+        private client: SqlToolsServiceClient,
+    ) {
         super();
     }
 
@@ -41,8 +47,21 @@ export class ListFunctionsTool extends ToolBase<ListFunctionsToolParams> {
                     message: loc.noConnectionError(connectionId),
                 });
             }
-            // TODO : Implement logic to list functions
-            const functions = [];
+
+            const result = await this.client.sendRequest(
+                new RequestType<
+                    { ownerUri: string; queryString: string },
+                    SimpleExecuteResult,
+                    void,
+                    void
+                >("query/simpleexecute"),
+                {
+                    ownerUri: connectionId,
+                    queryString:
+                        "SELECT CONCAT(SCHEMA_NAME(schema_id), '.', name) AS FunctionName FROM sys.objects WHERE type IN ('FN', 'IF', 'TF') ORDER BY SCHEMA_NAME(schema_id), name",
+                },
+            );
+            const functions = this.getFunctionNamesFromResult(result);
 
             return JSON.stringify({
                 success: true,
@@ -54,6 +73,27 @@ export class ListFunctionsTool extends ToolBase<ListFunctionsToolParams> {
                 message: getErrorMessage(err),
             });
         }
+    }
+
+    private getFunctionNamesFromResult(result: SimpleExecuteResult): string[] {
+        if (!result || !result.rows || result.rows.length === 0) {
+            return [];
+        }
+
+        const functionNames: string[] = [];
+
+        // Extract function names from each row
+        // Assuming the query returns function names in the first column
+        for (const row of result.rows) {
+            if (row && row.length > 0 && row[0] && !row[0].isNull) {
+                const functionName = row[0].displayValue.trim();
+                if (functionName) {
+                    functionNames.push(functionName);
+                }
+            }
+        }
+
+        return functionNames;
     }
 
     async prepareInvocation(

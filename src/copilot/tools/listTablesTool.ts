@@ -9,6 +9,9 @@ import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
+import SqlToolsServiceClient from "../../languageservice/serviceclient";
+import { RequestType } from "vscode-languageclient";
+import { SimpleExecuteResult } from "./interfaces";
 
 export interface ListTablesToolParams {
     connectionId: string;
@@ -23,7 +26,10 @@ export interface ListTablesToolResult {
 export class ListTablesTool extends ToolBase<ListTablesToolParams> {
     public readonly toolName = Constants.copilotListTablesToolName;
 
-    constructor(private connectionManager: ConnectionManager) {
+    constructor(
+        private connectionManager: ConnectionManager,
+        private client: SqlToolsServiceClient,
+    ) {
         super();
     }
 
@@ -41,8 +47,21 @@ export class ListTablesTool extends ToolBase<ListTablesToolParams> {
                     message: loc.noConnectionError(connectionId),
                 });
             }
-            // TODO : Implement logic to list tables
-            const tables = [];
+
+            const result = await this.client.sendRequest(
+                new RequestType<
+                    { ownerUri: string; queryString: string },
+                    SimpleExecuteResult,
+                    void,
+                    void
+                >("query/simpleexecute"),
+                {
+                    ownerUri: connectionId,
+                    queryString:
+                        "SELECT CONCAT(SCHEMA_NAME(schema_id), '.', name) AS TableName FROM sys.tables ORDER BY SCHEMA_NAME(schema_id), name",
+                },
+            );
+            const tables = this.getTableNamesFromResult(result);
 
             return JSON.stringify({
                 success: true,
@@ -54,6 +73,27 @@ export class ListTablesTool extends ToolBase<ListTablesToolParams> {
                 message: getErrorMessage(err),
             });
         }
+    }
+
+    private getTableNamesFromResult(result: SimpleExecuteResult): string[] {
+        if (!result || !result.rows || result.rows.length === 0) {
+            return [];
+        }
+
+        const tableNames: string[] = [];
+
+        // Extract table names from each row
+        // Assuming the query returns table names in the first column
+        for (const row of result.rows) {
+            if (row && row.length > 0 && row[0] && !row[0].isNull) {
+                const tableName = row[0].displayValue.trim();
+                if (tableName) {
+                    tableNames.push(tableName);
+                }
+            }
+        }
+
+        return tableNames;
     }
 
     async prepareInvocation(

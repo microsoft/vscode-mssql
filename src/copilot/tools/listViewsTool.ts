@@ -9,6 +9,9 @@ import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
+import SqlToolsServiceClient from "../../languageservice/serviceclient";
+import { RequestType } from "vscode-languageclient";
+import { SimpleExecuteResult } from "./interfaces";
 
 export interface ListViewsToolParams {
     connectionId: string;
@@ -23,7 +26,10 @@ export interface ListViewsToolResult {
 export class ListViewsTool extends ToolBase<ListViewsToolParams> {
     public readonly toolName = Constants.copilotListViewsToolName;
 
-    constructor(private connectionManager: ConnectionManager) {
+    constructor(
+        private connectionManager: ConnectionManager,
+        private client: SqlToolsServiceClient,
+    ) {
         super();
     }
 
@@ -41,8 +47,21 @@ export class ListViewsTool extends ToolBase<ListViewsToolParams> {
                     message: loc.noConnectionError(connectionId),
                 });
             }
-            // TODO : Implement logic to list views
-            const views = [];
+
+            const result = await this.client.sendRequest(
+                new RequestType<
+                    { ownerUri: string; queryString: string },
+                    SimpleExecuteResult,
+                    void,
+                    void
+                >("query/simpleexecute"),
+                {
+                    ownerUri: connectionId,
+                    queryString:
+                        "SELECT CONCAT(SCHEMA_NAME(schema_id), '.', name) AS ViewName FROM sys.views ORDER BY SCHEMA_NAME(schema_id), name",
+                },
+            );
+            const views = this.getViewNamesFromResult(result);
 
             return JSON.stringify({
                 success: true,
@@ -54,6 +73,27 @@ export class ListViewsTool extends ToolBase<ListViewsToolParams> {
                 message: getErrorMessage(err),
             });
         }
+    }
+
+    private getViewNamesFromResult(result: SimpleExecuteResult): string[] {
+        if (!result || !result.rows || result.rows.length === 0) {
+            return [];
+        }
+
+        const viewNames: string[] = [];
+
+        // Extract view names from each row
+        // Assuming the query returns view names in the first column
+        for (const row of result.rows) {
+            if (row && row.length > 0 && row[0] && !row[0].isNull) {
+                const viewName = row[0].displayValue.trim();
+                if (viewName) {
+                    viewNames.push(viewName);
+                }
+            }
+        }
+
+        return viewNames;
     }
 
     async prepareInvocation(

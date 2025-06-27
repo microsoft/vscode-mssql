@@ -2266,8 +2266,7 @@
                 "canBeReferencedInPrompt": true,
                 "displayName": "List MSSQL Tables",
                 "toolReferenceName": "mssql_list_tables",
-                "userDescription": "List all tables in a database for a connected MSSQL server.",
-                "icon": "$(table)"
+                "userDescription": "List all tables in a database for a connected MSSQL server."
             },
             {
                 "name": "mssql_list_schemas",

@@ -663,7 +663,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.lm.registerTool(
                 Constants.copilotListTablesToolName,
-                new ListTablesTool(this.connectionManager),
+                new ListTablesTool(this.connectionManager, SqlToolsServerClient.instance),
             ),
         );
 
@@ -671,7 +671,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.lm.registerTool(
                 Constants.copilotListSchemasToolName,
-                new ListSchemasTool(this.connectionManager),
+                new ListSchemasTool(this.connectionManager, SqlToolsServerClient.instance),
             ),
         );
 
@@ -679,7 +679,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.lm.registerTool(
                 Constants.copilotListViewsToolName,
-                new ListViewsTool(this.connectionManager),
+                new ListViewsTool(this.connectionManager, SqlToolsServerClient.instance),
             ),
         );
 
@@ -687,7 +687,7 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.lm.registerTool(
                 Constants.copilotListFunctionsToolName,
-                new ListFunctionsTool(this.connectionManager),
+                new ListFunctionsTool(this.connectionManager, SqlToolsServerClient.instance),
             ),
         );
     }
