@@ -1985,7 +1985,7 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
-            // Delete query result filters for the current uri when we run a new query
+            // Delete stored filters and dimension states for result grid when a new query is executed
             store.deleteMainKey(uri);
 
             await self._outputContentProvider.runQuery(
@@ -2458,7 +2458,7 @@ export default class MainController implements vscode.Disposable {
             diagnostics.delete(doc.uri);
         }
 
-        // Delete query result fiters for the closed uri
+        // Delete filters and dimension states for the closed document
         store.deleteMainKey(closedDocumentUri);
     }
 
