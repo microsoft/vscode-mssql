@@ -262,9 +262,6 @@ export function registerCommonRequestHandlers(
                 // If scrollTop is 0, we don't need to store this position
                 return;
             }
-
-            console.log("setting", message.scrollTop, "for", message.uri);
-
             store.set(message.uri, SubKeys.PaneScrollPosition, {
                 scrollTop: message.scrollTop,
             });
@@ -272,12 +269,6 @@ export function registerCommonRequestHandlers(
     );
 
     webviewController.onRequest(qr.GetGridPaneScrollPositionRequest.type, async (message) => {
-        console.log(
-            "getting scroll position for",
-            message.uri,
-            "with store",
-            store.get(message.uri, SubKeys.PaneScrollPosition),
-        );
         return store.get(message.uri, SubKeys.PaneScrollPosition) ?? { scrollTop: 0 };
     });
 

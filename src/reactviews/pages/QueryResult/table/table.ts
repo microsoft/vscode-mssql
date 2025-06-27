@@ -49,7 +49,7 @@ export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
 export const xmlLanguageId = "xml";
 export const jsonLanguageId = "json";
-export const ROW_HEIGHT_PX = 26;
+export const ROW_HEIGHT_PX = 24;
 
 export class Table<T extends Slick.SlickData> implements IThemable {
     public queryResultContext: QueryResultContextProps;

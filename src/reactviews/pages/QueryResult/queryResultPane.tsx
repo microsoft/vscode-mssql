@@ -115,6 +115,7 @@ export const QueryResultPane = () => {
     }
     const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
     const state = context.state;
+    const isProgrammaticScroll = useRef(false);
 
     // lifecycle logging right after context consumption
     useEffect(() => {
@@ -157,6 +158,7 @@ export const QueryResultPane = () => {
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
     const gridParentRef = useRef<HTMLDivElement>(null);
+    const scrollabelPanelRef = useRef<HTMLDivElement>(null);
     const [messageGridHeight, setMessageGridHeight] = useState(0);
 
     // Resize grid when parent element resizes
@@ -522,19 +524,27 @@ export const QueryResultPane = () => {
             if (state?.uri) {
                 const position = await webViewState.extensionRpc.sendRequest(
                     qr.GetGridPaneScrollPositionRequest.type,
-                    {
-                        uri: state.uri,
-                    },
+                    { uri: state.uri },
                 );
-                console.log("Scroll position loaded", {
-                    uri: state.uri,
-                    scrollTop: position.scrollTop,
-                });
-                resultPaneParentRef.current?.scrollTo({
-                    top: position.scrollTop,
+
+                const el = scrollabelPanelRef.current;
+                if (!el) return;
+
+                isProgrammaticScroll.current = true;
+
+                requestAnimationFrame(() => {
+                    el.scrollTo({
+                        top: position.scrollTop ?? 0,
+                        behavior: "instant",
+                    });
+
+                    setTimeout(() => {
+                        isProgrammaticScroll.current = false;
+                    }, 100);
                 });
             }
         }
+
         setTimeout(() => {
             void loadScrollPosition();
         }, 10);
@@ -608,15 +618,14 @@ export const QueryResultPane = () => {
             </div>
             <div
                 className={classes.tabContent}
-                ref={resultPaneParentRef}
+                ref={scrollabelPanelRef}
                 onScroll={(e) => {
+                    if (isProgrammaticScroll.current) return;
+
                     const scrollTop = e.currentTarget.scrollTop;
                     void webViewState.extensionRpc.sendNotification(
                         qr.SetGridPaneScrollPositionNotification.type,
-                        {
-                            uri: state?.uri,
-                            scrollTop: scrollTop,
-                        },
+                        { uri: state?.uri, scrollTop },
                     );
                 }}>
                 {state.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
