@@ -58,7 +58,7 @@ import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
-import store, { SubKeys } from "../queryResult/singletonStore";
+import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
@@ -1986,8 +1986,7 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
             // Delete query result filters for the current uri when we run a new query
-            store.delete(uri, SubKeys.Filter);
-            store.delete(uri, SubKeys.ColumnWidth);
+            store.deleteMainKey(uri);
 
             await self._outputContentProvider.runQuery(
                 self._statusview,
@@ -2460,8 +2459,7 @@ export default class MainController implements vscode.Disposable {
         }
 
         // Delete query result fiters for the closed uri
-        store.delete(closedDocumentUri, SubKeys.Filter);
-        store.delete(closedDocumentUri, SubKeys.ColumnWidth);
+        store.deleteMainKey(closedDocumentUri);
     }
 
     private async updateUri(oldUri: string, newUri: string) {

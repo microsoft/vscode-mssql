@@ -215,6 +215,72 @@ export function registerCommonRequestHandlers(
         return store.get(message.uri, SubKeys.ColumnWidth);
     });
 
+    webviewController.onNotification(qr.SetGridScrollPositionNotification.type, async (message) => {
+        if (message.scrollLeft === 0 && message.scrollTop === 0) {
+            // If both scrollLeft and scrollTop are 0, we don't need to store this position
+            return;
+        }
+        let scrollPositions: Map<string, { scrollTop: number; scrollLeft: number }> = store.get(
+            message.uri,
+            SubKeys.GridScrollPosition,
+        );
+        if (!scrollPositions) {
+            scrollPositions = new Map<
+                string,
+                {
+                    scrollTop: number;
+                    scrollLeft: number;
+                }
+            >();
+        }
+
+        scrollPositions.set(message.gridId, {
+            scrollTop: message.scrollTop,
+            scrollLeft: message.scrollLeft,
+        });
+        // Update the scroll positions in the store
+        store.set(message.uri, SubKeys.GridScrollPosition, scrollPositions);
+    });
+
+    webviewController.onRequest(qr.GetGridScrollPositionRequest.type, async (message) => {
+        const scrollPositions = store.get(message.uri, SubKeys.GridScrollPosition) as Map<
+            string,
+            { scrollTop: number; scrollLeft: number }
+        >;
+        if (scrollPositions && scrollPositions.has(message.gridId)) {
+            return scrollPositions.get(message.gridId);
+        } else {
+            // If no scroll position is found, return default values
+            return undefined;
+        }
+    });
+
+    webviewController.onNotification(
+        qr.SetGridPaneScrollPositionNotification.type,
+        async (message) => {
+            if (message.scrollTop === 0) {
+                // If scrollTop is 0, we don't need to store this position
+                return;
+            }
+
+            console.log("setting", message.scrollTop, "for", message.uri);
+
+            store.set(message.uri, SubKeys.PaneScrollPosition, {
+                scrollTop: message.scrollTop,
+            });
+        },
+    );
+
+    webviewController.onRequest(qr.GetGridPaneScrollPositionRequest.type, async (message) => {
+        console.log(
+            "getting scroll position for",
+            message.uri,
+            "with store",
+            store.get(message.uri, SubKeys.PaneScrollPosition),
+        );
+        return store.get(message.uri, SubKeys.PaneScrollPosition) ?? { scrollTop: 0 };
+    });
+
     webviewController.onRequest(qr.SetSelectionSummaryRequest.type, async (message) => {
         const controller =
             webviewController instanceof QueryResultWebviewPanelController

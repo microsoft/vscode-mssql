@@ -21,10 +21,12 @@ import {
     ColumnFilterState,
     GetColumnWidthsRequest,
     GetFiltersRequest,
+    GetGridScrollPositionRequest,
     QueryResultReducers,
     QueryResultWebviewState,
     ResultSetSummary,
     SetColumnWidthsRequest,
+    SetGridScrollPositionNotification,
 } from "../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 import { QueryResultContextProps } from "../queryResultStateProvider";
@@ -47,6 +49,7 @@ export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
 export const xmlLanguageId = "xml";
 export const jsonLanguageId = "json";
+export const ROW_HEIGHT_PX = 26;
 
 export class Table<T extends Slick.SlickData> implements IThemable {
     public queryResultContext: QueryResultContextProps;
@@ -222,6 +225,22 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             await this.webViewState.extensionRpc.sendRequest(SetColumnWidthsRequest.type, message);
         });
 
+        this._grid.onScroll.subscribe(async (_e, data) => {
+            if (!data) {
+                return;
+            }
+
+            await this.webViewState.extensionRpc.sendNotification(
+                SetGridScrollPositionNotification.type,
+                {
+                    uri: this.queryResultContext.state.uri,
+                    gridId: this.gridId,
+                    scrollLeft: data.scrollLeft,
+                    scrollTop: data.scrollTop,
+                },
+            );
+        });
+
         this.style(styles);
         // this.registerPlugin(new MouseWheelSupport());
     }
@@ -302,6 +321,28 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             await this._data.sort(sortArgs);
         }
         return true;
+    }
+
+    public async setupScrollPosition(): Promise<void> {
+        const scrollPosition = await this.webViewState.extensionRpc.sendRequest(
+            GetGridScrollPositionRequest.type,
+            {
+                uri: this.queryResultContext.state.uri,
+                gridId: this.gridId,
+            },
+        );
+        if (scrollPosition) {
+            setTimeout(() => {
+                this._grid.scrollRowToTop(Math.floor(scrollPosition.scrollTop / ROW_HEIGHT_PX));
+                const containerNode = this._grid.getContainerNode();
+                const viewport = containerNode
+                    ? (containerNode.querySelector(".slick-viewport") as HTMLElement)
+                    : undefined;
+                if (viewport) {
+                    viewport.scrollLeft = scrollPosition.scrollLeft;
+                }
+            }, 0);
+        }
     }
 
     public rerenderGrid() {

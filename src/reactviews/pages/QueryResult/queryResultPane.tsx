@@ -517,6 +517,29 @@ export const QueryResultPane = () => {
         });
     }, []);
 
+    useEffect(() => {
+        async function loadScrollPosition() {
+            if (state?.uri) {
+                const position = await webViewState.extensionRpc.sendRequest(
+                    qr.GetGridPaneScrollPositionRequest.type,
+                    {
+                        uri: state.uri,
+                    },
+                );
+                console.log("Scroll position loaded", {
+                    uri: state.uri,
+                    scrollTop: position.scrollTop,
+                });
+                resultPaneParentRef.current?.scrollTo({
+                    top: position.scrollTop,
+                });
+            }
+        }
+        setTimeout(() => {
+            void loadScrollPosition();
+        }, 10);
+    }, [state?.uri]);
+
     return !state || !hasResultsOrMessages(state) ? (
         <div>
             <div className={classes.noResultMessage}>
@@ -583,7 +606,19 @@ export const QueryResultPane = () => {
                     </Button>
                 )}
             </div>
-            <div className={classes.tabContent}>
+            <div
+                className={classes.tabContent}
+                ref={resultPaneParentRef}
+                onScroll={(e) => {
+                    const scrollTop = e.currentTarget.scrollTop;
+                    void webViewState.extensionRpc.sendNotification(
+                        qr.SetGridPaneScrollPositionNotification.type,
+                        {
+                            uri: state?.uri,
+                            scrollTop: scrollTop,
+                        },
+                    );
+                }}>
                 {state.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
                     Object.keys(state.resultSetSummaries).length > 0 &&
                     renderGridPanel()}
