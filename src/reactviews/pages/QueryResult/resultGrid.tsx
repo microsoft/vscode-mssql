@@ -54,6 +54,8 @@ export interface ResultGridHandle {
     resizeGrid: (width: number, height: number) => void;
     hideGrid: () => void;
     showGrid: () => void;
+    saveScrollPosition: () => void;
+    restoreScrollPosition: () => void;
 }
 
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultGridProps, ref) => {
@@ -65,6 +67,11 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     }
     const gridContainerRef = useRef<HTMLDivElement>(null);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [savedScrollPosition, setSavedScrollPosition] = useState<{
+        scrollTop: number;
+        scrollLeft: number;
+    } | null>(null);
+
     if (!props.gridParentRef) {
         return undefined;
     }
@@ -282,6 +289,26 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                 ),
             );
         }
+
+        // Restore scroll position after table is initialized
+        if (savedScrollPosition) {
+            setTimeout(() => {
+                table.restoreScrollPosition(savedScrollPosition.scrollTop);
+            }, 0);
+        }
+    };
+
+    const saveScrollPosition = () => {
+        if (table) {
+            const position = table.getScrollPosition();
+            setSavedScrollPosition(position);
+        }
+    };
+
+    const restoreScrollPosition = () => {
+        if (table && savedScrollPosition) {
+            table.restoreScrollPosition(savedScrollPosition.scrollTop);
+        }
     };
 
     useImperativeHandle(ref, () => ({
@@ -289,6 +316,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         resizeGrid,
         hideGrid,
         showGrid,
+        saveScrollPosition,
+        restoreScrollPosition,
     }));
 
     useEffect(() => {
