@@ -36,11 +36,11 @@ import {
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
-    confirmVscodeAzureSignin,
     fetchServersFromAzure,
     getAccounts,
     getTenants,
     promptForAzureSubscriptionFilter,
+    VsCodeAzureHelper,
 } from "./azureHelpers";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
@@ -864,7 +864,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 handleFirewallErrorResult.ipAddress = "0.0.0.0";
             }
 
-            const auth = await confirmVscodeAzureSignin();
+            const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
             const tenants = await auth.getTenants();
 
             this.state.dialog = {
@@ -960,7 +960,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#region Azure helpers
 
     public async populateTentants(state: AddFirewallRuleState): Promise<void> {
-        const auth = await confirmVscodeAzureSignin();
+        const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
 
         if (!auth) {
             const errorMessage = LocAzure.azureSignInFailedOrWasCancelled;
@@ -1201,7 +1201,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ): Promise<Map<string, AzureSubscription[]> | undefined> {
         let endActivity: ActivityObject;
         try {
-            const auth = await confirmVscodeAzureSignin();
+            const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
 
             if (!auth) {
                 state.formError = l10n.t("Azure sign in failed.");

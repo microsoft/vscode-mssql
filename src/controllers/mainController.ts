@@ -84,6 +84,7 @@ import {
 } from "../containerDeployment/dockerUtils";
 import { StateChangeNotification } from "../sharedInterfaces/webview";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
+import { AzureAccountManagementWebviewController } from "./azureAccountManagementWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -296,6 +297,15 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdDisableActualPlan);
             this._event.on(Constants.cmdDisableActualPlan, () => {
                 this.onToggleActualPlan(false);
+            });
+
+            this.registerCommand(Constants.cmdManageAzureAccounts);
+            this._event.on(Constants.cmdManageAzureAccounts, () => {
+                const dialog = new AzureAccountManagementWebviewController(
+                    this._context,
+                    this._vscodeWrapper,
+                );
+                dialog.revealToForeground();
             });
 
             this._context.subscriptions.push(

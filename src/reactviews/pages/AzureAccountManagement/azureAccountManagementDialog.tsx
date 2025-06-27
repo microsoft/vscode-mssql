@@ -53,6 +53,9 @@ const useStyles = makeStyles({
     dropdownContainer: {
         marginTop: "16px",
     },
+    tenantContainer: {
+        marginTop: "16px",
+    },
     infoText: {
         marginTop: "8px",
         fontSize: "12px",
@@ -77,6 +80,12 @@ export const AzureAccountManagementDialog = () => {
     const handleAccountSelect = (_: any, data: { selectedOptions: string[] }) => {
         if (data.selectedOptions.length > 0) {
             context.selectAccount(data.selectedOptions[0]);
+        }
+    };
+
+    const handleTenantSelect = (_: any, data: { selectedOptions: string[] }) => {
+        if (data.selectedOptions.length > 0) {
+            context.selectTenant(data.selectedOptions[0]);
         }
     };
 
@@ -115,14 +124,16 @@ export const AzureAccountManagementDialog = () => {
                                                 disabled={state.accounts.length === 0}
                                                 selectedOptions={
                                                     state.selectedAccount
-                                                        ? [state.selectedAccount]
+                                                        ? [state.selectedAccount.accountId]
                                                         : []
                                                 }
                                                 onOptionSelect={handleAccountSelect}>
                                                 {state.accounts.length > 0 ? (
                                                     state.accounts.map((account) => (
-                                                        <Option key={account} value={account}>
-                                                            {account}
+                                                        <Option
+                                                            key={account.accountId}
+                                                            value={account.accountId}>
+                                                            {account.displayName}
                                                         </Option>
                                                     ))
                                                 ) : (
@@ -143,6 +154,100 @@ export const AzureAccountManagementDialog = () => {
                                     </>
                                 )}
                             </div>
+
+                            {/* Tenant Selection Section */}
+                            {state.selectedAccount && (
+                                <div className={classes.tenantContainer}>
+                                    <Text
+                                        size={200}
+                                        weight="semibold"
+                                        style={{ marginBottom: "8px" }}>
+                                        Tenants for {state.selectedAccount.displayName}
+                                    </Text>
+                                    {state.isLoadingTenants ? (
+                                        <Spinner size="small" label="Loading tenants..." />
+                                    ) : (
+                                        <Dropdown
+                                            placeholder="Select a tenant"
+                                            disabled={state.tenants.length === 0}
+                                            selectedOptions={
+                                                state.selectedTenant
+                                                    ? [state.selectedTenant.tenantId]
+                                                    : []
+                                            }
+                                            onOptionSelect={handleTenantSelect}>
+                                            {state.tenants.length > 0 ? (
+                                                state.tenants.map((tenant) => (
+                                                    <Option
+                                                        key={tenant.tenantId}
+                                                        value={tenant.tenantId}>
+                                                        {`${tenant.displayName} (${tenant.tenantId})`}
+                                                    </Option>
+                                                ))
+                                            ) : (
+                                                <Option
+                                                    key="no-tenants"
+                                                    value="no-tenants"
+                                                    disabled>
+                                                    No tenants available
+                                                </Option>
+                                            )}
+                                        </Dropdown>
+                                    )}
+                                    {state.tenants.length === 0 && !state.isLoadingTenants && (
+                                        <Text className={classes.infoText}>
+                                            No tenants found for this account.
+                                        </Text>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Subscription Selection Section */}
+                            {state.selectedTenant && state.subscriptions.length > 0 && (
+                                <div className={classes.tenantContainer}>
+                                    <Text
+                                        size={200}
+                                        weight="semibold"
+                                        style={{ marginBottom: "8px" }}>
+                                        Subscriptions for {state.selectedTenant.displayName}
+                                    </Text>
+                                    <Dropdown
+                                        placeholder="Select a subscription"
+                                        disabled={state.subscriptions.length === 0}
+                                        selectedOptions={
+                                            state.selectedSubscription
+                                                ? [state.selectedSubscription.subscriptionId]
+                                                : []
+                                        }
+                                        onOptionSelect={(
+                                            _: any,
+                                            data: { selectedOptions: string[] },
+                                        ) => {
+                                            if (data.selectedOptions.length > 0) {
+                                                context.selectSubscription(data.selectedOptions[0]);
+                                            }
+                                        }}>
+                                        {state.subscriptions.length > 0 ? (
+                                            state.subscriptions.map((sub) => (
+                                                <Option
+                                                    key={sub.subscriptionId}
+                                                    value={sub.subscriptionId}>
+                                                    {`${sub.displayName} (${sub.subscriptionId})`}
+                                                </Option>
+                                            ))
+                                        ) : (
+                                            <Option key="no-subs" value="no-subs" disabled>
+                                                No subscriptions available
+                                            </Option>
+                                        )}
+                                    </Dropdown>
+                                    {state.subscriptions.length === 0 && (
+                                        <Text className={classes.infoText}>
+                                            No subscriptions found for this tenant.
+                                        </Text>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </DialogContent>
                     <DialogActions>

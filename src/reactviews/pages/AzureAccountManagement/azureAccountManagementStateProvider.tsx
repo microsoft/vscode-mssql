@@ -8,8 +8,8 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
 import {
-    AzureAccountManagementReducers,
     AzureAccountManagementState,
+    AzureAccountManagementReducers,
 } from "../../../sharedInterfaces/azureAccountManagement";
 
 // Define context props that will be passed to components
@@ -18,6 +18,9 @@ export interface AzureAccountManagementContextProps
     closeDialog: () => void;
     signIntoAzureAccount: () => void;
     selectAccount: (account: string) => void;
+    loadTenants: (accountId: string) => void;
+    selectTenant: (tenantId: string) => void;
+    selectSubscription: (subscriptionId: string) => void;
 }
 
 // Create context
@@ -35,6 +38,7 @@ const AzureAccountManagementStateProvider: React.FC<AzureAccountManagementProvid
     children,
 }) => {
     const context = useVscodeWebview<AzureAccountManagementState, AzureAccountManagementReducers>();
+    const state = context?.state;
 
     if (!context) {
         return undefined;
@@ -43,7 +47,7 @@ const AzureAccountManagementStateProvider: React.FC<AzureAccountManagementProvid
     return (
         <AzureAccountManagementContext.Provider
             value={{
-                state: context,
+                state: state,
                 themeKind: context?.themeKind,
                 ...getCoreRPCs(context),
                 closeDialog: () => {
@@ -52,8 +56,17 @@ const AzureAccountManagementStateProvider: React.FC<AzureAccountManagementProvid
                 signIntoAzureAccount: () => {
                     context.extensionRpc.action("signIntoAzureAccount");
                 },
-                selectAccount: (account: string) => {
-                    context.extensionRpc.action("selectAccount", { account });
+                selectAccount: (accountId: string) => {
+                    context.extensionRpc.action("selectAccount", { accountId });
+                },
+                loadTenants: (accountId: string) => {
+                    context.extensionRpc.action("loadTenants", { accountId });
+                },
+                selectTenant: (tenantId: string) => {
+                    context.extensionRpc.action("selectTenant", { tenantId });
+                },
+                selectSubscription: (subscriptionId: string) => {
+                    context.extensionRpc.action("selectSubscription", { subscriptionId });
                 },
             }}>
             {children}

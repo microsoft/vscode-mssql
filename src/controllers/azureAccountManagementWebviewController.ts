@@ -9,9 +9,11 @@ import VscodeWrapper from "./vscodeWrapper";
 import {
     AzureAccountManagementState,
     AzureAccountManagementReducers,
+    IMssqlAzureAccount,
 } from "../sharedInterfaces/azureAccountManagement";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 
 /**
  * Controller for the Azure Account Management dialog
@@ -35,6 +37,11 @@ export class AzureAccountManagementWebviewController extends ReactWebviewPanelCo
                 accounts: [],
                 isLoading: false,
                 selectedAccount: undefined,
+                tenants: [],
+                selectedTenant: undefined,
+                isLoadingTenants: false,
+                subscriptions: [],
+                selectedSubscription: undefined,
                 ...(initializationProps || {}),
             },
             {
@@ -53,6 +60,14 @@ export class AzureAccountManagementWebviewController extends ReactWebviewPanelCo
         void this.loadAzureAccounts();
     }
 
+    private async getAccountsForState(): Promise<IMssqlAzureAccount[]> {
+        const accounts = await VsCodeAzureHelper.getAccounts();
+        return accounts.map((account) => ({
+            accountId: account.id,
+            displayName: account.label,
+        }));
+    }
+
     /**
      * Load Azure accounts
      */
@@ -61,13 +76,7 @@ export class AzureAccountManagementWebviewController extends ReactWebviewPanelCo
         this.updateState();
 
         try {
-            // TODO: Implement actual account loading logic
-            // This would typically call Azure account service
-            // For now, we'll just simulate it with sample data
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // Sample data - in the real implementation, get this from Azure account service
-            this.state.accounts = ["account1@example.com", "account2@example.com"];
+            this.state.accounts = await this.getAccountsForState();
 
             this.state.isLoading = false;
             this.updateState();
@@ -94,17 +103,22 @@ export class AzureAccountManagementWebviewController extends ReactWebviewPanelCo
             this.updateState(state);
 
             try {
-                // TODO: Implement actual Azure sign in logic
-                // This would typically call the Azure authentication service
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+                const signInResult = await VsCodeAzureHelper.signIn();
+                if (signInResult) {
+                    const accounts = await VsCodeAzureHelper.getAccounts();
+                    if (accounts.length > 0) {
+                        state.accounts = accounts.map((account) => ({
+                            accountId: account.id,
+                            displayName: account.label,
+                        }));
+                    }
 
-                // Simulate adding a new account
-                if (!state.accounts.includes("new-account@example.com")) {
-                    state.accounts = [...state.accounts, "new-account@example.com"];
+                    state.isLoading = false;
+                    state.message = "Successfully signed in to Azure";
+                } else {
+                    state.isLoading = false;
+                    state.message = "Azure sign-in cancelled";
                 }
-
-                state.isLoading = false;
-                state.message = "Successfully signed in to Azure";
             } catch (error) {
                 state.isLoading = false;
                 state.message = `Error signing in: ${error}`;
@@ -114,11 +128,81 @@ export class AzureAccountManagementWebviewController extends ReactWebviewPanelCo
         });
 
         this.registerReducer("selectAccount", async (state, payload) => {
-            if (payload.account && state.accounts.includes(payload.account)) {
-                state.selectedAccount = payload.account;
-                state.message = `Selected account: ${payload.account}`;
+            state.selectedAccount = state.accounts.find((a) => a.accountId === payload.accountId);
+
+            if (state.selectedAccount !== undefined) {
+                state.message = `Selected account: ${payload.accountId}`;
+
+                // Clear previous tenant and subscription selection and load tenants for the selected account
+                state.selectedTenant = undefined;
+                state.tenants = [];
+                state.selectedSubscription = undefined;
+                state.subscriptions = [];
+
+                // Load tenants for the selected account using the account ID
+                await this.loadTenantsForAccount(payload.accountId, state);
+            }
+
+            return state;
+        });
+
+        this.registerReducer("loadTenants", async (state, payload) => {
+            await this.loadTenantsForAccount(payload.accountId, state);
+            return state;
+        });
+
+        this.registerReducer("selectTenant", async (state, payload) => {
+            state.selectedTenant = state.tenants.find((t) => t.tenantId === payload.tenantId);
+
+            if (state.selectedAccount !== undefined && state.selectedTenant !== undefined) {
+                state.message = `Selected tenant: ${payload.tenantId}`;
+                // Clear previous subscription selection and load subscriptions for the selected tenant
+                state.selectedSubscription = undefined;
+                state.subscriptions = [];
+                const azureTenant = {
+                    tenantId: state.selectedTenant.tenantId,
+                    displayName: state.selectedTenant.displayName,
+                };
+                state.subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(
+                    azureTenant as any,
+                );
             }
             return state;
         });
+
+        this.registerReducer("selectSubscription", async (state, payload) => {
+            state.selectedSubscription = state.subscriptions.find(
+                (s) => s.subscriptionId === payload.subscriptionId,
+            );
+            if (state.selectedSubscription) {
+                state.message = `Selected subscription: ${state.selectedSubscription.displayName}`;
+            }
+            return state;
+        });
+    }
+
+    /**
+     * Load tenants for a specific account
+     */
+    private async loadTenantsForAccount(
+        accountId: string,
+        state: AzureAccountManagementState,
+    ): Promise<void> {
+        state.isLoadingTenants = true;
+        this.updateState(state);
+
+        try {
+            const tenants = await VsCodeAzureHelper.getTenantsForAccount(accountId);
+            state.tenants = tenants.map((t) => ({
+                displayName: t.displayName,
+                tenantId: t.tenantId,
+            }));
+            state.isLoadingTenants = false;
+            this.updateState(state);
+        } catch (error) {
+            state.isLoadingTenants = false;
+            state.message = `Error loading tenants: ${error}`;
+            this.updateState(state);
+        }
     }
 }

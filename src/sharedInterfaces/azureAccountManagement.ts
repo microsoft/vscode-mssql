@@ -6,13 +6,36 @@
 // Define types for state and reducers
 export interface AzureAccountManagementState {
     message: string;
-    accounts: string[]; // List of active Azure accounts
+    accounts: IMssqlAzureAccount[]; // List of active Azure accounts with ID and label
+    selectedAccount?: IMssqlAzureAccount; // Currently selected account ID
     isLoading?: boolean; // Loading state for operations
-    selectedAccount?: string; // Currently selected account
+    tenants: IMssqlAzureTenant[]; // List of tenants for selected account
+    selectedTenant?: IMssqlAzureTenant; // Currently selected tenant
+    isLoadingTenants?: boolean; // Loading state for tenant operations
+    subscriptions: IMssqlAzureSubscription[]; // List of subscriptions for selected tenant
+    selectedSubscription?: IMssqlAzureSubscription; // Currently selected subscription
+}
+
+export interface IMssqlAzureAccount {
+    accountId: string;
+    displayName: string;
+}
+
+export interface IMssqlAzureTenant {
+    tenantId: string;
+    displayName: string;
+}
+
+export interface IMssqlAzureSubscription {
+    subscriptionId: string;
+    displayName: string;
 }
 
 export interface AzureAccountManagementReducers {
     closeDialog: {};
     signIntoAzureAccount: {};
-    selectAccount: { account: string };
+    selectAccount: { accountId: string }; // account ID
+    loadTenants: { accountId: string };
+    selectTenant: { tenantId: string };
+    selectSubscription: { subscriptionId: string };
 }
