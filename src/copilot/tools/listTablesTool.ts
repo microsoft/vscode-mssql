@@ -27,8 +27,8 @@ export class ListTablesTool extends ToolBase<ListTablesToolParams> {
     public readonly toolName = Constants.copilotListTablesToolName;
 
     constructor(
-        private connectionManager: ConnectionManager,
-        private client: SqlToolsServiceClient,
+        private _connectionManager: ConnectionManager,
+        private _client: SqlToolsServiceClient,
     ) {
         super();
     }
@@ -39,7 +39,7 @@ export class ListTablesTool extends ToolBase<ListTablesToolParams> {
     ) {
         const { connectionId } = options.input;
         try {
-            const connInfo = this.connectionManager.getConnectionInfo(connectionId);
+            const connInfo = this._connectionManager.getConnectionInfo(connectionId);
             const connCreds = connInfo?.credentials;
             if (!connCreds) {
                 return JSON.stringify({
@@ -48,7 +48,7 @@ export class ListTablesTool extends ToolBase<ListTablesToolParams> {
                 });
             }
 
-            const result = await this.client.sendRequest(
+            const result = await this._client.sendRequest(
                 new RequestType<
                     { ownerUri: string; queryString: string },
                     SimpleExecuteResult,
