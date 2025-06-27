@@ -1612,6 +1612,58 @@
       "{0} is the database name"
     ]
   },
+  "List Tables": "List Tables",
+  "List tables for connection '{0}'?/{0} is the connection ID": {
+    "message": "List tables for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing tables for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing tables for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "List Schemas": "List Schemas",
+  "List schemas for connection '{0}'?/{0} is the connection ID": {
+    "message": "List schemas for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing schemas for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing schemas for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "List Views": "List Views",
+  "List views for connection '{0}'?/{0} is the connection ID": {
+    "message": "List views for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing views for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing views for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "List Functions": "List Functions",
+  "List functions for connection '{0}'?/{0} is the connection ID": {
+    "message": "List functions for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing functions for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing functions for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Create Connection Group": "Create Connection Group",
   "Edit Connection Group - {0}/{0} is the connection group name": {

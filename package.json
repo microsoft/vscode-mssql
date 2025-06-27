@@ -2149,7 +2149,8 @@
                 "canBeReferencedInPrompt": true,
                 "displayName": "List MSSQL Servers",
                 "toolReferenceName": "mssql_list_servers",
-                "userDescription": "List all available MSSQL servers."
+                "userDescription": "List all available MSSQL servers.",
+                "icon": "$(server)"
             },
             {
                 "name": "mssql_list_databases",
@@ -2239,6 +2240,118 @@
                 "toolReferenceName": "mssql_change_database",
                 "userDescription": "Change the database for an existing MSSQL connection.",
                 "icon": "$(arrow-swap)"
+            },
+            {
+                "name": "mssql_list_tables",
+                "modelDescription": "List all tables in a specific database for a connected MSSQL server. Returns a list of table names with schema information.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "tables",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list tables for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Tables",
+                "toolReferenceName": "mssql_list_tables",
+                "userDescription": "List all tables in a database for a connected MSSQL server.",
+                "icon": "$(table)"
+            },
+            {
+                "name": "mssql_list_schemas",
+                "modelDescription": "List all schemas in a specific database for a connected MSSQL server. Returns a list of schema names.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "schemas",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list schemas for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Schemas",
+                "toolReferenceName": "mssql_list_schemas",
+                "userDescription": "List all schemas in a database for a connected MSSQL server.",
+                "icon": "$(symbol-namespace)"
+            },
+            {
+                "name": "mssql_list_views",
+                "modelDescription": "List all views in a specific database for a connected MSSQL server. Returns a list of view names with schema information.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "views",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list views for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Views",
+                "toolReferenceName": "mssql_list_views",
+                "userDescription": "List all views in a database for a connected MSSQL server.",
+                "icon": "$(eye)"
+            },
+            {
+                "name": "mssql_list_functions",
+                "modelDescription": "List all functions in a specific database for a connected MSSQL server. Returns a list of function names with schema information.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "functions",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list functions for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Functions",
+                "toolReferenceName": "mssql_list_functions",
+                "userDescription": "List all functions in a database for a connected MSSQL server.",
+                "icon": "$(symbol-function)"
             }
         ]
     }

@@ -74,6 +74,10 @@ import { DisconnectTool } from "../copilot/tools/disconnectTool";
 import { GetConnectionDetailsTool } from "../copilot/tools/getConnectionDetailsTool";
 import { ChangeDatabaseTool } from "../copilot/tools/changeDatabaseTool";
 import { ListDatabasesTool } from "../copilot/tools/listDatabasesTool";
+import { ListTablesTool } from "../copilot/tools/listTablesTool";
+import { ListSchemasTool } from "../copilot/tools/listSchemasTool";
+import { ListViewsTool } from "../copilot/tools/listViewsTool";
+import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
@@ -652,6 +656,38 @@ export default class MainController implements vscode.Disposable {
                         designer.revealToForeground();
                     },
                 ),
+            ),
+        );
+
+        // Register mssql_list_tables tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListTablesToolName,
+                new ListTablesTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_list_schemas tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListSchemasToolName,
+                new ListSchemasTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_list_views tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListViewsToolName,
+                new ListViewsTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_list_functions tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListFunctionsToolName,
+                new ListFunctionsTool(this.connectionManager),
             ),
         );
     }

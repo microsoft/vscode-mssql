@@ -1376,6 +1376,66 @@ export class MssqlChatAgent {
             comment: ["{0} is the database name"],
         });
     };
+    public static ListTablesToolConfirmationTitle = l10n.t("List Tables");
+    public static ListTablesToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List tables for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListTablesToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing tables for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListSchemasToolConfirmationTitle = l10n.t("List Schemas");
+    public static ListSchemasToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List schemas for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListSchemasToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing schemas for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListViewsToolConfirmationTitle = l10n.t("List Views");
+    public static ListViewsToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List views for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListViewsToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing views for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListFunctionsToolConfirmationTitle = l10n.t("List Functions");
+    public static ListFunctionsToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List functions for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListFunctionsToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing functions for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
 }
 
 export class QueryEditor {
