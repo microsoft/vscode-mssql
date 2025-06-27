@@ -3954,11 +3954,11 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
-        <target state="new">Open in Copilot Agent mode (Preview)</target>
+        <target state="translated">Copilot エージェント モードで開く (プレビュー)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
         <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
-        <target state="new">Open in Copilot Ask mode (Preview)</target>
+        <target state="translated">Copilot 質問モードで開く (プレビュー)</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -4216,7 +4216,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.statusBar.enableConnectionColor">
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
-        <target state="new">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</target>
+        <target state="translated">有効にすると、接続ステータス バー項目が接続グループの色で色分けされます。この設定は既定では無効になっています。 この機能では、接続グループ フォルダーの色が直接使用され、現在の VS Code テーマとのコントラストを確保するために変更されることはありません。ユーザーは、テーマに適切な接続グループの色を選択する必要があります。</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

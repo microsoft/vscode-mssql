@@ -3954,11 +3954,11 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
-        <target state="new">Open in Copilot Agent mode (Preview)</target>
+        <target state="translated">Открыть в режиме "Агент Copilot" (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
         <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
-        <target state="new">Open in Copilot Ask mode (Preview)</target>
+        <target state="translated">Открыть в режиме "Спросить Copilot" (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -4216,7 +4216,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.statusBar.enableConnectionColor">
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
-        <target state="new">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</target>
+        <target state="translated">Если включено, элемент строки состояния подключения окрашивается в цвет группы подключений. Этот параметр по умолчанию отключен.  Цвет папки группы подключений используется напрямую и не изменяется, чтобы обеспечить контрастность с текущей темой VS Code. Пользователям следует выбирать цвета группы подключений, которые хорошо сочетаются с их темой.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
