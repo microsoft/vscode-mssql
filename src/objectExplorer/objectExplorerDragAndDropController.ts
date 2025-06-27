@@ -41,7 +41,7 @@ export class ObjectExplorerDragAndDropController
         this._logger = Logger.create(vscodeWrapper.outputChannel, "DragAndDrop");
     }
 
-    handleDrag(
+    public handleDrag(
         source: TreeNodeInfo[],
         dataTransfer: vscode.DataTransfer,
         _token: vscode.CancellationToken,
@@ -59,10 +59,12 @@ export class ObjectExplorerDragAndDropController
                 isConnectionOrGroup: true,
             };
             dataTransfer.set(OE_MIME_TYPE, new vscode.DataTransferItem(dragData));
-            dataTransfer.set(
-                TEXT_MIME_TYPE,
-                new vscode.DataTransferItem(ObjectExplorerUtils.getQualifiedName(item)),
-            );
+            if (item instanceof ConnectionNode) {
+                dataTransfer.set(
+                    TEXT_MIME_TYPE,
+                    new vscode.DataTransferItem(ObjectExplorerUtils.getQualifiedName(item)),
+                );
+            }
         } else {
             dataTransfer.set(
                 TEXT_MIME_TYPE,
@@ -71,7 +73,7 @@ export class ObjectExplorerDragAndDropController
         }
     }
 
-    async handleDrop(
+    public async handleDrop(
         target: TreeNodeInfo | undefined,
         dataTransfer: vscode.DataTransfer,
         _token: vscode.CancellationToken,
@@ -113,6 +115,12 @@ export class ObjectExplorerDragAndDropController
                         const group = this.connectionStore.connectionConfig.getGroupById(
                             dragData.id,
                         );
+
+                        if (group.id === targetInfo.id) {
+                            this._logger.verbose("Cannot move group into itself; skipping.");
+                            return;
+                        }
+
                         group.parentId = targetInfo.id;
                         await this.connectionStore.connectionConfig.updateGroup(group);
                     }
