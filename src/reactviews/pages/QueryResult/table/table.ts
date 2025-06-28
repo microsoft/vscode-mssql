@@ -49,7 +49,6 @@ export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
 export const xmlLanguageId = "xml";
 export const jsonLanguageId = "json";
-export const ROW_HEIGHT_PX = 24;
 
 export class Table<T extends Slick.SlickData> implements IThemable {
     public queryResultContext: QueryResultContextProps;
@@ -230,13 +229,14 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                 return;
             }
 
+            const viewport = this._grid.getViewport();
             await this.webViewState.extensionRpc.sendNotification(
                 SetGridScrollPositionNotification.type,
                 {
                     uri: this.queryResultContext.state.uri,
                     gridId: this.gridId,
-                    scrollLeft: data.scrollLeft,
-                    scrollTop: data.scrollTop,
+                    scrollLeft: viewport.leftPx,
+                    scrollTop: viewport.top,
                 },
             );
         });
@@ -333,7 +333,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         );
         if (scrollPosition) {
             setTimeout(() => {
-                this._grid.scrollRowToTop(Math.floor(scrollPosition.scrollTop / ROW_HEIGHT_PX));
+                this._grid.scrollRowToTop(scrollPosition.scrollTop);
                 const containerNode = this._grid.getContainerNode();
                 const viewport = containerNode
                     ? (containerNode.querySelector(".slick-viewport") as HTMLElement)
