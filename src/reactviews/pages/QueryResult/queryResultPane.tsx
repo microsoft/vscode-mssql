@@ -115,7 +115,8 @@ export const QueryResultPane = () => {
     }
     const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
     const state = context.state;
-    const isProgrammaticScroll = useRef(false);
+    const isProgrammaticScroll = useRef(true);
+    isProgrammaticScroll.current = true;
 
     // lifecycle logging right after context consumption
     useEffect(() => {
@@ -522,15 +523,13 @@ export const QueryResultPane = () => {
     useEffect(() => {
         async function loadScrollPosition() {
             if (state?.uri) {
+                isProgrammaticScroll.current = true;
                 const position = await webViewState.extensionRpc.sendRequest(
                     qr.GetGridPaneScrollPositionRequest.type,
                     { uri: state.uri },
                 );
-
                 const el = scrollabelPanelRef.current;
                 if (!el) return;
-
-                isProgrammaticScroll.current = true;
 
                 requestAnimationFrame(() => {
                     el.scrollTo({
@@ -621,7 +620,6 @@ export const QueryResultPane = () => {
                 ref={scrollabelPanelRef}
                 onScroll={(e) => {
                     if (isProgrammaticScroll.current) return;
-
                     const scrollTop = e.currentTarget.scrollTop;
                     void webViewState.extensionRpc.sendNotification(
                         qr.SetGridPaneScrollPositionNotification.type,
