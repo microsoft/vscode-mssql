@@ -37,6 +37,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++00aecebb859a5ba020dd5aa5ffb71e7f9a4279e35f9c94e6d34ebf7c889a3f7e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Change database to '{1}' for connection '{0}'?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous remplacer la base de données par « {1} » pour la connexion « {0} » ?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0104b69959544fb6f98a7e7723e2df4d657c581b43004a1e47f677a02589311e" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.]]></Val>
@@ -1315,6 +1324,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Getting connection details for connection '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Obtenir les informations sur la connexion pour la connexion « {0} »]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2abe6ce3689dddb31a75faaafb1a7293649d60f93bff0e48a87e7d5ddd7f2530" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not Equals]]></Val>
@@ -1401,6 +1419,15 @@
           <Val><![CDATA[Hostname]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nom d’hôte]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2e71037756b80741dc7aff95ef179d5a25c08df7a40cd7b16af9a5edb6f64047" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Successfully changed to database: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Remplacement correctement effectué par la base de données : {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2791,6 +2818,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5cca02706714579b1ebf65a02aa3db359c9533120430137485af41e5ec1ab285" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Changing database to '{1}' for connection '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Remplacement de la base de données par « {1} » pour la connexion « {0} »]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?]]></Val>
@@ -3142,6 +3178,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Afficher le mot de passe]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Load from Connection String]]></Val>
@@ -3174,6 +3219,15 @@
           <Val><![CDATA[Click to connect to a database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Cliquez pour vous connecter à une base de données]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6bd09f9171ad9aa3824a8e54ea5edf59d28c768124be9dc7f9d2c5c7eee6780b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Change Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Modifier la base de données]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3237,6 +3291,15 @@
           <Val><![CDATA[Is Identity]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Est l’identité]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6e543be4255a8c4362baca16d0850278f1d95a7df9cd38f4b94ecbda4abe57e5" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to connect to database: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nous n’avons pas pu effectuer la connexion à la base de données : {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3777,6 +3840,15 @@
           <Val><![CDATA[An unknown error occurred. Please try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Une erreur inconnue s’est produite. Veuillez réessayer.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++833b64c15a94f939c4123ec646882d4b8943eb80c95ce91fffb06a7e95a82b61" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Get connection details for connection '{0}'?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous obtenir les informations sur la connexion pour la connexion « {0} » ?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4717,6 +4789,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a60a56c584b3b05b1a95076a36edbab7131a447910cf21124efcb35f769502df" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hide password]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Masquer le mot de passe]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a687a5a3cf1800c09d10d73ae6c128de7b617482ef262db645470c6f4ae9d54d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.]]></Val>
@@ -4884,6 +4965,15 @@
           <Val><![CDATA[Less Than]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Inférieur à]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++abfc45dd4a240e3758d4d22759dd9fc99cc5e1d16aec7594708638c368bddb3d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[List databases for connection '{0}'?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Voulez-vous la liste des bases de données pour la connexion « {0} » ?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5217,6 +5307,24 @@
           <Val><![CDATA[Scale mismatch between '{0}' and '{1}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Inadéquation d'échelle entre '{0}' et '{1}']]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Listing databases for connection '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Listes des bases de données pour la connexion « {0} »]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b993796f53424becc0d08d41a72c0c3381ee7691cc518bc8bdccc8d4013ad4ef" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[List Databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Liste de bases de données]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6724,6 +6832,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ea9acac28e2644caf0dd7884eec71c1a92d541701276abf4acd5de8d04aa8af9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect to {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Se connecter à {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ea9df7a87af305f04a7ca43d0ce60433e16504061c265ab11d0029cdf8cae372" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Access token expired for connection {0} with uri {1}]]></Val>
@@ -7251,6 +7368,15 @@
           <Val><![CDATA[Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Votre moteur Docker exécute actuellement des conteneurs Windows. SQL Server prend uniquement en charge les conteneurs Linux. Voulez-vous basculer vers des conteneurs Linux ?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Get Connection Details]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Obtenir les informations sur la connexion]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
