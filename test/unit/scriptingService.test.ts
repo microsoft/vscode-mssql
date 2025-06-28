@@ -5,11 +5,10 @@
 
 import { assert } from "chai";
 import * as TypeMoq from "typemoq";
-import { IServerInfo, MetadataType, ObjectMetadata } from "vscode-mssql";
+import { IScriptingObject, IServerInfo, MetadataType, ObjectMetadata } from "vscode-mssql";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import {
-    IScriptingObject,
     IScriptingResult,
     ScriptingRequest,
     ScriptOperation,
@@ -115,7 +114,7 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        let scriptingParams = scriptingService.createScriptingParams(
+        let scriptingParams = scriptingService.createScriptingParamsFromNode(
             testNode,
             "test_uri",
             ScriptOperation.Select,
@@ -152,7 +151,11 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.script(testNode, "test_uri", ScriptOperation.Select);
+        const script = await scriptingService.scriptTreeNode(
+            testNode,
+            "test_uri",
+            ScriptOperation.Select,
+        );
         assert.notEqual(script, undefined);
     });
 
@@ -179,7 +182,11 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.script(testNode, "test_uri", ScriptOperation.Create);
+        const script = await scriptingService.scriptTreeNode(
+            testNode,
+            "test_uri",
+            ScriptOperation.Create,
+        );
         assert.notEqual(script, undefined);
     });
 
@@ -206,7 +213,11 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.script(testNode, "test_uri", ScriptOperation.Execute);
+        const script = await scriptingService.scriptTreeNode(
+            testNode,
+            "test_uri",
+            ScriptOperation.Execute,
+        );
         assert.notEqual(script, undefined);
     });
 
@@ -233,7 +244,11 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.script(testNode, "test_uri", ScriptOperation.Delete);
+        const script = await scriptingService.scriptTreeNode(
+            testNode,
+            "test_uri",
+            ScriptOperation.Delete,
+        );
         assert.notEqual(script, undefined);
     });
 
@@ -260,7 +275,11 @@ suite("Scripting Service Tests", () => {
             testNodeMetadata,
         );
         scriptingService = new ScriptingService(connectionManager.object);
-        const script = await scriptingService.script(testNode, "test_uri", ScriptOperation.Alter);
+        const script = await scriptingService.scriptTreeNode(
+            testNode,
+            "test_uri",
+            ScriptOperation.Alter,
+        );
         assert.notEqual(script, undefined);
     });
 });
