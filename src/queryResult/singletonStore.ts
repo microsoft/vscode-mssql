@@ -6,6 +6,8 @@
 export enum SubKeys {
     Filter = "filter",
     ColumnWidth = "columnWidth",
+    GridScrollPosition = "scrollPosition",
+    PaneScrollPosition = "paneScrollPosition",
 }
 
 export class QueryResultSingletonStore {

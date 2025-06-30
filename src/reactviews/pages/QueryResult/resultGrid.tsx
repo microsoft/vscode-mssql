@@ -125,6 +125,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         const setupState = async () => {
             await table.setupFilterState();
             await table.restoreColumnWidths();
+            await table.setupScrollPosition();
             table.headerFilter.enabled =
                 table.grid.getDataLength() < context.state.inMemoryDataProcessingThreshold!;
 
