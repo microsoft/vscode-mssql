@@ -144,6 +144,42 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         getServerInfo: (connectionInfo: IConnectionInfo) => {
             return controller.connectionManager.getServerInfo(connectionInfo);
         },
+        connectionSharing: <vscodeMssql.IConnectionSharingService>{
+            getActiveEditorConnectionId: (extensionId: string) => {
+                return controller.connectionSharingService.getActiveEditorConnectionId(extensionId);
+            },
+            connect: async (extensionId: string, connectionId: string): Promise<string> => {
+                return controller.connectionSharingService.connect(extensionId, connectionId);
+            },
+            disconnect: (connectionUri: string): void => {
+                return controller.connectionSharingService.disconnect(connectionUri);
+            },
+            isConnected: (connectionUri: string): boolean => {
+                return controller.connectionSharingService.isConnected(connectionUri);
+            },
+            executeSimpleQuery: (
+                connectionUri: string,
+                queryString: string,
+            ): Promise<vscodeMssql.SimpleExecuteResult> => {
+                return controller.connectionSharingService.executeSimpleQuery(
+                    connectionUri,
+                    queryString,
+                );
+            },
+            getServerInfo: (connectionUri: string): vscodeMssql.IServerInfo => {
+                return controller.connectionSharingService.getServerInfo(connectionUri);
+            },
+            listDatabases: (connectionUri: string): Promise<string[]> => {
+                return controller.connectionSharingService.listDatabases(connectionUri);
+            },
+            scriptObject: (connectionUri, operation, scriptingObject) => {
+                return controller.connectionSharingService.scriptObject(
+                    connectionUri,
+                    operation,
+                    scriptingObject,
+                );
+            },
+        },
     };
 }
 

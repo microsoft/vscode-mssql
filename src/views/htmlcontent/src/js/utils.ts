@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DbCellValue } from "../../../../models/interfaces";
+import { DbCellValue } from "vscode-mssql";
 
 export function formatString(str: string, ...args: any[]): string {
     // This is based on code originally from https://github.com/Microsoft/vscode/blob/master/src/vs/nls.js
