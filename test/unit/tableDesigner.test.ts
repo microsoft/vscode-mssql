@@ -141,6 +141,7 @@ suite("TableDesignerWebviewController tests", () => {
             "Panel title should be table name",
         );
         await (controller as any).initialize();
+        await (controller as any).registerRpcHandlers();
     });
 
     teardown(() => {
@@ -175,7 +176,10 @@ suite("TableDesignerWebviewController tests", () => {
 
         const callState = (controller as any)._state;
 
-        let result = await controller["_reducers"]["processTableEdit"](callState, mockPayload);
+        let result = await controller["_reducerHandlers"].get("processTableEdit")(
+            callState,
+            mockPayload,
+        );
 
         assert.ok(processTableEditStub.calledOnce, "processTableEdit should be called once");
         assert.deepStrictEqual(
@@ -202,7 +206,10 @@ suite("TableDesignerWebviewController tests", () => {
             .stub(mockTableDesignerService, "processTableEdit")
             .resolves(editResponse as any);
 
-        result = await controller["_reducers"]["processTableEdit"](callState, mockPayload);
+        result = await controller["_reducerHandlers"].get("processTableEdit")(
+            callState,
+            mockPayload,
+        );
 
         assert.ok(secondStub.calledOnce, "processTableEdit should be called again");
         assert.deepStrictEqual(
@@ -226,7 +233,10 @@ suite("TableDesignerWebviewController tests", () => {
         sinon.stub(mockTableDesignerService, "processTableEdit").rejects(new Error(errorMessage));
         const errorStub = sinon.stub(vscode.window, "showErrorMessage");
 
-        result = await controller["_reducers"]["processTableEdit"](callState, mockPayload);
+        result = await controller["_reducerHandlers"].get("processTableEdit")(
+            callState,
+            mockPayload,
+        );
 
         assert.deepStrictEqual(
             errorStub.firstCall.args,
@@ -254,7 +264,10 @@ suite("TableDesignerWebviewController tests", () => {
 
         const callState = (controller as any)._state;
 
-        let result = await controller["_reducers"]["publishChanges"](callState, mockPublishPayload);
+        let result = await controller["_reducerHandlers"].get("publishChanges")(
+            callState,
+            mockPublishPayload,
+        );
 
         assert.ok(publishChangesStub.calledOnce, "publishChanges should be called once");
         assert.deepStrictEqual(
@@ -285,7 +298,10 @@ suite("TableDesignerWebviewController tests", () => {
         const errorMessage = "error message";
         sinon.stub(mockTableDesignerService, "publishChanges").rejects(new Error(errorMessage));
 
-        result = await controller["_reducers"]["publishChanges"](callState, mockPublishPayload);
+        result = await controller["_reducerHandlers"].get("publishChanges")(
+            callState,
+            mockPublishPayload,
+        );
 
         assert.deepStrictEqual(
             result.publishingError,
@@ -314,7 +330,10 @@ suite("TableDesignerWebviewController tests", () => {
 
         const callState = (controller as any)._state;
 
-        let result = await controller["_reducers"]["generateScript"](callState, mockScriptPayload);
+        let result = await controller["_reducerHandlers"].get("generateScript")(
+            callState,
+            mockScriptPayload,
+        );
 
         assert.ok(scriptStub.calledOnce, "generateScript should be called once");
         assert.deepStrictEqual(
@@ -362,7 +381,7 @@ suite("TableDesignerWebviewController tests", () => {
         const callState = (controller as any)._state;
 
         // Success scenario
-        let result = await controller["_reducers"]["generatePreviewReport"](
+        let result = await controller["_reducerHandlers"].get("generatePreviewReport")(
             callState,
             mockPreviewPayload,
         );
@@ -398,7 +417,7 @@ suite("TableDesignerWebviewController tests", () => {
             .stub(mockTableDesignerService, "generatePreviewReport")
             .rejects(new Error(errorMessage));
 
-        result = await controller["_reducers"]["generatePreviewReport"](
+        result = await controller["_reducerHandlers"].get("generatePreviewReport")(
             callState,
             mockPreviewPayload,
         );
@@ -425,7 +444,10 @@ suite("TableDesignerWebviewController tests", () => {
 
         const callState = (controller as any)._state;
 
-        await controller["_reducers"]["initializeTableDesigner"](callState, mockTableChangeInfo);
+        await controller["_reducerHandlers"].get("initializeTableDesigner")(
+            callState,
+            mockTableChangeInfo,
+        );
 
         assert.ok(initializeSpy.calledOnce, "private initialize should be called once");
 
@@ -443,7 +465,7 @@ suite("TableDesignerWebviewController tests", () => {
             },
         };
 
-        await controller["_reducers"]["scriptAsCreate"](state, mockPayload);
+        await controller["_reducerHandlers"].get("scriptAsCreate")(state, mockPayload);
 
         assert.ok(
             newQueryStub.calledWith(mockScript),
@@ -457,7 +479,7 @@ suite("TableDesignerWebviewController tests", () => {
         const state = { tabStates: { mainPaneTab: "" } };
         const tabId = "properties";
 
-        const result = await controller["_reducers"]["setTab"](state as any, { tabId });
+        const result = await controller["_reducerHandlers"].get("setTab")(state as any, { tabId });
 
         assert.strictEqual(
             result.tabStates.mainPaneTab,
@@ -470,7 +492,7 @@ suite("TableDesignerWebviewController tests", () => {
         const mockComponents = [{ type: "input", id: "name" }];
         const state = {};
 
-        const result = await controller["_reducers"]["setPropertiesComponents"](state, {
+        const result = await controller["_reducerHandlers"].get("setPropertiesComponents")(state, {
             components: mockComponents,
         });
 
@@ -485,7 +507,9 @@ suite("TableDesignerWebviewController tests", () => {
         const state = { tabStates: { resultPaneTab: "" } };
         const tabId = "preview";
 
-        const result = await controller["_reducers"]["setResultTab"](state as any, { tabId });
+        const result = await controller["_reducerHandlers"].get("setResultTab")(state as any, {
+            tabId,
+        });
 
         assert.strictEqual(
             result.tabStates.resultPaneTab,
@@ -513,7 +537,10 @@ suite("TableDesignerWebviewController tests", () => {
             },
         };
 
-        await controller["_reducers"]["copyScriptAsCreateToClipboard"](state, mockPayload);
+        await controller["_reducerHandlers"].get("copyScriptAsCreateToClipboard")(
+            state,
+            mockPayload,
+        );
 
         assert.ok(writeTextStub.calledOnce, "Clipboard writeText should be called once");
 
@@ -531,7 +558,7 @@ suite("TableDesignerWebviewController tests", () => {
 
         const state = (controller as any)._state;
 
-        await controller["_reducers"]["closeDesigner"](state, mockPayload);
+        await controller["_reducerHandlers"].get("closeDesigner")(state, mockPayload);
 
         assert.ok(disposeStub.calledOnce, "panel.dispose should be called");
 
@@ -541,7 +568,7 @@ suite("TableDesignerWebviewController tests", () => {
     test("should set publishState and send telemetry in continueEditing reducer", async () => {
         const state = (controller as any)._state;
 
-        await controller["_reducers"]["continueEditing"](state, mockPayload);
+        await controller["_reducerHandlers"].get("continueEditing")(state, mockPayload);
 
         assert.strictEqual(
             controller.state.apiState.publishState,
@@ -568,7 +595,7 @@ suite("TableDesignerWebviewController tests", () => {
             publishingError: "Something went wrong",
         };
 
-        await controller["_reducers"]["copyPublishErrorToClipboard"](state, mockPayload);
+        await controller["_reducerHandlers"].get("copyPublishErrorToClipboard")(state, mockPayload);
 
         assert.ok(writeTextStub.calledOnce, "Clipboard writeText should be called once");
         assert.strictEqual(
