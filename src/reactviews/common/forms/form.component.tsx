@@ -314,7 +314,7 @@ export function generateFormComponent<
                             : undefined
                     }
                     onSelect={(option) => {
-                        if (props.onSelect) {
+                        if (props && props.onSelect) {
                             props.onSelect(option.value);
                         } else {
                             context?.formAction({
