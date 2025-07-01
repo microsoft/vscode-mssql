@@ -273,7 +273,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i:^\s*(comment\s+on\s+(table|column|aggregate|constraint|database|domain|function|index|operator|rule|schema|sequence|trigger|type|view))\s+.*?\s+(is)\s+)</string>
+			<string>(?i:^\s*(comment\s+on\s+(table|column|aggregate|constraint|database|domain|function|index|operator|rule|schema|sequence|trigger|type|view))\s+)</string>
 			<key>name</key>
 			<string>keyword.other.object-comments.sql</string>
 		</dict>
