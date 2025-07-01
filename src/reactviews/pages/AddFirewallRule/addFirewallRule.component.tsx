@@ -33,6 +33,7 @@ import { useFormStyles } from "../../common/forms/form.component";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 import { AddFirewallRuleState } from "../../../sharedInterfaces/addFirewallRule";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { IMssqlAzureTenant } from "../../../sharedInterfaces/azureAccountManagement";
 
 enum IpSelectionMode {
     SpecificIp = "specificIp",
@@ -61,21 +62,41 @@ export const AddFirewallRuleDialog = ({
     const styles = useStyles();
     const formStyles = useFormStyles();
 
+    const [selectedAccountId, setSelectedAccountId] = useState<string>(
+        state.accounts.length > 0 ? state.accounts[0].accountId : "",
+    );
+
+    const [selectedAccountDisplayText, setSelectedAccountDisplayText] = useState(
+        state.accounts.length > 0 ? state.accounts[0].displayName : "",
+    );
+
     const [selectedTenantId, setSelectedTenantId] = useState<string>(
-        state.tenants.length > 0 ? state.tenants[0].id : "",
+        selectedAccountId && state.tenants[selectedAccountId]?.length > 0
+            ? state.tenants[selectedAccountId][0].tenantId
+            : "",
     );
 
     const [tenantDisplayText, setTenantDisplayText] = useState(
-        state.tenants.length > 0 ? formatTenant(state.tenants[0]) : "",
+        selectedAccountId && state.tenants[selectedAccountId]?.length > 0
+            ? state.tenants[selectedAccountId][0].displayName
+            : "",
     );
 
     // Update selected tenant when state.tenants changes
     useEffect(() => {
-        if (state.tenants.length > 0) {
-            setSelectedTenantId(state.tenants[0].id);
-            setTenantDisplayText(formatTenant(state.tenants[0]));
+        if (state.accounts.length > 0) {
+            const accountId = state.accounts[0].accountId;
+
+            setSelectedAccountId(accountId);
+            setSelectedAccountDisplayText(state.accounts[0].displayName);
+
+            if (state.tenants[accountId]?.length > 0) {
+                const tenant = state.tenants[accountId][0];
+                setSelectedTenantId(tenant.tenantId);
+                setTenantDisplayText(formatTenant(tenant));
+            }
         }
-    }, [state.tenants]);
+    }, [state.accounts, state.tenants]);
 
     useEffect(() => {
         if (state.clientIp) {
@@ -90,6 +111,17 @@ export const AddFirewallRuleDialog = ({
 
     const [startIp, setStartIp] = useState(replaceLastOctet(state.clientIp, 0));
     const [endIp, setEndIp] = useState(replaceLastOctet(state.clientIp, 255));
+
+    const onAccountOptionSelect = (_: SelectionEvents, data: OptionOnSelectData) => {
+        setSelectedAccountId(data.optionValue ?? "");
+        setSelectedAccountDisplayText(data.optionText ?? "");
+
+        const accountId = data.optionValue;
+        setSelectedTenantId(state.tenants[accountId]?.[0]?.tenantId ?? "");
+        setTenantDisplayText(
+            state.tenants[accountId]?.[0] ? formatTenant(state.tenants[accountId][0]) : "",
+        );
+    };
 
     const onTenantOptionSelect = (_: SelectionEvents, data: OptionOnSelectData) => {
         setSelectedTenantId(data.selectedOptions.length > 0 ? data.selectedOptions[0] : "");
@@ -132,27 +164,49 @@ export const AddFirewallRuleDialog = ({
                         )}
                         {state.isSignedIn && (
                             <>
-                                {state.tenants.length > 0 && (
-                                    <Field
-                                        label={Loc.firewallRules.tenant}
-                                        className={formStyles.formComponentDiv}>
-                                        <Dropdown
-                                            value={tenantDisplayText}
-                                            selectedOptions={[selectedTenantId]}
-                                            onOptionSelect={onTenantOptionSelect}>
-                                            {state.tenants.map((tenant) => {
-                                                return (
-                                                    <Option
-                                                        text={formatTenant(tenant)}
-                                                        value={tenant.id}
-                                                        key={tenant.id}>
-                                                        {formatTenant(tenant)}
-                                                    </Option>
-                                                );
-                                            })}
-                                        </Dropdown>
-                                    </Field>
+                                {state.accounts.length > 0 && (
+                                    <>
+                                        <Field
+                                            label={Loc.firewallRules.azureAccount}
+                                            className={formStyles.formComponentDiv}>
+                                            <Dropdown
+                                                value={selectedAccountDisplayText}
+                                                selectedOptions={[selectedAccountId]}
+                                                onOptionSelect={onAccountOptionSelect}>
+                                                {state.accounts.map((account) => {
+                                                    return (
+                                                        <Option
+                                                            text={account.displayName}
+                                                            key={account.accountId}
+                                                            value={account.accountId}>
+                                                            {account.displayName}
+                                                        </Option>
+                                                    );
+                                                })}
+                                            </Dropdown>
+                                        </Field>
+                                        <Field
+                                            label={Loc.firewallRules.tenant}
+                                            className={formStyles.formComponentDiv}>
+                                            <Dropdown
+                                                value={tenantDisplayText}
+                                                selectedOptions={[selectedTenantId]}
+                                                onOptionSelect={onTenantOptionSelect}>
+                                                {state.tenants[selectedAccountId]?.map((tenant) => {
+                                                    return (
+                                                        <Option
+                                                            text={formatTenant(tenant)}
+                                                            key={tenant.tenantId}
+                                                            value={tenant.tenantId}>
+                                                            {formatTenant(tenant)}
+                                                        </Option>
+                                                    );
+                                                })}
+                                            </Dropdown>
+                                        </Field>
+                                    </>
                                 )}
+
                                 <Field
                                     label={Loc.firewallRules.ruleName}
                                     className={formStyles.formComponentDiv}>
@@ -261,8 +315,8 @@ function formatDate(date: Date) {
     );
 }
 
-function formatTenant({ name, id }: { name: string; id: string }) {
-    return `${name} (${id})`;
+function formatTenant(tenant: IMssqlAzureTenant) {
+    return `${tenant.displayName} (${tenant.tenantId})`;
 }
 
 function replaceLastOctet(ip: string, newLastOctet: number) {

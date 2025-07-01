@@ -46,7 +46,8 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
                 message: initializationProps.errorMessage,
                 clientIp: "",
                 isSignedIn: false,
-                tenants: [],
+                accounts: [],
+                tenants: {},
                 addFirewallRuleState: ApiStatus.NotStarted,
             },
             {
@@ -77,7 +78,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         this.state.isSignedIn = await VsCodeAzureHelper.isSignedIn();
 
         if (this.state.isSignedIn) {
-            await this.populateTentants(this.state);
+            await this.populateAzureAccountInfo(this.state);
         }
 
         // Extract the client IP address from the error message
@@ -148,13 +149,13 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         });
 
         this.registerReducer("signIntoAzure", async (state) => {
-            await this.populateTentants(state);
+            await this.populateAzureAccountInfo(state);
 
             return state;
         });
     }
 
-    public async populateTentants(state: AddFirewallRuleState): Promise<void> {
+    public async populateAzureAccountInfo(state: AddFirewallRuleState): Promise<void> {
         const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
 
         if (!auth) {
@@ -166,14 +167,30 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
             return;
         }
 
-        const tenants = await auth.getTenants();
-
         state.isSignedIn = true;
-        state.tenants = tenants.map((t) => {
+
+        const accounts = await VsCodeAzureHelper.getAccounts();
+
+        state.accounts = accounts.map((a) => {
             return {
-                name: t.displayName,
-                id: t.tenantId,
+                displayName: a.label,
+                accountId: a.id,
             };
         });
+
+        const tenants = await auth.getTenants();
+
+        for (const t of tenants) {
+            if (t.account.id in state.tenants) {
+                state.tenants[t.account.id].push({
+                    displayName: t.displayName,
+                    tenantId: t.tenantId,
+                });
+            } else {
+                state.tenants[t.account.id] = [
+                    { displayName: t.displayName, tenantId: t.tenantId },
+                ];
+            }
+        }
     }
 }

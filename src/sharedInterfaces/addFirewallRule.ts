@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IMssqlAzureAccount, IMssqlAzureTenant } from "./azureAccountManagement";
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus, WebviewContextProps } from "./webview";
 
@@ -14,7 +15,9 @@ export interface AddFirewallRuleState {
     message: string;
     clientIp: string;
     isSignedIn: boolean;
-    tenants: { name: string; id: string }[];
+    accounts: IMssqlAzureAccount[];
+    /** Maps from account ID to list of tenants */
+    tenants: Record<string, IMssqlAzureTenant[]>;
     addFirewallRuleState: ApiStatus;
 }
 

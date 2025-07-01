@@ -183,6 +183,7 @@ export class LocConstants {
                 "Sign into Azure in order to add a firewall rule.",
             ),
             signIntoAzure: l10n.t("Sign into Azure"),
+            azureAccount: l10n.t("Azure Account"),
             tenant: l10n.t("Tenant"),
             ruleName: l10n.t("Rule name"),
             addMyClientIp: (ipAddress: string) =>

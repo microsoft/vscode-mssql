@@ -360,6 +360,7 @@ export async function constructAzureAccountForTenant(
     tenantId: string,
 ): Promise<{ account: IAccount; tokenMappings: {} }> {
     const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
+
     const subs = await auth.getSubscriptions(false /* filter */);
     const sub = subs.filter((s) => s.tenantId === tenantId)[0];
 
