@@ -2441,6 +2441,10 @@
     <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
       <source xml:lang="en">Undo</source>
     </trans-unit>
+    <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
+      <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
+      <note>{0} is the architecture name of the machine</note>
+    </trans-unit>
     <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
       <source xml:lang="en">Unsupported platform for Docker: {0}</source>
       <note>{0} is the platform name of the machine</note>

@@ -154,6 +154,7 @@ suite("Docker Utilities", () => {
         const archStub = sandbox.stub(os, "arch");
         const execStub = sandbox.stub(childProcess, "exec");
         const messageStub = sandbox.stub(vscode.window, "showInformationMessage");
+        archStub.returns("x64");
 
         // 1. Linux - success path
         platformStub.returns(Platform.Linux);
@@ -161,6 +162,7 @@ suite("Docker Utilities", () => {
         execStub.yields(null, `'${Platform.Linux}'`);
 
         let result = await dockerUtils.checkEngine();
+        assert.strictEqual(result.error, undefined, "This should not have an error");
         assert.ok(result.success, "Linux platform should return success");
 
         // 2. Windows - engine needs switching, user confirms
@@ -187,7 +189,17 @@ suite("Docker Utilities", () => {
             ContainerDeployment.switchToLinuxContainersCanceled,
         );
 
-        // 4. Unsupported platform
+        // 4. Windows- arm architecture, should gracefully error
+        archStub.returns("arm");
+        result = await dockerUtils.checkEngine();
+        assert.ok(!result.success, "Should fail on unsupported architecture");
+        assert.strictEqual(
+            result.error,
+            ContainerDeployment.unsupportedDockerArchitectureError("arm"),
+        );
+
+        // 5. Unsupported platform
+        archStub.returns("x64");
         platformStub.returns("fakePlatform" as Platform); // Fake unsupported platform
 
         result = await dockerUtils.checkEngine();
@@ -197,7 +209,7 @@ suite("Docker Utilities", () => {
             ContainerDeployment.unsupportedDockerPlatformError("fakePlatform"),
         );
 
-        // 5. Command fails on Linux (e.g., permissions error)
+        // 6. Command fails on Linux (e.g., permissions error)
         platformStub.returns(Platform.Linux);
         execStub.resetBehavior();
         execStub.yields(new Error("Permission denied"), undefined);
@@ -207,7 +219,7 @@ suite("Docker Utilities", () => {
         assert.strictEqual(result.fullErrorText, "Permission denied");
         assert.strictEqual(result.error, ContainerDeployment.linuxDockerPermissionsError);
 
-        // 5. Command fails on Mac (e.g., permissions error)
+        // 7. Command fails on Mac (e.g., permissions error)
         platformStub.returns(Platform.Mac);
         archStub.returns("arm");
         execStub.resetBehavior();
@@ -218,7 +230,7 @@ suite("Docker Utilities", () => {
         assert.strictEqual(result.fullErrorText, "Rosetta not Enabled");
         assert.strictEqual(result.error, ContainerDeployment.rosettaError);
 
-        // Intel Mac, command succeeds
+        // 8. Intel Mac, command succeeds
         archStub.returns("x64");
         execStub.resetBehavior();
         result = await dockerUtils.checkEngine();

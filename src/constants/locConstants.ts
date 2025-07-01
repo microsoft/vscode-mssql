@@ -870,6 +870,12 @@ export class ContainerDeployment {
             args: [platform],
             comment: ["{0} is the platform name of the machine"],
         });
+    public static unsupportedDockerArchitectureError = (architecture: string) =>
+        l10n.t({
+            message: "Unsupported architecture for Docker: {0}",
+            args: [architecture],
+            comment: ["{0} is the architecture name of the machine"],
+        });
     public static rosettaError = l10n.t(
         "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
     );

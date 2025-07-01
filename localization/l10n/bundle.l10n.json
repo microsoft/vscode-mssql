@@ -1297,6 +1297,12 @@
       "{0} is the platform name of the machine"
     ]
   },
+  "Unsupported architecture for Docker: {0}/{0} is the architecture name of the machine": {
+    "message": "Unsupported architecture for Docker: {0}",
+    "comment": [
+      "{0} is the architecture name of the machine"
+    ]
+  },
   "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.": "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
   "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.": "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
   "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.": "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
