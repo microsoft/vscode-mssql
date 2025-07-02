@@ -20,7 +20,7 @@ import {
 import { locConstants as loc } from "../../../common/locConstants";
 import { useContext, useEffect } from "react";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
-import { SchemaCompareEndpointType } from "../../../../sharedInterfaces/schemaCompare";
+import { SchemaCompareEndpointType } from "../../../../shared/schemaCompare";
 
 interface Props {
     onOptionsClicked: () => void;

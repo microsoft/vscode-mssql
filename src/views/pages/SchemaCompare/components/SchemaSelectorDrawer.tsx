@@ -27,10 +27,7 @@ import {
 import { Dismiss24Regular, FolderFilled, PlugDisconnectedRegular } from "@fluentui/react-icons";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { locConstants as loc } from "../../../common/locConstants";
-import {
-    SchemaCompareEndpointType,
-    SharedExtractTarget,
-} from "../../../../sharedInterfaces/schemaCompare";
+import { SchemaCompareEndpointType, SharedExtractTarget } from "../../../../shared/schemaCompare";
 
 const useStyles = makeStyles({
     drawerWidth: {

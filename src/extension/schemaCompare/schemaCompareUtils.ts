@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import * as os from "os";
 import { promises as fs } from "fs";
-import { SchemaCompareReducers } from "../sharedInterfaces/schemaCompare";
+import { SchemaCompareReducers } from "../../shared/schemaCompare";
 import { generateGuid } from "../models/utils";
 import * as locConstants from "../constants/locConstants";
 /**

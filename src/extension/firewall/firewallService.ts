@@ -13,7 +13,7 @@ import {
 } from "../models/contracts/firewall/firewallRequest";
 import * as Constants from "../constants/constants";
 import { AccountService } from "../azure/accountService";
-import { FirewallRuleSpec } from "../sharedInterfaces/firewallRule";
+import { FirewallRuleSpec } from "../../shared/firewallRule";
 import { constructAzureAccountForTenant } from "../connectionconfig/azureHelpers";
 import { getErrorMessage } from "../utils/utils";
 import { Azure as LocAzure } from "../constants/locConstants";

@@ -22,7 +22,7 @@ import {
     DataGridCell,
     RowRenderer,
 } from "@fluentui-contrib/react-data-grid-react-window";
-import { SchemaUpdateAction } from "../../../../sharedInterfaces/schemaCompare";
+import { SchemaUpdateAction } from "../../../../shared/schemaCompare";
 import { locConstants as loc } from "../../../common/locConstants";
 import { DiffEntry } from "vscode-mssql";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";

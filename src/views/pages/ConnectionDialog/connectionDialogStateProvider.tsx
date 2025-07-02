@@ -10,14 +10,14 @@ import {
     ConnectionInputMode,
     GetConnectionDisplayNameRequest,
     IConnectionDialogProfile,
-} from "../../../sharedInterfaces/connectionDialog";
+} from "../../../shared/connectionDialog";
 
-import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
+import { FirewallRuleSpec } from "../../../shared/firewallRule";
 
 import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
-import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
+import { ConnectionGroupSpec } from "../../../shared/connectionGroup";
 
 const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 

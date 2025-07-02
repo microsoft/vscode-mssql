@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { ColorThemeKind } from "../../../shared/webview";
 import { themeType } from "../../common/utils";
 
 const iterator_catch_all = require("./icons/iterator_catch_all.png");

@@ -6,8 +6,8 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
 import { arch, platform } from "os";
-import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeploymentInterfaces";
-import { ApiStatus } from "../sharedInterfaces/webview";
+import { DockerCommandParams, DockerStep } from "../../shared/containerDeploymentInterfaces";
+import { ApiStatus } from "../../shared/webview";
 import {
     defaultContainerName,
     defaultPortNumber,
@@ -17,10 +17,10 @@ import {
     x64,
 } from "../constants/constants";
 import { ContainerDeployment, msgYes } from "../constants/locConstants";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import * as path from "path";
-import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
+import { FormItemOptions, FormItemValidationState } from "../../shared/form";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
 

@@ -19,7 +19,7 @@ import {
 
 import { locConstants } from "../../../common/locConstants";
 import { connectionCertValidationReadMoreUrl } from "../connectionConstants";
-import { TrustServerCertDialogProps } from "../../../../sharedInterfaces/connectionDialog";
+import { TrustServerCertDialogProps } from "../../../../shared/connectionDialog";
 
 export const TrustServerCertificateDialog = ({
     dialogProps,

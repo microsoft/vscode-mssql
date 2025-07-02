@@ -9,13 +9,13 @@ import {
     ExecutionPlanGraphInfo,
     ExecutionPlanReducers,
     ExecutionPlanWebviewState,
-} from "../sharedInterfaces/executionPlanInterfaces";
+} from "../../shared/executionPlanInterfaces";
 import { ExecutionPlanService } from "../services/executionPlanService";
-import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
+import { QueryResultWebviewState } from "../../shared/queryResult";
 import * as vscode from "vscode";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
-import { ApiStatus } from "../sharedInterfaces/webview";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { ApiStatus } from "../../shared/webview";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { sqlPlanLanguageId } from "../constants/constants";
 import { executionPlanFileFilter } from "../constants/locConstants";

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as qr from "../sharedInterfaces/queryResult";
+import * as qr from "../../shared/queryResult";
 import { randomUUID } from "crypto";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";

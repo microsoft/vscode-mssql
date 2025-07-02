@@ -17,12 +17,12 @@ import {
     QueryResultReducers,
     QueryResultWebviewState,
     ResultSetSummary,
-} from "../../../sharedInterfaces/queryResult";
+} from "../../../shared/queryResult";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
 import { QueryResultContext } from "./queryResultStateProvider";
-import { LogCallback } from "../../../sharedInterfaces/webview";
+import { LogCallback } from "../../../shared/webview";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");

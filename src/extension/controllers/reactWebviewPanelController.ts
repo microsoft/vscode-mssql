@@ -6,9 +6,9 @@
 import * as locConstants from "../constants/locConstants";
 import * as vscode from "vscode";
 
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 
-import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
+import { MssqlWebviewPanelOptions } from "../../shared/webview";
 import { ReactWebviewBaseController } from "./reactWebviewBaseController";
 import { sendActionEvent } from "../telemetry/telemetry";
 import VscodeWrapper from "./vscodeWrapper";

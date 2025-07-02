@@ -8,7 +8,7 @@ import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ExecutionPlanGraph } from "./executionPlanGraph";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { ApiStatus } from "../../../shared/webview";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({

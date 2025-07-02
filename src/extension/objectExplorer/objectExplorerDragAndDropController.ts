@@ -14,7 +14,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionStore } from "../models/connectionStore";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 
 interface ObjectExplorerDragMetadata {
     name: string;

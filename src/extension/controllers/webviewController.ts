@@ -11,7 +11,7 @@ import { promisify } from "util";
 import * as ejs from "ejs";
 import * as path from "path";
 import VscodeWrapper from "./vscodeWrapper";
-import StatusView from "../views/statusView";
+import StatusView from "../../oldViews/statusView";
 
 function readFile(filePath: string): Promise<Buffer> {
     return promisify(fsreadFile)(filePath);

@@ -14,11 +14,11 @@ import {
     ConnectionStringDialogProps,
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
-} from "../../../sharedInterfaces/connectionDialog";
+} from "../../../shared/connectionDialog";
 import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
-} from "../../../sharedInterfaces/connectionGroup";
+} from "../../../shared/connectionGroup";
 import { Field, Image, Link, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
 import { Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
@@ -33,7 +33,7 @@ import { ConnectionStringDialog } from "./components/connectionStringDialog.comp
 import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { ColorThemeKind } from "../../../shared/webview";
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 

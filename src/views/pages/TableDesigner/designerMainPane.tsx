@@ -19,7 +19,7 @@ import {
     DesignerMainPaneTabs,
     DropDownProperties,
     InputBoxProperties,
-} from "../../../sharedInterfaces/tableDesigner";
+} from "../../../shared/tableDesigner";
 import { DesignerMainPaneTab } from "./designerMainPaneTab";
 import * as l10n from "@vscode/l10n";
 import { locConstants } from "../../common/locConstants";

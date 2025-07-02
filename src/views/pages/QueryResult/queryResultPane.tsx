@@ -24,7 +24,7 @@ import {
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { OpenRegular } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
-import * as qr from "../../../sharedInterfaces/queryResult";
+import * as qr from "../../../shared/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
@@ -33,7 +33,7 @@ import { ACTIONBAR_WIDTH_PX, SCROLLBAR_PX, TABLE_ALIGN_PX } from "./table/table"
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateProvider";
 import { hasResultsOrMessages, splitMessages } from "./queryResultUtils";
-import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
+import { ExecuteCommandRequest } from "../../../shared/webview";
 
 const useStyles = makeStyles({
     root: {

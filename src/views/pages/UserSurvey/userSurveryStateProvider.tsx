@@ -9,7 +9,7 @@ import {
     UserSurveyContextProps,
     UserSurveyState,
     UserSurveyReducers,
-} from "../../../sharedInterfaces/userSurvey";
+} from "../../../shared/userSurvey";
 import { getCoreRPCs } from "../../common/utils";
 
 const UserSurveyContext = createContext<UserSurveyContextProps | undefined>(undefined);

@@ -38,13 +38,13 @@ import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { SqlTasksService } from "../services/sqlTasksService";
-import StatusView from "../views/statusView";
+import StatusView from "../../oldViews/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "./../models/interfaces";
 import ConnectionManager from "./connectionManager";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
 import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
-import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
@@ -82,8 +82,8 @@ import {
     prepareForDockerContainerCommand,
     stopContainer,
 } from "../containerDeployment/dockerUtils";
-import { StateChangeNotification } from "../sharedInterfaces/webview";
-import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
+import { StateChangeNotification } from "../../shared/webview";
+import { QueryResultWebviewState } from "../../shared/queryResult";
 
 /**
  * The main controller class that initializes the extension

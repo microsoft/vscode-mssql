@@ -13,8 +13,8 @@ import {
 } from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { DockerStep } from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import { ApiStatus } from "../../../shared/webview";
+import { DockerStep } from "../../../shared/containerDeploymentInterfaces";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({

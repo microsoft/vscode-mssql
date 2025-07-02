@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as cd from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import * as cd from "../../../shared/containerDeploymentInterfaces";
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { createContext } from "react";
-import { ContainerDeploymentContextProps } from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import { ContainerDeploymentContextProps } from "../../../shared/containerDeploymentInterfaces";
 import { getCoreRPCs } from "../../common/utils";
-import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
+import { ConnectionGroupSpec } from "../../../shared/connectionGroup";
 
 const ContainerDeploymentContext = createContext<ContainerDeploymentContextProps | undefined>(
     undefined,

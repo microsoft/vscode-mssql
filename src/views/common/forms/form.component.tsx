@@ -18,12 +18,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
-import {
-    FormContextProps,
-    FormItemSpec,
-    FormItemType,
-    FormState,
-} from "../../../sharedInterfaces/form";
+import { FormContextProps, FormItemSpec, FormItemType, FormState } from "../../../shared/form";
 import { useEffect, useState } from "react";
 import { SearchableDropdown } from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";

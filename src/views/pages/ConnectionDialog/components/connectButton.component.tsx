@@ -6,7 +6,7 @@
 import { Button, Spinner } from "@fluentui/react-components";
 import { CSSProperties, useContext } from "react";
 import { ConnectionDialogContext } from "./../connectionDialogStateProvider";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { ApiStatus } from "../../../../shared/webview";
 import { locConstants } from "../../../common/locConstants";
 
 export const ConnectButtonId = "connectButton";

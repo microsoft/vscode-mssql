@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as designer from "../../../sharedInterfaces/tableDesigner";
+import * as designer from "../../../shared/tableDesigner";
 import * as fluentui from "@fluentui/react-components";
 import * as l10n from "@vscode/l10n";
 

@@ -11,15 +11,15 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
-} from "../sharedInterfaces/connectionDialog";
+} from "../../shared/connectionDialog";
 import {
     FormItemActionButton,
     FormItemOptions,
     FormItemSpec,
     FormItemType,
-} from "../sharedInterfaces/form";
+} from "../../shared/form";
 import { sendErrorEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 import { ConnectionDialog as Loc } from "../constants/locConstants";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "../models/contracts/connection";
 import { getErrorMessage } from "../utils/utils";

@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as designer from "../../../sharedInterfaces/tableDesigner";
-import { WebviewContextProps } from "../../../sharedInterfaces/webview";
+import * as designer from "../../../shared/tableDesigner";
+import { WebviewContextProps } from "../../../shared/webview";
 import { getCoreRPCs } from "../../common/utils";
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";

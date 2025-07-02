@@ -19,7 +19,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { Edge, Node, useReactFlow } from "@xyflow/react";
 import eventBus from "../schemaDesignerEvents";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../../shared/schemaDesigner";
 
 export function FilterTablesButton() {
     const context = useContext(SchemaDesignerContext);

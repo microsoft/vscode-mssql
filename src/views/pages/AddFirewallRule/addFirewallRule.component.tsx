@@ -30,9 +30,9 @@ import {
 import { locConstants as Loc } from "../../common/locConstants";
 import { addFirewallRuleReadMoreUrl } from "../ConnectionDialog/connectionConstants";
 import { useFormStyles } from "../../common/forms/form.component";
-import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
-import { AddFirewallRuleState } from "../../../sharedInterfaces/addFirewallRule";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { FirewallRuleSpec } from "../../../shared/firewallRule";
+import { AddFirewallRuleState } from "../../../shared/addFirewallRule";
+import { ApiStatus } from "../../../shared/webview";
 
 enum IpSelectionMode {
     SpecificIp = "specificIp",

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TableDesigner } from "../constants/locConstants";
-import * as designer from "../sharedInterfaces/tableDesigner";
+import * as designer from "../../shared/tableDesigner";
 import * as vscode from "vscode";
 
 export function getAdvancedOptionsComponents(

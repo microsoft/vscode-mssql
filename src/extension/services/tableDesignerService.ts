@@ -12,7 +12,7 @@ import {
     TableDesignerGenerateChangePreviewReportRequest,
     TableDesignerGenerateScriptRequest,
 } from "../models/contracts/tableDesigner";
-import * as designer from "../sharedInterfaces/tableDesigner";
+import * as designer from "../../shared/tableDesigner";
 
 export class TableDesignerService implements designer.ITableDesignerService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}

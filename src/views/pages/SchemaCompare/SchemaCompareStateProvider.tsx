@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as sc from "../../../sharedInterfaces/schemaCompare";
+import * as sc from "../../../shared/schemaCompare";
 import * as mssql from "vscode-mssql";
 
 import { createContext } from "react";

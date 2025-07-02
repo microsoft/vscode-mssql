@@ -10,7 +10,7 @@ import {
     ConnectionGroupReducers,
     ConnectionGroupSpec,
     ConnectionGroupState,
-} from "../../../sharedInterfaces/connectionGroup";
+} from "../../../shared/connectionGroup";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 

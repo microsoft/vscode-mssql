@@ -20,7 +20,7 @@ import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../../shared/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
 

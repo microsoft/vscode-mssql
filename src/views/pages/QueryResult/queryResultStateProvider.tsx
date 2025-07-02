@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as qr from "../../../sharedInterfaces/queryResult";
+import * as qr from "../../../shared/queryResult";
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
 import { getCoreRPCs } from "../../common/utils";
-import { WebviewContextProps } from "../../../sharedInterfaces/webview";
+import { WebviewContextProps } from "../../../shared/webview";
 
 export interface QueryResultContextProps
     extends WebviewContextProps<qr.QueryResultWebviewState>,

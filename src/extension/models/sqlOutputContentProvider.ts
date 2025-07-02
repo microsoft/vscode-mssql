@@ -17,8 +17,8 @@ import { IServerProxy, Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
-import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { IMessage, QueryResultPaneTabs } from "../../shared/queryResult";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 

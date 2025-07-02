@@ -11,7 +11,7 @@ import {
     ActivityObject,
     TelemetryActions,
     TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+} from "../../shared/telemetry";
 import AdsTelemetryReporter, {
     TelemetryEventMeasures,
     TelemetryEventProperties,

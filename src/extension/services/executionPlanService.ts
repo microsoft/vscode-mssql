@@ -5,7 +5,7 @@
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { GetExecutionPlanRequest, GetExecutionPlanParams } from "../models/contracts/executionPlan";
-import * as ep from "../sharedInterfaces/executionPlanInterfaces";
+import * as ep from "../../shared/executionPlanInterfaces";
 
 export class ExecutionPlanService implements ep.ExecutionPlanService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}

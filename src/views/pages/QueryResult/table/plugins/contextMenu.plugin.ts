@@ -12,7 +12,7 @@ import {
     QueryResultWebviewState,
     ResultSetSummary,
     SendToClipboardRequest,
-} from "../../../../../sharedInterfaces/queryResult";
+} from "../../../../../shared/queryResult";
 import { locConstants } from "../../../../common/locConstants";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { QueryResultContextProps } from "../../queryResultStateProvider";

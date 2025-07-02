@@ -22,7 +22,7 @@ import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext, useState } from "react";
 import Markdown from "react-markdown";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../../shared/schemaDesigner";
 
 enum PublishDialogStages {
     NotStarted = "notStarted",

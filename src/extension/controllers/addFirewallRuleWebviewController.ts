@@ -6,15 +6,15 @@
 import * as vscode from "vscode";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
-import { AddFirewallRuleState, AddFirewallRuleReducers } from "../sharedInterfaces/addFirewallRule";
+import { AddFirewallRuleState, AddFirewallRuleReducers } from "../../shared/addFirewallRule";
 import * as azureHelpers from "../connectionconfig/azureHelpers";
 import { FirewallService } from "../firewall/firewallService";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 import { getErrorMessage } from "../utils/utils";
 import { errorFirewallRule } from "../constants/constants";
 import { Deferred } from "../protocol";
-import { ApiStatus } from "../sharedInterfaces/webview";
+import { ApiStatus } from "../../shared/webview";
 import * as Loc from "../constants/locConstants";
 
 /**

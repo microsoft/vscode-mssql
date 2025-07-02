@@ -8,7 +8,7 @@ import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { StepCard } from "./stepCard";
 import { Button } from "@fluentui/react-components";
 import { checkStepErrored, isLastStepLoaded, runDockerStep } from "./deploymentUtils";
-import { DockerStepOrder } from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import { DockerStepOrder } from "../../../shared/containerDeploymentInterfaces";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 import { locConstants } from "../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";

@@ -11,12 +11,12 @@ import {
     CopySelectionRequest,
     SendToClipboardRequest,
     DbCellValue,
-} from "../../../../../sharedInterfaces/queryResult";
+} from "../../../../../shared/queryResult";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
 import { Keys } from "../../../../common/keys";
 import { IDisposableDataProvider } from "../dataProvider";
-import { GetPlatformRequest } from "../../../../../sharedInterfaces/webview";
+import { GetPlatformRequest } from "../../../../../shared/webview";
 
 /**
  * Implements the various additional navigation keybindings we want out of slickgrid

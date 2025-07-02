@@ -11,7 +11,7 @@ import {
     ActivityObject,
     TelemetryActions,
     TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+} from "../../shared/telemetry";
 import {
     AuthenticationType,
     AzureSubscriptionInfo,
@@ -24,9 +24,9 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
     GetConnectionDisplayNameRequest,
-} from "../sharedInterfaces/connectionDialog";
+} from "../../shared/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
-import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
+import { FormItemActionButton, FormItemOptions } from "../../shared/form";
 import {
     ConnectionDialog as Loc,
     Common as LocCommon,
@@ -42,7 +42,7 @@ import {
 } from "./azureHelpers";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
-import { ApiStatus } from "../sharedInterfaces/webview";
+import { ApiStatus } from "../../shared/webview";
 import { AzureController } from "../azure/azureController";
 import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
@@ -68,7 +68,7 @@ import {
     errorFirewallRule,
     errorSSLCertificateValidationFailed,
 } from "../constants/constants";
-import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
+import { AddFirewallRuleState } from "../../shared/addFirewallRule";
 import * as Utils from "../models/utils";
 import {
     createConnectionGroup,

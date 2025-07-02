@@ -10,7 +10,7 @@ import {
     DesignerEditType,
     DesignerUIArea,
     InputBoxProperties,
-} from "../../../sharedInterfaces/tableDesigner";
+} from "../../../shared/tableDesigner";
 import { Field, InfoLabel, Input, Textarea, useId } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 

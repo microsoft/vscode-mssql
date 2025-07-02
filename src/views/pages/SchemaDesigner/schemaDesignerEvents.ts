@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../shared/schemaDesigner";
 import { TypedEventEmitter } from "../../common/eventEmitter";
 
 export type MyEvents = {

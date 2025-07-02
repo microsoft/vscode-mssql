@@ -25,7 +25,7 @@ import {
     DesignerTableProperties,
     DropDownProperties,
     InputBoxProperties,
-} from "../../../sharedInterfaces/tableDesigner";
+} from "../../../shared/tableDesigner";
 import { ChevronRightFilled, ChevronLeftFilled, DismissRegular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
 import { useAccordionStyles } from "../../common/styles";

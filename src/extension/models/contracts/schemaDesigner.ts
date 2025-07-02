@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RequestType } from "vscode-languageclient";
-import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../shared/schemaDesigner";
 
 export namespace SchemaDesignerRequests {
     /**

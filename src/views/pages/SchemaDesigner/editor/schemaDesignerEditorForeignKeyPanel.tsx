@@ -33,7 +33,7 @@ import { AddRegular, DeleteRegular } from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { foreignKeyUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../../shared/schemaDesigner";
 import { locConstants } from "../../../common/locConstants";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 import * as FluentIcons from "@fluentui/react-icons";

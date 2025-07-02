@@ -20,7 +20,7 @@ import {
     GetThemeRequest,
     LoadStatsNotification,
     StateChangeNotification,
-} from "../../sharedInterfaces/webview";
+} from "../../shared/webview";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.

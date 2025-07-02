@@ -17,7 +17,7 @@ import {
 import { MouseEventHandler, useContext, useEffect, useState } from "react";
 
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
-import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { IConnectionDialogProfile } from "../../../shared/connectionDialog";
 import { locConstants } from "../../common/locConstants";
 import { Keys } from "../../common/keys";
 

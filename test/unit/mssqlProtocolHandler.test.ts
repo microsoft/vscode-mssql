@@ -5,8 +5,8 @@
 
 import * as TypeMoq from "typemoq";
 import { assert } from "chai";
-import { MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import { MssqlProtocolHandler } from "../../src/extension/mssqlProtocolHandler";
+import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
 import { Uri } from "vscode";
 import { mockGetCapabilitiesRequest } from "./mocks";
 

@@ -11,13 +11,10 @@ import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 
 import { IAccount, ITenant } from "../models/contracts/azure";
-import { FormItemOptions } from "../sharedInterfaces/form";
+import { FormItemOptions } from "../../shared/form";
 import { AzureAccountService } from "../services/azureAccountService";
-import {
-    AzureSqlServerInfo,
-    ConnectionDialogWebviewState,
-} from "../sharedInterfaces/connectionDialog";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { AzureSqlServerInfo, ConnectionDialogWebviewState } from "../../shared/connectionDialog";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";

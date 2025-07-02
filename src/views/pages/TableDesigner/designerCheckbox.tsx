@@ -10,7 +10,7 @@ import {
     DesignerDataPropertyInfo,
     DesignerEditType,
     DesignerUIArea,
-} from "../../../sharedInterfaces/tableDesigner";
+} from "../../../shared/tableDesigner";
 import { Checkbox, Field, Label } from "@fluentui/react-components";
 
 export type DesignerCheckboxProps = {

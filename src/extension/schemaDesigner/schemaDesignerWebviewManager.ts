@@ -5,12 +5,12 @@
 
 import * as vscode from "vscode";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../shared/schemaDesigner";
 import { SchemaDesignerWebviewController } from "./schemaDesignerWebviewController";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
 import * as LocConstants from "../constants/locConstants";
-import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
+import { TelemetryViews, TelemetryActions } from "../../shared/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 
 export class SchemaDesignerWebviewManager {

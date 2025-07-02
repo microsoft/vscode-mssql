@@ -6,7 +6,7 @@
 import { EventEmitter } from "events";
 
 import * as vscode from "vscode";
-import StatusView from "../views/statusView";
+import StatusView from "../../oldViews/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
 import VscodeWrapper from "./vscodeWrapper";
@@ -44,7 +44,7 @@ import * as Utils from "./../models/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 
 export interface IResultSet {
     columns: string[];

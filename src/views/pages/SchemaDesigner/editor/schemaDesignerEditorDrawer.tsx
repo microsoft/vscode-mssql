@@ -17,7 +17,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { createContext, useContext, useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
 import { columnUtils, foreignKeyUtils, tableUtils } from "../schemaDesignerUtils";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../../shared/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 
 export interface SchemaDesignerEditorContextProps {

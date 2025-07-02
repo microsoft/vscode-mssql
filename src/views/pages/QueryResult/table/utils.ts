@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ISlickRange } from "../../../../sharedInterfaces/queryResult";
+import { ISlickRange } from "../../../../shared/queryResult";
 
 export interface RowRange {
     start: number;

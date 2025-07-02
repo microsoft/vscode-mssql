@@ -46,7 +46,7 @@ import {
     ActivityStatus,
     TelemetryActions,
     TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+} from "../../shared/telemetry";
 import {
     GetSessionIdRequest,
     GetSessionIdResponse,

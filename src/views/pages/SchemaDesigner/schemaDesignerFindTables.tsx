@@ -5,7 +5,7 @@
 
 import { useContext } from "react";
 import { Node, useReactFlow } from "@xyflow/react";
-import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../shared/schemaDesigner";
 import { SchemaDesignerContext } from "./schemaDesignerStateProvider";
 import { locConstants } from "../../common/locConstants";
 import { SearchableItem, FindWidget } from "../../common/findWidget.component";

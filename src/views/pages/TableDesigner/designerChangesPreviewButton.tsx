@@ -24,7 +24,7 @@ import {
 import { useContext, useState } from "react";
 
 import { Button } from "@fluentui/react-button";
-import { LoadState } from "../../../sharedInterfaces/tableDesigner";
+import { LoadState } from "../../../shared/tableDesigner";
 import ReactMarkdown from "react-markdown";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { ToolbarButton } from "@fluentui/react-toolbar";

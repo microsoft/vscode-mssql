@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { QueryResultWebviewState } from "../../../sharedInterfaces/queryResult";
-import * as qr from "../../../sharedInterfaces/queryResult";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { QueryResultWebviewState } from "../../../shared/queryResult";
+import * as qr from "../../../shared/queryResult";
+import { ColorThemeKind } from "../../../shared/webview";
 
 export const saveAsCsvIcon = (theme: ColorThemeKind) => {
     return theme === ColorThemeKind.Light

@@ -5,14 +5,14 @@
 
 import * as vscode from "vscode";
 import { IConnectionInfo, IServerInfo } from "vscode-mssql";
-import * as Constants from "../constants/constants";
-import * as LocalizedConstants from "../constants/locConstants";
-import VscodeWrapper from "../controllers/vscodeWrapper";
-import * as ConnInfo from "../models/connectionInfo";
-import * as ConnectionContracts from "../models/contracts/connection";
-import * as Utils from "../models/utils";
-import { ConnectionStore } from "../models/connectionStore";
-import { IConnectionProfile } from "../models/interfaces";
+import * as Constants from "../extension/constants/constants";
+import * as LocalizedConstants from "../extension/constants/locConstants";
+import VscodeWrapper from "../extension/controllers/vscodeWrapper";
+import * as ConnInfo from "../extension/models/connectionInfo";
+import * as ConnectionContracts from "../extension/models/contracts/connection";
+import * as Utils from "../extension/models/utils";
+import { ConnectionStore } from "../extension/models/connectionStore";
+import { IConnectionProfile } from "../extension/models/interfaces";
 
 // Status bar element for each file in the editor
 class FileStatusBar {

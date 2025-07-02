@@ -18,7 +18,7 @@ import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { Node, Edge, useReactFlow } from "@xyflow/react";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../../shared/schemaDesigner";
 import { flowUtils } from "../schemaDesignerUtils";
 import eventBus from "../schemaDesignerEvents";
 

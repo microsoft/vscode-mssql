@@ -26,7 +26,7 @@ import {
     DesignerResultPaneTabs,
     InputBoxProperties,
     TableProperties,
-} from "../../../sharedInterfaces/tableDesigner";
+} from "../../../shared/tableDesigner";
 
 import Editor from "@monaco-editor/react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";

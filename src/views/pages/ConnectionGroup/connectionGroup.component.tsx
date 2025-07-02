@@ -29,10 +29,7 @@ import {
 } from "@fluentui/react-color-picker";
 import { TinyColor } from "@ctrl/tinycolor";
 import { locConstants as Loc } from "../../common/locConstants";
-import {
-    ConnectionGroupSpec,
-    ConnectionGroupState,
-} from "../../../sharedInterfaces/connectionGroup";
+import { ConnectionGroupSpec, ConnectionGroupState } from "../../../shared/connectionGroup";
 import { useState } from "react";
 import { Keys } from "../../common/keys";
 

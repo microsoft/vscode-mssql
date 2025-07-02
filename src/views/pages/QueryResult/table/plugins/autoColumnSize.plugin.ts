@@ -5,12 +5,9 @@
 
 // Adapted from https://github.com/naresh-n/slickgrid-column-data-autosize/blob/master/src/slick.autocolumnsize.js
 
-import {
-    QueryResultWebviewState,
-    QueryResultReducers,
-} from "../../../../../sharedInterfaces/queryResult";
-import { TelemetryActions, TelemetryViews } from "../../../../../sharedInterfaces/telemetry";
-import { WebviewTelemetryActionEvent } from "../../../../../sharedInterfaces/webview";
+import { QueryResultWebviewState, QueryResultReducers } from "../../../../../shared/queryResult";
+import { TelemetryActions, TelemetryViews } from "../../../../../shared/telemetry";
+import { WebviewTelemetryActionEvent } from "../../../../../shared/webview";
 import { deepClone } from "../../../../common/utils";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { mixin } from "../objects";

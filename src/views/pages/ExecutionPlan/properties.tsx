@@ -5,7 +5,7 @@
 
 import "./executionPlan.css";
 
-import * as ep from "../../../sharedInterfaces/executionPlanInterfaces";
+import * as ep from "../../../shared/executionPlanInterfaces";
 import * as utils from "./queryPlanSetup";
 
 import {

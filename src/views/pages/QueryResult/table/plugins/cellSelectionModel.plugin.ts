@@ -13,7 +13,7 @@ import {
     QueryResultWebviewState,
     SelectionSummaryStats,
     SetSelectionSummaryRequest,
-} from "../../../../../sharedInterfaces/queryResult";
+} from "../../../../../shared/queryResult";
 
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 // import { convertJQueryKeyDownEvent } from 'sql/base/browser/dom';

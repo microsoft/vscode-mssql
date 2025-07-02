@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as cd from "../sharedInterfaces/containerDeploymentInterfaces";
+import * as cd from "../../shared/containerDeploymentInterfaces";
 import * as vscode from "vscode";
-import { ApiStatus } from "../sharedInterfaces/webview";
+import { ApiStatus } from "../../shared/webview";
 import { platform } from "os";
 import { defaultPortNumber, localhost, sa, sqlAuthentication } from "../constants/constants";
-import { FormItemType, FormItemSpec, FormItemOptions } from "../sharedInterfaces/form";
+import { FormItemType, FormItemSpec, FormItemOptions } from "../../shared/form";
 import MainController from "../controllers/mainController";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -23,7 +23,7 @@ import {
     profileNamePlaceholder,
 } from "../constants/locConstants";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import {

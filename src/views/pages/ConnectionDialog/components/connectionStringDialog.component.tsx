@@ -19,7 +19,7 @@ import {
 import { Copy24Regular, ClipboardPaste24Regular } from "@fluentui/react-icons";
 
 import { locConstants } from "../../../common/locConstants";
-import { ConnectionStringDialogProps } from "../../../../sharedInterfaces/connectionDialog";
+import { ConnectionStringDialogProps } from "../../../../shared/connectionDialog";
 
 export const ConnectionStringDialog = ({
     dialogProps,

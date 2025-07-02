@@ -7,10 +7,10 @@ import { Button, makeStyles, Tooltip } from "@fluentui/react-components";
 import { useContext, useState } from "react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import * as qr from "../../../sharedInterfaces/queryResult";
+import * as qr from "../../../shared/queryResult";
 import { locConstants } from "../../common/locConstants";
 import { saveAsCsvIcon, saveAsExcelIcon, saveAsJsonIcon } from "./queryResultUtils";
-import { QueryResultSaveAsTrigger } from "../../../sharedInterfaces/queryResult";
+import { QueryResultSaveAsTrigger } from "../../../shared/queryResult";
 import { ArrowMaximize16Filled, ArrowMinimize16Filled } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({

@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 
-import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 import {
     ColorThemeChangeNotification,
     ExecuteCommandParams,
@@ -24,7 +24,7 @@ import {
     WebviewRpcMessage,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
-} from "../sharedInterfaces/webview";
+} from "../../shared/webview";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
 import { getNonce } from "../utils/utils";

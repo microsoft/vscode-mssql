@@ -6,8 +6,8 @@
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Constants from "../constants/constants";
 import * as vscode from "vscode";
-import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
-import { ApiStatus } from "../sharedInterfaces/webview";
+import { TelemetryViews, TelemetryActions } from "../../shared/telemetry";
+import { ApiStatus } from "../../shared/webview";
 import {
     createExecutionPlanGraphs,
     saveExecutionPlan,
@@ -16,7 +16,7 @@ import {
     updateTotalCost,
 } from "../controllers/sharedExecutionPlanUtils";
 import { sendActionEvent } from "../telemetry/telemetry";
-import * as qr from "../sharedInterfaces/queryResult";
+import * as qr from "../../shared/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store, { SubKeys } from "./singletonStore";

@@ -12,7 +12,7 @@ import {
     SendErrorEventNotification,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
-} from "../../sharedInterfaces/webview";
+} from "../../shared/webview";
 import {
     AbstractMessageReader,
     AbstractMessageWriter,

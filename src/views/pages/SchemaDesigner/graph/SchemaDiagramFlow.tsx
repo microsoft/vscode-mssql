@@ -26,7 +26,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 
 import "@xyflow/react/dist/style.css";
 import "./schemaDesignerFlowColors.css";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner.js";
+import { SchemaDesigner } from "../../../../shared/schemaDesigner.js";
 import { flowUtils, foreignKeyUtils, namingUtils } from "../schemaDesignerUtils.js";
 import {
     Button,

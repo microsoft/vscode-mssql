@@ -10,7 +10,7 @@ import {
     DesignerEditType,
     DesignerUIArea,
     DropDownProperties,
-} from "../../../sharedInterfaces/tableDesigner";
+} from "../../../shared/tableDesigner";
 import { Field, InfoLabel } from "@fluentui/react-components";
 import { SearchableDropdown } from "../../common/searchableDropdown.component";
 

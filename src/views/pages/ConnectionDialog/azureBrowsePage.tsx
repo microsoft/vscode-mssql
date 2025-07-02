@@ -14,10 +14,10 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
-} from "../../../sharedInterfaces/connectionDialog";
+} from "../../../shared/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { ApiStatus } from "../../../shared/webview";
 import { removeDuplicates } from "../../common/utils";
 import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";

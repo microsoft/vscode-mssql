@@ -12,7 +12,7 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
-} from "../../../sharedInterfaces/connectionDialog";
+} from "../../../shared/connectionDialog";
 import { ConnectButton } from "./components/connectButton.component";
 import { locConstants } from "../../common/locConstants";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";

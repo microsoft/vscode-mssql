@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
-import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../shared/schemaDesigner";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
@@ -13,7 +13,7 @@ import MainController from "../controllers/mainController";
 import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
-import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,

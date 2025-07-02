@@ -5,7 +5,7 @@
 
 import { Button, Divider, Spinner, makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext } from "react";
-import * as designer from "../../../sharedInterfaces/tableDesigner";
+import * as designer from "../../../shared/tableDesigner";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ResizableBox } from "react-resizable";

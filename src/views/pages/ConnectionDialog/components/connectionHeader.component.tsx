@@ -8,7 +8,7 @@ import { Image, Text } from "@fluentui/react-components";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { locConstants } from "../../../common/locConstants";
 import { useContext } from "react";
-import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
+import { ColorThemeKind } from "../../../../shared/webview";
 
 const databaseIconLight = require("../../../../../media/database_light.svg");
 const databaseIconDark = require("../../../../../media/database_dark.svg");

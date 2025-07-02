@@ -37,7 +37,7 @@ import {
     NodeFilterOperator,
     NodeFilterPropertyDataType,
     ObjectExplorerPageFilter,
-} from "../../../sharedInterfaces/objectExplorerFilter";
+} from "../../../shared/objectExplorerFilter";
 import * as l10n from "@vscode/l10n";
 import { locConstants } from "../../common/locConstants";
 

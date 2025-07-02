@@ -25,7 +25,7 @@ import {
     QueryResultWebviewState,
     ResultSetSummary,
     SetColumnWidthsRequest,
-} from "../../../../sharedInterfaces/queryResult";
+} from "../../../../shared/queryResult";
 import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
 import { QueryResultContextProps } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";

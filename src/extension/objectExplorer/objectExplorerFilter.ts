@@ -9,8 +9,8 @@ import * as vscodeMssql from "vscode-mssql";
 import {
     ObjectExplorerFilterState,
     ObjectExplorerReducers,
-} from "../sharedInterfaces/objectExplorerFilter";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+} from "../../shared/objectExplorerFilter";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";

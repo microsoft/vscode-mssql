@@ -9,7 +9,7 @@ import {
     NpsQuestion,
     NsatQuestion,
     TextareaQuestion,
-} from "../../../sharedInterfaces/userSurvey";
+} from "../../../shared/userSurvey";
 import {
     Button,
     Divider,

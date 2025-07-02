@@ -7,7 +7,7 @@ import { useContext } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { ApiStatus } from "../../../shared/webview";
 import { GetStartedPage } from "./getStartedPage";
 import { locConstants } from "../../common/locConstants";
 

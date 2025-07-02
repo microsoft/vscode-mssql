@@ -10,10 +10,7 @@ import * as utils from "../models/utils";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
-import {
-    SchemaCompareReducers,
-    SchemaCompareWebViewState,
-} from "../sharedInterfaces/schemaCompare";
+import { SchemaCompareReducers, SchemaCompareWebViewState } from "../../shared/schemaCompare";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
 import { IConnectionProfile } from "../models/interfaces";
@@ -37,11 +34,11 @@ import {
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
-import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
-import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
+import { IConnectionDialogProfile } from "../../shared/connectionDialog";
 import { cmdAddObjectExplorer } from "../constants/constants";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<

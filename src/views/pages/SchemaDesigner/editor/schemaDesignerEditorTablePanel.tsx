@@ -35,7 +35,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as FluentIcons from "@fluentui/react-icons";
 import { v4 as uuidv4 } from "uuid";
 import { columnUtils, namingUtils, tableUtils } from "../schemaDesignerUtils";
-import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../../shared/schemaDesigner";
 import { SearchableDropdown } from "../../../common/searchableDropdown.component";
 import { SchemaDesignerEditorContext, TABLE_NAME_ERROR_KEY } from "./schemaDesignerEditorDrawer";
 

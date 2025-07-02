@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
+import { SchemaDesigner } from "../../../shared/schemaDesigner";
 import { locConstants } from "../../common/locConstants";
 import { Connection, Edge, MarkerType, Node } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";

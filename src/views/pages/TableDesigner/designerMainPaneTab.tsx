@@ -11,7 +11,7 @@ import {
     DesignerTableProperties,
     DropDownProperties,
     InputBoxProperties,
-} from "../../../sharedInterfaces/tableDesigner";
+} from "../../../shared/tableDesigner";
 import { DesignerCheckbox } from "./designerCheckbox";
 import { DesignerInputBox } from "./designerInputBox";
 import { DesignerDropdown } from "./designerDropdown";

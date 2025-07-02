@@ -8,8 +8,8 @@ import * as locConstants from "../constants/locConstants";
 import * as vscode from "vscode";
 import * as os from "os";
 
-import { Answers, UserSurveyReducers, UserSurveyState } from "../sharedInterfaces/userSurvey";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { Answers, UserSurveyReducers, UserSurveyState } from "../../shared/userSurvey";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";

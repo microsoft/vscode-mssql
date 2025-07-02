@@ -4,7 +4,7 @@ var cproc = require('child_process');
 var del = require('del');
 
 function installSqlToolsService(platform) {
-	var install = require('../out/src/languageservice/serviceInstallerUtil');
+	var install = require('../out/src/extension/languageservice/serviceInstallerUtil');
 	return install.installService(platform);
 }
 
@@ -27,7 +27,7 @@ function doPackageSync(packageName) {
 }
 
 function cleanServiceInstallFolder() {
-	var install = require('../out/src/languageservice/serviceInstallerUtil');
+	var install = require('../out/src/extension/languageservice/serviceInstallerUtil');
 	var serviceInstallFolder = install.getServiceInstallDirectoryRoot();
 	console.log('Deleting Service Install folder: ' + serviceInstallFolder);
 	return del(serviceInstallFolder + '/*');
@@ -49,7 +49,7 @@ gulp.task('package:online', () => {
 
 //Install vsce to be able to run this task: npm install -g vsce
 gulp.task('package:offline', () => {
-	const platform = require('../out/src/models/platform');
+	const platform = require('../out/src/extension/models/platform');
 	const Runtime = platform.Runtime;
 	var json = JSON.parse(fs.readFileSync('package.json'));
 	var name = json.name;

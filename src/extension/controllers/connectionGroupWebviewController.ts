@@ -11,9 +11,9 @@ import {
     ConnectionGroupReducers,
     ConnectionGroupSpec,
     CreateConnectionGroupDialogProps,
-} from "../sharedInterfaces/connectionGroup";
+} from "../../shared/connectionGroup";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../shared/telemetry";
 import { getErrorMessage } from "../utils/utils";
 import { Deferred } from "../protocol";
 import * as Loc from "../constants/locConstants";

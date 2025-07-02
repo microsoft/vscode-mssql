@@ -5,7 +5,7 @@
 
 import "./executionPlan.css";
 
-import * as ep from "../../../sharedInterfaces/executionPlanInterfaces";
+import * as ep from "../../../shared/executionPlanInterfaces";
 
 import { Button, Combobox, Option, makeStyles, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";

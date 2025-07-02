@@ -27,7 +27,7 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
-} from "../../../../sharedInterfaces/connectionDialog";
+} from "../../../../shared/connectionDialog";
 import { useAccordionStyles } from "../../../common/styles";
 
 export const AdvancedOptionsDrawer = ({

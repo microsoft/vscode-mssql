@@ -26,8 +26,8 @@ import {
     SetFiltersRequest,
     ShowFilterDisabledMessageRequest,
     SortProperties,
-} from "../../../../../sharedInterfaces/queryResult";
-import { ColorThemeKind } from "../../../../../sharedInterfaces/webview";
+} from "../../../../../shared/queryResult";
+import { ColorThemeKind } from "../../../../../shared/webview";
 
 export type SortDirection = "sort-asc" | "sort-desc" | "reset";
 

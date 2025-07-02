@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColumnFilterState, SortProperties } from "../../../../sharedInterfaces/queryResult";
+import { ColumnFilterState, SortProperties } from "../../../../shared/queryResult";
 import { IDisposableDataProvider } from "./dataProvider";
 import { SortDirection } from "./plugins/headerFilter.plugin";
 

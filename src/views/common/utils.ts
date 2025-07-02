@@ -8,7 +8,7 @@ import {
     LoggerLevel,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
-} from "../../sharedInterfaces/webview";
+} from "../../shared/webview";
 import { VscodeWebviewContext } from "./vscodeWebviewProvider";
 
 /**

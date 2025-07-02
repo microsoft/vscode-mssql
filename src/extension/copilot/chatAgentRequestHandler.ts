@@ -21,7 +21,7 @@ import {
     ActivityStatus,
     TelemetryActions,
     TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+} from "../../shared/telemetry";
 import { getErrorMessage } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";

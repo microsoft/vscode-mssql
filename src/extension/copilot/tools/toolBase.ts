@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { TelemetryViews, TelemetryActions, ActivityStatus } from "../../sharedInterfaces/telemetry";
+import { TelemetryViews, TelemetryActions, ActivityStatus } from "../../../shared/telemetry";
 import { startActivity } from "../../telemetry/telemetry";
 
 export abstract class ToolBase<T> implements vscode.LanguageModelTool<T> {

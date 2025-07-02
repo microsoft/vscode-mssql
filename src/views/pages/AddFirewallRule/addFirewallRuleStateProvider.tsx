@@ -9,9 +9,9 @@ import {
     AddFirewallRuleContextProps,
     AddFirewallRuleReducers,
     AddFirewallRuleState,
-} from "../../../../src/sharedInterfaces/addFirewallRule";
+} from "../../../../src/shared/addFirewallRule";
 import { getCoreRPCs } from "../../common/utils";
-import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
+import { FirewallRuleSpec } from "../../../shared/firewallRule";
 
 const AddFirewallRuleContext = createContext<AddFirewallRuleContextProps | undefined>(undefined);
 

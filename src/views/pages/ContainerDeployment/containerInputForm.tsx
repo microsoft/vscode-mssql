@@ -13,7 +13,7 @@ import {
     ContainerDeploymentFormItemSpec,
     ContainerDeploymentWebviewState,
     DockerConnectionProfile,
-} from "../../../sharedInterfaces/containerDeploymentInterfaces";
+} from "../../../shared/containerDeploymentInterfaces";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 import { locConstants } from "../../common/locConstants";
@@ -21,7 +21,7 @@ import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.compon
 import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
-} from "../../../sharedInterfaces/connectionGroup";
+} from "../../../shared/connectionGroup";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({

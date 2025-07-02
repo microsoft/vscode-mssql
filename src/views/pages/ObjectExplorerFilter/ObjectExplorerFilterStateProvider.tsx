@@ -7,7 +7,7 @@ import {
     ObjectExplorerFilterContextProps,
     ObjectExplorerFilterState,
     ObjectExplorerReducers,
-} from "../../../sharedInterfaces/objectExplorerFilter";
+} from "../../../shared/objectExplorerFilter";
 
 import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
