@@ -20,5 +20,6 @@
         "composite": true,
         "allowSyntheticDefaultImports": true
     },
-    "include": ["src/views", "typings", "src/shared", "media"]
+    "include": ["src/views", "src/typings", "src/shared", "media"],
+    "exclude": ["node_modules", "out", "dist", "src/extension", "src/oldViews", "test"],
 }

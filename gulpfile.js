@@ -148,9 +148,9 @@ gulp.task("ext:bundle-src", gulp.series(generateExtensionBundle));
 gulp.task("ext:compile-src", (done) => {
     return gulp
         .src([
-            config.paths.project.root + "/src/**/*.ts",
-            config.paths.project.root + "/src/**/*.js",
-            config.paths.project.root + "/typings/**/*.d.ts",
+            config.paths.project.root + "/src/extension/**/*.ts",
+            config.paths.project.root + "/src/extension/**/*.js",
+            config.paths.project.root + "/src/typings/**/*.d.ts",
             "!" + config.paths.project.root + "/src/oldViews/htmlcontent/**/*",
         ])
         .pipe(srcmap.init())
@@ -170,7 +170,7 @@ gulp.task("ext:compile-view", (done) => {
     return gulp
         .src([
             config.paths.project.root + "/src/oldViews/htmlcontent/**/*.ts",
-            config.paths.project.root + "/typings/**/*.d.ts",
+            config.paths.project.root + "/src/typings/**/*.d.ts",
         ])
         .pipe(srcmap.init())
         .pipe(tsProject())
@@ -215,7 +215,7 @@ async function generateReactWebviewsBundle() {
             ".png": "file",
             ".gif": "file",
         },
-        tsconfig: "./tsconfig.react.json",
+        tsconfig: "./tsconfig.views.json",
         plugins: [esbuildProblemMatcherPlugin("React App"), typecheckPlugin()],
         sourcemap: prod ? false : "inline",
         metafile: true,

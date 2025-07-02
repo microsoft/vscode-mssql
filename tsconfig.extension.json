@@ -1,0 +1,20 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "outDir": "out",
+        "module": "CommonJS",
+        "target": "ES6",
+        "lib": ["es6", "ES2020", "dom"],
+        "sourceMap": true,
+        "allowUnusedLabels": false,
+        "allowSyntheticDefaultImports": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "jsx": "react-jsx",
+        "rootDir": ".",
+        "noUnusedLocals": true,
+        "skipLibCheck": true
+    },
+	"include": ["src/extension", "src/oldViews", "src/shared", "src/typings", "test"],
+    "exclude": ["node_modules", "src/views"]
+}
