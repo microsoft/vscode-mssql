@@ -77,20 +77,20 @@ function copyAllFiles() {
 
     // Copy SystemJS config files
     copyFiles(
-        'src/oldViews/htmlcontent/*.js',
-        'out/src/oldViews/htmlcontent'
+        'src/extension/oldViews/htmlcontent/*.js',
+        'out/src/extension/oldViews/htmlcontent'
     );
 
     // Copy CSS files
     copyFiles(
-        'src/oldViews/htmlcontent/src/css/*.css',
-        'out/src/oldViews/htmlcontent/src/css'
+        'src/extension/oldViews/htmlcontent/src/css/*.css',
+        'out/src/extension/oldViews/htmlcontent/src/css'
     );
 
     // Copy images recursively
     copyDir(
-        'src/oldViews/htmlcontent/src/images',
-        'out/src/oldViews/htmlcontent/src/images'
+        'src/extension/oldViews/htmlcontent/src/images',
+        'out/src/extension/oldViews/htmlcontent/src/images'
     );
 
     // Copy test resources
@@ -101,7 +101,7 @@ function copyAllFiles() {
 
     // Copy JavaScript files (excluding oldViews/htmlcontent)
     const jsFiles = require('glob').sync('src/**/*.js', {
-        ignore: 'src/oldViews/htmlcontent/**/*'
+        ignore: 'src/extension/oldViews/htmlcontent/**/*'
     });
 
     jsFiles.forEach(file => {
@@ -116,30 +116,30 @@ function copyAllFiles() {
     console.log('Copying node_modules dependencies...');
 
     // Copy RxJS
-    copyDir('node_modules/rxjs', 'out/src/oldViews/htmlcontent/src/js/lib/rxjs');
+    copyDir('node_modules/rxjs', 'out/src/extension/oldViews/htmlcontent/src/js/lib/rxjs');
 
     // Copy Angular in-memory web API
     copyDir(
         'node_modules/angular-in-memory-web-api',
-        'out/src/oldViews/htmlcontent/src/js/lib/angular-in-memory-web-api'
+        'out/src/extension/oldViews/htmlcontent/src/js/lib/angular-in-memory-web-api'
     );
 
     // Copy Zone.js
     copyDir(
         'node_modules/zone.js',
-        'out/src/oldViews/htmlcontent/src/js/lib/zone.js'
+        'out/src/extension/oldViews/htmlcontent/src/js/lib/zone.js'
     );
 
     // Copy Angular
     copyDir(
         'node_modules/@angular',
-        'out/src/oldViews/htmlcontent/src/js/lib/@angular'
+        'out/src/extension/oldViews/htmlcontent/src/js/lib/@angular'
     );
 
     // Copy Angular2 SlickGrid
     copyDir(
         'node_modules/angular2-slickgrid/out',
-        'out/src/views/htmlcontent/src/js/lib/angular2-slickgrid/out'
+        'out/src/extension/oldViews/htmlcontent/src/js/lib/angular2-slickgrid/out'
     );
 
     // Copy individual vendor files
@@ -158,7 +158,7 @@ function copyAllFiles() {
         'node_modules/systemjs/dist/system.src.js'
     ];
 
-    const vendorDestDir = 'out/src/oldViews/htmlcontent/src/js/lib';
+    const vendorDestDir = 'out/src/extension/oldViews/htmlcontent/src/js/lib';
     ensureDir(vendorDestDir);
 
     vendorFiles.forEach(file => {
@@ -174,9 +174,9 @@ function copyAllFiles() {
 
     // Copy source maps and additional files
     const additionalFiles = [
-        { src: 'node_modules/reflect-metadata/Reflect.js.map', dest: 'out/src/oldViews/htmlcontent/src/js/lib/Reflect.js.map' },
-        { src: 'node_modules/systemjs/dist/system-polyfills.js.map', dest: 'out/src/oldViews/htmlcontent/src/js/lib/system-polyfills.js.map' },
-        { src: 'node_modules/systemjs-plugin-json/json.js', dest: 'out/src/oldViews/htmlcontent/src/js/lib/json.js' }
+        { src: 'node_modules/reflect-metadata/Reflect.js.map', dest: 'out/src/extension/oldViews/htmlcontent/src/js/lib/Reflect.js.map' },
+        { src: 'node_modules/systemjs/dist/system-polyfills.js.map', dest: 'out/src/extension/oldViews/htmlcontent/src/js/lib/system-polyfills.js.map' },
+        { src: 'node_modules/systemjs-plugin-json/json.js', dest: 'out/src/extension/oldViews/htmlcontent/src/js/lib/json.js' }
     ];
 
     additionalFiles.forEach(({ src, dest }) => {
@@ -195,7 +195,7 @@ function copyAllFiles() {
         'node_modules/slickgrid/slick.grid.css'
     ];
 
-    const cssDestDir = 'out/src/oldViews/htmlcontent/src/css';
+    const cssDestDir = 'out/src/extension/oldViews/htmlcontent/src/css';
     ensureDir(cssDestDir);
 
     cssFiles.forEach(file => {
