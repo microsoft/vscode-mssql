@@ -54,7 +54,7 @@ function copyAllFiles() {
     // Copy Object Explorer assets (SVG icons)
     copyFiles(
         'src/extension/objectExplorer/objectTypes/*.svg',
-        'out/src/extension/objectTypes'
+        'out/src/extension/objectExplorer/objectTypes'
     );
 
     // Copy Query History icons

@@ -83,9 +83,9 @@ jobs:
       - name: Package both branches
         run: |
           cd main
-          yarn gulp package:online
+          yarn build:vsix:online
           cd ../pr
-          yarn gulp package:online
+          yarn build:vsix:online
 
       - name: Setting up change icons
         run: |
@@ -160,14 +160,14 @@ jobs:
         continue-on-error: true
         run: |
           cd main
-          DISPLAY=:10 yarn test
+          DISPLAY=:10 yarn test:unit
 
       - name: Build mappings for React Webviews
         run: |
           cd ./pr
-          gulp ext:compile-views
+          yarn build:views --prod
           cd ../main
-          gulp ext:compile-views
+          yarn build:views --prod
 
       - name: Setup environment for smoke tests
         run: |
@@ -203,9 +203,9 @@ jobs:
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
           cd pr
-          DISPLAY=:10 yarn smoketest
+          DISPLAY=:10 yarn test:smoke
           cd ../main
-          DISPLAY=:10 yarn smoketest
+          DISPLAY=:10 yarn test:smoke
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
@@ -335,7 +335,7 @@ jobs:
       - name: Generate xliff files in PR branch
         run: |
           cd pr
-          yarn localization
+          yarn l10n:extract
 
       # Check if there are git changes in english xlf files
       - name: Check for changes in english xlf files

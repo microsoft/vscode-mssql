@@ -1,1 +1,1 @@
-yarn precommit
+yarn hook:precommit
