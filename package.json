@@ -50,6 +50,13 @@
         "ms-mssql.sql-bindings-vscode"
     ],
     "scripts": {
+        "new:compile": "tsc -p tsconfig.json",
+        "new:watch": "tsc -p tsconfig.json --watch",
+        "new:copy": "node scripts/copyAssets.js",
+        "new:build": "npm run new:compile && npm run new:copy",
+        "new:watch:build": "npm run new:compile -- --watch && npm run new:copy",
+        "new:localization": "node scripts/localization.js",
+
         "build": "gulp build",
         "compile": "gulp ext:compile",
         "watch": "gulp watch",
