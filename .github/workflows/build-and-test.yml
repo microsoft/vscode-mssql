@@ -83,9 +83,9 @@ jobs:
       - name: Package both branches
         run: |
           cd main
-          yarn build:vsix:online
+          yarn package
           cd ../pr
-          yarn build:vsix:online
+          yarn package
 
       - name: Setting up change icons
         run: |
@@ -95,8 +95,8 @@ jobs:
 
       - name: Calculate webview bundle sizes
         run: |
-          main_file=$(du -sk ./main/out/src/views/assets | cut -f1)
-          pr_file=$(du -sk ./pr/out/src/views/assets | cut -f1)
+          main_file=$(du -sk ./main/out/src/reactviews/assets | cut -f1)
+          pr_file=$(du -sk ./pr/out/src/reactviews/assets | cut -f1)
           echo "Main branch bundle size: $main_file KB"
           echo "PR branch bundle size: $pr_file KB"
           size_diff=$((pr_file - main_file))
@@ -160,14 +160,14 @@ jobs:
         continue-on-error: true
         run: |
           cd main
-          DISPLAY=:10 yarn test:unit
+          DISPLAY=:10 yarn test
 
       - name: Build mappings for React Webviews
         run: |
           cd ./pr
-          yarn build:views --prod
+          yarn ext:compile-reactviews
           cd ../main
-          yarn build:views --prod
+          yarn build:views
 
       - name: Setup environment for smoke tests
         run: |
@@ -203,9 +203,9 @@ jobs:
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
           cd pr
-          DISPLAY=:10 yarn test:smoke
+          DISPLAY=:10 yarn smoketest
           cd ../main
-          DISPLAY=:10 yarn test:smoke
+          DISPLAY=:10 yarn smoketest
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
@@ -335,7 +335,7 @@ jobs:
       - name: Generate xliff files in PR branch
         run: |
           cd pr
-          yarn l10n:extract
+          yarn localization
 
       # Check if there are git changes in english xlf files
       - name: Check for changes in english xlf files
