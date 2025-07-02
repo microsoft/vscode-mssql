@@ -5,8 +5,7 @@
 
 import { Subject } from "rxjs/Subject";
 import { Injectable, OnDestroy } from "@angular/core";
-import { ISlickRange } from "angular2-slickgrid";
-import { QueryEvent, ResultSetSubset, ISelectionData } from "./../../../../../models/interfaces";
+import { QueryEvent, ResultSetSubset, ISelectionData, ISlickRange } from "./../../../../../models/interfaces";
 import * as Constants from "./../constants";
 import { createProxy, IMessageProtocol, IServerProxy } from "../../../../../protocol";
 import { TelemetryActions, TelemetryViews } from "../../../../../../shared/telemetry";
@@ -60,7 +59,7 @@ export class DataService implements OnDestroy {
     }
 
     ngOnDestroy(): void {
-        this.dataEventObs.dispose();
+        this.dataEventObs.complete();
         this._proxy.dispose();
     }
 

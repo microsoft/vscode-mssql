@@ -221,7 +221,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             } else {
                 let activeGrid = this.activeGrid;
                 let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
-                selection = this.tryCombineSelectionsForResults(selection);
+                selection = this.tryCombineSelectionsForResults(selection) as any;
                 this.dataService.copyResults(
                     selection,
                     this.renderedDataSets[activeGrid].batchId,
@@ -232,7 +232,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         "event.copyWithHeaders": () => {
             let activeGrid = this.activeGrid;
             let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
-            selection = this.tryCombineSelectionsForResults(selection);
+            selection = this.tryCombineSelectionsForResults(selection) as any;
             this.dataService.copyResults(
                 selection,
                 this.renderedDataSets[activeGrid].batchId,
@@ -248,11 +248,11 @@ export class AppComponent implements OnInit, AfterViewChecked {
             // and be incompatible with the selection merging code in this component
             let grid = this.slickgrids.toArray()[this.activeGrid];
             grid.selection = [
-                new SlickGrid.Range(
+                new Slick.Range(
                     0,
                     1,
-                    grid._grid.getDataLength() - 1,
-                    grid._grid.getColumns().length - 1,
+                    (grid as any)._grid.getDataLength() - 1,
+                    (grid as any)._grid.getColumns().length - 1,
                 ),
             ];
         },
@@ -325,7 +325,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-                selection = this.tryCombineSelectionsForResults(selection);
+                selection = this.tryCombineSelectionsForResults(selection) as any;
                 if (selection.length <= 1) {
                     this.handleContextClick({
                         type: "savecsv",
@@ -352,7 +352,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-                selection = this.tryCombineSelectionsForResults(selection);
+                selection = this.tryCombineSelectionsForResults(selection) as any;
                 if (selection.length <= 1) {
                     this.handleContextClick({
                         type: "savejson",
@@ -379,7 +379,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
             },
             functionality: (batchId, resultId, index) => {
                 let selection = this.slickgrids.toArray()[index].getSelectedRanges();
-                selection = this.tryCombineSelectionsForResults(selection);
+                selection = this.tryCombineSelectionsForResults(selection) as any;
                 if (selection.length <= 1) {
                     this.handleContextClick({
                         type: "saveexcel",
@@ -727,7 +727,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         let selection: ISlickRange[] = this.slickgrids.toArray()[index].getSelectedRanges();
         selection = this.tryCombineSelectionsForResults(selection);
 
-        let grid = this.slickgrids.toArray()[index]._grid;
+        let grid = (this.slickgrids.toArray()[index] as any)._grid;
         let contextMenuCell = grid.getCellFromEvent(event);
         if (contextMenuCell || grid.canCellBeActive(contextMenuCell.row, contextMenuCell.cell)) {
             if (
@@ -735,7 +735,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
                 !this.isContextMenuCellWIthinSelection(selection, contextMenuCell)
             ) {
                 selection = [
-                    new SlickGrid.Range(
+                    new Slick.Range(
                         contextMenuCell.row,
                         contextMenuCell.cell - 1,
                         contextMenuCell.row,
@@ -834,7 +834,7 @@ export class AppComponent implements OnInit, AfterViewChecked {
         let batchId = this.renderedDataSets[activeGrid].batchId;
         let resultId = this.renderedDataSets[activeGrid].resultId;
         let selection = this.slickgrids.toArray()[activeGrid].getSelectedRanges();
-        selection = this.tryCombineSelectionsForResults(selection);
+        selection = this.tryCombineSelectionsForResults(selection) as any;
         this.dataService.sendSaveRequest(batchId, resultId, format, selection);
     }
 
