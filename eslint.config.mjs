@@ -36,7 +36,7 @@ export default [
             sourceType: "module",
             parser: tseslint.parser,
             parserOptions: {
-                project: ["./tsconfig.json", "./tsconfig.react.json"],
+                project: ["./tsconfig.extension.json", "./tsconfig.react.json"],
                 ecmaFeatures: {
                     jsx: true,
                 },
