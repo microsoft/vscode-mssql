@@ -36,7 +36,7 @@ export default [
             sourceType: "module",
             parser: tseslint.parser,
             parserOptions: {
-                project: ["./tsconfig.json"],
+                project: ["./tsconfig.extension.json", "./tsconfig.views.json"],
                 ecmaFeatures: {
                     jsx: true,
                 },
