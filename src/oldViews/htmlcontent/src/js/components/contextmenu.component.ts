@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Component, Output, EventEmitter, Inject, forwardRef, OnInit } from "@angular/core";
-import { ISlickRange } from "../../../../../models/interfaces";
+import { ISlickRange } from "../../../../../extension/models/interfaces";
 import { ShortcutService } from "./../services/shortcuts.service";
 import * as Constants from "./../constants";
 

@@ -75,15 +75,15 @@ const cssLoaderPlugin = {
 // Copy icons for OE
 gulp.task("ext:copy-OE-assets", (done) => {
     return gulp
-        .src([config.paths.project.root + "/src/objectExplorer/objectTypes/*"])
-        .pipe(gulp.dest("out/src/objectExplorer/objectTypes"));
+        .src([config.paths.project.root + "/src/extension/objectExplorer/objectTypes/*"])
+        .pipe(gulp.dest("out/src/extension/objectExplorer/objectTypes"));
 });
 
 // Copy icons for Query History
 gulp.task("ext:copy-queryHistory-assets", (done) => {
     return gulp
-        .src([config.paths.project.root + "/src/queryHistory/icons/*"])
-        .pipe(gulp.dest("out/src/queryHistory/icons"));
+        .src([config.paths.project.root + "/src/extension/queryHistory/icons/*"])
+        .pipe(gulp.dest("out/src/extension/queryHistory/icons"));
 });
 
 async function generateExtensionBundle() {
@@ -121,16 +121,16 @@ async function generateExtensionBundle() {
             copy.copy({
                 assets: [
                     {
-                        from: "src/objectExplorer/objectTypes/*.svg",
-                        to: "./out/src/objectTypes",
+                        from: "src/extension/objectExplorer/objectTypes/*.svg",
+                        to: "./out/src/extension/objectTypes",
                     },
                     {
-                        from: "src/controllers/sqlOutput.ejs",
-                        to: "./out/src/sqlOutput.ejs",
+                        from: "src/extension/controllers/sqlOutput.ejs",
+                        to: "./out/src/extension/controllers/sqlOutput.ejs",
                     },
                     {
-                        from: "src/configurations/config.json",
-                        to: "./out/config.json",
+                        from: "src/extension/configurations/config.json",
+                        to: "./out/src/extension/config.json",
                     },
                 ],
                 resolveFrom: __dirname,

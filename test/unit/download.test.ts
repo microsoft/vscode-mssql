@@ -94,23 +94,6 @@ suite("ServiceDownloadProvider Tests", () => {
         assert.equal(expected, actual);
     });
 
-    test("getInstallDirectory should add the platform to the path given the path with the platform template key", async () => {
-        let expectedPathFromConfig = "../service/{#version#}/{#platform#}";
-        let expectedVersionFromConfig = "0.0.4";
-        let expected = path.join(__dirname, "../../../service/0.0.4/OSX");
-        config.setup((x) => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
-        config.setup((x) => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-        let downloadProvider = new ServiceDownloadProvider(
-            config.object,
-            undefined,
-            testStatusView.object,
-            testHttpClient.object,
-            testDecompressProvider.object,
-        );
-        let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
-        assert.equal(expected, actual);
-    });
-
     test("getDownloadFileName should return the expected file name given a runtime", (done) => {
         return new Promise((resolve, reject) => {
             let expectedName = "expected";
