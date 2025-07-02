@@ -568,6 +568,9 @@ export class SqlOutputContentProvider {
 
     public updateQueryRunnerUri(oldUri: string, newUri: string): void {
         let queryRunner = this.getQueryRunner(oldUri);
+        if (!queryRunner) {
+            return;
+        }
         queryRunner.updateQueryRunnerUri(oldUri, newUri);
     }
 
