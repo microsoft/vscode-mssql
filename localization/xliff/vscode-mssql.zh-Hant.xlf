@@ -426,13 +426,13 @@
       </trans-unit>
       <trans-unit id="++CODE++6bd09f9171ad9aa3824a8e54ea5edf59d28c768124be9dc7f9d2c5c7eee6780b">
         <source xml:lang="en">Change Database</source>
-        <target state="new">Change Database</target>
+        <target state="translated">變更資料庫</target>
       </trans-unit>
       <trans-unit id="++CODE++00aecebb859a5ba020dd5aa5ffb71e7f9a4279e35f9c94e6d34ebf7c889a3f7e">
         <source xml:lang="en">Change database to '{1}' for connection '{0}'?</source>
         <note>{0} is the connection ID
 {1} is the database name</note>
-        <target state="new">Change database to '{1}' for connection '{0}'?</target>
+        <target state="translated">將資料庫變更為連線 '{0}' 的 '{1}'?</target>
       </trans-unit>
       <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
         <source xml:lang="en">Changed Tables</source>
@@ -466,7 +466,7 @@
         <source xml:lang="en">Changing database to '{1}' for connection '{0}'</source>
         <note>{0} is the connection ID
 {1} is the database name</note>
-        <target state="new">Changing database to '{1}' for connection '{0}'</target>
+        <target state="translated">正在將資料庫變更為連線 '{0}' 的 '{1}'</target>
       </trans-unit>
       <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
         <source xml:lang="en">Check Constraint</source>
@@ -726,7 +726,7 @@
       <trans-unit id="++CODE++ea9acac28e2644caf0dd7884eec71c1a92d541701276abf4acd5de8d04aa8af9">
         <source xml:lang="en">Connect to {0}</source>
         <note>{0} is the name of the connection profile</note>
-        <target state="new">Connect to {0}</target>
+        <target state="translated">連線到 {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5">
         <source xml:lang="en">Connect using profile {0}?</source>
@@ -1329,7 +1329,7 @@ Error:
       <trans-unit id="++CODE++6e543be4255a8c4362baca16d0850278f1d95a7df9cd38f4b94ecbda4abe57e5">
         <source xml:lang="en">Failed to connect to database: {0}</source>
         <note>{0} is the database name</note>
-        <target state="new">Failed to connect to database: {0}</target>
+        <target state="translated">無法連線至資料庫: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++d6ca257a745c3035dfd24b1cf8bddd511b93f0c4ae8036dc0d88ece8501d4d13">
         <source xml:lang="en">Failed to connect to server.</source>
@@ -1556,7 +1556,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
         <source xml:lang="en">Get Connection Details</source>
-        <target state="new">Get Connection Details</target>
+        <target state="translated">取得連線詳細資料</target>
       </trans-unit>
       <trans-unit id="++CODE++983f311018642b0ae60c71253b5735579906d43d260ea926ebe5e815b1c97abb">
         <source xml:lang="en">Get Started</source>
@@ -1565,7 +1565,7 @@ Error:
       <trans-unit id="++CODE++833b64c15a94f939c4123ec646882d4b8943eb80c95ce91fffb06a7e95a82b61">
         <source xml:lang="en">Get connection details for connection '{0}'?</source>
         <note>{0} is the connection ID</note>
-        <target state="new">Get connection details for connection '{0}'?</target>
+        <target state="translated">取得連線 '{0}' 的連線詳細資料？</target>
       </trans-unit>
       <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
         <source xml:lang="en">Getting Docker Ready...</source>
@@ -1574,7 +1574,7 @@ Error:
       <trans-unit id="++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0">
         <source xml:lang="en">Getting connection details for connection '{0}'</source>
         <note>{0} is the connection ID</note>
-        <target state="new">Getting connection details for connection '{0}'</target>
+        <target state="translated">正在取得連線 '{0}' 的連線詳細資料</target>
       </trans-unit>
       <trans-unit id="++CODE++407c9ce5c11270b1d15836456ad1efdbe70f71f3c845186e535f82f02112be4e">
         <source xml:lang="en">Getting container ready for connections</source>
@@ -1608,7 +1608,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++a60a56c584b3b05b1a95076a36edbab7131a447910cf21124efcb35f769502df">
         <source xml:lang="en">Hide password</source>
-        <target state="new">Hide password</target>
+        <target state="translated">隱藏密碼</target>
       </trans-unit>
       <trans-unit id="++CODE++7a364dd1e84a9c227a255eac46ca09a24bf78df77f50f95dec04e8899516908d">
         <source xml:lang="en">Hide this panel</source>
@@ -1784,7 +1784,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b993796f53424becc0d08d41a72c0c3381ee7691cc518bc8bdccc8d4013ad4ef">
         <source xml:lang="en">List Databases</source>
-        <target state="new">List Databases</target>
+        <target state="translated">列出資料庫</target>
       </trans-unit>
       <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
         <source xml:lang="en">List all connections registered with the mssql extension?</source>
@@ -1793,12 +1793,12 @@ Error:
       <trans-unit id="++CODE++abfc45dd4a240e3758d4d22759dd9fc99cc5e1d16aec7594708638c368bddb3d">
         <source xml:lang="en">List databases for connection '{0}'?</source>
         <note>{0} is the connection ID</note>
-        <target state="new">List databases for connection '{0}'?</target>
+        <target state="translated">列出連線 '{0}' 的資料庫？</target>
       </trans-unit>
       <trans-unit id="++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5">
         <source xml:lang="en">Listing databases for connection '{0}'</source>
         <note>{0} is the connection ID</note>
-        <target state="new">Listing databases for connection '{0}'</target>
+        <target state="translated">正在列出連線 '{0}' 的資料庫</target>
       </trans-unit>
       <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
         <source xml:lang="en">Listing server connections</source>
@@ -2799,7 +2799,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
         <source xml:lang="en">Show password</source>
-        <target state="new">Show password</target>
+        <target state="translated">顯示密碼</target>
       </trans-unit>
       <trans-unit id="++CODE++523fa7449e8252600e65c811dcd62983315d0f9f528741627033a45754f591cf">
         <source xml:lang="en">Show schema for connection '{0}'?</source>
@@ -2944,7 +2944,7 @@ Error:
       <trans-unit id="++CODE++2e71037756b80741dc7aff95ef179d5a25c08df7a40cd7b16af9a5edb6f64047">
         <source xml:lang="en">Successfully changed to database: {0}</source>
         <note>{0} is the database name</note>
-        <target state="new">Successfully changed to database: {0}</target>
+        <target state="translated">已成功變更為資料庫: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fbd52c8b91de95b69593d008ca2108476ccb1ea5a45657b3393d878499e3fe1f">
         <source xml:lang="en">Successfully connected to server.</source>
@@ -3206,6 +3206,11 @@ Error:
       <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
         <source xml:lang="en">Undo</source>
         <target state="translated">復原</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
+        <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
+        <note>{0} is the architecture name of the machine</note>
+        <target state="new">Unsupported architecture for Docker: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
         <source xml:lang="en">Unsupported platform for Docker: {0}</source>
