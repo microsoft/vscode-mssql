@@ -220,6 +220,7 @@
   "Sign into Azure in order to add a firewall rule.": "Sign into Azure in order to add a firewall rule.",
   "Sign into Azure": "Sign into Azure",
   "Azure Account": "Azure Account",
+  "+ Add Azure Account": "+ Add Azure Account",
   "Tenant": "Tenant",
   "Rule name": "Rule name",
   "Add my client IP ({0})/{0} is the IP address of the client": {
