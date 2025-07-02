@@ -138,7 +138,7 @@ const template = `
                 <tr id='executionSpinner' *ngIf="!complete">
                     <td><span *ngIf="messages.length === 0">[{{startString}}]</span></td>
                     <td>
-                        <img src="oldViews/htmlcontent/src/images/progress_36x_animation.gif" height="18px" />
+                        <img src="extension/oldViews/htmlcontent/src/images/progress_36x_animation.gif" height="18px" />
                         <span style="vertical-align: bottom">{{Constants.executeQueryLabel}}</span>
                     </td>
                 </tr>

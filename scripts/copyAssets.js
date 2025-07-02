@@ -69,6 +69,12 @@ function copyAllFiles() {
         'out/src/extension/controllers'
     );
 
+    // Copy systemjs.config.js for old views
+    copyFiles(
+        'src/extension/oldviews/htmlcontent/systemjs.config.js',
+        'out/src/extension/oldViews/htmlcontent'
+    );
+
     // Copy configuration file
     copyFiles(
         'src/extension/configurations/config.json',
@@ -147,6 +153,8 @@ function copyAllFiles() {
         'node_modules/slickgrid/lib/jquery-1.8.3.js',
         'node_modules/slickgrid/lib/jquery.event.drag-2.2.js',
         'node_modules/slickgrid/lib/jquery-ui-1.9.2.js',
+        'node_modules/slickgrid/lib/slick.autosizecolumn.js',
+        'node_modules/slickgrid/lib/slick.dragrowselector.js',
         'node_modules/underscore/underscore-min.js',
         'node_modules/slickgrid/slick.core.js',
         'node_modules/slickgrid/slick.grid.js',
