@@ -93,20 +93,20 @@ export class VsCodeAzureHelper {
 
     /**
      * Prompts the user to sign in to Azure if they are not already signed in
-     * @param forceSignInPrompt - If true, the user will be prompted, even if they are already signed in to an account.
-     * @returns auth object if the user signs in or is already signed in, undefined if the user cancels sign-in.
+     * @param forceSignInPrompt - If true, the user will be prompted, even if they are already signed in to an account. Defaults to false.
+     * @returns auth object if the user signs in or is already signed in.
+     * @throws Error if the sign-in is canceled or fails.
      */
     public static async signIn(
         forceSignInPrompt: boolean = false,
-    ): Promise<MssqlVSCodeAzureSubscriptionProvider | undefined> {
+    ): Promise<MssqlVSCodeAzureSubscriptionProvider> {
         const auth: MssqlVSCodeAzureSubscriptionProvider =
             MssqlVSCodeAzureSubscriptionProvider.getInstance();
 
         if (forceSignInPrompt || !(await auth.isSignedIn())) {
             const result = await auth.signIn();
-
             if (!result) {
-                return undefined;
+                throw new Error("Azure sign-in was canceled or failed.");
             }
         }
 

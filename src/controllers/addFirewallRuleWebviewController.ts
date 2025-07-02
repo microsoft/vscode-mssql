@@ -16,6 +16,7 @@ import { Deferred } from "../protocol";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as Loc from "../constants/locConstants";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 
 /**
  * Controller for the Add Firewall Rule dialog
@@ -160,13 +161,15 @@ export async function populateAzureAccountInfo(
     state: AddFirewallRuleState,
     forceSignInPrompt: boolean,
 ): Promise<void> {
-    const auth = await VsCodeAzureHelper.signIn(forceSignInPrompt);
+    let auth: MssqlVSCodeAzureSubscriptionProvider;
 
-    if (!auth) {
-        const errorMessage = Loc.Azure.azureSignInFailedOrWasCancelled;
-
-        this.logger.error(errorMessage);
-        this.vscodeWrapper.showErrorMessage(errorMessage);
+    try {
+        auth = await VsCodeAzureHelper.signIn(forceSignInPrompt);
+    } catch (error) {
+        this.logger.error(`Error signing into Azure: ${getErrorMessage(error)}`);
+        this.vscodeWrapper.showErrorMessage(
+            Loc.Azure.errorSigningIntoAzure(getErrorMessage(error)),
+        );
 
         return;
     }

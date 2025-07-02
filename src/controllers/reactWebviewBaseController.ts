@@ -65,7 +65,7 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
 
         if (webview) {
             const disposable = this._webview.onDidReceiveMessage((event) => {
-                this.logger.verbose("Message received from webview", event);
+                // this.logger.verbose("Message received from webview");
                 const { method, error } = event as any;
                 sendActionEvent(
                     TelemetryViews.WebviewController,
@@ -98,7 +98,7 @@ class WebviewControllerMessageWriter extends AbstractMessageWriter implements Me
     }
     write(msg: Message): Promise<void> {
         if (this._webview) {
-            this.logger.verbose("Sending message to webview", msg);
+            // this.logger.verbose("Sending message to webview");
             this._webview.postMessage(msg);
             const { method, error } = msg as any;
             sendActionEvent(TelemetryViews.WebviewController, TelemetryActions.SentToWebview, {

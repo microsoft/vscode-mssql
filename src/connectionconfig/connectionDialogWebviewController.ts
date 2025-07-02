@@ -32,6 +32,7 @@ import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form"
 import {
     ConnectionDialog as Loc,
     Common as LocCommon,
+    Azure as LocAzure,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
@@ -73,6 +74,7 @@ import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
 import { createConnectionGroupFromSpec } from "../controllers/connectionGroupWebviewController";
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
+import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -234,6 +236,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerReducer("setConnectionInputType", async (state, payload) => {
             this.state.selectedInputMode = payload.inputMode;
             await this.updateItemVisibility();
+            state.formError = "";
             this.updateState();
 
             if (this.state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
@@ -541,6 +544,26 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 (state.dialog as AddFirewallRuleDialogProps).props,
                 true /* forceSignInPrompt */,
             );
+
+            return state;
+        });
+
+        this.registerReducer("signIntoAzureForBrowse", async (state) => {
+            if (state.selectedInputMode !== ConnectionInputMode.AzureBrowse) {
+                return state;
+            }
+
+            try {
+                await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
+            } catch (error) {
+                this.logger.error("Error signing into Azure: " + getErrorMessage(error));
+                state.formError = LocAzure.errorSigningIntoAzure(getErrorMessage(error));
+
+                return state;
+            }
+
+            state.isAzureSignedIn = true;
+            await this.loadAllAzureServers(state);
 
             return state;
         });
@@ -1184,15 +1207,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async loadAzureSubscriptions(
         state: ConnectionDialogWebviewState,
     ): Promise<Map<string, AzureSubscription[]> | undefined> {
-        let endActivity: ActivityObject;
+        let telemActivity: ActivityObject;
         try {
-            const auth = await VsCodeAzureHelper.signIn();
-
-            if (!auth) {
-                state.formError = l10n.t("Azure sign in failed.");
+            let auth: MssqlVSCodeAzureSubscriptionProvider;
+            try {
+                auth = await VsCodeAzureHelper.signIn();
+            } catch (error) {
+                state.formError = LocAzure.errorSigningIntoAzure(getErrorMessage(error));
                 return undefined;
             }
 
+            state.formError = "";
+            state.isAzureSignedIn = true;
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
             this.updateState();
 
@@ -1203,7 +1229,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     .getConfiguration()
                     .get<string[] | undefined>(configSelectedAzureSubscriptions) !== undefined;
 
-            endActivity = startActivity(
+            telemActivity = startActivity(
                 TelemetryViews.ConnectionDialog,
                 TelemetryActions.LoadAzureSubscriptions,
             );
@@ -1231,7 +1257,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.azureSubscriptions = subs;
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loaded;
 
-            endActivity.end(
+            telemActivity.end(
                 ActivityStatus.Succeeded,
                 undefined, // additionalProperties
                 {
@@ -1244,8 +1270,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         } catch (error) {
             state.formError = l10n.t("Error loading Azure subscriptions.");
             state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
-            console.error(state.formError + "\n" + getErrorMessage(error));
-            endActivity.endFailed(error, false);
+            this.logger.error(state.formError + "\n" + getErrorMessage(error));
+            telemActivity?.endFailed(error, false);
             return undefined;
         }
     }

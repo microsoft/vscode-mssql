@@ -168,7 +168,7 @@ export const AddFirewallRuleDialog = ({
                                     onClick={() => {
                                         signIntoAzure();
                                     }}>
-                                    {Loc.firewallRules.signIntoAzure}
+                                    {Loc.azure.signIntoAzure}
                                 </Link>
                             </>
                         )}
@@ -177,17 +177,17 @@ export const AddFirewallRuleDialog = ({
                                 {state.accounts.length > 0 && (
                                     <>
                                         <Field
-                                            label={Loc.firewallRules.azureAccount}
+                                            label={Loc.azure.azureAccount}
                                             className={formStyles.formComponentDiv}>
                                             <Dropdown
                                                 value={selectedAccountDisplayText}
                                                 selectedOptions={[selectedAccountId]}
                                                 onOptionSelect={onAccountOptionSelect}>
                                                 <Option
-                                                    text={Loc.firewallRules.addAzureAccount}
+                                                    text={Loc.azure.addAzureAccount}
                                                     key={addNewAzureAccount}
                                                     value={addNewAzureAccount}>
-                                                    {Loc.firewallRules.addAzureAccount}
+                                                    {Loc.azure.addAzureAccount}
                                                 </Option>
                                                 {state.accounts.map((account) => {
                                                     return (
