@@ -27,7 +27,7 @@ export default [
         ignores: [
             ...(includeIgnoreFile(gitignorePath).ignores || []),
             "src/views/**/*",
-            "src/prompts/**/*.ts", // Ignore prompts files as they are copied from other repos
+            "src/extension/prompts/**/*.ts", // Ignore prompts files as they are copied from other repos
             "**/out/**/*",
         ],
         languageOptions: {
