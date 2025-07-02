@@ -28,6 +28,7 @@ import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureS
 import { configSelectedAzureSubscriptions } from "../constants/constants";
 import { Logger } from "../models/logger";
 import { IMssqlAzureSubscription } from "../sharedInterfaces/azureAccountManagement";
+import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 
@@ -196,7 +197,7 @@ export async function promptForAzureSubscriptionFilter(
     }
 }
 
-export interface SubscriptionPickItem extends vscode.QuickPickItem {
+export interface SubscriptionPickItem extends MssqlQuickPickItem {
     tenantId: string;
     subscriptionId: string;
 }
@@ -216,15 +217,17 @@ export async function getSubscriptionQuickPickItems(
     const quickPickItems: SubscriptionPickItem[] = allSubs
         .map((sub) => {
             return {
-                label: `${sub.name} (${sub.subscriptionId})`,
+                label: sub.name,
+                description: sub.subscriptionId,
                 tenantId: sub.tenantId,
                 subscriptionId: sub.subscriptionId,
                 picked: prevSelectedSubs ? prevSelectedSubs.includes(sub.subscriptionId) : true,
+                group: sub.account.label,
             };
         })
         .sort((a, b) => a.label.localeCompare(b.label));
 
-    return quickPickItems;
+    return groupQuickPickItems(quickPickItems);
 }
 
 const serverResourceType = "Microsoft.Sql/servers";

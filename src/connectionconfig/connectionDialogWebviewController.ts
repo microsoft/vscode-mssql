@@ -51,7 +51,7 @@ import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getConnectionDisplayName } from "../models/connectionInfo";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, groupBy } from "../utils/utils";
 import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
@@ -240,7 +240,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.formError = "";
             this.updateState();
 
-            if (this.state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
+            if (
+                state.selectedInputMode === ConnectionInputMode.AzureBrowse &&
+                state.loadingAzureSubscriptionsStatus === ApiStatus.NotStarted &&
+                state.loadingAzureServersStatus === ApiStatus.NotStarted
+            ) {
                 await this.loadAllAzureServers(state);
             }
 
@@ -1168,10 +1172,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this._azureSubscriptions = new Map(
                 (await auth.getSubscriptions(shouldUseFilter)).map((s) => [s.subscriptionId, s]),
             );
-            const tenantSubMap = this.groupBy<string, AzureSubscription>(
+            const tenantSubMap = groupBy<string, AzureSubscription>(
                 Array.from(this._azureSubscriptions.values()),
                 "tenantId",
-            ); // TODO: replace with Object.groupBy once ES2024 is supported
+            );
 
             const subs: AzureSubscriptionInfo[] = [];
 
@@ -1303,17 +1307,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         )) {
             component.validation = undefined;
         }
-    }
-
-    private groupBy<K, V>(values: V[], key: keyof V): Map<K, V[]> {
-        return values.reduce((rv, x) => {
-            const keyValue = x[key] as K;
-            if (!rv.has(keyValue)) {
-                rv.set(keyValue, []);
-            }
-            rv.get(keyValue)!.push(x);
-            return rv;
-        }, new Map<K, V[]>());
     }
 
     private async hydrateConnectionDetailsFromProfile(
