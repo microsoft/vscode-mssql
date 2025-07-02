@@ -1107,6 +1107,11 @@
                 "category": "MSSQL"
             },
             {
+                "command": "mssql.manageAzureAccounts",
+                "title": "%mssql.manageAzureAccounts%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.connectionGroups.create",
                 "title": "%mssql.connectionGroups.create%",
                 "category": "MSSQL",

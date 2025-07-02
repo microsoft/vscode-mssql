@@ -13,6 +13,9 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
+    <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
+      <source xml:lang="en">+ Add Azure Account</source>
+    </trans-unit>
     <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
       <source xml:lang="en">+ Create Connection Group</source>
     </trans-unit>
@@ -228,9 +231,6 @@
     </trans-unit>
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++bcfba23612af01d6083c1cbc352807182aa4a2a08665615d5e75206766e035c0">
-      <source xml:lang="en">Azure sign-in failed or was cancelled.</source>
     </trans-unit>
     <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
       <source xml:lang="en">Azure token cache cleared successfully.</source>
@@ -956,6 +956,10 @@
     </trans-unit>
     <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
       <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7c03518af7ea8058b9f5444011cc402ee48c86c765dfd6ba8e5ce09ed8d836ca">
+      <source xml:lang="en">Error signing into Azure: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
       <source xml:lang="en">Error when refreshing token</source>
@@ -2163,6 +2167,9 @@
     <trans-unit id="++CODE++cdc182077e173c86c2831fe9995d41691b9bc1182fe44519a292ea2b814eb17a">
       <source xml:lang="en">Sign into Azure in order to add a firewall rule.</source>
     </trans-unit>
+    <trans-unit id="++CODE++09bc69a7f968b1fe9747e82bfacd98d0ba1bafe8a797af192dc3670ebd8397b1">
+      <source xml:lang="en">Sign into Azure in order to browse SQL databases.</source>
+    </trans-unit>
     <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
       <source xml:lang="en">Signing in to Azure...</source>
     </trans-unit>
@@ -2955,6 +2962,9 @@
     </trans-unit>
     <trans-unit id="mssql.manageProfiles">
       <source xml:lang="en">Manage Connection Profiles</source>
+    </trans-unit>
+    <trans-unit id="mssql.manageAzureAccounts">
+      <source xml:lang="en">Manage Microsoft Entra Accounts</source>
     </trans-unit>
     <trans-unit id="mssql.query.maxXmlCharsToStore">
       <source xml:lang="en">Maximum number of characters to store for each value in XML columns after running a query. Default value: 2,097,152. Valid value range: 1 to 2,147,483,647.</source>

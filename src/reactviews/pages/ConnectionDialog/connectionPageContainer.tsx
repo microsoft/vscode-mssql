@@ -186,6 +186,14 @@ export const ConnectionInfoFormContainer = () => {
                                             style={{ marginRight: "8px" }}
                                         />
                                         {locConstants.connectionDialog.browseAzure}
+                                        <span style={{ margin: "0 8px" }} />
+                                        <Link
+                                            onClick={() => {
+                                                context.signIntoAzureForBrowse();
+                                            }}
+                                            inline>
+                                            {locConstants.azure.signIntoAzure}
+                                        </Link>
                                     </div>
                                 }
                             />

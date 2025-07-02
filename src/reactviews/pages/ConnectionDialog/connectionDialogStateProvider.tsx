@@ -26,87 +26,93 @@ interface ConnectionDialogProviderProps {
 }
 
 const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = ({ children }) => {
-    const webviewState = useVscodeWebview<ConnectionDialogWebviewState, ConnectionDialogReducers>();
-    const connectionDialogState = webviewState?.state;
+    const webviewContext = useVscodeWebview<
+        ConnectionDialogWebviewState,
+        ConnectionDialogReducers
+    >();
+    const state = webviewContext?.state;
     return (
         <ConnectionDialogContext.Provider
             value={{
-                state: connectionDialogState,
-                themeKind: webviewState?.themeKind,
-                ...getCoreRPCs(webviewState),
+                state: state,
+                themeKind: webviewContext?.themeKind,
+                ...getCoreRPCs(webviewContext),
                 loadConnection: function (connection: IConnectionDialogProfile): void {
-                    webviewState?.extensionRpc.action("loadConnection", {
+                    webviewContext?.extensionRpc.action("loadConnection", {
                         connection: connection,
                     });
                 },
                 formAction: function (event): void {
-                    webviewState?.extensionRpc.action("formAction", {
+                    webviewContext?.extensionRpc.action("formAction", {
                         event: event,
                     });
                 },
                 setConnectionInputType: function (inputMode: ConnectionInputMode): void {
-                    webviewState?.extensionRpc.action("setConnectionInputType", {
+                    webviewContext?.extensionRpc.action("setConnectionInputType", {
                         inputMode: inputMode,
                     });
                 },
                 connect: function (): void {
-                    webviewState?.extensionRpc.action("connect");
+                    webviewContext?.extensionRpc.action("connect");
                 },
                 loadAzureServers: function (subscriptionId: string): void {
-                    webviewState?.extensionRpc.action("loadAzureServers", {
+                    webviewContext?.extensionRpc.action("loadAzureServers", {
                         subscriptionId: subscriptionId,
                     });
                 },
                 addFirewallRule: function (firewallRuleSpec: FirewallRuleSpec): void {
-                    webviewState?.extensionRpc.action("addFirewallRule", {
+                    webviewContext?.extensionRpc.action("addFirewallRule", {
                         firewallRuleSpec,
                     });
                 },
                 createConnectionGroup: function (connectionGroupSpec: ConnectionGroupSpec): void {
-                    webviewState.extensionRpc.action("createConnectionGroup", {
+                    webviewContext.extensionRpc.action("createConnectionGroup", {
                         connectionGroupSpec,
                     });
                 },
                 openCreateConnectionGroupDialog: function (): void {
-                    webviewState.extensionRpc.action("openCreateConnectionGroupDialog");
+                    webviewContext.extensionRpc.action("openCreateConnectionGroupDialog");
                 },
                 closeDialog: function (): void {
-                    webviewState?.extensionRpc.action("closeDialog");
+                    webviewContext?.extensionRpc.action("closeDialog");
                 },
                 filterAzureSubscriptions: function (): void {
-                    webviewState.extensionRpc.action("filterAzureSubscriptions");
+                    webviewContext.extensionRpc.action("filterAzureSubscriptions");
                 },
                 refreshConnectionsList: function (): void {
-                    webviewState.extensionRpc.action("refreshConnectionsList");
+                    webviewContext.extensionRpc.action("refreshConnectionsList");
                 },
                 deleteSavedConnection: function (connection: IConnectionDialogProfile): void {
-                    webviewState.extensionRpc.action("deleteSavedConnection", {
+                    webviewContext.extensionRpc.action("deleteSavedConnection", {
                         connection: connection,
                     });
                 },
                 removeRecentConnection: function (connection: IConnectionDialogProfile): void {
-                    webviewState.extensionRpc.action("removeRecentConnection", {
+                    webviewContext.extensionRpc.action("removeRecentConnection", {
                         connection: connection,
                     });
                 },
                 loadFromConnectionString: function (connectionString: string): void {
-                    webviewState.extensionRpc.action("loadFromConnectionString", {
+                    webviewContext.extensionRpc.action("loadFromConnectionString", {
                         connectionString: connectionString,
                     });
                 },
                 openConnectionStringDialog: function (): void {
-                    webviewState.extensionRpc.action("openConnectionStringDialog");
+                    webviewContext.extensionRpc.action("openConnectionStringDialog");
                 },
                 getConnectionDisplayName: async function (
                     connectionProfile: IConnectionDialogProfile,
                 ): Promise<string> {
-                    return await webviewState.extensionRpc.sendRequest(
+                    return await webviewContext.extensionRpc.sendRequest(
                         GetConnectionDisplayNameRequest.type,
                         connectionProfile,
                     );
                 },
                 signIntoAzureForFirewallRule: function (): void {
-                    webviewState.extensionRpc.action("signIntoAzureForFirewallRule");
+                    webviewContext.extensionRpc.action("signIntoAzureForFirewallRule");
+                },
+                signIntoAzureForBrowse: function (): void {
+                    webviewContext.extensionRpc.action("signIntoAzureForBrowse");
                 },
             }}>
             {children}

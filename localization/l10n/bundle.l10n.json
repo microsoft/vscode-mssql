@@ -218,7 +218,6 @@
   "A firewall rule is required to access this server.": "A firewall rule is required to access this server.",
   "Add Firewall Rule": "Add Firewall Rule",
   "Sign into Azure in order to add a firewall rule.": "Sign into Azure in order to add a firewall rule.",
-  "Sign into Azure": "Sign into Azure",
   "Tenant": "Tenant",
   "Rule name": "Rule name",
   "Add my client IP ({0})/{0} is the IP address of the client": {
@@ -279,6 +278,10 @@
   "Paste connection string from clipboard": "Paste connection string from clipboard",
   "Paste": "Paste",
   "Search settings...": "Search settings...",
+  "Sign into Azure in order to browse SQL databases.": "Sign into Azure in order to browse SQL databases.",
+  "Sign into Azure": "Sign into Azure",
+  "Azure Account": "Azure Account",
+  "+ Add Azure Account": "+ Add Azure Account",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
@@ -1134,7 +1137,6 @@
     ]
   },
   "Connection Dialog": "Connection Dialog",
-  "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",
   "Save Password": "Save Password",
@@ -1179,7 +1181,12 @@
       "{0} is the server name"
     ]
   },
-  "Azure sign-in failed or was cancelled.": "Azure sign-in failed or was cancelled.",
+  "Error signing into Azure: {0}/{0} is the error message": {
+    "message": "Error signing into Azure: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
   "Error loading Azure account information for tenant ID '{0}'/{0} is the tenant ID": {
     "message": "Error loading Azure account information for tenant ID '{0}'",
     "comment": [

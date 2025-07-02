@@ -360,6 +360,10 @@ export default class SqlToolsServiceClient {
                 : Constants.unixResourceClientPath;
             let resourcePath = path.join(path.dirname(serverPath), executablePath);
             // See if the override path exists and has the resource client as well, and if so use that instead
+            if (overridePath === undefined) {
+                overridePath = env[STS_OVERRIDE_ENV_VAR];
+            }
+
             if (overridePath) {
                 const overrideDir = path.dirname(overridePath);
                 const resourceOverridePath = path.join(overrideDir, executablePath);
