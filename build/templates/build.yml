@@ -28,24 +28,19 @@ steps:
     displayName: Install extension depedencies
     workingDirectory: "$(Build.SourcesDirectory)"
 
-  - task: gulp@1
+  - pwsh: |
+      yarn build:prod
     displayName: Build extension
-    inputs:
-      targets: build
-      gulpFile: ${{ parameters.gulpfile }}
-      arguments: '--prod'
-    env:
-      BUILDMACHINE: true
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
       yarn lint
     displayName: Lint code
     workingDirectory: "$(Build.SourcesDirectory)"
 
-
   - pwsh: |
       yarn test:unit
-    displayName: Run tests
+    displayName: Run unit tests
     workingDirectory: "$(Build.SourcesDirectory)"
 
   - task: PublishTestResults@2
