@@ -7,7 +7,7 @@ import path from "path";
 import fs from "fs";
 import { FrameLocator } from "@playwright/test";
 
-const istanbulCLIOutput = path.join(process.cwd(), "coverage", "reactviews-coverage");
+const istanbulCLIOutput = path.join(process.cwd(), "coverage", "views-coverage");
 
 export async function writeCoverage(iframe: FrameLocator, testname: string) {
     // Get the HTML evaluate of the iframe

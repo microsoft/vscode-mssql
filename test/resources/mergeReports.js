@@ -44,7 +44,7 @@ async function mergeCoverage(e2eFile, unitFile) {
     const reactPackageElement = e2eRoot.packages[0].package[0];
 
     if (packages && reactPackageElement) {
-      reactPackageElement["$"]["name"] = "src.reactviews.pages"; // Update the name attribute
+      reactPackageElement["$"]["name"] = "src.views.pages"; // Update the name attribute
       packages.push(reactPackageElement); // Append the updated package element
     }
 

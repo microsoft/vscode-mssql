@@ -30,7 +30,7 @@
                     "background": {
                         "activeOnStart": true,
                         "beginsPattern": "Starting 'watch'...",
-                        "endsPattern": "Starting 'watch-reactviews'..."
+                        "endsPattern": "Starting 'watch-views'..."
                     }
                 }
             ],

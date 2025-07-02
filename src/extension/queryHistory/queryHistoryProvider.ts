@@ -14,10 +14,10 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Constants from "../constants/constants";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { Deferred } from "../protocol";
-import StatusView from "../views/statusView";
+import StatusView from "../../oldViews/statusView";
 import { IConnectionProfile } from "../models/interfaces";
 import { IPrompter } from "../prompts/question";
-import { QueryHistoryUI, QueryHistoryAction } from "../views/queryHistoryUI";
+import { QueryHistoryUI, QueryHistoryAction } from "../../oldViews/queryHistoryUI";
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<

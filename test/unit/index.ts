@@ -52,7 +52,7 @@ export async function run(): Promise<void> {
             "**/libs/**",
             "**/lib/**",
             "**/htmlcontent/**/*.js",
-            "**/reactviews/**/*.js",
+            "**/views/**/*.js",
             "**/*.bundle.js",
         ],
         tempDir: "./coverage/.nyc_output",

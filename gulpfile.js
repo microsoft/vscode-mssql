@@ -152,7 +152,7 @@ gulp.task('ext:compile-src', (done) => {
 		config.paths.project.root + '/src/**/*.ts',
 		config.paths.project.root + '/src/**/*.js',
 		config.paths.project.root + '/typings/**/*.d.ts',
-		'!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
+		'!' + config.paths.project.root + '/src/oldViews/htmlcontent/**/*'])
 		.pipe(srcmap.init())
 		.pipe(tsProject())
 		.on('error', function () {
@@ -168,12 +168,12 @@ gulp.task('ext:compile-src', (done) => {
 // Compile angular view
 gulp.task('ext:compile-view', (done) => {
 return gulp.src([
-		config.paths.project.root + '/src/views/htmlcontent/**/*.ts',
+		config.paths.project.root + '/src/oldViews/htmlcontent/**/*.ts',
 		config.paths.project.root + '/typings/**/*.d.ts'])
 		.pipe(srcmap.init())
 		.pipe(tsProject())
 		.pipe(srcmap.write('.', { includeContent: false, sourceRoot: '../src' }))
-		.pipe(gulp.dest('out/src/views/htmlcontent'));
+		.pipe(gulp.dest('out/src/oldViews/htmlcontent'));
 });
 
 async function generateReactWebviewsBundle() {
@@ -183,20 +183,20 @@ async function generateReactWebviewsBundle() {
 		 * for each entry point, to be used by the webview's HTML content.
 		 */
 		entryPoints: {
-			'addFirewallRule': 'src/reactviews/pages/AddFirewallRule/index.tsx',
-			'connectionDialog': 'src/reactviews/pages/ConnectionDialog/index.tsx',
-			'connectionGroup': 'src/reactviews/pages/ConnectionGroup/index.tsx',
-			'containerDeployment': 'src/reactviews/pages/ContainerDeployment/index.tsx',
-			'executionPlan': 'src/reactviews/pages/ExecutionPlan/index.tsx',
-			'tableDesigner': 'src/reactviews/pages/TableDesigner/index.tsx',
-			'objectExplorerFilter': 'src/reactviews/pages/ObjectExplorerFilter/index.tsx',
-			'queryResult': 'src/reactviews/pages/QueryResult/index.tsx',
-			'userSurvey': 'src/reactviews/pages/UserSurvey/index.tsx',
-			'schemaDesigner': 'src/reactviews/pages/SchemaDesigner/index.tsx',
-			'schemaCompare': 'src/reactviews/pages/SchemaCompare/index.tsx',
+			'addFirewallRule': 'src/views/pages/AddFirewallRule/index.tsx',
+			'connectionDialog': 'src/views/pages/ConnectionDialog/index.tsx',
+			'connectionGroup': 'src/views/pages/ConnectionGroup/index.tsx',
+			'containerDeployment': 'src/views/pages/ContainerDeployment/index.tsx',
+			'executionPlan': 'src/views/pages/ExecutionPlan/index.tsx',
+			'tableDesigner': 'src/views/pages/TableDesigner/index.tsx',
+			'objectExplorerFilter': 'src/views/pages/ObjectExplorerFilter/index.tsx',
+			'queryResult': 'src/views/pages/QueryResult/index.tsx',
+			'userSurvey': 'src/views/pages/UserSurvey/index.tsx',
+			'schemaDesigner': 'src/views/pages/SchemaDesigner/index.tsx',
+			'schemaCompare': 'src/views/pages/SchemaCompare/index.tsx',
 		},
 		bundle: true,
-		outdir: 'out/src/reactviews/assets',
+		outdir: 'out/src/views/assets',
 		platform: 'browser',
 		loader: {
 			'.tsx': 'tsx',
@@ -237,7 +237,7 @@ async function generateReactWebviewsBundle() {
 }
 
 // Compile react views
-gulp.task('ext:compile-reactviews',
+gulp.task('ext:compile-views',
 	gulp.series(generateReactWebviewsBundle)
 );
 
@@ -245,8 +245,8 @@ gulp.task('ext:compile-reactviews',
 // Copy systemjs config file
 gulp.task('ext:copy-systemjs-config', (done) => {
 	return gulp.src([
-		config.paths.project.root + '/src/views/htmlcontent/*.js'])
-		.pipe(gulp.dest('out/src/views/htmlcontent'));
+		config.paths.project.root + '/src/oldViews/htmlcontent/*.js'])
+		.pipe(gulp.dest('out/src/oldViews/htmlcontent'));
 });
 
 // Copy html
@@ -259,15 +259,15 @@ gulp.task('ext:copy-html', (done) => {
 // Copy css
 gulp.task('ext:copy-css', (done) => {
 	return gulp.src([
-		config.paths.project.root + '/src/views/htmlcontent/src/css/*.css'])
-		.pipe(gulp.dest('out/src/views/htmlcontent/src/css'));
+		config.paths.project.root + '/src/oldViews/htmlcontent/src/css/*.css'])
+		.pipe(gulp.dest('out/src/oldViews/htmlcontent/src/css'));
 });
 
 // Copy images
 gulp.task('ext:copy-images', (done) => {
 	return gulp.src([
-		config.paths.project.root + '/src/views/htmlcontent/src/images/**/*'])
-		.pipe(gulp.dest('out/src/views/htmlcontent/src/images'));
+		config.paths.project.root + '/src/oldViews/htmlcontent/src/images/**/*'])
+		.pipe(gulp.dest('out/src/oldViews/htmlcontent/src/images'));
 });
 
 // Clean angular slickgrid library
@@ -280,10 +280,10 @@ gulp.task('ext:clean-library-ts-files', function () {
 // system.config.js can also bundled for convenience
 gulp.task('ext:copy-dependencies', (done) => {
 	gulp.src([config.paths.project.root + '/node_modules/rxjs/**/*'])
-		.pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/rxjs'));
+		.pipe(gulp.dest('out/src/oldViews/htmlcontent/src/js/lib/rxjs'));
 
 	gulp.src([config.paths.project.root + '/node_modules/angular-in-memory-web-api/**/*'])
-		.pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/angular-in-memory-web-api'));
+		.pipe(gulp.dest('out/src/oldViews/htmlcontent/src/js/lib/angular-in-memory-web-api'));
 
 	// concatenate non-angular2 libs, shims & systemjs-config
 	if (min) {
@@ -301,11 +301,11 @@ gulp.task('ext:copy-dependencies', (done) => {
 			config.paths.project.root + '/node_modules/rangy/lib/rangy-textrange.js',
 			config.paths.project.root + '/node_modules/reflect-metadata/Reflect.js',
 			config.paths.project.root + '/node_modules/systemjs/dist/system.src.js',
-			config.paths.project.root + '/src/views/htmlcontent/systemjs.config.js'
+			config.paths.project.root + '/src/oldViews/htmlcontent/systemjs.config.js'
 		])
 			.pipe(concat('vendors.min.js'))
 			.pipe(minifier({}, uglifyjs))
-			.pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib'));
+			.pipe(gulp.dest('out/src/oldViews/htmlcontent/src/js/lib'));
 	} else {
 		gulp.src([
 			config.paths.project.root + '/node_modules/slickgrid/lib/jquery-1.8.3.js',
@@ -320,12 +320,12 @@ gulp.task('ext:copy-dependencies', (done) => {
 			config.paths.project.root + '/node_modules/rangy/lib/rangy-textrange.js',
 			config.paths.project.root + '/node_modules/reflect-metadata/Reflect.js',
 			config.paths.project.root + '/node_modules/systemjs/dist/system.src.js',
-			config.paths.project.root + '/src/views/htmlcontent/systemjs.config.js'
+			config.paths.project.root + '/src/oldViews/htmlcontent/systemjs.config.js'
 		])
-			.pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib'));
+			.pipe(gulp.dest('out/src/oldViews/htmlcontent/src/js/lib'));
 
 		gulp.src([config.paths.project.root + '/node_modules/zone.js/**/*'])
-			.pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/zone.js'));
+			.pipe(gulp.dest('out/src/oldViews/htmlcontent/src/js/lib/zone.js'));
 	}
 
 	// copy source maps
@@ -334,19 +334,19 @@ gulp.task('ext:copy-dependencies', (done) => {
 		config.paths.project.root + '/node_modules/reflect-metadata/Reflect.js.map',
 		config.paths.project.root + '/node_modules/systemjs/dist/system-polyfills.js.map',
 		config.paths.project.root + '/node_modules/systemjs-plugin-json/json.js'
-	]).pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib'));
+	]).pipe(gulp.dest('out/src/oldViews/htmlcontent/src/js/lib'));
 
 	gulp.src([
 		config.paths.project.root + '/node_modules/angular2-slickgrid/out/css/SlickGrid.css',
 		config.paths.project.root + '/node_modules/slickgrid/slick.grid.css'
-	]).pipe(gulp.dest('out/src/views/htmlcontent/src/css'));
+	]).pipe(gulp.dest('out/src/oldViews/htmlcontent/src/css'));
 
 	gulp.src([
 		config.paths.project.root + '/node_modules/angular2-slickgrid/out/**/*.js'
 	], { base: config.paths.project.root + '/node_modules/angular2-slickgrid' }).pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/angular2-slickgrid'));
 
 	return gulp.src([config.paths.project.root + '/node_modules/@angular/**/*'])
-		.pipe(gulp.dest('out/src/views/htmlcontent/src/js/lib/@angular'));
+		.pipe(gulp.dest('out/src/oldViews/htmlcontent/src/js/lib/@angular'));
 });
 
 // Compile tests
@@ -382,14 +382,14 @@ gulp.task('ext:copy-config', () => {
 gulp.task('ext:copy-js', () => {
 	return gulp.src([
 		config.paths.project.root + '/src/**/*.js',
-		'!' + config.paths.project.root + '/src/views/htmlcontent/**/*'])
+		'!' + config.paths.project.root + '/src/oldViews/htmlcontent/**/*'])
 		.pipe(gulp.dest(config.paths.project.root + '/out/src'))
 });
 
 // Copy the files which aren't used in compilation
 gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config', 'ext:copy-systemjs-config', 'ext:copy-dependencies', 'ext:copy-html', 'ext:copy-css', 'ext:copy-images'));
 
-gulp.task('ext:build', gulp.series('ext:generate-runtime-localization-files', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-reactviews')); // removed lint before copy
+gulp.task('ext:build', gulp.series('ext:generate-runtime-localization-files', 'ext:copy', 'ext:clean-library-ts-files', 'ext:compile', 'ext:compile-view', 'ext:compile-views')); // removed lint before copy
 
 gulp.task('ext:test', async () => {
 	let workspace = process.env['WORKSPACE'];
@@ -426,9 +426,9 @@ gulp.task('watch-tests', function () {
 	return gulp.watch('./test/**/*.ts', gulp.series('ext:compile-tests'))
 });
 
-gulp.task('watch-reactviews', function () {
-	return gulp.watch(['./src/reactviews/**/*', './typings/**/*', './src/sharedInterfaces/**/*'], gulp.series('ext:compile-reactviews'))
+gulp.task('watch-views', function () {
+	return gulp.watch(['./src/views/**/*', './typings/**/*', './src/shared/**/*'], gulp.series('ext:compile-views'))
 });
 
 // Do a full build first so we have the latest compiled files before we start watching for more changes
-gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-reactviews')));
+gulp.task('watch', gulp.series('build', gulp.parallel('watch-src', 'watch-tests', 'watch-views')));

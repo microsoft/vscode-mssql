@@ -6,8 +6,8 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 // eslint-disable-next-line custom-eslint-rules/banned-imports
-import { selectionSummaryHelper } from "../../src/reactviews/pages/QueryResult/table/plugins/cellSelectionModel.plugin";
-import { SelectionSummaryStats } from "../../src/sharedInterfaces/queryResult";
+import { selectionSummaryHelper } from "../../src/views/pages/QueryResult/table/plugins/cellSelectionModel.plugin";
+import { SelectionSummaryStats } from "../../src/shared/queryResult";
 
 suite("Query Result Selection Stats", () => {
     let sandbox: sinon.SinonSandbox;

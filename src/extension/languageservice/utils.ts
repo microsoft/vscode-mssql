@@ -8,7 +8,7 @@ import {
     DidChangeLanguageFlavorParams,
     LanguageFlavorChangedNotification,
 } from "../models/contracts/languageService";
-import StatusView from "../views/statusView";
+import StatusView from "../../oldViews/statusView";
 import SqlToolsServiceClient from "./serviceclient";
 
 export function changeLanguageServiceForFile(

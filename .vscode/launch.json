@@ -28,7 +28,7 @@
                 "pauseForSourceMap": true,
                 "sourceMapRenames": true,
                 "sourceMaps": true,
-                "webRoot": "${workspaceRoot}/src/reactviews"
+                "webRoot": "${workspaceRoot}/src/views"
             },
             "debugWebWorkerHost": true,
             "sourceMapRenames": true,

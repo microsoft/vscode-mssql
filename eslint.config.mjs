@@ -26,7 +26,7 @@ export default [
         files: ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts"],
         ignores: [
             ...(includeIgnoreFile(gitignorePath).ignores || []),
-            "src/views/**/*",
+            "src/oldViews/**/*",
             "src/extension/prompts/**/*.ts", // Ignore prompts files as they are copied from other repos
             "**/out/**/*",
         ],

@@ -95,8 +95,8 @@ jobs:
 
       - name: Calculate webview bundle sizes
         run: |
-          main_file=$(du -sk ./main/out/src/reactviews/assets | cut -f1)
-          pr_file=$(du -sk ./pr/out/src/reactviews/assets | cut -f1)
+          main_file=$(du -sk ./main/out/src/views/assets | cut -f1)
+          pr_file=$(du -sk ./pr/out/src/views/assets | cut -f1)
           echo "Main branch bundle size: $main_file KB"
           echo "PR branch bundle size: $pr_file KB"
           size_diff=$((pr_file - main_file))
@@ -165,9 +165,9 @@ jobs:
       - name: Build mappings for React Webviews
         run: |
           cd ./pr
-          gulp ext:compile-reactviews
+          gulp ext:compile-views
           cd ../main
-          gulp ext:compile-reactviews
+          gulp ext:compile-views
 
       - name: Setup environment for smoke tests
         run: |

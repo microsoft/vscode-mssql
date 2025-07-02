@@ -38,7 +38,7 @@ then rerun the instrumentation
 
 After the code is instrumented, run the tests using
 ```shell
-npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
+npx nyc --reporter=html --reporter=text-summary --include="src/views/pages/**/*.tsx" npx playwright test
 ```
 
 To pick up coverage data while testing, you have to run the instrumentation command every time you rebuild the project.
@@ -46,7 +46,7 @@ To pick up coverage data while testing, you have to run the instrumentation comm
 However, if you've only changed the tests, then you can run
 
 ```shell
-gulp ext:compile-tests; npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
+gulp ext:compile-tests; npx nyc --reporter=html --reporter=text-summary --include="src/views/pages/**/*.tsx" npx playwright test
 ```
 
 This will recompile your tests and run them for coverage.
