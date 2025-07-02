@@ -18,7 +18,7 @@ export interface AddFirewallRuleState {
     accounts: IMssqlAzureAccount[];
     /** Maps from account ID to list of tenants */
     tenants: Record<string, IMssqlAzureTenant[]>;
-    addFirewallRuleState: ApiStatus;
+    addFirewallRuleStatus: ApiStatus;
 }
 
 /**

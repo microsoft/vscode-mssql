@@ -48,6 +48,8 @@ const useStyles = makeStyles({
     },
 });
 
+const addNewAzureAccount = "##_addNewAzureAccount_##";
+
 export const AddFirewallRuleDialog = ({
     state,
     addFirewallRule,
@@ -113,13 +115,21 @@ export const AddFirewallRuleDialog = ({
     const [endIp, setEndIp] = useState(replaceLastOctet(state.clientIp, 255));
 
     const onAccountOptionSelect = (_: SelectionEvents, data: OptionOnSelectData) => {
+        if (data.optionValue === addNewAzureAccount) {
+            signIntoAzure();
+        }
+
         setSelectedAccountId(data.optionValue ?? "");
         setSelectedAccountDisplayText(data.optionText ?? "");
 
         const accountId = data.optionValue;
-        setSelectedTenantId(state.tenants[accountId]?.[0]?.tenantId ?? "");
+        setSelectedTenantId(accountId ? (state.tenants[accountId]?.[0]?.tenantId ?? "") : "");
         setTenantDisplayText(
-            state.tenants[accountId]?.[0] ? formatTenant(state.tenants[accountId][0]) : "",
+            accountId
+                ? state.tenants[accountId]?.[0]
+                    ? formatTenant(state.tenants[accountId][0])
+                    : ""
+                : "",
         );
     };
 
@@ -173,6 +183,12 @@ export const AddFirewallRuleDialog = ({
                                                 value={selectedAccountDisplayText}
                                                 selectedOptions={[selectedAccountId]}
                                                 onOptionSelect={onAccountOptionSelect}>
+                                                <Option
+                                                    text={Loc.firewallRules.addAzureAccount}
+                                                    key={addNewAzureAccount}
+                                                    value={addNewAzureAccount}>
+                                                    {Loc.firewallRules.addAzureAccount}
+                                                </Option>
                                                 {state.accounts.map((account) => {
                                                     return (
                                                         <Option
@@ -267,7 +283,10 @@ export const AddFirewallRuleDialog = ({
                             onClick={() => {
                                 addFirewallRule({
                                     name: ruleName,
-                                    tenantId: selectedTenantId,
+                                    azureAccountInfo: {
+                                        accountId: selectedAccountId,
+                                        tenantId: selectedTenantId,
+                                    },
                                     ip:
                                         ipSelectionMode === IpSelectionMode.SpecificIp
                                             ? state.clientIp
@@ -276,7 +295,7 @@ export const AddFirewallRuleDialog = ({
                             }}
                             disabled={!state.isSignedIn}
                             icon={
-                                state.addFirewallRuleState === ApiStatus.Loading ? (
+                                state.addFirewallRuleStatus === ApiStatus.Loading ? (
                                     <Spinner size="tiny" />
                                 ) : undefined
                             }>

@@ -34,35 +34,83 @@ export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscription
 //#region VS Code integration
 
 export class VsCodeAzureHelper {
-    static async getAccounts(): Promise<vscode.AuthenticationSessionAccountInformation[]> {
-        let accounts = Array.from(
-            await vscode.authentication.getAccounts(getConfiguredAuthProviderId()),
-        ).sort((a, b) => a.label.localeCompare(b.label));
+    public static async getAccounts(
+        onlyAllowedForExtension: boolean = true,
+    ): Promise<vscode.AuthenticationSessionAccountInformation[]> {
+        let accounts = [];
 
-        // Filter out accounts that have no tenants, which indicates that the user hasn't given MSSQL extension access to this account
-        const filteredAccounts = [];
-        for (const account of accounts) {
-            const tenantList =
-                await MssqlVSCodeAzureSubscriptionProvider.getInstance().getTenants(account);
-            if (tenantList.length > 0) {
-                filteredAccounts.push(account);
-            }
+        try {
+            accounts = Array.from(
+                await vscode.authentication.getAccounts(getConfiguredAuthProviderId()),
+            ).sort((a, b) => a.label.localeCompare(b.label));
+        } catch (error) {
+            console.error(`Error fetching accounts: ${getErrorMessage(error)}`);
         }
 
-        return filteredAccounts;
+        if (onlyAllowedForExtension) {
+            // Filter out accounts that throw when fetching tenants, which indicates that the user hasn't given the MSSQL extension access to this account
+            const filteredAccounts = [];
+            for (const account of accounts) {
+                try {
+                    await MssqlVSCodeAzureSubscriptionProvider.getInstance().getTenants(account);
+                    filteredAccounts.push(account);
+                } catch (error) {
+                    // no-op; failure to get tenants means that the account is not accessible by this extension
+                    console.error(
+                        `Error fetching tenants for ${account.label}: ${getErrorMessage(error)}`,
+                    );
+                }
+            }
+            return filteredAccounts;
+        } else {
+            return accounts;
+        }
     }
 
-    static async getAccount(
+    public static async getAccountById(
         accountId: string,
     ): Promise<vscode.AuthenticationSessionAccountInformation> {
         const accounts = await this.getAccounts();
         return accounts.find((a) => a.id === accountId);
     }
 
-    static async signIn(): Promise<boolean> {
+    public static async getAccountByName(
+        accountName: string,
+    ): Promise<vscode.AuthenticationSessionAccountInformation> {
+        const accounts = await this.getAccounts();
+        return accounts.find((a) => a.label === accountName);
+    }
+
+    /**
+     * Checks to see if the user is signed into VS Code with an Azure account
+     * @returns true if the user is signed in, false otherwise
+     */
+    public static async isSignedIn(): Promise<boolean> {
         const auth: MssqlVSCodeAzureSubscriptionProvider =
             MssqlVSCodeAzureSubscriptionProvider.getInstance();
-        return await auth.signIn();
+        return await auth.isSignedIn();
+    }
+
+    /**
+     * Prompts the user to sign in to Azure if they are not already signed in
+     * @param forceSignInPrompt - If true, the user will be prompted, even if they are already signed in to an account.
+     * @returns auth object if the user signs in or is already signed in, undefined if the user cancels sign-in.
+     */
+    public static async signIn(
+        forceSignInPrompt: boolean = false,
+    ): Promise<MssqlVSCodeAzureSubscriptionProvider | undefined> {
+        const auth: MssqlVSCodeAzureSubscriptionProvider =
+            MssqlVSCodeAzureSubscriptionProvider.getInstance();
+
+        if (forceSignInPrompt || !(await auth.isSignedIn())) {
+            const result = await auth.signIn();
+
+            if (!result) {
+                return undefined;
+            }
+        }
+
+        return auth;
     }
 
     /**
@@ -70,11 +118,11 @@ export class VsCodeAzureHelper {
      * @param account The account to get tenants for
      * @returns Array of tenant information
      */
-    static async getTenantsForAccount(
+    public static async getTenantsForAccount(
         account: vscode.AuthenticationSessionAccountInformation | string,
     ): Promise<AzureTenant[]> {
         try {
-            account = typeof account === "string" ? await this.getAccount(account) : account;
+            account = typeof account === "string" ? await this.getAccountById(account) : account;
 
             const auth: MssqlVSCodeAzureSubscriptionProvider =
                 MssqlVSCodeAzureSubscriptionProvider.getInstance();
@@ -92,7 +140,7 @@ export class VsCodeAzureHelper {
      * @param tenant The tenant to get subscriptions for
      * @returns Array of subscription information
      */
-    static async getSubscriptionsForTenant(
+    public static async getSubscriptionsForTenant(
         tenant: AzureTenant,
     ): Promise<IMssqlAzureSubscription[]> {
         const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
@@ -104,37 +152,6 @@ export class VsCodeAzureHelper {
             displayName: sub.name,
         }));
     }
-
-    /**
-     * Checks to see if the user is signed into VS Code with an Azure account
-     * @returns true if the user is signed in, false otherwise
-     */
-    static async isSignedIn(): Promise<boolean> {
-        const auth: MssqlVSCodeAzureSubscriptionProvider =
-            MssqlVSCodeAzureSubscriptionProvider.getInstance();
-        return await auth.isSignedIn();
-    }
-
-    /**
-     * Prompts the user to sign in to Azure if they are not already signed in
-     * @returns auth object if the user signs in or is already signed in, undefined if the user cancels sign-in.
-     */
-    static async confirmVscodeAzureSignin(): Promise<
-        MssqlVSCodeAzureSubscriptionProvider | undefined
-    > {
-        const auth: MssqlVSCodeAzureSubscriptionProvider =
-            MssqlVSCodeAzureSubscriptionProvider.getInstance();
-
-        if (!(await auth.isSignedIn())) {
-            const result = await auth.signIn();
-
-            if (!result) {
-                return undefined;
-            }
-        }
-
-        return auth;
-    }
 }
 
 /**
@@ -145,7 +162,7 @@ export async function promptForAzureSubscriptionFilter(
     logger: Logger,
 ): Promise<boolean> {
     try {
-        const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
+        const auth = await VsCodeAzureHelper.signIn();
 
         if (!auth) {
             state.formError = l10n.t("Azure sign in failed.");
@@ -356,16 +373,20 @@ export async function getTenants(
     }
 }
 
-export async function constructAzureAccountForTenant(
-    tenantId: string,
-): Promise<{ account: IAccount; tokenMappings: {} }> {
-    const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
+export async function constructAzureAccountForTenant(azureAccountInfo: {
+    accountId: string;
+    tenantId: string;
+}): Promise<{ account: IAccount; tokenMappings: {} }> {
+    const auth = await VsCodeAzureHelper.signIn();
+    const subs = await auth.getSubscriptions({
+        account: await VsCodeAzureHelper.getAccountById(azureAccountInfo.accountId),
+        tenantId: azureAccountInfo.tenantId,
+    });
 
-    const subs = await auth.getSubscriptions(false /* filter */);
-    const sub = subs.filter((s) => s.tenantId === tenantId)[0];
+    const sub = subs.filter((s) => s.tenantId === azureAccountInfo.tenantId)[0];
 
     if (!sub) {
-        throw new Error(Loc.errorLoadingAzureAccountInfoForTenantId(tenantId));
+        throw new Error(Loc.errorLoadingAzureAccountInfoForTenantId(azureAccountInfo.tenantId));
     }
 
     const token = await sub.credential.getToken(".default");

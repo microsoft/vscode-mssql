@@ -32,7 +32,6 @@ import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form"
 import {
     ConnectionDialog as Loc,
     Common as LocCommon,
-    Azure as LocAzure,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
@@ -73,6 +72,7 @@ import {
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
 import { createConnectionGroupFromSpec } from "../controllers/connectionGroupWebviewController";
+import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -271,7 +271,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("addFirewallRule", async (state, payload) => {
-            (state.dialog as AddFirewallRuleDialogProps).props.addFirewallRuleState =
+            (state.dialog as AddFirewallRuleDialogProps).props.addFirewallRuleStatus =
                 ApiStatus.Loading;
             this.updateState(state);
 
@@ -537,7 +537,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            await this.populateTentants((state.dialog as AddFirewallRuleDialogProps).props);
+            await populateAzureAccountInfo(
+                (state.dialog as AddFirewallRuleDialogProps).props,
+                true /* forceSignInPrompt */,
+            );
 
             return state;
         });
@@ -864,23 +867,28 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 handleFirewallErrorResult.ipAddress = "0.0.0.0";
             }
 
-            const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
-            const tenants = await auth.getTenants();
+            const addFirewallDialogState: AddFirewallRuleState = {
+                message: result.errorMessage,
+                clientIp: handleFirewallErrorResult.ipAddress,
+                accounts: [],
+                tenants: {},
+                isSignedIn: true,
+                serverName: this.state.connectionProfile.server,
+                addFirewallRuleStatus: ApiStatus.NotStarted,
+            };
+
+            if (addFirewallDialogState.isSignedIn) {
+                await populateAzureAccountInfo(
+                    addFirewallDialogState,
+                    false /* forceSignInPrompt */,
+                );
+            }
+
+            addFirewallDialogState.isSignedIn = await VsCodeAzureHelper.isSignedIn();
 
             this.state.dialog = {
                 type: "addFirewallRule",
-                props: {
-                    message: result.errorMessage,
-                    clientIp: handleFirewallErrorResult.ipAddress,
-                    tenants: tenants.map((t) => {
-                        return {
-                            name: t.displayName,
-                            id: t.tenantId,
-                        };
-                    }),
-                    isSignedIn: true,
-                    serverName: this.state.connectionProfile.server,
-                },
+                props: addFirewallDialogState,
             } as AddFirewallRuleDialogProps;
 
             return state;
@@ -958,29 +966,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#endregion
 
     //#region Azure helpers
-
-    public async populateTentants(state: AddFirewallRuleState): Promise<void> {
-        const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
-
-        if (!auth) {
-            const errorMessage = LocAzure.azureSignInFailedOrWasCancelled;
-
-            this.logger.error(errorMessage);
-            this.vscodeWrapper.showErrorMessage(errorMessage);
-
-            return;
-        }
-
-        const tenants = await auth.getTenants();
-
-        state.isSignedIn = true;
-        state.tenants = tenants.map((t) => {
-            return {
-                name: t.displayName,
-                id: t.tenantId,
-            };
-        });
-    }
 
     private async getConnectionGroups(): Promise<FormItemOptions[]> {
         const rootId = this._mainController.connectionManager.connectionStore.rootGroupId;
@@ -1201,7 +1186,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ): Promise<Map<string, AzureSubscription[]> | undefined> {
         let endActivity: ActivityObject;
         try {
-            const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
+            const auth = await VsCodeAzureHelper.signIn();
 
             if (!auth) {
                 state.formError = l10n.t("Azure sign in failed.");

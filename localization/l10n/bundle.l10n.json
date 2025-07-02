@@ -219,6 +219,7 @@
   "Add Firewall Rule": "Add Firewall Rule",
   "Sign into Azure in order to add a firewall rule.": "Sign into Azure in order to add a firewall rule.",
   "Sign into Azure": "Sign into Azure",
+  "Azure Account": "Azure Account",
   "Tenant": "Tenant",
   "Rule name": "Rule name",
   "Add my client IP ({0})/{0} is the IP address of the client": {
@@ -1134,7 +1135,6 @@
     ]
   },
   "Connection Dialog": "Connection Dialog",
-  "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",
   "Save Password": "Save Password",

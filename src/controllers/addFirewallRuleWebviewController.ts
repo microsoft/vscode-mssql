@@ -48,7 +48,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
                 isSignedIn: false,
                 accounts: [],
                 tenants: {},
-                addFirewallRuleState: ApiStatus.NotStarted,
+                addFirewallRuleStatus: ApiStatus.NotStarted,
             },
             {
                 title: initializationProps.serverName
@@ -78,7 +78,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         this.state.isSignedIn = await VsCodeAzureHelper.isSignedIn();
 
         if (this.state.isSignedIn) {
-            await this.populateAzureAccountInfo(this.state);
+            await populateAzureAccountInfo(this.state, false /* forceSignInPrompt */);
         }
 
         // Extract the client IP address from the error message
@@ -115,7 +115,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         });
 
         this.registerReducer("addFirewallRule", async (state, payload) => {
-            state.addFirewallRuleState = ApiStatus.Loading;
+            state.addFirewallRuleStatus = ApiStatus.Loading;
             this.updateState(state);
 
             try {
@@ -130,7 +130,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
                 await this.panel.dispose();
             } catch (err) {
                 state.message = getErrorMessage(err);
-                state.addFirewallRuleState = ApiStatus.Error;
+                state.addFirewallRuleStatus = ApiStatus.Error;
 
                 sendErrorEvent(
                     TelemetryViews.AddFirewallRule,
@@ -149,48 +149,49 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         });
 
         this.registerReducer("signIntoAzure", async (state) => {
-            await this.populateAzureAccountInfo(state);
+            await populateAzureAccountInfo(state, true /* forceSignInPrompt */);
 
             return state;
         });
     }
+}
 
-    public async populateAzureAccountInfo(state: AddFirewallRuleState): Promise<void> {
-        const auth = await VsCodeAzureHelper.confirmVscodeAzureSignin();
+export async function populateAzureAccountInfo(
+    state: AddFirewallRuleState,
+    forceSignInPrompt: boolean,
+): Promise<void> {
+    const auth = await VsCodeAzureHelper.signIn(forceSignInPrompt);
 
-        if (!auth) {
-            const errorMessage = Loc.Azure.azureSignInFailedOrWasCancelled;
+    if (!auth) {
+        const errorMessage = Loc.Azure.azureSignInFailedOrWasCancelled;
 
-            this.logger.error(errorMessage);
-            this.vscodeWrapper.showErrorMessage(errorMessage);
+        this.logger.error(errorMessage);
+        this.vscodeWrapper.showErrorMessage(errorMessage);
 
-            return;
-        }
+        return;
+    }
 
-        state.isSignedIn = true;
+    state.isSignedIn = true;
 
-        const accounts = await VsCodeAzureHelper.getAccounts();
+    const accounts = await VsCodeAzureHelper.getAccounts();
 
-        state.accounts = accounts.map((a) => {
-            return {
-                displayName: a.label,
-                accountId: a.id,
-            };
-        });
+    state.accounts = accounts.map((a) => {
+        return {
+            displayName: a.label,
+            accountId: a.id,
+        };
+    });
 
-        const tenants = await auth.getTenants();
+    const tenants = await auth.getTenants();
 
-        for (const t of tenants) {
-            if (t.account.id in state.tenants) {
-                state.tenants[t.account.id].push({
-                    displayName: t.displayName,
-                    tenantId: t.tenantId,
-                });
-            } else {
-                state.tenants[t.account.id] = [
-                    { displayName: t.displayName, tenantId: t.tenantId },
-                ];
-            }
+    for (const t of tenants) {
+        if (t.account.id in state.tenants) {
+            state.tenants[t.account.id].push({
+                displayName: t.displayName,
+                tenantId: t.tenantId,
+            });
+        } else {
+            state.tenants[t.account.id] = [{ displayName: t.displayName, tenantId: t.tenantId }];
         }
     }
 }
