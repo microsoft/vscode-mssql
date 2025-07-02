@@ -5,7 +5,7 @@
 
 import * as assert from "assert";
 
-import Config from "../../src/configurations/config";
+import Config from "../../src/extension/configurations/config";
 
 suite("Config Tests", () => {
     test("getSqlToolsServiceDownloadUrl should return valid value", (done) => {

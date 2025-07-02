@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as TypeMoq from "typemoq";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import InputPrompt from "../../src/prompts/input";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import InputPrompt from "../../src/extension/prompts/input";
 
 suite("Input Prompt Tests", () => {
     setup(() => {

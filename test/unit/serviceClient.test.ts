@@ -5,15 +5,15 @@
 
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
-import ServerProvider from "../../src/languageservice/server";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { Logger, LogLevel } from "../../src/models/logger";
-import { PlatformInformation } from "../../src/models/platform";
-import StatusView from "../../src/views/statusView";
-import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
-import { IConfig } from "../../src/languageservice/interfaces";
-import ExtConfig from "../../src/configurations/extConfig";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import ServerProvider from "../../src/extension/languageservice/server";
+import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
+import { Logger, LogLevel } from "../../src/extension/models/logger";
+import { PlatformInformation } from "../../src/extension/models/platform";
+import StatusView from "../../src/oldViews/statusView";
+import * as LanguageServiceContracts from "../../src/extension/models/contracts/languageService";
+import { IConfig } from "../../src/extension/languageservice/interfaces";
+import ExtConfig from "../../src/extension/configurations/extConfig";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 
 interface IFixture {
     platformInfo: PlatformInformation;

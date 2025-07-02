@@ -6,10 +6,10 @@
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
 import { EventEmitter } from "events";
-import QueryRunner from "../../src/controllers/queryRunner";
-import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
-import * as Utils from "../../src/models/utils";
-import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import QueryRunner from "../../src/extension/controllers/queryRunner";
+import { QueryNotificationHandler } from "../../src/extension/controllers/queryNotificationHandler";
+import * as Utils from "../../src/extension/models/utils";
+import SqlToolsServerClient from "../../src/extension/languageservice/serviceclient";
 import {
     QueryExecuteParams,
     QueryExecuteCompleteNotificationResult,
@@ -17,13 +17,13 @@ import {
     QueryExecuteResultSetCompleteNotificationParams,
     ResultSetSummary,
     QueryExecuteSubsetResult,
-} from "../../src/models/contracts/queryExecute";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import StatusView from "../../src/views/statusView";
-import * as Constants from "../../src/constants/constants";
-import * as QueryExecuteContracts from "../../src/models/contracts/queryExecute";
-import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose";
-import { ISlickRange, ISelectionData } from "../../src/models/interfaces";
+} from "../../src/extension/models/contracts/queryExecute";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import StatusView from "../../src/oldViews/statusView";
+import * as Constants from "../../src/extension/constants/constants";
+import * as QueryExecuteContracts from "../../src/extension/models/contracts/queryExecute";
+import * as QueryDisposeContracts from "../../src/extension/models/contracts/queryDispose";
+import { ISlickRange, ISelectionData } from "../../src/extension/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
 import { expect } from "chai";

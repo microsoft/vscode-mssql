@@ -6,17 +6,17 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import { ExecutionPlanWebviewController } from "../../src/controllers/executionPlanWebviewController";
-import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
-import { ExecutionPlanService } from "../../src/services/executionPlanService";
-import * as ep from "../../src/sharedInterfaces/executionPlanInterfaces";
-import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import * as epUtils from "../../src/controllers/sharedExecutionPlanUtils";
+import { ExecutionPlanWebviewController } from "../../src/extension/controllers/executionPlanWebviewController";
+import UntitledSqlDocumentService from "../../src/extension/controllers/untitledSqlDocumentService";
+import { ExecutionPlanService } from "../../src/extension/services/executionPlanService";
+import * as ep from "../../src/shared/executionPlanInterfaces";
+import { ApiStatus } from "../../src/shared/webview";
+import * as epUtils from "../../src/extension/controllers/sharedExecutionPlanUtils";
 import { contents } from "../resources/testsqlplan";
 import * as TypeMoq from "typemoq";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
+import { GetExecutionPlanRequest } from "../../src/extension/models/contracts/executionPlan";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 
 suite("ExecutionPlanWebviewController", () => {
     let sandbox: sinon.SinonSandbox;

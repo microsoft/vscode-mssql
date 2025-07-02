@@ -5,13 +5,13 @@
 
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { ConnectionConfig } from "../../src/extension/connectionconfig/connectionconfig";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 import * as sinon from "sinon";
 import { expect } from "chai";
-import { IConnectionGroup, IConnectionProfile } from "../../src/models/interfaces";
-import * as Constants from "../../src/constants/constants";
-import { deepClone } from "../../src/models/utils";
+import { IConnectionGroup, IConnectionProfile } from "../../src/extension/models/interfaces";
+import * as Constants from "../../src/extension/constants/constants";
+import { deepClone } from "../../src/extension/models/utils";
 
 suite("ConnectionConfig Tests", () => {
     let sandbox: sinon.SinonSandbox;

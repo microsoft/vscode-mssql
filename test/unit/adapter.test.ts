@@ -5,9 +5,9 @@
 
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
-import CodeAdapter from "../../src/prompts/adapter";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { IQuestion } from "../../src/prompts/question";
+import CodeAdapter from "../../src/extension/prompts/adapter";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import { IQuestion } from "../../src/extension/prompts/question";
 
 suite("Code Adapter Tests", () => {
     let adapter: CodeAdapter;

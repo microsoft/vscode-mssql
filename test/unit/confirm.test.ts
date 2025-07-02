@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as TypeMoq from "typemoq";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import * as LocalizedConstants from "../../src/constants/locConstants";
-import ConfirmPrompt from "../../src/prompts/confirm";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import * as LocalizedConstants from "../../src/extension/constants/locConstants";
+import ConfirmPrompt from "../../src/extension/prompts/confirm";
 
 // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
 suite.skip("Test Confirm Prompt", () => {

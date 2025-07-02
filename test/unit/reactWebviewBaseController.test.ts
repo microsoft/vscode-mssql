@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from "assert";
-import * as utils from "../../src/utils/utils";
+import * as utils from "../../src/extension/utils/utils";
 import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
 
-import { ReactWebviewBaseController } from "../../src/controllers/reactWebviewBaseController";
+import { ReactWebviewBaseController } from "../../src/extension/controllers/reactWebviewBaseController";
 import { stubTelemetry } from "./utils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 import {
     ColorThemeChangeNotification,
     ExecuteCommandRequest,
@@ -23,7 +23,7 @@ import {
     SendActionEventNotification,
     SendErrorEventNotification,
     StateChangeNotification,
-} from "../../src/sharedInterfaces/webview";
+} from "../../src/shared/webview";
 
 suite("ReactWebviewController Tests", () => {
     let controller: TestWebviewController;

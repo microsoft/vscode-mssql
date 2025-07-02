@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from "assert";
-import * as locConstants from "../../src/constants/locConstants";
+import * as locConstants from "../../src/extension/constants/locConstants";
 import * as sinon from "sinon";
-import * as utils from "../../src/utils/utils";
+import * as utils from "../../src/extension/utils/utils";
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 
-import { MssqlWebviewPanelOptions } from "../../src/sharedInterfaces/webview";
-import { ReactWebviewPanelController } from "../../src/controllers/reactWebviewPanelController";
+import { MssqlWebviewPanelOptions } from "../../src/shared/webview";
+import { ReactWebviewPanelController } from "../../src/extension/controllers/reactWebviewPanelController";
 import { stubTelemetry } from "./utils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 
 suite("ReactWebviewPanelController", () => {
     let sandbox: sinon.SinonSandbox;

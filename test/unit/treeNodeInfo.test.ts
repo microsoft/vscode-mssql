@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { TreeNodeInfo } from "../../src/extension/objectExplorer/nodes/treeNodeInfo";
 
 suite("TreeNodeInfo", () => {
     test("When creating multiple TreeNodeInfo in quick succession, the nodePath should be unique", () => {

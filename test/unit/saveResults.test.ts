@@ -5,11 +5,11 @@
 
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
-import * as Interfaces from "../../src/models/interfaces";
-import ResultsSerializer from "../../src/models/resultsSerializer";
-import { SaveResultsAsCsvRequestParams } from "../../src/models/contracts";
-import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import * as Interfaces from "../../src/extension/models/interfaces";
+import ResultsSerializer from "../../src/extension/models/resultsSerializer";
+import { SaveResultsAsCsvRequestParams } from "../../src/extension/models/contracts";
+import SqlToolsServerClient from "../../src/extension/languageservice/serviceclient";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 import * as vscode from "vscode";
 import * as os from "os";
 

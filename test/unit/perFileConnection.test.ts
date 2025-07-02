@@ -7,23 +7,23 @@ import * as assert from "assert";
 import * as TypeMoq from "typemoq";
 import { OutputChannel } from "vscode";
 
-import { IPrompter } from "../../src/prompts/question";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import { IPrompter } from "../../src/extension/prompts/question";
+import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
 
 import { IConnectionInfo, IServerInfo } from "vscode-mssql";
-import * as Constants from "../../src/constants/constants";
-import * as LocalizedConstants from "../../src/constants/locConstants";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import MainController from "../../src/controllers/mainController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import * as ConnectionContracts from "../../src/models/contracts/connection";
-import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
-import * as Interfaces from "../../src/models/interfaces";
-import { AuthenticationTypes } from "../../src/models/interfaces";
-import * as Utils from "../../src/models/utils";
-import { ConnectionUI } from "../../src/views/connectionUI";
-import StatusView from "../../src/views/statusView";
+import * as Constants from "../../src/extension/constants/constants";
+import * as LocalizedConstants from "../../src/extension/constants/locConstants";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
+import MainController from "../../src/extension/controllers/mainController";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import { ConnectionStore } from "../../src/extension/models/connectionStore";
+import * as ConnectionContracts from "../../src/extension/models/contracts/connection";
+import * as LanguageServiceContracts from "../../src/extension/models/contracts/languageService";
+import * as Interfaces from "../../src/extension/models/interfaces";
+import { AuthenticationTypes } from "../../src/extension/models/interfaces";
+import * as Utils from "../../src/extension/models/utils";
+import { ConnectionUI } from "../../src/oldViews/connectionUI";
+import StatusView from "../../src/oldViews/statusView";
 import { TestExtensionContext, TestPrompter } from "./stubs";
 
 function createTestConnectionResult(

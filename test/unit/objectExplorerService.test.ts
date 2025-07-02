@@ -8,56 +8,56 @@ import * as sinon from "sinon";
 import {
     CreateSessionResult,
     ObjectExplorerService,
-} from "../../src/objectExplorer/objectExplorerService";
+} from "../../src/extension/objectExplorer/objectExplorerService";
 import { expect } from "chai";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { Logger } from "../../src/models/logger";
-import { ConnectionStore } from "../../src/models/connectionStore";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
+import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
+import { Logger } from "../../src/extension/models/logger";
+import { ConnectionStore } from "../../src/extension/models/connectionStore";
 import {
     IConnectionProfile,
     IConnectionProfileWithSource,
     IConnectionGroup,
-} from "../../src/models/interfaces";
-import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { CloseSessionRequest } from "../../src/models/contracts/objectExplorer/closeSessionRequest";
-import { Deferred } from "../../src/protocol";
-import { ExpandRequest } from "../../src/models/contracts/objectExplorer/expandNodeRequest";
+} from "../../src/extension/models/interfaces";
+import { ConnectionNode } from "../../src/extension/objectExplorer/nodes/connectionNode";
+import { TreeNodeInfo } from "../../src/extension/objectExplorer/nodes/treeNodeInfo";
+import { CloseSessionRequest } from "../../src/extension/models/contracts/objectExplorer/closeSessionRequest";
+import { Deferred } from "../../src/extension/protocol";
+import { ExpandRequest } from "../../src/extension/models/contracts/objectExplorer/expandNodeRequest";
 import {
     ActivityObject,
     ActivityStatus,
     TelemetryActions,
     TelemetryViews,
-} from "../../src/sharedInterfaces/telemetry";
-import * as telemetry from "../../src/telemetry/telemetry";
-import { RefreshRequest } from "../../src/models/contracts/objectExplorer/refreshSessionRequest";
-import { ExpandErrorNode } from "../../src/objectExplorer/nodes/expandErrorNode";
-import * as LocalizedConstants from "../../src/constants/locConstants";
+} from "../../src/shared/telemetry";
+import * as telemetry from "../../src/extension/telemetry/telemetry";
+import { RefreshRequest } from "../../src/extension/models/contracts/objectExplorer/refreshSessionRequest";
+import { ExpandErrorNode } from "../../src/extension/objectExplorer/nodes/expandErrorNode";
+import * as LocalizedConstants from "../../src/extension/constants/locConstants";
 import { IAccount, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
-import { ConnectionUI } from "../../src/views/connectionUI";
-import * as Utils from "../../src/models/utils";
-import * as Constants from "../../src/constants/constants";
-import { AccountStore } from "../../src/azure/accountStore";
-import { AzureController } from "../../src/azure/azureController";
+import { ConnectionUI } from "../../src/oldViews/connectionUI";
+import * as Utils from "../../src/extension/models/utils";
+import * as Constants from "../../src/extension/constants/constants";
+import { AccountStore } from "../../src/extension/azure/accountStore";
+import { AzureController } from "../../src/extension/azure/azureController";
 import {
     CreateSessionRequest,
     CreateSessionResponse,
     SessionCreatedParameters,
-} from "../../src/models/contracts/objectExplorer/createSessionRequest";
-import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
-import * as DockerUtils from "../../src/containerDeployment/dockerUtils";
-import { FirewallService } from "../../src/firewall/firewallService";
-import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-import providerSettings from "../../src/azure/providerSettings";
+} from "../../src/extension/models/contracts/objectExplorer/createSessionRequest";
+import { ObjectExplorerUtils } from "../../src/extension/objectExplorer/objectExplorerUtils";
+import * as DockerUtils from "../../src/extension/containerDeployment/dockerUtils";
+import { FirewallService } from "../../src/extension/firewall/firewallService";
+import { ConnectionCredentials } from "../../src/extension/models/connectionCredentials";
+import providerSettings from "../../src/extension/azure/providerSettings";
 import {
     GetSessionIdRequest,
     GetSessionIdResponse,
-} from "../../src/models/contracts/objectExplorer/getSessionIdRequest";
+} from "../../src/extension/models/contracts/objectExplorer/getSessionIdRequest";
 import { generateUUID } from "../e2e/baseFixtures";
-import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { ConnectionGroupNode } from "../../src/extension/objectExplorer/nodes/connectionGroupNode";
+import { ConnectionConfig } from "../../src/extension/connectionconfig/connectionconfig";
 
 suite("OE Service Tests", () => {
     suite("rootNodeConnections", () => {

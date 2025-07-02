@@ -9,7 +9,7 @@ import {
     StubLogger,
     getServiceInstallDirectoryRoot,
     installService,
-} from "../../src/languageservice/serviceInstallerUtil";
+} from "../../src/extension/languageservice/serviceInstallerUtil";
 import * as sinon from "sinon";
 
 suite("Stub Status View tests", function (): void {

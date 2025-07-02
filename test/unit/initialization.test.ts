@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as Extension from "../../src/extension";
+import * as Extension from "../../src/extension/extension";
 import * as assert from "assert";
 
-import ConnectionManager from "../../src/controllers/connectionManager";
-import MainController from "../../src/controllers/mainController";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
+import MainController from "../../src/extension/controllers/mainController";
 import { activateExtension } from "./utils";
 
 suite("Initialization Tests", () => {

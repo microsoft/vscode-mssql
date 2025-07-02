@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { AzureAccountService } from "../../src/services/azureAccountService";
+import { AzureAccountService } from "../../src/extension/services/azureAccountService";
 import * as sinon from "sinon";
-import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
-import { Logger } from "../../src/models/logger";
+import * as azureHelpers from "../../src/extension/connectionconfig/azureHelpers";
+import { Logger } from "../../src/extension/models/logger";
 import { IAccount } from "vscode-mssql";
 
 suite("Azure Helpers", () => {

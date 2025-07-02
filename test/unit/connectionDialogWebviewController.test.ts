@@ -6,40 +6,40 @@
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
-import { ConnectionDialogWebviewController } from "../../src/connectionconfig/connectionDialogWebviewController";
-import MainController from "../../src/controllers/mainController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
+import { ConnectionDialogWebviewController } from "../../src/extension/connectionconfig/connectionDialogWebviewController";
+import MainController from "../../src/extension/controllers/mainController";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import { ObjectExplorerProvider } from "../../src/extension/objectExplorer/objectExplorerProvider";
 import { expect } from "chai";
 import {
     AuthenticationType,
     AzureSqlServerInfo,
     ConnectionInputMode,
     IConnectionDialogProfile,
-} from "../../src/sharedInterfaces/connectionDialog";
-import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import { ConnectionUI } from "../../src/views/connectionUI";
+} from "../../src/shared/connectionDialog";
+import { ApiStatus } from "../../src/shared/webview";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
+import { ConnectionStore } from "../../src/extension/models/connectionStore";
+import { ConnectionUI } from "../../src/oldViews/connectionUI";
 import {
     CredentialsQuickPickItemType,
     IConnectionProfileWithSource,
-} from "../../src/models/interfaces";
-import { AzureAccountService } from "../../src/services/azureAccountService";
+} from "../../src/extension/models/interfaces";
+import { AzureAccountService } from "../../src/extension/services/azureAccountService";
 import { IAccount } from "vscode-mssql";
-import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { ConnectionCompleteParams } from "../../src/models/contracts/connection";
+import SqlToolsServerClient from "../../src/extension/languageservice/serviceclient";
+import { ConnectionCompleteParams } from "../../src/extension/models/contracts/connection";
 import { stubTelemetry } from "./utils";
 import {
     stubConfirmVscodeAzureSignin,
     stubFetchServersFromAzure,
     stubPromptForAzureSubscriptionFilter,
 } from "./azureHelperStubs";
-import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { CreateSessionResponse } from "../../src/extension/models/contracts/objectExplorer/createSessionRequest";
+import { TreeNodeInfo } from "../../src/extension/objectExplorer/nodes/treeNodeInfo";
 import { mockGetCapabilitiesRequest } from "./mocks";
-import { AzureController } from "../../src/azure/azureController";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { AzureController } from "../../src/extension/azure/azureController";
+import { ConnectionConfig } from "../../src/extension/connectionconfig/connectionconfig";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;

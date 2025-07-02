@@ -7,12 +7,12 @@ import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as os from "os";
-import * as dockerUtils from "../../src/containerDeployment/dockerUtils";
-import { ContainerDeployment } from "../../src/constants/locConstants";
+import * as dockerUtils from "../../src/extension/containerDeployment/dockerUtils";
+import { ContainerDeployment } from "../../src/extension/constants/locConstants";
 import * as childProcess from "child_process";
-import { defaultContainerName, Platform } from "../../src/constants/constants";
+import { defaultContainerName, Platform } from "../../src/extension/constants/constants";
 import * as path from "path";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "../../src/extension/telemetry/telemetry";
 
 suite("Docker Utilities", () => {
     let sandbox: sinon.SinonSandbox;

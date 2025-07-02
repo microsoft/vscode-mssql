@@ -8,11 +8,11 @@ import * as TypeMoq from "typemoq";
 import * as sinon from "sinon";
 import { expect } from "chai";
 
-import { AddFirewallRuleWebviewController } from "../../src/controllers/addFirewallRuleWebviewController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { FirewallService } from "../../src/firewall/firewallService";
-import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
-import { ApiStatus } from "../../src/sharedInterfaces/webview";
+import { AddFirewallRuleWebviewController } from "../../src/extension/controllers/addFirewallRuleWebviewController";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import { FirewallService } from "../../src/extension/firewall/firewallService";
+import { AddFirewallRuleState } from "../../src/shared/addFirewallRule";
+import { ApiStatus } from "../../src/shared/webview";
 import * as azureHelperStubs from "./azureHelperStubs";
 
 suite("AddFirewallRuleWebviewController Tests", () => {

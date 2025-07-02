@@ -5,25 +5,25 @@
 
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
-import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
-import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import { ObjectExplorerProvider } from "../../src/extension/objectExplorer/objectExplorerProvider";
+import { ObjectExplorerService } from "../../src/extension/objectExplorer/objectExplorerService";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
+import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
 import { expect, assert } from "chai";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { AddConnectionTreeNode } from "../../src/objectExplorer/nodes/addConnectionTreeNode";
-import * as LocalizedConstants from "../../src/constants/locConstants";
-import { AccountSignInTreeNode } from "../../src/objectExplorer/nodes/accountSignInTreeNode";
-import { ConnectTreeNode } from "../../src/objectExplorer/nodes/connectTreeNode";
-import { NodeInfo } from "../../src/models/contracts/objectExplorer/nodeInfo";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { TreeNodeInfo } from "../../src/extension/objectExplorer/nodes/treeNodeInfo";
+import { AddConnectionTreeNode } from "../../src/extension/objectExplorer/nodes/addConnectionTreeNode";
+import * as LocalizedConstants from "../../src/extension/constants/locConstants";
+import { AccountSignInTreeNode } from "../../src/extension/objectExplorer/nodes/accountSignInTreeNode";
+import { ConnectTreeNode } from "../../src/extension/objectExplorer/nodes/connectTreeNode";
+import { NodeInfo } from "../../src/extension/models/contracts/objectExplorer/nodeInfo";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
-import { IConnectionProfile } from "../../src/models/interfaces";
-import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
-import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
-import { ConnectionProfile } from "../../src/models/connectionProfile";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { IConnectionProfile } from "../../src/extension/models/interfaces";
+import { ConnectionNode } from "../../src/extension/objectExplorer/nodes/connectionNode";
+import { ConnectionGroupNode } from "../../src/extension/objectExplorer/nodes/connectionGroupNode";
+import { ConnectionProfile } from "../../src/extension/models/connectionProfile";
+import { ConnectionStore } from "../../src/extension/models/connectionStore";
+import { ConnectionConfig } from "../../src/extension/connectionconfig/connectionconfig";
 
 suite("Object Explorer Provider Tests", function () {
     let objectExplorerService: TypeMoq.IMock<ObjectExplorerService>;

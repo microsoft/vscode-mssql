@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ServerStatusView } from "../../src/languageservice/serverStatus";
+import { ServerStatusView } from "../../src/extension/languageservice/serverStatus";
 import { assert } from "chai";
-import * as Constants from "../../src/constants/constants";
+import * as Constants from "../../src/extension/constants/constants";
 
 suite("Server Status View Tests", () => {
     let serverStatusView: ServerStatusView;

@@ -5,13 +5,13 @@
 
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
-import { MetadataService } from "../../src/metadata/metadataService";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import { MetadataService } from "../../src/extension/metadata/metadataService";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
+import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
 import {
     MetadataQueryRequest,
     MetadataQueryResult,
-} from "../../src/models/contracts/metadata/metadataRequest";
+} from "../../src/extension/models/contracts/metadata/metadataRequest";
 import { assert } from "chai";
 
 suite("Metadata Service Tests", () => {

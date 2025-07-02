@@ -8,15 +8,18 @@ import * as vscode from "vscode";
 import * as sinon from "sinon";
 import { expect } from "chai";
 import { ConnectionDetails } from "vscode-mssql";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import { Logger } from "../../src/models/logger";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import StatusView from "../../src/views/statusView";
-import { CredentialStore } from "../../src/credentialstore/credentialstore";
-import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
-import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
+import { ConnectionStore } from "../../src/extension/models/connectionStore";
+import { Logger } from "../../src/extension/models/logger";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
+import SqlToolsServerClient from "../../src/extension/languageservice/serviceclient";
+import StatusView from "../../src/oldViews/statusView";
+import { CredentialStore } from "../../src/extension/credentialstore/credentialstore";
+import {
+    IConnectionProfile,
+    IConnectionProfileWithSource,
+} from "../../src/extension/models/interfaces";
+import { ParseConnectionStringRequest } from "../../src/extension/models/contracts/connection";
 
 suite("ConnectionManager Tests", () => {
     let sandbox: sinon.SinonSandbox;

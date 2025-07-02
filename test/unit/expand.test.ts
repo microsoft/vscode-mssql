@@ -5,8 +5,8 @@
 
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import ExpandPrompt from "../../src/prompts/expand";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import ExpandPrompt from "../../src/extension/prompts/expand";
 
 suite("Test Expand Prompt", () => {
     test("Test expand prompt with simple question", () => {

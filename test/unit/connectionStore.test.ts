@@ -5,11 +5,11 @@
 
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
-import { Logger } from "../../src/models/logger";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { ConnectionStore } from "../../src/extension/models/connectionStore";
+import { ICredentialStore } from "../../src/extension/credentialstore/icredentialstore";
+import { Logger } from "../../src/extension/models/logger";
+import { ConnectionConfig } from "../../src/extension/connectionconfig/connectionconfig";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 import { expect } from "chai";
 import * as sinon from "sinon";
 

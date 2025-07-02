@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from "assert";
-import store, { QueryResultSingletonStore } from "../../src/queryResult/singletonStore";
+import store, { QueryResultSingletonStore } from "../../src/extension/queryResult/singletonStore";
 
 suite("QueryResultSingletonStore", () => {
     let queryResultStore: QueryResultSingletonStore;

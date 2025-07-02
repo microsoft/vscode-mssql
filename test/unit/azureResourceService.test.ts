@@ -5,7 +5,7 @@
 
 import * as assert from "assert";
 import * as TypeMoq from "typemoq";
-import { AzureAuthType, IAccount } from "../../src/models/contracts/azure";
+import { AzureAuthType, IAccount } from "../../src/extension/models/contracts/azure";
 import {
     SubscriptionClient,
     Subscription,
@@ -14,10 +14,10 @@ import {
 } from "@azure/arm-subscriptions";
 import { PagedAsyncIterableIterator } from "@azure/core-paging";
 import { ResourceGroup, ResourceGroups, ResourceManagementClient } from "@azure/arm-resources";
-import { AzureResourceController } from "../../src/azure/azureResourceController";
-import { AzureAccountService } from "../../src/services/azureAccountService";
-import { TokenCredentialWrapper } from "../../src/azure/credentialWrapper";
-import allSettings from "../../src/azure/providerSettings";
+import { AzureResourceController } from "../../src/extension/azure/azureResourceController";
+import { AzureAccountService } from "../../src/extension/services/azureAccountService";
+import { TokenCredentialWrapper } from "../../src/extension/azure/credentialWrapper";
+import allSettings from "../../src/extension/azure/providerSettings";
 import { IAzureAccountSession } from "vscode-mssql";
 
 export interface ITestContext {

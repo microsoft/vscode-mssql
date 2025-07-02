@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect, assert } from "chai";
-import * as Utils from "../../src/models/utils";
-import * as Constants from "../../src/constants/constants";
-import { ConnectionCredentials } from "../../src/models/connectionCredentials";
+import * as Utils from "../../src/extension/models/utils";
+import * as Constants from "../../src/extension/constants/constants";
+import { ConnectionCredentials } from "../../src/extension/models/connectionCredentials";
 
 suite("Utility Tests - parseTimeString", () => {
     test("should return false if nothing passed", () => {

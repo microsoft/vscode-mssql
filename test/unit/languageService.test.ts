@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import DecompressProvider from "../../src/languageservice/decompressProvider";
-import { IPackage, IStatusView } from "../../src/languageservice/interfaces";
-import { ILogger } from "../../src/models/interfaces";
+import DecompressProvider from "../../src/extension/languageservice/decompressProvider";
+import { IPackage, IStatusView } from "../../src/extension/languageservice/interfaces";
+import { ILogger } from "../../src/extension/models/interfaces";
 import { assert } from "chai";
-import HttpClient, { IDownloadProgress } from "../../src/languageservice/httpClient";
+import HttpClient, { IDownloadProgress } from "../../src/extension/languageservice/httpClient";
 
 suite("Language Service Tests", () => {
     suite("Decompress Provider Tests", () => {

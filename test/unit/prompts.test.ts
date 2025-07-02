@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as TypeMoq from "typemoq";
-import PromptFactory from "../../src/prompts/factory";
+import PromptFactory from "../../src/extension/prompts/factory";
 import { assert } from "chai";
-import InputPrompt from "../../src/prompts/input";
-import PasswordPrompt from "../../src/prompts/password";
-import ListPrompt from "../../src/prompts/list";
-import ConfirmPrompt from "../../src/prompts/confirm";
-import CheckboxPrompt from "../../src/prompts/checkbox";
-import ExpandPrompt from "../../src/prompts/expand";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import InputPrompt from "../../src/extension/prompts/input";
+import PasswordPrompt from "../../src/extension/prompts/password";
+import ListPrompt from "../../src/extension/prompts/list";
+import ConfirmPrompt from "../../src/extension/prompts/confirm";
+import CheckboxPrompt from "../../src/extension/prompts/checkbox";
+import ExpandPrompt from "../../src/extension/prompts/expand";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 
 suite("Prompts test", () => {
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;

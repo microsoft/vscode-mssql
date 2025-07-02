@@ -5,10 +5,10 @@
 
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
-import * as Contracts from "../../src/models/contracts";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { CredentialStore } from "../../src/credentialstore/credentialstore";
-import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
+import * as Contracts from "../../src/extension/models/contracts";
+import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
+import { CredentialStore } from "../../src/extension/credentialstore/credentialstore";
+import { ICredentialStore } from "../../src/extension/credentialstore/icredentialstore";
 
 suite("Credential Store Tests", () => {
     let client: TypeMoq.IMock<SqlToolsServiceClient>;

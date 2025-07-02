@@ -4,9 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as TypeMoq from "typemoq";
-import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import SqlToolsServerClient from "../../src/extension/languageservice/serviceclient";
 import { AuthenticationType, ServiceOption } from "vscode-mssql";
-import { CapabilitiesResult, GetCapabilitiesRequest } from "../../src/models/contracts/connection";
+import {
+    CapabilitiesResult,
+    GetCapabilitiesRequest,
+} from "../../src/extension/models/contracts/connection";
 
 export function mockGetCapabilitiesRequest(serviceClientMock: TypeMoq.IMock<SqlToolsServerClient>) {
     serviceClientMock

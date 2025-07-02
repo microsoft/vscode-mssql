@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzureController } from "../../src/azure/azureController";
+import { AzureController } from "../../src/extension/azure/azureController";
 import * as assert from "assert";
 
 suite("Azure Controller Tests", () => {

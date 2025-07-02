@@ -6,9 +6,9 @@
 import Sinon from "sinon";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 
-import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
-import { AzureSqlServerInfo } from "../../src/sharedInterfaces/connectionDialog";
-import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
+import * as AzureHelpers from "../../src/extension/connectionconfig/azureHelpers";
+import { AzureSqlServerInfo } from "../../src/shared/connectionDialog";
+import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/extension/azure/MssqlVSCodeAzureSubscriptionProvider";
 
 export const mockSubscriptions = [
     {

@@ -5,8 +5,8 @@
 
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
-import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import UntitledSqlDocumentService from "../../src/extension/controllers/untitledSqlDocumentService";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 
 interface IFixture {
     openDocResult: Promise<vscode.TextDocument>;

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as TypeMoq from "typemoq";
-import { IQuestion, IPrompter, IPromptCallback } from "../../src/prompts/question";
+import { IQuestion, IPrompter, IPromptCallback } from "../../src/extension/prompts/question";
 import * as vscode from "vscode";
 
 // Dummy implementation to simplify mocking

@@ -5,11 +5,11 @@
 
 import * as assert from "assert";
 import * as TypeMoq from "typemoq";
-import { IConfig } from "../../src/languageservice/interfaces";
+import { IConfig } from "../../src/extension/languageservice/interfaces";
 import { WorkspaceConfiguration, workspace } from "vscode";
-import * as Constants from "../../src/constants/constants";
-import ExtConfig from "../../src/configurations/extConfig";
-import Config from "../../src/configurations/config";
+import * as Constants from "../../src/extension/constants/constants";
+import ExtConfig from "../../src/extension/configurations/extConfig";
+import Config from "../../src/extension/configurations/config";
 
 suite("ExtConfig Tests", () => {
     let config: TypeMoq.IMock<IConfig>;

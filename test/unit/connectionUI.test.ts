@@ -5,20 +5,20 @@
 
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
-import { ConnectionUI } from "../../src/views/connectionUI";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { IPrompter } from "../../src/prompts/question";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import { ConnectionUI } from "../../src/oldViews/connectionUI";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import { IPrompter } from "../../src/extension/prompts/question";
+import { ConnectionStore } from "../../src/extension/models/connectionStore";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
 import {
     IConnectionCredentialsQuickPickItem,
     CredentialsQuickPickItemType,
-} from "../../src/models/interfaces";
-import { ConnectionProfile } from "../../src/models/connectionProfile";
-import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-import * as LocalizedConstants from "../../src/constants/locConstants";
-import { AccountStore } from "../../src/azure/accountStore";
-import { Logger } from "../../src/models/logger";
+} from "../../src/extension/models/interfaces";
+import { ConnectionProfile } from "../../src/extension/models/connectionProfile";
+import { ConnectionCredentials } from "../../src/extension/models/connectionCredentials";
+import * as LocalizedConstants from "../../src/extension/constants/locConstants";
+import { AccountStore } from "../../src/extension/azure/accountStore";
+import { Logger } from "../../src/extension/models/logger";
 
 suite("Connection UI tests", () => {
     // Class being tested

@@ -6,13 +6,13 @@
 import * as sinon from "sinon";
 import * as assert from "assert";
 
-import StatusView from "../../src/views/statusView";
-import * as LocalizedConstants from "../../src/constants/locConstants";
+import StatusView from "../../src/oldViews/statusView";
+import * as LocalizedConstants from "../../src/extension/constants/locConstants";
 import { IServerInfo } from "vscode-mssql";
-import { IConnectionProfile } from "../../src/models/interfaces";
+import { IConnectionProfile } from "../../src/extension/models/interfaces";
 import { expect } from "chai";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { ConnectionStore } from "../../src/extension/models/connectionStore";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 
 suite("Status View Tests", () => {
     test("updateStatusMessage should not immediately update status message for definition request", (done) => {

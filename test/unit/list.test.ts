@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as TypeMoq from "typemoq";
-import ListPrompt from "../../src/prompts/list";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import ListPrompt from "../../src/extension/prompts/list";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 
 suite("List Prompt Tests", () => {
     let listPrompt: ListPrompt;

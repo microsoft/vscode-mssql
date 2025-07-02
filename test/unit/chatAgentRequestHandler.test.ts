@@ -6,16 +6,18 @@
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import { expect } from "chai";
-import { createSqlAgentRequestHandler } from "../../src/copilot/chatAgentRequestHandler";
-import { CopilotService } from "../../src/services/copilotService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import * as Utils from "../../src/models/utils";
+import { createSqlAgentRequestHandler } from "../../src/extension/copilot/chatAgentRequestHandler";
+import { CopilotService } from "../../src/extension/services/copilotService";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import * as Utils from "../../src/extension/models/utils";
 import * as sinon from "sinon";
-import * as telemetry from "../../src/telemetry/telemetry";
-import { GetNextMessageResponse, MessageType } from "../../src/models/contracts/copilot";
-import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
-import MainController from "../../src/controllers/mainController";
-import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
+import * as telemetry from "../../src/extension/telemetry/telemetry";
+import { GetNextMessageResponse, MessageType } from "../../src/extension/models/contracts/copilot";
+import { ActivityObject, ActivityStatus } from "../../src/shared/telemetry";
+import MainController from "../../src/extension/controllers/mainController";
+import ConnectionManager, {
+    ConnectionInfo,
+} from "../../src/extension/controllers/connectionManager";
 
 suite("Chat Agent Request Handler Tests", () => {
     let mockCopilotService: TypeMoq.IMock<CopilotService>;

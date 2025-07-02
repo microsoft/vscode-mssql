@@ -5,18 +5,18 @@
 
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
-import * as utils from "../../src/models/utils";
-import * as Constants from "../../src/constants/constants";
-import * as LocalizedConstants from "../../src/constants/locConstants";
+import * as utils from "../../src/extension/models/utils";
+import * as Constants from "../../src/extension/constants/constants";
+import * as LocalizedConstants from "../../src/extension/constants/locConstants";
 import * as stubs from "./stubs";
-import * as interfaces from "../../src/models/interfaces";
-import { ConnectionProfile } from "../../src/models/connectionProfile";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-import { IPrompter, IQuestion } from "../../src/prompts/question";
+import * as interfaces from "../../src/extension/models/interfaces";
+import { ConnectionProfile } from "../../src/extension/models/connectionProfile";
+import { ConnectionStore } from "../../src/extension/models/connectionStore";
+import { ConnectionCredentials } from "../../src/extension/models/connectionCredentials";
+import { IPrompter, IQuestion } from "../../src/extension/prompts/question";
 import { TestPrompter } from "./stubs";
-import { AuthenticationTypes, IConnectionProfile } from "../../src/models/interfaces";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { AuthenticationTypes, IConnectionProfile } from "../../src/extension/models/interfaces";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 
 import * as assert from "assert";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";

@@ -10,15 +10,15 @@ import {
     IStatusView,
     IHttpClient,
     IDecompressProvider,
-} from "../../src/languageservice/interfaces";
-import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
-import HttpClient from "../../src/languageservice/httpClient";
-import DecompressProvider from "../../src/languageservice/decompressProvider";
-import Config from "../../src/configurations/config";
-import { Runtime } from "../../src/models/platform";
+} from "../../src/extension/languageservice/interfaces";
+import ServiceDownloadProvider from "../../src/extension/languageservice/serviceDownloadProvider";
+import HttpClient from "../../src/extension/languageservice/httpClient";
+import DecompressProvider from "../../src/extension/languageservice/decompressProvider";
+import Config from "../../src/extension/configurations/config";
+import { Runtime } from "../../src/extension/models/platform";
 import * as path from "path";
-import { ILogger } from "../../src/models/interfaces";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/extension/models/interfaces";
+import { Logger } from "../../src/extension/models/logger";
 import * as fs from "fs/promises";
 
 interface IFixture {

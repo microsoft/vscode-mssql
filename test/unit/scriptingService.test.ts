@@ -6,16 +6,16 @@
 import { assert } from "chai";
 import * as TypeMoq from "typemoq";
 import { IServerInfo, MetadataType, ObjectMetadata } from "vscode-mssql";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
+import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
 import {
     IScriptingObject,
     IScriptingResult,
     ScriptingRequest,
     ScriptOperation,
-} from "../../src/models/contracts/scripting/scriptingRequest";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { ScriptingService } from "../../src/scripting/scriptingService";
+} from "../../src/extension/models/contracts/scripting/scriptingRequest";
+import { TreeNodeInfo } from "../../src/extension/objectExplorer/nodes/treeNodeInfo";
+import { ScriptingService } from "../../src/extension/scripting/scriptingService";
 import { TestExtensionContext } from "./stubs";
 
 suite("Scripting Service Tests", () => {

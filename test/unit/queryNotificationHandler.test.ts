@@ -5,8 +5,8 @@
 
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
-import QueryRunner from "../../src/controllers/queryRunner";
-import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
+import QueryRunner from "../../src/extension/controllers/queryRunner";
+import { QueryNotificationHandler } from "../../src/extension/controllers/queryNotificationHandler";
 import { NotificationHandler } from "vscode-languageclient";
 
 // TESTS //////////////////////////////////////////////////////////////////////////////////////////

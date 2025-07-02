@@ -5,8 +5,8 @@
 
 import * as TypeMoq from "typemoq";
 import * as figures from "figures";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import CheckboxPrompt from "../../src/prompts/checkbox";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import CheckboxPrompt from "../../src/extension/prompts/checkbox";
 
 // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
 suite("Test Checkbox prompt", () => {

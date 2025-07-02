@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from "path";
-import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import { ObjectExplorerUtils } from "../../src/extension/objectExplorer/objectExplorerUtils";
 import { expect, assert } from "chai";
-import * as Constants from "../../src/constants/constants";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { ConnectionProfile } from "../../src/models/connectionProfile";
+import * as Constants from "../../src/extension/constants/constants";
+import { TreeNodeInfo } from "../../src/extension/objectExplorer/nodes/treeNodeInfo";
+import { ConnectionProfile } from "../../src/extension/models/connectionProfile";
 import { ObjectMetadata, MetadataType } from "vscode-mssql";
 import * as vscode from "vscode";
-import { IConnectionProfile } from "../../src/models/interfaces";
+import { IConnectionProfile } from "../../src/extension/models/interfaces";
 import * as sinon from "sinon";
 
 suite("Object Explorer Utils Tests", () => {

@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as constants from "../../src/constants/constants";
+import * as constants from "../../src/extension/constants/constants";
 import * as sinon from "sinon";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "../../src/extension/telemetry/telemetry";
 import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
 

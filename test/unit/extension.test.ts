@@ -6,19 +6,19 @@
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import { IConnectionInfo, IExtension, IServerInfo, ITreeNodeInfo } from "vscode-mssql";
-import MainController from "../../src/controllers/mainController";
-import * as Extension from "../../src/extension";
+import MainController from "../../src/extension/controllers/mainController";
+import * as Extension from "../../src/extension/extension";
 import { activateExtension } from "./utils";
 import { expect } from "chai";
-import { ConnectionStore } from "../../src/models/connectionStore";
+import { ConnectionStore } from "../../src/extension/models/connectionStore";
 import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
-} from "../../src/models/interfaces";
-import { ConnectionUI } from "../../src/views/connectionUI";
-import { Deferred } from "../../src/protocol";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+} from "../../src/extension/models/interfaces";
+import { ConnectionUI } from "../../src/oldViews/connectionUI";
+import { Deferred } from "../../src/extension/protocol";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
+import { ObjectExplorerUtils } from "../../src/extension/objectExplorer/objectExplorerUtils";
 import { RequestType } from "vscode-languageclient";
 
 suite("Extension API Tests", () => {

@@ -6,21 +6,21 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import { ContainerDeploymentWebviewController } from "../../src/containerDeployment/containerDeploymentWebviewController";
+import { ContainerDeploymentWebviewController } from "../../src/extension/containerDeployment/containerDeploymentWebviewController";
 import * as TypeMoq from "typemoq";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import MainController from "../../src/controllers/mainController";
-import ConnectionManager from "../../src/controllers/connectionManager";
-import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import { FormItemType } from "../../src/sharedInterfaces/form";
-import * as dockerUtils from "../../src/containerDeployment/dockerUtils";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import MainController from "../../src/extension/controllers/mainController";
+import ConnectionManager from "../../src/extension/controllers/connectionManager";
+import { ApiStatus } from "../../src/shared/webview";
+import { FormItemType } from "../../src/shared/form";
+import * as dockerUtils from "../../src/extension/containerDeployment/dockerUtils";
 import {
     ContainerDeploymentWebviewState,
     DockerStepOrder,
-} from "../../src/sharedInterfaces/containerDeploymentInterfaces";
-import * as telemetry from "../../src/telemetry/telemetry";
-import { AddLocalContainerConnectionTreeNode } from "../../src/containerDeployment/addLocalContainerConnectionTreeNode";
-import { ConnectionUI } from "../../src/views/connectionUI";
+} from "../../src/shared/containerDeploymentInterfaces";
+import * as telemetry from "../../src/extension/telemetry/telemetry";
+import { AddLocalContainerConnectionTreeNode } from "../../src/extension/containerDeployment/addLocalContainerConnectionTreeNode";
+import { ConnectionUI } from "../../src/oldViews/connectionUI";
 
 suite("ContainerDeploymentWebviewController", () => {
     let sandbox: sinon.SinonSandbox;

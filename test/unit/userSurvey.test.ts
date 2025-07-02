@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from "assert";
-import * as locConstants from "../../src/constants/locConstants";
+import * as locConstants from "../../src/extension/constants/locConstants";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 
-import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../src/shared/telemetry";
 
-import { UserSurvey } from "../../src/nps/userSurvey";
+import { UserSurvey } from "../../src/extension/nps/userSurvey";
 import { stubTelemetry } from "./utils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 
 suite("UserSurvey Tests", () => {
     let sandbox: sinon.SinonSandbox;

@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import StatusView from "../../src/views/statusView";
+import { SqlOutputContentProvider } from "../../src/extension/models/sqlOutputContentProvider";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import StatusView from "../../src/oldViews/statusView";
 import * as stubs from "./stubs";
-import * as Constants from "../../src/constants/constants";
+import * as Constants from "../../src/extension/constants/constants";
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
-import { ISelectionData } from "../../src/models/interfaces";
+import { ISelectionData } from "../../src/extension/models/interfaces";
 
 suite("SqlOutputProvider Tests using mocks", () => {
     const testUri = "Test_URI";

@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
-import { WebviewPanelController } from "../../src/controllers/webviewController";
+import { WebviewPanelController } from "../../src/extension/controllers/webviewController";
 
 suite("Webview Panel Controller Tests", () => {
     let testTitle = "test";

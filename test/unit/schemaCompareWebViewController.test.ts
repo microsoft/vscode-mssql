@@ -9,14 +9,16 @@ import * as TypeMoq from "typemoq";
 import * as sinon from "sinon";
 import * as mssql from "vscode-mssql";
 
-import { SchemaCompareWebViewController } from "../../src/schemaCompare/schemaCompareWebViewController";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
-import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
-import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { IConnectionProfile } from "../../src/models/interfaces";
-import { AzureAuthType } from "../../src/models/contracts/azure";
+import { SchemaCompareWebViewController } from "../../src/extension/schemaCompare/schemaCompareWebViewController";
+import { TreeNodeInfo } from "../../src/extension/objectExplorer/nodes/treeNodeInfo";
+import ConnectionManager, {
+    ConnectionInfo,
+} from "../../src/extension/controllers/connectionManager";
+import { SchemaCompareWebViewState } from "../../src/shared/schemaCompare";
+import * as scUtils from "../../src/extension/schemaCompare/schemaCompareUtils";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
+import { IConnectionProfile } from "../../src/extension/models/interfaces";
+import { AzureAuthType } from "../../src/extension/models/contracts/azure";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;

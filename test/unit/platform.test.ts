@@ -5,7 +5,11 @@
 
 import * as assert from "assert";
 import { expect } from "chai";
-import { Runtime, PlatformInformation, LinuxDistribution } from "../../src/models/platform";
+import {
+    Runtime,
+    PlatformInformation,
+    LinuxDistribution,
+} from "../../src/extension/models/platform";
 
 function getPlatform(): Promise<Runtime> {
     return PlatformInformation.getCurrent().then((platformInfo) => {

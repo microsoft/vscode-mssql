@@ -5,26 +5,26 @@
 
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { FirewallService } from "../../src/firewall/firewallService";
-import { AccountService } from "../../src/azure/accountService";
+import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
+import { FirewallService } from "../../src/extension/firewall/firewallService";
+import { AccountService } from "../../src/extension/azure/accountService";
 import {
     HandleFirewallRuleRequest,
     IHandleFirewallRuleResponse,
     CreateFirewallRuleRequest,
     ICreateFirewallRuleResponse,
-} from "../../src/models/contracts/firewall/firewallRequest";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+} from "../../src/extension/models/contracts/firewall/firewallRequest";
+import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 import { assert } from "chai";
-import { IAzureSession, IAzureResourceFilter } from "../../src/models/interfaces";
+import { IAzureSession, IAzureResourceFilter } from "../../src/extension/models/interfaces";
 import {
     AzureAuthType,
     IAccount,
     ITenant,
     IToken,
     IAzureAccountProperties,
-} from "../../src/models/contracts/azure";
-import allSettings from "../../src/azure/providerSettings";
+} from "../../src/extension/models/contracts/azure";
+import allSettings from "../../src/extension/azure/providerSettings";
 
 suite("Firewall Service Tests", () => {
     let firewallService: TypeMoq.IMock<FirewallService>;

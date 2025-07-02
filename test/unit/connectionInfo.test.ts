@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import * as ConnectionInfo from "../../src/models/connectionInfo";
-import * as LocalizedConstants from "../../src/constants/locConstants";
-import * as Constants from "../../src/constants/constants";
+import * as ConnectionInfo from "../../src/extension/models/connectionInfo";
+import * as LocalizedConstants from "../../src/extension/constants/locConstants";
+import * as Constants from "../../src/extension/constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
-import { IConnectionProfile } from "../../src/models/interfaces";
+import { IConnectionProfile } from "../../src/extension/models/interfaces";
 import * as sinon from "sinon";
 
 suite("connectionInfo", () => {
