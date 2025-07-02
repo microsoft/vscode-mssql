@@ -174,7 +174,7 @@ const CompareActionBar = (props: Props) => {
                 {loc.schemaCompare.apply}
             </ToolbarButton>
             <ToolbarButton
-                aria-lable={loc.schemaCompare.options}
+                aria-label={loc.schemaCompare.options}
                 title={loc.schemaCompare.options}
                 icon={<SettingsRegular />}
                 onClick={handleOptionsClicked}
