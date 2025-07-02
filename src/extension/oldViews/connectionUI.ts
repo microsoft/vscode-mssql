@@ -5,31 +5,31 @@
 
 import * as vscode from "vscode";
 import { IAccount, IConnectionInfo, ITenant } from "vscode-mssql";
-import { AccountStore } from "../extension/azure/accountStore";
-import providerSettings from "../extension/azure/providerSettings";
-import * as constants from "../extension/constants/constants";
-import * as LocalizedConstants from "../extension/constants/locConstants";
-import ConnectionManager from "../extension/controllers/connectionManager";
-import VscodeWrapper from "../extension/controllers/vscodeWrapper";
-import { ConnectionCredentials } from "../extension/models/connectionCredentials";
-import { ConnectionProfile } from "../extension/models/connectionProfile";
-import { ConnectionStore } from "../extension/models/connectionStore";
-import { ICreateFirewallRuleParams } from "../extension/models/contracts/firewall/firewallRequest";
+import { AccountStore } from "../azure/accountStore";
+import providerSettings from "../azure/providerSettings";
+import * as constants from "../constants/constants";
+import * as LocalizedConstants from "../constants/locConstants";
+import ConnectionManager from "../controllers/connectionManager";
+import VscodeWrapper from "../controllers/vscodeWrapper";
+import { ConnectionCredentials } from "../models/connectionCredentials";
+import { ConnectionProfile } from "../models/connectionProfile";
+import { ConnectionStore } from "../models/connectionStore";
+import { ICreateFirewallRuleParams } from "../models/contracts/firewall/firewallRequest";
 import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
     IConnectionProfile,
-} from "../extension/models/interfaces";
-import * as Utils from "../extension/models/utils";
-import { Timer } from "../extension/models/utils";
-import { ObjectExplorerUtils } from "../extension/objectExplorer/objectExplorerUtils";
-import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../extension/prompts/question";
-import { CancelError } from "../extension/utils/utils";
-import { ConnectionCompleteParams } from "../extension/models/contracts/connection";
-import { AddFirewallRuleWebviewController } from "../extension/controllers/addFirewallRuleWebviewController";
-import { SessionCreatedParameters } from "../extension/models/contracts/objectExplorer/createSessionRequest";
-import { CREATE_NEW_GROUP_ID, IConnectionGroup } from "../shared/connectionGroup";
-import { FormItemOptions } from "../shared/form";
+} from "../models/interfaces";
+import * as Utils from "../models/utils";
+import { Timer } from "../models/utils";
+import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
+import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
+import { CancelError } from "../utils/utils";
+import { ConnectionCompleteParams } from "../models/contracts/connection";
+import { AddFirewallRuleWebviewController } from "../controllers/addFirewallRuleWebviewController";
+import { SessionCreatedParameters } from "../models/contracts/objectExplorer/createSessionRequest";
+import { CREATE_NEW_GROUP_ID, IConnectionGroup } from "../../shared/connectionGroup";
+import { FormItemOptions } from "../../shared/form";
 
 /**
  * The different tasks for managing connection profiles.

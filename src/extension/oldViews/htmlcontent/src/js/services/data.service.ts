@@ -6,10 +6,10 @@
 import { Subject } from "rxjs/Subject";
 import { Injectable, OnDestroy } from "@angular/core";
 import { ISlickRange } from "angular2-slickgrid";
-import { QueryEvent, ResultSetSubset, ISelectionData } from "./../../../../../extension/models/interfaces";
+import { QueryEvent, ResultSetSubset, ISelectionData } from "./../../../../../models/interfaces";
 import * as Constants from "./../constants";
-import { createProxy, IMessageProtocol, IServerProxy } from "../../../../../extension/protocol";
-import { TelemetryActions, TelemetryViews } from "../../../../../shared/telemetry";
+import { createProxy, IMessageProtocol, IServerProxy } from "../../../../../protocol";
+import { TelemetryActions, TelemetryViews } from "../../../../../../shared/telemetry";
 
 declare function acquireVsCodeApi(): { postMessage: (message: string) => void };
 

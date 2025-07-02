@@ -20,7 +20,7 @@ import {
 import { ApiStatus } from "../../src/shared/webview";
 import ConnectionManager from "../../src/extension/controllers/connectionManager";
 import { ConnectionStore } from "../../src/extension/models/connectionStore";
-import { ConnectionUI } from "../../src/oldViews/connectionUI";
+import { ConnectionUI } from "../../src/extension/oldViews/connectionUI";
 import {
     CredentialsQuickPickItemType,
     IConnectionProfileWithSource,

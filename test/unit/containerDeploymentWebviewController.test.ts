@@ -20,7 +20,7 @@ import {
 } from "../../src/shared/containerDeploymentInterfaces";
 import * as telemetry from "../../src/extension/telemetry/telemetry";
 import { AddLocalContainerConnectionTreeNode } from "../../src/extension/containerDeployment/addLocalContainerConnectionTreeNode";
-import { ConnectionUI } from "../../src/oldViews/connectionUI";
+import { ConnectionUI } from "../../src/extension/oldViews/connectionUI";
 
 suite("ContainerDeploymentWebviewController", () => {
     let sandbox: sinon.SinonSandbox;

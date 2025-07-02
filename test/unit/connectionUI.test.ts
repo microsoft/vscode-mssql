@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
-import { ConnectionUI } from "../../src/oldViews/connectionUI";
+import { ConnectionUI } from "../../src/extension/oldViews/connectionUI";
 import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 import { IPrompter } from "../../src/extension/prompts/question";
 import { ConnectionStore } from "../../src/extension/models/connectionStore";

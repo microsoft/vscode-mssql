@@ -27,7 +27,7 @@ import HttpClient from "./httpClient";
 import ExtConfig from "../configurations/extConfig";
 import { PlatformInformation } from "../models/platform";
 import { ServerInitializationResult, ServerStatusView } from "./serverStatus";
-import StatusView from "../../oldViews/statusView";
+import StatusView from "../oldViews/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { IConfig } from "../languageservice/interfaces";
 import { exists } from "../utils/utils";

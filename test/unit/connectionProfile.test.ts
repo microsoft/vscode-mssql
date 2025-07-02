@@ -19,7 +19,7 @@ import { ConnectionStore } from "../../src/extension/models/connectionStore";
 import { AuthenticationTypes, IConnectionProfile } from "../../src/extension/models/interfaces";
 import { Logger } from "../../src/extension/models/logger";
 import { INameValueChoice, IPrompter, IQuestion } from "../../src/extension/prompts/question";
-import { ConnectionUI } from "../../src/oldViews/connectionUI";
+import { ConnectionUI } from "../../src/extension/oldViews/connectionUI";
 import { TestPrompter } from "./stubs";
 
 function createTestCredentials(): IConnectionInfo {

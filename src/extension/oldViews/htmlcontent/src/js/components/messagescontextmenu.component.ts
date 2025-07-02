@@ -7,7 +7,7 @@ import { Component, Output, EventEmitter, Inject, forwardRef, OnInit } from "@an
 import { ShortcutService } from "./../services/shortcuts.service";
 import * as Constants from "./../constants";
 import * as Utils from "./../utils";
-import { IRange } from "../../../../../extension/models/interfaces";
+import { IRange } from "../../../../../models/interfaces";
 
 /**
  * The component that acts as the contextMenu for slick grid

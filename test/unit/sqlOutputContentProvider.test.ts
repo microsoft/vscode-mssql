@@ -5,7 +5,7 @@
 
 import { SqlOutputContentProvider } from "../../src/extension/models/sqlOutputContentProvider";
 import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
-import StatusView from "../../src/oldViews/statusView";
+import StatusView from "../../src/extension/oldViews/statusView";
 import * as stubs from "./stubs";
 import * as Constants from "../../src/extension/constants/constants";
 import * as vscode from "vscode";

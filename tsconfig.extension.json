@@ -15,6 +15,6 @@
         "noUnusedLocals": true,
         "skipLibCheck": true
     },
-	"include": ["src/extension", "src/oldViews", "src/shared", "typings", "test"],
+	"include": ["src/extension", "src/shared", "typings", "test"],
     "exclude": ["node_modules", "src/views"]
 }

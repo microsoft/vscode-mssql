@@ -19,7 +19,7 @@ import {
     QueryExecuteSubsetResult,
 } from "../../src/extension/models/contracts/queryExecute";
 import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
-import StatusView from "../../src/oldViews/statusView";
+import StatusView from "../../src/extension/oldViews/statusView";
 import * as Constants from "../../src/extension/constants/constants";
 import * as QueryExecuteContracts from "../../src/extension/models/contracts/queryExecute";
 import * as QueryDisposeContracts from "../../src/extension/models/contracts/queryDispose";

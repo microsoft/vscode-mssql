@@ -26,7 +26,7 @@ import {
     IRange,
     ISelectionData,
     DbCellValue,
-} from "../../../../../extension/models/interfaces";
+} from "../../../../../models/interfaces";
 import { DataService } from "./../services/data.service";
 import { ShortcutService } from "./../services/shortcuts.service";
 import { ContextMenu, IContextMenuClickEventArgs } from "./contextmenu.component";
@@ -37,7 +37,7 @@ import * as Utils from "./../utils";
 
 /** enableProdMode */
 import { enableProdMode } from "@angular/core";
-import { TelemetryActions, TelemetryViews } from "../../../../../shared/telemetry";
+import { TelemetryActions, TelemetryViews } from "../../../../../../shared/telemetry";
 enableProdMode();
 
 // text selection helper library

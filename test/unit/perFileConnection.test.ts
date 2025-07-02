@@ -22,8 +22,8 @@ import * as LanguageServiceContracts from "../../src/extension/models/contracts/
 import * as Interfaces from "../../src/extension/models/interfaces";
 import { AuthenticationTypes } from "../../src/extension/models/interfaces";
 import * as Utils from "../../src/extension/models/utils";
-import { ConnectionUI } from "../../src/oldViews/connectionUI";
-import StatusView from "../../src/oldViews/statusView";
+import { ConnectionUI } from "../../src/extension/oldViews/connectionUI";
+import StatusView from "../../src/extension/oldViews/statusView";
 import { TestExtensionContext, TestPrompter } from "./stubs";
 
 function createTestConnectionResult(

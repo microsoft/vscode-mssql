@@ -9,7 +9,7 @@ import ServerProvider from "../../src/extension/languageservice/server";
 import SqlToolsServiceClient from "../../src/extension/languageservice/serviceclient";
 import { Logger, LogLevel } from "../../src/extension/models/logger";
 import { PlatformInformation } from "../../src/extension/models/platform";
-import StatusView from "../../src/oldViews/statusView";
+import StatusView from "../../src/extension/oldViews/statusView";
 import * as LanguageServiceContracts from "../../src/extension/models/contracts/languageService";
 import { IConfig } from "../../src/extension/languageservice/interfaces";
 import ExtConfig from "../../src/extension/configurations/extConfig";

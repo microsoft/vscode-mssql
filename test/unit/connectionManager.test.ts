@@ -13,7 +13,7 @@ import { Logger } from "../../src/extension/models/logger";
 import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 import ConnectionManager from "../../src/extension/controllers/connectionManager";
 import SqlToolsServerClient from "../../src/extension/languageservice/serviceclient";
-import StatusView from "../../src/oldViews/statusView";
+import StatusView from "../../src/extension/oldViews/statusView";
 import { CredentialStore } from "../../src/extension/credentialstore/credentialstore";
 import {
     IConnectionProfile,

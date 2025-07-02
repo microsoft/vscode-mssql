@@ -6,7 +6,7 @@
 import * as sinon from "sinon";
 import * as assert from "assert";
 
-import StatusView from "../../src/oldViews/statusView";
+import StatusView from "../../src/extension/oldViews/statusView";
 import * as LocalizedConstants from "../../src/extension/constants/locConstants";
 import { IServerInfo } from "vscode-mssql";
 import { IConnectionProfile } from "../../src/extension/models/interfaces";

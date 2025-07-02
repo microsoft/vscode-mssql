@@ -9,7 +9,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import * as Interfaces from "./interfaces";
 import QueryRunner from "../controllers/queryRunner";
 import ResultsSerializer from "../models/resultsSerializer";
-import StatusView from "../../oldViews/statusView";
+import StatusView from "../oldViews/statusView";
 import VscodeWrapper from "./../controllers/vscodeWrapper";
 import { ISelectionData, ISlickRange } from "./interfaces";
 import { WebviewPanelController } from "../controllers/webviewController";

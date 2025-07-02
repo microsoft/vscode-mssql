@@ -15,7 +15,7 @@ import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
 } from "../../src/extension/models/interfaces";
-import { ConnectionUI } from "../../src/oldViews/connectionUI";
+import { ConnectionUI } from "../../src/extension/oldViews/connectionUI";
 import { Deferred } from "../../src/extension/protocol";
 import ConnectionManager from "../../src/extension/controllers/connectionManager";
 import { ObjectExplorerUtils } from "../../src/extension/objectExplorer/objectExplorerUtils";

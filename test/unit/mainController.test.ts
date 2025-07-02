@@ -16,7 +16,7 @@ import UntitledSqlDocumentService from "../../src/extension/controllers/untitled
 import VscodeWrapper from "../../src/extension/controllers/vscodeWrapper";
 import { TestExtensionContext } from "./stubs";
 import { activateExtension } from "./utils";
-import StatusView from "../../src/oldViews/statusView";
+import StatusView from "../../src/extension/oldViews/statusView";
 
 suite("MainController Tests", function () {
     let document: vscode.TextDocument;

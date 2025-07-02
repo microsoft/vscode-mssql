@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as Utils from "../extension/models/utils";
-import { IPrompter, IQuestion, QuestionTypes } from "../extension/prompts/question";
-import { QueryHistoryNode } from "../extension/queryHistory/queryHistoryNode";
-import * as LocalizedConstants from "../extension/constants/locConstants";
+import * as Utils from "../models/utils";
+import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
+import { QueryHistoryNode } from "../queryHistory/queryHistoryNode";
+import * as LocalizedConstants from "../constants/locConstants";
 
 export enum QueryHistoryAction {
     OpenQueryHistoryAction = 1,

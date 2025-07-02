@@ -36,7 +36,7 @@ import { RefreshRequest } from "../../src/extension/models/contracts/objectExplo
 import { ExpandErrorNode } from "../../src/extension/objectExplorer/nodes/expandErrorNode";
 import * as LocalizedConstants from "../../src/extension/constants/locConstants";
 import { IAccount, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
-import { ConnectionUI } from "../../src/oldViews/connectionUI";
+import { ConnectionUI } from "../../src/extension/oldViews/connectionUI";
 import * as Utils from "../../src/extension/models/utils";
 import * as Constants from "../../src/extension/constants/constants";
 import { AccountStore } from "../../src/extension/azure/accountStore";

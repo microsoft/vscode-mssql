@@ -6,7 +6,7 @@
 import { EventEmitter } from "events";
 
 import * as vscode from "vscode";
-import StatusView from "../../oldViews/statusView";
+import StatusView from "../oldViews/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
 import VscodeWrapper from "./vscodeWrapper";
