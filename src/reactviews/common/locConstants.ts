@@ -610,6 +610,7 @@ export class LocConstants {
             undo: l10n.t("Undo"),
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
+            showTableRelationships: l10n.t("Show table relationships"),
         };
     }
 

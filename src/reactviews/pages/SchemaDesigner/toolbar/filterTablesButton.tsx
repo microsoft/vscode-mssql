@@ -12,6 +12,7 @@ import {
     Button,
     ListItem,
     List,
+    ToggleButton,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
@@ -32,29 +33,66 @@ export function FilterTablesButton() {
 
     const [selectedTables, setSelectedTables] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+    const [showTableRelationships, setShowTableRelationships] = useState(false);
 
     function loadTables() {
-        // Update the selected tables based on the current nodes
+        // When loading tables (e.g., when filter button is clicked), we should maintain
+        // the current explicitly selected tables, not include related tables as selected
         const nodes = reactFlow.getNodes();
-        const tableNames = nodes
-            .filter((node) => node.hidden !== true)
-            .map((node) => `${node.data.schema}.${node.data.name}`);
-        if (nodes.length === tableNames.length) {
+        const allVisible = nodes.filter((node) => node.hidden !== true).length;
+
+        if (allVisible === nodes.length) {
+            // All tables are visible, clear the selection
             setSelectedTables([]);
-        } else {
-            setSelectedTables(tableNames);
         }
+        // If some tables are filtered and relationships toggle is on,
+        // preserve the current selectedTables state (don't modify it)
+        // Only when all tables are visible should we clear the selection
+
         setFilterText("");
+    }
+
+    function getRelatedTables(selectedTables: string[]): string[] {
+        if (!showTableRelationships || selectedTables.length === 0) {
+            return [];
+        }
+
+        const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+        const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        const relatedTables = new Set<string>();
+
+        edges.forEach((edge) => {
+            const sourceNode = nodes.find((node) => node.id === edge.source);
+            const targetNode = nodes.find((node) => node.id === edge.target);
+
+            if (sourceNode && targetNode) {
+                const sourceTableName = `${sourceNode.data.schema}.${sourceNode.data.name}`;
+                const targetTableName = `${targetNode.data.schema}.${targetNode.data.name}`;
+
+                // If source table is selected, add target table to related tables
+                if (selectedTables.includes(sourceTableName)) {
+                    relatedTables.add(targetTableName);
+                }
+                // If target table is selected, add source table to related tables
+                if (selectedTables.includes(targetTableName)) {
+                    relatedTables.add(sourceTableName);
+                }
+            }
+        });
+
+        return Array.from(relatedTables);
     }
 
     useEffect(() => {
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
         const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+
         if (selectedTables.length === 0) {
             nodes.forEach((node) => {
                 reactFlow.updateNode(node.id, {
                     ...node,
                     hidden: false,
+                    style: { ...node.style, opacity: 1 },
                 });
             });
             edges.forEach((edge) => {
@@ -64,28 +102,40 @@ export function FilterTablesButton() {
                 });
             });
         } else {
+            const relatedTables = getRelatedTables(selectedTables);
+            const tablesToShow = [...selectedTables, ...relatedTables];
+
             nodes.forEach((node) => {
                 const tableName = `${node.data.schema}.${node.data.name}`;
-                if (selectedTables.includes(tableName)) {
+                if (tablesToShow.includes(tableName)) {
+                    const isSelectedTable = selectedTables.includes(tableName);
+                    const isRelatedTable = relatedTables.includes(tableName);
+
+                    // Apply reduced opacity to related tables that are not explicitly selected
+                    const opacity = isSelectedTable || !isRelatedTable ? 1 : 0.6;
+
                     reactFlow.updateNode(node.id, {
                         ...node,
                         hidden: false,
+                        style: { ...node.style, opacity },
                     });
                 } else {
                     reactFlow.updateNode(node.id, {
                         ...node,
                         hidden: true,
+                        style: { ...node.style, opacity: 1 },
                     });
                 }
             });
+
             edges.forEach((edge) => {
                 const sourceNode = reactFlow.getNode(edge.source);
                 const targetNode = reactFlow.getNode(edge.target);
                 if (
                     sourceNode &&
                     targetNode &&
-                    selectedTables.includes(`${sourceNode.data.schema}.${sourceNode.data.name}`) &&
-                    selectedTables.includes(`${targetNode.data.schema}.${targetNode.data.name}`)
+                    tablesToShow.includes(`${sourceNode.data.schema}.${sourceNode.data.name}`) &&
+                    tablesToShow.includes(`${targetNode.data.schema}.${targetNode.data.name}`)
                 ) {
                     reactFlow.updateEdge(edge.id, {
                         ...edge,
@@ -99,7 +149,7 @@ export function FilterTablesButton() {
                 }
             });
         }
-    }, [selectedTables]);
+    }, [selectedTables, showTableRelationships]);
 
     useEffect(() => {
         eventBus.on("getScript", () =>
@@ -221,7 +271,9 @@ export function FilterTablesButton() {
                     selectedItems={selectedTables}
                     onSelectionChange={(_e, data) => {
                         setSelectedTables(data.selectedItems as string[]);
-                        context.resetView();
+                        if (context) {
+                            context.resetView();
+                        }
                     }}>
                     {renderListItems()}
                 </List>
@@ -230,8 +282,25 @@ export function FilterTablesButton() {
                         display: "flex",
                         flexDirection: "row",
                         gap: "5px",
-                        justifyContent: "flex-end",
+                        alignItems: "center",
+                        padding: "5px",
                         borderTop: "1px solid var(--vscode-editorWidget-border)",
+                        borderBottom: "1px solid var(--vscode-editorWidget-border)",
+                    }}>
+                    <ToggleButton
+                        size="small"
+                        checked={showTableRelationships}
+                        onClick={() => setShowTableRelationships(!showTableRelationships)}
+                        icon={<FluentIcons.FlowRegular />}>
+                        {locConstants.schemaDesigner.showTableRelationships}
+                    </ToggleButton>
+                </div>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "5px",
+                        justifyContent: "flex-end",
                         paddingTop: "5px",
                     }}>
                     <Button
@@ -239,7 +308,9 @@ export function FilterTablesButton() {
                         style={{}}
                         onClick={async () => {
                             setSelectedTables([]);
-                            context.resetView();
+                            if (context) {
+                                context.resetView();
+                            }
                         }}
                         appearance="subtle"
                         icon={<FluentIcons.DismissRegular />}>
