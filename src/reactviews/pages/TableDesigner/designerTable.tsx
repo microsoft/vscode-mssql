@@ -11,6 +11,8 @@ import {
     AddFilled,
     ArrowSortDownFilled,
     ArrowSortUpFilled,
+    ChevronDownRegular,
+    ChevronUpRegular,
     DeleteRegular,
     ReorderRegular,
 } from "@fluentui/react-icons";
@@ -288,6 +290,40 @@ export const DesignerTable = ({
     const [draggedOverRowId, setDraggedOverRowId] = useState<number>(-1);
     const [focusedRowId, setFocusedRowId] = useState<number | undefined>(undefined);
 
+    // Column collapse/expand functionality
+    const dataColumnsCount = tableProps.columns?.length || 0;
+    const showCollapseButton = dataColumnsCount > 10;
+    const [isColumnsCollapsed, setIsColumnsCollapsed] = useState(false);
+
+    const EXPAND = l10n.t("Expand");
+    const COLLAPSE = l10n.t("Collapse");
+
+    // Filter columns based on collapsed state
+    const getVisibleColumns = () => {
+        if (!showCollapseButton || !isColumnsCollapsed) {
+            return columns;
+        }
+
+        // When collapsed, show first 10 data columns plus action columns
+        const visibleColumns = [];
+        let dataColumnCount = 0;
+
+        for (const column of columns) {
+            if (column.columnId === "dragHandle" || column.columnId === "remove") {
+                // Always show action columns
+                visibleColumns.push(column);
+            } else if (dataColumnCount < 10) {
+                // Show first 10 data columns
+                visibleColumns.push(column);
+                dataColumnCount++;
+            }
+        }
+
+        return visibleColumns;
+    };
+
+    const visibleColumns = getVisibleColumns();
+
     return (
         <div>
             <fluentui.Toolbar size="small">
@@ -333,6 +369,23 @@ export const DesignerTable = ({
                         {MOVE_DOWN}
                     </fluentui.Button>
                 )}
+                {showCollapseButton && (
+                    <fluentui.Button
+                        icon={
+                            isColumnsCollapsed ? (
+                                <ChevronDownRegular className={classes.tableActionIcon} />
+                            ) : (
+                                <ChevronUpRegular className={classes.tableActionIcon} />
+                            )
+                        }
+                        onClick={() => {
+                            setIsColumnsCollapsed(!isColumnsCollapsed);
+                        }}
+                        size="small"
+                        appearance="transparent">
+                        {isColumnsCollapsed ? EXPAND : COLLAPSE}
+                    </fluentui.Button>
+                )}
             </fluentui.Toolbar>
             <div
                 style={{
@@ -351,8 +404,10 @@ export const DesignerTable = ({
                     style={{
                         marginRight: "5px",
                         width:
-                            Object.keys(columnSizingOptions).reduce((acc, curr) => {
-                                return acc + columnSizingOptions[curr].idealWidth! + 22;
+                            visibleColumns.reduce((acc, column) => {
+                                const columnId = column.columnId;
+                                const columnWidth = columnSizingOptions[columnId]?.idealWidth || 70;
+                                return acc + columnWidth + 22;
                             }, 0) - 20,
                     }}>
                     <fluentui.TableHeader
@@ -361,7 +416,7 @@ export const DesignerTable = ({
                             backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
                         }}>
                         <fluentui.TableRow>
-                            {columnsDef.map((column) => {
+                            {visibleColumns.map((column) => {
                                 return (
                                     <fluentui.TableHeaderCell
                                         {...columnSizing_unstable.getTableHeaderCellProps(
@@ -420,7 +475,7 @@ export const DesignerTable = ({
                                         event.preventDefault();
                                     }}
                                     key={componentPath.join(".") + index}>
-                                    {columnsDef.map((column, columnIndex) => {
+                                    {visibleColumns.map((column, columnIndex) => {
                                         return (
                                             <fluentui.TableCell
                                                 key={componentPath.join(".") + index + columnIndex}
