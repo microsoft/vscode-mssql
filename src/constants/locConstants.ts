@@ -698,9 +698,13 @@ export class FirewallRule {
 }
 
 export class Azure {
-    public static azureSignInFailedOrWasCancelled = l10n.t(
-        "Azure sign-in failed or was cancelled.",
-    );
+    public static errorSigningIntoAzure(arg0: string): string {
+        return l10n.t({
+            message: "Error signing into Azure: {0}",
+            args: [arg0],
+            comment: ["{0} is the error message"],
+        });
+    }
 
     public static errorLoadingAzureAccountInfoForTenantId = (tenantId: string) => {
         return l10n.t({

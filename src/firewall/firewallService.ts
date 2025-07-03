@@ -61,7 +61,7 @@ export class FirewallService {
 
         try {
             ({ account, tokenMappings } = await constructAzureAccountForTenant(
-                firewallRuleSpec.tenantId,
+                firewallRuleSpec.azureAccountInfo,
             ));
         } catch (err) {
             const error = new Error(

@@ -53,6 +53,7 @@ export class LocConstants {
             retry: l10n.t("Retry"),
             showPassword: l10n.t("Show password"),
             hidePassword: l10n.t("Hide password"),
+            dismiss: l10n.t("Dismiss"),
         };
     }
 
@@ -182,7 +183,6 @@ export class LocConstants {
             signIntoAzureToAddFirewallRule: l10n.t(
                 "Sign into Azure in order to add a firewall rule.",
             ),
-            signIntoAzure: l10n.t("Sign into Azure"),
             tenant: l10n.t("Tenant"),
             ruleName: l10n.t("Rule name"),
             addMyClientIp: (ipAddress: string) =>
@@ -258,6 +258,17 @@ export class LocConstants {
             copy: l10n.t("Copy"),
             paste: l10n.t("Paste"),
             searchSettings: l10n.t("Search settings..."),
+            signIntoAzureToBrowse: l10n.t(
+                "You must be signed into Azure in order to browse SQL databases.",
+            ),
+        };
+    }
+
+    public get azure() {
+        return {
+            signIntoAzure: l10n.t("Sign into Azure"),
+            azureAccount: l10n.t("Azure Account"),
+            addAzureAccount: l10n.t("+ Add Azure Account"),
         };
     }
 

@@ -24,6 +24,7 @@ export enum TelemetryViews {
     ExecutionPlan = "ExecutionPlan",
     AddFirewallRule = "AddFirewallRule",
     MssqlCopilot = "MssqlCopilot",
+    AzureAccountManagement = "AzureAccountManagement",
     ConnectionGroup = "ConnectionGroup",
     SchemaDesigner = "SchemaDesigner",
 }
@@ -104,6 +105,7 @@ export enum TelemetryActions {
     ChatWithDatabase = "ChatWithDatabase",
     ChatWithDatabaseInAgentMode = "ChatWithDatabaseInAgentMode",
     StartConversation = "StartConversation",
+    AzureSignIn = "AzureSignIn",
     GetQueryResultState = "GetQueryResultState",
     SavePlan = "SavePlan",
     CopilotAgentModeToolCall = "CopilotAgentModeToolCall",

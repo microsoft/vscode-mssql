@@ -7,7 +7,6 @@ import * as vscode from "vscode";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import { AddFirewallRuleState, AddFirewallRuleReducers } from "../sharedInterfaces/addFirewallRule";
-import * as azureHelpers from "../connectionconfig/azureHelpers";
 import { FirewallService } from "../firewall/firewallService";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -16,6 +15,8 @@ import { errorFirewallRule } from "../constants/constants";
 import { Deferred } from "../protocol";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as Loc from "../constants/locConstants";
+import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
+import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 
 /**
  * Controller for the Add Firewall Rule dialog
@@ -46,8 +47,9 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
                 message: initializationProps.errorMessage,
                 clientIp: "",
                 isSignedIn: false,
-                tenants: [],
-                addFirewallRuleState: ApiStatus.NotStarted,
+                accounts: [],
+                tenants: {},
+                addFirewallRuleStatus: ApiStatus.NotStarted,
             },
             {
                 title: initializationProps.serverName
@@ -63,10 +65,17 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         this.registerRpcHandlers();
         this.updateState();
 
-        void this.initializeDialog(initializationProps.errorMessage).then(() => {
-            this.updateState();
-            this.initialized.resolve();
-        });
+        void this.initializeDialog(initializationProps.errorMessage)
+            .then(() => {
+                this.updateState();
+                this.initialized.resolve();
+            })
+            .catch((err) => {
+                this.logger.error(
+                    `Error initializing AddFirewallRuleWebviewController: ${getErrorMessage(err)}`,
+                );
+                this.initialized.reject(err);
+            });
     }
 
     /**
@@ -74,10 +83,10 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
      */
     private async initializeDialog(errorMessage: string): Promise<void> {
         // Check if user is signed into Azure, and populate the dialog if they are
-        this.state.isSignedIn = await azureHelpers.isSignedIn();
+        this.state.isSignedIn = await VsCodeAzureHelper.isSignedIn();
 
         if (this.state.isSignedIn) {
-            await this.populateTentants(this.state);
+            await populateAzureAccountInfo(this.state, false /* forceSignInPrompt */);
         }
 
         // Extract the client IP address from the error message
@@ -114,7 +123,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         });
 
         this.registerReducer("addFirewallRule", async (state, payload) => {
-            state.addFirewallRuleState = ApiStatus.Loading;
+            state.addFirewallRuleStatus = ApiStatus.Loading;
             this.updateState(state);
 
             try {
@@ -129,7 +138,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
                 await this.panel.dispose();
             } catch (err) {
                 state.message = getErrorMessage(err);
-                state.addFirewallRuleState = ApiStatus.Error;
+                state.addFirewallRuleStatus = ApiStatus.Error;
 
                 sendErrorEvent(
                     TelemetryViews.AddFirewallRule,
@@ -148,32 +157,51 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         });
 
         this.registerReducer("signIntoAzure", async (state) => {
-            await this.populateTentants(state);
+            await populateAzureAccountInfo(state, true /* forceSignInPrompt */);
 
             return state;
         });
     }
+}
 
-    public async populateTentants(state: AddFirewallRuleState): Promise<void> {
-        const auth = await azureHelpers.confirmVscodeAzureSignin();
+export async function populateAzureAccountInfo(
+    state: AddFirewallRuleState,
+    forceSignInPrompt: boolean,
+): Promise<void> {
+    let auth: MssqlVSCodeAzureSubscriptionProvider;
 
-        if (!auth) {
-            const errorMessage = Loc.Azure.azureSignInFailedOrWasCancelled;
+    try {
+        auth = await VsCodeAzureHelper.signIn(forceSignInPrompt);
+    } catch (error) {
+        this.logger.error(`Error signing into Azure: ${getErrorMessage(error)}`);
+        this.vscodeWrapper.showErrorMessage(
+            Loc.Azure.errorSigningIntoAzure(getErrorMessage(error)),
+        );
 
-            this.logger.error(errorMessage);
-            this.vscodeWrapper.showErrorMessage(errorMessage);
+        return;
+    }
 
-            return;
+    state.isSignedIn = true;
+
+    const accounts = await VsCodeAzureHelper.getAccounts();
+
+    state.accounts = accounts.map((a) => {
+        return {
+            displayName: a.label,
+            accountId: a.id,
+        };
+    });
+
+    const tenants = await auth.getTenants();
+
+    for (const t of tenants) {
+        if (t.account.id in state.tenants) {
+            state.tenants[t.account.id].push({
+                displayName: t.displayName,
+                tenantId: t.tenantId,
+            });
+        } else {
+            state.tenants[t.account.id] = [{ displayName: t.displayName, tenantId: t.tenantId }];
         }
-
-        const tenants = await auth.getTenants();
-
-        state.isSignedIn = true;
-        state.tenants = tenants.map((t) => {
-            return {
-                name: t.displayName,
-                id: t.tenantId,
-            };
-        });
     }
 }

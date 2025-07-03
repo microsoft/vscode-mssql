@@ -47,6 +47,7 @@ export class ConnectionDialogWebviewState
     public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
     public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public dialog: IDialogProps | undefined;
+    public isAzureSignedIn: boolean = false;
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
@@ -150,6 +151,7 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
+    closeMessage: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     openCreateConnectionGroupDialog: () => void;
     createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
@@ -160,6 +162,7 @@ export interface ConnectionDialogContextProps
     loadFromConnectionString: (connectionString: string) => void;
     openConnectionStringDialog: () => void;
     signIntoAzureForFirewallRule: () => void;
+    signIntoAzureForBrowse: () => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
@@ -190,6 +193,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     };
     openCreateConnectionGroupDialog: {};
     closeDialog: {};
+    closeMessage: {};
     filterAzureSubscriptions: {};
     refreshConnectionsList: {};
     deleteSavedConnection: {
@@ -201,6 +205,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
+    signIntoAzureForBrowse: {};
 }
 
 export namespace GetConnectionDisplayNameRequest {
