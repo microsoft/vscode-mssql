@@ -59,13 +59,13 @@ export function FilterTablesButton() {
         const relatedTables = new Set<string>();
 
         edges.forEach((edge) => {
-            const sourceNode = nodes.find(node => node.id === edge.source);
-            const targetNode = nodes.find(node => node.id === edge.target);
-            
+            const sourceNode = nodes.find((node) => node.id === edge.source);
+            const targetNode = nodes.find((node) => node.id === edge.target);
+
             if (sourceNode && targetNode) {
                 const sourceTableName = `${sourceNode.data.schema}.${sourceNode.data.name}`;
                 const targetTableName = `${targetNode.data.schema}.${targetNode.data.name}`;
-                
+
                 // If source table is selected, add target table to related tables
                 if (selectedTables.includes(sourceTableName)) {
                     relatedTables.add(targetTableName);
@@ -83,7 +83,7 @@ export function FilterTablesButton() {
     useEffect(() => {
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
         const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
-        
+
         if (selectedTables.length === 0) {
             nodes.forEach((node) => {
                 reactFlow.updateNode(node.id, {
@@ -100,7 +100,7 @@ export function FilterTablesButton() {
         } else {
             const relatedTables = getRelatedTables(selectedTables);
             const tablesToShow = [...selectedTables, ...relatedTables];
-            
+
             nodes.forEach((node) => {
                 const tableName = `${node.data.schema}.${node.data.name}`;
                 if (tablesToShow.includes(tableName)) {
@@ -115,7 +115,7 @@ export function FilterTablesButton() {
                     });
                 }
             });
-            
+
             edges.forEach((edge) => {
                 const sourceNode = reactFlow.getNode(edge.source);
                 const targetNode = reactFlow.getNode(edge.target);
