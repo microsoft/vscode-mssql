@@ -36,16 +36,19 @@ export function FilterTablesButton() {
     const [showTableRelationships, setShowTableRelationships] = useState(false);
 
     function loadTables() {
-        // Update the selected tables based on the current nodes
+        // When loading tables (e.g., when filter button is clicked), we should maintain
+        // the current explicitly selected tables, not include related tables as selected
         const nodes = reactFlow.getNodes();
-        const tableNames = nodes
-            .filter((node) => node.hidden !== true)
-            .map((node) => `${node.data.schema}.${node.data.name}`);
-        if (nodes.length === tableNames.length) {
+        const allVisible = nodes.filter((node) => node.hidden !== true).length;
+
+        if (allVisible === nodes.length) {
+            // All tables are visible, clear the selection
             setSelectedTables([]);
-        } else {
-            setSelectedTables(tableNames);
         }
+        // If some tables are filtered and relationships toggle is on,
+        // preserve the current selectedTables state (don't modify it)
+        // Only when all tables are visible should we clear the selection
+
         setFilterText("");
     }
 
