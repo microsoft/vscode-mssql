@@ -45,7 +45,7 @@ export class VsCodeAzureHelper {
                 await vscode.authentication.getAccounts(getConfiguredAuthProviderId()),
             ).sort((a, b) => a.label.localeCompare(b.label));
         } catch (error) {
-            console.error(`Error fetching accounts: ${getErrorMessage(error)}`);
+            console.error(`Error fetching VS Code accounts: ${getErrorMessage(error)}`);
         }
 
         if (onlyAllowedForExtension) {
@@ -57,8 +57,8 @@ export class VsCodeAzureHelper {
                     filteredAccounts.push(account);
                 } catch (error) {
                     // no-op; failure to get tenants means that the account is not accessible by this extension
-                    console.error(
-                        `Error fetching tenants for ${account.label}: ${getErrorMessage(error)}`,
+                    console.warn(
+                        `Error fetching tenants for ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.  Error: ${getErrorMessage(error)}`,
                     );
                 }
             }
