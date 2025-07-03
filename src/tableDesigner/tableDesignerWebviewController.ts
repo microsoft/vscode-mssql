@@ -157,7 +157,9 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         );
 
         await this._connectionManager.confirmEntraTokenValidity(connectionInfo);
-
+        const accessToken = connectionInfo.azureAccountToken
+            ? connectionInfo.azureAccountToken
+            : undefined;
         try {
             let tableInfo: designer.TableInfo;
             if (this._isEdit) {
@@ -169,7 +171,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     server: connectionInfo.server,
                     database: databaseName,
                     connectionString: connectionString,
-                    accessToken: connectionInfo.azureAccountToken,
+                    accessToken: accessToken,
                     schema: this._targetNode.metadata.schema,
                     name: this._targetNode.metadata.name,
                 };
@@ -181,7 +183,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     tooltip: `${connectionInfo.server} - ${databaseName} - New Table`,
                     server: connectionInfo.server,
                     database: databaseName,
-                    accessToken: connectionInfo.azureAccountToken,
+                    accessToken: accessToken,
                     connectionString: connectionString,
                 };
             }
