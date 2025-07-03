@@ -550,6 +550,7 @@
   "Undo": "Undo",
   "Redo": "Redo",
   "Search tables...": "Search tables...",
+  "Show table relationships": "Show table relationships",
   "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
   "No schema differences were found.": "No schema differences were found.",
   "Initializing comparison, this might take a while...": "Initializing comparison, this might take a while...",
