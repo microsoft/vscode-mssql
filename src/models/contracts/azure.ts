@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RequestType } from "vscode-languageclient";
+
 /**
  * Represents a tenant information for an account.
  */
@@ -211,4 +213,26 @@ export interface ITokenClaims {
     unique_name: string;
     uti: string;
     ver: string;
+}
+
+// ------------------------------- < Security Token Request > ------------------------------------------
+export interface RequestSecurityTokenParams {
+    provider: string;
+    authority: string;
+    resource: string;
+    scopes: string[];
+}
+
+export interface RequestSecurityTokenResponse {
+    accountKey: string;
+    token: string;
+}
+
+export namespace SecurityTokenRequest {
+    export const type = new RequestType<
+        RequestSecurityTokenParams,
+        RequestSecurityTokenResponse,
+        void,
+        void
+    >("account/securityTokenRequest");
 }

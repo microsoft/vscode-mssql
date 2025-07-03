@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { NotificationHandler, RequestType } from "vscode-languageclient";
-import { ConnectionDetails, IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { ConnectionDetails, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
 import { AccountService } from "../azure/accountService";
 import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
@@ -19,7 +19,7 @@ import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { ConnectionStore } from "../models/connectionStore";
-import { IAccount } from "../models/contracts/azure";
+import { IAccount, SecurityTokenRequest } from "../models/contracts/azure";
 import * as ConnectionContracts from "../models/contracts/connection";
 import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
@@ -117,6 +117,7 @@ export default class ConnectionManager {
         this._onConnectionsChangedEmitter.event;
 
     public initialized: Deferred<void> = new Deferred<void>();
+    private _keyVaultTokenCache: Map<string, IToken> = new Map<string, IToken>();
 
     constructor(
         private context: vscode.ExtensionContext,
@@ -215,8 +216,33 @@ export default class ConnectionManager {
                 LanguageServiceContracts.NonTSqlNotification.type,
                 this.handleNonTSqlNotification(),
             );
-        }
+            this.client.onRequest(SecurityTokenRequest.type, async (params) => {
+                if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
+                    const token = this._keyVaultTokenCache.get(JSON.stringify(params));
+                    const isExpired = AzureController.isTokenExpired(token.expiresOn);
+                    if (!isExpired) {
+                        return token;
+                    } else {
+                        this._keyVaultTokenCache.delete(JSON.stringify(params));
+                    }
+                }
+                const account = await this.selectAccount();
+                const tenant = await this.selectTenantId(account);
 
+                const token = await this.azureController.getAccountSecurityToken(
+                    account,
+                    tenant,
+                    providerSettings.resources.azureKeyVaultResource,
+                );
+
+                this._keyVaultTokenCache.set(JSON.stringify(params), token);
+
+                return {
+                    accountKey: token.key,
+                    token: token.token,
+                };
+            });
+        }
         void this.initialize();
     }
 
@@ -1774,4 +1800,127 @@ export default class ConnectionManager {
             return "error";
         }
     }
+
+    private async selectAccount(): Promise<IAccount> {
+        const activeEditorConnection =
+            this._connections[this._vscodeWrapper.activeTextEditorUri]?.credentials;
+        const currentAccountId = activeEditorConnection?.accountId;
+        const accounts = this._accountStore.getAccounts();
+
+        const quickPickItems = this.createAccountQuickPickItems(accounts, currentAccountId);
+        const selectedAccount = await this.showAccountQuickPick(quickPickItems);
+
+        if (!selectedAccount) {
+            throw new Error("No account selected");
+        }
+
+        return selectedAccount;
+    }
+
+    private createAccountQuickPickItems(
+        accounts: IAccount[],
+        currentAccountId?: string,
+    ): AccountQuickPickItem[] {
+        const accountItems: AccountQuickPickItem[] = accounts.map((account) => ({
+            label:
+                account.key.id === currentAccountId
+                    ? `${account.displayInfo.name} (Current Account)`
+                    : account.displayInfo.name,
+            description: account.displayInfo.email,
+            account,
+        }));
+
+        accountItems.push({
+            label: "Sign in to a new account",
+            description: "Sign in to a new account",
+            account: undefined,
+        });
+
+        return accountItems;
+    }
+
+    private async showAccountQuickPick(
+        items: AccountQuickPickItem[],
+    ): Promise<IAccount | undefined> {
+        const account = await new Promise<IAccount | undefined>((resolve, reject) => {
+            const quickPick = vscode.window.createQuickPick<AccountQuickPickItem>();
+            quickPick.items = items;
+            quickPick.placeholder =
+                "Select an account for Azure Key Vault that contains decryption keys for encrypted columns";
+
+            quickPick.onDidAccept(async () => {
+                try {
+                    const selectedItem = quickPick.selectedItems[0];
+                    if (!selectedItem) {
+                        resolve(undefined);
+                        return;
+                    }
+
+                    const account = selectedItem.account;
+                    quickPick.dispose();
+                    resolve(account);
+                } catch (error) {
+                    quickPick.dispose();
+                    reject(error);
+                }
+            });
+            quickPick.show();
+        });
+        return account;
+    }
+
+    private async selectTenantId(account: IAccount): Promise<string> {
+        if (account.properties?.tenants?.length === 1) {
+            return account.properties.tenants[0].id;
+        }
+        const tenantItems = account.properties.tenants.map((tenant) => ({
+            label: tenant.displayName,
+            description: tenant.id,
+            tenant: tenant.id,
+        }));
+
+        const selectedTenant = await this.showTenantQuickPick(tenantItems);
+        if (!selectedTenant) {
+            throw new Error("No tenant selected");
+        }
+
+        return selectedTenant;
+    }
+
+    private async showTenantQuickPick(items: TenantQuickPickItem[]): Promise<string | undefined> {
+        return new Promise((resolve, reject) => {
+            const quickPick = vscode.window.createQuickPick<TenantQuickPickItem>();
+            quickPick.items = items;
+            quickPick.placeholder = "Select a tenant for Azure Key Vault";
+
+            quickPick.onDidAccept(() => {
+                const selectedItem = quickPick.selectedItems[0];
+                if (selectedItem) {
+                    quickPick.dispose();
+                    resolve(selectedItem.tenant);
+                } else {
+                    quickPick.dispose();
+                    resolve(undefined);
+                }
+            });
+
+            quickPick.onDidHide(() => {
+                quickPick.dispose();
+            });
+
+            quickPick.show();
+        });
+    }
+}
+
+interface AccountQuickPickItem {
+    label: string;
+    description: string;
+    account?: IAccount;
+}
+
+interface TenantQuickPickItem {
+    label: string;
+    description: string;
+    tenant: string; // Replace with proper tenant type
 }
