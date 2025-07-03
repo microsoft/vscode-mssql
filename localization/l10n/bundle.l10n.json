@@ -279,7 +279,7 @@
   "Paste connection string from clipboard": "Paste connection string from clipboard",
   "Paste": "Paste",
   "Search settings...": "Search settings...",
-  "Sign into Azure in order to browse SQL databases.": "Sign into Azure in order to browse SQL databases.",
+  "You must be signed into Azure in order to browse SQL databases.": "You must be signed into Azure in order to browse SQL databases.",
   "Sign into Azure": "Sign into Azure",
   "Azure Account": "Azure Account",
   "+ Add Azure Account": "+ Add Azure Account",

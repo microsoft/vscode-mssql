@@ -2167,9 +2167,6 @@
     <trans-unit id="++CODE++cdc182077e173c86c2831fe9995d41691b9bc1182fe44519a292ea2b814eb17a">
       <source xml:lang="en">Sign into Azure in order to add a firewall rule.</source>
     </trans-unit>
-    <trans-unit id="++CODE++09bc69a7f968b1fe9747e82bfacd98d0ba1bafe8a797af192dc3670ebd8397b1">
-      <source xml:lang="en">Sign into Azure in order to browse SQL databases.</source>
-    </trans-unit>
     <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
       <source xml:lang="en">Signing in to Azure...</source>
     </trans-unit>
@@ -2527,6 +2524,9 @@
     </trans-unit>
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
+      <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
     </trans-unit>
     <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
       <source xml:lang="en">You must review and accept the terms to proceed</source>
