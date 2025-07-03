@@ -258,6 +258,7 @@ export class LocConstants {
             copy: l10n.t("Copy"),
             paste: l10n.t("Paste"),
             searchSettings: l10n.t("Search settings..."),
+            refresh: l10n.t("Refresh"),
         };
     }
 
