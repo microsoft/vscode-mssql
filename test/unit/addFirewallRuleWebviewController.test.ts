@@ -53,7 +53,8 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             const expectedInitialState: AddFirewallRuleState = {
                 serverName: serverName,
                 isSignedIn: false,
-                tenants: [],
+                accounts: [],
+                tenants: {},
                 clientIp: "1.2.3.4",
                 message: errorMessage,
                 addFirewallRuleStatus: ApiStatus.NotStarted,
@@ -71,12 +72,15 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             const expectedInitialState: AddFirewallRuleState = {
                 serverName: serverName,
                 isSignedIn: true,
-                tenants: azureHelperStubs.mockTenants.map((t) => {
-                    return {
-                        name: t.displayName,
-                        id: t.tenantId,
-                    };
-                }),
+                accounts: [{ accountId: "test-account-id", displayName: "Test Account" }],
+                tenants: {
+                    "test-account-id": azureHelperStubs.mockTenants.map((t) => {
+                        return {
+                            displayName: t.displayName,
+                            tenantId: t.tenantId,
+                        };
+                    }),
+                },
                 clientIp: "1.2.3.4",
                 message: errorMessage,
                 addFirewallRuleStatus: ApiStatus.NotStarted,

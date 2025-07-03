@@ -35,11 +35,11 @@ export const mockTenants = [
 ] as unknown as AzureTenant[];
 
 export function stubIsSignedIn(sandbox: Sinon.SinonSandbox, result: boolean) {
-    return sandbox.stub(AzureHelpers, "isSignedIn").resolves(result);
+    return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "isSignedIn").resolves(result);
 }
 
 export function stubConfirmVscodeAzureSignin(sandbox: sinon.SinonSandbox) {
-    return sandbox.stub(AzureHelpers, "confirmVscodeAzureSignin").resolves({
+    return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "signIn").resolves({
         getSubscriptions: () => Promise.resolve(mockSubscriptions),
         getTenants: () => Promise.resolve(mockTenants),
     } as unknown as MssqlVSCodeAzureSubscriptionProvider);
