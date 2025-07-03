@@ -117,6 +117,7 @@
   "Retry": "Retry",
   "Show password": "Show password",
   "Hide password": "Hide password",
+  "Dismiss": "Dismiss",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -390,7 +391,6 @@
   "Script": "Script",
   "New column mapping": "New column mapping",
   "Column Name": "Column Name",
-  "Dismiss": "Dismiss",
   "Table '{0}' already exists/{0} is the table name": {
     "message": "Table '{0}' already exists",
     "comment": [

@@ -151,6 +151,7 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
+    closeMessage: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     openCreateConnectionGroupDialog: () => void;
     createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
@@ -192,6 +193,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     };
     openCreateConnectionGroupDialog: {};
     closeDialog: {};
+    closeMessage: {};
     filterAzureSubscriptions: {};
     refreshConnectionsList: {};
     deleteSavedConnection: {

@@ -53,6 +53,7 @@ export class LocConstants {
             retry: l10n.t("Retry"),
             showPassword: l10n.t("Show password"),
             hidePassword: l10n.t("Hide password"),
+            dismiss: l10n.t("Dismiss"),
         };
     }
 

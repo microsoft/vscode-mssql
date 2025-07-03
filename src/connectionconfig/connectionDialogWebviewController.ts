@@ -348,6 +348,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
+        this.registerReducer("closeMessage", async (state) => {
+            state.formError = undefined;
+            return state;
+        });
+
         this.registerReducer("filterAzureSubscriptions", async (state) => {
             try {
                 if (await promptForAzureSubscriptionFilter(state, this.logger)) {
@@ -465,6 +470,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("openConnectionStringDialog", async (state) => {
+            if (state.selectedInputMode !== ConnectionInputMode.Parameters) {
+                state.selectedInputMode = ConnectionInputMode.Parameters;
+                state.formError = undefined;
+                this.updateState(state);
+            }
+
             try {
                 let connectionString = "";
 
@@ -534,7 +545,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("signIntoAzureForBrowse", async (state) => {
             if (state.selectedInputMode !== ConnectionInputMode.AzureBrowse) {
-                return state;
+                state.selectedInputMode = ConnectionInputMode.AzureBrowse;
+                state.formError = undefined;
+                this.updateState(state);
             }
 
             try {

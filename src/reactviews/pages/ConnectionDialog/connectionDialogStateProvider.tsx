@@ -76,6 +76,9 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 closeDialog: function (): void {
                     webviewContext?.extensionRpc.action("closeDialog");
                 },
+                closeMessage: function (): void {
+                    webviewContext.extensionRpc.action("closeMessage");
+                },
                 filterAzureSubscriptions: function (): void {
                     webviewContext.extensionRpc.action("filterAzureSubscriptions");
                 },

@@ -54,6 +54,10 @@ export const AzureBrowsePage = () => {
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
     function setSelectedServerWithFormState(server: string | undefined) {
+        if (server === undefined && context?.state.formState.server === "") {
+            return; // avoid unnecessary updates
+        }
+
         setSelectedServer(server);
         setConnectionProperty("server", server ? server + ".database.windows.net" : "");
     }

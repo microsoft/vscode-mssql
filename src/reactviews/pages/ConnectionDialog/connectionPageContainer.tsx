@@ -19,8 +19,19 @@ import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
 } from "../../../sharedInterfaces/connectionGroup";
-import { Field, Image, Link, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
-import { Form20Regular } from "@fluentui/react-icons";
+import {
+    Button,
+    Field,
+    Image,
+    Link,
+    makeStyles,
+    MessageBar,
+    MessageBarActions,
+    MessageBarBody,
+    Radio,
+    RadioGroup,
+} from "@fluentui/react-components";
+import { DismissRegular, Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
 
@@ -46,9 +57,17 @@ function renderContent(connectionDialogContext: ConnectionDialogContextProps): R
     }
 }
 
+const useStyles = makeStyles({
+    inputLink: {
+        display: "flex",
+        alignItems: "center",
+    },
+});
+
 export const ConnectionInfoFormContainer = () => {
     const context = useContext(ConnectionDialogContext)!;
     const formStyles = useFormStyles();
+    const styles = useStyles();
 
     function azureIcon(colorTheme: ColorThemeKind) {
         const theme = themeType(colorTheme);
@@ -70,8 +89,18 @@ export const ConnectionInfoFormContainer = () => {
 
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                 {context.state.formError && (
-                    <MessageBar intent="error" style={{ minHeight: "min-content" }}>
-                        {context.state.formError}
+                    <MessageBar intent="error" style={{ minHeight: "min-content", padding: "8px" }}>
+                        <MessageBarBody>{context.state.formError}</MessageBarBody>
+                        <MessageBarActions
+                            containerAction={
+                                <Button
+                                    onClick={context.closeMessage}
+                                    aria-label={locConstants.common.dismiss}
+                                    appearance="transparent"
+                                    icon={<DismissRegular />}
+                                />
+                            }
+                        />
                     </MessageBar>
                 )}
 
@@ -152,11 +181,7 @@ export const ConnectionInfoFormContainer = () => {
                             <Radio
                                 value={ConnectionInputMode.Parameters}
                                 label={
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                        }}>
+                                    <div className={styles.inputLink}>
                                         <Form20Regular style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.parameters}
                                         <span style={{ margin: "0 8px" }} />
@@ -173,11 +198,7 @@ export const ConnectionInfoFormContainer = () => {
                             <Radio
                                 value={ConnectionInputMode.AzureBrowse}
                                 label={
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                        }}>
+                                    <div className={styles.inputLink}>
                                         <Image
                                             src={azureIcon(context.themeKind)}
                                             alt="Azure"
