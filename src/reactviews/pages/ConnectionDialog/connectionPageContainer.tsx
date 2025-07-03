@@ -89,8 +89,10 @@ export const ConnectionInfoFormContainer = () => {
 
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                 {context.state.formError && (
-                    <MessageBar intent="error" style={{ minHeight: "min-content", padding: "8px" }}>
-                        <MessageBarBody>{context.state.formError}</MessageBarBody>
+                    <MessageBar intent="error" style={{ minHeight: "min-content" }}>
+                        <MessageBarBody style={{ padding: "8px 0" }}>
+                            {context.state.formError}
+                        </MessageBarBody>
                         <MessageBarActions
                             containerAction={
                                 <Button

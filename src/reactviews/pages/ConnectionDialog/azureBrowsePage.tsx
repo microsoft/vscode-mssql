@@ -6,7 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, Link, Spinner } from "@fluentui/react-components";
+import { Button, Link, makeStyles, Spinner } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
@@ -22,9 +22,33 @@ import { removeDuplicates } from "../../common/utils";
 import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 
+const useStyles = makeStyles({
+    icon: {
+        width: "75px",
+        height: "75px",
+        marginBottom: "10px",
+    },
+    notSignedInContainer: {
+        marginTop: "20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+    },
+    signInLink: {
+        marginTop: "8px",
+    },
+});
+
+export const azureLogoColor = () => {
+    return require(`../../media/azure-color.svg`);
+};
+
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
     const formStyles = useFormStyles();
+    const styles = useStyles();
+
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     if (context === undefined) {
@@ -201,10 +225,15 @@ export const AzureBrowsePage = () => {
     return (
         <div>
             {!context.state.isAzureSignedIn && (
-                <div style={{ textAlign: "center" }}>
-                    {Loc.connectionDialog.signIntoAzureToBrowse}{" "}
-                    {" " /* extra space before the 'Sign in' link*/}
+                <div className={styles.notSignedInContainer}>
+                    <img
+                        className={styles.icon}
+                        src={azureLogoColor()}
+                        alt={Loc.connectionDialog.signIntoAzureToBrowse}
+                    />
+                    <div>{Loc.connectionDialog.signIntoAzureToBrowse}</div>
                     <Link
+                        className={styles.signInLink}
                         onClick={() => {
                             context.signIntoAzureForBrowse();
                         }}>

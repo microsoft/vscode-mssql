@@ -258,7 +258,9 @@ export class LocConstants {
             copy: l10n.t("Copy"),
             paste: l10n.t("Paste"),
             searchSettings: l10n.t("Search settings..."),
-            signIntoAzureToBrowse: l10n.t("Sign into Azure in order to browse SQL databases."),
+            signIntoAzureToBrowse: l10n.t(
+                "You must be signed into Azure in order to browse SQL databases.",
+            ),
         };
     }
 

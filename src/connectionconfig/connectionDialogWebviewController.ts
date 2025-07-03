@@ -242,8 +242,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             if (
                 state.selectedInputMode === ConnectionInputMode.AzureBrowse &&
-                state.loadingAzureSubscriptionsStatus === ApiStatus.NotStarted &&
-                state.loadingAzureServersStatus === ApiStatus.NotStarted
+                (state.loadingAzureSubscriptionsStatus === ApiStatus.NotStarted ||
+                    state.loadingAzureSubscriptionsStatus === ApiStatus.Error) &&
+                (state.loadingAzureServersStatus === ApiStatus.NotStarted ||
+                    state.loadingAzureServersStatus === ApiStatus.Error)
             ) {
                 await this.loadAllAzureServers(state);
             }
