@@ -12,6 +12,7 @@ import {
     Button,
     ListItem,
     List,
+    ToggleButton,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
@@ -32,6 +33,7 @@ export function FilterTablesButton() {
 
     const [selectedTables, setSelectedTables] = useState<string[]>([]);
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+    const [showTableRelationships, setShowTableRelationships] = useState(false);
 
     function loadTables() {
         // Update the selected tables based on the current nodes
@@ -47,9 +49,41 @@ export function FilterTablesButton() {
         setFilterText("");
     }
 
+    function getRelatedTables(selectedTables: string[]): string[] {
+        if (!showTableRelationships || selectedTables.length === 0) {
+            return [];
+        }
+
+        const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+        const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        const relatedTables = new Set<string>();
+
+        edges.forEach((edge) => {
+            const sourceNode = nodes.find(node => node.id === edge.source);
+            const targetNode = nodes.find(node => node.id === edge.target);
+            
+            if (sourceNode && targetNode) {
+                const sourceTableName = `${sourceNode.data.schema}.${sourceNode.data.name}`;
+                const targetTableName = `${targetNode.data.schema}.${targetNode.data.name}`;
+                
+                // If source table is selected, add target table to related tables
+                if (selectedTables.includes(sourceTableName)) {
+                    relatedTables.add(targetTableName);
+                }
+                // If target table is selected, add source table to related tables
+                if (selectedTables.includes(targetTableName)) {
+                    relatedTables.add(sourceTableName);
+                }
+            }
+        });
+
+        return Array.from(relatedTables);
+    }
+
     useEffect(() => {
         const nodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
         const edges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+        
         if (selectedTables.length === 0) {
             nodes.forEach((node) => {
                 reactFlow.updateNode(node.id, {
@@ -64,9 +98,12 @@ export function FilterTablesButton() {
                 });
             });
         } else {
+            const relatedTables = getRelatedTables(selectedTables);
+            const tablesToShow = [...selectedTables, ...relatedTables];
+            
             nodes.forEach((node) => {
                 const tableName = `${node.data.schema}.${node.data.name}`;
-                if (selectedTables.includes(tableName)) {
+                if (tablesToShow.includes(tableName)) {
                     reactFlow.updateNode(node.id, {
                         ...node,
                         hidden: false,
@@ -78,14 +115,15 @@ export function FilterTablesButton() {
                     });
                 }
             });
+            
             edges.forEach((edge) => {
                 const sourceNode = reactFlow.getNode(edge.source);
                 const targetNode = reactFlow.getNode(edge.target);
                 if (
                     sourceNode &&
                     targetNode &&
-                    selectedTables.includes(`${sourceNode.data.schema}.${sourceNode.data.name}`) &&
-                    selectedTables.includes(`${targetNode.data.schema}.${targetNode.data.name}`)
+                    tablesToShow.includes(`${sourceNode.data.schema}.${sourceNode.data.name}`) &&
+                    tablesToShow.includes(`${targetNode.data.schema}.${targetNode.data.name}`)
                 ) {
                     reactFlow.updateEdge(edge.id, {
                         ...edge,
@@ -99,7 +137,7 @@ export function FilterTablesButton() {
                 }
             });
         }
-    }, [selectedTables]);
+    }, [selectedTables, showTableRelationships]);
 
     useEffect(() => {
         eventBus.on("getScript", () =>
@@ -221,7 +259,9 @@ export function FilterTablesButton() {
                     selectedItems={selectedTables}
                     onSelectionChange={(_e, data) => {
                         setSelectedTables(data.selectedItems as string[]);
-                        context.resetView();
+                        if (context) {
+                            context.resetView();
+                        }
                     }}>
                     {renderListItems()}
                 </List>
@@ -230,8 +270,25 @@ export function FilterTablesButton() {
                         display: "flex",
                         flexDirection: "row",
                         gap: "5px",
-                        justifyContent: "flex-end",
+                        alignItems: "center",
+                        padding: "5px",
                         borderTop: "1px solid var(--vscode-editorWidget-border)",
+                        borderBottom: "1px solid var(--vscode-editorWidget-border)",
+                    }}>
+                    <ToggleButton
+                        size="small"
+                        checked={showTableRelationships}
+                        onClick={() => setShowTableRelationships(!showTableRelationships)}
+                        icon={<FluentIcons.FlowRegular />}>
+                        {locConstants.schemaDesigner.showTableRelationships}
+                    </ToggleButton>
+                </div>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "5px",
+                        justifyContent: "flex-end",
                         paddingTop: "5px",
                     }}>
                     <Button
@@ -239,7 +296,9 @@ export function FilterTablesButton() {
                         style={{}}
                         onClick={async () => {
                             setSelectedTables([]);
-                            context.resetView();
+                            if (context) {
+                                context.resetView();
+                            }
                         }}
                         appearance="subtle"
                         icon={<FluentIcons.DismissRegular />}>
