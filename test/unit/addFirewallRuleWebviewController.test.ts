@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
 import * as sinon from "sinon";
 import { expect } from "chai";
 
@@ -14,32 +13,33 @@ import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as azureHelperStubs from "./azureHelperStubs";
+import { stubVscodeWrapper } from "./utils";
 
 suite("AddFirewallRuleWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let controller: AddFirewallRuleWebviewController;
-    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
-    let mockFirewallService: TypeMoq.IMock<FirewallService>;
+    let mockContext: vscode.ExtensionContext;
+    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let mockFirewallService: sinon.SinonStubbedInstance<FirewallService>;
+
     const serverName = "TestServerName";
     const errorMessage = "Gotta have a firewall rule for 1.2.3.4 in order to access this server!";
 
     setup(async () => {
         sandbox = sinon.createSandbox();
 
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
-        mockFirewallService = TypeMoq.Mock.ofType(FirewallService, TypeMoq.MockBehavior.Loose);
+        mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        mockFirewallService = sandbox.createStubInstance(FirewallService);
 
-        mockContext.setup((c) => c.extensionUri).returns(() => vscode.Uri.parse("file://fakePath"));
-        mockContext.setup((c) => c.extensionPath).returns(() => "fakePath");
-        mockContext.setup((c) => c.subscriptions).returns(() => []);
+        mockContext = {
+            extensionUri: vscode.Uri.parse("file://fakePath"),
+            extensionPath: "fakePath",
+            subscriptions: [],
+        } as vscode.ExtensionContext;
 
-        mockFirewallService
-            .setup((f) => f.handleFirewallRule(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => {
-                return Promise.resolve({ ipAddress: "1.2.3.4", result: true });
-            });
+        mockFirewallService.handleFirewallRule.returns(
+            Promise.resolve({ ipAddress: "1.2.3.4", result: true }),
+        );
     });
 
     teardown(() => {
@@ -67,14 +67,21 @@ suite("AddFirewallRuleWebviewController Tests", () => {
         });
 
         test("Should initialize correctly for signed into Azure", async () => {
+            azureHelperStubs.stubVscodeAzureHelperGetAccounts(sandbox);
+
             await finishSetup(true);
 
             const expectedInitialState: AddFirewallRuleState = {
                 serverName: serverName,
                 isSignedIn: true,
-                accounts: [{ accountId: "test-account-id", displayName: "Test Account" }],
+                accounts: azureHelperStubs.mockAccounts.map((a) => {
+                    return {
+                        accountId: a.id,
+                        displayName: a.label,
+                    };
+                }),
                 tenants: {
-                    "test-account-id": azureHelperStubs.mockTenants.map((t) => {
+                    [azureHelperStubs.mockAccounts[0].id]: azureHelperStubs.mockTenants.map((t) => {
                         return {
                             displayName: t.displayName,
                             tenantId: t.tenantId,
@@ -95,7 +102,7 @@ suite("AddFirewallRuleWebviewController Tests", () => {
 
     suite("Reducer tests", () => {
         test("closeDialog", async () => {
-            await finishSetup();
+            await finishSetup(false /* isSignedIn */);
 
             await controller["_reducerHandlers"].get("closeDialog")(controller.state, {});
 
@@ -108,17 +115,17 @@ suite("AddFirewallRuleWebviewController Tests", () => {
         azureHelperStubs.stubIsSignedIn(sandbox, isSignedIn);
 
         if (isSignedIn) {
-            azureHelperStubs.stubConfirmVscodeAzureSignin(sandbox);
+            azureHelperStubs.stubVscodeAzureSignIn(sandbox);
         }
 
         controller = new AddFirewallRuleWebviewController(
-            mockContext.object,
-            mockVscodeWrapper.object,
+            mockContext,
+            mockVscodeWrapper,
             {
                 serverName: serverName,
                 errorMessage: errorMessage,
             },
-            mockFirewallService.object,
+            mockFirewallService,
         );
 
         return await controller.initialized;

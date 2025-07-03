@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
 import Sinon from "sinon";
 import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureauth";
 
@@ -27,22 +28,39 @@ export const mockTenants = [
     {
         displayName: "Tenant Zero",
         id: "00000000-0000-0000-0000-000000000000",
+        account: {
+            id: "00000000-0000-0000-0000-000000000000.11111111-1111-1111-1111-111111111111",
+        },
     },
     {
         displayName: "Tenant One",
         id: "11111111-1111-1111-1111-111111111111",
+        account: {
+            id: "00000000-0000-0000-0000-000000000000.11111111-1111-1111-1111-111111111111",
+        },
     },
 ] as unknown as AzureTenant[];
+
+export const mockAccounts = [
+    {
+        id: "00000000-0000-0000-0000-000000000000.11111111-1111-1111-1111-111111111111",
+        label: "testAccount@testDomain.com",
+    },
+] as vscode.AuthenticationSessionAccountInformation[];
 
 export function stubIsSignedIn(sandbox: Sinon.SinonSandbox, result: boolean) {
     return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "isSignedIn").resolves(result);
 }
 
-export function stubConfirmVscodeAzureSignin(sandbox: sinon.SinonSandbox) {
+export function stubVscodeAzureSignIn(sandbox: sinon.SinonSandbox) {
     return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "signIn").resolves({
         getSubscriptions: () => Promise.resolve(mockSubscriptions),
         getTenants: () => Promise.resolve(mockTenants),
     } as unknown as MssqlVSCodeAzureSubscriptionProvider);
+}
+
+export function stubVscodeAzureHelperGetAccounts(sandbox: sinon.SinonSandbox) {
+    return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getAccounts").resolves(mockAccounts);
 }
 
 export function stubFetchServersFromAzure(sandbox: sinon.SinonSandbox) {

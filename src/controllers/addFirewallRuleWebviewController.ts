@@ -65,10 +65,17 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         this.registerRpcHandlers();
         this.updateState();
 
-        void this.initializeDialog(initializationProps.errorMessage).then(() => {
-            this.updateState();
-            this.initialized.resolve();
-        });
+        void this.initializeDialog(initializationProps.errorMessage)
+            .then(() => {
+                this.updateState();
+                this.initialized.resolve();
+            })
+            .catch((err) => {
+                this.logger.error(
+                    `Error initializing AddFirewallRuleWebviewController: ${getErrorMessage(err)}`,
+                );
+                this.initialized.reject(err);
+            });
     }
 
     /**
