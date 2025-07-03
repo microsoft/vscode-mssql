@@ -1811,7 +1811,7 @@ export default class ConnectionManager {
         const selectedAccount = await this.showAccountQuickPick(quickPickItems);
 
         if (!selectedAccount) {
-            throw new Error("No account selected");
+            throw new Error(LocalizedConstants.Connection.noAccountSelected);
         }
 
         return selectedAccount;
@@ -1824,15 +1824,15 @@ export default class ConnectionManager {
         const accountItems: AccountQuickPickItem[] = accounts.map((account) => ({
             label:
                 account.key.id === currentAccountId
-                    ? `${account.displayInfo.name} (Current Account)`
+                    ? LocalizedConstants.Connection.currentAccount(account.displayInfo.name)
                     : account.displayInfo.name,
             description: account.displayInfo.email,
             account,
         }));
 
         accountItems.push({
-            label: "Sign in to a new account",
-            description: "Sign in to a new account",
+            label: LocalizedConstants.Connection.signInToAzure,
+            description: LocalizedConstants.Connection.signInToAzure,
             account: undefined,
         });
 
@@ -1845,8 +1845,7 @@ export default class ConnectionManager {
         const account = await new Promise<IAccount | undefined>((resolve, reject) => {
             const quickPick = vscode.window.createQuickPick<AccountQuickPickItem>();
             quickPick.items = items;
-            quickPick.placeholder =
-                "Select an account for Azure Key Vault that contains decryption keys for encrypted columns";
+            quickPick.placeholder = LocalizedConstants.Connection.SelectAccountForKeyVault;
 
             quickPick.onDidAccept(async () => {
                 try {
@@ -1881,7 +1880,7 @@ export default class ConnectionManager {
 
         const selectedTenant = await this.showTenantQuickPick(tenantItems);
         if (!selectedTenant) {
-            throw new Error("No tenant selected");
+            throw new Error(LocalizedConstants.Connection.NoTenantSelected);
         }
 
         return selectedTenant;
@@ -1891,7 +1890,7 @@ export default class ConnectionManager {
         return new Promise((resolve, reject) => {
             const quickPick = vscode.window.createQuickPick<TenantQuickPickItem>();
             quickPick.items = items;
-            quickPick.placeholder = "Select a tenant for Azure Key Vault";
+            quickPick.placeholder = LocalizedConstants.Connection.SelectTenant;
 
             quickPick.onDidAccept(() => {
                 const selectedItem = quickPick.selectedItems[0];
