@@ -89,6 +89,7 @@ export function FilterTablesButton() {
                 reactFlow.updateNode(node.id, {
                     ...node,
                     hidden: false,
+                    style: { ...node.style, opacity: 1 },
                 });
             });
             edges.forEach((edge) => {
@@ -104,14 +105,22 @@ export function FilterTablesButton() {
             nodes.forEach((node) => {
                 const tableName = `${node.data.schema}.${node.data.name}`;
                 if (tablesToShow.includes(tableName)) {
+                    const isSelectedTable = selectedTables.includes(tableName);
+                    const isRelatedTable = relatedTables.includes(tableName);
+
+                    // Apply reduced opacity to related tables that are not explicitly selected
+                    const opacity = isSelectedTable || !isRelatedTable ? 1 : 0.6;
+
                     reactFlow.updateNode(node.id, {
                         ...node,
                         hidden: false,
+                        style: { ...node.style, opacity },
                     });
                 } else {
                     reactFlow.updateNode(node.id, {
                         ...node,
                         hidden: true,
+                        style: { ...node.style, opacity: 1 },
                     });
                 }
             });
