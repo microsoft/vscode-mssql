@@ -174,7 +174,7 @@ const CompareActionBar = (props: Props) => {
                 {loc.schemaCompare.apply}
             </ToolbarButton>
             <ToolbarButton
-                aria-lable={loc.schemaCompare.options}
+                aria-label={loc.schemaCompare.options}
                 title={loc.schemaCompare.options}
                 icon={<SettingsRegular />}
                 onClick={handleOptionsClicked}
@@ -193,8 +193,8 @@ const CompareActionBar = (props: Props) => {
                 onClick={handleSwitchEndpoints}
                 disabled={
                     context.state.isComparisonInProgress ||
-                    isEndpointEmpty(context.state.sourceEndpointInfo) ||
-                    isEndpointEmpty(context.state.targetEndpointInfo)
+                    (isEndpointEmpty(context.state.sourceEndpointInfo) &&
+                        isEndpointEmpty(context.state.targetEndpointInfo))
                 }>
                 {loc.schemaCompare.switchDirection}
             </ToolbarButton>

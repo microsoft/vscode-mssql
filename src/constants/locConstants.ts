@@ -870,6 +870,12 @@ export class ContainerDeployment {
             args: [platform],
             comment: ["{0} is the platform name of the machine"],
         });
+    public static unsupportedDockerArchitectureError = (architecture: string) =>
+        l10n.t({
+            message: "Unsupported architecture for Docker: {0}",
+            args: [architecture],
+            comment: ["{0} is the architecture name of the machine"],
+        });
     public static rosettaError = l10n.t(
         "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
     );
@@ -1303,7 +1309,7 @@ export class MssqlChatAgent {
             comment: ["{0} is the connection ID"],
         });
     };
-    public static showSchemaToolNoConnectionError = (connectionId: string) => {
+    public static noConnectionError = (connectionId: string) => {
         return l10n.t({
             message: "No connection found for connectionId: {0}",
             args: [connectionId],
@@ -1311,6 +1317,71 @@ export class MssqlChatAgent {
         });
     };
     public static showSchemaToolSuccessMessage = l10n.t("Schema visualization opened.");
+    public static getConnectionDetailsToolConfirmationTitle = l10n.t("Get Connection Details");
+    public static getConnectionDetailsToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Get connection details for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static getConnectionDetailsToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Getting connection details for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static listDatabasesToolConfirmationTitle = l10n.t("List Databases");
+    public static listDatabasesToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List databases for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static listDatabasesToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing databases for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static changeDatabaseToolConfirmationTitle = l10n.t("Change Database");
+    public static changeDatabaseToolConfirmationMessage = (
+        connectionId: string,
+        database: string,
+    ) => {
+        return l10n.t({
+            message: "Change database to '{1}' for connection '{0}'?",
+            args: [connectionId, database],
+            comment: ["{0} is the connection ID", "{1} is the database name"],
+        });
+    };
+    public static changeDatabaseToolInvocationMessage = (
+        connectionId: string,
+        database: string,
+    ) => {
+        return l10n.t({
+            message: "Changing database to '{1}' for connection '{0}'",
+            args: [connectionId, database],
+            comment: ["{0} is the connection ID", "{1} is the database name"],
+        });
+    };
+    public static changeDatabaseToolSuccessMessage = (database: string) => {
+        return l10n.t({
+            message: "Successfully changed to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
+        });
+    };
+    public static changeDatabaseToolFailMessage = (database: string) => {
+        return l10n.t({
+            message: "Failed to connect to database: {0}",
+            args: [database],
+            comment: ["{0} is the database name"],
+        });
+    };
 }
 
 export class QueryEditor {

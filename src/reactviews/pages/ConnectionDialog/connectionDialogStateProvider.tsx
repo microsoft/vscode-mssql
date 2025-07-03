@@ -8,6 +8,7 @@ import {
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
+    GetConnectionDisplayNameRequest,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 
@@ -99,11 +100,10 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 getConnectionDisplayName: async function (
                     connectionProfile: IConnectionDialogProfile,
                 ): Promise<string> {
-                    const result = await webviewState.extensionRpc.call(
-                        "getConnectionDisplayName",
+                    return await webviewState.extensionRpc.sendRequest(
+                        GetConnectionDisplayNameRequest.type,
                         connectionProfile,
                     );
-                    return result as string;
                 },
                 signIntoAzureForFirewallRule: function (): void {
                     webviewState.extensionRpc.action("signIntoAzureForFirewallRule");

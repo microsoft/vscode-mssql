@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { exec } from "child_process";
-import { platform } from "os";
+import { arch, platform } from "os";
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeploymentInterfaces";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
@@ -14,6 +14,7 @@ import {
     localhost,
     localhostIP,
     Platform,
+    x64,
 } from "../constants/constants";
 import { ContainerDeployment, msgYes } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -108,7 +109,7 @@ export function initializeDockerSteps(): DockerStep[] {
             headerText: ContainerDeployment.startDockerEngineHeader,
             bodyText: ContainerDeployment.startDockerEngineBody,
             errorLink:
-                platform() === Platform.Windows
+                platform() === Platform.Windows && arch() === x64
                     ? "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers"
                     : undefined,
             errorLinkText: ContainerDeployment.configureLinuxContainers,
@@ -210,16 +211,23 @@ export async function checkDockerInstallation(): Promise<DockerCommandParams> {
  */
 export async function checkEngine(): Promise<DockerCommandParams> {
     let dockerCliPath = "";
-    if (platform() === Platform.Windows) {
-        dockerCliPath = await getDockerPath("DockerCli.exe");
+    if (platform() === Platform.Mac && arch() === x64) return { success: true }; // No need to check Rosetta on x64 macOS
+    if (platform() !== Platform.Mac && arch() !== x64) {
+        return {
+            success: false,
+            error: ContainerDeployment.unsupportedDockerArchitectureError(arch()),
+        };
     }
-
     const engineCommand = COMMANDS.CHECK_ENGINE[platform()];
     if (engineCommand === undefined) {
         return {
             success: false,
             error: ContainerDeployment.unsupportedDockerPlatformError(platform()),
         };
+    }
+
+    if (platform() === Platform.Windows) {
+        dockerCliPath = await getDockerPath("DockerCli.exe");
     }
 
     try {

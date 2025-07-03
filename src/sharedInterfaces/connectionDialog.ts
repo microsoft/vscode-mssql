@@ -9,6 +9,7 @@ import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
+import { RequestType } from "vscode-jsonrpc/browser";
 
 export class ConnectionDialogWebviewState
     implements
@@ -40,7 +41,6 @@ export class ConnectionDialogWebviewState
     public azureServers: AzureSqlServerInfo[] = [];
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
-    public connectionGroups: IConnectionGroup[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public readyToConnect: boolean = false;
     public formError: string = "";
@@ -82,7 +82,6 @@ export interface ConnectionStringDialogProps extends IDialogProps {
     connectionString: string;
     connectionStringError?: string;
 }
-
 export interface CreateConnectionGroupDialogProps extends IDialogProps {
     type: "createConnectionGroup";
     props: ConnectionGroupState;
@@ -132,19 +131,11 @@ export enum ConnectionInputMode {
 // optional name and details on whether password should be saved
 export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     profileName?: string;
+    groupId?: string;
     savePassword?: boolean;
     emptyPasswordInput?: boolean;
     azureAuthType?: vscodeMssql.AzureAuthType;
     id?: string;
-    groupId?: string;
-}
-
-export interface IConnectionGroup {
-    id: string;
-    name: string;
-    parentId?: string;
-    color?: string;
-    description?: string;
 }
 
 export interface ConnectionDialogContextProps
@@ -180,8 +171,6 @@ export enum AuthenticationType {
     AzureMFA = "AzureMFA",
 }
 
-export const CREATE_NEW_GROUP_ID = "CREATE_NEW_GROUP";
-
 export interface ConnectionDialogReducers extends FormReducers<IConnectionDialogProfile> {
     setConnectionInputType: {
         inputMode: ConnectionInputMode;
@@ -212,4 +201,10 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
+}
+
+export namespace GetConnectionDisplayNameRequest {
+    export const type = new RequestType<IConnectionDialogProfile, string, void>(
+        "getConnectionDisplayName",
+    );
 }

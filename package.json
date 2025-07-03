@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.33.0",
+    "version": "1.34.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -177,10 +177,11 @@
         "ts-node": "^10.9.2",
         "typemoq": "^1.7.0",
         "typescript": "^5.6.2",
-        "typescript-eslint": "^8.7.0",
+        "typescript-eslint": "^8.34.0",
         "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
         "vite": "^6.2.7",
         "vite-plugin-istanbul": "^7.0.0",
+        "vscode-jsonrpc": "^8.2.1",
         "vscode-nls-dev": "2.0.1",
         "xliff": "^6.2.1",
         "xml2js": "^0.6.2",
@@ -584,6 +585,11 @@
                     "group": "MS_SQL@11"
                 },
                 {
+                    "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "group": "MS_SQL@12"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "title": "%mssql.addObjectExplorer%",
@@ -670,10 +676,6 @@
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
-                },
-                {
-                    "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Database)\\b/"
                 },
                 {
                     "command": "mssql.schemaCompare",
@@ -914,6 +916,11 @@
             {
                 "command": "mssql.objectExplorerChatWithDatabase",
                 "title": "%mssql.objectExplorerChatWithDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
+                "title": "%mssql.objectExplorerChatWithDatabaseInAgentMode%",
                 "category": "MS SQL"
             },
             {
@@ -1616,6 +1623,12 @@
                     "description": "%mssql.enableConnectionPooling%",
                     "default": false
                 },
+                "mssql.statusBar.enableConnectionColor": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.enableConnectionColor%",
+                    "default": false,
+                    "scope": "window"
+                },
                 "mssql.format.alignColumnDefinitionsInColumns": {
                     "type": "boolean",
                     "description": "%mssql.format.alignColumnDefinitionsInColumns%",
@@ -2019,7 +2032,7 @@
         "languageModelTools": [
             {
                 "name": "mssql_show_schema",
-                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool requires an active db connection from the current active editor. This tool opens a graphical view of the database schema, including tables and relationships.",
+                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool takes a connection ID as input and opens a graphical view of the database schema, including tables and relationships.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2047,7 +2060,7 @@
             },
             {
                 "name": "mssql_connect",
-                "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use $mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a string formatted as 'mssql/{server name}[/{database name}]', where if no database name is present it's the default database for the server.",
+                "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a UUID.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2137,6 +2150,95 @@
                 "displayName": "List MSSQL Servers",
                 "toolReferenceName": "mssql_list_servers",
                 "userDescription": "List all available MSSQL servers."
+            },
+            {
+                "name": "mssql_list_databases",
+                "modelDescription": "List all available databases for a connected MSSQL server. Returns a list of database names.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list databases for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Databases",
+                "toolReferenceName": "mssql_list_databases",
+                "userDescription": "List all available databases for a connected MSSQL server.",
+                "icon": "$(database)"
+            },
+            {
+                "name": "mssql_get_connection_details",
+                "modelDescription": "Get connection details for a specific connection ID. Returns connection information including server, database, authentication type, and user details.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection",
+                    "details"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to get details for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Get MSSQL Connection Details",
+                "toolReferenceName": "mssql_get_connection_details",
+                "userDescription": "Get connection details for a specific MSSQL connection.",
+                "icon": "$(info)"
+            },
+            {
+                "name": "mssql_change_database",
+                "modelDescription": "Change the database for an existing MSSQL connection. Before changing, consider using mssql_list_databases to show available database options to the user. Disconnects from current database and reconnects to the specified database using the same connection credentials.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection",
+                    "change"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to change database for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database name to switch to.",
+                            "title": "Database Name",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId",
+                        "database"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Change MSSQL Database",
+                "toolReferenceName": "mssql_change_database",
+                "userDescription": "Change the database for an existing MSSQL connection.",
+                "icon": "$(arrow-swap)"
             }
         ]
     }

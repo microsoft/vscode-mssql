@@ -63,6 +63,7 @@ import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { AddLocalContainerConnectionTreeNode } from "../containerDeployment/addLocalContainerConnectionTreeNode";
+import { getErrorMessage } from "../utils/utils";
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -748,8 +749,19 @@ export class ObjectExplorerService {
                 TelemetryViews.ContainerDeployment,
                 TelemetryActions.ConnectToContainer,
             );
-            // start docker and docker container
-            await restartContainer(connectionProfile.containerName);
+            try {
+                // start docker and docker container
+                const alreadyRunning = await restartContainer(connectionProfile.containerName);
+                this._logger.verbose(
+                    alreadyRunning
+                        ? `Docker container "${connectionProfile.containerName}" is already running.`
+                        : `Docker container "${connectionProfile.containerName}" has been restarted.`,
+                );
+            } catch (error) {
+                this._logger.error(
+                    `Error when attempting to ensure container "${connectionProfile.containerName}" is started.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
+                );
+            }
         }
         if (connectionProfile.connectionString) {
             if (connectionProfile.savePassword) {

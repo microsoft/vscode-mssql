@@ -60,6 +60,7 @@ export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
+export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
 export const cmdRewriteQuery = "mssql.copilot.rewriteQuery";
 export const cmdAnalyzeQueryPerformance = "mssql.copilot.analyzeQueryPerformance";
@@ -177,7 +178,10 @@ export const msalCacheFileName = "accessTokenCache";
 export const copilotConnectToolName = "mssql_connect";
 export const copilotDisconnectToolName = "mssql_disconnect";
 export const copilotListServersToolName = "mssql_list_servers";
+export const copilotListDatabasesToolName = "mssql_list_databases";
+export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotShowSchemaToolName = "mssql_show_schema";
+export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 
 // Configuration Constants
 export const copyIncludeHeaders = "copyIncludeHeaders";
@@ -224,6 +228,7 @@ export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
 export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
+export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
@@ -259,3 +264,4 @@ export enum Platform {
 }
 export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
+export const x64 = "x64";

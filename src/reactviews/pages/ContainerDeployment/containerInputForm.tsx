@@ -17,6 +17,12 @@ import {
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 import { locConstants } from "../../common/locConstants";
+import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
+import {
+    CREATE_NEW_GROUP_ID,
+    CreateConnectionGroupDialogProps,
+} from "../../../sharedInterfaces/connectionGroup";
+import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -65,7 +71,8 @@ export const ContainerInputForm: React.FC = () => {
             .filter(
                 (component) =>
                     component.isAdvancedOption === isAdvanced &&
-                    component.propertyName !== "acceptEula",
+                    component.propertyName !== "acceptEula" &&
+                    component.propertyName !== "groupId",
             )
             .map((component, index) => (
                 <div
@@ -112,7 +119,39 @@ export const ContainerInputForm: React.FC = () => {
             />
             <div className={classes.outerDiv}>
                 <div className={classes.formDiv}>
+                    {state.state.dialog?.type === "createConnectionGroup" && (
+                        <ConnectionGroupDialog
+                            state={(state.state.dialog as CreateConnectionGroupDialogProps).props}
+                            saveConnectionGroup={state.createConnectionGroup}
+                            closeDialog={() => state.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
+                        />
+                    )}
                     {renderFormFields(false)}
+                    <FormField<
+                        DockerConnectionProfile,
+                        ContainerDeploymentWebviewState,
+                        ContainerDeploymentFormItemSpec,
+                        ContainerDeploymentContextProps
+                    >
+                        context={state}
+                        component={
+                            state.state.formComponents["groupId"] as ContainerDeploymentFormItemSpec
+                        }
+                        idx={0}
+                        componentProps={{
+                            onSelect: (option: SearchableDropdownOptions) => {
+                                if (option.value === CREATE_NEW_GROUP_ID) {
+                                    state.setConnectionGroupDialogState(false); // isOpen is false when opening the dialog
+                                } else {
+                                    state.formAction({
+                                        propertyName: "groupId",
+                                        isAction: false,
+                                        value: option.value,
+                                    });
+                                }
+                            },
+                        }}
+                    />
                     <div>
                         <Button
                             icon={

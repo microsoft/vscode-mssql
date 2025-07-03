@@ -22,9 +22,14 @@ import {
     passwordPrompt,
     profileNamePlaceholder,
 } from "../constants/locConstants";
-import { IConnectionProfile } from "../models/interfaces";
+import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
+import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
+import {
+    createConnectionGroup,
+    getDefaultConnectionGroupDialogProps,
+} from "../controllers/connectionGroupWebviewController";
 
 export class ContainerDeploymentWebviewController extends FormWebviewController<
     cd.DockerConnectionProfile,
@@ -69,7 +74,9 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         this.state.loadState = ApiStatus.Loading;
         this.state.platform = platform();
         const versions = await dockerUtils.getSqlServerContainerVersions();
-        this.state.formComponents = this.setFormComponents(versions);
+        const groupOptions =
+            await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
+        this.state.formComponents = this.setFormComponents(versions, groupOptions);
         this.state.formState = {
             version: versions[0].value,
             password: "",
@@ -79,6 +86,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             port: undefined,
             hostname: "",
             acceptEula: false,
+            groupId: groupOptions[0].value,
         } as cd.DockerConnectionProfile;
         this.state.dockerSteps = dockerUtils.initializeDockerSteps();
         this.registerRpcHandlers();
@@ -163,6 +171,41 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             }
 
             state.isDockerProfileValid = state.formErrors.length === 0;
+            return state;
+        });
+
+        this.registerReducer("createConnectionGroup", async (state, payload) => {
+            const createConnectionGroupResult: IConnectionGroup | string =
+                await createConnectionGroup(
+                    payload.connectionGroupSpec,
+                    this.mainController.connectionManager,
+                    TelemetryViews.ConnectionDialog,
+                );
+            if (typeof createConnectionGroupResult === "string") {
+                // If the result is a string, it means there was an error creating the group
+                state.formErrors.push(createConnectionGroupResult);
+            } else {
+                // If the result is an IConnectionGroup, it means the group was created successfully
+                state.formState.groupId = createConnectionGroupResult.id;
+            }
+
+            state.formComponents.groupId.options =
+                await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
+
+            state.dialog = undefined;
+
+            this.updateState(state);
+            return state;
+        });
+
+        this.registerReducer("setConnectionGroupDialogState", async (state, payload) => {
+            if (payload.shouldOpen) {
+                state = getDefaultConnectionGroupDialogProps(
+                    state,
+                ) as cd.ContainerDeploymentWebviewState;
+            } else {
+                state.dialog = undefined;
+            }
             return state;
         });
 
@@ -285,6 +328,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
     private setFormComponents(
         versions: FormItemOptions[],
+        groupOptions: FormItemOptions[],
     ): Record<
         string,
         FormItemSpec<
@@ -342,6 +386,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ConnectionDialog.profileName,
                 tooltip: profileNamePlaceholder,
             }),
+
+            groupId: createFormItem(
+                getGroupIdFormItem(groupOptions) as cd.ContainerDeploymentFormItemSpec,
+            ),
 
             containerName: createFormItem({
                 type: FormItemType.Input,

@@ -6,7 +6,12 @@
 import * as vscode from "vscode";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
-import { ConnectionGroupState, ConnectionGroupReducers } from "../sharedInterfaces/connectionGroup";
+import {
+    ConnectionGroupState,
+    ConnectionGroupReducers,
+    ConnectionGroupSpec,
+    CreateConnectionGroupDialogProps,
+} from "../sharedInterfaces/connectionGroup";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
@@ -15,6 +20,7 @@ import * as Loc from "../constants/locConstants";
 import { IConnectionGroup } from "../models/interfaces";
 import * as Utils from "../models/utils";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
+import ConnectionManager from "./connectionManager";
 
 /**
  * Controller for the Add Firewall Rule dialog
@@ -119,4 +125,56 @@ export function createConnectionGroupFromSpec(spec: ConnectionGroupState): IConn
         color: spec.color,
         id: Utils.generateGuid(),
     };
+}
+
+/**
+ * Shared function to get the default properties for the Create Connection Group dialog.
+ */
+export function getDefaultConnectionGroupDialogProps(state) {
+    state.dialog = {
+        type: "createConnectionGroup",
+        props: {},
+    } as CreateConnectionGroupDialogProps;
+
+    return state;
+}
+
+/**
+ * Shared function for controllers to create a connection group from the provided spec.
+ * This function will add the group to the connection store.
+ * @param connectionGroupSpec - The specification for the connection group to create.
+ * @param connectionManager - The connection manager to use for adding the group.
+ * @param telemetryView - The telemetry view to send events to.
+ * @return A promise that resolves to the created connection group or an error message.
+ */
+export async function createConnectionGroup(
+    connectionGroupSpec: ConnectionGroupSpec,
+    connectionManager: ConnectionManager,
+    telemetryView: TelemetryViews,
+): Promise<IConnectionGroup | string> {
+    const addedGroup = createConnectionGroupFromSpec(connectionGroupSpec);
+
+    try {
+        await connectionManager.connectionStore.connectionConfig.addGroup(addedGroup);
+        sendActionEvent(telemetryView, TelemetryActions.SaveConnectionGroup, {
+            newOrEdit: "new",
+        });
+    } catch (err) {
+        const errorMessage = getErrorMessage(err);
+        sendErrorEvent(
+            telemetryView,
+            TelemetryActions.SaveConnectionGroup,
+            err,
+            false, // includeErrorMessage
+            undefined, // errorCode
+            err.Name, // errorType
+            {
+                failure: err.Name,
+            },
+        );
+        return errorMessage;
+    }
+
+    sendActionEvent(telemetryView, TelemetryActions.SaveConnectionGroup);
+    return addedGroup;
 }

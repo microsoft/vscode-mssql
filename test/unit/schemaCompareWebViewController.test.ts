@@ -402,7 +402,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             targetEndpointInfo,
         };
 
-        const result = await controller["_reducers"]["compare"](mockInitialState, payload);
+        const result = await controller["_reducerHandlers"].get("compare")(
+            mockInitialState,
+            payload,
+        );
 
         assert.deepEqual(
             compareStub.firstCall.args,
@@ -441,7 +444,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             targetDatabaseName: "master",
         };
 
-        const result = await controller["_reducers"]["generateScript"](mockInitialState, payload);
+        const result = await controller["_reducerHandlers"].get("generateScript")(
+            mockInitialState,
+            payload,
+        );
 
         assert.ok(generateScriptStub.calledOnce, "generateScript should be called once");
 
@@ -475,7 +481,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             targetDatabaseName: "master",
         };
 
-        const actualResult = await controller["_reducers"]["publishDatabaseChanges"](
+        const actualResult = await controller["_reducerHandlers"].get("publishDatabaseChanges")(
             mockInitialState,
             payload,
         );
@@ -524,7 +530,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             taskExecutionMode: mssql.TaskExecutionMode.execute,
         };
 
-        const acutalResult = await controller["_reducers"]["publishProjectChanges"](
+        const actualResult = await controller["_reducerHandlers"].get("publishProjectChanges")(
             mockInitialState,
             payload,
         );
@@ -541,7 +547,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         assert.deepEqual(
-            acutalResult.schemaComparePublishProjectResult,
+            actualResult.schemaComparePublishProjectResult,
             expectedResultMock,
             "publishProjectChanges should return expected result",
         );
@@ -556,7 +562,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const payload = {};
 
-        const acutalResult = await controller["_reducers"]["resetOptions"](
+        const actualResult = await controller["_reducerHandlers"].get("resetOptions")(
             mockInitialState,
             payload,
         );
@@ -570,7 +576,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         assert.deepEqual(
-            acutalResult.defaultDeploymentOptionsResult,
+            actualResult.defaultDeploymentOptionsResult,
             deploymentOptionsResultMock,
             "getDefaultOptions should return expected result",
         );
@@ -607,7 +613,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             includeRequest: true,
         };
 
-        const actualResult = await controller["_reducers"]["includeExcludeNode"](
+        const actualResult = await controller["_reducerHandlers"].get("includeExcludeNode")(
             mockInitialState,
             payload,
         );
@@ -659,7 +665,10 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const payload = {};
 
-        const actualResult = await controller["_reducers"]["openScmp"](mockInitialState, payload);
+        const actualResult = await controller["_reducerHandlers"].get("openScmp")(
+            mockInitialState,
+            payload,
+        );
 
         assert.ok(
             showOpenDialogForScmpStub.calledOnce,
@@ -701,7 +710,10 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const payload = {};
 
-        const actualResult = await controller["_reducers"]["saveScmp"](mockInitialState, payload);
+        const actualResult = await controller["_reducerHandlers"].get("saveScmp")(
+            mockInitialState,
+            payload,
+        );
 
         assert.ok(
             showSaveDialogForScmpStub.calledOnce,
@@ -746,7 +758,10 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const payload = {};
 
-        const actualResult = await controller["_reducers"]["cancel"](mockInitialState, payload);
+        const actualResult = await controller["_reducerHandlers"].get("cancel")(
+            mockInitialState,
+            payload,
+        );
 
         assert.ok(publishProjectChangesStub.calledOnce, "cancel should be called once");
 
@@ -768,7 +783,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     test("listActiveServers reducer - when called - returns: {conn_uri: {profileName: 'profile1', server: 'server1'}}", async () => {
         const payload = {};
 
-        const actualResult = await controller["_reducers"]["listActiveServers"](
+        const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
             mockInitialState,
             payload,
         );
@@ -785,10 +800,9 @@ suite("SchemaCompareWebViewController Tests", () => {
     test("listDatabasesForActiveServer reducer - when called - returns: ['db1', 'db2']", async () => {
         const payload = { connectionUri: "conn_uri" };
 
-        const actualResult = await controller["_reducers"]["listDatabasesForActiveServer"](
-            mockInitialState,
-            payload,
-        );
+        const actualResult = await controller["_reducerHandlers"].get(
+            "listDatabasesForActiveServer",
+        )(mockInitialState, payload);
 
         const expectedResult = ["db1", "db2"];
 
@@ -808,7 +822,10 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         sandbox.stub(scUtils, "showOpenDialogForDacpacOrSqlProj").resolves("c:\\test.dacpac");
 
-        const actualResult = await controller["_reducers"]["selectFile"](mockInitialState, payload);
+        const actualResult = await controller["_reducerHandlers"].get("selectFile")(
+            mockInitialState,
+            payload,
+        );
 
         const expectedResult = {
             connectionDetails: undefined,
@@ -853,7 +870,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         mockInitialState.auxiliaryEndpointInfo = expectedResult;
 
-        const actualResult = await controller["_reducers"]["confirmSelectedSchema"](
+        const actualResult = await controller["_reducerHandlers"].get("confirmSelectedSchema")(
             mockInitialState,
             payload,
         );
@@ -926,7 +943,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "includeExcludeAllNodes")
             .resolves(expectedResult);
 
-        const actualResult = await controller["_reducers"]["includeExcludeAllNodes"](
+        const actualResult = await controller["_reducerHandlers"].get("includeExcludeAllNodes")(
             mockInitialState,
             payload,
         );
@@ -1003,7 +1020,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "includeExcludeAllNodes")
             .resolves(expectedResult);
 
-        const actualResult = await controller["_reducers"]["includeExcludeAllNodes"](
+        const actualResult = await controller["_reducerHandlers"].get("includeExcludeAllNodes")(
             mockInitialState,
             payload,
         );

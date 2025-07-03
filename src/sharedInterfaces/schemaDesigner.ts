@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+
 export namespace SchemaDesigner {
     /**
      * Represents a schema model
@@ -390,5 +392,64 @@ export namespace SchemaDesigner {
     export interface SchemaDesignerCacheItem {
         schemaDesignerDetails: SchemaDesigner.CreateSessionResponse;
         isDirty: boolean;
+    }
+
+    export interface PublishSessionParams {
+        schema: Schema;
+    }
+    export interface PublishSessionResponse {
+        success: boolean;
+        error: string | undefined;
+        updatedSchema: Schema;
+    }
+    export namespace PublishSessionRequest {
+        export const type = new RequestType<PublishSessionParams, PublishSessionResponse, void>(
+            "publishSession",
+        );
+    }
+
+    export namespace CloseSchemaDesignerNotification {
+        export const type = new NotificationType<void>("closeDesigner");
+    }
+    export interface OpenInEditorParams {
+        text: string;
+    }
+
+    export namespace OpenInEditorWithConnectionNotification {
+        export const type = new NotificationType<OpenInEditorParams>("openInEditorWithConnection");
+    }
+    export namespace OpenInEditorNotification {
+        export const type = new NotificationType<OpenInEditorOptions>("openInEditor");
+    }
+
+    export namespace CopyToClipboardNotification {
+        export const type = new NotificationType<OpenInEditorParams>("copyToClipboard");
+    }
+
+    export interface UpdatedSchemaParams {
+        updatedSchema: Schema;
+    }
+    export interface GetReportWebviewResponse {
+        report: GetReportResponse;
+        error?: string;
+    }
+    export namespace GetReportWebviewRequest {
+        export const type = new RequestType<UpdatedSchemaParams, GetReportWebviewResponse, void>(
+            "getReport",
+        );
+    }
+
+    export namespace ExportToFileNotification {
+        export const type = new NotificationType<ExportFileOptions>("exportToFile");
+    }
+    export namespace GetDefinitionRequest {
+        export const type = new RequestType<UpdatedSchemaParams, GetDefinitionResponse, void>(
+            "getDefinition",
+        );
+    }
+    export namespace InitializeSchemaDesignerRequest {
+        export const type = new RequestType<void, CreateSessionResponse, void>(
+            "initializeSchemaDesigner",
+        );
     }
 }

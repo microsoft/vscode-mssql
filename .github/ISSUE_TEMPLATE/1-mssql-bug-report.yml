@@ -1,7 +1,7 @@
-name: Bug Report / Feature Request - MSSQL Extension for VS Code
+name: Bug Report - MSSQL Extension for VS Code
 description: File a bug report to help us improve the MSSQL extension.
 title: "[Bug]: "
-labels: ["bug", "Triage: Needed", "User-filed"]
+labels: ["Bug", "Triage: Needed", "User-filed"]
 assignees: []
 
 body:
@@ -47,13 +47,14 @@ body:
       description: Select all the areas where you encountered issues.
       options:
         - label: Connection dialog
-        - label: Query editor
-        - label: IntelliSense/auto-completion
         - label: Query results panel
+        - label: Query editor
         - label: Object Explorer
         - label: Table Designer
         - label: Schema Compare
         - label: Schema Designer
+        - label: Local container
+        - label: GitHub Copilot integration
         - label: Query Plan Visualizer
         - label: Other (please describe below)
 
@@ -76,7 +77,6 @@ body:
         • VS Code Version:
         • MSSQL Extension Version:
         • Operating System:
-        • SQL Server Version/Edition:
         • Connection Type (SQL database in Fabric, Azure SQL, SQL Server, etc.):
     validations:
       required: true

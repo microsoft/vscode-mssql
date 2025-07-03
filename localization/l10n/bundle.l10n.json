@@ -115,6 +115,8 @@
   "Select": "Select",
   "Finish": "Finish",
   "Retry": "Retry",
+  "Show password": "Show password",
+  "Hide password": "Hide password",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -230,6 +232,12 @@
   "Advanced": "Advanced",
   "Test Connection": "Test Connection",
   "Connect to Database": "Connect to Database",
+  "Connect to {0}/{0} is the name of the connection profile": {
+    "message": "Connect to {0}",
+    "comment": [
+      "{0} is the name of the connection profile"
+    ]
+  },
   "Parameters": "Parameters",
   "Connection String": "Connection String",
   "Browse Azure": "Browse Azure",
@@ -1289,6 +1297,12 @@
       "{0} is the platform name of the machine"
     ]
   },
+  "Unsupported architecture for Docker: {0}/{0} is the architecture name of the machine": {
+    "message": "Unsupported architecture for Docker: {0}",
+    "comment": [
+      "{0} is the architecture name of the machine"
+    ]
+  },
   "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.": "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
   "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.": "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
   "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.": "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
@@ -1551,6 +1565,59 @@
     ]
   },
   "Schema visualization opened.": "Schema visualization opened.",
+  "Get Connection Details": "Get Connection Details",
+  "Get connection details for connection '{0}'?/{0} is the connection ID": {
+    "message": "Get connection details for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Getting connection details for connection '{0}'/{0} is the connection ID": {
+    "message": "Getting connection details for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "List Databases": "List Databases",
+  "List databases for connection '{0}'?/{0} is the connection ID": {
+    "message": "List databases for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing databases for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing databases for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Change Database": "Change Database",
+  "Change database to '{1}' for connection '{0}'?/{0} is the connection ID{1} is the database name": {
+    "message": "Change database to '{1}' for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID",
+      "{1} is the database name"
+    ]
+  },
+  "Changing database to '{1}' for connection '{0}'/{0} is the connection ID{1} is the database name": {
+    "message": "Changing database to '{1}' for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID",
+      "{1} is the database name"
+    ]
+  },
+  "Successfully changed to database: {0}/{0} is the database name": {
+    "message": "Successfully changed to database: {0}",
+    "comment": [
+      "{0} is the database name"
+    ]
+  },
+  "Failed to connect to database: {0}/{0} is the database name": {
+    "message": "Failed to connect to database: {0}",
+    "comment": [
+      "{0} is the database name"
+    ]
+  },
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Create Connection Group": "Create Connection Group",
   "Edit Connection Group - {0}/{0} is the connection group name": {

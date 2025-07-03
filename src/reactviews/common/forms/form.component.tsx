@@ -26,6 +26,7 @@ import {
 } from "../../../sharedInterfaces/form";
 import { useEffect, useState } from "react";
 import { SearchableDropdown } from "../searchableDropdown.component";
+import { locConstants } from "../locConstants";
 
 export const FormInput = <
     TForm,
@@ -94,7 +95,17 @@ export const FormInput = <
                             onClick={() => setShowPassword(!showPassword)}
                             icon={showPassword ? <EyeRegular /> : <EyeOffRegular />}
                             appearance="transparent"
-                            size="small"></Button>
+                            size="small"
+                            aria-label={
+                                showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }
+                            title={
+                                showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }></Button>
                     }
                     {...props}
                 />
@@ -303,7 +314,7 @@ export function generateFormComponent<
                             : undefined
                     }
                     onSelect={(option) => {
-                        if (props.onSelect) {
+                        if (props && props.onSelect) {
                             props.onSelect(option.value);
                         } else {
                             context?.formAction({

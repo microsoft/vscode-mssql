@@ -20,6 +20,7 @@ import {
 } from "../../src/sharedInterfaces/containerDeploymentInterfaces";
 import * as telemetry from "../../src/telemetry/telemetry";
 import { AddLocalContainerConnectionTreeNode } from "../../src/containerDeployment/addLocalContainerConnectionTreeNode";
+import { ConnectionUI } from "../../src/views/connectionUI";
 
 suite("ContainerDeploymentWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -63,6 +64,14 @@ suite("ContainerDeploymentWebviewController", () => {
             TypeMoq.MockBehavior.Loose,
             mockContext,
         );
+        const mockConnectionUI = TypeMoq.Mock.ofType<ConnectionUI>();
+        mockConnectionUI
+            .setup((x) => x.getConnectionGroupOptions())
+            .returns(() =>
+                Promise.resolve([{ displayName: "defaultGroupIdName", value: "Default Group" }]),
+            );
+
+        connectionManager.setup((x) => x.connectionUI).returns(() => mockConnectionUI.object);
 
         mainController = new MainController(
             mockContext,
@@ -86,7 +95,7 @@ suite("ContainerDeploymentWebviewController", () => {
     test("Verify the initial state and form components of the controller", async () => {
         const controllerState = (controller as any).state;
         assert.strictEqual(controllerState.loadState, ApiStatus.Loaded);
-        assert.strictEqual(Object.keys(controllerState.formComponents).length, 8);
+        assert.strictEqual(Object.keys(controllerState.formComponents).length, 9);
         assert.strictEqual(controllerState.dockerSteps.length, 6);
     });
 
@@ -99,6 +108,7 @@ suite("ContainerDeploymentWebviewController", () => {
             "password",
             "savePassword",
             "profileName",
+            "groupId",
             "containerName",
             "port",
             "hostname",
@@ -132,6 +142,10 @@ suite("ContainerDeploymentWebviewController", () => {
         const savePassword = formComponents.savePassword;
         assert.strictEqual(savePassword.type, FormItemType.Checkbox);
         assert.strictEqual(savePassword.required, false);
+
+        const groupId = formComponents.groupId;
+        assert.strictEqual(groupId.type, FormItemType.SearchableDropdown);
+        assert.ok(Array.isArray(groupId.options));
 
         const profileName = formComponents.profileName;
         assert.strictEqual(profileName.type, FormItemType.Input);
@@ -278,7 +292,7 @@ suite("ContainerDeploymentWebviewController", () => {
 
         const callState = (controller as any).state;
 
-        const newState = await controller["_reducers"]["formAction"](callState, {
+        const newState = await controller["_reducerHandlers"].get("formAction")(callState, {
             event: {
                 propertyName: "containerName",
                 isAction: false,
@@ -310,9 +324,12 @@ suite("ContainerDeploymentWebviewController", () => {
         ];
         callState.formState = {};
 
-        const resultSuccess = await controller["_reducers"]["completeDockerStep"](callState, {
-            dockerStep: 0,
-        });
+        const resultSuccess = await controller["_reducerHandlers"].get("completeDockerStep")(
+            callState,
+            {
+                dockerStep: 0,
+            },
+        );
 
         assert.equal(resultSuccess.dockerSteps[0].loadState, ApiStatus.Loaded);
         assert.ok(!resultSuccess.dockerSteps[0].errorMessage);
@@ -326,9 +343,12 @@ suite("ContainerDeploymentWebviewController", () => {
         callState.dockerSteps[0].stepAction = mockStepActionFailure;
         callState.dockerSteps[0].loadState = ApiStatus.NotStarted;
 
-        const resultFailure = await controller["_reducers"]["completeDockerStep"](callState, {
-            dockerStep: 0,
-        });
+        const resultFailure = await controller["_reducerHandlers"].get("completeDockerStep")(
+            callState,
+            {
+                dockerStep: 0,
+            },
+        );
 
         assert.equal(resultFailure.dockerSteps[0].loadState, ApiStatus.Error);
         assert.equal(resultFailure.dockerSteps[0].errorMessage, "Something went wrong");
@@ -347,7 +367,7 @@ suite("ContainerDeploymentWebviewController", () => {
         };
         addContainerConnectionStub.resolves(true);
 
-        const resultConnectSuccess = await controller["_reducers"]["completeDockerStep"](
+        const resultConnectSuccess = await controller["_reducerHandlers"].get("completeDockerStep")(
             callState,
             {
                 dockerStep: DockerStepOrder.connectToContainer,
@@ -366,7 +386,7 @@ suite("ContainerDeploymentWebviewController", () => {
         callState.dockerSteps[DockerStepOrder.connectToContainer].loadState = ApiStatus.NotStarted;
         addContainerConnectionStub.resolves(false);
 
-        const resultConnectFailure = await controller["_reducers"]["completeDockerStep"](
+        const resultConnectFailure = await controller["_reducerHandlers"].get("completeDockerStep")(
             callState,
             {
                 dockerStep: DockerStepOrder.connectToContainer,
@@ -416,7 +436,10 @@ suite("ContainerDeploymentWebviewController", () => {
         ];
 
         // Call reducer directly
-        const resultState = await controller["_reducers"]["resetDockerStepState"](callState, {});
+        const resultState = await controller["_reducerHandlers"].get("resetDockerStepState")(
+            callState,
+            {},
+        );
 
         // First step should remain unchanged
         assert.strictEqual(resultState.dockerSteps[0].loadState, ApiStatus.Loaded);
@@ -456,9 +479,12 @@ suite("ContainerDeploymentWebviewController", () => {
             },
             formErrors: [],
         } as any);
-        const defaultResult = await controller["_reducers"]["checkDockerProfile"](callState, {
-            dockerStepNumber: DockerStepOrder.connectToContainer,
-        });
+        const defaultResult = await controller["_reducerHandlers"].get("checkDockerProfile")(
+            callState,
+            {
+                dockerStepNumber: DockerStepOrder.connectToContainer,
+            },
+        );
         assert.ok(
             validateProfileStub.calledOnce,
             "validateDockerConnectionProfile should be called once",
@@ -472,7 +498,7 @@ suite("ContainerDeploymentWebviewController", () => {
         const disposePanelSpy = sinon.spy((controller as any).panel, "dispose");
 
         const callState = (controller as any).state;
-        await controller["_reducers"]["dispose"](callState, {});
+        await controller["_reducerHandlers"].get("dispose")(callState, {});
 
         assert.ok(disposePanelSpy.calledOnce, "panel.dispose should be called once");
         (disposePanelSpy as sinon.SinonSpy).restore();
