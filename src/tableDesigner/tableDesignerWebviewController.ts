@@ -159,22 +159,6 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         await this._connectionManager.confirmEntraTokenValidity(connectionInfo);
 
         try {
-            let accountId;
-            if (connectionInfo.accountId) {
-                accountId = this._connectionManager.accountStore.getAccount(
-                    connectionInfo.accountId,
-                );
-            }
-            let accessToken: string | undefined = undefined;
-            if (accountId) {
-                accessToken = (
-                    await this._connectionManager.accountService.refreshToken(
-                        accountId,
-                        connectionInfo.tenantId,
-                    )
-                ).token;
-            }
-
             let tableInfo: designer.TableInfo;
             if (this._isEdit) {
                 tableInfo = {
