@@ -169,7 +169,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     server: connectionInfo.server,
                     database: databaseName,
                     connectionString: connectionString,
-                    accessToken: accessToken,
+                    accessToken: connectionInfo.azureAccountToken,
                     schema: this._targetNode.metadata.schema,
                     name: this._targetNode.metadata.name,
                 };
@@ -181,7 +181,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     tooltip: `${connectionInfo.server} - ${databaseName} - New Table`,
                     server: connectionInfo.server,
                     database: databaseName,
-                    accessToken: accessToken,
+                    accessToken: connectionInfo.azureAccountToken,
                     connectionString: connectionString,
                 };
             }
