@@ -190,7 +190,7 @@
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",
     "mssql.userFeedback": "Give Feedback",
     "mssql.selectedAzureSubscriptions": "Selected Azure subscriptions for browsing and managing servers and databases",
-    "mssql.designSchema": "Design Schema (Preview)",
+    "mssql.designSchema": "Design Schema",
     "mssql.deployLocalDockerContainer": "Create local SQL Container",
     "mssql.stopContainer": "Stop Container",
     "mssql.deleteContainer": "Delete Container",
