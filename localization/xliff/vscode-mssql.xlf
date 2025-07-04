@@ -2609,8 +2609,8 @@
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
     </trans-unit>
-    <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
-      <source xml:lang="en">{0} (Preview)</source>
+    <trans-unit id="++CODE++0c98d8bcfc8a9d7d0508de0a21f3900f4fe66f8620d8092c1884430f021a70ff">
+      <source xml:lang="en">{0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
@@ -2792,7 +2792,7 @@
       <source xml:lang="en">Delete Container</source>
     </trans-unit>
     <trans-unit id="mssql.designSchema">
-      <source xml:lang="en">Design Schema (Preview)</source>
+      <source xml:lang="en">Design Schema</source>
     </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
       <source xml:lang="en">Disable Actual Plan</source>

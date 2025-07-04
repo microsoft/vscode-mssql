@@ -1375,8 +1375,8 @@
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",
   "Schema Designer": "Schema Designer",
-  "{0} (Preview)/{0} is the database name": {
-    "message": "{0} (Preview)",
+  "{0}/{0} is the database name": {
+    "message": "{0}",
     "comment": [
       "{0} is the database name"
     ]
