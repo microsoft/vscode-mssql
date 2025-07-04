@@ -3666,8 +3666,8 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
         <target state="translated">Excluir Contêiner</target>
       </trans-unit>
       <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
-        <target state="translated">Esquema de Design (Versão prévia)</target>
+        <source xml:lang="en">Design Schema</source>
+        <target state="translated">Esquema de Design</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>

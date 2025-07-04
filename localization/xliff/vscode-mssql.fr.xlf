@@ -3666,8 +3666,8 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
         <target state="translated">Supprimer le conteneur</target>
       </trans-unit>
       <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
-        <target state="translated">Schéma de conception (Aperçu)</target>
+        <source xml:lang="en">Design Schema</source>
+        <target state="translated">Schéma de conception</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>
