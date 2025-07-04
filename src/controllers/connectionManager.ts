@@ -19,7 +19,12 @@ import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { ConnectionStore } from "../models/connectionStore";
-import { IAccount, SecurityTokenRequest } from "../models/contracts/azure";
+import {
+    IAccount,
+    RequestSecurityTokenParams,
+    RequestSecurityTokenResponse,
+    SecurityTokenRequest,
+} from "../models/contracts/azure";
 import * as ConnectionContracts from "../models/contracts/connection";
 import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
@@ -216,32 +221,10 @@ export default class ConnectionManager {
                 LanguageServiceContracts.NonTSqlNotification.type,
                 this.handleNonTSqlNotification(),
             );
-            this.client.onRequest(SecurityTokenRequest.type, async (params) => {
-                if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
-                    const token = this._keyVaultTokenCache.get(JSON.stringify(params));
-                    const isExpired = AzureController.isTokenExpired(token.expiresOn);
-                    if (!isExpired) {
-                        return token;
-                    } else {
-                        this._keyVaultTokenCache.delete(JSON.stringify(params));
-                    }
-                }
-                const account = await this.selectAccount();
-                const tenant = await this.selectTenantId(account);
-
-                const token = await this.azureController.getAccountSecurityToken(
-                    account,
-                    tenant,
-                    providerSettings.resources.azureKeyVaultResource,
-                );
-
-                this._keyVaultTokenCache.set(JSON.stringify(params), token);
-
-                return {
-                    accountKey: token.key,
-                    token: token.token,
-                };
-            });
+            this.client.onRequest(
+                SecurityTokenRequest.type,
+                this.handleSecurityTokenRequest.bind(this),
+            );
         }
         void this.initialize();
     }
@@ -1799,6 +1782,38 @@ export default class ConnectionManager {
 
             return "error";
         }
+    }
+
+    private async handleSecurityTokenRequest(
+        params: RequestSecurityTokenParams,
+    ): Promise<RequestSecurityTokenResponse> {
+        if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
+            const token = this._keyVaultTokenCache.get(JSON.stringify(params));
+            const isExpired = AzureController.isTokenExpired(token.expiresOn);
+            if (!isExpired) {
+                return {
+                    accountKey: token.key,
+                    token: token.token,
+                };
+            } else {
+                this._keyVaultTokenCache.delete(JSON.stringify(params));
+            }
+        }
+        const account = await this.selectAccount();
+        const tenant = await this.selectTenantId(account);
+
+        const token = await this.azureController.getAccountSecurityToken(
+            account,
+            tenant,
+            providerSettings.resources.azureKeyVaultResource,
+        );
+
+        this._keyVaultTokenCache.set(JSON.stringify(params), token);
+
+        return {
+            accountKey: token.key,
+            token: token.token,
+        };
     }
 
     private async selectAccount(): Promise<IAccount> {
