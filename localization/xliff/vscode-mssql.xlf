@@ -2791,9 +2791,6 @@
     <trans-unit id="mssql.deleteContainer">
       <source xml:lang="en">Delete Container</source>
     </trans-unit>
-    <trans-unit id="mssql.designSchema">
-      <source xml:lang="en">Schema Designer (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
       <source xml:lang="en">Disable Actual Plan</source>
     </trans-unit>
@@ -3054,6 +3051,9 @@
     </trans-unit>
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Schema Compare (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.designSchema">
+      <source xml:lang="en">Schema Designer (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>
