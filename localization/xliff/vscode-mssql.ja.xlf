@@ -3666,7 +3666,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">コンテナーの削除</target>
       </trans-unit>
       <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
+        <source xml:lang="en">Schema Designer (Preview)</source>
         <target state="translated">スキーマをデザイン (プレビュー)</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">

@@ -3666,7 +3666,7 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <target state="translated">Container löschen</target>
       </trans-unit>
       <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
+        <source xml:lang="en">Schema Designer (Preview)</source>
         <target state="translated">Designschema (Vorschau)</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">

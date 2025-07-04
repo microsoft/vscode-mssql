@@ -8175,7 +8175,7 @@
       </Item>
       <Item ItemId=";package.mssql.designSchema" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Design Schema (Preview)]]></Val>
+          <Val><![CDATA[Schema Designer (Preview)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[设计架构(预览版)]]></Val>
           </Tgt>
