@@ -112,6 +112,7 @@ export default class ConnectionManager {
     >;
     private _failedUriToFirewallIpMap: Map<string, ConnectionContracts.ConnectionCompleteParams>;
     private _failedUriToSSLMap: Map<string, string>;
+    private _keyVaultTokenCache: Map<string, IToken> = new Map<string, IToken>();
     private _accountService: AccountService;
     private _firewallService: FirewallService;
     public azureController: AzureController;
@@ -122,7 +123,6 @@ export default class ConnectionManager {
         this._onConnectionsChangedEmitter.event;
 
     public initialized: Deferred<void> = new Deferred<void>();
-    private _keyVaultTokenCache: Map<string, IToken> = new Map<string, IToken>();
 
     constructor(
         private context: vscode.ExtensionContext,
