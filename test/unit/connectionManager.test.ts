@@ -7,7 +7,7 @@ import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import { expect } from "chai";
-import { ConnectionDetails } from "vscode-mssql";
+import { ConnectionDetails, IAccount, IToken } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { Logger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -17,6 +17,8 @@ import StatusView from "../../src/views/statusView";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
+import { RequestSecurityTokenParams } from "../../src/models/contracts/azure";
+import { AzureController } from "../../src/azure/azureController";
 
 suite("ConnectionManager Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -306,6 +308,97 @@ suite("ConnectionManager Tests", () => {
                 (v) => v.showErrorMessage(TypeMoq.It.isAny()),
                 TypeMoq.Times.once(),
             );
+        });
+    });
+
+    suite("Token request handling", () => {
+        setup(() => {
+            connectionManager = new ConnectionManager(
+                mockContext.object,
+                mockStatusView.object,
+                undefined, // prompter
+                true, // isRichExperiencesEnabled
+                mockLogger.object,
+                mockServiceClient.object,
+                mockVscodeWrapper.object,
+                mockConnectionStore.object,
+                mockCredentialStore.object,
+                undefined, // connectionUI
+                undefined, // accountStore
+            );
+        });
+        test("should return cached token when valid", async () => {
+            const params: RequestSecurityTokenParams = {
+                resource: "test-resource",
+                provider: "",
+                authority: "",
+                scopes: [],
+            };
+            const cachedToken: IToken = {
+                key: "cached-key",
+                token: "cached-token",
+                tokenType: "test",
+                expiresOn: Date.now() / 1000 + 3600, // 1 hour from now
+            };
+
+            connectionManager["_keyVaultTokenCache"].set(JSON.stringify(params), cachedToken);
+
+            const result = await connectionManager["handleSecurityTokenRequest"](params);
+
+            expect(result).to.deep.equal(
+                {
+                    accountKey: cachedToken.key,
+                    token: cachedToken.token,
+                },
+                "Should return cached token",
+            );
+        });
+
+        test("should return new token when no valid cached token exists", async () => {
+            const params: RequestSecurityTokenParams = {
+                resource: "test-resource",
+                provider: "",
+                authority: "",
+                scopes: [],
+            };
+
+            connectionManager["_keyVaultTokenCache"].clear();
+            connectionManager["selectAccount"] = sinon.stub();
+            connectionManager["selectTenantId"] = sinon.stub();
+            const stubbedAzureController = TypeMoq.Mock.ofType<AzureController>();
+            const token: IToken = {
+                key: "new-key",
+                token: "new-token",
+                tokenType: "test",
+                expiresOn: Date.now() / 1000 + 3600, // 1 hour from now
+            };
+            stubbedAzureController
+                .setup((x) =>
+                    x.getAccountSecurityToken(
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                    ),
+                )
+                .returns(() => {
+                    return Promise.resolve(token);
+                });
+            connectionManager.azureController = stubbedAzureController.object;
+
+            const result = await connectionManager["handleSecurityTokenRequest"](params);
+
+            expect(result).to.deep.equal(
+                {
+                    accountKey: "new-key",
+                    token: "new-token",
+                },
+                "Should return new token",
+            );
+
+            // verify new token is cached
+            expect(
+                connectionManager["_keyVaultTokenCache"].get(JSON.stringify(params)),
+            ).to.deep.equal(token, "New token should be cached");
         });
     });
 });

@@ -1121,8 +1121,21 @@ export class Connection {
             comment: ["{0} is the connection id", "{1} is the error message"],
         });
     };
+    public static noAccountSelected = l10n.t("No account selected");
+    public static currentAccount = (accountDisplayName: string) => {
+        return l10n.t({
+            message: "{0} (Current Account)",
+            args: [accountDisplayName],
+            comment: ["{0} is the account display name"],
+        });
+    };
+    public static signInToAzure = l10n.t("Sign in to a new account");
+    public static SelectAccountForKeyVault = l10n.t(
+        "Select Azure account with Key Vault access for column decryption",
+    );
+    public static NoTenantSelected = l10n.t("No tenant selected");
+    public static SelectTenant = l10n.t("Select a tenant");
 }
-
 export class MssqlChatAgent {
     public static noModelFound = l10n.t("No model found.");
     public static noToolsToProcess = l10n.t("No tools to process.");

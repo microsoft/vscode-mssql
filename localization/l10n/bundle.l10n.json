@@ -1412,6 +1412,16 @@
       "{1} is the error message"
     ]
   },
+  "No account selected": "No account selected",
+  "{0} (Current Account)/{0} is the account display name": {
+    "message": "{0} (Current Account)",
+    "comment": [
+      "{0} is the account display name"
+    ]
+  },
+  "Sign in to a new account": "Sign in to a new account",
+  "Select Azure account with Key Vault access for column decryption": "Select Azure account with Key Vault access for column decryption",
+  "No tenant selected": "No tenant selected",
   "No model found.": "No model found.",
   "No tools to process.": "No tools to process.",
   "You are not connected to any database.": "You are not connected to any database.",
