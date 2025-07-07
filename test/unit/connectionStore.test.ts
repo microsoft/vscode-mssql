@@ -51,7 +51,13 @@ suite("ConnectionStore Tests", () => {
                 return Promise.resolve();
             },
         };
-        sandbox.stub(mockConnectionConfig, "initialized").get(() => resolvedDeferred);
+        
+        // Use Object.defineProperty to define the initialized property on the mock instance
+        Object.defineProperty(mockConnectionConfig, 'initialized', {
+            get: () => resolvedDeferred,
+            enumerable: true,
+            configurable: true
+        });
     });
 
     teardown(() => {
