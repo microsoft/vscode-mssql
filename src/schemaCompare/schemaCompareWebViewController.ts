@@ -534,6 +534,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             state.targetEndpointInfo = payload.newTargetEndpointInfo;
             state.endpointsSwitched = true;
 
+            // Handle exclude mappings when endpoints are switched
+            this.handleExcludeMappingsOnEndpointSwitch(state);
+
             this.updateState(state);
 
             endActivity.end(ActivityStatus.Succeeded, {
@@ -850,6 +853,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             state.sourceTargetSwitched =
                 result.originalTargetName !== state.targetEndpointInfo.databaseName;
 
+            // Populate exclude Maps with proper key generation
+            this.populateExcludeMapsFromScmp(
+                state,
+                result.excludedSourceElements,
+                result.excludedTargetElements,
+            );
+
             endActivity.end(ActivityStatus.Succeeded, {
                 operationId: this.operationId,
                 elapsedTime: (Date.now() - startTime).toString(),
@@ -959,6 +969,156 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return "";
         }
         return nameParts.join(".");
+    }
+
+    /**
+     * Creates a unique key for a diff entry to be used in Map lookups
+     * @param nameParts The name parts of the object (e.g., ["dbo", "TableName"])
+     * @param sqlObjectType The SQL object type (e.g., "Table", "View")
+     * @returns A unique key string
+     */
+    private createKey(nameParts: string[], sqlObjectType: string): string {
+        if (!nameParts || nameParts.length === 0) {
+            return "";
+        }
+        // Remove the Microsoft.Data.Tools.Schema.Sql.SchemaModel prefix if present
+        const cleanType = sqlObjectType.replace("Microsoft.Data.Tools.Schema.Sql.SchemaModel.", "");
+        return `${nameParts.join(".")}_${cleanType}`;
+    }
+
+    /**
+     * Checks if a diff entry should be included based on exclude lists
+     * @param diff The diff entry to check
+     * @param state The current schema compare state
+     * @returns true if the diff should be included, false if excluded
+     */
+    private shouldDiffBeIncluded(diff: mssql.DiffEntry, state: SchemaCompareWebViewState): boolean {
+        // Get the name parts and type for creating the key
+        const nameParts = diff.sourceValue || diff.targetValue;
+        if (!nameParts || nameParts.length === 0) {
+            return true; // Include by default if no name parts
+        }
+
+        const key = this.createKey(nameParts, diff.name);
+
+        // Check if this object exists in the SCMP exclude lists
+        const existsInScmpExcludes = (
+            excludeList: mssql.SchemaCompareObjectId[],
+            objectKey: string,
+        ): boolean => {
+            return excludeList.some((excludeObj) => {
+                const excludeKey = this.createKey(excludeObj.nameParts, excludeObj.sqlObjectType);
+                return excludeKey === objectKey;
+            });
+        };
+
+        // Handle source/target switching
+        if (state.sourceTargetSwitched) {
+            // When switched, check target excludes for what was originally source
+            if (
+                state.originalTargetExcludes.has(key) ||
+                existsInScmpExcludes(state.scmpTargetExcludes, key)
+            ) {
+                return false;
+            }
+        } else {
+            // Normal case - check source excludes
+            if (
+                state.originalSourceExcludes.has(key) ||
+                existsInScmpExcludes(state.scmpSourceExcludes, key)
+            ) {
+                return false;
+            }
+        }
+
+        return true; // Include by default
+    }
+
+    /**
+     * Populates the exclude Maps from SCMP file data with proper key generation
+     * @param state The current schema compare state
+     * @param sourceExcludes Array of excluded source elements from SCMP
+     * @param targetExcludes Array of excluded target elements from SCMP
+     */
+    private populateExcludeMapsFromScmp(
+        state: SchemaCompareWebViewState,
+        sourceExcludes: mssql.SchemaCompareObjectId[],
+        targetExcludes: mssql.SchemaCompareObjectId[],
+    ): void {
+        // Clear existing exclude Maps
+        state.originalSourceExcludes.clear();
+        state.originalTargetExcludes.clear();
+
+        // Convert source excludes to Map entries
+        sourceExcludes.forEach((excludeObj) => {
+            const key = this.createKey(excludeObj.nameParts, excludeObj.sqlObjectType);
+            // Create a DiffEntry-like object for the Map
+            const diffEntry: mssql.DiffEntry = {
+                sourceValue: excludeObj.nameParts,
+                targetValue: null,
+                name: excludeObj.sqlObjectType.replace(
+                    "Microsoft.Data.Tools.Schema.Sql.SchemaModel.",
+                    "",
+                ),
+                updateAction: mssql.SchemaUpdateAction.Delete, // Default action
+                differenceType: mssql.SchemaDifferenceType.Object,
+                included: false,
+                position: -1, // Will be set properly when differences are loaded
+                parent: undefined,
+                children: [],
+                sourceScript: "",
+                targetScript: "",
+            };
+            state.originalSourceExcludes.set(key, diffEntry);
+        });
+
+        // Convert target excludes to Map entries
+        targetExcludes.forEach((excludeObj) => {
+            const key = this.createKey(excludeObj.nameParts, excludeObj.sqlObjectType);
+            // Create a DiffEntry-like object for the Map
+            const diffEntry: mssql.DiffEntry = {
+                sourceValue: null,
+                targetValue: excludeObj.nameParts,
+                name: excludeObj.sqlObjectType.replace(
+                    "Microsoft.Data.Tools.Schema.Sql.SchemaModel.",
+                    "",
+                ),
+                updateAction: mssql.SchemaUpdateAction.Add, // Default action
+                differenceType: mssql.SchemaDifferenceType.Object,
+                included: false,
+                position: -1, // Will be set properly when differences are loaded,
+                parent: undefined,
+                children: [],
+                sourceScript: "",
+                targetScript: "",
+            };
+            state.originalTargetExcludes.set(key, diffEntry);
+        });
+    }
+
+    /**
+     * Handles exclude mappings when endpoints are switched
+     * @param state The current schema compare state
+     */
+    private handleExcludeMappingsOnEndpointSwitch(state: SchemaCompareWebViewState): void {
+        // When endpoints are switched, we need to swap the exclude mappings
+        // and also swap the SCMP exclude arrays
+        const tempSourceExcludes = new Map(state.originalSourceExcludes);
+        const tempTargetExcludes = new Map(state.originalTargetExcludes);
+
+        // Swap the Maps
+        state.originalSourceExcludes = tempTargetExcludes;
+        state.originalTargetExcludes = tempSourceExcludes;
+
+        // Swap the SCMP exclude arrays
+        const tempScmpSourceExcludes = [...state.scmpSourceExcludes];
+        const tempScmpTargetExcludes = [...state.scmpTargetExcludes];
+
+        state.scmpSourceExcludes = tempScmpTargetExcludes;
+        state.scmpTargetExcludes = tempScmpSourceExcludes;
+
+        // Toggle the sourceTargetSwitched flag
+        state.sourceTargetSwitched = !state.sourceTargetSwitched;
     }
 
     private mapExtractTargetEnum(folderStructure: string): mssql.ExtractTarget {
@@ -1156,13 +1316,20 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         let finalDifferences: DiffEntry[] = [];
         let differences = result.differences;
         if (differences) {
-            differences.forEach((difference) => {
+            differences.forEach((difference, index) => {
                 if (difference.differenceType === mssql.SchemaDifferenceType.Object) {
                     if (
                         (difference.sourceValue !== null && difference.sourceValue.length > 0) ||
                         (difference.targetValue !== null && difference.targetValue.length > 0)
                     ) {
-                        // lewissanchez todo: need to check if difference is excluded before adding to final differences list
+                        // Set the position for tracking
+                        difference.position = index;
+
+                        // Determine if this difference should be included based on exclude lists
+                        const shouldInclude = this.shouldDiffBeIncluded(difference, this.state);
+                        difference.included = shouldInclude;
+
+                        // Always add to final differences - the included property controls UI state
                         finalDifferences.push(difference);
                     }
                 }
