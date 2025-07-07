@@ -279,6 +279,7 @@
   "Paste connection string from clipboard": "Paste connection string from clipboard",
   "Paste": "Paste",
   "Search settings...": "Search settings...",
+  "Refresh": "Refresh",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
@@ -377,7 +378,6 @@
       "{0} is the number of selected tables"
     ]
   },
-  "Refresh": "Refresh",
   "Publish Changes": "Publish Changes",
   "Edit Table": "Edit Table",
   "Open in Editor": "Open in Editor",
