@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
@@ -17,26 +16,42 @@ suite("ConnectionStore Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionStore: ConnectionStore;
 
-    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let mockLogger: TypeMoq.IMock<Logger>;
-    let mockCredentialStore: TypeMoq.IMock<ICredentialStore>;
-    let mockConnectionConfig: TypeMoq.IMock<ConnectionConfig>;
-    let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let mockContext: sinon.SinonStubbedInstance<vscode.ExtensionContext>;
+    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+    let mockCredentialStore: sinon.SinonStubbedInstance<ICredentialStore>;
+    let mockConnectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
+    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
 
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
-        mockLogger = TypeMoq.Mock.ofType<Logger>();
-        mockCredentialStore = TypeMoq.Mock.ofType<ICredentialStore>();
-        mockConnectionConfig = TypeMoq.Mock.ofType<ConnectionConfig>();
+        // Create stub for vscode.ExtensionContext (interface)
+        mockContext = {} as sinon.SinonStubbedInstance<vscode.ExtensionContext>;
+        
+        // Create stub instances for classes
+        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        mockLogger = sandbox.createStubInstance(Logger);
+        mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
+        
+        // Create stub for ICredentialStore (interface)
+        mockCredentialStore = {} as sinon.SinonStubbedInstance<ICredentialStore>;
 
-        mockConnectionConfig
-            .setup((c) => c.getConnections(TypeMoq.It.isAny()))
-            .returns(() => {
-                return Promise.resolve([]);
-            });
+        // Set up the getConnections method to return an empty array
+        mockConnectionConfig.getConnections.resolves([]);
+        
+        // Set up the initialized property to return a resolved promise
+        const resolvedDeferred = {
+            promise: Promise.resolve(),
+            resolve: () => {},
+            reject: () => {},
+            then: (onfulfilled?: () => void) => {
+                if (onfulfilled) {
+                    onfulfilled();
+                }
+                return Promise.resolve();
+            }
+        };
+        sandbox.stub(mockConnectionConfig, "initialized").get(() => resolvedDeferred);
     });
 
     teardown(() => {
@@ -46,11 +61,11 @@ suite("ConnectionStore Tests", () => {
     test("Initializes correctly", async () => {
         expect(() => {
             connectionStore = new ConnectionStore(
-                mockContext.object,
-                mockCredentialStore.object,
-                mockLogger.object,
-                mockConnectionConfig.object,
-                mockVscodeWrapper.object,
+                mockContext,
+                mockCredentialStore,
+                mockLogger,
+                mockConnectionConfig,
+                mockVscodeWrapper,
             );
         }).to.not.throw();
 
