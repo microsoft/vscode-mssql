@@ -11,7 +11,8 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
-import { SimpleExecuteResult } from "./interfaces";
+import { SimpleExecuteResult } from "../interfaces";
+import { listFunctionsQuery } from "../queries";
 
 export interface ListFunctionsToolParams {
     connectionId: string;
@@ -57,8 +58,7 @@ export class ListFunctionsTool extends ToolBase<ListFunctionsToolParams> {
                 >("query/simpleexecute"),
                 {
                     ownerUri: connectionId,
-                    queryString:
-                        "SELECT CONCAT(SCHEMA_NAME(schema_id), '.', name) AS FunctionName FROM sys.objects WHERE type IN ('FN', 'IF', 'TF') ORDER BY SCHEMA_NAME(schema_id), name",
+                    queryString: listFunctionsQuery,
                 },
             );
             const functions = this.getFunctionNamesFromResult(result);

@@ -11,7 +11,8 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
-import { SimpleExecuteResult } from "./interfaces";
+import { SimpleExecuteResult } from "../interfaces";
+import { listTablesQuery } from "../queries";
 
 export interface ListTablesToolParams {
     connectionId: string;
@@ -57,8 +58,7 @@ export class ListTablesTool extends ToolBase<ListTablesToolParams> {
                 >("query/simpleexecute"),
                 {
                     ownerUri: connectionId,
-                    queryString:
-                        "SELECT CONCAT(SCHEMA_NAME(schema_id), '.', name) AS TableName FROM sys.tables ORDER BY SCHEMA_NAME(schema_id), name",
+                    queryString: listTablesQuery,
                 },
             );
             const tables = this.getTableNamesFromResult(result);

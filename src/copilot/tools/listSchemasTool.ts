@@ -11,7 +11,8 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
-import { SimpleExecuteResult } from "./interfaces";
+import { SimpleExecuteResult } from "../interfaces";
+import { listSchemasQuery } from "../queries";
 
 export interface ListSchemasToolParams {
     connectionId: string;
@@ -57,8 +58,7 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
                 >("query/simpleexecute"),
                 {
                     ownerUri: connectionId,
-                    queryString:
-                        "SELECT name AS SchemaName FROM sys.schemas WHERE name NOT IN ('sys', 'information_schema') ORDER BY name",
+                    queryString: listSchemasQuery,
                 },
             );
             const schemas = this.getSchemaNamesFromResult(result);

@@ -11,7 +11,8 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
-import { SimpleExecuteResult } from "./interfaces";
+import { SimpleExecuteResult } from "../interfaces";
+import { listViewsQuery } from "../queries";
 
 export interface ListViewsToolParams {
     connectionId: string;
@@ -57,8 +58,7 @@ export class ListViewsTool extends ToolBase<ListViewsToolParams> {
                 >("query/simpleexecute"),
                 {
                     ownerUri: connectionId,
-                    queryString:
-                        "SELECT CONCAT(SCHEMA_NAME(schema_id), '.', name) AS ViewName FROM sys.views ORDER BY SCHEMA_NAME(schema_id), name",
+                    queryString: listViewsQuery,
                 },
             );
             const views = this.getViewNamesFromResult(result);
