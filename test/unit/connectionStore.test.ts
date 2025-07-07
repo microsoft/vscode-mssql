@@ -27,18 +27,18 @@ suite("ConnectionStore Tests", () => {
 
         // Create stub for vscode.ExtensionContext (interface)
         mockContext = {} as sinon.SinonStubbedInstance<vscode.ExtensionContext>;
-        
+
         // Create stub instances for classes
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         mockLogger = sandbox.createStubInstance(Logger);
         mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
-        
+
         // Create stub for ICredentialStore (interface)
         mockCredentialStore = {} as sinon.SinonStubbedInstance<ICredentialStore>;
 
         // Set up the getConnections method to return an empty array
         mockConnectionConfig.getConnections.resolves([]);
-        
+
         // Set up the initialized property to return a resolved promise
         const resolvedDeferred = {
             promise: Promise.resolve(),
@@ -49,7 +49,7 @@ suite("ConnectionStore Tests", () => {
                     onfulfilled();
                 }
                 return Promise.resolve();
-            }
+            },
         };
         sandbox.stub(mockConnectionConfig, "initialized").get(() => resolvedDeferred);
     });
