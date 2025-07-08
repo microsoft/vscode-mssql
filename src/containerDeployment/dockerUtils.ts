@@ -21,7 +21,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendActionEvent } from "../telemetry/telemetry";
 import * as path from "path";
 import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
-import { getErrorMessage } from "../utils/utils";
+import { execFileCommand, getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
 
 /**
@@ -73,8 +73,10 @@ export const COMMANDS = {
         `docker ps --filter "name=${name}" --filter "status=running" --format "{{.Names}}"`,
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
     START_CONTAINER: (name: string) => `docker start ${name}`,
-    CHECK_LOGS: (name: string, platform: string, timestamp: string) =>
-        `docker logs --since ${timestamp} ${name} | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
+    CHECK_LOGS: (name: string, platform: string, timestamp: string) => ({
+        command: "docker",
+        args: ["logs", "--since", timestamp, name],
+    }),
     CHECK_CONTAINER_READY: `Recovery is complete`,
     STOP_CONTAINER: (name: string) => `docker stop ${name}`,
     DELETE_CONTAINER: (name: string) => `docker stop ${name} && docker rm ${name}`,
@@ -185,6 +187,19 @@ async function execCommand(command: string): Promise<string> {
             resolve(stdout.trim());
         });
     });
+}
+
+// New function to check logs securely
+async function checkLogsForRecovery(
+    name: string,
+    platform: string,
+    timestamp: string,
+): Promise<boolean> {
+    const { command, args } = COMMANDS.CHECK_LOGS(name, platform, timestamp);
+    const logs = await execFileCommand(command, args);
+    const lines = logs.split("\n");
+    const readyLine = lines.find((line) => line.includes(COMMANDS.CHECK_CONTAINER_READY));
+    return !!readyLine;
 }
 
 /**
@@ -462,15 +477,12 @@ export async function checkIfContainerIsReadyForConnections(
     return new Promise((resolve) => {
         const interval = setInterval(async () => {
             try {
-                const logs = await execCommand(
-                    COMMANDS.CHECK_LOGS(containerName, platform(), startTimestamp),
+                const isReady = await checkLogsForRecovery(
+                    containerName,
+                    platform(),
+                    startTimestamp,
                 );
-                const lines = logs.split("\n");
-                const readyLine = lines.find((line) =>
-                    line.includes(COMMANDS.CHECK_CONTAINER_READY),
-                );
-
-                if (readyLine) {
+                if (isReady) {
                     clearInterval(interval);
                     dockerLogger.appendLine(`${containerName} is ready for connections!`);
                     return resolve({ success: true });
@@ -478,9 +490,11 @@ export async function checkIfContainerIsReadyForConnections(
             } catch {
                 // Ignore and retry
             }
-
             if (Date.now() - start > timeoutMs) {
                 clearInterval(interval);
+                dockerLogger.appendLine(
+                    `Timeout waiting for container ${containerName} to be ready.`,
+                );
                 return resolve({
                     success: false,
                     error: ContainerDeployment.containerFailedToStartWithinTimeout,
