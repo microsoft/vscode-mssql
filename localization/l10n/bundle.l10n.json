@@ -115,6 +115,7 @@
   "Select": "Select",
   "Finish": "Finish",
   "Retry": "Retry",
+  "Refresh": "Refresh",
   "Show password": "Show password",
   "Hide password": "Hide password",
   "Dismiss": "Dismiss",
@@ -283,7 +284,6 @@
   "Sign into Azure": "Sign into Azure",
   "Azure Account": "Azure Account",
   "+ Add Azure Account": "+ Add Azure Account",
-  "Refresh": "Refresh",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",

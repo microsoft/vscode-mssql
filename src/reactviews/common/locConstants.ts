@@ -51,6 +51,7 @@ export class LocConstants {
             select: l10n.t("Select"),
             finish: l10n.t("Finish"),
             retry: l10n.t("Retry"),
+            refresh: l10n.t("Refresh"),
             showPassword: l10n.t("Show password"),
             hidePassword: l10n.t("Hide password"),
             dismiss: l10n.t("Dismiss"),
@@ -269,7 +270,6 @@ export class LocConstants {
             signIntoAzure: l10n.t("Sign into Azure"),
             azureAccount: l10n.t("Azure Account"),
             addAzureAccount: l10n.t("+ Add Azure Account"),
-            refresh: l10n.t("Refresh"),
         };
     }
 
@@ -424,7 +424,6 @@ export class LocConstants {
             },
             clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
-            refresh: l10n.t("Refresh"),
             publishChanges: l10n.t("Publish Changes"),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
