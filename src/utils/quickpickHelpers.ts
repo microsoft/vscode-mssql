@@ -11,22 +11,32 @@ export interface MssqlQuickPickItem extends vscode.QuickPickItem {
     group?: string;
 }
 
-/** Orders quick pick items by their group, inserting separators where needed */
+/**
+ * Orders quick pick items by their group, inserting separators where needed.
+ * Groups are sorted alphabetically, with the contents within each group left in the same order as `items`.
+ * Ungrouped items appear first, and are not assigned a group label.
+ */
 export function groupQuickPickItems<TQuickPickItem extends MssqlQuickPickItem>(
     items: TQuickPickItem[],
 ): TQuickPickItem[] {
     const grouped = groupBy<string, TQuickPickItem>(items, "group");
     const result: TQuickPickItem[] = [];
 
-    const sortedGroups = Array.from(grouped.keys()).sort();
+    // Ungrouped items first...
+    if (grouped.has(undefined)) {
+        result.push(...grouped.get(undefined));
+    }
 
-    for (const group of sortedGroups) {
-        if (group) {
-            result.push({
-                label: group,
-                kind: vscode.QuickPickItemKind.Separator,
-            } as TQuickPickItem);
-        }
+    // ...then grouped items
+    const definedGroups = Array.from(grouped.keys())
+        .filter((group) => group !== undefined)
+        .sort();
+
+    for (const group of definedGroups) {
+        result.push({
+            label: group,
+            kind: vscode.QuickPickItemKind.Separator,
+        } as TQuickPickItem);
         result.push(...grouped.get(group));
     }
 

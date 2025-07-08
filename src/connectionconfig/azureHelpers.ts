@@ -127,7 +127,7 @@ export class VsCodeAzureHelper {
 
             const auth: MssqlVSCodeAzureSubscriptionProvider =
                 MssqlVSCodeAzureSubscriptionProvider.getInstance();
-            const tenants = await auth.getTenants(account);
+            const tenants = [...(await auth.getTenants(account))]; // spread operator to create a new array since sort() mutates the array
 
             return tenants.sort((a, b) => a.displayName.localeCompare(b.displayName));
         } catch (error) {

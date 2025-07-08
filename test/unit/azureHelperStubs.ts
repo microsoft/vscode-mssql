@@ -27,19 +27,26 @@ export const mockSubscriptions = [
 export const mockTenants = [
     {
         displayName: "Tenant Zero",
-        id: "00000000-0000-0000-0000-000000000000",
+        tenantId: "00000000-0000-0000-0000-000000000000",
         account: {
             id: "00000000-0000-0000-0000-000000000000.11111111-1111-1111-1111-111111111111",
         },
     },
     {
         displayName: "Tenant One",
-        id: "11111111-1111-1111-1111-111111111111",
+        tenantId: "11111111-1111-1111-1111-111111111111",
         account: {
             id: "00000000-0000-0000-0000-000000000000.11111111-1111-1111-1111-111111111111",
         },
     },
-] as unknown as AzureTenant[];
+    {
+        displayName: "NotSignedInAccount Tenant A",
+        tenantId: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+        account: {
+            id: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA.BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB",
+        },
+    },
+] as AzureTenant[];
 
 export const mockAccounts = [
     {
