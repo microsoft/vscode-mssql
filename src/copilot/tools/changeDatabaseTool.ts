@@ -23,7 +23,7 @@ export interface ChangeDatabaseToolResult {
 export class ChangeDatabaseTool extends ToolBase<ChangeDatabaseToolParams> {
     public readonly toolName = Constants.copilotChangeDatabaseToolName;
 
-    constructor(private connectionManager: ConnectionManager) {
+    constructor(private _connectionManager: ConnectionManager) {
         super();
     }
 
@@ -33,7 +33,7 @@ export class ChangeDatabaseTool extends ToolBase<ChangeDatabaseToolParams> {
     ) {
         const { connectionId, database } = options.input;
         try {
-            const connInfo = this.connectionManager.getConnectionInfo(connectionId);
+            const connInfo = this._connectionManager.getConnectionInfo(connectionId);
             const connCreds = connInfo?.credentials;
             if (!connCreds) {
                 return JSON.stringify({
@@ -43,7 +43,7 @@ export class ChangeDatabaseTool extends ToolBase<ChangeDatabaseToolParams> {
             }
 
             // Check if the connection is currently connected
-            if (!this.connectionManager.isConnected(connectionId)) {
+            if (!this._connectionManager.isConnected(connectionId)) {
                 return JSON.stringify({
                     success: false,
                     message: loc.noConnectionError(connectionId),
@@ -55,8 +55,8 @@ export class ChangeDatabaseTool extends ToolBase<ChangeDatabaseToolParams> {
             newConnectionCreds.database = database;
 
             // Disconnect from current database and reconnect to new one
-            await this.connectionManager.disconnect(connectionId);
-            const connectResult = await this.connectionManager.connect(
+            await this._connectionManager.disconnect(connectionId);
+            const connectResult = await this._connectionManager.connect(
                 connectionId,
                 newConnectionCreds,
             );

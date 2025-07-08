@@ -23,7 +23,7 @@ export interface ListDatabasesToolResult {
 export class ListDatabasesTool extends ToolBase<ListDatabasesToolParams> {
     public readonly toolName = Constants.copilotListDatabasesToolName;
 
-    constructor(private connectionManager: ConnectionManager) {
+    constructor(private _connectionManager: ConnectionManager) {
         super();
     }
 
@@ -33,7 +33,7 @@ export class ListDatabasesTool extends ToolBase<ListDatabasesToolParams> {
     ) {
         const { connectionId } = options.input;
         try {
-            const connInfo = this.connectionManager.getConnectionInfo(connectionId);
+            const connInfo = this._connectionManager.getConnectionInfo(connectionId);
             const connCreds = connInfo?.credentials;
             if (!connCreds) {
                 return JSON.stringify({
@@ -41,7 +41,7 @@ export class ListDatabasesTool extends ToolBase<ListDatabasesToolParams> {
                     message: loc.noConnectionError(connectionId),
                 });
             }
-            const databases = await this.connectionManager.listDatabases(connectionId);
+            const databases = await this._connectionManager.listDatabases(connectionId);
 
             return JSON.stringify({
                 success: true,

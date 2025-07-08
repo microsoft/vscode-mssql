@@ -37,7 +37,7 @@ type IConnectionInfoSubset = Pick<
 export class GetConnectionDetailsTool extends ToolBase<GetConnectionDetailsToolParams> {
     public readonly toolName = Constants.copilotGetConnectionDetailsToolName;
 
-    constructor(private connectionManager: ConnectionManager) {
+    constructor(private _connectionManager: ConnectionManager) {
         super();
     }
 
@@ -47,7 +47,7 @@ export class GetConnectionDetailsTool extends ToolBase<GetConnectionDetailsToolP
     ) {
         const { connectionId } = options.input;
         try {
-            const connInfo = this.connectionManager.getConnectionInfo(connectionId);
+            const connInfo = this._connectionManager.getConnectionInfo(connectionId);
             const connCreds = connInfo?.credentials;
             if (!connCreds) {
                 return JSON.stringify({

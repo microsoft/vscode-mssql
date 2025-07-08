@@ -74,6 +74,10 @@ import { DisconnectTool } from "../copilot/tools/disconnectTool";
 import { GetConnectionDetailsTool } from "../copilot/tools/getConnectionDetailsTool";
 import { ChangeDatabaseTool } from "../copilot/tools/changeDatabaseTool";
 import { ListDatabasesTool } from "../copilot/tools/listDatabasesTool";
+import { ListTablesTool } from "../copilot/tools/listTablesTool";
+import { ListSchemasTool } from "../copilot/tools/listSchemasTool";
+import { ListViewsTool } from "../copilot/tools/listViewsTool";
+import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
@@ -587,18 +591,24 @@ export default class MainController implements vscode.Disposable {
     private registerLanguageModelTools(): void {
         // Register mssql_connect tool
         this._context.subscriptions.push(
-            vscode.lm.registerTool("mssql_connect", new ConnectTool(this.connectionManager)),
+            vscode.lm.registerTool(
+                Constants.copilotConnectToolName,
+                new ConnectTool(this.connectionManager),
+            ),
         );
 
         // Register mssql_disconnect tool
         this._context.subscriptions.push(
-            vscode.lm.registerTool("mssql_disconnect", new DisconnectTool(this.connectionManager)),
+            vscode.lm.registerTool(
+                Constants.copilotDisconnectToolName,
+                new DisconnectTool(this.connectionManager),
+            ),
         );
 
         // Register mssql_list_servers tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_list_servers",
+                Constants.copilotListServersToolName,
                 new ListServersTool(this.connectionManager),
             ),
         );
@@ -606,7 +616,7 @@ export default class MainController implements vscode.Disposable {
         // Register mssql_list_databases tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_list_databases",
+                Constants.copilotListDatabasesToolName,
                 new ListDatabasesTool(this.connectionManager),
             ),
         );
@@ -614,7 +624,7 @@ export default class MainController implements vscode.Disposable {
         // Register mssql_get_connection_details tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_get_connection_details",
+                Constants.copilotGetConnectionDetailsToolName,
                 new GetConnectionDetailsTool(this.connectionManager),
             ),
         );
@@ -622,14 +632,14 @@ export default class MainController implements vscode.Disposable {
         // Register mssql_change_database tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_change_database",
+                Constants.copilotChangeDatabaseToolName,
                 new ChangeDatabaseTool(this.connectionManager),
             ),
         );
         // Register mssql_show_schema tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_show_schema",
+                Constants.copilotShowSchemaToolName,
                 new ShowSchemaTool(
                     this.connectionManager,
                     async (connectionUri: string, database: string) => {
@@ -646,6 +656,38 @@ export default class MainController implements vscode.Disposable {
                         designer.revealToForeground();
                     },
                 ),
+            ),
+        );
+
+        // Register mssql_list_tables tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListTablesToolName,
+                new ListTablesTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_list_schemas tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListSchemasToolName,
+                new ListSchemasTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_list_views tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListViewsToolName,
+                new ListViewsTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_list_functions tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListFunctionsToolName,
+                new ListFunctionsTool(this.connectionManager, SqlToolsServerClient.instance),
             ),
         );
     }
