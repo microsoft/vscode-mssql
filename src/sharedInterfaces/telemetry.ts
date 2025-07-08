@@ -84,6 +84,7 @@ export enum TelemetryActions {
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
     StartContainerDeployment = "StartContainerDeployment",
+    StopContainerDeployment = "StopContainerDeployment",
     CreateSQLContainer = "CreateSQLContainer",
     ConnectToContainer = "ConnectToContainer",
     StartContainer = "StartContainer",

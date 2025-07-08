@@ -222,6 +222,16 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("dispose", async (state, _payload) => {
+            sendActionEvent(
+                TelemetryViews.ContainerDeployment,
+                TelemetryActions.StopContainerDeployment,
+                {
+                    currentStep: cd.DockerStepOrder[state.currentDockerStep],
+                    dockerStepStatus: state.dockerSteps[state.currentDockerStep].loadState,
+                    dockerStepMessage:
+                        state.dockerSteps[state.currentDockerStep].errorMessage ?? "No error",
+                },
+            );
             this.panel.dispose();
             this.dispose();
             return state;
