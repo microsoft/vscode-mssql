@@ -311,7 +311,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     }
 
     override async dispose(): Promise<void> {
-        this.updateCacheItem(this.schemaDesignerDetails!.schema);
+        if (this.schemaDesignerDetails) {
+            this.updateCacheItem(this.schemaDesignerDetails!.schema);
+        }
         super.dispose();
     }
 }

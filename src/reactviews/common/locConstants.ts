@@ -269,6 +269,7 @@ export class LocConstants {
             signIntoAzure: l10n.t("Sign into Azure"),
             azureAccount: l10n.t("Azure Account"),
             addAzureAccount: l10n.t("+ Add Azure Account"),
+            refresh: l10n.t("Refresh"),
         };
     }
 
