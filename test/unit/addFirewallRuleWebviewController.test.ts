@@ -81,12 +81,14 @@ suite("AddFirewallRuleWebviewController Tests", () => {
                     };
                 }),
                 tenants: {
-                    [azureHelperStubs.mockAccounts[0].id]: azureHelperStubs.mockTenants.map((t) => {
-                        return {
-                            displayName: t.displayName,
-                            tenantId: t.tenantId,
-                        };
-                    }),
+                    [azureHelperStubs.mockAccounts[0].id]: azureHelperStubs.mockTenants
+                        .filter((t) => t.account.id === azureHelperStubs.mockAccounts[0].id)
+                        .map((t) => {
+                            return {
+                                displayName: t.displayName,
+                                tenantId: t.tenantId,
+                            };
+                        }),
                 },
                 clientIp: "1.2.3.4",
                 message: errorMessage,

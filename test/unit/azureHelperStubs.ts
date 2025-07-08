@@ -62,7 +62,8 @@ export function stubIsSignedIn(sandbox: Sinon.SinonSandbox, result: boolean) {
 export function stubVscodeAzureSignIn(sandbox: sinon.SinonSandbox) {
     return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "signIn").resolves({
         getSubscriptions: () => Promise.resolve(mockSubscriptions),
-        getTenants: () => Promise.resolve(mockTenants),
+        getTenants: () =>
+            Promise.resolve(mockTenants.filter((t) => t.account.id === mockAccounts[0].id)),
     } as unknown as MssqlVSCodeAzureSubscriptionProvider);
 }
 
