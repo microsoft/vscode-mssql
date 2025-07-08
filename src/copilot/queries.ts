@@ -4,6 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 // SQL queries for copilot tools
+// WARNING: These queries are tightly coupled with their corresponding tool implementations.
+// The result parsing logic assumes that the target items (tables, views, schemas, functions)
+// are returned in the FIRST COLUMN of the result set. Do not modify these queries in a way
+// that changes the column order or structure without updating the corresponding parsing methods
+// in the tool classes (getTableNamesFromResult, getViewNamesFromResult, getSchemaNamesFromResult, getFunctionNamesFromResult).
+
 export const listTablesQuery =
     "SELECT CONCAT(SCHEMA_NAME(schema_id), '.', name) AS TableName FROM sys.tables ORDER BY SCHEMA_NAME(schema_id), name";
 
