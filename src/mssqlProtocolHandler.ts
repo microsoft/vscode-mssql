@@ -4,11 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as Utils from "./models/utils";
 import { AuthenticationType, IConnectionInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "./languageservice/serviceclient";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "./models/contracts/connection";
 import { IConnectionProfile } from "./models/interfaces";
+import VscodeWrapper from "./controllers/vscodeWrapper";
+import { Logger } from "./models/logger";
+import { cmdAddObjectExplorer } from "./constants/constants";
+import MainController from "./controllers/mainController";
 
 enum Command {
     connect = "/connect",
@@ -24,7 +27,15 @@ interface ConnectionOptionProperty {
  * Handles MSSQL protocol URIs.
  */
 export class MssqlProtocolHandler {
-    constructor(private client: SqlToolsServiceClient) {}
+    private _logger: Logger;
+
+    constructor(
+        vscodeWrapper: VscodeWrapper,
+        private mainController: MainController,
+        private client: SqlToolsServiceClient,
+    ) {
+        this._logger = Logger.create(vscodeWrapper.outputChannel, "MssqlProtocolHandler");
+    }
 
     /**
      * Handles the given URI and returns connection information if applicable. Examples of URIs handled:
@@ -34,35 +45,49 @@ export class MssqlProtocolHandler {
      * @param uri - The URI to handle.
      * @returns The connection information or undefined if not applicable.
      */
-    public handleUri(uri: vscode.Uri): Promise<IConnectionProfile | undefined> {
-        Utils.logDebug(`[MssqlProtocolHandler][handleUri] URI: ${uri.toString()}`);
+    public async handleUri(uri: vscode.Uri): Promise<void> {
+        this._logger.info(`URI: ${uri.toString()}`);
 
         switch (uri.path) {
-            case Command.connect:
-                Utils.logDebug(`[MssqlProtocolHandler][handleUri] connect: ${uri.path}`);
+            // Attempt to find an existing connection profile based on the provided parameters. If not found, open the connection dialog.
+            case Command.connect: {
+                this._logger.info(`connect: ${uri.path}`);
+                const connProfile = await this.readProfileFromArgs(uri.query);
 
-                return this.connect(uri);
+                // find most similar connection profile
 
-            case Command.openConnectionDialog:
-                return undefined;
+                const foundProfile =
+                    this.mainController.connectionManager.findMatchingProfile(connProfile);
 
-            default:
-                Utils.logDebug(
-                    `[MssqlProtocolHandler][handleUri] Unknown URI path, defaulting to connect: ${uri.path}`,
+                if (foundProfile) {
+                    await this.mainController.createObjectExplorerSession(foundProfile);
+                } else {
+                    const connProfile = await this.readProfileFromArgs(uri.query);
+                    this.openConnectionDialog(connProfile);
+                }
+
+                break;
+            }
+            // Open the connection dialog, pre-filled with the provided parameters.
+            case Command.openConnectionDialog: {
+                const connProfile = await this.readProfileFromArgs(uri.query);
+                this.openConnectionDialog(connProfile);
+                break;
+            }
+
+            // Default behavior for unknown URIs: open the connection dialog with no pre-filled parameters
+            default: {
+                this._logger.warn(
+                    `Unknown URI action '${uri.path}'; defaulting to ${Command.openConnectionDialog}`,
                 );
 
-                return this.connect(uri);
+                this.openConnectionDialog();
+            }
         }
     }
 
-    /**
-     * Connects using the given URI.
-     *
-     * @param uri - The URI containing connection information.
-     * @returns The connection information or undefined if not applicable.
-     */
-    private connect(uri: vscode.Uri): Promise<IConnectionProfile | undefined> {
-        return this.readProfileFromArgs(uri.query);
+    private openConnectionDialog(connProfile?: IConnectionProfile): void {
+        vscode.commands.executeCommand(cmdAddObjectExplorer, connProfile);
     }
 
     /**

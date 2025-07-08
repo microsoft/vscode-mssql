@@ -376,6 +376,10 @@ export default class ConnectionManager {
         return fileUri in this._connections && this._connections[fileUri].connecting;
     }
 
+    public findMatchingProfile(connProfile: IConnectionProfile): IConnectionProfile | undefined {
+        throw new Error("Not implemented.");
+    }
+
     /**
      * Get the connection string for the provided connection Uri or ConnectionDetails.
      * @param connectionUriOrDetails Either the connection Uri for the connection or the connection details for the connection is required.
