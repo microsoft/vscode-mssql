@@ -6,7 +6,7 @@
 import * as cd from "../sharedInterfaces/containerDeploymentInterfaces";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { platform } from "os";
+import { arch, platform } from "os";
 import { defaultPortNumber, localhost, sa, sqlAuthentication } from "../constants/constants";
 import { FormItemType, FormItemSpec, FormItemOptions } from "../sharedInterfaces/form";
 import MainController from "../controllers/mainController";
@@ -24,7 +24,7 @@ import {
 } from "../constants/locConstants";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import {
     createConnectionGroup,
@@ -147,6 +147,18 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             currentStep.loadState = stepSuccessful ? ApiStatus.Loaded : ApiStatus.Error;
             if (stepSuccessful) {
                 state.currentDockerStep += 1; // Move to the next step
+            } else {
+                sendErrorEvent(
+                    TelemetryViews.ContainerDeployment,
+                    TelemetryActions.RunDockerStep,
+                    new Error(currentStep.errorMessage),
+                    true, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        dockerStep: cd.DockerStepOrder[currentStepNumber],
+                    },
+                );
             }
             state.dockerSteps[currentStepNumber] = currentStep;
 

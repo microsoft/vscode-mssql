@@ -210,6 +210,10 @@ export async function checkDockerInstallation(): Promise<DockerCommandParams> {
  * On Linux, checks for permissions to run Docker commands.
  */
 export async function checkEngine(): Promise<DockerCommandParams> {
+    return {
+        success: false,
+        error: "test error",
+    };
     let dockerCliPath = "";
     if (platform() === Platform.Mac && arch() === x64) return { success: true }; // No need to check Rosetta on x64 macOS
     if (platform() !== Platform.Mac && arch() !== x64) {
@@ -430,11 +434,10 @@ export async function startDocker(): Promise<DockerCommandParams> {
  * If the container is already running, it returns true without restarting.
  */
 export async function restartContainer(containerName: string): Promise<boolean> {
-    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartContainer);
-
     const isContainerRunning = await isDockerContainerRunning(containerName);
     if (isContainerRunning) return true; // Container is already running
     dockerLogger.appendLine(`Restarting container: ${containerName}`);
+    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartContainer);
     await execCommand(COMMANDS.START_CONTAINER(containerName));
     dockerLogger.appendLine(`Container ${containerName} restarted successfully.`);
     const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);

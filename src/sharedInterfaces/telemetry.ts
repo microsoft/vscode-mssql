@@ -89,6 +89,7 @@ export enum TelemetryActions {
     StartContainer = "StartContainer",
     StopContainer = "StopContainer",
     DeleteContainer = "DeleteContainer",
+    RunDockerStep = "RunDockerStep",
     LoadFromConnectionString = "LoadFromConnectionString",
     MigrateLegacyConnections = "MigrateLegacyConnections",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
