@@ -6,7 +6,7 @@
 import * as cd from "../sharedInterfaces/containerDeploymentInterfaces";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { arch, platform } from "os";
+import { platform } from "os";
 import { defaultPortNumber, localhost, sa, sqlAuthentication } from "../constants/constants";
 import { FormItemType, FormItemSpec, FormItemOptions } from "../sharedInterfaces/form";
 import MainController from "../controllers/mainController";
@@ -148,6 +148,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             if (stepSuccessful) {
                 state.currentDockerStep += 1; // Move to the next step
             } else {
+                // If the step failed, log the error and send telemetry
+                // Error telemetry includes the step number and error message
                 sendErrorEvent(
                     TelemetryViews.ContainerDeployment,
                     TelemetryActions.RunDockerStep,
@@ -157,6 +159,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                     undefined, // errorType
                     {
                         dockerStep: cd.DockerStepOrder[currentStepNumber],
+                        fullErrorMessage: currentStep.fullErrorText || "",
                     },
                 );
             }
@@ -168,6 +171,9 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             // Reset the current step to NotStarted
             const currentStepNumber = state.currentDockerStep;
             state.dockerSteps[currentStepNumber].loadState = ApiStatus.NotStarted;
+            sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.RetryDockerStep, {
+                dockerStep: cd.DockerStepOrder[currentStepNumber],
+            });
             return state;
         });
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
@@ -224,12 +230,13 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         this.registerReducer("dispose", async (state, _payload) => {
             sendActionEvent(
                 TelemetryViews.ContainerDeployment,
-                TelemetryActions.StopContainerDeployment,
+                TelemetryActions.CloseContainerDeployment,
                 {
+                    // Include the current step, its status, and its potential error in the telemetry
                     currentStep: cd.DockerStepOrder[state.currentDockerStep],
-                    dockerStepStatus: state.dockerSteps[state.currentDockerStep].loadState,
-                    dockerStepMessage:
-                        state.dockerSteps[state.currentDockerStep].errorMessage ?? "No error",
+                    currentStepStatus: state.dockerSteps[state.currentDockerStep].loadState,
+                    currentStepErrorMessage:
+                        state.dockerSteps[state.currentDockerStep].errorMessage,
                 },
             );
             this.panel.dispose();
@@ -330,10 +337,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             user: sa,
             trustServerCertificate: true,
         };
-
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.CreateSQLContainer, {
-            version: dockerProfile.version,
-        });
 
         try {
             const profile = await this.mainController.connectionManager.connectionUI.saveProfile(

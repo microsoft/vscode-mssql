@@ -311,6 +311,8 @@ suite("ContainerDeploymentWebviewController", () => {
 
     test("completeDockerStep reducer updates step status and handles success/failure", async () => {
         const addContainerConnectionStub = sinon.stub(controller as any, "addContainerConnection");
+        // Stub telemetry method
+        const sendErrorEventStub = sinon.stub(telemetry, "sendErrorEvent");
         let callState = (controller as any).state;
 
         // --- Test general step success ---
@@ -352,6 +354,7 @@ suite("ContainerDeploymentWebviewController", () => {
 
         assert.equal(resultFailure.dockerSteps[0].loadState, ApiStatus.Error);
         assert.equal(resultFailure.dockerSteps[0].errorMessage, "Something went wrong");
+        assert.ok(sendErrorEventStub.calledOnce, "sendErrorEvent should be called once");
 
         // --- Test connectToContainer success ---
         callState.dockerSteps = [];
@@ -402,12 +405,16 @@ suite("ContainerDeploymentWebviewController", () => {
                 DockerStepOrder.connectToContainer
             ].errorMessage.includes("dev-profile"),
         );
+        assert.ok(sendErrorEventStub.calledTwice, "sendErrorEvent should be called twice");
 
         addContainerConnectionStub.restore();
+        sendErrorEventStub.restore();
     });
 
     test("resetDockerStepState reducer should reset only the current docker step", async () => {
         let callState = (controller as any).state;
+        // Stub telemetry method
+        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
 
         // Setup initial state
         callState.currentDockerStep = 1; // Only step 1 should be reset
@@ -462,7 +469,46 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.strictEqual(resultState.dockerSteps[2].loadState, ApiStatus.Error);
         assert.strictEqual(resultState.dockerSteps[2].errorMessage, "Old error 2");
         assert.strictEqual(resultState.dockerSteps[2].fullErrorText, "Old full error 2");
+        sinon.assert.calledOnce(sendActionEventStub);
+        sendActionEventStub.restore();
     });
+
+    /*make reducer for this:
+    his.registerReducer("createConnectionGroup", async (state, payload) => {
+                const createConnectionGroupResult: IConnectionGroup | string =
+                    await createConnectionGroup(
+                        payload.connectionGroupSpec,
+                        this.mainController.connectionManager,
+                        TelemetryViews.ConnectionDialog,
+                    );
+                if (typeof createConnectionGroupResult === "string") {
+                    // If the result is a string, it means there was an error creating the group
+                    state.formErrors.push(createConnectionGroupResult);
+                } else {
+                    // If the result is an IConnectionGroup, it means the group was created successfully
+                    state.formState.groupId = createConnectionGroupResult.id;
+                }
+
+                state.formComponents.groupId.options =
+                    await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
+
+                state.dialog = undefined;
+
+                this.updateState(state);
+                return state;
+            });
+
+            this.registerReducer("setConnectionGroupDialogState", async (state, payload) => {
+                if (payload.shouldOpen) {
+                    state = getDefaultConnectionGroupDialogProps(
+                        state,
+                    ) as cd.ContainerDeploymentWebviewState;
+                } else {
+                    state.dialog = undefined;
+                }
+                return state;
+            });
+    */
 
     test("Test checkDocker Profile reducer", async () => {
         let callState = (controller as any).state;
@@ -495,6 +541,8 @@ suite("ContainerDeploymentWebviewController", () => {
     });
 
     test("Test dispose reducer", async () => {
+        // Stub telemetry method
+        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
         const disposePanelSpy = sinon.spy((controller as any).panel, "dispose");
 
         const callState = (controller as any).state;
@@ -502,6 +550,8 @@ suite("ContainerDeploymentWebviewController", () => {
 
         assert.ok(disposePanelSpy.calledOnce, "panel.dispose should be called once");
         (disposePanelSpy as sinon.SinonSpy).restore();
+        assert.ok(sendActionEventStub.calledOnce, "sendActionEvent should be called once");
+        sendActionEventStub.restore();
     });
 
     test("Test addContainerConnection calls all expected methods", async () => {
@@ -516,8 +566,6 @@ suite("ContainerDeploymentWebviewController", () => {
         // Stub mainController methods
         const saveProfileStub = sinon.stub().resolves();
         const createSessionStub = sinon.stub().resolves();
-        // Stub telemetry method
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
 
         controller.mainController = {
             connectionManager: {
@@ -532,12 +580,10 @@ suite("ContainerDeploymentWebviewController", () => {
         const result = await (controller as any).addContainerConnection(dockerProfile);
 
         // Assertions
-        assert.ok(sendActionEventStub.calledOnce, "sendActionEvent should be called once");
         assert.ok(saveProfileStub.calledOnce, "saveProfile should be called");
         assert.ok(createSessionStub.calledOnce, "createObjectExplorerSession should be called");
 
         assert.strictEqual(result, true, "Should return true on success");
-        sendActionEventStub.restore();
     });
 });
 

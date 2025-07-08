@@ -467,10 +467,9 @@ suite("Docker Utilities", () => {
         execStub.onFirstCall().yields(null, "testContainer"); // CHECK_CONTAINER_RUNNING
         let result = await dockerUtils.restartContainer("testContainer");
         assert.ok(result, "Should return success when container is already running");
-        sinon.assert.calledOnce(sendActionEventStub);
         execStub.resetHistory();
 
-        // Case 2: Container is not running, should restart and return success
+        // Case 2: Container is not running, should restart, send telemetry, and return success
         execStub.onFirstCall().yields(new Error("Container not running"), null); // CHECK_CONTAINER_RUNNING
         execStub.onSecondCall().yields(null, "Container restarted"); // START_CONTAINER
         execStub.onThirdCall().yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
@@ -493,6 +492,7 @@ suite("Docker Utilities", () => {
     test("deleteContainer: should delete the container and return success or error", async () => {
         const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "container delete");
         const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
+        const sendErrorEventStub = sinon.stub(telemetry, "sendErrorEvent");
 
         let result = await dockerUtils.deleteContainer("testContainer");
         sinon.assert.calledOnce(execStub);
@@ -509,17 +509,19 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.deleteContainer("testContainer");
 
         sinon.assert.calledOnce(execErrorStub);
-        sinon.assert.calledTwice(sendActionEventStub);
+        sinon.assert.calledOnce(sendErrorEventStub);
 
         assert.ok(!result, "Should return false on failure");
 
         execErrorStub.restore();
         sendActionEventStub.restore();
+        sendErrorEventStub.restore();
     });
 
     test("stopContainer: should stop the container and return success or error", async () => {
         const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "container stop");
         const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
+        const sendErrorEventStub = sinon.stub(telemetry, "sendErrorEvent");
 
         let result = await dockerUtils.stopContainer("testContainer");
         sinon.assert.calledOnce(execStub);
@@ -536,12 +538,13 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.stopContainer("testContainer");
 
         sinon.assert.calledOnce(execErrorStub);
-        sinon.assert.calledTwice(sendActionEventStub);
 
         assert.ok(!result, "Should return false on failure");
+        sinon.assert.calledOnce(sendErrorEventStub);
 
         execErrorStub.restore();
         sendActionEventStub.restore();
+        sendErrorEventStub.restore();
     });
 
     test("checkIfContainerIsDockerContainer: should return true if the container is a Docker container", async () => {
