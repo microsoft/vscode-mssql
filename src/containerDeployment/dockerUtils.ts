@@ -350,7 +350,6 @@ export async function startSqlServerDockerContainer(
             undefined, // errorType
             {
                 version: version,
-                error: getErrorMessage(e),
             },
         );
         return {

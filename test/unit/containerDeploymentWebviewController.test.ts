@@ -473,43 +473,6 @@ suite("ContainerDeploymentWebviewController", () => {
         sendActionEventStub.restore();
     });
 
-    /*make reducer for this:
-    his.registerReducer("createConnectionGroup", async (state, payload) => {
-                const createConnectionGroupResult: IConnectionGroup | string =
-                    await createConnectionGroup(
-                        payload.connectionGroupSpec,
-                        this.mainController.connectionManager,
-                        TelemetryViews.ConnectionDialog,
-                    );
-                if (typeof createConnectionGroupResult === "string") {
-                    // If the result is a string, it means there was an error creating the group
-                    state.formErrors.push(createConnectionGroupResult);
-                } else {
-                    // If the result is an IConnectionGroup, it means the group was created successfully
-                    state.formState.groupId = createConnectionGroupResult.id;
-                }
-
-                state.formComponents.groupId.options =
-                    await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
-
-                state.dialog = undefined;
-
-                this.updateState(state);
-                return state;
-            });
-
-            this.registerReducer("setConnectionGroupDialogState", async (state, payload) => {
-                if (payload.shouldOpen) {
-                    state = getDefaultConnectionGroupDialogProps(
-                        state,
-                    ) as cd.ContainerDeploymentWebviewState;
-                } else {
-                    state.dialog = undefined;
-                }
-                return state;
-            });
-    */
-
     test("Test checkDocker Profile reducer", async () => {
         let callState = (controller as any).state;
         const validateProfileStub = sinon.stub(
