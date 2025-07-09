@@ -1157,10 +1157,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this._azureSubscriptions = new Map(
                 (await auth.getSubscriptions(shouldUseFilter)).map((s) => [s.subscriptionId, s]),
             );
-            const tenantSubMap = this.groupBy<string, AzureSubscription>(
-                Array.from(this._azureSubscriptions.values()),
-                "tenantId",
-            ); // TODO: replace with Object.groupBy once ES2024 is supported
+            const tenantSubMap = Map.groupBy(this._azureSubscriptions.values(), (s) => s.tenantId);
 
             const subs: AzureSubscriptionInfo[] = [];
 
@@ -1292,17 +1289,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         )) {
             component.validation = undefined;
         }
-    }
-
-    private groupBy<K, V>(values: V[], key: keyof V): Map<K, V[]> {
-        return values.reduce((rv, x) => {
-            const keyValue = x[key] as K;
-            if (!rv.has(keyValue)) {
-                rv.set(keyValue, []);
-            }
-            rv.get(keyValue)!.push(x);
-            return rv;
-        }, new Map<K, V[]>());
     }
 
     private async hydrateConnectionDetailsFromProfile(
