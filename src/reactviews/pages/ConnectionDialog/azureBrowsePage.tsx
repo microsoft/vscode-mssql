@@ -275,7 +275,7 @@ export const AzureBrowsePage = () => {
                                     return;
                                 }
 
-                                // TODO: swap out subscription ID parsing for an AzureSubscriptionInfo
+                                // Parse subscription ID from the string
                                 const openParen = sub.indexOf("(");
 
                                 if (openParen === -1) {
