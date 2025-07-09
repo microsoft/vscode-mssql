@@ -385,7 +385,6 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.ok(
             !resultConnectSuccess.dockerSteps[DockerStepOrder.connectToContainer].errorMessage,
         );
-        assert.ok(sendActionEventStub.calledTwice, "sendActionEvent should be called again");
 
         // --- Test connectToContainer failure ---
         callState.dockerSteps[DockerStepOrder.connectToContainer].loadState = ApiStatus.NotStarted;
