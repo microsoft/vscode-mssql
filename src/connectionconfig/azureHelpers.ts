@@ -260,6 +260,7 @@ export async function fetchServersFromAzure(sub: AzureSubscription): Promise<Azu
             location: server.location,
             resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
             subscription: `${sub.name} (${sub.subscriptionId})`,
+            kind: server.kind,
         });
     }
 
