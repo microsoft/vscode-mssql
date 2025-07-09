@@ -497,9 +497,10 @@ export async function checkIfContainerIsReadyForConnections(
                     sendActionEvent(
                         TelemetryViews.ContainerDeployment,
                         TelemetryActions.StartContainer,
+                        {}, // additional properties
                         {
-                            timeToStartInMs: `${Date.now() - start}`,
-                        },
+                            timeToStartInMs: Date.now() - start,
+                        }, // additional measures
                     );
                     return resolve({ success: true });
                 }
