@@ -18,9 +18,9 @@ import {
     ContainerDeploymentWebviewState,
     DockerStepOrder,
 } from "../../src/sharedInterfaces/containerDeploymentInterfaces";
-import * as telemetry from "../../src/telemetry/telemetry";
 import { AddLocalContainerConnectionTreeNode } from "../../src/containerDeployment/addLocalContainerConnectionTreeNode";
 import { ConnectionUI } from "../../src/views/connectionUI";
+import { stubTelemetry } from "./utils";
 
 suite("ContainerDeploymentWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -311,6 +311,8 @@ suite("ContainerDeploymentWebviewController", () => {
 
     test("completeDockerStep reducer updates step status and handles success/failure", async () => {
         const addContainerConnectionStub = sinon.stub(controller as any, "addContainerConnection");
+        // Stub telemetry method
+        const { sendErrorEvent } = stubTelemetry(sandbox);
         let callState = (controller as any).state;
 
         // --- Test general step success ---
@@ -352,6 +354,7 @@ suite("ContainerDeploymentWebviewController", () => {
 
         assert.equal(resultFailure.dockerSteps[0].loadState, ApiStatus.Error);
         assert.equal(resultFailure.dockerSteps[0].errorMessage, "Something went wrong");
+        assert.ok(sendErrorEvent.calledOnce, "sendErrorEvent should be called once");
 
         // --- Test connectToContainer success ---
         callState.dockerSteps = [];
@@ -402,12 +405,15 @@ suite("ContainerDeploymentWebviewController", () => {
                 DockerStepOrder.connectToContainer
             ].errorMessage.includes("dev-profile"),
         );
+        assert.ok(sendErrorEvent.calledTwice, "sendErrorEvent should be called twice");
 
         addContainerConnectionStub.restore();
     });
 
     test("resetDockerStepState reducer should reset only the current docker step", async () => {
         let callState = (controller as any).state;
+        // Stub telemetry method
+        const { sendActionEvent } = stubTelemetry(sandbox);
 
         // Setup initial state
         callState.currentDockerStep = 1; // Only step 1 should be reset
@@ -462,6 +468,7 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.strictEqual(resultState.dockerSteps[2].loadState, ApiStatus.Error);
         assert.strictEqual(resultState.dockerSteps[2].errorMessage, "Old error 2");
         assert.strictEqual(resultState.dockerSteps[2].fullErrorText, "Old full error 2");
+        sinon.assert.calledOnce(sendActionEvent);
     });
 
     test("Test checkDocker Profile reducer", async () => {
@@ -495,6 +502,8 @@ suite("ContainerDeploymentWebviewController", () => {
     });
 
     test("Test dispose reducer", async () => {
+        // Stub telemetry method
+        const { sendActionEvent } = stubTelemetry(sandbox);
         const disposePanelSpy = sinon.spy((controller as any).panel, "dispose");
 
         const callState = (controller as any).state;
@@ -502,6 +511,7 @@ suite("ContainerDeploymentWebviewController", () => {
 
         assert.ok(disposePanelSpy.calledOnce, "panel.dispose should be called once");
         (disposePanelSpy as sinon.SinonSpy).restore();
+        assert.ok(sendActionEvent.calledOnce, "sendActionEvent should be called once");
     });
 
     test("Test addContainerConnection calls all expected methods", async () => {
@@ -516,8 +526,6 @@ suite("ContainerDeploymentWebviewController", () => {
         // Stub mainController methods
         const saveProfileStub = sinon.stub().resolves();
         const createSessionStub = sinon.stub().resolves();
-        // Stub telemetry method
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
 
         controller.mainController = {
             connectionManager: {
@@ -532,12 +540,10 @@ suite("ContainerDeploymentWebviewController", () => {
         const result = await (controller as any).addContainerConnection(dockerProfile);
 
         // Assertions
-        assert.ok(sendActionEventStub.calledOnce, "sendActionEvent should be called once");
         assert.ok(saveProfileStub.calledOnce, "saveProfile should be called");
         assert.ok(createSessionStub.calledOnce, "createObjectExplorerSession should be called");
 
         assert.strictEqual(result, true, "Should return true on success");
-        sendActionEventStub.restore();
     });
 });
 
