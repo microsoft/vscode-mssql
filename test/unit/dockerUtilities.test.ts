@@ -12,7 +12,7 @@ import { ContainerDeployment } from "../../src/constants/locConstants";
 import * as childProcess from "child_process";
 import { defaultContainerName, Platform } from "../../src/constants/constants";
 import * as path from "path";
-import * as telemetry from "../../src/telemetry/telemetry";
+import { stubTelemetry } from "./utils";
 
 suite("Docker Utilities", () => {
     let sandbox: sinon.SinonSandbox;
@@ -461,7 +461,7 @@ suite("Docker Utilities", () => {
         sandbox.stub(os, "platform").returns(Platform.Linux);
         const execStub = sandbox.stub(childProcess, "exec");
         // Stub telemetry method
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
+        const { sendActionEvent } = stubTelemetry(sandbox);
 
         // Case 1: Container is already running, should return success
         execStub.onFirstCall().yields(null, "testContainer"); // CHECK_CONTAINER_RUNNING
@@ -475,9 +475,8 @@ suite("Docker Utilities", () => {
         execStub.onThirdCall().yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
         result = await dockerUtils.restartContainer("testContainer");
         assert.ok(result, "Should return success when container is restarted successfully");
-        sinon.assert.calledTwice(sendActionEventStub);
+        sinon.assert.calledTwice(sendActionEvent);
         execStub.resetHistory();
-        sendActionEventStub.restore();
     });
 
     test("checkIfContainerIsReadyForConnections: should return true if container is ready, false otherwise", async () => {
@@ -491,12 +490,11 @@ suite("Docker Utilities", () => {
 
     test("deleteContainer: should delete the container and return success or error", async () => {
         const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "container delete");
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
-        const sendErrorEventStub = sinon.stub(telemetry, "sendErrorEvent");
+        const { sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox);
 
         let result = await dockerUtils.deleteContainer("testContainer");
         sinon.assert.calledOnce(execStub);
-        sinon.assert.calledOnce(sendActionEventStub);
+        sinon.assert.calledOnce(sendActionEvent);
 
         assert.ok(result);
 
@@ -509,23 +507,20 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.deleteContainer("testContainer");
 
         sinon.assert.calledOnce(execErrorStub);
-        sinon.assert.calledOnce(sendErrorEventStub);
+        sinon.assert.calledOnce(sendErrorEvent);
 
         assert.ok(!result, "Should return false on failure");
 
         execErrorStub.restore();
-        sendActionEventStub.restore();
-        sendErrorEventStub.restore();
     });
 
     test("stopContainer: should stop the container and return success or error", async () => {
         const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "container stop");
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
-        const sendErrorEventStub = sinon.stub(telemetry, "sendErrorEvent");
+        const { sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox);
 
         let result = await dockerUtils.stopContainer("testContainer");
         sinon.assert.calledOnce(execStub);
-        sinon.assert.calledOnce(sendActionEventStub);
+        sinon.assert.calledOnce(sendActionEvent);
 
         assert.ok(result);
 
@@ -540,11 +535,9 @@ suite("Docker Utilities", () => {
         sinon.assert.calledOnce(execErrorStub);
 
         assert.ok(!result, "Should return false on failure");
-        sinon.assert.calledOnce(sendErrorEventStub);
+        sinon.assert.calledOnce(sendErrorEvent);
 
         execErrorStub.restore();
-        sendActionEventStub.restore();
-        sendErrorEventStub.restore();
     });
 
     test("checkIfContainerIsDockerContainer: should return true if the container is a Docker container", async () => {

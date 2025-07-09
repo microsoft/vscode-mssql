@@ -178,7 +178,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                     undefined, // errorType
                     {
                         dockerStep: cd.DockerStepOrder[currentStepNumber],
-                        fullErrorMessage: currentStep.fullErrorText || "",
                     },
                 );
             }

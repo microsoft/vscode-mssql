@@ -345,7 +345,7 @@ export async function startSqlServerDockerContainer(
             TelemetryViews.ContainerDeployment,
             TelemetryActions.CreateSQLContainer,
             e,
-            true, // includeErrorMessage
+            false, // includeErrorMessage
             undefined, // errorCode
             undefined, // errorType
             {
@@ -456,7 +456,7 @@ export async function restartContainer(containerName: string): Promise<boolean> 
             TelemetryViews.ContainerDeployment,
             TelemetryActions.RestartContainer,
             new Error(containerReadyResult.error),
-            true, // includeErrorMessage
+            false, // includeErrorMessage
             undefined, // errorCode
             undefined, // errorType
         );
@@ -531,7 +531,7 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
             TelemetryViews.ContainerDeployment,
             TelemetryActions.DeleteContainer,
             e,
-            true, // includeErrorMessage
+            false, // includeErrorMessage
             undefined, // errorCode
             undefined, // errorType
         );
@@ -552,7 +552,7 @@ export async function stopContainer(containerName: string): Promise<boolean> {
             TelemetryViews.ContainerDeployment,
             TelemetryActions.StopContainer,
             e,
-            true, // includeErrorMessage
+            false, // includeErrorMessage
             undefined, // errorCode
             undefined, // errorType
         );
