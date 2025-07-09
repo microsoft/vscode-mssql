@@ -17,6 +17,18 @@ import { configSelectedAzureSubscriptions } from "../constants/constants";
  * More information here: https://github.com/microsoft/vscode-azuretools/blob/12ba643e625c66fadd94483e18d4e430bd77d187/auth/src/VSCodeAzureSubscriptionProvider.ts#L240
  */
 export class MssqlVSCodeAzureSubscriptionProvider extends VSCodeAzureSubscriptionProvider {
+    private static _instance: MssqlVSCodeAzureSubscriptionProvider;
+
+    private constructor() {
+        super();
+    }
+
+    public static getInstance(): MssqlVSCodeAzureSubscriptionProvider {
+        MssqlVSCodeAzureSubscriptionProvider._instance ??=
+            new MssqlVSCodeAzureSubscriptionProvider();
+        return MssqlVSCodeAzureSubscriptionProvider._instance;
+    }
+
     private getSelectedSubscriptions(): string[] {
         return vscode.workspace.getConfiguration().get(configSelectedAzureSubscriptions, []);
     }

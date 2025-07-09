@@ -13,6 +13,9 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
+    <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
+      <source xml:lang="en">+ Add Azure Account</source>
+    </trans-unit>
     <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
       <source xml:lang="en">+ Create Connection Group</source>
     </trans-unit>
@@ -228,9 +231,6 @@
     </trans-unit>
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++bcfba23612af01d6083c1cbc352807182aa4a2a08665615d5e75206766e035c0">
-      <source xml:lang="en">Azure sign-in failed or was cancelled.</source>
     </trans-unit>
     <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
       <source xml:lang="en">Azure token cache cleared successfully.</source>
@@ -956,6 +956,10 @@
     </trans-unit>
     <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
       <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7c03518af7ea8058b9f5444011cc402ee48c86c765dfd6ba8e5ce09ed8d836ca">
+      <source xml:lang="en">Error signing into Azure: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
       <source xml:lang="en">Error when refreshing token</source>
@@ -2576,6 +2580,9 @@
     </trans-unit>
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
+      <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
     </trans-unit>
     <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
       <source xml:lang="en">You must review and accept the terms to proceed</source>

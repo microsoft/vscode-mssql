@@ -90,7 +90,7 @@ export const ConnectionsListContainer = () => {
                     icon={<ArrowClockwise16Filled />}
                     appearance="subtle"
                     onClick={context.refreshConnectionsList}
-                    title={locConstants.connectionDialog.refresh}
+                    title={locConstants.common.refresh}
                 />
             </div>
             <div className={styles.main}>
@@ -120,7 +120,7 @@ export const ConnectionsListContainer = () => {
                     icon={<ArrowClockwise16Filled />}
                     appearance="subtle"
                     onClick={context.refreshConnectionsList}
-                    title={locConstants.connectionDialog.refresh}
+                    title={locConstants.common.refresh}
                 />
             </div>
             <Tree>
@@ -162,15 +162,17 @@ export const ConnectionCard = ({
     const [displayName, setDisplayName] = useState<string>(
         connection.profileName || connection.server,
     );
+    const [hasFetchedDisplayName, setHasFetchedDisplayName] = useState(false);
 
     // Fetch the display name asynchronously when the component mounts
     useEffect(() => {
         let isMounted = true;
         const loadDisplayName = async () => {
-            if (context) {
+            if (context && !hasFetchedDisplayName) {
                 const name = await context.getConnectionDisplayName(connection);
                 if (isMounted) {
                     setDisplayName(name);
+                    setHasFetchedDisplayName(true);
                 }
             }
         };
