@@ -15,6 +15,7 @@ import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { FormItemType } from "../../src/sharedInterfaces/form";
 import * as dockerUtils from "../../src/containerDeployment/dockerUtils";
 import {
+    ContainerDeploymentFormItemSpec,
     ContainerDeploymentWebviewState,
     DockerStepOrder,
 } from "../../src/sharedInterfaces/containerDeploymentInterfaces";
@@ -94,14 +95,14 @@ suite("ContainerDeploymentWebviewController", () => {
     });
 
     test("Verify the initial state and form components of the controller", async () => {
-        const controllerState = (controller as any).state;
+        const controllerState = controller["state"];
         assert.strictEqual(controllerState.loadState, ApiStatus.Loaded);
         assert.strictEqual(Object.keys(controllerState.formComponents).length, 9);
         assert.strictEqual(controllerState.dockerSteps.length, 6);
     });
 
     test("Verify the form components are set correctly", () => {
-        const formComponents = (controller as any).state.formComponents;
+        const formComponents = controller["state"].formComponents;
 
         // Ensure all expected keys exist
         const expectedKeys = [
@@ -118,7 +119,7 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.deepEqual(Object.keys(formComponents), expectedKeys);
 
         const activeFormComponents = (controller as any).getActiveFormComponents(
-            (controller as any).state,
+            controller["state"],
         ).length;
 
         assert.deepEqual(activeFormComponents, expectedKeys.length);
@@ -135,9 +136,9 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.strictEqual(password.componentWidth, "500px");
 
         // Validate a password (example: valid and invalid case)
-        let result = password.validate({}, "goodPassword123");
+        let result = password.validate({} as ContainerDeploymentWebviewState, "goodPassword123");
         assert.strictEqual(result.isValid, true);
-        result = password.validate({}, "badPassword");
+        result = password.validate({} as ContainerDeploymentWebviewState, "badPassword");
         assert.strictEqual(result.isValid, false);
 
         const savePassword = formComponents.savePassword;
@@ -164,10 +165,10 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.strictEqual(hostname.isAdvancedOption, true);
 
         const acceptEula = formComponents.acceptEula;
-        result = acceptEula.validate({}, true);
+        result = acceptEula.validate({} as ContainerDeploymentWebviewState, true);
         assert.strictEqual(result.isValid, true);
 
-        result = acceptEula.validate({}, false);
+        result = acceptEula.validate({} as ContainerDeploymentWebviewState, false);
         assert.strictEqual(result.isValid, false);
     });
 
@@ -185,7 +186,7 @@ suite("ContainerDeploymentWebviewController", () => {
     });
 
     test("Test validateDockerConnectionProfile", async () => {
-        const controllerState = (controller as any).state;
+        const controllerState = controller["state"];
 
         // Setup mock form components with validate functions
         controllerState.formComponents = {
@@ -193,12 +194,12 @@ suite("ContainerDeploymentWebviewController", () => {
                 propertyName: "containerName",
                 validate: undefined,
                 validation: undefined,
-            },
+            } as ContainerDeploymentFormItemSpec,
             port: {
                 propertyName: "port",
                 validate: undefined,
                 validation: undefined,
-            },
+            } as ContainerDeploymentFormItemSpec,
             profileName: {
                 propertyName: "profileName",
                 validate: (_: any, val: string) => {
@@ -206,7 +207,7 @@ suite("ContainerDeploymentWebviewController", () => {
                     return { isValid, validationMessage: isValid ? "" : "Invalid profile name" };
                 },
                 validation: undefined,
-            },
+            } as ContainerDeploymentFormItemSpec,
         };
 
         // Mock state input
@@ -242,7 +243,7 @@ suite("ContainerDeploymentWebviewController", () => {
 
         // Use a propertyName that doesn't exist in formComponents
         const updatedState = await (controller as any).validateDockerConnectionProfile(
-            (controller as any).state,
+            controller["state"],
             profile as any,
             "nonexistentProperty",
         );
@@ -291,7 +292,7 @@ suite("ContainerDeploymentWebviewController", () => {
         const validateProfileSpy = sinon.spy(controller as any, "validateDockerConnectionProfile");
         const updateStateSpy = sinon.spy(controller as any, "updateState");
 
-        const callState = (controller as any).state;
+        const callState = controller["state"];
 
         const newState = await controller["_reducerHandlers"].get("formAction")(callState, {
             event: {
@@ -314,7 +315,7 @@ suite("ContainerDeploymentWebviewController", () => {
         const addContainerConnectionStub = sinon.stub(controller as any, "addContainerConnection");
         // Stub telemetry method
         const { sendErrorEvent } = stubTelemetry(sandbox);
-        let callState = (controller as any).state;
+        let callState = controller["state"];
 
         // --- Test general step success ---
         const mockStepActionSuccess = sinon.stub().resolves({ success: true });
@@ -323,9 +324,11 @@ suite("ContainerDeploymentWebviewController", () => {
                 loadState: ApiStatus.NotStarted,
                 stepAction: mockStepActionSuccess,
                 argNames: [],
+                headerText: "Step 1",
+                bodyText: "This is step 1",
             },
         ];
-        callState.formState = {};
+        callState.formState = {} as any;
 
         const resultSuccess = await controller["_reducerHandlers"].get("completeDockerStep")(
             callState,
@@ -357,18 +360,22 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.equal(resultFailure.dockerSteps[0].errorMessage, "Something went wrong");
         assert.ok(sendErrorEvent.calledOnce, "sendErrorEvent should be called once");
 
+        sendErrorEvent.resetHistory();
+
         // --- Test connectToContainer success ---
         callState.dockerSteps = [];
         callState.dockerSteps[DockerStepOrder.connectToContainer] = {
             loadState: ApiStatus.NotStarted,
             stepAction: sinon.stub(), // not called for connectToContainer
             argNames: ["containerName", "port"],
+            headerText: "Connect to Container",
+            bodyText: "Connect to the SQL Server container",
         };
         callState.formState = {
             containerName: "my-container",
             port: 1433,
             profileName: "dev-profile",
-        };
+        } as any;
         addContainerConnectionStub.resolves(true);
 
         const resultConnectSuccess = await controller["_reducerHandlers"].get("completeDockerStep")(
@@ -406,13 +413,13 @@ suite("ContainerDeploymentWebviewController", () => {
                 DockerStepOrder.connectToContainer
             ].errorMessage.includes("dev-profile"),
         );
-        assert.ok(sendErrorEvent.calledTwice, "sendErrorEvent should be called twice");
+        assert.ok(sendErrorEvent.calledOnce, "sendErrorEvent should be called twice");
 
         addContainerConnectionStub.restore();
     });
 
     test("resetDockerStepState reducer should reset only the current docker step", async () => {
-        let callState = (controller as any).state;
+        let callState = controller["state"];
         // Stub telemetry method
         const { sendActionEvent } = stubTelemetry(sandbox);
 
@@ -425,6 +432,8 @@ suite("ContainerDeploymentWebviewController", () => {
                 argNames: [],
                 errorMessage: "Old error 1",
                 fullErrorText: "Old full error 1",
+                headerText: "Step 1",
+                bodyText: "This is step 1",
             },
             {
                 loadState: ApiStatus.Error,
@@ -432,6 +441,8 @@ suite("ContainerDeploymentWebviewController", () => {
                 argNames: [],
                 errorMessage: "Error happened",
                 fullErrorText: "Something bad happened",
+                headerText: "Step 2",
+                bodyText: "This is step 2",
             },
             {
                 loadState: ApiStatus.Error,
@@ -439,6 +450,8 @@ suite("ContainerDeploymentWebviewController", () => {
                 argNames: [],
                 errorMessage: "Old error 2",
                 fullErrorText: "Old full error 2",
+                headerText: "Step 3",
+                bodyText: "This is step 3",
             },
         ];
 
@@ -473,7 +486,7 @@ suite("ContainerDeploymentWebviewController", () => {
     });
 
     test("Test checkDocker Profile reducer", async () => {
-        let callState = (controller as any).state;
+        let callState = controller["state"];
         const validateProfileStub = sinon.stub(
             controller as any,
             "validateDockerConnectionProfile",
@@ -509,7 +522,7 @@ suite("ContainerDeploymentWebviewController", () => {
         );
 
         createConnectionGroupStub.resolves("Error creating group");
-        let callState = (controller as any).state;
+        let callState = controller["state"];
 
         let result = await controller["_reducerHandlers"].get("createConnectionGroup")(callState, {
             connectionGroupSpec: {
@@ -524,6 +537,7 @@ suite("ContainerDeploymentWebviewController", () => {
             result.formErrors.includes("Error creating group"),
             "Should include error message",
         );
+        createConnectionGroupStub.resetHistory();
 
         createConnectionGroupStub.resolves({ id: "test-group-id", name: "Test Group" });
         result = await controller["_reducerHandlers"].get("createConnectionGroup")(callState, {
@@ -531,16 +545,13 @@ suite("ContainerDeploymentWebviewController", () => {
                 name: "Test Group",
             },
         });
-        assert.ok(
-            createConnectionGroupStub.calledTwice,
-            "createConnectionGroup should be called twice",
-        );
+        assert.ok(createConnectionGroupStub.calledOnce, "createConnectionGroup should be called");
         assert.ok(result.formState.groupId === "test-group-id", "Should match group ID");
         assert.ok(result.dialog === undefined, "Should not have a dialog open");
     });
 
     test("Test setConnectionGroupDialogState reducer", async () => {
-        let callState = (controller as any).state;
+        let callState = controller["state"];
 
         let result = await controller["_reducerHandlers"].get("setConnectionGroupDialogState")(
             callState,
@@ -565,7 +576,7 @@ suite("ContainerDeploymentWebviewController", () => {
         const { sendActionEvent } = stubTelemetry(sandbox);
         const disposePanelSpy = sinon.spy((controller as any).panel, "dispose");
 
-        const callState = (controller as any).state;
+        const callState = controller["state"];
         await controller["_reducerHandlers"].get("dispose")(callState, {});
 
         assert.ok(disposePanelSpy.calledOnce, "panel.dispose should be called once");
