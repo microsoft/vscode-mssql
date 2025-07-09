@@ -21,6 +21,7 @@ import {
 import { AddLocalContainerConnectionTreeNode } from "../../src/containerDeployment/addLocalContainerConnectionTreeNode";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { stubTelemetry } from "./utils";
+import * as ConnectionGroupWebviewController from "../../src/controllers/connectionGroupWebviewController";
 
 suite("ContainerDeploymentWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -499,6 +500,64 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.equal(defaultResult.formState.containerName, "goodContainerName");
         assert.equal(defaultResult.formState.port, "1433");
         assert.equal(defaultResult.isDockerProfileValid, true);
+    });
+
+    test("Test createConnectionGroup reducer", async () => {
+        const createConnectionGroupStub = sinon.stub(
+            ConnectionGroupWebviewController,
+            "createConnectionGroup",
+        );
+
+        createConnectionGroupStub.resolves("Error creating group");
+        let callState = (controller as any).state;
+
+        let result = await controller["_reducerHandlers"].get("createConnectionGroup")(callState, {
+            connectionGroupSpec: {
+                name: "Test Group",
+            },
+        });
+        assert.ok(
+            createConnectionGroupStub.calledOnce,
+            "createConnectionGroup should be called once",
+        );
+        assert.ok(
+            result.formErrors.includes("Error creating group"),
+            "Should include error message",
+        );
+
+        createConnectionGroupStub.resolves({ id: "test-group-id", name: "Test Group" });
+        result = await controller["_reducerHandlers"].get("createConnectionGroup")(callState, {
+            connectionGroupSpec: {
+                name: "Test Group",
+            },
+        });
+        assert.ok(
+            createConnectionGroupStub.calledTwice,
+            "createConnectionGroup should be called twice",
+        );
+        assert.ok(result.formState.groupId === "test-group-id", "Should match group ID");
+        assert.ok(result.dialog === undefined, "Should not have a dialog open");
+    });
+
+    test("Test setConnectionGroupDialogState reducer", async () => {
+        let callState = (controller as any).state;
+
+        let result = await controller["_reducerHandlers"].get("setConnectionGroupDialogState")(
+            callState,
+            {
+                shouldOpen: false,
+            },
+        );
+
+        assert.ok(result.dialog === undefined, "Should not have a dialog open");
+
+        result = await controller["_reducerHandlers"].get("setConnectionGroupDialogState")(
+            callState,
+            {
+                shouldOpen: true,
+            },
+        );
+        assert.ok(result.dialog !== undefined, "Should have a dialog open");
     });
 
     test("Test dispose reducer", async () => {
