@@ -2077,6 +2077,10 @@ Error:
         <source xml:lang="en">No Queries Available</source>
         <target state="translated">No hay ninguna consulta disponible.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
+        <source xml:lang="en">No account selected</source>
+        <target state="new">No account selected</target>
+      </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
         <target state="translated">No se detectó ningún cambio</target>
@@ -2123,6 +2127,10 @@ Error:
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">No hay ninguna suscripción disponible.  Ajuste los filtros de suscripción para volver a intentarlo.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b77c82c64fb4c0907bfdbdcd893ae285b16a8ef67c42e1ecc6ee3d28fe71e708">
+        <source xml:lang="en">No tenant selected</source>
+        <target state="new">No tenant selected</target>
       </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
@@ -2725,6 +2733,10 @@ Error:
         <source xml:lang="en">Select All</source>
         <target state="translated">Seleccionar todo</target>
       </trans-unit>
+      <trans-unit id="++CODE++3052f090b2dd0312f6564fb52c1f06b0efbe9fd7c77fdf38dcb96b4521b06b24">
+        <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
+        <target state="new">Select Azure account with Key Vault access for column decryption</target>
+      </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
         <target state="translated">Seleccionar origen</target>
@@ -2874,6 +2886,10 @@ Error:
       <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
         <source xml:lang="en">Sign in</source>
         <target state="translated">Iniciar sesión</target>
+      </trans-unit>
+      <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
+        <source xml:lang="en">Sign in to a new account</source>
+        <target state="new">Sign in to a new account</target>
       </trans-unit>
       <trans-unit id="++CODE++09a0ee357e3b34ac30c4ae61fcfbcfde87c6941a213e8e60d146e7942c0d76bc">
         <source xml:lang="en">Sign in to your Azure subscription</source>
@@ -3482,6 +3498,11 @@ Error:
       <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">updatingIntelliSense</target>
+      </trans-unit>
+      <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
+        <source xml:lang="en">{0} (Current Account)</source>
+        <note>{0} is the account display name</note>
+        <target state="new">{0} (Current Account)</target>
       </trans-unit>
       <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
         <source xml:lang="en">{0} (Preview)</source>
