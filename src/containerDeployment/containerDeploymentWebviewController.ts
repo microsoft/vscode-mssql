@@ -113,6 +113,16 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             const currentStepNumber = payload.dockerStep;
             const currentStep = state.dockerSteps[currentStepNumber];
             if (currentStep.loadState !== ApiStatus.NotStarted) return state;
+
+            if (currentStepNumber === cd.DockerStepOrder.dockerInstallation) {
+                // If the current step is the first step (docker installation),
+                // send telemetry for starting
+                sendActionEvent(
+                    TelemetryViews.ContainerDeployment,
+                    TelemetryActions.StartContainerDeployment,
+                );
+            }
+
             // Update the current docker step's status to loading
             this.updateState({
                 ...state,
@@ -130,6 +140,15 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
                 if (!connectionResult) {
                     currentStep.errorMessage = `${connectErrorTooltip} ${state.formState.profileName}`;
+                } else {
+                    // If the last step is successful, send telemetry for the workflow being finished
+                    sendActionEvent(
+                        TelemetryViews.ContainerDeployment,
+                        TelemetryActions.FinishContainerDeployment,
+                        {
+                            version: state.formState.version,
+                        },
+                    );
                 }
             } else {
                 const args = currentStep.argNames.map((argName) => state.formState[argName]);

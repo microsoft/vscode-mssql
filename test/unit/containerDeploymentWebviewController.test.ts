@@ -312,6 +312,7 @@ suite("ContainerDeploymentWebviewController", () => {
     test("completeDockerStep reducer updates step status and handles success/failure", async () => {
         const addContainerConnectionStub = sinon.stub(controller as any, "addContainerConnection");
         // Stub telemetry method
+        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
         const sendErrorEventStub = sinon.stub(telemetry, "sendErrorEvent");
         let callState = (controller as any).state;
 
@@ -384,6 +385,7 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.ok(
             !resultConnectSuccess.dockerSteps[DockerStepOrder.connectToContainer].errorMessage,
         );
+        assert.ok(sendActionEventStub.calledTwice, "sendActionEvent should be called again");
 
         // --- Test connectToContainer failure ---
         callState.dockerSteps[DockerStepOrder.connectToContainer].loadState = ApiStatus.NotStarted;
@@ -409,6 +411,7 @@ suite("ContainerDeploymentWebviewController", () => {
 
         addContainerConnectionStub.restore();
         sendErrorEventStub.restore();
+        sendActionEventStub.restore();
     });
 
     test("resetDockerStepState reducer should reset only the current docker step", async () => {
