@@ -1786,6 +1786,22 @@ Error:
         <source xml:lang="en">List Databases</source>
         <target state="translated">Lista de bases de datos</target>
       </trans-unit>
+      <trans-unit id="++CODE++e5c4507bf20d72d00bff4c289eb11be5c9a297933beec5db5969eb33b7bc5690">
+        <source xml:lang="en">List Functions</source>
+        <target state="new">List Functions</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0b795cd3bad85a0e394c340640be776b2c7765598fd7ac3dc8d2430baf78e77a">
+        <source xml:lang="en">List Schemas</source>
+        <target state="new">List Schemas</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00806af7575cfd81acd74e3d602bb671403cbddfdf02754be73db121177d235f">
+        <source xml:lang="en">List Tables</source>
+        <target state="new">List Tables</target>
+      </trans-unit>
+      <trans-unit id="++CODE++68053ffe844804d37eced757d4d0582e750a9b20d8ec5084aaab907846177b86">
+        <source xml:lang="en">List Views</source>
+        <target state="new">List Views</target>
+      </trans-unit>
       <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
         <source xml:lang="en">List all connections registered with the mssql extension?</source>
         <target state="translated">¿Enumerar todas las conexiones registradas con la extensión mssql?</target>
@@ -1795,14 +1811,54 @@ Error:
         <note>{0} is the connection ID</note>
         <target state="translated">¿Desea enumerar las bases de datos de la conexión "{0}"?</target>
       </trans-unit>
+      <trans-unit id="++CODE++b1eb24f69841df721c66f542d63319e22c5d55ea1bee75d7e60c451023e6c3d2">
+        <source xml:lang="en">List functions for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">List functions for connection '{0}'?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f9fdea6ffd1d5c93340eff3cb4b0f75abcada7d160a99fd8f3092b3632661d84">
+        <source xml:lang="en">List schemas for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">List schemas for connection '{0}'?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6f60c2f7be85c72c70f3e1803f001d9b89cf11c25d82a6a16ddb4835b2bdc3f">
+        <source xml:lang="en">List tables for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">List tables for connection '{0}'?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a951e5e9bc9076528c081d96624e0a6b73e1ae9034bc9aa4c1e8bd77e9dffcc4">
+        <source xml:lang="en">List views for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">List views for connection '{0}'?</target>
+      </trans-unit>
       <trans-unit id="++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5">
         <source xml:lang="en">Listing databases for connection '{0}'</source>
         <note>{0} is the connection ID</note>
         <target state="translated">Descripción de bases de datos para la conexión "{0}"</target>
       </trans-unit>
+      <trans-unit id="++CODE++6c5a3eebc541922b6846fac5140eecc1c8cca7d49fd516d6d492b823bd080339">
+        <source xml:lang="en">Listing functions for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Listing functions for connection '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33ed9f224eba0860b9cfb0063fdbd1680208c1e358cecb479c7bd8c46236000e">
+        <source xml:lang="en">Listing schemas for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Listing schemas for connection '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
         <source xml:lang="en">Listing server connections</source>
         <target state="translated">Enumeración de conexiones de servidor</target>
+      </trans-unit>
+      <trans-unit id="++CODE++22f9095eec94b234a5b2eee74a4c22e23b42d785b67c2027c13fd5b309a93ffa">
+        <source xml:lang="en">Listing tables for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Listing tables for connection '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d77ec2c188180112be2e819880b4ea2a8f5f86ec8917db4e18c39bcd02cacc10">
+        <source xml:lang="en">Listing views for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Listing views for connection '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
@@ -3210,7 +3266,7 @@ Error:
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
         <note>{0} is the architecture name of the machine</note>
-        <target state="new">Unsupported architecture for Docker: {0}</target>
+        <target state="translated">Arquitectura no admitida para Docker: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
         <source xml:lang="en">Unsupported platform for Docker: {0}</source>
