@@ -7,7 +7,7 @@ import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import { expect } from "chai";
-import { ConnectionDetails, IAccount, IToken } from "vscode-mssql";
+import { ConnectionDetails, IToken } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { Logger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
