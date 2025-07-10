@@ -289,8 +289,11 @@ suite("ContainerDeploymentWebviewController", () => {
     });
 
     test("Test formAction reducer", async () => {
-        const validateProfileSpy = sinon.spy(controller as any, "validateDockerConnectionProfile");
-        const updateStateSpy = sinon.spy(controller as any, "updateState");
+        const validateProfileSpy = sandbox.spy(
+            controller as any,
+            "validateDockerConnectionProfile",
+        );
+        const updateStateSpy = sandbox.spy(controller as any, "updateState");
 
         const callState = controller["state"];
 
@@ -306,9 +309,6 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.ok(updateStateSpy.calledOnce, "updateState should be called once within formAction");
 
         assert.equal(newState.isValidContainerName, true);
-
-        (validateProfileSpy as sinon.SinonSpy).restore();
-        (updateStateSpy as sinon.SinonSpy).restore();
     });
 
     test("completeDockerStep reducer updates step status and handles success/failure", async () => {
@@ -417,8 +417,6 @@ suite("ContainerDeploymentWebviewController", () => {
             ].errorMessage.includes("dev-profile"),
         );
         assert.ok(sendErrorEvent.calledOnce, "sendErrorEvent should be called twice");
-
-        addContainerConnectionStub.restore();
     });
 
     test("resetDockerStepState reducer should reset only the current docker step", async () => {
