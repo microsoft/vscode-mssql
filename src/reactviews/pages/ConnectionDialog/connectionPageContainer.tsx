@@ -255,8 +255,10 @@ export const ConnectionInfoFormContainer = () => {
                                                 }}
                                                 inline>
                                                 {getAzureAccountsText()}
-                                                {" - "}
-                                                {locConstants.azure.signIntoAzure}
+                                                {" • "}
+                                                {context.state.azureAccounts.length === 0
+                                                    ? locConstants.azure.signIntoAzure
+                                                    : locConstants.azure.addAccount}
                                             </Link>
                                         </Tooltip>
                                     </div>

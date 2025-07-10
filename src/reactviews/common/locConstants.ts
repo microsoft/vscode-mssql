@@ -270,6 +270,7 @@ export class LocConstants {
             signIntoAzure: l10n.t("Sign into Azure"),
             notSignedIn: l10n.t("Not signed in"),
             azureAccount: l10n.t("Azure Account"),
+            addAccount: l10n.t("Add Account"),
             addAzureAccount: l10n.t("+ Add Azure Account"),
             nAccounts: (n: number) =>
                 l10n.t({

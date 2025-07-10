@@ -63,6 +63,9 @@
     <trans-unit id="++CODE++9fd728c66c9a256b121472dabf32a34317aed01d8427d70ec830289cf23a7cc8">
       <source xml:lang="en">Add</source>
     </trans-unit>
+    <trans-unit id="++CODE++3d0d3f78acca7d0def0c881e924ececb285c1791711ab008ae5a0297e09a717a">
+      <source xml:lang="en">Add Account</source>
+    </trans-unit>
     <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
       <source xml:lang="en">Add Column</source>
     </trans-unit>

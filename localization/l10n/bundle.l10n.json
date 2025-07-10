@@ -284,6 +284,7 @@
   "Sign into Azure": "Sign into Azure",
   "Not signed in": "Not signed in",
   "Azure Account": "Azure Account",
+  "Add Account": "Add Account",
   "+ Add Azure Account": "+ Add Azure Account",
   "{0} accounts/{0} is the number of accounts": {
     "message": "{0} accounts",
