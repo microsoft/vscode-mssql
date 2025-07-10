@@ -312,13 +312,16 @@ suite("ContainerDeploymentWebviewController", () => {
     });
 
     test("completeDockerStep reducer updates step status and handles success/failure", async () => {
-        const addContainerConnectionStub = sinon.stub(controller as any, "addContainerConnection");
+        const addContainerConnectionStub = sandbox.stub(
+            controller as any,
+            "addContainerConnection",
+        );
         // Stub telemetry method
         const { sendErrorEvent } = stubTelemetry(sandbox);
         let callState = controller["state"];
 
         // --- Test general step success ---
-        const mockStepActionSuccess = sinon.stub().resolves({ success: true });
+        const mockStepActionSuccess = sandbox.stub().resolves({ success: true });
         callState.dockerSteps = [
             {
                 loadState: ApiStatus.NotStarted,
@@ -341,7 +344,7 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.ok(!resultSuccess.dockerSteps[0].errorMessage);
 
         // --- Test general step failure ---
-        const mockStepActionFailure = sinon.stub().resolves({
+        const mockStepActionFailure = sandbox.stub().resolves({
             success: false,
             error: "Something went wrong",
             fullErrorText: "Full error detail",
@@ -366,7 +369,7 @@ suite("ContainerDeploymentWebviewController", () => {
         callState.dockerSteps = [];
         callState.dockerSteps[DockerStepOrder.connectToContainer] = {
             loadState: ApiStatus.NotStarted,
-            stepAction: sinon.stub(), // not called for connectToContainer
+            stepAction: sandbox.stub(), // not called for connectToContainer
             argNames: ["containerName", "port"],
             headerText: "Connect to Container",
             bodyText: "Connect to the SQL Server container",
@@ -428,7 +431,7 @@ suite("ContainerDeploymentWebviewController", () => {
         callState.dockerSteps = [
             {
                 loadState: ApiStatus.Loaded,
-                stepAction: sinon.stub(),
+                stepAction: sandbox.stub(),
                 argNames: [],
                 errorMessage: "Old error 1",
                 fullErrorText: "Old full error 1",
@@ -437,7 +440,7 @@ suite("ContainerDeploymentWebviewController", () => {
             },
             {
                 loadState: ApiStatus.Error,
-                stepAction: sinon.stub(),
+                stepAction: sandbox.stub(),
                 argNames: [],
                 errorMessage: "Error happened",
                 fullErrorText: "Something bad happened",
@@ -446,7 +449,7 @@ suite("ContainerDeploymentWebviewController", () => {
             },
             {
                 loadState: ApiStatus.Error,
-                stepAction: sinon.stub(),
+                stepAction: sandbox.stub(),
                 argNames: [],
                 errorMessage: "Old error 2",
                 fullErrorText: "Old full error 2",
@@ -482,12 +485,12 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.strictEqual(resultState.dockerSteps[2].loadState, ApiStatus.Error);
         assert.strictEqual(resultState.dockerSteps[2].errorMessage, "Old error 2");
         assert.strictEqual(resultState.dockerSteps[2].fullErrorText, "Old full error 2");
-        sinon.assert.calledOnce(sendActionEvent);
+        sandbox.assert.calledOnce(sendActionEvent);
     });
 
     test("Test checkDocker Profile reducer", async () => {
         let callState = controller["state"];
-        const validateProfileStub = sinon.stub(
+        const validateProfileStub = sandbox.stub(
             controller as any,
             "validateDockerConnectionProfile",
         );
@@ -516,7 +519,7 @@ suite("ContainerDeploymentWebviewController", () => {
     });
 
     test("Test createConnectionGroup reducer", async () => {
-        const createConnectionGroupStub = sinon.stub(
+        const createConnectionGroupStub = sandbox.stub(
             ConnectionGroupWebviewController,
             "createConnectionGroup",
         );
@@ -594,8 +597,8 @@ suite("ContainerDeploymentWebviewController", () => {
         };
 
         // Stub mainController methods
-        const saveProfileStub = sinon.stub().resolves();
-        const createSessionStub = sinon.stub().resolves();
+        const saveProfileStub = sandbox.stub().resolves();
+        const createSessionStub = sandbox.stub().resolves();
 
         controller.mainController = {
             connectionManager: {
