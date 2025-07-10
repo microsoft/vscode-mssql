@@ -30,6 +30,7 @@ import {
     MessageBarBody,
     Radio,
     RadioGroup,
+    Tooltip,
 } from "@fluentui/react-components";
 import { DismissRegular, Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
@@ -81,6 +82,17 @@ export const ConnectionInfoFormContainer = () => {
     function handleConnect(event: React.FormEvent) {
         event.preventDefault();
         context.connect();
+    }
+
+    function getAzureAccountsText(): string {
+        switch (context.state.azureAccounts.length) {
+            case 0:
+                return "Not signed in";
+            case 1:
+                return context.state.azureAccounts[0];
+            default:
+                return `${context.state.azureAccounts.length} accounts`;
+        }
     }
 
     return (
@@ -210,13 +222,39 @@ export const ConnectionInfoFormContainer = () => {
                                         />
                                         {locConstants.connectionDialog.browseAzure}
                                         <span style={{ margin: "0 8px" }} />
-                                        <Link
-                                            onClick={() => {
-                                                context.signIntoAzureForBrowse();
-                                            }}
-                                            inline>
-                                            {locConstants.azure.signIntoAzure}
-                                        </Link>
+                                        <Tooltip
+                                            content={
+                                                <>
+                                                    {context.state.azureAccounts.length === 0 && (
+                                                        <span>
+                                                            Click to sign into an Azure account.
+                                                        </span>
+                                                    )}
+                                                    {context.state.azureAccounts.length > 0 && (
+                                                        <>
+                                                            Currently signed in as: <br />
+                                                            <ul>
+                                                                {context.state.azureAccounts.map(
+                                                                    (account) => (
+                                                                        <li>{account}</li>
+                                                                    ),
+                                                                )}
+                                                            </ul>
+                                                        </>
+                                                    )}
+                                                </>
+                                            }
+                                            relationship="description">
+                                            <Link
+                                                onClick={() => {
+                                                    context.signIntoAzureForBrowse();
+                                                }}
+                                                inline>
+                                                {getAzureAccountsText()}
+                                                {" - "}
+                                                {locConstants.azure.signIntoAzure}
+                                            </Link>
+                                        </Tooltip>
                                     </div>
                                 }
                             />

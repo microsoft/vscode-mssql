@@ -37,17 +37,18 @@ export class ConnectionDialogWebviewState
         mainOptions: [],
         groupedAdvancedOptions: [],
     };
+    public azureAccounts: string[] = [];
+    public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureSubscriptions: AzureSubscriptionInfo[] = [];
+    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureServers: AzureSqlServerInfo[] = [];
+    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public readyToConnect: boolean = false;
     public formError: string = "";
-    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
-    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public dialog: IDialogProps | undefined;
-    public isAzureSignedIn: boolean = false;
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {

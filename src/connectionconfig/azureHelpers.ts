@@ -35,6 +35,9 @@ export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscription
 //#region VS Code integration
 
 export class VsCodeAzureHelper {
+    /**
+     * Retrieves the list of Azure accounts available to MSSQL in the current VS Code session.
+     */
     public static async getAccounts(
         onlyAllowedForExtension: boolean = true,
     ): Promise<vscode.AuthenticationSessionAccountInformation[]> {
@@ -53,8 +56,17 @@ export class VsCodeAzureHelper {
             const filteredAccounts = [];
             for (const account of accounts) {
                 try {
-                    await MssqlVSCodeAzureSubscriptionProvider.getInstance().getTenants(account);
-                    filteredAccounts.push(account);
+                    const tenants =
+                        await MssqlVSCodeAzureSubscriptionProvider.getInstance().getTenants(
+                            account,
+                        );
+                    if (tenants.length > 0) {
+                        filteredAccounts.push(account);
+                    } else {
+                        console.warn(
+                            `No tenants found for account ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.`,
+                        );
+                    }
                 } catch (error) {
                     // no-op; failure to get tenants means that the account is not accessible by this extension
                     console.warn(
