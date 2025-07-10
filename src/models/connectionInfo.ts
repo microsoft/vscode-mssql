@@ -137,15 +137,19 @@ export function getPicklistDetails(connCreds: IConnectionInfo): string {
  * @param conn connection
  * @returns display string that can be used in status view or other locations
  */
-export function getConnectionDisplayString(creds: IConnectionInfo, trim: boolean = false): string {
+export function getConnectionDisplayString(creds: IConnectionInfo, trimLength?: number): string {
     const server = generateServerDisplayName(creds);
     const database = generateDatabaseDisplayName(creds);
     const user = getUserNameOrDomainLogin(creds);
 
     let result = user ? `${server} : ${database} : ${user}` : `${server} : ${database}`;
 
-    if (trim && result.length > Constants.maxDisplayedStatusTextLength) {
-        result = result.slice(0, Constants.maxDisplayedStatusTextLength) + " \u2026"; // add ellipsis
+    if (trimLength) {
+        if (trimLength === 0) {
+            result = "";
+        } else if (trimLength > 0 && result.length > trimLength) {
+            result = result.slice(0, trimLength) + " \u2026"; // add ellipsis
+        }
     }
 
     return result;

@@ -3751,10 +3751,6 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
         <source xml:lang="en">Delete Container</source>
         <target state="translated">Supprimer le conteneur</target>
       </trans-unit>
-      <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
-        <target state="translated">Schéma de conception (Aperçu)</target>
-      </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>
         <target state="translated">Désactiver le plan réel</target>
@@ -4111,6 +4107,10 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
         <source xml:lang="en">Schema Compare (Preview)</source>
         <target state="translated">Comparer les schémas (préversion)</target>
       </trans-unit>
+      <trans-unit id="mssql.schemaDesigner">
+        <source xml:lang="en">Schema Designer (Preview)</source>
+        <target state="new">Schema Designer (Preview)</target>
+      </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
         <target state="translated">Script de modification</target>
@@ -4242,6 +4242,10 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       <trans-unit id="mssql.connectionGroup.description">
         <source xml:lang="en">The description of the connection group.</source>
         <target state="translated">Description du groupe de connexion.</target>
+      </trans-unit>
+      <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+        <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
+        <target state="new">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</target>
       </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>

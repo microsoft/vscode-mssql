@@ -3221,6 +3221,9 @@
     <trans-unit id="mssql.connectionGroup.description">
       <source xml:lang="en">The description of the connection group.</source>
     </trans-unit>
+    <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+      <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
+    </trans-unit>
     <trans-unit id="mssql.maxRecentConnections">
       <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
     </trans-unit>

@@ -3751,10 +3751,6 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Delete Container</source>
         <target state="translated">Elimina contenitore</target>
       </trans-unit>
-      <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
-        <target state="translated">Progettazione dello schema (anteprima)</target>
-      </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>
         <target state="translated">Disabilita piano effettivo</target>
@@ -4111,6 +4107,10 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">Schema Compare (Preview)</source>
         <target state="translated">confronto schemi (anteprima)</target>
       </trans-unit>
+      <trans-unit id="mssql.schemaDesigner">
+        <source xml:lang="en">Schema Designer (Preview)</source>
+        <target state="new">Schema Designer (Preview)</target>
+      </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
         <target state="translated">Genera script come ALTER</target>
@@ -4242,6 +4242,10 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       <trans-unit id="mssql.connectionGroup.description">
         <source xml:lang="en">The description of the connection group.</source>
         <target state="translated">Descrizione del gruppo di connessione.</target>
+      </trans-unit>
+      <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+        <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
+        <target state="new">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</target>
       </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>

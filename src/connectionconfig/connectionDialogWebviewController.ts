@@ -34,7 +34,6 @@ import {
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
-    fetchServersFromAzure,
     getAccounts,
     getTenants,
     promptForAzureSubscriptionFilter,
@@ -1300,7 +1299,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         const stateSub = state.azureSubscriptions.find((s) => s.id === subscriptionId);
 
         try {
-            const servers = await fetchServersFromAzure(azSub);
+            const servers = await VsCodeAzureHelper.fetchServersFromAzure(azSub);
             state.azureServers.push(...servers);
             stateSub.loaded = true;
             this.updateState();
