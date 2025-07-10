@@ -252,9 +252,9 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 {
                     // Include the current step, its status, and its potential error in the telemetry
                     currentStep: cd.DockerStepOrder[state.currentDockerStep],
-                    currentStepStatus: state.dockerSteps[state.currentDockerStep].loadState,
+                    currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
                     currentStepErrorMessage:
-                        state.dockerSteps[state.currentDockerStep].errorMessage,
+                        state.dockerSteps[state.currentDockerStep]?.errorMessage,
                 },
             );
             this.panel.dispose();
