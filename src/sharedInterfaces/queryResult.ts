@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import {
     ExecutionPlanProvider,
     ExecutionPlanReducers,
@@ -333,4 +333,67 @@ export interface GetRowsParams {
 }
 export namespace GetRowsRequest {
     export const type = new RequestType<GetRowsParams, ResultSetSubset, void>("getRows");
+}
+
+/**
+ * Sets the scroll position for a grid in the webview
+ */
+export interface SetGridScrollPositionParams {
+    uri: string;
+    gridId: string;
+    scrollTop: number;
+    scrollLeft: number;
+}
+
+/**
+ * Sets the scroll position for a grid in the webview
+ * @param uri The URI of the query result state this request is associated with
+ */
+export namespace SetGridScrollPositionNotification {
+    export const type = new NotificationType<SetGridScrollPositionParams>("setGridScrollPosition");
+}
+
+export interface GetGridScrollPositionParams {
+    uri: string;
+    gridId: string;
+}
+
+export interface GetGridScrollPositionResponse {
+    scrollTop: number;
+    scrollLeft: number;
+}
+
+export namespace GetGridScrollPositionRequest {
+    export const type = new RequestType<
+        GetGridScrollPositionParams,
+        GetGridScrollPositionResponse,
+        void
+    >("getGridScrollPosition");
+}
+
+export interface SetGridPaneScrollPositionParams {
+    uri: string;
+    scrollTop: number;
+}
+
+export namespace SetGridPaneScrollPositionNotification {
+    export const type = new NotificationType<SetGridPaneScrollPositionParams>(
+        "setPaneScrollPosition",
+    );
+}
+
+export interface GetGridPaneScrollPositionParams {
+    uri: string;
+}
+
+export interface GetGridPaneScrollPositionResponse {
+    scrollTop: number;
+}
+
+export namespace GetGridPaneScrollPositionRequest {
+    export const type = new RequestType<
+        GetGridPaneScrollPositionParams,
+        GetGridPaneScrollPositionResponse,
+        void
+    >("getGridPaneScrollPosition");
 }

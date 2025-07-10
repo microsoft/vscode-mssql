@@ -3751,10 +3751,6 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Delete Container</source>
         <target state="translated">Container löschen</target>
       </trans-unit>
-      <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
-        <target state="translated">Designschema (Vorschau)</target>
-      </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>
         <target state="translated">Tatsächlichen Plan deaktivieren</target>
@@ -4110,6 +4106,10 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare (Preview)</source>
         <target state="translated">Schemavergleich (Vorschau)</target>
+      </trans-unit>
+      <trans-unit id="mssql.schemaDesigner">
+        <source xml:lang="en">Schema Designer (Preview)</source>
+        <target state="new">Schema Designer (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>

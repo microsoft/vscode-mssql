@@ -2902,9 +2902,6 @@
     <trans-unit id="mssql.deleteContainer">
       <source xml:lang="en">Delete Container</source>
     </trans-unit>
-    <trans-unit id="mssql.designSchema">
-      <source xml:lang="en">Design Schema (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
       <source xml:lang="en">Disable Actual Plan</source>
     </trans-unit>
@@ -3169,6 +3166,9 @@
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Schema Compare (Preview)</source>
     </trans-unit>
+    <trans-unit id="mssql.schemaDesigner">
+      <source xml:lang="en">Schema Designer (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>
     </trans-unit>
@@ -3267,6 +3267,9 @@
     </trans-unit>
     <trans-unit id="mssql.connectionGroup.description">
       <source xml:lang="en">The description of the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+      <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
     </trans-unit>
     <trans-unit id="mssql.maxRecentConnections">
       <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>

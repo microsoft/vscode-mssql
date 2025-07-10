@@ -510,7 +510,7 @@
                     "group": "1_MSSQL_serverAndDbManagement@4"
                 },
                 {
-                    "command": "mssql.designSchema",
+                    "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences",
                     "group": "2_MSSQL_serverDbActions@1"
                 },
@@ -746,7 +746,7 @@
                     "when": "config.mssql.useLegacyConnectionExperience"
                 },
                 {
-                    "command": "mssql.designSchema",
+                    "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences"
                 }
             ],
@@ -975,12 +975,12 @@
                 }
             },
             {
-                "command": "mssql.designSchema",
-                "title": "%mssql.designSchema%",
+                "command": "mssql.schemaDesigner",
+                "title": "%mssql.schemaDesigner%",
                 "category": "MS SQL",
                 "icon": {
                     "dark": "media/designSchema_dark.svg",
-                    "light": "media/vdesignSchema_light.svg"
+                    "light": "media/designSchema_light.svg"
                 }
             },
             {
@@ -1946,6 +1946,11 @@
                     "default": 45,
                     "minimum": 1,
                     "description": "%mssql.objectExplorer.expandTimeout%"
+                },
+                "mssql.statusBar.connectionInfoMaxLength": {
+                    "type": "number",
+                    "default": -1,
+                    "description": "%mssql.statusBar.connectionInfoMaxLength.description%"
                 }
             }
         },
