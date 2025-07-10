@@ -268,28 +268,33 @@ const TableColumn = ({ column }: { column: SchemaDesigner.Column }) => {
     );
 };
 
-// ConsolidatedHandles component for rendering handles of hidden columns
+// ConsolidatedHandles component for rendering invisible handles of hidden columns
 const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.Column[] }) => {
-    const styles = useStyles();
     return (
-        <div style={{ position: "relative", height: "20px", display: "flex", alignItems: "center" }}>
+        <div
+            style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                pointerEvents: "none",
+            }}>
             {hiddenColumns.map((column) => (
-                <div key={column.name} style={{ position: "absolute", width: "100%" }}>
+                <div key={column.name}>
                     <Handle
                         type="source"
                         position={Position.Left}
                         id={`left-${column.name}`}
                         isConnectable={true}
-                        className={styles.handleLeft}
-                        style={{ opacity: 0.7 }}
+                        style={{ visibility: "hidden", position: "absolute", left: 0 }}
                     />
                     <Handle
                         type="source"
                         position={Position.Right}
                         id={`right-${column.name}`}
                         isConnectable={true}
-                        className={styles.handleRight}
-                        style={{ opacity: 0.7 }}
+                        style={{ visibility: "hidden", position: "absolute", right: 0 }}
                     />
                 </div>
             ))}
@@ -316,13 +321,14 @@ const TableColumns = ({
     const COLLAPSE = l10n.t("Collapse");
 
     return (
-        <div>
+        <div style={{ position: "relative" }}>
+            {/* Always render all column handles for consistency */}
+            {hiddenColumns.length > 0 && <ConsolidatedHandles hiddenColumns={hiddenColumns} />}
+
             {visibleColumns.map((column, index) => (
                 <TableColumn key={`${index}-${column.name}`} column={column} />
             ))}
-            {showCollapseButton && isCollapsed && hiddenColumns.length > 0 && (
-                <ConsolidatedHandles hiddenColumns={hiddenColumns} />
-            )}
+
             {showCollapseButton && (
                 <div
                     className={styles.collapseButton}
