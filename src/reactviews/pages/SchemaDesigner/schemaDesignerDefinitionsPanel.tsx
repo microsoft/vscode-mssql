@@ -55,13 +55,13 @@ export const SchemaDesignerDefinitionsPanel = () => {
     useEffect(() => {
         eventBus.on("getScript", () => {
             setTimeout(async () => {
-                const script = await context.getScript();
+                const script = await context.getDefinition();
                 setCode(script);
             }, 0);
         });
         eventBus.on("openCodeDrawer", () => {
             setTimeout(async () => {
-                const script = await context.getScript();
+                const script = await context.getDefinition();
                 setCode(script);
             }, 0);
             if (!panelRef.current) {

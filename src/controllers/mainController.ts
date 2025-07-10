@@ -39,7 +39,7 @@ import { SqlProjectsService } from "../services/sqlProjectsService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { SqlTasksService } from "../services/sqlTasksService";
 import StatusView from "../views/statusView";
-import { IConnectionProfile, ISelectionData } from "./../models/interfaces";
+import { IConnectionGroup, IConnectionProfile, ISelectionData } from "./../models/interfaces";
 import ConnectionManager from "./connectionManager";
 import UntitledSqlDocumentService from "./untitledSqlDocumentService";
 import VscodeWrapper from "./vscodeWrapper";
@@ -62,12 +62,32 @@ import store, { SubKeys } from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
-import { DefaultWebviewNotifications } from "./reactWebviewBaseController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
-import * as Prompts from "../chat/prompts";
+import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
+import { ConnectTool } from "../copilot/tools/connectTool";
+import { ListServersTool } from "../copilot/tools/listServersTool";
+import { DisconnectTool } from "../copilot/tools/disconnectTool";
+import { GetConnectionDetailsTool } from "../copilot/tools/getConnectionDetailsTool";
+import { ChangeDatabaseTool } from "../copilot/tools/changeDatabaseTool";
+import { ListDatabasesTool } from "../copilot/tools/listDatabasesTool";
+import { ListTablesTool } from "../copilot/tools/listTablesTool";
+import { ListSchemasTool } from "../copilot/tools/listSchemasTool";
+import { ListViewsTool } from "../copilot/tools/listViewsTool";
+import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
+import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
+import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
+import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
+import {
+    deleteContainer,
+    prepareForDockerContainerCommand,
+    stopContainer,
+} from "../containerDeployment/dockerUtils";
+import { StateChangeNotification } from "../sharedInterfaces/webview";
+import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 
 /**
  * The main controller class that initializes the extension
@@ -210,6 +230,10 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdClearPooledConnections);
             this._event.on(Constants.cmdClearPooledConnections, async () => {
                 await this.onClearPooledConnections();
+            });
+            this.registerCommand(Constants.cmdDeployLocalDockerContainer);
+            this._event.on(Constants.cmdDeployLocalDockerContainer, () => {
+                this.onDeployContainer();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -421,6 +445,32 @@ export default class MainController implements vscode.Disposable {
                 }
             });
 
+            this.registerCommandWithArgs(Constants.cmdChatWithDatabaseInAgentMode);
+            this._event.on(
+                Constants.cmdChatWithDatabaseInAgentMode,
+                async (treeNodeInfo: TreeNodeInfo) => {
+                    sendActionEvent(
+                        TelemetryViews.MssqlCopilot,
+                        TelemetryActions.ChatWithDatabaseInAgentMode,
+                    );
+
+                    const connectionCredentials = Object.assign({}, treeNodeInfo.connectionProfile);
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+                    if (
+                        databaseName !== connectionCredentials.database &&
+                        databaseName !== LocalizedConstants.defaultDatabaseLabel
+                    ) {
+                        connectionCredentials.database = databaseName;
+                    } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
+                        connectionCredentials.database = "";
+                    }
+                    vscode.commands.executeCommand(
+                        "workbench.action.chat.openAgent",
+                        `Connect to ${connectionCredentials.server},${connectionCredentials.database}${connectionCredentials.profileName ? ` using profile ${connectionCredentials.profileName}` : ""}.`,
+                    );
+                },
+            );
+
             // -- EXPLAIN QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdExplainQuery, async () => {
@@ -513,9 +563,15 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper.onDidCloseTextDocument(
                 async (params) => await this.onDidCloseTextDocument(params),
             );
+
             this._vscodeWrapper.onDidOpenTextDocument((params) =>
                 this.onDidOpenTextDocument(params),
             );
+
+            this._vscodeWrapper.onDidChangeActiveTextEditor((params) =>
+                this.onDidChangeActiveTextEditor(params),
+            );
+
             this._vscodeWrapper.onDidSaveTextDocument((params) =>
                 this.onDidSaveTextDocument(params),
             );
@@ -523,8 +579,117 @@ export default class MainController implements vscode.Disposable {
                 this.onDidChangeConfiguration(params),
             );
 
+            this.registerLanguageModelTools();
+
             return true;
         }
+    }
+
+    /**
+     * Helper method to register all language model tools
+     */
+    private registerLanguageModelTools(): void {
+        // Register mssql_connect tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotConnectToolName,
+                new ConnectTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_disconnect tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotDisconnectToolName,
+                new DisconnectTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_list_servers tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListServersToolName,
+                new ListServersTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_list_databases tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListDatabasesToolName,
+                new ListDatabasesTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_get_connection_details tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotGetConnectionDetailsToolName,
+                new GetConnectionDetailsTool(this.connectionManager),
+            ),
+        );
+
+        // Register mssql_change_database tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotChangeDatabaseToolName,
+                new ChangeDatabaseTool(this.connectionManager),
+            ),
+        );
+        // Register mssql_show_schema tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotShowSchemaToolName,
+                new ShowSchemaTool(
+                    this.connectionManager,
+                    async (connectionUri: string, database: string) => {
+                        const designer =
+                            await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                                this._context,
+                                this._vscodeWrapper,
+                                this,
+                                this.schemaDesignerService,
+                                database,
+                                undefined,
+                                connectionUri,
+                            );
+                        designer.revealToForeground();
+                    },
+                ),
+            ),
+        );
+
+        // Register mssql_list_tables tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListTablesToolName,
+                new ListTablesTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_list_schemas tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListSchemasToolName,
+                new ListSchemasTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_list_views tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListViewsToolName,
+                new ListViewsTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_list_functions tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListFunctionsToolName,
+                new ListFunctionsTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
     }
 
     /**
@@ -740,6 +905,8 @@ export default class MainController implements vscode.Disposable {
 
         await this._connectionMgr.initialized;
 
+        this._statusview.setConnectionStore(this._connectionMgr.connectionStore);
+
         this._initialized = true;
         return true;
     }
@@ -849,13 +1016,20 @@ export default class MainController implements vscode.Disposable {
         // Register the object explorer tree provider
         this._objectExplorerProvider =
             objectExplorerProvider ??
-            new ObjectExplorerProvider(this._vscodeWrapper, this._connectionMgr);
+            new ObjectExplorerProvider(
+                this._vscodeWrapper,
+                this._connectionMgr,
+                this.isRichExperiencesEnabled,
+            );
 
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
             canSelectMany: false,
             showCollapseAll: true,
-            dragAndDropController: new ObjectExplorerDragAndDropController(),
+            dragAndDropController: new ObjectExplorerDragAndDropController(
+                this._vscodeWrapper,
+                this._connectionMgr.connectionStore,
+            ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
 
@@ -869,10 +1043,15 @@ export default class MainController implements vscode.Disposable {
                 await self.createObjectExplorerSession();
             } else {
                 let connectionInfo: IConnectionInfo | undefined = undefined;
+                let connectionGroup: IConnectionGroup | undefined = undefined;
                 if (args) {
                     // validate that `args` is an IConnectionInfo before assigning
                     if (isIConnectionInfo(args)) {
                         connectionInfo = args;
+                    } else {
+                        if (args instanceof ConnectionGroupNode) {
+                            connectionGroup = args.connectionGroup;
+                        }
                     }
                 }
 
@@ -882,6 +1061,7 @@ export default class MainController implements vscode.Disposable {
                     this,
                     this._objectExplorerProvider,
                     connectionInfo,
+                    connectionGroup,
                 );
                 connDialog.revealToForeground();
             }
@@ -990,6 +1170,69 @@ export default class MainController implements vscode.Disposable {
                 },
             ),
         );
+
+        this.registerCommand(Constants.cmdConnectionGroupCreate);
+        this._event.on(Constants.cmdConnectionGroupCreate, () => {
+            const connGroupDialog = new ConnectionGroupWebviewController(
+                this._context,
+                this._vscodeWrapper,
+                this.connectionManager.connectionStore.connectionConfig,
+            );
+            connGroupDialog.revealToForeground();
+        });
+
+        this.registerCommandWithArgs(Constants.cmdConnectionGroupEdit);
+        this._event.on(Constants.cmdConnectionGroupEdit, (node: ConnectionGroupNode) => {
+            const connGroupDialog = new ConnectionGroupWebviewController(
+                this._context,
+                this._vscodeWrapper,
+                this.connectionManager.connectionStore.connectionConfig,
+                node.connectionGroup,
+            );
+            connGroupDialog.revealToForeground();
+        });
+
+        this.registerCommandWithArgs(Constants.cmdConnectionGroupDelete);
+        this._event.on(Constants.cmdConnectionGroupDelete, async (node: ConnectionGroupNode) => {
+            if (!(node instanceof ConnectionGroupNode)) {
+                return;
+            }
+
+            let result = undefined;
+
+            if (node.children.length > 0) {
+                result = await vscode.window.showInformationMessage(
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmationWithContents(
+                        typeof node.label === "string" ? node.label : node.label.label,
+                    ),
+                    { modal: true },
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeleteContents,
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupMoveContents,
+                );
+            } else {
+                result = await vscode.window.showInformationMessage(
+                    LocalizedConstants.ObjectExplorer.ConnectionGroupDeletionConfirmationWithoutContents(
+                        typeof node.label === "string" ? node.label : node.label.label,
+                    ),
+                    { modal: true },
+                    LocalizedConstants.Common.delete,
+                );
+            }
+            if (
+                result === LocalizedConstants.ObjectExplorer.ConnectionGroupDeleteContents ||
+                result === LocalizedConstants.Common.delete
+            ) {
+                void this.connectionManager.connectionStore.connectionConfig.removeGroup(
+                    node.connectionGroup.id,
+                    "delete",
+                );
+            } else if (result === LocalizedConstants.ObjectExplorer.ConnectionGroupMoveContents) {
+                void this.connectionManager.connectionStore.connectionConfig.removeGroup(
+                    node.connectionGroup.id,
+                    "move",
+                );
+            }
+        });
 
         if (this.isRichExperiencesEnabled) {
             this._context.subscriptions.push(
@@ -1200,6 +1443,143 @@ export default class MainController implements vscode.Disposable {
                     const name = ObjectExplorerUtils.getQualifiedName(node);
                     if (name) {
                         await this._vscodeWrapper.clipboardWriteText(name);
+                    }
+                },
+            ),
+        );
+
+        // Start container command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdStartContainer,
+                async (node: TreeNodeInfo) => {
+                    if (
+                        !node ||
+                        !node.connectionProfile ||
+                        !(await this.isContainerReadyForCommands(node))
+                    ) {
+                        return;
+                    }
+                    try {
+                        // doing it this way instead of directly calling startContainer
+                        // allows for the object explorer item loading UI to show
+                        this._objectExplorerProvider.deleteChildrenCache(node);
+                        await this._objectExplorerProvider.setNodeLoading(node);
+                        this._objectExplorerProvider.refresh(node);
+                        await this.objectExplorerTree.reveal(node, {
+                            select: true,
+                            focus: true,
+                            expand: true,
+                        });
+
+                        await this.connectionManager.connectionUI
+                            .saveProfile(node.connectionProfile as IConnectionProfile)
+                            .then(async () => {
+                                await this.createObjectExplorerSession(
+                                    node.connectionProfile as IConnectionProfile,
+                                );
+                            });
+                    } catch {
+                        vscode.window.showErrorMessage(
+                            LocalizedConstants.ContainerDeployment.failStartContainer(
+                                node.connectionProfile.containerName,
+                            ),
+                        );
+                    }
+                },
+            ),
+        );
+
+        // Stop container command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdStopContainer,
+                async (node: TreeNodeInfo) => {
+                    if (
+                        !node ||
+                        !node.connectionProfile ||
+                        !(await this.isContainerReadyForCommands(node))
+                    ) {
+                        return;
+                    }
+
+                    const containerName = node.connectionProfile.containerName;
+                    node.loadingLabel =
+                        LocalizedConstants.ContainerDeployment.stoppingContainerLoadingLabel;
+                    await this._objectExplorerProvider.setNodeLoading(node);
+                    this._objectExplorerProvider.refresh(node);
+
+                    await stopContainer(containerName).then(async (stoppedSuccessfully) => {
+                        if (stoppedSuccessfully) {
+                            node.loadingLabel =
+                                LocalizedConstants.ContainerDeployment.startingContainerLoadingLabel;
+
+                            await this._objectExplorerProvider
+                                .disconnectNode(node as ConnectionNode)
+                                .then(() => this._objectExplorerProvider.refresh(undefined));
+                        }
+
+                        vscode.window.showInformationMessage(
+                            stoppedSuccessfully
+                                ? LocalizedConstants.ContainerDeployment.stoppedContainerSucessfully(
+                                      containerName,
+                                  )
+                                : LocalizedConstants.ContainerDeployment.failStopContainer(
+                                      containerName,
+                                  ),
+                        );
+                    });
+                },
+            ),
+        );
+        // Delete container command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDeleteContainer,
+                async (node: TreeNodeInfo) => {
+                    if (
+                        !node ||
+                        !node.connectionProfile ||
+                        !(await this.isContainerReadyForCommands(node))
+                    ) {
+                        return;
+                    }
+
+                    const confirmation = await vscode.window.showInformationMessage(
+                        LocalizedConstants.ContainerDeployment.deleteContainerConfirmation(
+                            node.connectionProfile.containerName,
+                        ),
+                        { modal: true },
+                        LocalizedConstants.Common.delete,
+                    );
+
+                    if (confirmation === LocalizedConstants.Common.delete) {
+                        node.loadingLabel =
+                            LocalizedConstants.ContainerDeployment.deletingContainerLoadingLabel;
+                        await this._objectExplorerProvider.setNodeLoading(node);
+                        this._objectExplorerProvider.refresh(node);
+
+                        const containerName = node.connectionProfile.containerName;
+                        const deletedSuccessfully = await deleteContainer(containerName);
+                        vscode.window.showInformationMessage(
+                            deletedSuccessfully
+                                ? LocalizedConstants.ContainerDeployment.deletedContainerSucessfully(
+                                      containerName,
+                                  )
+                                : LocalizedConstants.ContainerDeployment.failDeleteContainer(
+                                      containerName,
+                                  ),
+                        );
+                        node.loadingLabel =
+                            LocalizedConstants.ContainerDeployment.startingContainerLoadingLabel;
+                        if (deletedSuccessfully) {
+                            // Delete node from tree
+                            await this._objectExplorerProvider.removeNode(
+                                node as ConnectionNode,
+                                false,
+                            );
+                            return this._objectExplorerProvider.refresh(undefined);
+                        }
                     }
                 },
             ),
@@ -1453,6 +1833,20 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    public onDeployContainer(): void {
+        sendActionEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.OpenContainerDeployment,
+        );
+
+        const reactPanel = new ContainerDeploymentWebviewController(
+            this._context,
+            this._vscodeWrapper,
+            this,
+        );
+        reactPanel.revealToForeground();
     }
 
     /**
@@ -1711,6 +2105,10 @@ export default class MainController implements vscode.Disposable {
 
     public set connectionManager(connectionManager: ConnectionManager) {
         this._connectionMgr = connectionManager;
+    }
+
+    public get untitledSqlDocumentService(): UntitledSqlDocumentService {
+        return this._untitledSqlDocumentService;
     }
 
     public set untitledSqlDocumentService(untitledSqlDocumentService: UntitledSqlDocumentService) {
@@ -2110,7 +2508,7 @@ export default class MainController implements vscode.Disposable {
 
     private async updateUri(oldUri: string, newUri: string) {
         // Transfer the connection to the new URI
-        await this._connectionMgr.transferFileConnection(oldUri, newUri);
+        await this._connectionMgr.copyConnectionToFile(oldUri, newUri);
 
         // Call STS  & Query Runner to update URI
         this._outputContentProvider.updateQueryRunnerUri(oldUri, newUri);
@@ -2122,9 +2520,8 @@ export default class MainController implements vscode.Disposable {
         if (state) {
             state.uri = newUri;
 
-            // Post a notification to the webview to update the state of the query result
-            this._queryResultWebviewController.postNotification(
-                DefaultWebviewNotifications.updateState,
+            await this._queryResultWebviewController.sendNotification(
+                StateChangeNotification.type<QueryResultWebviewState>(),
                 state,
             );
 
@@ -2145,6 +2542,14 @@ export default class MainController implements vscode.Disposable {
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
+        if (this._previousActiveDocument && doc.languageId === Constants.languageId) {
+            void this._connectionMgr.copyConnectionToFile(
+                this._previousActiveDocument.uri.toString(true),
+                doc.uri.toString(true),
+                true /* keepOldConnected */,
+            );
+        }
+
         if (doc && doc.languageId === Constants.languageId) {
             // set encoding to false
             this._statusview.languageFlavorChanged(
@@ -2156,8 +2561,26 @@ export default class MainController implements vscode.Disposable {
         // Setup properties incase of rename
         this._lastOpenedTimer = new Utils.Timer();
         this._lastOpenedTimer.start();
+
         if (doc && doc.uri) {
             this._lastOpenedUri = doc.uri.toString(true);
+
+            // pre-opened tabs won't trigger onDidChangeActiveTextEditor, so set _previousActiveEditor here
+            this._previousActiveDocument =
+                doc.languageId === Constants.languageId ? doc : undefined;
+        }
+    }
+
+    /**
+     * Tracks the previous editor for the purposes of transferring connections to a newly-opened file.
+     * Set to undefined if the previous editor is not a SQL file (languageId === mssql).
+     */
+    private _previousActiveDocument: vscode.TextDocument | undefined;
+
+    public onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
+        if (editor?.document) {
+            this._previousActiveDocument =
+                editor.document.languageId === Constants.languageId ? editor.document : undefined;
         }
     }
 
@@ -2195,104 +2618,183 @@ export default class MainController implements vscode.Disposable {
      * @param ConfigurationChangeEvent event that is fired when config is changed
      */
     public async onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): Promise<void> {
-        if (e.affectsConfiguration(Constants.extensionName)) {
-            // Query History settings change
-            this.onChangeQueryHistoryConfig();
+        if (!e.affectsConfiguration(Constants.extensionName)) {
+            return;
+        }
 
-            // Connections change
-            let needsRefresh = false;
-            // user connections is a super set of object explorer connections
-            // read the connections from glocal settings and workspace settings.
-            let userConnections: any[] =
-                await this.connectionManager.connectionStore.connectionConfig.getConnections(true);
-            let objectExplorerConnections = this._objectExplorerProvider.rootNodeConnections;
+        this.onChangeQueryHistoryConfig();
+        const needsRefresh = await this.onChangeConnectionConfig(e);
+        await this.onChangeGroupBySchemaConfig(e);
 
-            // if a connection(s) was/were manually removed
-            let staleConnections = objectExplorerConnections.filter((oeConn) => {
-                return !userConnections.some((userConn) =>
-                    Utils.isSameConnectionInfo(oeConn, userConn),
-                );
-            });
-            // disconnect that/those connection(s) and then
-            // remove its/their credentials from the credential store
-            // and MRU
-            for (let conn of staleConnections) {
-                let profile = <IConnectionProfile>conn;
-                if (this.connectionManager.isActiveConnection(conn)) {
-                    const uri = this.connectionManager.getUriForConnection(conn);
-                    await this.connectionManager.disconnect(uri);
-                }
-                await this.connectionManager.connectionStore.removeRecentlyUsed(profile);
-                if (
-                    profile.authenticationType === Constants.sqlAuthentication &&
-                    profile.savePassword
-                ) {
-                    await this.connectionManager.deleteCredential(profile);
-                }
+        if (needsRefresh) {
+            this._objectExplorerProvider.refresh(undefined);
+        }
+        if (e.affectsConfiguration(Constants.mssqlPiiLogging)) {
+            this.updatePiiLoggingLevel();
+        }
+
+        // Prompt to reload VS Code when any of these settings are updated.
+        const configSettingsRequiringReload = [
+            Constants.enableSqlAuthenticationProvider,
+            Constants.enableConnectionPooling,
+            Constants.configEnableExperimentalFeatures,
+            Constants.configEnableRichExperiences,
+            Constants.configUseLegacyConnectionExperience,
+            Constants.configUseLegacyQueryResultExperience,
+        ];
+
+        if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {
+            await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
+        }
+    }
+
+    private async onChangeGroupBySchemaConfig(e: vscode.ConfigurationChangeEvent): Promise<void> {
+        if (!e.affectsConfiguration(Constants.cmdObjectExplorerGroupBySchemaFlagName)) {
+            return;
+        }
+
+        let errorFoundWhileRefreshing = false;
+        (await this._objectExplorerProvider.getChildren()).forEach((n: TreeNodeInfo) => {
+            try {
+                void this._objectExplorerProvider.refreshNode(n);
+            } catch (e) {
+                errorFoundWhileRefreshing = true;
+                this._connectionMgr.client.logger.error(e);
             }
-            // remove them from object explorer
-            await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
-            needsRefresh = staleConnections.length > 0;
+        });
+        if (errorFoundWhileRefreshing) {
+            Utils.showErrorMsg(LocalizedConstants.objectExplorerNodeRefreshError);
+        }
+    }
 
-            // if a connection(s) was/were manually added
-            let newConnections = userConnections.filter((userConn) => {
-                return !objectExplorerConnections.some((oeConn) =>
-                    Utils.isSameConnectionInfo(userConn, oeConn),
-                );
-            });
-            for (let conn of newConnections) {
-                // if a connection is not connected
-                // that means it was added manually
-                const newConnectionProfile = <IConnectionProfile>conn;
-                const uri = ObjectExplorerUtils.getNodeUriFromProfile(newConnectionProfile);
-                if (
-                    !this.connectionManager.isActiveConnection(conn) &&
-                    !this.connectionManager.isConnecting(uri)
-                ) {
-                    // add a disconnected node for the connection
-                    this._objectExplorerProvider.addDisconnectedNode(conn);
-                    needsRefresh = true;
-                }
-            }
+    /**
+     * Updates the Object Explorer connections based on the user settings, removing stale connections and adding new ones.
+     * @returns true if the Object Explorer should be refreshed, false otherwise.
+     */
+    private async onChangeConnectionConfig(e: vscode.ConfigurationChangeEvent): Promise<boolean> {
+        if (
+            !e.affectsConfiguration(`mssql.${Constants.connectionsArrayName}`) &&
+            !e.affectsConfiguration(`mssql.${Constants.connectionGroupsArrayName}`)
+        ) {
+            return false;
+        }
 
-            await this.sanitizeConnectionProfiles();
+        let needsRefresh = false;
 
-            if (e.affectsConfiguration(Constants.cmdObjectExplorerGroupBySchemaFlagName)) {
-                let errorFoundWhileRefreshing = false;
-                (await this._objectExplorerProvider.getChildren()).forEach((n: TreeNodeInfo) => {
-                    try {
-                        void this._objectExplorerProvider.refreshNode(n);
-                    } catch (e) {
-                        errorFoundWhileRefreshing = true;
-                        this._connectionMgr.client.logger.error(e);
-                    }
-                });
-                if (errorFoundWhileRefreshing) {
-                    Utils.showErrorMsg(LocalizedConstants.objectExplorerNodeRefreshError);
-                }
-            }
+        // 1. If the connectionsGroup setting has changed, Object Explorer always needs to be refreshed
+        if (e.affectsConfiguration(`mssql.${Constants.connectionGroupsArrayName}`)) {
+            needsRefresh = true;
+        }
 
-            if (needsRefresh) {
-                this._objectExplorerProvider.refresh(undefined);
-            }
-            if (e.affectsConfiguration(Constants.mssqlPiiLogging)) {
-                this.updatePiiLoggingLevel();
-            }
+        // 2. Handle connections that have been added, removed, or reparented in OE
+        let configConnections =
+            await this.connectionManager.connectionStore.connectionConfig.getConnections(
+                true /* alsoGetFromWorkspace */,
+            );
+        let objectExplorerConnections = this._objectExplorerProvider.connections;
 
-            // Prompt to reload VS Code when any of these settings are updated.
-            const configSettingsRequiringReload = [
-                Constants.enableSqlAuthenticationProvider,
-                Constants.enableConnectionPooling,
-                Constants.configEnableExperimentalFeatures,
-                Constants.configEnableRichExperiences,
-                Constants.configUseLegacyConnectionExperience,
-                Constants.configUseLegacyQueryResultExperience,
-            ];
+        let result = await this.handleRemovedConns(objectExplorerConnections, configConnections);
+        needsRefresh ||= result;
 
-            if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {
-                await this.displayReloadMessage(LocalizedConstants.reloadPromptGeneric);
+        result = await this.handleAddedConns(objectExplorerConnections, configConnections);
+        needsRefresh ||= result;
+
+        // no side-effects, so can be skipped if OE refresh is already needed
+        needsRefresh ||= await this.checkForMovedConns(configConnections);
+
+        // 3. Ensure passwords have been saved to the credential store instead of to config JSON
+        await this.sanitizeConnectionProfiles();
+
+        if (
+            needsRefresh &&
+            this._vscodeWrapper
+                .getConfiguration()
+                .get<boolean>(Constants.configStatusBarEnableConnectionColor)
+        ) {
+            // update status bar connection colors
+            void this._statusview.updateConnectionColors();
+        }
+
+        return needsRefresh;
+    }
+
+    /** Determine if any connections have had their groupId changed.
+     * This function has no side-effects, so it can be skipped if an OE refresh is already needed.
+     */
+    private async checkForMovedConns(configConnections: IConnectionProfile[]): Promise<boolean> {
+        for (const connProfile of configConnections) {
+            if (
+                connProfile.groupId !==
+                this._objectExplorerProvider.objectExplorerService.getConnectionNodeById(
+                    connProfile.id,
+                )?.connectionProfile.groupId
+            ) {
+                return true;
             }
         }
+
+        return false;
+    }
+
+    private async handleAddedConns(
+        oeConnections: IConnectionProfile[],
+        configConnections: IConnectionProfile[],
+    ): Promise<boolean> {
+        let needsRefresh = false;
+
+        // if a connection was manually added
+        let newConnections = configConnections.filter((userConn) => {
+            return !oeConnections.some((oeConn) => Utils.isSameConnectionInfo(userConn, oeConn));
+        });
+        for (let conn of newConnections) {
+            // if a connection is not connected, that means it was added manually
+            const newConnectionProfile = <IConnectionProfile>conn;
+            const uri = ObjectExplorerUtils.getNodeUriFromProfile(newConnectionProfile);
+            if (
+                !this.connectionManager.isActiveConnection(conn) &&
+                !this.connectionManager.isConnecting(uri)
+            ) {
+                // add a disconnected node for the connection
+                this._objectExplorerProvider.addDisconnectedNode(conn);
+                needsRefresh = true;
+            }
+        }
+
+        return needsRefresh;
+    }
+
+    private async handleRemovedConns(
+        oeConnections: IConnectionProfile[],
+        configConnections: IConnectionProfile[],
+    ): Promise<boolean> {
+        let needsRefresh = false;
+
+        // if a connection was manually removed...
+        let staleConnections = oeConnections.filter((oeConn) => {
+            return !configConnections.some((configConn) =>
+                Utils.isSameConnectionInfo(oeConn, configConn),
+            );
+        });
+        // ...disconnect that connection and remove its creds from the credential store and MRU
+        for (let conn of staleConnections) {
+            let profile = <IConnectionProfile>conn;
+            if (this.connectionManager.isActiveConnection(conn)) {
+                const uri = this.connectionManager.getUriForConnection(conn);
+                await this.connectionManager.disconnect(uri);
+            }
+            await this.connectionManager.connectionStore.removeRecentlyUsed(profile);
+            if (
+                profile.authenticationType === Constants.sqlAuthentication &&
+                profile.savePassword
+            ) {
+                await this.connectionManager.deleteCredential(profile);
+            }
+        }
+        // remove them from object explorer
+        await this._objectExplorerProvider.removeConnectionNodes(staleConnections);
+        needsRefresh ||= staleConnections.length > 0;
+
+        return needsRefresh;
     }
 
     /**
@@ -2321,6 +2823,30 @@ export default class MainController implements vscode.Disposable {
         } else {
             return false;
         }
+    }
+
+    private async isContainerReadyForCommands(node: TreeNodeInfo): Promise<boolean> {
+        const containerName = node.connectionProfile?.containerName;
+        const prepResult = await prepareForDockerContainerCommand(containerName);
+        if (!prepResult.success) {
+            if (
+                prepResult.error ===
+                LocalizedConstants.ContainerDeployment.containerDoesNotExistError
+            ) {
+                node.loadingLabel = LocalizedConstants.Common.error;
+                const confirmation = await vscode.window.showInformationMessage(
+                    prepResult.error,
+                    { modal: true },
+                    LocalizedConstants.RemoveProfileLabel,
+                );
+                if (confirmation === LocalizedConstants.RemoveProfileLabel) {
+                    await this._objectExplorerProvider.removeNode(node as ConnectionNode, false);
+                }
+            } else {
+                vscode.window.showErrorMessage(prepResult.error);
+            }
+        }
+        return prepResult.success;
     }
 
     public removeAadAccount(prompter: IPrompter): void {

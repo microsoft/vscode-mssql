@@ -36,7 +36,7 @@ export default [
             sourceType: "module",
             parser: tseslint.parser,
             parserOptions: {
-                project: ["./tsconfig.json", "./tsconfig.react.json"],
+                project: ["./tsconfig.extension.json", "./tsconfig.react.json"],
                 ecmaFeatures: {
                     jsx: true,
                 },
@@ -150,7 +150,7 @@ export default [
                     bracketSameLine: true,
                 },
             ],
-            "custom-eslint-rules/ban-reactview-imports": "error",
+            "custom-eslint-rules/banned-imports": "error",
         },
     },
 ];

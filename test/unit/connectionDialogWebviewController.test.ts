@@ -31,7 +31,7 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { ConnectionCompleteParams } from "../../src/models/contracts/connection";
 import { stubTelemetry } from "./utils";
 import {
-    stubConfirmVscodeAzureSignin,
+    stubVscodeAzureSignIn,
     stubFetchServersFromAzure,
     stubPromptForAzureSubscriptionFilter,
 } from "./azureHelperStubs";
@@ -39,6 +39,7 @@ import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { mockGetCapabilitiesRequest } from "./mocks";
 import { AzureController } from "../../src/azure/azureController";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -46,6 +47,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let controller: ConnectionDialogWebviewController;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let outputChannel: TypeMoq.IMock<vscode.OutputChannel>;
     let mainController: MainController;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
     let connectionStore: TypeMoq.IMock<ConnectionStore>;
@@ -53,6 +55,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let mockObjectExplorerProvider: TypeMoq.IMock<ObjectExplorerProvider>;
     let azureAccountService: TypeMoq.IMock<AzureAccountService>;
     let serviceClientMock: TypeMoq.IMock<SqlToolsServerClient>;
+
+    const TEST_ROOT_GROUP_ID = "test-root-group-id";
 
     const testMruConnection = {
         profileSource: CredentialsQuickPickItemType.Mru,
@@ -64,6 +68,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         profileSource: CredentialsQuickPickItemType.Profile,
         server: "SavedServer",
         database: "SavedDatabase",
+        groupId: TEST_ROOT_GROUP_ID,
     } as IConnectionProfileWithSource;
 
     setup(async () => {
@@ -72,6 +77,13 @@ suite("ConnectionDialogWebviewController Tests", () => {
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
         mockObjectExplorerProvider = TypeMoq.Mock.ofType<ObjectExplorerProvider>();
+
+        outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
+        outputChannel.setup((c) => c.clear());
+        outputChannel.setup((c) => c.append(TypeMoq.It.isAny()));
+        outputChannel.setup((c) => c.show(TypeMoq.It.isAny()));
+
+        mockVscodeWrapper.setup((v) => v.outputChannel).returns(() => outputChannel.object);
 
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockContext.setup((c) => c.extensionUri).returns(() => vscode.Uri.parse("file://fakePath"));
@@ -115,6 +127,12 @@ suite("ConnectionDialogWebviewController Tests", () => {
         connectionStore
             .setup((cs) => cs.readAllConnections(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve([testMruConnection, testSavedConnection]));
+
+        connectionStore
+            .setup((cs) => cs.readAllConnectionGroups())
+            .returns(() =>
+                Promise.resolve([{ id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupName }]),
+            );
 
         azureAccountService
             .setup((a) => a.getAccounts())
@@ -289,18 +307,24 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     "Default input mode should be Parameters",
                 );
 
-                await controller["_reducers"].setConnectionInputType(controller.state, {
-                    inputMode: ConnectionInputMode.AzureBrowse,
-                });
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.AzureBrowse,
+                    },
+                );
 
                 expect(controller.state.selectedInputMode).to.equal(
                     ConnectionInputMode.AzureBrowse,
                     "Should set connection input type to AzureBrowse",
                 );
 
-                await controller["_reducers"].setConnectionInputType(controller.state, {
-                    inputMode: ConnectionInputMode.Parameters,
-                });
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.Parameters,
+                    },
+                );
 
                 expect(controller.state.selectedInputMode).to.equal(
                     ConnectionInputMode.Parameters,
@@ -311,12 +335,15 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("should set connection input mode correctly and load server info for AzureBrowse", async () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
-                stubConfirmVscodeAzureSignin(sandbox);
+                stubVscodeAzureSignIn(sandbox);
                 stubFetchServersFromAzure(sandbox);
 
-                await controller["_reducers"].setConnectionInputType(controller.state, {
-                    inputMode: ConnectionInputMode.AzureBrowse,
-                });
+                await controller["_reducerHandlers"].get("setConnectionInputType")(
+                    controller.state,
+                    {
+                        inputMode: ConnectionInputMode.AzureBrowse,
+                    },
+                );
 
                 // validate that subscriptions and servers are loaded correctly
 
@@ -360,7 +387,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: AuthenticationType.Integrated,
             } as IConnectionDialogProfile;
 
-            await controller["_reducers"].loadConnection(controller.state, {
+            await controller["_reducerHandlers"].get("loadConnection")(controller.state, {
                 connection: testConnection,
             });
 
@@ -437,7 +464,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     authenticationType: AuthenticationType.SqlLogin,
                 } as IConnectionDialogProfile;
 
-                await controller["_reducers"].connect(controller.state, {});
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
 
                 expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
                 expect(
@@ -463,7 +490,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("Filter change cancelled", async () => {
                 stubPromptForAzureSubscriptionFilter(sandbox, false);
 
-                await controller["_reducers"].filterAzureSubscriptions(controller.state, {});
+                await controller["_reducerHandlers"].get("filterAzureSubscriptions")(
+                    controller.state,
+                    {},
+                );
 
                 const stub = (controller["loadAllAzureServers"] = sandbox.stub().resolves());
 
@@ -474,7 +504,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
                 stubPromptForAzureSubscriptionFilter(sandbox, true);
-                stubConfirmVscodeAzureSignin(sandbox);
+                stubVscodeAzureSignIn(sandbox);
                 stubFetchServersFromAzure(sandbox);
 
                 expect(
@@ -482,7 +512,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     "No subscriptions should be loaded initially",
                 ).to.have.lengthOf(0);
 
-                await controller["_reducers"].filterAzureSubscriptions(controller.state, {});
+                await controller["_reducerHandlers"].get("filterAzureSubscriptions")(
+                    controller.state,
+                    {},
+                );
 
                 expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
                 expect(

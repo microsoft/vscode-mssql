@@ -15,7 +15,7 @@ import SqlToolsServerClient from "./languageservice/serviceclient";
 import { ConnectionProfile } from "./models/connectionProfile";
 import { FirewallRuleError } from "./languageservice/interfaces";
 import { RequestType } from "vscode-languageclient";
-import { createSqlAgentRequestHandler, ISqlChatResult } from "./chat/chatAgentRequestHandler";
+import { createSqlAgentRequestHandler, ISqlChatResult } from "./copilot/chatAgentRequestHandler";
 import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
@@ -49,6 +49,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     const participant = vscode.chat.createChatParticipant(
         "mssql.agent",
         createSqlAgentRequestHandler(controller.copilotService, vscodeWrapper, context, controller),
+    );
+    participant.iconPath = vscode.Uri.joinPath(
+        context.extensionUri,
+        "images",
+        "mssql-chat-avatar.jpg",
     );
 
     const receiveFeedbackDisposable = participant.onDidReceiveFeedback(

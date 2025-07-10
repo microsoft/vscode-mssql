@@ -22,7 +22,7 @@ export interface SchemaDesignerContextProps
     datatypes: string[];
     findTableText: string;
     setFindTableText: (text: string) => void;
-    getScript: () => Promise<string>;
+    getDefinition: () => Promise<string>;
     initializeSchemaDesigner: () => Promise<{
         nodes: Node<SchemaDesigner.Table>[];
         edges: Edge<SchemaDesigner.ForeignKey>[];
@@ -33,7 +33,7 @@ export interface SchemaDesignerContextProps
         error?: string;
     }>;
     openInEditor: (text: string) => void;
-    openInEditorWithConnection: (text: string) => void;
+    openInEditorWithConnection: () => void;
     setSelectedTable: (selectedTable: SchemaDesigner.Table) => void;
     copyToClipboard: (text: string) => void;
     extractSchema: () => SchemaDesigner.Schema;
@@ -52,6 +52,8 @@ export interface SchemaDesignerContextProps
     resetUndoRedoState: () => void;
     resetView: () => void;
     isInitialized: boolean;
+    renderOnlyVisibleTables: boolean;
+    setRenderOnlyVisibleTables: (value: boolean) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -80,6 +82,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const reactFlow = useReactFlow();
     const [isInitialized, setIsInitialized] = useState(false);
     const [findTableText, setFindTableText] = useState<string>("");
+    const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
 
     useEffect(() => {
         const handleScript = () => {
@@ -130,9 +133,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     }, []);
 
     const initializeSchemaDesigner = async () => {
-        const model = (await extensionRpc.call(
-            "initializeSchemaDesigner",
-        )) as SchemaDesigner.CreateSessionResponse;
+        const model = await extensionRpc.sendRequest(
+            SchemaDesigner.InitializeSchemaDesignerRequest.type,
+        );
 
         const { nodes, edges } = flowUtils.generateSchemaDesignerFlowComponents(model.schema);
 
@@ -156,22 +159,20 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     };
 
     // Get the script from the server
-    const getScript = async () => {
+    const getDefinition = async () => {
         const schema = flowUtils.extractSchemaModel(
             reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
             reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
         );
-        const script = (await extensionRpc.call("getScript", {
+        const result = await extensionRpc.sendRequest(SchemaDesigner.GetDefinitionRequest.type, {
             updatedSchema: schema,
-        })) as SchemaDesigner.GenerateScriptResponse;
-        return script.combinedScript;
+        });
+        return result.script;
     };
 
     // Reducer callers
     const saveAsFile = (fileProps: SchemaDesigner.ExportFileOptions) => {
-        void extensionRpc.call("exportToFile", {
-            ...fileProps,
-        });
+        void extensionRpc.sendNotification(SchemaDesigner.ExportToFileNotification.type, fileProps);
     };
 
     const getReport = async () => {
@@ -183,28 +184,31 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
             return;
         }
 
-        const result = await extensionRpc.call("getReport", {
+        const result = await extensionRpc.sendRequest(SchemaDesigner.GetReportWebviewRequest.type, {
             updatedSchema: schema,
         });
         return result;
     };
 
     const copyToClipboard = (text: string) => {
-        void extensionRpc.call("copyToClipboard", {
+        void extensionRpc.sendNotification(SchemaDesigner.CopyToClipboardNotification.type, {
             text: text,
         });
     };
 
     const openInEditor = (text: string) => {
-        void extensionRpc.call("openInEditor", {
+        void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type, {
             text: text,
         });
     };
 
     const openInEditorWithConnection = (text: string) => {
-        void extensionRpc.call("openInEditorWithConnection", {
-            text: text,
-        });
+        void extensionRpc.sendNotification(
+            SchemaDesigner.OpenInEditorWithConnectionNotification.type,
+            {
+                text: text,
+            },
+        );
     };
 
     const extractSchema = () => {
@@ -230,9 +234,41 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
         const nodeWithPosition = updatedPositions.nodes.find((node) => node.id === table.id);
 
+        if (!nodeWithPosition) {
+            console.error("Node with position not found for table:", table);
+            return false;
+        }
+
         const edgesForNewTable = updatedPositions.edges.filter(
             (edge) => edge.source === table.id || edge.target === table.id,
         );
+
+        const visibleNodes = existingNodes.filter((n) => n.hidden !== true);
+
+        // If no node is present, use the default position
+        if (visibleNodes.length === 0) {
+            nodeWithPosition.position = {
+                x: 100,
+                y: 100,
+            };
+        } else {
+            // Bottommost node position
+            const bottomMostNode = visibleNodes
+                .filter((n) => n.hidden !== true)
+                .reduce((prev, current) => {
+                    // Consider the node's position and height
+                    const currentBottom =
+                        current.position.y + flowUtils.getTableHeight(current.data);
+                    const prevBottom = prev.position.y + flowUtils.getTableHeight(prev.data);
+                    return currentBottom > prevBottom ? current : prev;
+                });
+
+            // Position the new node below the bottommost node
+            nodeWithPosition.position = {
+                x: bottomMostNode.position.x,
+                y: bottomMostNode.position.y + flowUtils.getTableHeight(bottomMostNode.data) + 50,
+            };
+        }
 
         if (nodeWithPosition) {
             existingNodes.push(nodeWithPosition);
@@ -388,12 +424,18 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     };
 
     const publishSession = async () => {
-        const response = await extensionRpc.call("publishSession");
+        const schema = flowUtils.extractSchemaModel(
+            reactFlow.getNodes() as Node<SchemaDesigner.Table>[],
+            reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[],
+        );
+        const response = await extensionRpc.sendRequest(SchemaDesigner.PublishSessionRequest.type, {
+            schema: schema,
+        });
         return response;
     };
 
     const closeDesigner = () => {
-        void extensionRpc.call("closeDesigner", {});
+        void extensionRpc.sendNotification(SchemaDesigner.CloseSchemaDesignerNotification.type);
     };
 
     const resetUndoRedoState = () => {
@@ -420,7 +462,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 datatypes,
                 findTableText,
                 setFindTableText,
-                getScript,
+                getDefinition,
                 initializeSchemaDesigner,
                 saveAsFile,
                 getReport,
@@ -440,6 +482,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 closeDesigner,
                 resetUndoRedoState,
                 resetView,
+                renderOnlyVisibleTables,
+                setRenderOnlyVisibleTables,
             }}>
             {children}
         </SchemaDesignerContext.Provider>

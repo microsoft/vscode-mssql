@@ -39,7 +39,6 @@ type PublishChangesDialogState = {
     report: SchemaDesigner.GetReportResponse | undefined;
     reportError: string | undefined;
     isConfirmationChecked: boolean;
-    selectedReportId: string;
     reportTab: string;
     publishError: string | undefined;
     currentStage: PublishDialogStages;
@@ -59,6 +58,8 @@ const useStyles = makeStyles({
 export function PublishChangesDialogButton() {
     const classes = useStyles();
     const context = useContext(SchemaDesignerContext);
+    const [open, setOpen] = useState(false);
+    const [publishButtonDisabled, setPublishButtonDisabled] = useState(false);
     if (!context) {
         return undefined;
     }
@@ -67,7 +68,6 @@ export function PublishChangesDialogButton() {
         report: undefined,
         reportError: undefined,
         isConfirmationChecked: false,
-        selectedReportId: "",
         reportTab: "report",
         publishError: undefined,
         currentStage: PublishDialogStages.NotStarted,
@@ -83,6 +83,7 @@ export function PublishChangesDialogButton() {
                 appearance="subtle"
                 icon={<FluentIcons.DatabaseArrowUp16Filled />}
                 title={locConstants.schemaDesigner.publishChanges}
+                disabled={publishButtonDisabled}
                 onClick={async () => {
                     setState({
                         ...state,
@@ -90,6 +91,7 @@ export function PublishChangesDialogButton() {
                         reportError: undefined,
                         isConfirmationChecked: false,
                     });
+                    setPublishButtonDisabled(true);
                     const getReportResponse = await context.getReport();
                     if (getReportResponse.error) {
                         setState({
@@ -98,13 +100,12 @@ export function PublishChangesDialogButton() {
                             reportError: getReportResponse.error,
                         });
                     } else {
-                        if (getReportResponse.report.reports.length === 0) {
+                        if (!getReportResponse.report.hasSchemaChanged) {
                             setState({
                                 ...state,
                                 currentStage: PublishDialogStages.ReportSuccessNoChanges,
                                 reportError: undefined,
                                 report: getReportResponse.report,
-                                selectedReportId: "",
                             });
                         } else {
                             setState({
@@ -112,12 +113,12 @@ export function PublishChangesDialogButton() {
                                 currentStage: PublishDialogStages.ReportSuccessWithChanges,
                                 reportError: undefined,
                                 report: getReportResponse.report,
-                                selectedReportId:
-                                    getReportResponse.report?.reports[0]?.tableId ?? "",
                                 isConfirmationChecked: false,
                             });
                         }
                     }
+                    setOpen(true);
+                    setPublishButtonDisabled(false);
                 }}>
                 {locConstants.schemaDesigner.publishChanges}
             </Button>
@@ -390,9 +391,7 @@ export function PublishChangesDialogButton() {
                             appearance="secondary"
                             disabled={!isPublishButtonsEnabled()}
                             onClick={() => {
-                                context.openInEditorWithConnection(
-                                    state?.report?.updateScript ?? "",
-                                );
+                                context.openInEditorWithConnection();
                             }}>
                             {locConstants.schemaDesigner.openPublishScript}
                         </Button>
@@ -437,8 +436,8 @@ export function PublishChangesDialogButton() {
     };
 
     return (
-        <Dialog>
-            <DialogTrigger disableButtonEnhancement>{triggerButton()}</DialogTrigger>
+        <Dialog open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
+            {triggerButton()}
             <DialogSurface
                 style={{
                     width: "100%",

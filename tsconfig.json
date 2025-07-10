@@ -1,19 +1,7 @@
-{
-    "compileOnSave": true,
-    "compilerOptions": {
-        "outDir": "out",
-        "module": "CommonJS",
-        "target": "ES6",
-        "lib": ["es6", "ES2020", "dom"],
-        "sourceMap": true,
-        "allowUnusedLabels": false,
-        "allowSyntheticDefaultImports": true,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "jsx": "react-jsx",
-        "rootDir": ".",
-        "noUnusedLocals": true,
-        "skipLibCheck": true
-    },
-    "exclude": ["node_modules"]
-}
+ {
+   "files": [],
+   "references": [
+     { "path": "./tsconfig.extension.json" },
+     { "path": "./tsconfig.react.json" }
+   ]
+ }

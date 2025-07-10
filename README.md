@@ -1,9 +1,9 @@
-[![Build and Test (Unit + E2E)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml/badge.svg?branch=main&event=push)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml)
+[![Build and Test (Unit + E2E)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml)
 ![GitHub Discussions](https://img.shields.io/github/discussions/microsoft/vscode-mssql)
 
 # MSSQL extension for Visual Studio Code
 
-The [**MSSQL Extension for Visual Studio Code**](aka.ms/vscode-mssql) is designed to empower developers by providing a seamless and modern database development experience. Our goal is to make SQL development more productive and intuitive by integrating essential features such as schema management, query execution, and AI-powered assistance.
+The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql) is designed to empower developers by providing a seamless and modern database development experience. Our goal is to make SQL development more productive and intuitive by integrating essential features such as schema management, query execution, and AI-powered assistance.
 
 ## General Availability Features
 
@@ -14,6 +14,7 @@ The [**MSSQL Extension for Visual Studio Code**](aka.ms/vscode-mssql) is designe
   - Use Microsoft Entra ID authentication for secure access
   - Manage multiple connection profiles for different environments
   - Reconnect to frequently used databases in just a few clicks
+  - Organize your connections into color-coded groups to manage local, staging, and production environments side by side.
 - **Execute queries and View Results**: Run your scripts and view results in a simple, yet powerful, grid with improved data visualization features:
   - View results in a unified interface alongside the integrated terminal and output panels or in their own tab.
   - Sort results by clicking on column headers.
@@ -52,11 +53,18 @@ The [**MSSQL Extension for Visual Studio Code**](aka.ms/vscode-mssql) is designe
   - Explain stored procedures, views, and joins to speed up onboarding and debugging
   - Generate schema objects or test data in seconds
   - Identify risky patterns and improve SQL security practices
-- **Schema Compare (`Preview`)**: Effortless schema synchronization and management
-  - Compare schemas between two databases, DACPAC files, or SQL projects and see additions, removals, and modifications at a glance
-  - Filter and exclude specific differences before syncing
-  - Apply changes directly or generate a deployment script for later use
-  - Save comparisons to rerun or audit schema changes
+- **GitHub Copilot Agent Mode (`Preview`)**
+  - Use chat in Agent mode to connect, disconnect, or switch databases
+  - List servers and view available connections
+  - Show database schema contextually
+  - Access all available Agent tools from the Agent Tools panel
+- **Local SQL Server Containers (`Preview`)**
+  - Create and manage SQL Server containers locally without Docker commands
+  - Use SQL Server 2025 by default with vector and AI-ready features
+  - Auto-connect with a ready-to-use connection profile
+  - Start, stop, restart, or delete containers from the connection panel
+  - Automatic port conflict detection and resolution
+  - Customize container name, hostname, port, and version
 - **Schema Designer (`Preview`)**: Visual schema modeling and editing—code-free
   - Design, view, and manage database schemas using an intuitive drag-and-drop GUI
   - Add or modify tables, columns, primary keys, and foreign key relationships without writing T-SQL
@@ -64,6 +72,11 @@ The [**MSSQL Extension for Visual Studio Code**](aka.ms/vscode-mssql) is designe
   - Navigate large schemas easily with search, mini-map, zoom, and auto-layout
   - Export diagrams to share with your team or include in documentation
   - Push updates to your database using the built-in deployment
+- **Schema Compare (`Preview`)**: Effortless schema synchronization and management
+  - Compare schemas between two databases, DACPAC files, or SQL projects and see additions, removals, and modifications at a glance
+  - Filter and exclude specific differences before syncing
+  - Apply changes directly or generate a deployment script for later use
+  - Save comparisons to rerun or audit schema changes
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 

@@ -46,8 +46,10 @@ export function resolveVscodeThemeType(themeKind: ColorThemeKind): string {
 
 export function themeType(themeKind: ColorThemeKind): string {
     const themeType = resolveVscodeThemeType(themeKind);
-    if (themeType !== "light") {
+    if (themeType === "vs-dark") {
         return "dark";
+    } else if (themeType === "hc-black") {
+        return "highContrast";
     }
     return themeType;
 }
@@ -73,17 +75,17 @@ export function deepClone<T>(obj: T): T {
 }
 
 export function getCoreRPCs<TState, TReducers>(
-    webviewState: VscodeWebviewContext<TState, TReducers>,
+    webviewContext: VscodeWebviewContext<TState, TReducers>,
 ): any {
     return {
         log(message: string, level?: LoggerLevel) {
-            webviewState.extensionRpc.log(message, level);
+            webviewContext.extensionRpc.log(message, level);
         },
         sendActionEvent(event: WebviewTelemetryActionEvent) {
-            webviewState.extensionRpc.sendActionEvent(event);
+            webviewContext.extensionRpc.sendActionEvent(event);
         },
         sendErrorEvent(event: WebviewTelemetryErrorEvent) {
-            webviewState.extensionRpc.sendErrorEvent(event);
+            webviewContext.extensionRpc.sendErrorEvent(event);
         },
     };
 }

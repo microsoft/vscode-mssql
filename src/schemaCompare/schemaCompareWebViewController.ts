@@ -142,13 +142,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     ): Promise<void> {
         let source: mssql.SchemaCompareEndpointInfo;
 
-        let connectionProfile: IConnectionProfile | undefined = sourceContext
-            ? (sourceContext.connectionInfo as IConnectionProfile)
-            : undefined;
-
-        if (connectionProfile) {
+        const node = sourceContext as TreeNodeInfo;
+        if (node.connectionProfile) {
             source = await this.getEndpointInfoFromConnectionProfile(
-                connectionProfile,
+                node.connectionProfile,
                 sourceContext,
             );
         } else if (

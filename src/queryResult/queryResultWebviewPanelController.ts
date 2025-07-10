@@ -66,7 +66,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     }
 
     private registerRpcHandlers() {
-        this.registerRequestHandler("getWebviewLocation", async () => {
+        this.onRequest(qr.GetWebviewLocationRequest.type, async () => {
             return qr.QueryResultWebviewLocation.Document;
         });
         registerCommonRequestHandlers(this, this._correlationId);

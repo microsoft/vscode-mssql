@@ -11,15 +11,7 @@ export class SchemaDesignerService implements SchemaDesigner.ISchemaDesignerServ
     private _modelReadyListeners: ((modelReady: SchemaDesigner.SchemaDesignerSession) => void)[] =
         [];
 
-    constructor(private _sqlToolsClient: SqlToolsServiceClient) {
-        this.setUpEventListeners();
-    }
-
-    private setUpEventListeners(): void {
-        this._sqlToolsClient.onNotification(SchemaDesignerRequests.SchemaReady.type, (result) => {
-            this._modelReadyListeners.forEach((listener) => listener(result));
-        });
-    }
+    constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
 
     async createSession(
         request: SchemaDesigner.CreateSessionRequest,
@@ -39,6 +31,20 @@ export class SchemaDesignerService implements SchemaDesigner.ISchemaDesignerServ
         try {
             await this._sqlToolsClient.sendRequest(
                 SchemaDesignerRequests.DisposeSession.type,
+                request,
+            );
+        } catch (e) {
+            this._sqlToolsClient.logger.error(e);
+            throw e;
+        }
+    }
+
+    async getDefinition(
+        request: SchemaDesigner.GetDefinitionRequest,
+    ): Promise<SchemaDesigner.GetDefinitionResponse> {
+        try {
+            return await this._sqlToolsClient.sendRequest(
+                SchemaDesignerRequests.GetDefinition.type,
                 request,
             );
         } catch (e) {

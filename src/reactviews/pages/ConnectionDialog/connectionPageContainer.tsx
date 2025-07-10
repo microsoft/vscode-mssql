@@ -15,8 +15,23 @@ import {
     IConnectionDialogProfile,
     TrustServerCertDialogProps,
 } from "../../../sharedInterfaces/connectionDialog";
-import { Field, Image, Link, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
-import { Form20Regular } from "@fluentui/react-icons";
+import {
+    CREATE_NEW_GROUP_ID,
+    CreateConnectionGroupDialogProps,
+} from "../../../sharedInterfaces/connectionGroup";
+import {
+    Button,
+    Field,
+    Image,
+    Link,
+    makeStyles,
+    MessageBar,
+    MessageBarActions,
+    MessageBarBody,
+    Radio,
+    RadioGroup,
+} from "@fluentui/react-components";
+import { DismissRegular, Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
 
@@ -30,6 +45,8 @@ import { locConstants } from "../../common/locConstants";
 import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
+import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
@@ -40,9 +57,17 @@ function renderContent(connectionDialogContext: ConnectionDialogContextProps): R
     }
 }
 
+const useStyles = makeStyles({
+    inputLink: {
+        display: "flex",
+        alignItems: "center",
+    },
+});
+
 export const ConnectionInfoFormContainer = () => {
     const context = useContext(ConnectionDialogContext)!;
     const formStyles = useFormStyles();
+    const styles = useStyles();
 
     function azureIcon(colorTheme: ColorThemeKind) {
         const theme = themeType(colorTheme);
@@ -65,7 +90,19 @@ export const ConnectionInfoFormContainer = () => {
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                 {context.state.formError && (
                     <MessageBar intent="error" style={{ minHeight: "min-content" }}>
-                        {context.state.formError}
+                        <MessageBarBody style={{ padding: "8px 0" }}>
+                            {context.state.formError}
+                        </MessageBarBody>
+                        <MessageBarActions
+                            containerAction={
+                                <Button
+                                    onClick={context.closeMessage}
+                                    aria-label={locConstants.common.dismiss}
+                                    appearance="transparent"
+                                    icon={<DismissRegular />}
+                                />
+                            }
+                        />
                     </MessageBar>
                 )}
 
@@ -87,6 +124,13 @@ export const ConnectionInfoFormContainer = () => {
                         dialogProps={context.state.dialog as ConnectionStringDialogProps}
                     />
                 )}
+                {context.state.dialog?.type === "createConnectionGroup" && (
+                    <ConnectionGroupDialog
+                        state={(context.state.dialog as CreateConnectionGroupDialogProps).props}
+                        saveConnectionGroup={context.createConnectionGroup}
+                        closeDialog={context.closeDialog}
+                    />
+                )}
 
                 <FormField<
                     IConnectionDialogProfile,
@@ -102,6 +146,33 @@ export const ConnectionInfoFormContainer = () => {
                     props={{ orientation: "horizontal" }}
                 />
 
+                <FormField<
+                    IConnectionDialogProfile,
+                    ConnectionDialogWebviewState,
+                    ConnectionDialogFormItemSpec,
+                    ConnectionDialogContextProps
+                >
+                    context={context}
+                    component={
+                        context.state.formComponents["groupId"] as ConnectionDialogFormItemSpec
+                    }
+                    idx={0}
+                    props={{ orientation: "horizontal" }}
+                    componentProps={{
+                        onSelect: (option: SearchableDropdownOptions) => {
+                            if (option.value === CREATE_NEW_GROUP_ID) {
+                                context.openCreateConnectionGroupDialog();
+                            } else {
+                                context.formAction({
+                                    propertyName: "groupId",
+                                    isAction: false,
+                                    value: option.value,
+                                });
+                            }
+                        },
+                    }}
+                />
+
                 <div className={formStyles.formComponentDiv}>
                     <Field label="Input type" orientation="horizontal">
                         <RadioGroup
@@ -112,11 +183,7 @@ export const ConnectionInfoFormContainer = () => {
                             <Radio
                                 value={ConnectionInputMode.Parameters}
                                 label={
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                        }}>
+                                    <div className={styles.inputLink}>
                                         <Form20Regular style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.parameters}
                                         <span style={{ margin: "0 8px" }} />
@@ -133,11 +200,7 @@ export const ConnectionInfoFormContainer = () => {
                             <Radio
                                 value={ConnectionInputMode.AzureBrowse}
                                 label={
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                        }}>
+                                    <div className={styles.inputLink}>
                                         <Image
                                             src={azureIcon(context.themeKind)}
                                             alt="Azure"
@@ -146,6 +209,14 @@ export const ConnectionInfoFormContainer = () => {
                                             style={{ marginRight: "8px" }}
                                         />
                                         {locConstants.connectionDialog.browseAzure}
+                                        <span style={{ margin: "0 8px" }} />
+                                        <Link
+                                            onClick={() => {
+                                                context.signIntoAzureForBrowse();
+                                            }}
+                                            inline>
+                                            {locConstants.azure.signIntoAzure}
+                                        </Link>
                                     </div>
                                 }
                             />

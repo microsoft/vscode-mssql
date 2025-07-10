@@ -24,6 +24,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     constructor(
         private _vscodeWrapper: VscodeWrapper,
         connectionManager: ConnectionManager,
+        private _isRichExperienceEnabled: boolean = true,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -35,6 +36,7 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
             (node) => {
                 this.refresh(node);
             },
+            this._isRichExperienceEnabled,
         );
     }
 
@@ -57,6 +59,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         }
     }
 
+    public async setNodeLoading(node: TreeNodeInfo): Promise<void> {
+        await this._objectExplorerService.setLoadingUiForNode(node);
+    }
+
     public async createSession(
         connectionCredentials?: IConnectionInfo,
     ): Promise<CreateSessionResult> {
@@ -71,8 +77,15 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         return this._objectExplorerService.expandNode(node, sessionId, promise);
     }
 
-    public async removeNode(node: ConnectionNode): Promise<void> {
-        await this._objectExplorerService.removeNode(node);
+    public async removeNode(
+        node: ConnectionNode,
+        showUserConfirmationPrompt?: boolean,
+    ): Promise<void> {
+        if (showUserConfirmationPrompt !== undefined) {
+            await this._objectExplorerService.removeNode(node, showUserConfirmationPrompt);
+        } else {
+            await this._objectExplorerService.removeNode(node);
+        }
     }
 
     public async disconnectNode(node: ConnectionNode): Promise<void> {
@@ -86,6 +99,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     }
 
     public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
+        if (connections.length === 0) {
+            return;
+        }
+
         await this._objectExplorerService.removeConnectionNodes(connections);
         this.refresh(undefined);
     }
@@ -98,8 +115,12 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._objectExplorerService.cleanNodeChildren(node);
     }
 
-    public get rootNodeConnections(): IConnectionInfo[] {
-        return this._objectExplorerService.rootNodeConnections;
+    public get connections(): IConnectionProfile[] {
+        return this._objectExplorerService.connections;
+    }
+
+    public get objectExplorerService(): ObjectExplorerService {
+        return this._objectExplorerService;
     }
 
     /* Only for testing purposes */
