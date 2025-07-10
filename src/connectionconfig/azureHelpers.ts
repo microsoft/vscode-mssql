@@ -153,6 +153,50 @@ export class VsCodeAzureHelper {
             displayName: sub.name,
         }));
     }
+
+    public static async fetchResourcesForSubscription(
+        sub: AzureSubscription,
+    ): Promise<GenericResourceExpanded[]> {
+        const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
+        const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
+        return resources;
+    }
+
+    public static async fetchServersFromAzure(
+        sub: AzureSubscription,
+    ): Promise<AzureSqlServerInfo[]> {
+        const result: AzureSqlServerInfo[] = [];
+
+        const resources = await this.fetchResourcesForSubscription(sub);
+
+        // for some subscriptions, supplying a `resourceType eq 'Microsoft.Sql/servers/databases'` filter to list() causes an error:
+        // > invalid filter in query string 'resourceType eq "Microsoft.Sql/servers/databases"'
+        // no idea why, so we're fetching all resources and filtering them ourselves
+
+        const servers = resources.filter((r) => r.type === serverResourceType);
+        const databases = resources.filter((r) => r.type === databaseResourceType);
+
+        for (const server of servers) {
+            result.push({
+                server: server.name,
+                databases: [],
+                location: server.location,
+                resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
+                subscription: `${sub.name} (${sub.subscriptionId})`,
+                uri: buildServerUri(server),
+            });
+        }
+
+        for (const database of databases) {
+            const serverName = extractFromResourceId(database.id, "servers");
+            const server = result.find((s) => s.server === serverName);
+            if (server) {
+                server.databases.push(database.name.substring(serverName.length + 1)); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
+            }
+        }
+
+        return result;
+    }
 }
 
 /**
@@ -232,48 +276,6 @@ export async function getSubscriptionQuickPickItems(
 
 const serverResourceType = "Microsoft.Sql/servers";
 const databaseResourceType = "Microsoft.Sql/servers/databases";
-
-export async function fetchResourcesForSubscription(
-    sub: AzureSubscription,
-): Promise<GenericResourceExpanded[]> {
-    const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
-    const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
-    return resources;
-}
-
-export async function fetchServersFromAzure(sub: AzureSubscription): Promise<AzureSqlServerInfo[]> {
-    const result: AzureSqlServerInfo[] = [];
-
-    const resources = await fetchResourcesForSubscription(sub);
-
-    // for some subscriptions, supplying a `resourceType eq 'Microsoft.Sql/servers/databases'` filter to list() causes an error:
-    // > invalid filter in query string 'resourceType eq "Microsoft.Sql/servers/databases'"
-    // no idea why, so we're fetching all resources and filtering them ourselves
-
-    const servers = resources.filter((r) => r.type === serverResourceType);
-    const databases = resources.filter((r) => r.type === databaseResourceType);
-
-    for (const server of servers) {
-        result.push({
-            server: server.name,
-            databases: [],
-            location: server.location,
-            resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
-            subscription: `${sub.name} (${sub.subscriptionId})`,
-            kind: server.kind,
-        });
-    }
-
-    for (const database of databases) {
-        const serverName = extractFromResourceId(database.id, "servers");
-        const server = result.find((s) => s.server === serverName);
-        if (server) {
-            server.databases.push(database.name.substring(serverName.length + 1)); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
-        }
-    }
-
-    return result;
-}
 
 //#endregion
 
@@ -457,6 +459,15 @@ export function extractFromResourceId(resourceId: string, property: string): str
     }
 
     return resourceId.substring(startIndex, endIndex);
+}
+
+export function buildServerUri(serverResource: GenericResourceExpanded): string {
+    const suffix = serverResource.kind.includes("analytics")
+        ? "sql.azuresynapse.net"
+        : "database.windows.net";
+
+    // Construct the URI based on the server kind
+    return `${serverResource.name}.${suffix}`;
 }
 
 //#endregion

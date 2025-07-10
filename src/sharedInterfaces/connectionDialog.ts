@@ -100,7 +100,7 @@ export interface AzureSqlServerInfo {
     location: string;
     resourceGroup: string;
     subscription: string;
-    kind?: string;
+    uri: string;
 }
 
 export interface ConnectionComponentsInfo {

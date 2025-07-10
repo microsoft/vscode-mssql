@@ -10,6 +10,7 @@ import { AzureSubscription, AzureTenant } from "@microsoft/vscode-azext-azureaut
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 import { AzureSqlServerInfo } from "../../src/sharedInterfaces/connectionDialog";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
+import { GenericResourceExpanded } from "@azure/arm-resources";
 
 export const mockSubscriptions = [
     {
@@ -55,6 +56,56 @@ export const mockAccounts = [
     },
 ] as vscode.AuthenticationSessionAccountInformation[];
 
+const mockServerName = "testServer";
+
+export const mockAzureResources = {
+    azureSqlDbServer: {
+        id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Sql/servers/${mockServerName}`,
+        name: mockServerName,
+        type: "Microsoft.Sql/servers",
+        location: "eastus2",
+        tags: {},
+        kind: "v12.0",
+    } as GenericResourceExpanded,
+    azureSqlDbDatabase1: {
+        id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Sql/servers/${mockServerName}/databases/master`,
+        name: `${mockServerName}/master`,
+        type: "Microsoft.Sql/servers/databases",
+        location: "eastus2",
+        kind: "v12.0,system",
+    } as GenericResourceExpanded,
+    azureSqlDbDatabase2: {
+        id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Sql/servers/${mockServerName}/databases/testDatabase`,
+        name: `${mockServerName}/testDatabase`,
+        type: "Microsoft.Sql/servers/databases",
+        location: "eastus2",
+        tags: {},
+        kind: "v12.0,user,vcore,serverless",
+    } as GenericResourceExpanded,
+    azureSynapseAnalyticsServer: {
+        id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/synapseworkspace-managedrg-c84a69f0-b14e-4c86-b27a-1cefe6d68262/providers/Microsoft.Sql/servers/${mockServerName}-synapse`,
+        name: `${mockServerName}-synapse`,
+        type: "Microsoft.Sql/servers",
+        location: "eastus2",
+        kind: "v12.0,analytics",
+    } as GenericResourceExpanded,
+    nonDatabaseResource: {
+        id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Storage/storageAccounts/testStorage`,
+        name: `testStorage`,
+        type: "Microsoft.Storage/storageAccounts",
+        location: "eastus2",
+        kind: "StorageV2",
+    } as GenericResourceExpanded,
+};
+
+export const mockAzureResourceList = [
+    mockAzureResources.azureSqlDbServer,
+    mockAzureResources.azureSqlDbDatabase1,
+    mockAzureResources.azureSqlDbDatabase2,
+    mockAzureResources.azureSynapseAnalyticsServer,
+    mockAzureResources.nonDatabaseResource,
+];
+
 export function stubIsSignedIn(sandbox: Sinon.SinonSandbox, result: boolean) {
     return sandbox.stub(AzureHelpers.VsCodeAzureHelper, "isSignedIn").resolves(result);
 }
@@ -73,7 +124,7 @@ export function stubVscodeAzureHelperGetAccounts(sandbox: sinon.SinonSandbox) {
 
 export function stubFetchServersFromAzure(sandbox: sinon.SinonSandbox) {
     return sandbox
-        .stub(AzureHelpers, "fetchServersFromAzure")
+        .stub(AzureHelpers.VsCodeAzureHelper, "fetchServersFromAzure")
         .callsFake(async (sub: AzureSubscription) => {
             return [
                 {

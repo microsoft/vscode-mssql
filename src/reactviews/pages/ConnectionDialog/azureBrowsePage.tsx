@@ -46,14 +46,14 @@ export const azureLogoColor = () => {
 
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
+    if (context === undefined) {
+        return undefined;
+    }
+
     const formStyles = useFormStyles();
     const styles = useStyles();
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
-
-    if (context === undefined) {
-        return undefined;
-    }
 
     const [subscriptions, setSubscriptions] = useState<string[]>([]);
     const [selectedSubscription, setSelectedSubscription] = useState<string | undefined>(undefined);
@@ -83,7 +83,15 @@ export const AzureBrowsePage = () => {
         }
 
         setSelectedServer(server);
-        setConnectionProperty("server", server ? server + ".database.windows.net" : "");
+
+        let serverUri = "";
+
+        if (server) {
+            const srv = context?.state.azureServers.find((s) => s.server === server);
+            serverUri = srv?.uri || "";
+        }
+
+        setConnectionProperty("server", serverUri);
     }
 
     // #region Effects
