@@ -44,11 +44,12 @@ export function FilterTablesButton() {
         if (allVisible === nodes.length) {
             // All tables are visible, clear the selection
             setSelectedTables([]);
+        } else {
+            const visibleTables = nodes
+                .filter((node) => !node.hidden && node.style?.opacity !== 0.6)
+                .map((node) => `${node.data.schema}.${node.data.name}`);
+            setSelectedTables(visibleTables);
         }
-        // If some tables are filtered and relationships toggle is on,
-        // preserve the current selectedTables state (don't modify it)
-        // Only when all tables are visible should we clear the selection
-
         setFilterText("");
     }
 
