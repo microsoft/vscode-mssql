@@ -4243,6 +4243,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">The description of the connection group.</source>
         <target state="translated">연결 그룹의 설명입니다.</target>
       </trans-unit>
+      <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+        <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
+        <target state="new">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</target>
+      </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
         <target state="translated">연결 목록에 저장할 최근에 사용한 최대 연결 수입니다.</target>
