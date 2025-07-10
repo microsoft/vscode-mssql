@@ -3751,10 +3751,6 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
         <source xml:lang="en">Delete Container</source>
         <target state="translated">Eliminar contenedor</target>
       </trans-unit>
-      <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
-        <target state="translated">Esquema de diseño (versión preliminar)</target>
-      </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>
         <target state="translated">Deshabilitar plan real</target>
@@ -4110,6 +4106,10 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare (Preview)</source>
         <target state="translated">Comparación de esquemas (versión preliminar)</target>
+      </trans-unit>
+      <trans-unit id="mssql.schemaDesigner">
+        <source xml:lang="en">Schema Designer (Preview)</source>
+        <target state="new">Schema Designer (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
