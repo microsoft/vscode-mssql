@@ -2367,6 +2367,41 @@
                 "toolReferenceName": "mssql_list_functions",
                 "userDescription": "List all functions in a database for a connected MSSQL server.",
                 "icon": "$(symbol-function)"
+            },
+            {
+                "name": "mssql_run_query",
+                "modelDescription": "Execute a SQL query against a connected MSSQL database. Returns query results including row count, column information, and data rows. Use this tool to run SELECT, INSERT, UPDATE, DELETE, or other SQL statements.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "query",
+                    "execute",
+                    "sql"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to execute the query against.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "query": {
+                            "description": "SQL query to execute.",
+                            "title": "SQL Query",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId",
+                        "query"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Run MSSQL Query",
+                "toolReferenceName": "mssql_run_query",
+                "userDescription": "Execute a SQL query against a connected MSSQL database.",
+                "icon": "$(play)"
             }
         ]
     }

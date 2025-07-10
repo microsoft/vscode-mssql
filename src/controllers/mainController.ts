@@ -78,6 +78,7 @@ import { ListTablesTool } from "../copilot/tools/listTablesTool";
 import { ListSchemasTool } from "../copilot/tools/listSchemasTool";
 import { ListViewsTool } from "../copilot/tools/listViewsTool";
 import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
+import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
@@ -698,6 +699,14 @@ export default class MainController implements vscode.Disposable {
             vscode.lm.registerTool(
                 Constants.copilotListFunctionsToolName,
                 new ListFunctionsTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_run_query tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotRunQueryToolName,
+                new RunQueryTool(this.connectionManager, SqlToolsServerClient.instance),
             ),
         );
     }

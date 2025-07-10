@@ -1687,6 +1687,20 @@
       "{0} is the connection ID"
     ]
   },
+  "Run Query": "Run Query",
+  "Run query on connection '{0}'?\n\nQuery: {1}/{0} is the connection ID{1} is the SQL query": {
+    "message": "Run query on connection '{0}'?\n\nQuery: {1}",
+    "comment": [
+      "{0} is the connection ID",
+      "{1} is the SQL query"
+    ]
+  },
+  "Running query on connection '{0}'/{0} is the connection ID": {
+    "message": "Running query on connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
     "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
