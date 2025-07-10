@@ -87,11 +87,11 @@ export const ConnectionInfoFormContainer = () => {
     function getAzureAccountsText(): string {
         switch (context.state.azureAccounts.length) {
             case 0:
-                return "Not signed in";
+                return locConstants.azure.notSignedIn;
             case 1:
                 return context.state.azureAccounts[0];
             default:
-                return `${context.state.azureAccounts.length} accounts`;
+                return locConstants.azure.nAccounts(context.state.azureAccounts.length);
         }
     }
 
@@ -227,12 +227,16 @@ export const ConnectionInfoFormContainer = () => {
                                                 <>
                                                     {context.state.azureAccounts.length === 0 && (
                                                         <span>
-                                                            Click to sign into an Azure account.
+                                                            {
+                                                                locConstants.azure
+                                                                    .clickToSignIntoAnAzureAccount
+                                                            }
                                                         </span>
                                                     )}
                                                     {context.state.azureAccounts.length > 0 && (
                                                         <>
-                                                            Currently signed in as: <br />
+                                                            {locConstants.azure.currentlySignedInAs}
+                                                            <br />
                                                             <ul>
                                                                 {context.state.azureAccounts.map(
                                                                     (account) => (

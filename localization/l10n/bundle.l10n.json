@@ -282,8 +282,17 @@
   "Search settings...": "Search settings...",
   "You must be signed into Azure in order to browse SQL databases.": "You must be signed into Azure in order to browse SQL databases.",
   "Sign into Azure": "Sign into Azure",
+  "Not signed in": "Not signed in",
   "Azure Account": "Azure Account",
   "+ Add Azure Account": "+ Add Azure Account",
+  "{0} accounts/{0} is the number of accounts": {
+    "message": "{0} accounts",
+    "comment": [
+      "{0} is the number of accounts"
+    ]
+  },
+  "Click to sign into an Azure account": "Click to sign into an Azure account",
+  "Currently signed in as:": "Currently signed in as:",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",

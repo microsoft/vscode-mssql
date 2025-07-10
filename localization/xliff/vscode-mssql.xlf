@@ -449,6 +449,9 @@
     <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
       <source xml:lang="en">Click to connect to a database</source>
     </trans-unit>
+    <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
+      <source xml:lang="en">Click to sign into an Azure account</source>
+    </trans-unit>
     <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
       <source xml:lang="en">Close</source>
     </trans-unit>
@@ -721,6 +724,9 @@
     </trans-unit>
     <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
+      <source xml:lang="en">Currently signed in as:</source>
     </trans-unit>
     <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
       <source xml:lang="en">Custom Zoom</source>
@@ -1659,6 +1665,9 @@
     </trans-unit>
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
+    </trans-unit>
+    <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
+      <source xml:lang="en">Not signed in</source>
     </trans-unit>
     <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
       <source xml:lang="en">Not started</source>
@@ -2682,6 +2691,10 @@
     </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
+      <source xml:lang="en">{0} accounts</source>
+      <note>{0} is the number of accounts</note>
     </trans-unit>
     <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
       <source xml:lang="en">{0} column data</source>
