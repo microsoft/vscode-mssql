@@ -141,7 +141,7 @@ export const ContainerInputForm: React.FC = () => {
                         componentProps={{
                             onSelect: (option: SearchableDropdownOptions) => {
                                 if (option.value === CREATE_NEW_GROUP_ID) {
-                                    state.setConnectionGroupDialogState(false); // isOpen is false when opening the dialog
+                                    state.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
                                 } else {
                                     state.formAction({
                                         propertyName: "groupId",

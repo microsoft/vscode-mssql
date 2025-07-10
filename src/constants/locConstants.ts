@@ -698,9 +698,13 @@ export class FirewallRule {
 }
 
 export class Azure {
-    public static azureSignInFailedOrWasCancelled = l10n.t(
-        "Azure sign-in failed or was cancelled.",
-    );
+    public static errorSigningIntoAzure(arg0: string): string {
+        return l10n.t({
+            message: "Error signing into Azure: {0}",
+            args: [arg0],
+            comment: ["{0} is the error message"],
+        });
+    }
 
     public static errorLoadingAzureAccountInfoForTenantId = (tenantId: string) => {
         return l10n.t({
@@ -1121,8 +1125,21 @@ export class Connection {
             comment: ["{0} is the connection id", "{1} is the error message"],
         });
     };
+    public static noAccountSelected = l10n.t("No account selected");
+    public static currentAccount = (accountDisplayName: string) => {
+        return l10n.t({
+            message: "{0} (Current Account)",
+            args: [accountDisplayName],
+            comment: ["{0} is the account display name"],
+        });
+    };
+    public static signInToAzure = l10n.t("Sign in to a new account");
+    public static SelectAccountForKeyVault = l10n.t(
+        "Select Azure account with Key Vault access for column decryption",
+    );
+    public static NoTenantSelected = l10n.t("No tenant selected");
+    public static SelectTenant = l10n.t("Select a tenant");
 }
-
 export class MssqlChatAgent {
     public static noModelFound = l10n.t("No model found.");
     public static noToolsToProcess = l10n.t("No tools to process.");
@@ -1380,6 +1397,66 @@ export class MssqlChatAgent {
             message: "Failed to connect to database: {0}",
             args: [database],
             comment: ["{0} is the database name"],
+        });
+    };
+    public static ListTablesToolConfirmationTitle = l10n.t("List Tables");
+    public static ListTablesToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List tables for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListTablesToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing tables for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListSchemasToolConfirmationTitle = l10n.t("List Schemas");
+    public static ListSchemasToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List schemas for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListSchemasToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing schemas for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListViewsToolConfirmationTitle = l10n.t("List Views");
+    public static ListViewsToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List views for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListViewsToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing views for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListFunctionsToolConfirmationTitle = l10n.t("List Functions");
+    public static ListFunctionsToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List functions for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListFunctionsToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing functions for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
         });
     };
 }

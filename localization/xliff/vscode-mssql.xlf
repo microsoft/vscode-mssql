@@ -13,6 +13,9 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
+    <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
+      <source xml:lang="en">+ Add Azure Account</source>
+    </trans-unit>
     <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
       <source xml:lang="en">+ Create Connection Group</source>
     </trans-unit>
@@ -228,9 +231,6 @@
     </trans-unit>
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++bcfba23612af01d6083c1cbc352807182aa4a2a08665615d5e75206766e035c0">
-      <source xml:lang="en">Azure sign-in failed or was cancelled.</source>
     </trans-unit>
     <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
       <source xml:lang="en">Azure token cache cleared successfully.</source>
@@ -957,6 +957,10 @@
     <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
       <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7c03518af7ea8058b9f5444011cc402ee48c86c765dfd6ba8e5ce09ed8d836ca">
+      <source xml:lang="en">Error signing into Azure: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
       <source xml:lang="en">Error when refreshing token</source>
     </trans-unit>
@@ -1366,6 +1370,18 @@
     <trans-unit id="++CODE++b993796f53424becc0d08d41a72c0c3381ee7691cc518bc8bdccc8d4013ad4ef">
       <source xml:lang="en">List Databases</source>
     </trans-unit>
+    <trans-unit id="++CODE++e5c4507bf20d72d00bff4c289eb11be5c9a297933beec5db5969eb33b7bc5690">
+      <source xml:lang="en">List Functions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b795cd3bad85a0e394c340640be776b2c7765598fd7ac3dc8d2430baf78e77a">
+      <source xml:lang="en">List Schemas</source>
+    </trans-unit>
+    <trans-unit id="++CODE++00806af7575cfd81acd74e3d602bb671403cbddfdf02754be73db121177d235f">
+      <source xml:lang="en">List Tables</source>
+    </trans-unit>
+    <trans-unit id="++CODE++68053ffe844804d37eced757d4d0582e750a9b20d8ec5084aaab907846177b86">
+      <source xml:lang="en">List Views</source>
+    </trans-unit>
     <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
       <source xml:lang="en">List all connections registered with the mssql extension?</source>
     </trans-unit>
@@ -1373,12 +1389,44 @@
       <source xml:lang="en">List databases for connection &apos;{0}&apos;?</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++b1eb24f69841df721c66f542d63319e22c5d55ea1bee75d7e60c451023e6c3d2">
+      <source xml:lang="en">List functions for connection &apos;{0}&apos;?</source>
+      <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f9fdea6ffd1d5c93340eff3cb4b0f75abcada7d160a99fd8f3092b3632661d84">
+      <source xml:lang="en">List schemas for connection &apos;{0}&apos;?</source>
+      <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f6f60c2f7be85c72c70f3e1803f001d9b89cf11c25d82a6a16ddb4835b2bdc3f">
+      <source xml:lang="en">List tables for connection &apos;{0}&apos;?</source>
+      <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a951e5e9bc9076528c081d96624e0a6b73e1ae9034bc9aa4c1e8bd77e9dffcc4">
+      <source xml:lang="en">List views for connection &apos;{0}&apos;?</source>
+      <note>{0} is the connection ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5">
       <source xml:lang="en">Listing databases for connection &apos;{0}&apos;</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++6c5a3eebc541922b6846fac5140eecc1c8cca7d49fd516d6d492b823bd080339">
+      <source xml:lang="en">Listing functions for connection &apos;{0}&apos;</source>
+      <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++33ed9f224eba0860b9cfb0063fdbd1680208c1e358cecb479c7bd8c46236000e">
+      <source xml:lang="en">Listing schemas for connection &apos;{0}&apos;</source>
+      <note>{0} is the connection ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
       <source xml:lang="en">Listing server connections</source>
+    </trans-unit>
+    <trans-unit id="++CODE++22f9095eec94b234a5b2eee74a4c22e23b42d785b67c2027c13fd5b309a93ffa">
+      <source xml:lang="en">Listing tables for connection &apos;{0}&apos;</source>
+      <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d77ec2c188180112be2e819880b4ea2a8f5f86ec8917db4e18c39bcd02cacc10">
+      <source xml:lang="en">Listing views for connection &apos;{0}&apos;</source>
+      <note>{0} is the connection ID</note>
     </trans-unit>
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
@@ -1543,6 +1591,9 @@
     <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
       <source xml:lang="en">No Queries Available</source>
     </trans-unit>
+    <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
+      <source xml:lang="en">No account selected</source>
+    </trans-unit>
     <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
       <source xml:lang="en">No changes detected</source>
     </trans-unit>
@@ -1578,6 +1629,9 @@
     </trans-unit>
     <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
       <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b77c82c64fb4c0907bfdbdcd893ae285b16a8ef67c42e1ecc6ee3d28fe71e708">
+      <source xml:lang="en">No tenant selected</source>
     </trans-unit>
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
@@ -2034,6 +2088,9 @@
     <trans-unit id="++CODE++d1ec69e64b9609d089aae09f7adc5c566d2cd222f8d8325f0ab3b523f0ac2690">
       <source xml:lang="en">Select All</source>
     </trans-unit>
+    <trans-unit id="++CODE++3052f090b2dd0312f6564fb52c1f06b0efbe9fd7c77fdf38dcb96b4521b06b24">
+      <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
+    </trans-unit>
     <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
       <source xml:lang="en">Select Source</source>
     </trans-unit>
@@ -2150,6 +2207,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
       <source xml:lang="en">Sign in</source>
+    </trans-unit>
+    <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
+      <source xml:lang="en">Sign in to a new account</source>
     </trans-unit>
     <trans-unit id="++CODE++09a0ee357e3b34ac30c4ae61fcfbcfde87c6941a213e8e60d146e7942c0d76bc">
       <source xml:lang="en">Sign in to your Azure subscription</source>
@@ -2524,6 +2584,9 @@
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
     </trans-unit>
+    <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
+      <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
+    </trans-unit>
     <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
       <source xml:lang="en">You must review and accept the terms to proceed</source>
     </trans-unit>
@@ -2611,6 +2674,10 @@
     </trans-unit>
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
+    </trans-unit>
+    <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
+      <source xml:lang="en">{0} (Current Account)</source>
+      <note>{0} is the account display name</note>
     </trans-unit>
     <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
       <source xml:lang="en">{0} (Preview)</source>

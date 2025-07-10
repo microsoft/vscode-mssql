@@ -573,4 +573,13 @@ export default class SqlToolsServiceClient {
             return this.client.onNotification(type, handler);
         }
     }
+
+    public onRequest<P, R, E, R0>(
+        type: RequestType<P, R, E, R0>,
+        handler: (params: P) => Thenable<R> | R,
+    ): void {
+        if (this._client !== undefined) {
+            return this.client.onRequest(type, handler);
+        }
+    }
 }
