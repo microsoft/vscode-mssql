@@ -12,7 +12,7 @@ import {
     Button,
     ListItem,
     List,
-    ToggleButton,
+    Switch,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
@@ -287,13 +287,11 @@ export function FilterTablesButton() {
                         borderTop: "1px solid var(--vscode-editorWidget-border)",
                         borderBottom: "1px solid var(--vscode-editorWidget-border)",
                     }}>
-                    <ToggleButton
-                        size="small"
+                    <Switch
                         checked={showTableRelationships}
-                        onClick={() => setShowTableRelationships(!showTableRelationships)}
-                        icon={<FluentIcons.FlowRegular />}>
-                        {locConstants.schemaDesigner.showTableRelationships}
-                    </ToggleButton>
+                        label={locConstants.schemaDesigner.showTableRelationships}
+                        onChange={() => setShowTableRelationships(!showTableRelationships)}
+                    />
                 </div>
                 <div
                     style={{
