@@ -199,7 +199,12 @@ export default class StatusView implements vscode.Disposable {
     ): Promise<void> {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdChooseDatabase;
-        bar.statusConnection.text = `$(check) ${ConnInfo.getConnectionDisplayString(connCreds, true)}`;
+
+        let statusBarConnectionInfoMaxLength: number = vscode.workspace
+            .getConfiguration(Constants.extensionConfigSectionName)
+            .get(Constants.configStatusBarConnectionInfoMaxLength);
+        bar.statusConnection.text = `$(check) ${ConnInfo.getConnectionDisplayString(connCreds, statusBarConnectionInfoMaxLength)}`;
+
         bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
         bar.connectionId = (connCreds as IConnectionProfile).id || undefined;
 
