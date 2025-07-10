@@ -18,7 +18,6 @@ import {
     CompletionExtLoadRequest,
     RebuildIntelliSenseNotification,
 } from "../models/contracts/languageService";
-import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import * as Utils from "../models/utils";
 import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
@@ -67,6 +66,7 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
@@ -88,6 +88,7 @@ import {
 } from "../containerDeployment/dockerUtils";
 import { StateChangeNotification } from "../sharedInterfaces/webview";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
+import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 
 /**
  * The main controller class that initializes the extension
@@ -127,6 +128,7 @@ export default class MainController implements vscode.Disposable {
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
+    public connectionSharingService: ConnectionSharingService;
 
     /**
      * The main controller constructor
@@ -537,6 +539,14 @@ export default class MainController implements vscode.Disposable {
 
             this.schemaDesignerService = new SchemaDesignerService(SqlToolsServerClient.instance);
 
+            this.connectionSharingService = new ConnectionSharingService(
+                this._context,
+                this._connectionMgr.client,
+                this._connectionMgr,
+                this._vscodeWrapper,
+                this._scriptingService,
+            );
+
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
                 this._vscodeWrapper,
@@ -718,7 +728,11 @@ export default class MainController implements vscode.Disposable {
                 }
             }
 
-            const selectStatement = await this._scriptingService.script(node, nodeUri, operation);
+            const selectStatement = await this._scriptingService.scriptTreeNode(
+                node,
+                nodeUri,
+                operation,
+            );
             const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
             let uri = editor.document.uri.toString(true);
             let scriptingObject = this._scriptingService.getObjectFromNode(node);

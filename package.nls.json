@@ -220,5 +220,7 @@
     "mssql.walkthroughs.nextSteps.objectExplorerFilters.title": "Filter your Object Explorer Tree",
     "mssql.walkthroughs.nextSteps.objectExplorerFilters.description": "Only see the database objects that matter most to you by applying filters to the Object Explorer tree.\nStart by clicking the filter button next to most folders in the Connections view.",
     "mssql.walkthroughs.nextSteps.objectExplorerFilters.altText": "Object Explorer filters",
+    "mssql.connectionSharing.editConnectionSharingPermissions": "Edit Connection Sharing Permissions",
+    "mssql.connectionSharing.clearAllConnectionSharingPermissions": "Clear All Connection Sharing Permissions",
     "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit."
 }

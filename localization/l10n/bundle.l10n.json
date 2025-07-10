@@ -1688,6 +1688,29 @@
     ]
   },
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
+  "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
+    "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
+    "comment": [
+      "{0} is the extension name"
+    ]
+  },
+  "Approve": "Approve",
+  "Deny": "Deny",
+  "✅ Grant Access": "✅ Grant Access",
+  "✅ Grant Access (Current)": "✅ Grant Access (Current)",
+  "❌ Deny Access": "❌ Deny Access",
+  "❌ Deny Access (Current)": "❌ Deny Access (Current)",
+  "Allow this extension to access your connections": "Allow this extension to access your connections",
+  "Block this extension from accessing your connections": "Block this extension from accessing your connections",
+  "Select an extension to manage connection sharing permissions": "Select an extension to manage connection sharing permissions",
+  "Select new permission for extension: '{0}'/{0} is the extension name": {
+    "message": "Select new permission for extension: '{0}'",
+    "comment": [
+      "{0} is the extension name"
+    ]
+  },
+  "Clear permissions for all extensions to access your connections": "Clear permissions for all extensions to access your connections",
+  "All permissions for extensions to access your connections have been cleared.": "All permissions for extensions to access your connections have been cleared.",
   "Create Connection Group": "Create Connection Group",
   "Edit Connection Group - {0}/{0} is the connection group name": {
     "message": "Edit Connection Group - {0}",
