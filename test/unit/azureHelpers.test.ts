@@ -10,8 +10,15 @@ import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import { Logger } from "../../src/models/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
-import { mockAccounts, mockSubscriptions, mockTenants } from "./azureHelperStubs";
+import {
+    mockAccounts,
+    mockAzureResourceList,
+    mockAzureResources,
+    mockSubscriptions,
+    mockTenants,
+} from "./azureHelperStubs";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
+import { GenericResourceExpanded } from "@azure/arm-resources";
 
 suite("Azure Helpers", () => {
     let sandbox: sinon.SinonSandbox;
@@ -190,5 +197,42 @@ suite("Azure Helpers", () => {
 
         result = azureHelpers.extractFromResourceId(resourceId, "fakeProperty");
         expect(result).to.be.undefined;
+    });
+
+    test("fetchServersFromAzure", async () => {
+        sandbox
+            .stub(azureHelpers.VsCodeAzureHelper, "fetchResourcesForSubscription")
+            .resolves(mockAzureResourceList);
+
+        const servers = await azureHelpers.VsCodeAzureHelper.fetchServersFromAzure(
+            mockSubscriptions[0],
+        );
+
+        expect(servers).to.have.lengthOf(2);
+        expect(servers[0].server).to.equal(mockAzureResources.azureSqlDbServer.name);
+        expect(servers[0].databases).to.deep.equal(["master", "testDatabase"]);
+        expect(servers[1].server).to.equal(mockAzureResources.azureSynapseAnalyticsServer.name);
+    });
+
+    test("buildServerUri", () => {
+        const serverResource = {
+            name: "test-server",
+            kind: "v12",
+        } as GenericResourceExpanded;
+
+        // Case: Azure SQL DB server
+        const uri = azureHelpers.buildServerUri(serverResource);
+        expect(uri).to.equal(
+            "test-server.database.windows.net",
+            "Expected URI for Azure SQL DB is incorrect",
+        );
+
+        // Case: Azure Synapse server
+        serverResource.kind = "v12,analytics";
+        const analyticsUri = azureHelpers.buildServerUri(serverResource);
+        expect(analyticsUri).to.equal(
+            "test-server.sql.azuresynapse.net",
+            "Expected URI for Azure Synapse is incorrect",
+        );
     });
 });
