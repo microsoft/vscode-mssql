@@ -5,8 +5,6 @@
 
 import * as vscode from "vscode";
 import { l10n } from "vscode";
-import { Azure as Loc } from "../constants/locConstants";
-
 import {
     AzureSubscription,
     AzureTenant,
@@ -14,6 +12,8 @@ import {
 } from "@microsoft/vscode-azext-azureauth";
 import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 
+import { Azure as Loc } from "../constants/locConstants";
+import providerSettings from "../azure/providerSettings";
 import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { AzureAccountService } from "../services/azureAccountService";
@@ -463,8 +463,8 @@ export function extractFromResourceId(resourceId: string, property: string): str
 
 export function buildServerUri(serverResource: GenericResourceExpanded): string {
     const suffix = serverResource.kind.includes("analytics")
-        ? "sql.azuresynapse.net"
-        : "database.windows.net";
+        ? providerSettings.resources.databaseResource.analyticsDnsSuffix
+        : providerSettings.resources.databaseResource.dnsSuffix;
 
     // Construct the URI based on the server kind
     return `${serverResource.name}.${suffix}`;
