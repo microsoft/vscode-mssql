@@ -200,6 +200,18 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "Connection status should be NotStarted",
             );
 
+            expect(controller.state.azureAccounts).to.be.empty;
+
+            expect(controller.state.loadingAzureAccountsStatus).to.equal(
+                ApiStatus.NotStarted,
+                "Azure account load status should be NotStarted",
+            );
+
+            expect(controller.state.loadingAzureSubscriptionsStatus).to.equal(
+                ApiStatus.NotStarted,
+                "Azure subscription load status should be NotStarted",
+            );
+
             expect(controller.state.loadingAzureServersStatus).to.equal(
                 ApiStatus.NotStarted,
                 "Azure server load status should be NotStarted",

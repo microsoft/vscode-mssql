@@ -232,7 +232,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         await this.updateItemVisibility();
 
         this.state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
-        this.state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+        this.state.loadingAzureAccountsStatus =
+            this.state.azureAccounts.length === 0 ? ApiStatus.NotStarted : ApiStatus.Loaded;
         this.updateState();
     }
 
