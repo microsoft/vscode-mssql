@@ -207,10 +207,18 @@ export function FilterTablesButton() {
                         lineHeight: "30px",
                         alignItems: "center",
                         padding: "2px",
+                        overflow: "hidden",
                     }}
                     value={tableName}
                     key={tableName}>
-                    <Text>{highlightText(tableName, filterText)}</Text>
+                    <Text
+                        title={tableName}
+                        style={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                        }}>
+                        {highlightText(tableName, filterText)}
+                    </Text>
                 </ListItem>
             );
             if (!filterText) {
@@ -283,24 +291,10 @@ export function FilterTablesButton() {
                         display: "flex",
                         flexDirection: "row",
                         gap: "5px",
-                        alignItems: "center",
+                        justifyContent: "flex-end",
                         padding: "5px",
                         borderTop: "1px solid var(--vscode-editorWidget-border)",
                         borderBottom: "1px solid var(--vscode-editorWidget-border)",
-                    }}>
-                    <Switch
-                        checked={showTableRelationships}
-                        label={locConstants.schemaDesigner.showTableRelationships}
-                        onChange={() => setShowTableRelationships(!showTableRelationships)}
-                    />
-                </div>
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        gap: "5px",
-                        justifyContent: "flex-end",
-                        paddingTop: "5px",
                     }}>
                     <Button
                         size="small"
@@ -315,6 +309,20 @@ export function FilterTablesButton() {
                         icon={<FluentIcons.DismissRegular />}>
                         {locConstants.schemaDesigner.clearFilter}
                     </Button>
+                </div>
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "5px",
+                        alignItems: "center",
+                        paddingTop: "5px",
+                    }}>
+                    <Switch
+                        checked={showTableRelationships}
+                        label={locConstants.schemaDesigner.showTableRelationships}
+                        onChange={() => setShowTableRelationships(!showTableRelationships)}
+                    />
                 </div>
             </MenuPopover>
         </Menu>
