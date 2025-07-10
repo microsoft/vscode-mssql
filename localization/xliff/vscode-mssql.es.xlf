@@ -4243,6 +4243,10 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <source xml:lang="en">The description of the connection group.</source>
         <target state="translated">Descripción del grupo de conexiones.</target>
       </trans-unit>
+      <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+        <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
+        <target state="new">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</target>
+      </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
         <target state="translated">Número máximo de conexiones usadas recientemente que se van a almacenar en la lista de conexiones.</target>
