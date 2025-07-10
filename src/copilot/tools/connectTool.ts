@@ -9,6 +9,7 @@ import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
+import { randomUUID } from "crypto";
 
 /** Parameters for the connect tool. */
 export interface ConnectToolParams {
@@ -37,7 +38,7 @@ export enum ConnectionMatchType {
 export class ConnectTool extends ToolBase<ConnectToolParams> {
     public readonly toolName = Constants.copilotConnectToolName;
 
-    constructor(private connectionManager: ConnectionManager) {
+    constructor(private _connectionManager: ConnectionManager) {
         super();
     }
 
@@ -54,7 +55,7 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
         serverName?: string,
         database?: string,
     ) {
-        const profiles = await this.connectionManager.connectionStore.readAllConnections();
+        const profiles = await this._connectionManager.connectionStore.readAllConnections();
 
         // 1. If profileId is provided, use that saved connection profile directly
         if (profileId) {
@@ -119,23 +120,18 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
             } as ConnectToolResult);
         }
 
-        // Determine the connection ID and database to use
-        const targetServer = result.profile.server;
+        // Determine the database to use
         const targetDatabase = database || result.profile.database;
-
-        let connectionId = `${Constants.extensionName}/${targetServer}`;
-        if (targetDatabase) {
-            connectionId += `/${targetDatabase}`;
-        }
+        let connectionId = randomUUID();
 
         let success: boolean;
         let message: string;
         try {
             let connInfo = result.profile;
             const handlePwdResult =
-                await this.connectionManager.handlePasswordBasedCredentials(connInfo);
+                await this._connectionManager.handlePasswordBasedCredentials(connInfo);
             if (handlePwdResult) {
-                success = await this.connectionManager.connect(connectionId, {
+                success = await this._connectionManager.connect(connectionId, {
                     ...connInfo,
                     database: targetDatabase,
                 });

@@ -7,8 +7,8 @@
 export interface FirewallRuleSpec {
     /** Name of the firewall rule in Azure */
     name: string;
-    /** Tenant ID of the account to create the firewall rule with */
-    tenantId: string;
+    /** Azure account info to create the firewall rule with */
+    azureAccountInfo: { accountId: string; tenantId: string };
     /** IP address or IP range to allow through the firewall */
     ip: string | { startIp: string; endIp: string };
 }

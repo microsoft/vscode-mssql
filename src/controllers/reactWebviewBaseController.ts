@@ -17,8 +17,6 @@ import {
     LoadStatsNotification,
     LogEvent,
     LogNotification,
-    MessageType,
-    PendingRequest,
     ReducerRequest,
     SendActionEventNotification,
     SendErrorEventNotification,
@@ -32,8 +30,89 @@ import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/tel
 import { getNonce } from "../utils/utils";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
-import { NotificationType, RequestHandler, RequestType } from "vscode-jsonrpc/node";
-import { generateGuid } from "../models/utils";
+import {
+    AbstractMessageReader,
+    AbstractMessageWriter,
+    CancellationToken,
+    createMessageConnection,
+    DataCallback,
+    Disposable,
+    Emitter,
+    Message,
+    MessageConnection,
+    MessageWriter,
+    NotificationType,
+    RequestHandler,
+    RequestType,
+} from "vscode-jsonrpc/node";
+import { MessageReader } from "vscode-languageclient";
+
+class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
+    private _onData: Emitter<Message>;
+    private _disposables: vscode.Disposable[] = [];
+    private _webview: vscode.Webview;
+    constructor(private logger: Logger) {
+        super();
+        this._onData = new Emitter<Message>();
+    }
+
+    updateWebview(webview: vscode.Webview) {
+        // Clean up existing disposables
+        this._disposables.forEach((d) => d.dispose());
+        this._disposables = [];
+
+        this._webview = webview;
+
+        if (webview) {
+            const disposable = this._webview.onDidReceiveMessage((event) => {
+                const { method, error } = event as any;
+                this.logger.verbose(`Message received from webview: ${method}`);
+                sendActionEvent(
+                    TelemetryViews.WebviewController,
+                    TelemetryActions.ReceivedFromWebview,
+                    {
+                        messageType: method ? "request" : "response",
+                        type: method,
+                        isError: error ? "true" : "false",
+                    },
+                );
+
+                this._onData.fire(event);
+            });
+            this._disposables.push(disposable);
+        }
+    }
+
+    listen(callback: DataCallback): Disposable {
+        return this._onData.event(callback);
+    }
+}
+
+class WebviewControllerMessageWriter extends AbstractMessageWriter implements MessageWriter {
+    private _webview: vscode.Webview;
+    constructor(private logger: Logger) {
+        super();
+    }
+    updateWebview(webview: vscode.Webview) {
+        this._webview = webview;
+    }
+    write(msg: Message): Promise<void> {
+        if (this._webview) {
+            const { method, error } = msg as any;
+            this.logger.verbose(`Sending message to webview: ${method}`);
+            this._webview.postMessage(msg);
+            sendActionEvent(TelemetryViews.WebviewController, TelemetryActions.SentToWebview, {
+                messageType: method ? "request" : "response",
+                type: method,
+                isError: error ? "true" : "false",
+            });
+        } else {
+            this.logger.warn("Attempted to write message but webview is not set");
+        }
+        return Promise.resolve();
+    }
+    end(): void {}
+}
 
 /**
  * ReactWebviewBaseController is a class that manages a vscode.Webview and provides
@@ -56,218 +135,13 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         TelemetryActions.Load,
     );
 
-    private _pendingRequests = new Map<string, PendingRequest>();
-    private _requestHandlers = new Map<string, RequestHandler<any, any, any>>();
-    private _notificationHandlers = new Map<string, ((params: any) => void)[]>();
+    public connection: MessageConnection;
+    private _connectionReader: WebviewControllerMessageReader;
+    private _connectionWriter: WebviewControllerMessageWriter;
     private _reducerHandlers = new Map<
         keyof Reducers,
         (state: State, payload: Reducers[keyof Reducers]) => ReducerResponse<State>
     >();
-
-    protected _webviewMessageHandler = async (message: WebviewRpcMessage) => {
-        switch (message.type) {
-            case MessageType.Response:
-                await this._handleResponse(message);
-                break;
-            case MessageType.Request:
-                await this._handleRequest(message);
-                break;
-            case MessageType.Notification:
-                await this._handleNotification(message);
-                break;
-            default:
-                this.logger.error(`Unknown message type: ${message.type}`);
-                return;
-        }
-    };
-
-    private _handleResponse = async (message: WebviewRpcMessage) => {
-        const responseActivity = startActivity(
-            TelemetryViews.WebviewController,
-            TelemetryActions.WebviewResponse,
-        );
-        const { id, result, error } = message;
-        if (id === undefined) {
-            responseActivity.endFailed(
-                new Error("Received response without an id"),
-                true,
-                "InvalidResponse",
-                "InvalidResponse",
-                {
-                    type: this._sourceFile,
-                },
-            );
-            this.logger.error("Received response without an id");
-            return;
-        }
-        const pendingRequest = this._pendingRequests.get(id);
-        if (!pendingRequest) {
-            responseActivity.endFailed(
-                new Error(`No pending request found for id ${id}`),
-                true,
-                "NoPendingRequest",
-                "NoPendingRequest",
-                {
-                    type: this._sourceFile,
-                },
-            );
-            this.logger.warn(`No pending request found for id ${id}`);
-            return;
-        }
-
-        this._pendingRequests.delete(id);
-        if (error) {
-            responseActivity.endFailed(
-                error,
-                false,
-                "ResponseHandlerFailed",
-                "ResponseHandlerFailed",
-                {
-                    type: this._sourceFile,
-                },
-            );
-            pendingRequest.reject(error);
-        } else {
-            pendingRequest.resolve(result);
-        }
-    };
-
-    private _handleRequest = async (message: WebviewRpcMessage) => {
-        const requestActivity = startActivity(
-            TelemetryViews.WebviewController,
-            TelemetryActions.WebviewRequest,
-        );
-        const { id, method, params } = message;
-        if (!method || id === undefined) {
-            this.logger.error("Received request without method or id");
-            requestActivity.endFailed(
-                new Error("Received request without method or id"),
-                true,
-                "InvalidRequest",
-                "InvalidRequest",
-                {
-                    type: this._sourceFile,
-                },
-            );
-            return;
-        }
-
-        const handler = this._requestHandlers.get(method);
-        if (!handler) {
-            this.logger.warn(`No handler found for method ${method}`);
-            requestActivity.endFailed(
-                new Error(`No handler registered for method ${method}`),
-                true,
-                "NoHandlerRegistered",
-                "NoHandlerRegistered",
-                {
-                    type: this._sourceFile,
-                    method,
-                },
-            );
-            return;
-        }
-
-        try {
-            const result = await handler(params, undefined!); // Not supporting cancellation for now
-            this.postMessage({
-                type: MessageType.Response,
-                id,
-                result,
-            });
-            requestActivity.end(ActivityStatus.Succeeded, {
-                type: this._sourceFile,
-                method,
-            });
-        } catch (error) {
-            requestActivity.endFailed(
-                error,
-                false,
-                "RequestHandlerFailed",
-                "RequestHandlerFailed",
-                {
-                    type: this._sourceFile,
-                    method,
-                },
-            );
-            this.postMessage({
-                type: MessageType.Response,
-                id,
-                error: {
-                    name: error.name,
-                    message: error.message,
-                    stack: error.stack,
-                },
-            });
-        }
-    };
-
-    private _handleNotification = async (message: WebviewRpcMessage) => {
-        const notificationActivity = startActivity(
-            TelemetryViews.WebviewController,
-            TelemetryActions.WebviewNotification,
-        );
-        const { method, params } = message;
-        if (!method) {
-            notificationActivity.endFailed(
-                new Error("Received notification without method"),
-                true,
-                "InvalidNotification",
-                "InvalidNotification",
-                {
-                    type: this._sourceFile,
-                },
-            );
-            this.logger.error("Received notification without method");
-            return;
-        }
-
-        const handlers = this._notificationHandlers.get(method);
-        if (!handlers) {
-            notificationActivity.endFailed(
-                new Error(`No handlers registered for notification method ${method}`),
-                true,
-                "NoNotificationHandlerRegistered",
-                "NoNotificationHandlerRegistered",
-                {
-                    type: this._sourceFile,
-                    method,
-                },
-            );
-            this.logger.warn(`No handlers found for notification method ${method}`);
-            return;
-        }
-
-        let errorCount = 0;
-        handlers.forEach((handler) => {
-            try {
-                handler(params);
-            } catch (error) {
-                errorCount++;
-                console.error(`Error in notification handler for ${method}:`, error);
-            }
-        });
-        if (errorCount > 0) {
-            this.logger.error(`Error in ${errorCount} notification handlers for ${method}`);
-            notificationActivity.endFailed(
-                new Error(`Error in ${errorCount} notification handlers for ${method}`),
-                false,
-                "NotificationHandlerError",
-                "NotificationHandlerError",
-                {
-                    type: this._sourceFile,
-                    method,
-                    errorCount: errorCount.toString(),
-                },
-            );
-        } else {
-            this.logger.log(`Notification ${method} handled successfully`);
-            notificationActivity.end(ActivityStatus.Succeeded, {
-                type: this._sourceFile,
-                method,
-            });
-        }
-    };
 
     protected logger: Logger;
 
@@ -289,6 +163,32 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         }
 
         this.logger = Logger.create(vscodeWrapper.outputChannel, viewId);
+
+        this._connectionReader = new WebviewControllerMessageReader(this.logger);
+        this._connectionWriter = new WebviewControllerMessageWriter(this.logger);
+        this.connection = createMessageConnection(this._connectionReader, this._connectionWriter);
+        this.connection.listen();
+
+        // Add connection to disposables for cleanup
+        this._disposables.push({
+            dispose: () => {
+                this.connection.dispose();
+                this._connectionReader.dispose();
+                this._connectionWriter.dispose();
+            },
+        });
+    }
+
+    /**
+     * Updates the webview used by JSON RPC connection.
+     * This method should be called whenever the webview is recreated or updated.
+     * @param webview
+     */
+    protected updateConnectionWebview(webview: vscode.Webview) {
+        if (webview) {
+            this._connectionReader.updateWebview(webview);
+            this._connectionWriter.updateWebview(webview);
+        }
     }
 
     protected initializeBase() {
@@ -342,10 +242,10 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     protected setupTheming() {
         this._disposables.push(
             vscode.window.onDidChangeActiveColorTheme((theme) => {
-                this.sendNotification(ColorThemeChangeNotification.type, theme.kind);
+                void this.sendNotification(ColorThemeChangeNotification.type, theme.kind);
             }),
         );
-        this.sendNotification(
+        void this.sendNotification(
             ColorThemeChangeNotification.type,
             vscode.window.activeColorTheme.kind,
         );
@@ -430,10 +330,28 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         });
 
         this.onRequest(ReducerRequest.type<Reducers>(), async (action) => {
+            const reducerActivity = startActivity(
+                TelemetryViews.WebviewController,
+                TelemetryActions.Reducer,
+                undefined,
+                {
+                    type: action.type as string,
+                },
+            );
             const reducer = this._reducerHandlers.get(action.type);
             if (reducer) {
-                this.state = await reducer(this.state, action.payload);
+                try {
+                    this.state = await reducer(this.state, action.payload);
+                    reducerActivity.end(ActivityStatus.Succeeded);
+                } catch (error) {
+                    reducerActivity.endFailed(error, false);
+                    throw error;
+                }
             } else {
+                reducerActivity.endFailed(
+                    new Error(`No reducer registered for action ${action.type as string}`),
+                    false,
+                );
                 throw new Error(`No reducer registered for action ${action.type as string}`);
             }
         });
@@ -462,10 +380,13 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         type: RequestType<TParam, TResult, TError>,
         handler: RequestHandler<TParam, TResult, TError>,
     ): void {
+        if (!this.connection) {
+            return;
+        }
         if (this._isDisposed) {
             throw new Error("Cannot register request handler on disposed controller");
         }
-        this._requestHandlers.set(type.method, handler);
+        this.connection.onRequest(type, handler);
     }
 
     /**
@@ -474,22 +395,15 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     public sendRequest<TParam, TResult, TError>(
         type: RequestType<TParam, TResult, TError>,
         params: TParam,
+        token?: CancellationToken,
     ): Thenable<TResult> {
+        if (!this.connection) {
+            return;
+        }
         if (this._isDisposed) {
             return Promise.reject(new Error("Cannot send request on disposed controller"));
         }
-        return new Promise<TResult>((resolve, reject) => {
-            this._pendingRequests.set(generateGuid(), {
-                resolve,
-                reject,
-            });
-            this.postMessage({
-                type: MessageType.Request,
-                id: generateGuid(), // Generate a unique ID for the request
-                method: type.method,
-                params,
-            } as WebviewRpcMessage);
-        });
+        return this.connection.sendRequest(type, params, token);
     }
 
     /**
@@ -497,11 +411,17 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      * @param type The notification type that the webview will handle
      * @param params The parameters that will be passed to the notification handler
      */
-    public sendNotification<TParams>(type: NotificationType<TParams>, params: TParams): void {
+    public sendNotification<TParams>(
+        type: NotificationType<TParams>,
+        params: TParams,
+    ): Promise<void> {
+        if (!this.connection) {
+            return Promise.resolve();
+        }
         if (this._isDisposed) {
             throw new Error("Cannot send notification on disposed controller");
         }
-        this.postMessage({ type: MessageType.Notification, method: type.method, params });
+        return this.connection.sendNotification(type, params);
     }
 
     /**
@@ -514,13 +434,13 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         type: NotificationType<TParams>,
         handler: (params: TParams) => void,
     ): void {
+        if (!this.connection) {
+            return;
+        }
         if (this._isDisposed) {
             throw new Error("Cannot register notification handler on disposed controller");
         }
-        if (!this._notificationHandlers.has(type.method)) {
-            this._notificationHandlers.set(type.method, []);
-        }
-        this._notificationHandlers.get(type.method)!.push(handler);
+        this.connection.onNotification(type, handler);
     }
 
     /**
@@ -537,7 +457,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
      */
     public set state(value: State) {
         this._state = value;
-        this.sendNotification(StateChangeNotification.type<State>(), value);
+        void this.sendNotification(StateChangeNotification.type<State>(), value);
     }
 
     /**

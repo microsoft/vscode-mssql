@@ -13,7 +13,8 @@ import {
     TableDesignerGenerateScriptRequest,
 } from "../models/contracts/tableDesigner";
 import * as designer from "../sharedInterfaces/tableDesigner";
-
+import * as vscode from "vscode";
+import { getErrorMessage } from "../utils/utils";
 export class TableDesignerService implements designer.ITableDesignerService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
     async initializeTableDesigner(table: designer.TableInfo): Promise<designer.TableDesignerInfo> {
@@ -23,6 +24,7 @@ export class TableDesignerService implements designer.ITableDesignerService {
                 table,
             );
         } catch (e) {
+            vscode.window.showErrorMessage(getErrorMessage(e));
             this._sqlToolsClient.logger.error(e);
             throw e;
         }

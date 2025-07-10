@@ -28,6 +28,11 @@ const publicAzureSettings: IProviderSettings = {
             resource: "Sql",
             endpoint: "https://database.windows.net/",
         },
+        azureKeyVaultResource: {
+            id: "vault",
+            resource: "AzureKeyVault",
+            endpoint: "https://vault.azure.net/",
+        },
     },
     scopes: [
         "openid",

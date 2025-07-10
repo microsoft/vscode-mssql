@@ -585,6 +585,11 @@
                     "group": "MS_SQL@11"
                 },
                 {
+                    "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
+                    "when": "view == objectExplorer && mssql.copilot.isGHCInstalled && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "group": "MS_SQL@12"
+                },
+                {
                     "command": "mssql.addObjectExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(ConnectionGroup)\\b/",
                     "title": "%mssql.addObjectExplorer%",
@@ -671,10 +676,6 @@
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
-                },
-                {
-                    "command": "mssql.objectExplorerChatWithDatabase",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Database)\\b/"
                 },
                 {
                     "command": "mssql.schemaCompare",
@@ -915,6 +916,11 @@
             {
                 "command": "mssql.objectExplorerChatWithDatabase",
                 "title": "%mssql.objectExplorerChatWithDatabase%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.objectExplorerChatWithDatabaseInAgentMode",
+                "title": "%mssql.objectExplorerChatWithDatabaseInAgentMode%",
                 "category": "MS SQL"
             },
             {
@@ -1627,6 +1633,12 @@
                     "description": "%mssql.enableConnectionPooling%",
                     "default": false
                 },
+                "mssql.statusBar.enableConnectionColor": {
+                    "type": "boolean",
+                    "description": "%mssql.statusBar.enableConnectionColor%",
+                    "default": false,
+                    "scope": "window"
+                },
                 "mssql.format.alignColumnDefinitionsInColumns": {
                     "type": "boolean",
                     "description": "%mssql.format.alignColumnDefinitionsInColumns%",
@@ -2030,7 +2042,7 @@
         "languageModelTools": [
             {
                 "name": "mssql_show_schema",
-                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool requires an active db connection from the current active editor. This tool opens a graphical view of the database schema, including tables and relationships.",
+                "modelDescription": "Open an interactive schema designer for a MSSQL database. This tool takes a connection ID as input and opens a graphical view of the database schema, including tables and relationships.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2058,7 +2070,7 @@
             },
             {
                 "name": "mssql_connect",
-                "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use $mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a string formatted as 'mssql/{server name}[/{database name}]', where if no database name is present it's the default database for the server.",
+                "modelDescription": "Connect to an MSSQL database server using a server name, an optional database name, and an optional profileId. The server name must be retrieved from mssql_list_servers. The profileId should be used ONLY when the user explicitly mentions a profile name, profile ID, or wants to connect 'using profile X'. Returns a connection ID that is used to interact with the database with other mssql tools. If a specific database is given and the connection fails, use mssql_list_databases against a connection to the default database to find the correct database name. The connection ID is a UUID.",
                 "tags": [
                     "databases",
                     "mssql",
@@ -2147,7 +2159,208 @@
                 "canBeReferencedInPrompt": true,
                 "displayName": "List MSSQL Servers",
                 "toolReferenceName": "mssql_list_servers",
-                "userDescription": "List all available MSSQL servers."
+                "userDescription": "List all available MSSQL servers.",
+                "icon": "$(server)"
+            },
+            {
+                "name": "mssql_list_databases",
+                "modelDescription": "List all available databases for a connected MSSQL server. Returns a list of database names.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list databases for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Databases",
+                "toolReferenceName": "mssql_list_databases",
+                "userDescription": "List all available databases for a connected MSSQL server.",
+                "icon": "$(database)"
+            },
+            {
+                "name": "mssql_get_connection_details",
+                "modelDescription": "Get connection details for a specific connection ID. Returns connection information including server, database, authentication type, and user details.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection",
+                    "details"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to get details for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Get MSSQL Connection Details",
+                "toolReferenceName": "mssql_get_connection_details",
+                "userDescription": "Get connection details for a specific MSSQL connection.",
+                "icon": "$(info)"
+            },
+            {
+                "name": "mssql_change_database",
+                "modelDescription": "Change the database for an existing MSSQL connection. Before changing, consider using mssql_list_databases to show available database options to the user. Disconnects from current database and reconnects to the specified database using the same connection credentials.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "connection",
+                    "change"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to change database for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "database": {
+                            "description": "Database name to switch to.",
+                            "title": "Database Name",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId",
+                        "database"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Change MSSQL Database",
+                "toolReferenceName": "mssql_change_database",
+                "userDescription": "Change the database for an existing MSSQL connection.",
+                "icon": "$(arrow-swap)"
+            },
+            {
+                "name": "mssql_list_tables",
+                "modelDescription": "List all tables in a specific database for a connected MSSQL server. Returns a list of table names with schema information.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "tables",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list tables for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Tables",
+                "toolReferenceName": "mssql_list_tables",
+                "userDescription": "List all tables in a database for a connected MSSQL server."
+            },
+            {
+                "name": "mssql_list_schemas",
+                "modelDescription": "List all schemas in a specific database for a connected MSSQL server. Returns a list of schema names.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "schemas",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list schemas for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Schemas",
+                "toolReferenceName": "mssql_list_schemas",
+                "userDescription": "List all schemas in a database for a connected MSSQL server.",
+                "icon": "$(symbol-namespace)"
+            },
+            {
+                "name": "mssql_list_views",
+                "modelDescription": "List all views in a specific database for a connected MSSQL server. Returns a list of view names with schema information.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "views",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list views for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Views",
+                "toolReferenceName": "mssql_list_views",
+                "userDescription": "List all views in a database for a connected MSSQL server.",
+                "icon": "$(eye)"
+            },
+            {
+                "name": "mssql_list_functions",
+                "modelDescription": "List all functions in a specific database for a connected MSSQL server. Returns a list of function names with schema information.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "functions",
+                    "list"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to list functions for.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "List MSSQL Functions",
+                "toolReferenceName": "mssql_list_functions",
+                "userDescription": "List all functions in a database for a connected MSSQL server.",
+                "icon": "$(symbol-function)"
             }
         ]
     }

@@ -21,6 +21,7 @@ coverconfig.json
 extensionlaunched.dat
 gulpfile.js
 tsconfig.json
+tsconfig.*.json
 tslint*.json
 **/*.map
 **/*.ts

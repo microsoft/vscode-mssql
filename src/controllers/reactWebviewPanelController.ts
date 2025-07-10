@@ -69,9 +69,7 @@ export class ReactWebviewPanelController<
 
         this._panel.webview.html = this._getHtmlTemplate();
         this._panel.iconPath = this._options.iconPath;
-        this.registerDisposable(
-            this._panel.webview.onDidReceiveMessage(this._webviewMessageHandler),
-        );
+        this.updateConnectionWebview(this._panel.webview);
         this.registerDisposable(
             this._panel.onDidDispose(async () => {
                 let prompt;

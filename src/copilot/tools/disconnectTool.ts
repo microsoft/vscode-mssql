@@ -22,7 +22,7 @@ export interface DisconnectToolResult {
 export class DisconnectTool extends ToolBase<DisconnectToolParams> {
     public readonly toolName = Constants.copilotDisconnectToolName;
 
-    constructor(private connectionManager: ConnectionManager) {
+    constructor(private _connectionManager: ConnectionManager) {
         super();
     }
 
@@ -31,7 +31,7 @@ export class DisconnectTool extends ToolBase<DisconnectToolParams> {
         _token: vscode.CancellationToken,
     ) {
         const { connectionId } = options.input;
-        await this.connectionManager.disconnect(connectionId);
+        await this._connectionManager.disconnect(connectionId);
 
         return JSON.stringify({ success: true } as DisconnectToolResult);
     }

@@ -172,7 +172,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
 
     // Reducer callers
     const saveAsFile = (fileProps: SchemaDesigner.ExportFileOptions) => {
-        extensionRpc.sendNotification(SchemaDesigner.ExportToFileNotification.type, fileProps);
+        void extensionRpc.sendNotification(SchemaDesigner.ExportToFileNotification.type, fileProps);
     };
 
     const getReport = async () => {
@@ -191,21 +191,24 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     };
 
     const copyToClipboard = (text: string) => {
-        extensionRpc.sendNotification(SchemaDesigner.CopyToClipboardNotification.type, {
+        void extensionRpc.sendNotification(SchemaDesigner.CopyToClipboardNotification.type, {
             text: text,
         });
     };
 
     const openInEditor = (text: string) => {
-        extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type, {
+        void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type, {
             text: text,
         });
     };
 
     const openInEditorWithConnection = (text: string) => {
-        extensionRpc.sendNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, {
-            text: text,
-        });
+        void extensionRpc.sendNotification(
+            SchemaDesigner.OpenInEditorWithConnectionNotification.type,
+            {
+                text: text,
+            },
+        );
     };
 
     const extractSchema = () => {
@@ -432,7 +435,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     };
 
     const closeDesigner = () => {
-        extensionRpc.sendNotification(SchemaDesigner.CloseSchemaDesignerNotification.type);
+        void extensionRpc.sendNotification(SchemaDesigner.CloseSchemaDesignerNotification.type);
     };
 
     const resetUndoRedoState = () => {

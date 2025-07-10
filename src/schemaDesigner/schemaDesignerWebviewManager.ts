@@ -82,7 +82,7 @@ export class SchemaDesignerWebviewManager {
         }
 
         const key = `${connectionString}-${databaseName}`;
-        if (!this.schemaDesigners.has(key)) {
+        if (!this.schemaDesigners.has(key) || this.schemaDesigners.get(key)?.isDisposed) {
             const schemaDesigner = new SchemaDesignerWebviewController(
                 context,
                 vscodeWrapper,
@@ -126,9 +126,15 @@ export class SchemaDesignerWebviewManager {
                         );
                     }
                 }
-                schemaDesignerService.disposeSession({
-                    sessionId: this.schemaDesignerCache.get(key).schemaDesignerDetails.sessionId,
-                });
+                // Ignoring errors here as we don't want to block the disposal process
+                try {
+                    schemaDesignerService.disposeSession({
+                        sessionId:
+                            this.schemaDesignerCache.get(key).schemaDesignerDetails.sessionId,
+                    });
+                } catch (error) {
+                    console.error(`Error disposing schema designer session: ${error}`);
+                }
                 this.schemaDesignerCache.delete(key);
             });
             this.schemaDesigners.set(key, schemaDesigner);

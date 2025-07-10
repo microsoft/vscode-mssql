@@ -23,34 +23,6 @@
     background-repeat: no-repeat;
 }
 
-.vs .slick-header-menuicon.ascending,
-.hc-light .slick-header-menuicon.ascending,
-.vs .monaco-table .slick-sort-indicator-asc,
-.hc-light .monaco-table .slick-sort-indicator-asc {
-    background-image: url("sort_asc.svg");
-}
-
-.vs-dark .slick-header-menuicon.ascending,
-.hc-black .slick-header-menuicon.ascending,
-.vs-dark .monaco-table .slick-sort-indicator-asc,
-.hc-black .monaco-table .slick-sort-indicator-asc {
-    background-image: url("sort_asc_inverse.svg");
-}
-
-.vs .slick-header-menuicon.descending,
-.hc-light .slick-header-menuicon.descending,
-.vs .monaco-table .slick-sort-indicator-desc,
-.hc-light .monaco-table .slick-sort-indicator-desc {
-    background-image: url("sort_desc.svg");
-}
-
-.vs-dark .slick-header-menuicon.descending,
-.hc-black .slick-header-menuicon.descending,
-.vs-dark .monaco-table .slick-sort-indicator-desc,
-.hc-black .monaco-table .slick-sort-indicator-desc {
-    background-image: url("sort_desc_inverse.svg");
-}
-
 .monaco-table .slick-sort-indicator {
     display: inline-block;
     width: 8px;
@@ -76,18 +48,6 @@
     padding: 0;
 }
 
-.slick-header-sort-button {
-    background-image: url("sort_inverse.svg");
-}
-
-.slick-header-sortdesc-button {
-    background-image: url("sort_desc_inverse.svg");
-}
-
-.slick-header-sortasc-button {
-    background-image: url("sort_asc_inverse.svg");
-}
-
 .slick-header-menubutton {
     background-position: center center;
     background-repeat: no-repeat;
@@ -100,25 +60,6 @@
     background-color: transparent;
     border: 0px;
     padding: 0px;
-}
-
-.hc-light .slick-header-menubutton {
-    background-image: url("filter.svg");
-}
-
-.vs-dark .slick-header-menubutton,
-.hc-black .slick-header-menubutton {
-    background-image: url("filter_inverse.svg");
-}
-
-.slick-header-menubutton.filtered,
-.hc-light .slick-header-menubutton.filtered {
-    background-image: url("filterFilled.svg");
-}
-
-.vs-dark .slick-header-menubutton.filtered,
-.hc-black .slick-header-menubutton.filtered {
-    background-image: url("filterFilled_inverse.svg");
 }
 
 .slick-header-menu {
@@ -402,4 +343,60 @@
 .filter-btn:focus {
     color: var(--vscode-button-secondaryForeground);
     background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+/* Icons */
+/* Icon for filter button */
+.vscode-dark .slick-header-menubutton,
+.vscode-high-contrast .slick-header-menubutton {
+    background-image: url("filter_inverse.svg");
+}
+
+.vscode-light .slick-header-menubutton,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-menubutton {
+    background-image: url("filter.svg");
+}
+
+/* Icon for filter button when filter is applied */
+.vscode-dark .slick-header-menubutton.filtered,
+.vscode-high-contrast .slick-header-menubutton.filtered {
+    background-image: url("filterFilled_inverse.svg");
+}
+
+.vscode-light .slick-header-menubutton.filtered,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-menubutton.filtered {
+    background-image: url("filterFilled.svg");
+}
+
+/* Icons for sorting buttons */
+.vscode-dark .slick-header-sort-button,
+.vscode-high-contrast .slick-header-sort-button {
+    background-image: url("sort_inverse.svg");
+}
+
+.vscode-light .slick-header-sort-button,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-sort-button {
+    background-image: url("sort.svg");
+}
+
+/* Icons for sort desc */
+.vscode-dark .slick-header-sortdesc-button,
+.vscode-high-contrast .slick-header-sortdesc-button {
+    background-image: url("sort_desc_inverse.svg");
+}
+
+.vscode-light .slick-header-sortdesc-button,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-sortdesc-button {
+    background-image: url("sort_desc.svg");
+}
+
+/* Icons for sort asc */
+.vscode-dark .slick-header-sortasc-button,
+.vscode-high-contrast .slick-header-sortasc-button {
+    background-image: url("sort_asc_inverse.svg");
+}
+
+.vscode-light .slick-header-sortasc-button,
+.vscode-high-contrast.vscode-high-contrast-light .slick-header-sortasc-button {
+    background-image: url("sort_asc.svg");
 }

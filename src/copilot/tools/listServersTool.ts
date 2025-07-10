@@ -25,7 +25,7 @@ export interface ListServersResult {
 export class ListServersTool extends ToolBase<undefined> {
     public readonly toolName = Constants.copilotListServersToolName;
 
-    constructor(private connectionManager: ConnectionManager) {
+    constructor(private _connectionManager: ConnectionManager) {
         super();
     }
 
@@ -34,7 +34,7 @@ export class ListServersTool extends ToolBase<undefined> {
         _token: vscode.CancellationToken,
     ) {
         // Fetch all servers from the connection store
-        const profiles = await this.connectionManager.connectionStore.readAllConnections(false);
+        const profiles = await this._connectionManager.connectionStore.readAllConnections(false);
         // Map to server profiles
         const servers: ServerProfile[] = profiles.map((p) => ({
             profileId: p.id,

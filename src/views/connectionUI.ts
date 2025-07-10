@@ -28,6 +28,8 @@ import { CancelError } from "../utils/utils";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { AddFirewallRuleWebviewController } from "../controllers/addFirewallRuleWebviewController";
 import { SessionCreatedParameters } from "../models/contracts/objectExplorer/createSessionRequest";
+import { CREATE_NEW_GROUP_ID, IConnectionGroup } from "../sharedInterfaces/connectionGroup";
+import { FormItemOptions } from "../sharedInterfaces/form";
 
 /**
  * The different tasks for managing connection profiles.
@@ -366,7 +368,7 @@ export class ConnectionUI {
             this._prompter,
             this._connectionStore,
             connection,
-            false // shouldSaveUpdates
+            false, // shouldSaveUpdates
         );
     }
 
@@ -381,7 +383,10 @@ export class ConnectionUI {
                     connectFunc = this.createAndSaveProfile();
                 } else {
                     // user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
-                    connectFunc = this.fillOrPromptForMissingInfo(selection, false /* shouldSaveUpdates */);
+                    connectFunc = this.fillOrPromptForMissingInfo(
+                        selection,
+                        false /* shouldSaveUpdates */,
+                    );
                 }
 
                 connectFunc.then(
@@ -670,6 +675,63 @@ export class ConnectionUI {
     }
 
     /**
+     * Get the options for connection groups.
+     * @returns A promise that resolves to an array of FormItemOptions for connection groups.
+     */
+    public async getConnectionGroupOptions(): Promise<FormItemOptions[]> {
+        const rootId = this._connectionManager.connectionStore.rootGroupId;
+        let connectionGroups =
+            await this._connectionManager.connectionStore.readAllConnectionGroups();
+        connectionGroups = connectionGroups.filter((g) => g.id !== rootId);
+
+        // Count occurrences of group names to handle naming conflicts
+        const nameOccurrences = new Map<string, number>();
+        for (const group of connectionGroups) {
+            const count = nameOccurrences.get(group.name) || 0;
+            nameOccurrences.set(group.name, count + 1);
+        }
+
+        // Create a map of group IDs to their full paths
+        const groupById = new Map(connectionGroups.map((g) => [g.id, g]));
+
+        // Helper function to get parent path
+        const getParentPath = (group: IConnectionGroup): string => {
+            if (!group.parentId || group.parentId === rootId) {
+                return group.name;
+            }
+            const parent = groupById.get(group.parentId);
+            if (!parent) {
+                return group.name;
+            }
+            return `${getParentPath(parent)} > ${group.name}`;
+        };
+
+        const result = connectionGroups
+            .map((g) => {
+                // If there are naming conflicts, use the full path
+                const displayName = nameOccurrences.get(g.name) > 1 ? getParentPath(g) : g.name;
+
+                return {
+                    displayName,
+                    value: g.id,
+                };
+            })
+            .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+        return [
+            {
+                displayName: LocalizedConstants.ConnectionDialog.default,
+                value: rootId,
+            },
+            {
+                displayName: LocalizedConstants.ConnectionDialog.createConnectionGroup,
+                value: CREATE_NEW_GROUP_ID,
+            },
+            ...result,
+        ];
+    }
+
+    /**
      * Save a connection profile using the connection store
      */
     public async saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
@@ -901,7 +963,7 @@ export class ConnectionUI {
 
     private fillOrPromptForMissingInfo(
         selection: IConnectionCredentialsQuickPickItem,
-        shouldSaveUpdates: boolean = true
+        shouldSaveUpdates: boolean = true,
     ): Promise<IConnectionInfo> {
         // If a connection string is present, don't prompt for any other info
         if (selection.connectionCreds.connectionString) {
@@ -922,7 +984,7 @@ export class ConnectionUI {
                 this._prompter,
                 this._connectionStore,
                 undefined, // defaultProfileValues
-                shouldSaveUpdates
+                shouldSaveUpdates,
             );
         });
     }

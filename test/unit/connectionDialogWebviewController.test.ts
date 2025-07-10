@@ -31,7 +31,7 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { ConnectionCompleteParams } from "../../src/models/contracts/connection";
 import { stubTelemetry } from "./utils";
 import {
-    stubConfirmVscodeAzureSignin,
+    stubVscodeAzureSignIn,
     stubFetchServersFromAzure,
     stubPromptForAzureSubscriptionFilter,
 } from "./azureHelperStubs";
@@ -335,7 +335,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("should set connection input mode correctly and load server info for AzureBrowse", async () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
-                stubConfirmVscodeAzureSignin(sandbox);
+                stubVscodeAzureSignIn(sandbox);
                 stubFetchServersFromAzure(sandbox);
 
                 await controller["_reducerHandlers"].get("setConnectionInputType")(
@@ -504,7 +504,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
                 stubPromptForAzureSubscriptionFilter(sandbox, true);
-                stubConfirmVscodeAzureSignin(sandbox);
+                stubVscodeAzureSignIn(sandbox);
                 stubFetchServersFromAzure(sandbox);
 
                 expect(

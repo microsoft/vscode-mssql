@@ -12,7 +12,7 @@ import { ContainerDeployment } from "../../src/constants/locConstants";
 import * as childProcess from "child_process";
 import { defaultContainerName, Platform } from "../../src/constants/constants";
 import * as path from "path";
-import * as telemetry from "../../src/telemetry/telemetry";
+import { stubTelemetry } from "./utils";
 
 suite("Docker Utilities", () => {
     let sandbox: sinon.SinonSandbox;
@@ -154,6 +154,7 @@ suite("Docker Utilities", () => {
         const archStub = sandbox.stub(os, "arch");
         const execStub = sandbox.stub(childProcess, "exec");
         const messageStub = sandbox.stub(vscode.window, "showInformationMessage");
+        archStub.returns("x64");
 
         // 1. Linux - success path
         platformStub.returns(Platform.Linux);
@@ -161,6 +162,7 @@ suite("Docker Utilities", () => {
         execStub.yields(null, `'${Platform.Linux}'`);
 
         let result = await dockerUtils.checkEngine();
+        assert.strictEqual(result.error, undefined, "This should not have an error");
         assert.ok(result.success, "Linux platform should return success");
 
         // 2. Windows - engine needs switching, user confirms
@@ -187,7 +189,17 @@ suite("Docker Utilities", () => {
             ContainerDeployment.switchToLinuxContainersCanceled,
         );
 
-        // 4. Unsupported platform
+        // 4. Windows- arm architecture, should gracefully error
+        archStub.returns("arm");
+        result = await dockerUtils.checkEngine();
+        assert.ok(!result.success, "Should fail on unsupported architecture");
+        assert.strictEqual(
+            result.error,
+            ContainerDeployment.unsupportedDockerArchitectureError("arm"),
+        );
+
+        // 5. Unsupported platform
+        archStub.returns("x64");
         platformStub.returns("fakePlatform" as Platform); // Fake unsupported platform
 
         result = await dockerUtils.checkEngine();
@@ -197,7 +209,7 @@ suite("Docker Utilities", () => {
             ContainerDeployment.unsupportedDockerPlatformError("fakePlatform"),
         );
 
-        // 5. Command fails on Linux (e.g., permissions error)
+        // 6. Command fails on Linux (e.g., permissions error)
         platformStub.returns(Platform.Linux);
         execStub.resetBehavior();
         execStub.yields(new Error("Permission denied"), undefined);
@@ -207,7 +219,7 @@ suite("Docker Utilities", () => {
         assert.strictEqual(result.fullErrorText, "Permission denied");
         assert.strictEqual(result.error, ContainerDeployment.linuxDockerPermissionsError);
 
-        // 5. Command fails on Mac (e.g., permissions error)
+        // 7. Command fails on Mac (e.g., permissions error)
         platformStub.returns(Platform.Mac);
         archStub.returns("arm");
         execStub.resetBehavior();
@@ -218,7 +230,7 @@ suite("Docker Utilities", () => {
         assert.strictEqual(result.fullErrorText, "Rosetta not Enabled");
         assert.strictEqual(result.error, ContainerDeployment.rosettaError);
 
-        // Intel Mac, command succeeds
+        // 8. Intel Mac, command succeeds
         archStub.returns("x64");
         execStub.resetBehavior();
         result = await dockerUtils.checkEngine();
@@ -449,24 +461,22 @@ suite("Docker Utilities", () => {
         sandbox.stub(os, "platform").returns(Platform.Linux);
         const execStub = sandbox.stub(childProcess, "exec");
         // Stub telemetry method
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
+        const { sendActionEvent } = stubTelemetry(sandbox);
 
         // Case 1: Container is already running, should return success
         execStub.onFirstCall().yields(null, "testContainer"); // CHECK_CONTAINER_RUNNING
         let result = await dockerUtils.restartContainer("testContainer");
         assert.ok(result, "Should return success when container is already running");
-        sinon.assert.calledOnce(sendActionEventStub);
         execStub.resetHistory();
 
-        // Case 2: Container is not running, should restart and return success
+        // Case 2: Container is not running, should restart, send telemetry, and return success
         execStub.onFirstCall().yields(new Error("Container not running"), null); // CHECK_CONTAINER_RUNNING
         execStub.onSecondCall().yields(null, "Container restarted"); // START_CONTAINER
         execStub.onThirdCall().yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
         result = await dockerUtils.restartContainer("testContainer");
         assert.ok(result, "Should return success when container is restarted successfully");
-        sinon.assert.calledTwice(sendActionEventStub);
+        sinon.assert.calledTwice(sendActionEvent);
         execStub.resetHistory();
-        sendActionEventStub.restore();
     });
 
     test("checkIfContainerIsReadyForConnections: should return true if container is ready, false otherwise", async () => {
@@ -480,11 +490,11 @@ suite("Docker Utilities", () => {
 
     test("deleteContainer: should delete the container and return success or error", async () => {
         const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "container delete");
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
+        const { sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox);
 
         let result = await dockerUtils.deleteContainer("testContainer");
         sinon.assert.calledOnce(execStub);
-        sinon.assert.calledOnce(sendActionEventStub);
+        sinon.assert.calledOnce(sendActionEvent);
 
         assert.ok(result);
 
@@ -497,21 +507,20 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.deleteContainer("testContainer");
 
         sinon.assert.calledOnce(execErrorStub);
-        sinon.assert.calledTwice(sendActionEventStub);
+        sinon.assert.calledOnce(sendErrorEvent);
 
         assert.ok(!result, "Should return false on failure");
 
         execErrorStub.restore();
-        sendActionEventStub.restore();
     });
 
     test("stopContainer: should stop the container and return success or error", async () => {
         const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "container stop");
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
+        const { sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox);
 
         let result = await dockerUtils.stopContainer("testContainer");
         sinon.assert.calledOnce(execStub);
-        sinon.assert.calledOnce(sendActionEventStub);
+        sinon.assert.calledOnce(sendActionEvent);
 
         assert.ok(result);
 
@@ -524,12 +533,11 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.stopContainer("testContainer");
 
         sinon.assert.calledOnce(execErrorStub);
-        sinon.assert.calledTwice(sendActionEventStub);
 
         assert.ok(!result, "Should return false on failure");
+        sinon.assert.calledOnce(sendErrorEvent);
 
         execErrorStub.restore();
-        sendActionEventStub.restore();
     });
 
     test("checkIfContainerIsDockerContainer: should return true if the container is a Docker container", async () => {
