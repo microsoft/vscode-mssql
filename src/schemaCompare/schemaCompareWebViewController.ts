@@ -120,7 +120,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerRpcHandlers();
 
         this.registerDisposable(
-            this.connectionMgr.onConnectionsChanged(() => {
+            this.connectionMgr.onConnectionsChanged(async () => {
                 const activeServers = this.getActiveServersList();
 
                 // Check if we're waiting for a new connection and auto-select it
@@ -133,16 +133,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         activeServers,
                     );
                     if (newConnections.length > 0) {
+                        // Update active servers first so the UI has the latest list
+                        this.state.activeServers = activeServers;
+
                         // Auto-select the first new connection
                         const newConnectionUri = newConnections[0];
-                        void this.autoSelectNewConnection(
+                        await this.autoSelectNewConnection(
                             newConnectionUri,
                             this.state.pendingConnectionEndpointType,
                         );
                     }
+                } else {
+                    // Update active servers if we're not waiting for a new connection
+                    this.state.activeServers = activeServers;
                 }
 
-                this.state.activeServers = activeServers;
                 this.updateState();
             }),
         );
