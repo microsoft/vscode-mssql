@@ -11,21 +11,23 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
-import { SimpleExecuteResult } from "vscode-mssql";
-import { listFunctionsQuery } from "../queries";
+import { SimpleExecuteResult, IDbColumn, DbCellValue } from "vscode-mssql";
 
-export interface ListFunctionsToolParams {
+export interface RunQueryToolParams {
     connectionId: string;
+    query: string;
 }
 
-export interface ListFunctionsToolResult {
+export interface RunQueryToolResult {
     success: boolean;
     message?: string;
-    functions: string[];
+    rowCount?: number;
+    columnInfo?: IDbColumn[];
+    rows?: DbCellValue[][];
 }
 
-export class ListFunctionsTool extends ToolBase<ListFunctionsToolParams> {
-    public readonly toolName = Constants.copilotListFunctionsToolName;
+export class RunQueryTool extends ToolBase<RunQueryToolParams> {
+    public readonly toolName = Constants.copilotRunQueryToolName;
 
     constructor(
         private _connectionManager: ConnectionManager,
@@ -35,10 +37,10 @@ export class ListFunctionsTool extends ToolBase<ListFunctionsToolParams> {
     }
 
     async call(
-        options: vscode.LanguageModelToolInvocationOptions<ListFunctionsToolParams>,
+        options: vscode.LanguageModelToolInvocationOptions<RunQueryToolParams>,
         _token: vscode.CancellationToken,
     ) {
-        const { connectionId } = options.input;
+        const { connectionId, query } = options.input;
         try {
             const connInfo = this._connectionManager.getConnectionInfo(connectionId);
             const connCreds = connInfo?.credentials;
@@ -58,14 +60,15 @@ export class ListFunctionsTool extends ToolBase<ListFunctionsToolParams> {
                 >("query/simpleexecute"),
                 {
                     ownerUri: connectionId,
-                    queryString: listFunctionsQuery,
+                    queryString: query,
                 },
             );
-            const functions = this.getFunctionNamesFromResult(result);
 
             return JSON.stringify({
                 success: true,
-                functions,
+                rowCount: result.rowCount,
+                columnInfo: result.columnInfo,
+                rows: result.rows,
             });
         } catch (err) {
             return JSON.stringify({
@@ -75,39 +78,18 @@ export class ListFunctionsTool extends ToolBase<ListFunctionsToolParams> {
         }
     }
 
-    private getFunctionNamesFromResult(result: SimpleExecuteResult): string[] {
-        if (!result || !result.rows || result.rows.length === 0) {
-            return [];
-        }
-
-        const functionNames: string[] = [];
-
-        // Extract function names from each row
-        // Assuming the query returns function names in the first column
-        for (const row of result.rows) {
-            if (row && row.length > 0 && row[0] && !row[0].isNull) {
-                const functionName = row[0].displayValue.trim();
-                if (functionName) {
-                    functionNames.push(functionName);
-                }
-            }
-        }
-
-        return functionNames;
-    }
-
     async prepareInvocation(
-        options: vscode.LanguageModelToolInvocationPrepareOptions<ListFunctionsToolParams>,
+        options: vscode.LanguageModelToolInvocationPrepareOptions<RunQueryToolParams>,
         _token: vscode.CancellationToken,
     ) {
-        const { connectionId } = options.input;
+        const { connectionId, query } = options.input;
         const confirmationMessages = {
-            title: `${Constants.extensionName}: ${loc.ListFunctionsToolConfirmationTitle}`,
+            title: `${Constants.extensionName}: ${loc.RunQueryToolConfirmationTitle}`,
             message: new vscode.MarkdownString(
-                loc.ListFunctionsToolConfirmationMessage(connectionId),
+                loc.RunQueryToolConfirmationMessage(connectionId, query),
             ),
         };
-        const invocationMessage = loc.ListFunctionsToolInvocationMessage(connectionId);
+        const invocationMessage = loc.RunQueryToolInvocationMessage(connectionId);
         return { invocationMessage, confirmationMessages };
     }
 }

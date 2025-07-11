@@ -1459,6 +1459,21 @@ export class MssqlChatAgent {
             comment: ["{0} is the connection ID"],
         });
     };
+    public static RunQueryToolConfirmationTitle = l10n.t("Run Query");
+    public static RunQueryToolConfirmationMessage = (connectionId: string, query: string) => {
+        return l10n.t({
+            message: "Run query on connection '{0}'?\n\nQuery: {1}",
+            args: [connectionId, query],
+            comment: ["{0} is the connection ID", "{1} is the SQL query"],
+        });
+    };
+    public static RunQueryToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Running query on connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
 }
 
 export class QueryEditor {
