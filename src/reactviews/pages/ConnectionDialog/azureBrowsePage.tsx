@@ -165,7 +165,7 @@ export const AzureBrowsePage = () => {
 
     // servers
     useEffect(() => {
-        if (!context.state.isAzureSignedIn) {
+        if (context.state.loadingAzureAccountsStatus !== ApiStatus.Loaded) {
             return; // should not be visible if not signed in
         }
 
@@ -232,7 +232,7 @@ export const AzureBrowsePage = () => {
 
     return (
         <div>
-            {!context.state.isAzureSignedIn && (
+            {context.state.loadingAzureAccountsStatus === ApiStatus.NotStarted && (
                 <div className={styles.notSignedInContainer}>
                     <img
                         className={styles.icon}
@@ -249,7 +249,18 @@ export const AzureBrowsePage = () => {
                     </Link>
                 </div>
             )}
-            {context.state.isAzureSignedIn && (
+            {context.state.loadingAzureAccountsStatus === ApiStatus.Loading && (
+                <div className={styles.notSignedInContainer}>
+                    <img
+                        className={styles.icon}
+                        src={azureLogoColor()}
+                        alt={Loc.connectionDialog.signIntoAzureToBrowse}
+                    />
+                    <div>Loading Azure Accounts</div>
+                    <Spinner size="large" />
+                </div>
+            )}
+            {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
                     <AzureFilterCombobox
                         label={Loc.connectionDialog.subscriptionLabel}

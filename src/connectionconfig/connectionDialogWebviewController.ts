@@ -230,6 +230,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         await this.updateItemVisibility();
+
+        this.state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
+        this.state.loadingAzureAccountsStatus =
+            this.state.azureAccounts.length === 0 ? ApiStatus.NotStarted : ApiStatus.Loaded;
+        this.updateState();
     }
 
     private registerRpcHandlers() {
@@ -551,6 +556,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.updateState(state);
             }
 
+            if (state.loadingAzureAccountsStatus === ApiStatus.NotStarted) {
+                state.loadingAzureAccountsStatus = ApiStatus.Loading;
+                this.updateState(state);
+            }
+
             try {
                 await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
             } catch (error) {
@@ -560,7 +570,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            state.isAzureSignedIn = true;
+            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
+            state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+            this.updateState(state);
+
             await this.loadAllAzureServers(state);
 
             return state;
@@ -1167,7 +1180,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             state.formError = "";
-            state.isAzureSignedIn = true;
+            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
+            state.loadingAzureAccountsStatus = ApiStatus.Loaded;
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
             this.updateState();
 

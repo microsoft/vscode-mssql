@@ -268,8 +268,18 @@ export class LocConstants {
     public get azure() {
         return {
             signIntoAzure: l10n.t("Sign into Azure"),
+            notSignedIn: l10n.t("Not signed in"),
             azureAccount: l10n.t("Azure Account"),
+            addAccount: l10n.t("Add Account"),
             addAzureAccount: l10n.t("+ Add Azure Account"),
+            nAccounts: (n: number) =>
+                l10n.t({
+                    message: "{0} accounts",
+                    args: [n],
+                    comment: ["{0} is the number of accounts"],
+                }),
+            clickToSignIntoAnAzureAccount: l10n.t("Click to sign into an Azure account"),
+            currentlySignedInAs: l10n.t("Currently signed in as:"),
         };
     }
 
