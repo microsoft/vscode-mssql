@@ -201,6 +201,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareOpenScmpResult: undefined,
             saveScmpResultStatus: undefined,
             cancelResultStatus: undefined,
+            waitingForNewConnection: false,
+            pendingConnectionEndpointType: null,
         };
 
         mockContext = {

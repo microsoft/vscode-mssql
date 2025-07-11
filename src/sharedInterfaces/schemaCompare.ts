@@ -68,6 +68,8 @@ export interface SchemaCompareWebViewState {
     schemaCompareOpenScmpResult: SchemaCompareOpenScmpResult;
     saveScmpResultStatus: ResultStatus;
     cancelResultStatus: ResultStatus;
+    waitingForNewConnection: boolean;
+    pendingConnectionEndpointType: "source" | "target" | null;
 }
 
 export interface SchemaCompareReducers {
@@ -77,7 +79,7 @@ export interface SchemaCompareReducers {
 
     listDatabasesForActiveServer: { connectionUri: string };
 
-    openAddNewConnectionDialog: {};
+    openAddNewConnectionDialog: { endpointType: "source" | "target" };
 
     selectFile: {
         endpoint: SchemaCompareEndpointInfo;
@@ -167,7 +169,7 @@ export interface SchemaCompareContextProps {
 
     listDatabasesForActiveServer: (connectionUri: string) => void;
 
-    openAddNewConnectionDialog: () => void;
+    openAddNewConnectionDialog: (endpointType: "source" | "target") => void;
 
     selectFile: (
         endpoint: SchemaCompareEndpointInfo,
