@@ -80,8 +80,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
     ConnectionDialogWebviewState,
     ConnectionDialogFormItemSpec,
-    ConnectionDialogReducers,
-    IConnectionDialogProfile
+    ConnectionDialogReducers
 > {
     //#region Properties
 
@@ -825,9 +824,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 select: true,
                 expand: true,
             });
-
-            // Resolve the dialog result with the connection profile before disposing
-            this.dialogResult.resolve(cleanedConnection);
 
             await this.panel.dispose();
             this.dispose();

@@ -1055,7 +1055,6 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
             if (this.useLegacyConnectionExperience) {
                 await self.createObjectExplorerSession();
-                return undefined;
             } else {
                 let connectionInfo: IConnectionInfo | undefined = undefined;
                 let connectionGroup: IConnectionGroup | undefined = undefined;
@@ -1079,9 +1078,6 @@ export default class MainController implements vscode.Disposable {
                     connectionGroup,
                 );
                 connDialog.revealToForeground();
-
-                // Return the connection profile result
-                return await connDialog.dialogResult;
             }
         });
 
