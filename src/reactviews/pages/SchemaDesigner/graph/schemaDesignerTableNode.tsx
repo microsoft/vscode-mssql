@@ -89,6 +89,14 @@ const useStyles = makeStyles({
     actionButton: {
         marginLeft: "auto",
     },
+    tableOverlay: {
+        position: "absolute",
+        inset: 0,
+        backgroundColor: "var(--vscode-editor-background)",
+        opacity: 0.3,
+        pointerEvents: "none",
+        zIndex: 10,
+    },
 });
 
 // TableHeaderActions component for the edit button and menu
@@ -288,6 +296,7 @@ export const SchemaDesignerTableNode = (props: NodeProps) => {
 
     return (
         <div className={styles.tableNodeContainer}>
+            {(props.data?.dimmed as boolean) && <div className={styles.tableOverlay} />}
             <TableHeader table={table} />
             <Divider />
             <TableColumns columns={table.columns} table={table} />
