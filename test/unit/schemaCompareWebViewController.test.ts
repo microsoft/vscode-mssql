@@ -1035,4 +1035,136 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         includeExcludeAllStub.restore();
     });
+
+    test("getAllObjectTypeDifferences - filters out fixed database roles from CREATE operations", () => {
+        const differencesWithFixedRoles = [
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "Role",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlRole",
+                sourceScript: "CREATE ROLE [db_datareader] AUTHORIZATION [dbo];",
+                sourceValue: ["db_datareader"],
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 2, // Add
+            },
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "Role",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlRole",
+                sourceScript: "CREATE ROLE [DB_DATAWRITER] AUTHORIZATION [dbo];",
+                sourceValue: ["[DB_DATAWRITER]"], // Test with brackets and different case
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 2, // Add
+            },
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "Role",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlRole",
+                sourceScript: "CREATE ROLE [custom_role] AUTHORIZATION [dbo];",
+                sourceValue: ["custom_role"],
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 2, // Add
+            },
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "Table",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+                sourceScript: "CREATE TABLE [dbo].[TestTable] ([Id] INT NOT NULL);",
+                sourceValue: ["dbo", "TestTable"],
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 2, // Add
+            },
+        ];
+
+        const mockResult: mssql.SchemaCompareResult = {
+            operationId: operationId,
+            areEqual: false,
+            differences: differencesWithFixedRoles,
+            success: true,
+            errorMessage: "",
+        };
+
+        const actualResult = controller["getAllObjectTypeDifferences"](mockResult);
+
+        // Should filter out db_datareader and DB_DATAWRITER but keep custom_role and TestTable
+        assert.strictEqual(actualResult.length, 2, "Should filter out fixed database roles");
+
+        // Verify that fixed database roles are not in the results
+        const roleNames = actualResult
+            .filter((d) => d.name === "Role")
+            .map((d) => d.sourceValue?.[0] || d.targetValue?.[0]);
+        assert.ok(!roleNames.includes("db_datareader"), "Should not include db_datareader");
+        assert.ok(!roleNames.includes("[DB_DATAWRITER]"), "Should not include DB_DATAWRITER");
+        assert.ok(roleNames.includes("custom_role"), "Should include custom_role");
+
+        // Verify that other object types are still included
+        const tableNames = actualResult
+            .filter((d) => d.name === "Table")
+            .map((d) => d.sourceValue?.[1] || d.targetValue?.[1]);
+        assert.ok(tableNames.includes("TestTable"), "Should include TestTable");
+    });
+
+    test("getAllObjectTypeDifferences - includes fixed database roles for non-CREATE operations", () => {
+        const differencesWithFixedRoleChange = [
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "Role",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlRole",
+                sourceScript: "ALTER ROLE [db_datareader] ADD MEMBER [testuser];",
+                sourceValue: ["db_datareader"],
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 1, // Change (not Add)
+            },
+        ];
+
+        const mockResult: mssql.SchemaCompareResult = {
+            operationId: operationId,
+            areEqual: false,
+            differences: differencesWithFixedRoleChange,
+            success: true,
+            errorMessage: "",
+        };
+
+        const actualResult = controller["getAllObjectTypeDifferences"](mockResult);
+
+        // Should include fixed database roles for non-CREATE operations (like adding members)
+        assert.strictEqual(
+            actualResult.length,
+            1,
+            "Should include fixed database roles for non-CREATE operations",
+        );
+
+        const roleNames = actualResult
+            .filter((d) => d.name === "Role")
+            .map((d) => d.sourceValue?.[0] || d.targetValue?.[0]);
+        assert.ok(
+            roleNames.includes("db_datareader"),
+            "Should include db_datareader for role membership changes",
+        );
+    });
 });

@@ -1151,6 +1151,50 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         return endpointInfo;
     }
 
+    /**
+     * Checks if a difference entry represents the creation of a fixed database role
+     * Fixed database roles are system-defined roles that exist by default in SQL Server
+     * and should not be scripted for creation.
+     */
+    private isFixedDatabaseRoleCreation(difference: DiffEntry): boolean {
+        // Fixed database roles that exist by default in SQL Server
+        const fixedDatabaseRoles = [
+            "db_owner",
+            "db_accessadmin",
+            "db_datareader",
+            "db_datawriter",
+            "db_ddladmin",
+            "db_denydatareader",
+            "db_denydatawriter",
+            "db_backupoperator",
+            "db_securityadmin",
+        ];
+
+        // Check if this is a Role object being added
+        if (
+            difference.name === "Role" &&
+            difference.updateAction === mssql.SchemaUpdateAction.Add
+        ) {
+            // Get the role name from sourceValue or targetValue
+            const roleNameParts = difference.sourceValue || difference.targetValue;
+            if (roleNameParts && roleNameParts.length > 0) {
+                // The role name could be at different positions in the array
+                // Check all parts to find a match with fixed database roles
+                for (const part of roleNameParts) {
+                    if (part) {
+                        // Remove square brackets and handle case-insensitive comparison
+                        const cleanName = part.replace(/^\[|\]$/g, "").toLowerCase();
+                        if (fixedDatabaseRoles.includes(cleanName)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     private getAllObjectTypeDifferences(result: mssql.SchemaCompareResult): DiffEntry[] {
         // let data = [];
         let finalDifferences: DiffEntry[] = [];
@@ -1162,6 +1206,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         (difference.sourceValue !== null && difference.sourceValue.length > 0) ||
                         (difference.targetValue !== null && difference.targetValue.length > 0)
                     ) {
+                        // Filter out fixed database roles when they are being created
+                        if (this.isFixedDatabaseRoleCreation(difference)) {
+                            return; // Skip this difference
+                        }
+
                         // lewissanchez todo: need to check if difference is excluded before adding to final differences list
                         finalDifferences.push(difference);
                     }
