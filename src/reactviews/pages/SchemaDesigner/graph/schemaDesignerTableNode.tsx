@@ -23,6 +23,8 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
+import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
+import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
 
 // Styles for the table node components
 const useStyles = makeStyles({
@@ -238,10 +240,8 @@ const TableColumn = ({
                 className={styles.handleLeft}
             />
 
-            {column.isPrimaryKey && <FluentIcons.KeyRegular className={styles.keyIcon} />}
-            {!column.isPrimaryKey && isForeignKey && (
-                <FluentIcons.FlowRegular className={styles.keyIcon} />
-            )}
+            {column.isPrimaryKey && <PrimaryKeyIcon className={styles.keyIcon} />}
+            {!column.isPrimaryKey && isForeignKey && <ForeignKeyIcon className={styles.keyIcon} />}
 
             <Text
                 className={styles.columnName}
