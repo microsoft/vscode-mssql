@@ -84,6 +84,10 @@ export const AddFirewallRuleDialog = ({
             : "",
     );
 
+    // Track whether fields have been manually edited to prevent unwanted resets
+    const [hasEditedIpFields, setHasEditedIpFields] = useState(false);
+    const [hasEditedRuleName, setHasEditedRuleName] = useState(false);
+
     // Update selected tenant when state.tenants changes
     useEffect(() => {
         if (state.accounts.length > 0) {
@@ -100,19 +104,37 @@ export const AddFirewallRuleDialog = ({
         }
     }, [state.accounts, state.tenants]);
 
+    // Only update IP fields if they haven't been manually edited
     useEffect(() => {
-        if (state.clientIp) {
+        if (state.clientIp && !hasEditedIpFields) {
             setStartIp(replaceLastOctet(state.clientIp, 0));
             setEndIp(replaceLastOctet(state.clientIp, 255));
         }
-    }, [state.clientIp]);
+    }, [state.clientIp, hasEditedIpFields]);
+
+    // Update IP fields when switching between IP selection modes, but only if not manually edited
+    useEffect(() => {
+        if (state.clientIp && !hasEditedIpFields) {
+            if (ipSelectionMode === IpSelectionMode.SpecificIp) {
+                setStartIp(state.clientIp);
+                setEndIp(state.clientIp);
+            } else {
+                setStartIp(replaceLastOctet(state.clientIp, 0));
+                setEndIp(replaceLastOctet(state.clientIp, 255));
+            }
+        }
+    }, [ipSelectionMode, state.clientIp, hasEditedIpFields]);
 
     const [ruleName, setRuleName] = useState("ClientIPAddress_" + formatDate(new Date()));
 
     const [ipSelectionMode, setIpSelectionMode] = useState(IpSelectionMode.SpecificIp);
 
-    const [startIp, setStartIp] = useState(replaceLastOctet(state.clientIp, 0));
-    const [endIp, setEndIp] = useState(replaceLastOctet(state.clientIp, 255));
+    const [startIp, setStartIp] = useState(
+        state.clientIp ? replaceLastOctet(state.clientIp, 0) : "0.0.0.0",
+    );
+    const [endIp, setEndIp] = useState(
+        state.clientIp ? replaceLastOctet(state.clientIp, 255) : "0.0.0.255",
+    );
 
     const onAccountOptionSelect = (_: SelectionEvents, data: OptionOnSelectData) => {
         if (data.optionValue === addNewAzureAccount) {
@@ -230,6 +252,7 @@ export const AddFirewallRuleDialog = ({
                                         value={ruleName}
                                         onChange={(_ev, data) => {
                                             setRuleName(data.value);
+                                            setHasEditedRuleName(true);
                                         }}
                                         id="ruleName"
                                     />
@@ -237,9 +260,12 @@ export const AddFirewallRuleDialog = ({
                                 <Field className={formStyles.formComponentDiv}>
                                     <RadioGroup
                                         value={ipSelectionMode}
-                                        onChange={(_, data) =>
-                                            setIpSelectionMode(data.value as IpSelectionMode)
-                                        }>
+                                        onChange={(_, data) => {
+                                            setIpSelectionMode(data.value as IpSelectionMode);
+                                            // Reset the IP fields edit flag when switching between modes
+                                            // so that IP fields can be updated appropriately
+                                            setHasEditedIpFields(false);
+                                        }}>
                                         <Radio
                                             label={Loc.firewallRules.addMyClientIp(state.clientIp)}
                                             value={IpSelectionMode.SpecificIp}
@@ -258,6 +284,7 @@ export const AddFirewallRuleDialog = ({
                                         value={startIp}
                                         onChange={(_ev, data) => {
                                             setStartIp(data.value);
+                                            setHasEditedIpFields(true);
                                         }}
                                         id="startIpInput"
                                         disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
@@ -268,6 +295,7 @@ export const AddFirewallRuleDialog = ({
                                         value={endIp}
                                         onChange={(_ev, data) => {
                                             setEndIp(data.value);
+                                            setHasEditedIpFields(true);
                                         }}
                                         id="endIpInput"
                                         disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
