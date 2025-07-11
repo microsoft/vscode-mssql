@@ -757,6 +757,10 @@
                 {
                     "command": "mssql.connectionGroups.delete",
                     "when": "false"
+                },
+                {
+                    "command": "mssql.editConnection",
+                    "when": "false"
                 }
             ],
             "webview/context": [
