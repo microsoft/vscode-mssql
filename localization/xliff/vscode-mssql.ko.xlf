@@ -2928,6 +2928,10 @@ Error:
         <note>{0} is the connection ID</note>
         <target state="translated">연결 '{0}'의 스키마를 표시하시겠습니까?</target>
       </trans-unit>
+      <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
+        <source xml:lang="en">Show table relationships</source>
+        <target state="new">Show table relationships</target>
+      </trans-unit>
       <trans-unit id="++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9">
         <source xml:lang="en">Showing schema for connection '{0}'</source>
         <note>{0} is the connection ID</note>
