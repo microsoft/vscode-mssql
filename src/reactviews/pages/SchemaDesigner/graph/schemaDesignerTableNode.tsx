@@ -23,6 +23,8 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
+import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
+import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
 
 // Styles for the table node components
 const useStyles = makeStyles({
@@ -216,8 +218,18 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
 };
 
 // TableColumn component for rendering a single column
-const TableColumn = ({ column }: { column: SchemaDesigner.Column }) => {
+const TableColumn = ({
+    column,
+    table,
+}: {
+    column: SchemaDesigner.Column;
+    table: SchemaDesigner.Table;
+}) => {
     const styles = useStyles();
+
+    // Check if this column is a foreign key
+    const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
+
     return (
         <div className={"column"} key={column.name}>
             <Handle
@@ -228,11 +240,12 @@ const TableColumn = ({ column }: { column: SchemaDesigner.Column }) => {
                 className={styles.handleLeft}
             />
 
-            {column.isPrimaryKey && <FluentIcons.KeyRegular className={styles.keyIcon} />}
+            {column.isPrimaryKey && <PrimaryKeyIcon className={styles.keyIcon} />}
+            {!column.isPrimaryKey && isForeignKey && <ForeignKeyIcon className={styles.keyIcon} />}
 
             <Text
                 className={styles.columnName}
-                style={{ paddingLeft: column.isPrimaryKey ? "0px" : "30px" }}>
+                style={{ paddingLeft: column.isPrimaryKey || isForeignKey ? "0px" : "30px" }}>
                 {column.name}
             </Text>
 
@@ -252,11 +265,17 @@ const TableColumn = ({ column }: { column: SchemaDesigner.Column }) => {
 };
 
 // TableColumns component for rendering all columns
-const TableColumns = ({ columns }: { columns: SchemaDesigner.Column[] }) => {
+const TableColumns = ({
+    columns,
+    table,
+}: {
+    columns: SchemaDesigner.Column[];
+    table: SchemaDesigner.Table;
+}) => {
     return (
         <div>
             {columns.map((column, index) => (
-                <TableColumn key={`${index}-${column.name}`} column={column} />
+                <TableColumn key={`${index}-${column.name}`} column={column} table={table} />
             ))}
         </div>
     );
@@ -265,12 +284,13 @@ const TableColumns = ({ columns }: { columns: SchemaDesigner.Column[] }) => {
 // Main SchemaDesignerTableNode component
 export const SchemaDesignerTableNode = (props: NodeProps) => {
     const styles = useStyles();
+    const table = props.data as SchemaDesigner.Table;
 
     return (
         <div className={styles.tableNodeContainer}>
-            <TableHeader table={props.data as SchemaDesigner.Table} />
+            <TableHeader table={table} />
             <Divider />
-            <TableColumns columns={(props.data as SchemaDesigner.Table).columns} />
+            <TableColumns columns={table.columns} table={table} />
         </div>
     );
 };
