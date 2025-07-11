@@ -84,6 +84,10 @@
         <source xml:lang="en">Add</source>
         <target state="translated">Adicionar</target>
       </trans-unit>
+      <trans-unit id="++CODE++3d0d3f78acca7d0def0c881e924ececb285c1791711ab008ae5a0297e09a717a">
+        <source xml:lang="en">Add Account</source>
+        <target state="new">Add Account</target>
+      </trans-unit>
       <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
         <source xml:lang="en">Add Column</source>
         <target state="translated">Adicionar Coluna</target>
@@ -606,6 +610,10 @@
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">Clique para se conectar a um banco de dados</target>
       </trans-unit>
+      <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
+        <source xml:lang="en">Click to sign into an Azure account</source>
+        <target state="new">Click to sign into an Azure account</target>
+      </trans-unit>
       <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
         <source xml:lang="en">Close</source>
         <target state="translated">Fechar</target>
@@ -961,6 +969,10 @@
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
         <target state="translated">Erro de credencial: ocorreu um erro ao tentar atualizar as credenciais da conta. Autentique-se novamente.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
+        <source xml:lang="en">Currently signed in as:</source>
+        <target state="new">Currently signed in as:</target>
       </trans-unit>
       <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
         <source xml:lang="en">Custom Zoom</source>
@@ -2197,6 +2209,10 @@ Erro:
         <source xml:lang="en">Not likely at all</source>
         <target state="translated">Totalmente improvável</target>
       </trans-unit>
+      <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
+        <source xml:lang="en">Not signed in</source>
+        <target state="new">Not signed in</target>
+      </trans-unit>
       <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
         <source xml:lang="en">Not started</source>
         <target state="translated">Não iniciado</target>
@@ -2912,6 +2928,10 @@ Erro:
         <note>{0} is the connection ID</note>
         <target state="translated">Mostrar esquema para a conexão '{0}'?</target>
       </trans-unit>
+      <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
+        <source xml:lang="en">Show table relationships</source>
+        <target state="new">Show table relationships</target>
+      </trans-unit>
       <trans-unit id="++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9">
         <source xml:lang="en">Showing schema for connection '{0}'</source>
         <note>{0} is the connection ID</note>
@@ -3559,6 +3579,11 @@ Erro:
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (filtrado)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
+        <source xml:lang="en">{0} accounts</source>
+        <note>{0} is the number of accounts</note>
+        <target state="new">{0} accounts</target>
       </trans-unit>
       <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
         <source xml:lang="en">{0} column data</source>
