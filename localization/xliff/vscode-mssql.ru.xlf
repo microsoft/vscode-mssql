@@ -138,6 +138,10 @@
         <source xml:lang="en">Advanced Options</source>
         <target state="translated">Дополнительные параметры</target>
       </trans-unit>
+      <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
+        <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
+        <target state="new">All permissions for extensions to access your connections have been cleared.</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
         <target state="translated">Разрешить значение NULL</target>
@@ -145,6 +149,10 @@
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
         <target state="translated">Разрешить значения NULL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
+        <source xml:lang="en">Allow this extension to access your connections</source>
+        <target state="new">Allow this extension to access your connections</target>
       </trans-unit>
       <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
         <source xml:lang="en">Alphabetical</source>
@@ -195,6 +203,10 @@
       <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
         <source xml:lang="en">Apply changes to target</source>
         <target state="translated">Применить изменения к целевому объекту</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
+        <source xml:lang="en">Approve</source>
+        <target state="new">Approve</target>
       </trans-unit>
       <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
         <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
@@ -337,6 +349,10 @@
       <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
         <source xml:lang="en">Blanks</source>
         <target state="translated">Пустые</target>
+      </trans-unit>
+      <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
+        <source xml:lang="en">Block this extension from accessing your connections</source>
+        <target state="new">Block this extension from accessing your connections</target>
       </trans-unit>
       <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
         <source xml:lang="en">Brightness</source>
@@ -581,6 +597,10 @@
       <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
         <source xml:lang="en">Clear cache and refresh token</source>
         <target state="translated">Очистить кэш и обновить токен</target>
+      </trans-unit>
+      <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
+        <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
+        <target state="new">Clear permissions for all extensions to access your connections</target>
       </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
@@ -1018,6 +1038,10 @@
       <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
         <source xml:lang="en">Deleting Container...</source>
         <target state="translated">Удаление контейнера...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++05a2d7332eb9d8bf164487c743a2e93c21b16bb2061a93e3ee2ceb508eadb753">
+        <source xml:lang="en">Deny</source>
+        <target state="new">Deny</target>
       </trans-unit>
       <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
         <source xml:lang="en">Description</source>
@@ -2776,9 +2800,18 @@ Error:
         <source xml:lang="en">Select an account</source>
         <target state="translated">Выберите учетную запись</target>
       </trans-unit>
+      <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
+        <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
+        <target state="new">Select an extension to manage connection sharing permissions</target>
+      </trans-unit>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
         <target state="translated">Выберите образ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
+        <source xml:lang="en">Select new permission for extension: '{0}'</source>
+        <note>{0} is the extension name</note>
+        <target state="new">Select new permission for extension: '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -3157,6 +3190,11 @@ Error:
       <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
         <source xml:lang="en">The expression defining the check constraint.</source>
         <target state="translated">Выражение, определяющее проверочное ограничение.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dcf10fd537a0660c98f1a3890997024dfebb2ac795ee02dcbc7581ec4a0fe141">
+        <source xml:lang="en">The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.</source>
+        <note>{0} is the extension name</note>
+        <target state="new">The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.</target>
       </trans-unit>
       <trans-unit id="++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e">
         <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
@@ -3613,6 +3651,22 @@ Error:
         <source xml:lang="en">{{put-server-name-here}}</source>
         <target state="translated">{{put-server-name-here}}</target>
       </trans-unit>
+      <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
+        <source xml:lang="en">✅ Grant Access</source>
+        <target state="new">✅ Grant Access</target>
+      </trans-unit>
+      <trans-unit id="++CODE++56034cb01aa84b5c8abe9389abf03d1c9a91ecea712a8711d611abb0ddd1637c">
+        <source xml:lang="en">✅ Grant Access (Current)</source>
+        <target state="new">✅ Grant Access (Current)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++40609c19f7011fdd42630f286c30982b3d7a2d74640e310c4126b785a384149d">
+        <source xml:lang="en">❌ Deny Access</source>
+        <target state="new">❌ Deny Access</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4d765d766973242c68c5a2d3b20c7164beb22948ceaf7095ce44f901cc2f4052">
+        <source xml:lang="en">❌ Deny Access (Current)</source>
+        <target state="new">❌ Deny Access (Current)</target>
+      </trans-unit>
     </body>
   </file>
   <file original="package" source-language="en" datatype="plaintext" target-language="ru">
@@ -3668,6 +3722,10 @@ Error:
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
         <target state="translated">Выбирает применяемый способ проверки подлинности</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionSharing.clearAllConnectionSharingPermissions">
+        <source xml:lang="en">Clear All Connection Sharing Permissions</source>
+        <target state="new">Clear All Connection Sharing Permissions</target>
       </trans-unit>
       <trans-unit id="mssql.clearAllQueryHistory">
         <source xml:lang="en">Clear All Query History</source>
@@ -3778,6 +3836,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
         <target state="translated">Изменить группу подключений</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
+        <source xml:lang="en">Edit Connection Sharing Permissions</source>
+        <target state="new">Edit Connection Sharing Permissions</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Edit Table</source>
