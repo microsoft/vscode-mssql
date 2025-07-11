@@ -111,6 +111,39 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             expect(controller.isDisposed).to.be.true;
             expect(await controller.dialogResult).to.be.false;
         });
+
+        test("addFirewallRule should preserve state when error occurs", async () => {
+            await finishSetup(true /* isSignedIn */);
+
+            // Simulate an error during firewall rule creation
+            mockFirewallService.createFirewallRuleWithVscodeAccount.rejects(
+                new Error("Network error"),
+            );
+
+            const originalState = { ...controller.state };
+            const firewallRuleSpec = {
+                name: "CustomRuleName",
+                azureAccountInfo: { accountId: "account1", tenantId: "tenant1" },
+                ip: "192.168.1.100",
+            };
+
+            // Execute the addFirewallRule reducer
+            const newState = await controller["_reducerHandlers"].get("addFirewallRule")(
+                originalState,
+                { firewallRuleSpec },
+            );
+
+            // Verify that the error is reflected in state
+            expect(newState.addFirewallRuleStatus).to.equal(ApiStatus.Error);
+            expect(newState.message).to.equal("Network error");
+
+            // Verify that other state properties are preserved
+            expect(newState.serverName).to.equal(originalState.serverName);
+            expect(newState.clientIp).to.equal(originalState.clientIp);
+            expect(newState.isSignedIn).to.equal(originalState.isSignedIn);
+            expect(newState.accounts).to.deep.equal(originalState.accounts);
+            expect(newState.tenants).to.deep.equal(originalState.tenants);
+        });
     });
 
     async function finishSetup(isSignedIn: boolean = true): Promise<void> {
