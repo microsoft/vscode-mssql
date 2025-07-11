@@ -959,6 +959,199 @@ suite("SchemaCompareWebViewController Tests", () => {
         includeExcludeAllStub.restore();
     });
 
+    test("getAllObjectTypeDifferences - filters out excluded object types", () => {
+        const differencesWithPermissions = [
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "Table",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+                sourceScript: "",
+                sourceValue: ["dbo", "Customers"],
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 2,
+            },
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "Permission",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlPermission",
+                sourceScript: "",
+                sourceValue: ["dbo", "Permission1"],
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 0,
+            },
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "ApplicationRole",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlApplicationRole",
+                sourceScript: "",
+                sourceValue: ["dbo", "TestRole"],
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 0,
+            },
+        ];
+
+        const schemaCompareResult: mssql.SchemaCompareResult = {
+            operationId: operationId,
+            areEqual: false,
+            differences: differencesWithPermissions,
+            success: true,
+            errorMessage: "",
+        };
+
+        const deploymentOptionsWithExclusions: mssql.DeploymentOptions = {
+            excludeObjectTypes: {
+                value: ["Permission", "ApplicationRole"],
+                description: "",
+                displayName: "",
+            },
+            booleanOptionsDictionary: {},
+            objectTypesDictionary: {},
+        };
+
+        const result = controller["getAllObjectTypeDifferences"](
+            schemaCompareResult,
+            deploymentOptionsWithExclusions,
+        );
+
+        // Should only include the Table, not the Permission or ApplicationRole
+        assert.strictEqual(result.length, 1, "Should only return non-excluded object types");
+        assert.strictEqual(result[0].name, "Table", "Should only return the Table object type");
+        assert.strictEqual(
+            result[0].sourceValue[1],
+            "Customers",
+            "Should return the correct table name",
+        );
+    });
+
+    test("getAllObjectTypeDifferences - includes all object types when no exclusions", () => {
+        const differencesWithPermissions = [
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "Table",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable",
+                sourceScript: "",
+                sourceValue: ["dbo", "Customers"],
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 2,
+            },
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "Permission",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlPermission",
+                sourceScript: "",
+                sourceValue: ["dbo", "Permission1"],
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 0,
+            },
+        ];
+
+        const schemaCompareResult: mssql.SchemaCompareResult = {
+            operationId: operationId,
+            areEqual: false,
+            differences: differencesWithPermissions,
+            success: true,
+            errorMessage: "",
+        };
+
+        const deploymentOptionsWithoutExclusions: mssql.DeploymentOptions = {
+            excludeObjectTypes: {
+                value: [],
+                description: "",
+                displayName: "",
+            },
+            booleanOptionsDictionary: {},
+            objectTypesDictionary: {},
+        };
+
+        const result = controller["getAllObjectTypeDifferences"](
+            schemaCompareResult,
+            deploymentOptionsWithoutExclusions,
+        );
+
+        // Should include all object types when no exclusions
+        assert.strictEqual(result.length, 2, "Should return all object types when no exclusions");
+        assert.strictEqual(result[0].name, "Table", "Should return the Table object type");
+        assert.strictEqual(
+            result[1].name,
+            "Permission",
+            "Should return the Permission object type",
+        );
+    });
+
+    test("getAllObjectTypeDifferences - case insensitive exclusion matching", () => {
+        const differencesWithPermissions = [
+            {
+                children: [],
+                differenceType: 0,
+                included: true,
+                name: "permission",
+                parent: null,
+                sourceObjectType: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlPermission",
+                sourceScript: "",
+                sourceValue: ["dbo", "Permission1"],
+                targetObjectType: null,
+                targetScript: null,
+                targetValue: null,
+                updateAction: 0,
+            },
+        ];
+
+        const schemaCompareResult: mssql.SchemaCompareResult = {
+            operationId: operationId,
+            areEqual: false,
+            differences: differencesWithPermissions,
+            success: true,
+            errorMessage: "",
+        };
+
+        const deploymentOptionsWithExclusions: mssql.DeploymentOptions = {
+            excludeObjectTypes: {
+                value: ["Permission"],
+                description: "",
+                displayName: "",
+            },
+            booleanOptionsDictionary: {},
+            objectTypesDictionary: {},
+        };
+
+        const result = controller["getAllObjectTypeDifferences"](
+            schemaCompareResult,
+            deploymentOptionsWithExclusions,
+        );
+
+        // Should exclude the permission object type even with case differences
+        assert.strictEqual(
+            result.length,
+            0,
+            "Should exclude permission object type with case insensitive matching",
+        );
+    });
+
     test("includeExcludeAllNodes reducer - when includeRequest is true - all nodes are included", async () => {
         const payload = {
             includeRequest: true,

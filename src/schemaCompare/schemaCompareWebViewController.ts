@@ -1051,7 +1051,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         endActivity.end(ActivityStatus.Succeeded);
 
-        const finalDifferences = this.getAllObjectTypeDifferences(result);
+        const finalDifferences = this.getAllObjectTypeDifferences(
+            result,
+            payload.deploymentOptions,
+        );
         result.differences = finalDifferences;
         state.schemaCompareResult = result;
         state.endpointsSwitched = false;
@@ -1151,7 +1154,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         return endpointInfo;
     }
 
-    private getAllObjectTypeDifferences(result: mssql.SchemaCompareResult): DiffEntry[] {
+    private getAllObjectTypeDifferences(
+        result: mssql.SchemaCompareResult,
+        deploymentOptions?: mssql.DeploymentOptions,
+    ): DiffEntry[] {
         // let data = [];
         let finalDifferences: DiffEntry[] = [];
         let differences = result.differences;
@@ -1162,7 +1168,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         (difference.sourceValue !== null && difference.sourceValue.length > 0) ||
                         (difference.targetValue !== null && difference.targetValue.length > 0)
                     ) {
-                        // lewissanchez todo: need to check if difference is excluded before adding to final differences list
+                        // Check if the object type is excluded via Include Object Types options
+                        if (
+                            deploymentOptions &&
+                            deploymentOptions.excludeObjectTypes &&
+                            deploymentOptions.excludeObjectTypes.value
+                        ) {
+                            const isExcluded = deploymentOptions.excludeObjectTypes.value.some(
+                                (excludedType) =>
+                                    excludedType.toLowerCase() === difference.name.toLowerCase(),
+                            );
+                            if (isExcluded) {
+                                return; // Skip this difference as it's excluded
+                            }
+                        }
+
                         finalDifferences.push(difference);
                     }
                 }
