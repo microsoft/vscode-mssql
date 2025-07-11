@@ -845,6 +845,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions =
                 result.deploymentOptions;
+
+            // Update intermediaryOptionsResult to ensure UI reflects loaded options
+            state.intermediaryOptionsResult = deepClone(state.defaultDeploymentOptionsResult);
+
             state.scmpSourceExcludes = result.excludedSourceElements;
             state.scmpTargetExcludes = result.excludedTargetElements;
             state.sourceTargetSwitched =
