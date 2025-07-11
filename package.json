@@ -749,6 +749,14 @@
                 {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences"
+                },
+                {
+                    "command": "mssql.connectionGroups.edit",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.connectionGroups.delete",
+                    "when": "false"
                 }
             ],
             "webview/context": [
@@ -1095,34 +1103,34 @@
             {
                 "command": "mssql.copilot.explainQuery",
                 "title": "%mssql.copilot.explainQuery%",
-                "category": "MSSQL"
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.copilot.analyzeQueryPerformance",
                 "title": "%mssql.copilot.analyzeQueryPerformance%",
-                "category": "MSSQL"
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.copilot.rewriteQuery",
                 "title": "%mssql.copilot.rewriteQuery%",
-                "category": "MSSQL"
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.connectionGroups.create",
                 "title": "%mssql.connectionGroups.create%",
-                "category": "MSSQL",
+                "category": "MS SQL",
                 "icon": "$(new-folder)"
             },
             {
                 "command": "mssql.connectionGroups.edit",
                 "title": "%mssql.connectionGroups.edit%",
-                "category": "MSSQL",
+                "category": "MS SQL",
                 "icon": "$(edit)"
             },
             {
                 "command": "mssql.connectionGroups.delete",
                 "title": "%mssql.connectionGroups.delete%",
-                "category": "MSSQL",
+                "category": "MS SQL",
                 "icon": "$(trash)"
             },
             {
