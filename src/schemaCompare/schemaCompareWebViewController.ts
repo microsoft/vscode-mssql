@@ -845,10 +845,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions =
                 result.deploymentOptions;
+
+            // Update intermediaryOptionsResult to ensure UI reflects loaded options
+            state.intermediaryOptionsResult = deepClone(state.defaultDeploymentOptionsResult);
+
             state.scmpSourceExcludes = result.excludedSourceElements;
             state.scmpTargetExcludes = result.excludedTargetElements;
             state.sourceTargetSwitched =
                 result.originalTargetName !== state.targetEndpointInfo.databaseName;
+            // Reset the schema comparison result similarly to what happens in Azure Data Studio.
+            state.schemaCompareResult = undefined;
 
             endActivity.end(ActivityStatus.Succeeded, {
                 operationId: this.operationId,
