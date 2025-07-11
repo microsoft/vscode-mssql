@@ -68,8 +68,6 @@ export interface SchemaCompareWebViewState {
     schemaCompareOpenScmpResult: SchemaCompareOpenScmpResult;
     saveScmpResultStatus: ResultStatus;
     cancelResultStatus: ResultStatus;
-    waitingForNewConnection: boolean;
-    pendingConnectionEndpointType: "source" | "target" | null;
 }
 
 export interface SchemaCompareReducers {
