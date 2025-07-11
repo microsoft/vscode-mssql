@@ -992,32 +992,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         endpointType: "source" | "target",
     ): Promise<void> {
         try {
-            // The connection should already be established by the connection dialog
-            // Let's try to get the URI and if it's not available, we'll wait and retry
-            let connectionUri = await this.connectionMgr.getUriForConnection(
+            // Get the connection URI for the profile
+            const connectionUri = await this.connectionMgr.getUriForConnection(
                 connectionProfile as IConnectionProfile,
             );
-
-            if (!connectionUri) {
-                // Wait for the connection to be established with retries
-                let retries = 0;
-                const maxRetries = 10;
-
-                while (!connectionUri && retries < maxRetries) {
-                    await new Promise((resolve) => setTimeout(resolve, 200));
-                    connectionUri = await this.connectionMgr.getUriForConnection(
-                        connectionProfile as IConnectionProfile,
-                    );
-                    retries++;
-                }
-
-                if (!connectionUri) {
-                    console.error(
-                        "Could not find connection URI for profile, cannot select connection",
-                    );
-                    return;
-                }
-            }
 
             // Get the list of databases for the connection
             const databases = await this.connectionMgr.listDatabases(connectionUri);
@@ -1057,7 +1035,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             // Update the databases list for the UI
             this.state.databases = databases;
 
-            // Update the active servers list - ensure we have the latest state
+            // Update the active servers list
             this.state.activeServers = this.getActiveServersList();
 
             // Update the UI
@@ -1073,7 +1051,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         const activeServers: { [connectionUri: string]: { profileName: string; server: string } } =
             {};
         const activeConnections = this.connectionMgr.activeConnections;
-
         Object.keys(activeConnections).forEach((connectionUri) => {
             let credentials = activeConnections[connectionUri]
                 .credentials as IConnectionDialogProfile;

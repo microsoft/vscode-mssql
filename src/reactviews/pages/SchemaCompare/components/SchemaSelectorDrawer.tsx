@@ -146,14 +146,6 @@ const SchemaSelectorDrawer = (props: Props) => {
         }
     }, []);
 
-    // Update active servers when the current endpoint changes
-    useEffect(() => {
-        if (currentEndpoint?.ownerUri) {
-            context.listActiveServers();
-            context.listDatabasesForActiveServer(currentEndpoint.ownerUri);
-        }
-    }, [currentEndpoint?.ownerUri]);
-
     useEffect(() => {
         updateOkButtonState(schemaType);
     }, [context.state.auxiliaryEndpointInfo, serverConnectionUri, databaseName]);
