@@ -38,8 +38,10 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         connectionUri: connectionUri,
                     });
                 },
-                openAddNewConnectionDialog: function (): void {
-                    webViewState?.extensionRpc.action("openAddNewConnectionDialog", {});
+                openAddNewConnectionDialog: function (endpointType: "source" | "target"): void {
+                    webViewState?.extensionRpc.action("openAddNewConnectionDialog", {
+                        endpointType: endpointType,
+                    });
                 },
                 selectFile: function (
                     endpoint: mssql.SchemaCompareEndpointInfo,

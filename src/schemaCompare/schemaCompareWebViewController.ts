@@ -89,6 +89,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 schemaCompareOpenScmpResult: undefined,
                 saveScmpResultStatus: undefined,
                 cancelResultStatus: undefined,
+                waitingForNewConnection: false,
+                pendingConnectionEndpointType: null,
             },
             {
                 title: title,
@@ -120,8 +122,27 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerDisposable(
             this.connectionMgr.onConnectionsChanged(() => {
                 const activeServers = this.getActiveServersList();
-                this.state.activeServers = activeServers;
 
+                // Check if we're waiting for a new connection and auto-select it
+                if (
+                    this.state.waitingForNewConnection &&
+                    this.state.pendingConnectionEndpointType
+                ) {
+                    const newConnections = this.findNewConnections(
+                        this.state.activeServers,
+                        activeServers,
+                    );
+                    if (newConnections.length > 0) {
+                        // Auto-select the first new connection
+                        const newConnectionUri = newConnections[0];
+                        void this.autoSelectNewConnection(
+                            newConnectionUri,
+                            this.state.pendingConnectionEndpointType,
+                        );
+                    }
+                }
+
+                this.state.activeServers = activeServers;
                 this.updateState();
             }),
         );
@@ -337,7 +358,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer("openAddNewConnectionDialog", (state) => {
+        this.registerReducer("openAddNewConnectionDialog", (state, payload) => {
+            state.waitingForNewConnection = true;
+            state.pendingConnectionEndpointType = payload.endpointType;
+
             vscode.commands.executeCommand(cmdAddObjectExplorer);
 
             return state;
@@ -974,6 +998,79 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             case "Schema/Object Type":
             default:
                 return mssql.ExtractTarget.schemaObjectType;
+        }
+    }
+
+    private findNewConnections(
+        oldActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
+        newActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
+    ): string[] {
+        const newConnections: string[] = [];
+
+        for (const connectionUri in newActiveServers) {
+            if (!(connectionUri in oldActiveServers)) {
+                newConnections.push(connectionUri);
+            }
+        }
+
+        return newConnections;
+    }
+
+    private async autoSelectNewConnection(
+        connectionUri: string,
+        endpointType: "source" | "target",
+    ): Promise<void> {
+        try {
+            // Get the list of databases for the new connection
+            const databases = await this.connectionMgr.listDatabases(connectionUri);
+
+            // If there are databases, select the first one
+            if (databases.length > 0) {
+                const databaseName = databases[0];
+
+                // Create the endpoint info for the new connection
+                const connection = this.connectionMgr.activeConnections[connectionUri];
+                const connectionProfile = connection?.credentials as IConnectionProfile;
+
+                if (connectionProfile) {
+                    let user = connectionProfile.user;
+                    if (!user) {
+                        user = locConstants.SchemaCompare.defaultUserName;
+                    }
+
+                    const endpointInfo = {
+                        endpointType: mssql.SchemaCompareEndpointType.Database,
+                        serverDisplayName: `${connectionProfile.server} (${user})`,
+                        serverName: connectionProfile.server,
+                        databaseName: databaseName,
+                        ownerUri: connectionUri,
+                        packageFilePath: "",
+                        connectionDetails: undefined,
+                        connectionName: connectionProfile.profileName
+                            ? connectionProfile.profileName
+                            : "",
+                        projectFilePath: "",
+                        targetScripts: [],
+                        dataSchemaProvider: "",
+                        extractTarget: mssql.ExtractTarget.schemaObjectType,
+                    };
+
+                    if (endpointType === "source") {
+                        this.state.sourceEndpointInfo = endpointInfo;
+                    } else {
+                        this.state.targetEndpointInfo = endpointInfo;
+                    }
+
+                    // Update the databases list for the UI
+                    this.state.databases = databases;
+                }
+            }
+        } catch (error) {
+            console.error("Error auto-selecting new connection:", error);
+        } finally {
+            // Reset the waiting state
+            this.state.waitingForNewConnection = false;
+            this.state.pendingConnectionEndpointType = null;
         }
     }
 
