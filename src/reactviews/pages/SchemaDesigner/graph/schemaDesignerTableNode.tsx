@@ -93,7 +93,7 @@ const useStyles = makeStyles({
         position: "absolute",
         inset: 0,
         backgroundColor: "var(--vscode-editor-background)",
-        opacity: 0.3,
+        opacity: 0.4,
         pointerEvents: "none",
         zIndex: 10,
     },
