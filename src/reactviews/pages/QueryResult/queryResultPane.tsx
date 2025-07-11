@@ -450,7 +450,13 @@ export const QueryResultPane = () => {
     ];
     const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => {
         return (
-            <DataGridRow<qr.IMessage> key={rowId} className={classes.messagesRows} style={style}>
+            <DataGridRow<qr.IMessage>
+                key={rowId}
+                className={classes.messagesRows}
+                style={style}
+                aria-label={locConstants.queryResult.message}
+                role={locConstants.queryResult.message}
+                aria-roledescription={locConstants.queryResult.message}>
                 {({ renderCell }) => <>{renderCell(item)}</>}
             </DataGridRow>
         );
@@ -481,7 +487,10 @@ export const QueryResultPane = () => {
                 columns={columns}
                 focusMode="cell"
                 resizableColumns={true}
-                columnSizingOptions={columnSizingOption}>
+                columnSizingOptions={columnSizingOption}
+                role={locConstants.queryResult.messages}
+                aria-label={locConstants.queryResult.messages}
+                aria-roledescription={locConstants.queryResult.messages}>
                 <DataGridBody<qr.IMessage> itemSize={18} height={messageGridHeight}>
                     {renderRow}
                 </DataGridBody>
