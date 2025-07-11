@@ -3,8 +3,8 @@
     "compilerOptions": {
         "outDir": "out",
         "module": "CommonJS",
-        "target": "es2024",
-        "lib": ["es6", "ES2024", "dom"],
+        "target": "ES2024",
+        "lib": ["ES2024", "dom"],
         "sourceMap": true,
         "allowUnusedLabels": false,
         "allowSyntheticDefaultImports": true,
