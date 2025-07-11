@@ -2602,13 +2602,32 @@ Error:
         <source xml:lang="en">Rule name</source>
         <target state="translated">Nombre de regla</target>
       </trans-unit>
+      <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
+        <source xml:lang="en">Run Query</source>
+        <target state="new">Run Query</target>
+      </trans-unit>
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
         <target state="translated">Ejecutar historial de consultas</target>
       </trans-unit>
+      <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
+        <source xml:lang="en">Run query on connection '{0}'?
+
+Query: {1}</source>
+        <note>{0} is the connection ID
+{1} is the SQL query</note>
+        <target state="new">Run query on connection '{0}'?
+
+Query: {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
         <target state="translated">No se admite la ejecución de consultas cuando el editor está en modo de selección múltiple.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b1f11c275b04ef9f8ee2c203bbc9e14168767c3bf289f9915aa1e43adb776cf9">
+        <source xml:lang="en">Running query on connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Running query on connection '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
