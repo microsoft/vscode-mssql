@@ -115,4 +115,8 @@ export const webviewTheme: fluentui.Theme = {
      * Color for the foreground of a selected item in a subtle button.
      */
     colorNeutralForeground1Selected: "var(--vscode-menu-selectionForeground)",
+    /**
+     * Color for the background of a toggle button when it is selected.
+     */
+    colorNeutralBackground1Selected: "var(--vscode-list-inactiveSelectionBackground)",
 };
