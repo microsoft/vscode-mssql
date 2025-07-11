@@ -46,7 +46,7 @@ export function FilterTablesButton() {
             setSelectedTables([]);
         } else {
             const visibleTables = nodes
-                .filter((node) => !node.hidden && node.style?.opacity !== 0.6)
+                .filter((node) => !node.hidden && node.data.dimmed !== true)
                 .map((node) => `${node.data.schema}.${node.data.name}`);
             setSelectedTables(visibleTables);
         }
@@ -112,19 +112,21 @@ export function FilterTablesButton() {
                     const isSelectedTable = selectedTables.includes(tableName);
                     const isRelatedTable = relatedTables.includes(tableName);
 
-                    // Apply reduced opacity to related tables that are not explicitly selected
-                    const opacity = isSelectedTable || !isRelatedTable ? 1 : 0.6;
+                    const dimmed = !isSelectedTable && isRelatedTable;
 
                     reactFlow.updateNode(node.id, {
                         ...node,
                         hidden: false,
-                        style: { ...node.style, opacity },
+                        data: {
+                            ...node.data,
+                            dimmed,
+                        },
                     });
                 } else {
                     reactFlow.updateNode(node.id, {
                         ...node,
                         hidden: true,
-                        style: { ...node.style, opacity: 1 },
+                        data: { ...node.data, dimmed: false },
                     });
                 }
             });
