@@ -2493,9 +2493,21 @@ export default class MainController implements vscode.Disposable {
         ) {
             await this.updateUri(closedDocumentUri, this._lastOpenedUri);
         } else {
-            // Pass along the close event to the other handlers for a normal closed file
-            await this._connectionMgr.onDidCloseTextDocument(doc);
-            this._outputContentProvider.onDidCloseTextDocument(doc);
+            // For untitled documents with unsaved changes, skip special processing to allow VSCode's hot exit to work
+            // Hot exit automatically backs up unsaved documents and restores them when VSCode reopens
+            if (
+                closedDocumentUriScheme === LocalizedConstants.untitledScheme &&
+                doc.isDirty &&
+                doc.languageId === Constants.languageId
+            ) {
+                // Skip special processing for dirty untitled SQL documents to preserve hot exit functionality
+                // Only clean up resources that don't interfere with hot exit
+                this._outputContentProvider.onDidCloseTextDocument(doc);
+            } else {
+                // Pass along the close event to the other handlers for a normal closed file
+                await this._connectionMgr.onDidCloseTextDocument(doc);
+                this._outputContentProvider.onDidCloseTextDocument(doc);
+            }
         }
 
         // clean up: if a document is closed with actual plan enabled, remove it
