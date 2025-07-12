@@ -93,16 +93,3 @@ export async function listAllIterator<T>(iterator: PagedAsyncIterableIterator<T>
 
     return resources;
 }
-
-/** Groups items by a specified key */
-export function groupBy<K, V>(values: V[], key: keyof V): Map<K, V[]> {
-    // TODO: replace with Object.groupBy once ES2024 is supported
-    return values.reduce((rv, x) => {
-        const keyValue = x[key] as K;
-        if (!rv.has(keyValue)) {
-            rv.set(keyValue, []);
-        }
-        rv.get(keyValue)!.push(x);
-        return rv;
-    }, new Map<K, V[]>());
-}
