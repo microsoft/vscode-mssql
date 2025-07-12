@@ -19,8 +19,20 @@ import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
 } from "../../../sharedInterfaces/connectionGroup";
-import { Field, Image, Link, MessageBar, Radio, RadioGroup } from "@fluentui/react-components";
-import { Form20Regular } from "@fluentui/react-icons";
+import {
+    Button,
+    Field,
+    Image,
+    Link,
+    makeStyles,
+    MessageBar,
+    MessageBarActions,
+    MessageBarBody,
+    Radio,
+    RadioGroup,
+    Tooltip,
+} from "@fluentui/react-components";
+import { DismissRegular, Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
 
@@ -46,9 +58,17 @@ function renderContent(connectionDialogContext: ConnectionDialogContextProps): R
     }
 }
 
+const useStyles = makeStyles({
+    inputLink: {
+        display: "flex",
+        alignItems: "center",
+    },
+});
+
 export const ConnectionInfoFormContainer = () => {
     const context = useContext(ConnectionDialogContext)!;
     const formStyles = useFormStyles();
+    const styles = useStyles();
 
     function azureIcon(colorTheme: ColorThemeKind) {
         const theme = themeType(colorTheme);
@@ -64,6 +84,17 @@ export const ConnectionInfoFormContainer = () => {
         context.connect();
     }
 
+    function getAzureAccountsText(): string {
+        switch (context.state.azureAccounts.length) {
+            case 0:
+                return locConstants.azure.notSignedIn;
+            case 1:
+                return context.state.azureAccounts[0];
+            default:
+                return locConstants.azure.nAccounts(context.state.azureAccounts.length);
+        }
+    }
+
     return (
         <form onSubmit={handleConnect} className={formStyles.formRoot}>
             <ConnectionHeader />
@@ -71,7 +102,19 @@ export const ConnectionInfoFormContainer = () => {
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                 {context.state.formError && (
                     <MessageBar intent="error" style={{ minHeight: "min-content" }}>
-                        {context.state.formError}
+                        <MessageBarBody style={{ padding: "8px 0" }}>
+                            {context.state.formError}
+                        </MessageBarBody>
+                        <MessageBarActions
+                            containerAction={
+                                <Button
+                                    onClick={context.closeMessage}
+                                    aria-label={locConstants.common.dismiss}
+                                    appearance="transparent"
+                                    icon={<DismissRegular />}
+                                />
+                            }
+                        />
                     </MessageBar>
                 )}
 
@@ -152,11 +195,7 @@ export const ConnectionInfoFormContainer = () => {
                             <Radio
                                 value={ConnectionInputMode.Parameters}
                                 label={
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                        }}>
+                                    <div className={styles.inputLink}>
                                         <Form20Regular style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.parameters}
                                         <span style={{ margin: "0 8px" }} />
@@ -173,11 +212,7 @@ export const ConnectionInfoFormContainer = () => {
                             <Radio
                                 value={ConnectionInputMode.AzureBrowse}
                                 label={
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                        }}>
+                                    <div className={styles.inputLink}>
                                         <Image
                                             src={azureIcon(context.themeKind)}
                                             alt="Azure"
@@ -186,6 +221,46 @@ export const ConnectionInfoFormContainer = () => {
                                             style={{ marginRight: "8px" }}
                                         />
                                         {locConstants.connectionDialog.browseAzure}
+                                        <span style={{ margin: "0 8px" }} />
+                                        <Tooltip
+                                            content={
+                                                <>
+                                                    {context.state.azureAccounts.length === 0 && (
+                                                        <span>
+                                                            {
+                                                                locConstants.azure
+                                                                    .clickToSignIntoAnAzureAccount
+                                                            }
+                                                        </span>
+                                                    )}
+                                                    {context.state.azureAccounts.length > 0 && (
+                                                        <>
+                                                            {locConstants.azure.currentlySignedInAs}
+                                                            <br />
+                                                            <ul>
+                                                                {context.state.azureAccounts.map(
+                                                                    (account) => (
+                                                                        <li>{account}</li>
+                                                                    ),
+                                                                )}
+                                                            </ul>
+                                                        </>
+                                                    )}
+                                                </>
+                                            }
+                                            relationship="description">
+                                            <Link
+                                                onClick={() => {
+                                                    context.signIntoAzureForBrowse();
+                                                }}
+                                                inline>
+                                                {getAzureAccountsText()}
+                                                {" • "}
+                                                {context.state.azureAccounts.length === 0
+                                                    ? locConstants.azure.signIntoAzure
+                                                    : locConstants.azure.addAccount}
+                                            </Link>
+                                        </Tooltip>
                                     </div>
                                 }
                             />

@@ -18,7 +18,6 @@ import {
     CompletionExtLoadRequest,
     RebuildIntelliSenseNotification,
 } from "../models/contracts/languageService";
-import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import * as Utils from "../models/utils";
 import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
@@ -58,7 +57,7 @@ import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
-import store, { SubKeys } from "../queryResult/singletonStore";
+import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
@@ -67,6 +66,7 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
@@ -78,6 +78,7 @@ import { ListTablesTool } from "../copilot/tools/listTablesTool";
 import { ListSchemasTool } from "../copilot/tools/listSchemasTool";
 import { ListViewsTool } from "../copilot/tools/listViewsTool";
 import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
+import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
@@ -88,6 +89,7 @@ import {
 } from "../containerDeployment/dockerUtils";
 import { StateChangeNotification } from "../sharedInterfaces/webview";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
+import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 
 /**
  * The main controller class that initializes the extension
@@ -127,6 +129,7 @@ export default class MainController implements vscode.Disposable {
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
+    public connectionSharingService: ConnectionSharingService;
 
     /**
      * The main controller constructor
@@ -537,6 +540,14 @@ export default class MainController implements vscode.Disposable {
 
             this.schemaDesignerService = new SchemaDesignerService(SqlToolsServerClient.instance);
 
+            this.connectionSharingService = new ConnectionSharingService(
+                this._context,
+                this._connectionMgr.client,
+                this._connectionMgr,
+                this._vscodeWrapper,
+                this._scriptingService,
+            );
+
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
                 this._vscodeWrapper,
@@ -690,6 +701,14 @@ export default class MainController implements vscode.Disposable {
                 new ListFunctionsTool(this.connectionManager, SqlToolsServerClient.instance),
             ),
         );
+
+        // Register mssql_run_query tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotRunQueryToolName,
+                new RunQueryTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
     }
 
     /**
@@ -718,7 +737,11 @@ export default class MainController implements vscode.Disposable {
                 }
             }
 
-            const selectStatement = await this._scriptingService.script(node, nodeUri, operation);
+            const selectStatement = await this._scriptingService.scriptTreeNode(
+                node,
+                nodeUri,
+                operation,
+            );
             const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
             let uri = editor.document.uri.toString(true);
             let scriptingObject = this._scriptingService.getObjectFromNode(node);
@@ -1838,7 +1861,7 @@ export default class MainController implements vscode.Disposable {
     public onDeployContainer(): void {
         sendActionEvent(
             TelemetryViews.ContainerDeployment,
-            TelemetryActions.StartContainerDeployment,
+            TelemetryActions.OpenContainerDeployment,
         );
 
         const reactPanel = new ContainerDeploymentWebviewController(
@@ -2027,9 +2050,8 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
-            // Delete query result filters for the current uri when we run a new query
-            store.delete(uri, SubKeys.Filter);
-            store.delete(uri, SubKeys.ColumnWidth);
+            // Delete stored filters and dimension states for result grid when a new query is executed
+            store.deleteMainKey(uri);
 
             await self._outputContentProvider.runQuery(
                 self._statusview,
@@ -2501,9 +2523,8 @@ export default class MainController implements vscode.Disposable {
             diagnostics.delete(doc.uri);
         }
 
-        // Delete query result fiters for the closed uri
-        store.delete(closedDocumentUri, SubKeys.Filter);
-        store.delete(closedDocumentUri, SubKeys.ColumnWidth);
+        // Delete filters and dimension states for the closed document
+        store.deleteMainKey(closedDocumentUri);
     }
 
     private async updateUri(oldUri: string, newUri: string) {

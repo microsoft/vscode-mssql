@@ -355,7 +355,7 @@ export const useFormStyles = makeStyles({
     },
     formDiv: {
         padding: "10px",
-        maxWidth: "600px",
+        maxWidth: "650px",
         display: "flex",
         flexDirection: "column",
         "> *": {

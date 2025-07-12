@@ -115,6 +115,8 @@ export const QueryResultPane = () => {
     }
     const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
     const state = context.state;
+    const isProgrammaticScroll = useRef(true);
+    isProgrammaticScroll.current = true;
 
     // lifecycle logging right after context consumption
     useEffect(() => {
@@ -157,6 +159,7 @@ export const QueryResultPane = () => {
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
     const gridParentRef = useRef<HTMLDivElement>(null);
+    const scrollabelPanelRef = useRef<HTMLDivElement>(null);
     const [messageGridHeight, setMessageGridHeight] = useState(0);
 
     // Resize grid when parent element resizes
@@ -447,7 +450,13 @@ export const QueryResultPane = () => {
     ];
     const renderRow: RowRenderer<qr.IMessage> = ({ item, rowId }, style) => {
         return (
-            <DataGridRow<qr.IMessage> key={rowId} className={classes.messagesRows} style={style}>
+            <DataGridRow<qr.IMessage>
+                key={rowId}
+                className={classes.messagesRows}
+                style={style}
+                aria-label={locConstants.queryResult.message}
+                role={locConstants.queryResult.message}
+                aria-roledescription={locConstants.queryResult.message}>
                 {({ renderCell }) => <>{renderCell(item)}</>}
             </DataGridRow>
         );
@@ -478,7 +487,10 @@ export const QueryResultPane = () => {
                 columns={columns}
                 focusMode="cell"
                 resizableColumns={true}
-                columnSizingOptions={columnSizingOption}>
+                columnSizingOptions={columnSizingOption}
+                role={locConstants.queryResult.messages}
+                aria-label={locConstants.queryResult.messages}
+                aria-roledescription={locConstants.queryResult.messages}>
                 <DataGridBody<qr.IMessage> itemSize={18} height={messageGridHeight}>
                     {renderRow}
                 </DataGridBody>
@@ -516,6 +528,35 @@ export const QueryResultPane = () => {
             setWebviewLocation("panel");
         });
     }, []);
+
+    useEffect(() => {
+        async function loadScrollPosition() {
+            if (state?.uri) {
+                isProgrammaticScroll.current = true;
+                const position = await webViewState.extensionRpc.sendRequest(
+                    qr.GetGridPaneScrollPositionRequest.type,
+                    { uri: state.uri },
+                );
+                const el = scrollabelPanelRef.current;
+                if (!el) return;
+
+                requestAnimationFrame(() => {
+                    el.scrollTo({
+                        top: position.scrollTop ?? 0,
+                        behavior: "instant",
+                    });
+
+                    setTimeout(() => {
+                        isProgrammaticScroll.current = false;
+                    }, 100);
+                });
+            }
+        }
+
+        setTimeout(() => {
+            void loadScrollPosition();
+        }, 10);
+    }, [state?.uri]);
 
     return !state || !hasResultsOrMessages(state) ? (
         <div>
@@ -583,7 +624,17 @@ export const QueryResultPane = () => {
                     </Button>
                 )}
             </div>
-            <div className={classes.tabContent}>
+            <div
+                className={classes.tabContent}
+                ref={scrollabelPanelRef}
+                onScroll={(e) => {
+                    if (isProgrammaticScroll.current) return;
+                    const scrollTop = e.currentTarget.scrollTop;
+                    void webViewState.extensionRpc.sendNotification(
+                        qr.SetGridPaneScrollPositionNotification.type,
+                        { uri: state?.uri, scrollTop },
+                    );
+                }}>
                 {state.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
                     Object.keys(state.resultSetSummaries).length > 0 &&
                     renderGridPanel()}

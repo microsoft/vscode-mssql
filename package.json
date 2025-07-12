@@ -191,6 +191,7 @@
         "@azure/arm-resources": "^5.0.0",
         "@azure/arm-sql": "^9.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
+        "@azure/ms-rest-azure-env": "^2.0.0",
         "@azure/msal-common": "^14.14.0",
         "@azure/msal-node": "^2.12.0",
         "@microsoft/ads-extension-telemetry": "^3.0.2",
@@ -510,7 +511,7 @@
                     "group": "1_MSSQL_serverAndDbManagement@4"
                 },
                 {
-                    "command": "mssql.designSchema",
+                    "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences",
                     "group": "2_MSSQL_serverDbActions@1"
                 },
@@ -746,8 +747,20 @@
                     "when": "config.mssql.useLegacyConnectionExperience"
                 },
                 {
-                    "command": "mssql.designSchema",
+                    "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences"
+                },
+                {
+                    "command": "mssql.connectionGroups.edit",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.connectionGroups.delete",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.editConnection",
+                    "when": "false"
                 }
             ],
             "webview/context": [
@@ -975,12 +988,12 @@
                 }
             },
             {
-                "command": "mssql.designSchema",
-                "title": "%mssql.designSchema%",
+                "command": "mssql.schemaDesigner",
+                "title": "%mssql.schemaDesigner%",
                 "category": "MS SQL",
                 "icon": {
                     "dark": "media/designSchema_dark.svg",
-                    "light": "media/vdesignSchema_light.svg"
+                    "light": "media/designSchema_light.svg"
                 }
             },
             {
@@ -1094,34 +1107,44 @@
             {
                 "command": "mssql.copilot.explainQuery",
                 "title": "%mssql.copilot.explainQuery%",
-                "category": "MSSQL"
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.copilot.analyzeQueryPerformance",
                 "title": "%mssql.copilot.analyzeQueryPerformance%",
-                "category": "MSSQL"
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.copilot.rewriteQuery",
                 "title": "%mssql.copilot.rewriteQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.connectionSharing.editConnectionSharingPermissions",
+                "title": "%mssql.connectionSharing.editConnectionSharingPermissions%",
+                "category": "MSSQL"
+            },
+            {
+                "command": "mssql.connectionSharing.clearAllConnectionSharingPermissions",
+                "title": "%mssql.connectionSharing.clearAllConnectionSharingPermissions%",
                 "category": "MSSQL"
             },
             {
                 "command": "mssql.connectionGroups.create",
                 "title": "%mssql.connectionGroups.create%",
-                "category": "MSSQL",
+                "category": "MS SQL",
                 "icon": "$(new-folder)"
             },
             {
                 "command": "mssql.connectionGroups.edit",
                 "title": "%mssql.connectionGroups.edit%",
-                "category": "MSSQL",
+                "category": "MS SQL",
                 "icon": "$(edit)"
             },
             {
                 "command": "mssql.connectionGroups.delete",
                 "title": "%mssql.connectionGroups.delete%",
-                "category": "MSSQL",
+                "category": "MS SQL",
                 "icon": "$(trash)"
             },
             {
@@ -1936,6 +1959,11 @@
                     "default": 45,
                     "minimum": 1,
                     "description": "%mssql.objectExplorer.expandTimeout%"
+                },
+                "mssql.statusBar.connectionInfoMaxLength": {
+                    "type": "number",
+                    "default": -1,
+                    "description": "%mssql.statusBar.connectionInfoMaxLength.description%"
                 }
             }
         },
@@ -2351,6 +2379,41 @@
                 "toolReferenceName": "mssql_list_functions",
                 "userDescription": "List all functions in a database for a connected MSSQL server.",
                 "icon": "$(symbol-function)"
+            },
+            {
+                "name": "mssql_run_query",
+                "modelDescription": "Execute a SQL query against a connected MSSQL database. Returns query results including row count, column information, and data rows. Use this tool to run SELECT, INSERT, UPDATE, DELETE, or other SQL statements. IMPORTANT: This tool will execute ANY SQL statement provided - be extremely careful with write operations (INSERT, UPDATE, DELETE, CREATE, ALTER, DROP) as they will modify or destroy data. Always verify the query is safe before execution, especially for operations without WHERE clauses or that affect system objects.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "query",
+                    "execute",
+                    "sql"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to execute the query against.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "query": {
+                            "description": "SQL query to execute.",
+                            "title": "SQL Query",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId",
+                        "query"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Run MSSQL Query",
+                "toolReferenceName": "mssql_run_query",
+                "userDescription": "Execute a SQL query against a connected MSSQL database.",
+                "icon": "$(play)"
             }
         ]
     }

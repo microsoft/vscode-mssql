@@ -6,7 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, Spinner } from "@fluentui/react-components";
+import { Button, Link, makeStyles, Spinner } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
@@ -22,14 +22,38 @@ import { removeDuplicates } from "../../common/utils";
 import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 
+const useStyles = makeStyles({
+    icon: {
+        width: "75px",
+        height: "75px",
+        marginBottom: "10px",
+    },
+    notSignedInContainer: {
+        marginTop: "20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+    },
+    signInLink: {
+        marginTop: "8px",
+    },
+});
+
+export const azureLogoColor = () => {
+    return require(`../../media/azure-color.svg`);
+};
+
 export const AzureBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
-    const formStyles = useFormStyles();
-    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
-
     if (context === undefined) {
         return undefined;
     }
+
+    const formStyles = useFormStyles();
+    const styles = useStyles();
+
+    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     const [subscriptions, setSubscriptions] = useState<string[]>([]);
     const [selectedSubscription, setSelectedSubscription] = useState<string | undefined>(undefined);
@@ -54,8 +78,20 @@ export const AzureBrowsePage = () => {
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
     function setSelectedServerWithFormState(server: string | undefined) {
+        if (server === undefined && context?.state.formState.server === "") {
+            return; // avoid unnecessary updates
+        }
+
         setSelectedServer(server);
-        setConnectionProperty("server", server ? server + ".database.windows.net" : "");
+
+        let serverUri = "";
+
+        if (server) {
+            const srv = context?.state.azureServers.find((s) => s.server === server);
+            serverUri = srv?.uri || "";
+        }
+
+        setConnectionProperty("server", serverUri);
     }
 
     // #region Effects
@@ -129,6 +165,10 @@ export const AzureBrowsePage = () => {
 
     // servers
     useEffect(() => {
+        if (context.state.loadingAzureAccountsStatus !== ApiStatus.Loaded) {
+            return; // should not be visible if not signed in
+        }
+
         let activeServers = context.state.azureServers;
 
         if (selectedSubscription) {
@@ -192,200 +232,236 @@ export const AzureBrowsePage = () => {
 
     return (
         <div>
-            <AzureFilterCombobox
-                label={Loc.connectionDialog.subscriptionLabel}
-                clearable
-                decoration={
-                    <>
-                        <Button
-                            icon={<Filter16Filled />}
-                            appearance="subtle"
-                            title={Loc.connectionDialog.filterSubscriptions}
-                            onClick={() => {
-                                context.filterAzureSubscriptions();
-                            }}
-                            size="small"
-                        />
-                        {context.state.loadingAzureSubscriptionsStatus === ApiStatus.Loading ? (
-                            <Spinner size="tiny" />
-                        ) : undefined}
-                    </>
-                }
-                content={{
-                    valueList: subscriptions,
-                    value: subscriptionValue,
-                    setValue: setSubscriptionValue,
-                    selection: selectedSubscription,
-                    setSelection: (sub) => {
-                        setSelectedSubscription(sub);
-
-                        if (sub === undefined) {
-                            return;
-                        }
-
-                        // TODO: swap out subscription ID parsing for an AzureSubscriptionInfo
-                        const openParen = sub.indexOf("(");
-
-                        if (openParen === -1) {
-                            return;
-                        }
-
-                        const closeParen = sub.indexOf(")", openParen);
-
-                        if (closeParen === -1) {
-                            return;
-                        }
-
-                        const subId = sub.substring(openParen + 1, closeParen); // get the subscription ID from the string
-
-                        if (subId.length === 0) {
-                            return;
-                        }
-
-                        context.loadAzureServers(subId);
-                    },
-                    placeholder: Loc.connectionDialog.azureFilterPlaceholder(
-                        Loc.connectionDialog.subscription,
-                    ),
-                    invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
-                        Loc.connectionDialog.subscription,
-                    ),
-                }}
-            />
-            <AzureFilterCombobox
-                label={Loc.connectionDialog.resourceGroupLabel}
-                clearable
-                content={{
-                    valueList: resourceGroups,
-                    value: resourceGroupValue,
-                    setValue: setResourceGroupValue,
-                    selection: selectedResourceGroup,
-                    setSelection: setSelectedResourceGroup,
-                    placeholder: Loc.connectionDialog.azureFilterPlaceholder(
-                        Loc.connectionDialog.resourceGroup,
-                    ),
-                    invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
-                        Loc.connectionDialog.resourceGroup,
-                    ),
-                }}
-            />
-            <AzureFilterCombobox
-                label={Loc.connectionDialog.locationLabel}
-                clearable
-                content={{
-                    valueList: locations,
-                    value: locationValue,
-                    setValue: setLocationValue,
-                    selection: selectedLocation,
-                    setSelection: setSelectedLocation,
-                    placeholder: Loc.connectionDialog.azureFilterPlaceholder(
-                        Loc.connectionDialog.location,
-                    ),
-                    invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
-                        Loc.connectionDialog.location,
-                    ),
-                }}
-            />
-            <AzureFilterCombobox
-                label={Loc.connectionDialog.serverLabel}
-                required
-                decoration={
-                    context.state.loadingAzureServersStatus === ApiStatus.Loading ? (
-                        <Spinner size="tiny" />
-                    ) : undefined
-                }
-                content={{
-                    valueList: servers,
-                    value: serverValue,
-                    setValue: setServerValue,
-                    selection: selectedServer,
-                    setSelection: setSelectedServerWithFormState,
-                    invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
-                        Loc.connectionDialog.server,
-                    ),
-                }}
-            />
-
-            {selectedServer && (
-                <>
-                    <FormField<
-                        IConnectionDialogProfile,
-                        ConnectionDialogWebviewState,
-                        ConnectionDialogFormItemSpec,
-                        ConnectionDialogContextProps
-                    >
-                        context={context}
-                        component={context.state.formComponents["trustServerCertificate"]!}
-                        idx={0}
-                        props={{ orientation: "horizontal" }}
+            {context.state.loadingAzureAccountsStatus === ApiStatus.NotStarted && (
+                <div className={styles.notSignedInContainer}>
+                    <img
+                        className={styles.icon}
+                        src={azureLogoColor()}
+                        alt={Loc.connectionDialog.signIntoAzureToBrowse}
                     />
+                    <div>{Loc.connectionDialog.signIntoAzureToBrowse}</div>
+                    <Link
+                        className={styles.signInLink}
+                        onClick={() => {
+                            context.signIntoAzureForBrowse();
+                        }}>
+                        {Loc.azure.signIntoAzure}
+                    </Link>
+                </div>
+            )}
+            {context.state.loadingAzureAccountsStatus === ApiStatus.Loading && (
+                <div className={styles.notSignedInContainer}>
+                    <img
+                        className={styles.icon}
+                        src={azureLogoColor()}
+                        alt={Loc.connectionDialog.signIntoAzureToBrowse}
+                    />
+                    <div>Loading Azure Accounts</div>
+                    <Spinner size="large" />
+                </div>
+            )}
+            {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
+                <>
                     <AzureFilterCombobox
-                        label={Loc.connectionDialog.databaseLabel}
+                        label={Loc.connectionDialog.subscriptionLabel}
                         clearable
+                        decoration={
+                            <>
+                                <Button
+                                    icon={<Filter16Filled />}
+                                    appearance="subtle"
+                                    title={Loc.connectionDialog.filterSubscriptions}
+                                    onClick={() => {
+                                        context.filterAzureSubscriptions();
+                                    }}
+                                    size="small"
+                                />
+                                {context.state.loadingAzureSubscriptionsStatus ===
+                                ApiStatus.Loading ? (
+                                    <Spinner size="tiny" />
+                                ) : undefined}
+                            </>
+                        }
                         content={{
-                            valueList: databases,
-                            value: databaseValue,
-                            setValue: setDatabaseValue,
-                            selection: selectedDatabase,
-                            setSelection: (db) => {
-                                setSelectedDatabase(db);
-                                setConnectionProperty("database", db ?? "");
+                            valueList: subscriptions,
+                            value: subscriptionValue,
+                            setValue: setSubscriptionValue,
+                            selection: selectedSubscription,
+                            setSelection: (sub) => {
+                                setSelectedSubscription(sub);
+
+                                if (sub === undefined) {
+                                    return;
+                                }
+
+                                // Parse subscription ID from the string
+                                const openParen = sub.indexOf("(");
+
+                                if (openParen === -1) {
+                                    return;
+                                }
+
+                                const closeParen = sub.indexOf(")", openParen);
+
+                                if (closeParen === -1) {
+                                    return;
+                                }
+
+                                const subId = sub.substring(openParen + 1, closeParen); // get the subscription ID from the string
+
+                                if (subId.length === 0) {
+                                    return;
+                                }
+
+                                context.loadAzureServers(subId);
                             },
-                            placeholder: `<${Loc.connectionDialog.default}>`,
+                            placeholder: Loc.connectionDialog.azureFilterPlaceholder(
+                                Loc.connectionDialog.subscription,
+                            ),
                             invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
-                                Loc.connectionDialog.database,
+                                Loc.connectionDialog.subscription,
                             ),
                         }}
                     />
-                    {context.state.connectionComponents.mainOptions
-                        .filter(
-                            // filter out inputs that are manually placed above
-                            (opt) =>
-                                !["server", "database", "trustServerCertificate"].includes(opt),
-                        )
-                        .map((inputName, idx) => {
-                            const component =
-                                context.state.formComponents[
-                                    inputName as keyof IConnectionDialogProfile
-                                ];
-                            if (component?.hidden !== false) {
-                                return undefined;
-                            }
+                    <AzureFilterCombobox
+                        label={Loc.connectionDialog.resourceGroupLabel}
+                        clearable
+                        content={{
+                            valueList: resourceGroups,
+                            value: resourceGroupValue,
+                            setValue: setResourceGroupValue,
+                            selection: selectedResourceGroup,
+                            setSelection: setSelectedResourceGroup,
+                            placeholder: Loc.connectionDialog.azureFilterPlaceholder(
+                                Loc.connectionDialog.resourceGroup,
+                            ),
+                            invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
+                                Loc.connectionDialog.resourceGroup,
+                            ),
+                        }}
+                    />
+                    <AzureFilterCombobox
+                        label={Loc.connectionDialog.locationLabel}
+                        clearable
+                        content={{
+                            valueList: locations,
+                            value: locationValue,
+                            setValue: setLocationValue,
+                            selection: selectedLocation,
+                            setSelection: setSelectedLocation,
+                            placeholder: Loc.connectionDialog.azureFilterPlaceholder(
+                                Loc.connectionDialog.location,
+                            ),
+                            invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
+                                Loc.connectionDialog.location,
+                            ),
+                        }}
+                    />
+                    <AzureFilterCombobox
+                        label={Loc.connectionDialog.serverLabel}
+                        required
+                        decoration={
+                            context.state.loadingAzureServersStatus === ApiStatus.Loading ? (
+                                <Spinner size="tiny" />
+                            ) : undefined
+                        }
+                        content={{
+                            valueList: servers,
+                            value: serverValue,
+                            setValue: setServerValue,
+                            selection: selectedServer,
+                            setSelection: setSelectedServerWithFormState,
+                            invalidOptionErrorMessage: Loc.connectionDialog.invalidAzureBrowse(
+                                Loc.connectionDialog.server,
+                            ),
+                        }}
+                    />
 
-                            return (
-                                <FormField<
-                                    IConnectionDialogProfile,
-                                    ConnectionDialogWebviewState,
-                                    ConnectionDialogFormItemSpec,
-                                    ConnectionDialogContextProps
-                                >
-                                    key={idx}
-                                    context={context}
-                                    component={component}
-                                    idx={idx}
-                                    props={{ orientation: "horizontal" }}
-                                />
-                            );
-                        })}
+                    {selectedServer && (
+                        <>
+                            <FormField<
+                                IConnectionDialogProfile,
+                                ConnectionDialogWebviewState,
+                                ConnectionDialogFormItemSpec,
+                                ConnectionDialogContextProps
+                            >
+                                context={context}
+                                component={context.state.formComponents["trustServerCertificate"]!}
+                                idx={0}
+                                props={{ orientation: "horizontal" }}
+                            />
+                            <AzureFilterCombobox
+                                label={Loc.connectionDialog.databaseLabel}
+                                clearable
+                                content={{
+                                    valueList: databases,
+                                    value: databaseValue,
+                                    setValue: setDatabaseValue,
+                                    selection: selectedDatabase,
+                                    setSelection: (db) => {
+                                        setSelectedDatabase(db);
+                                        setConnectionProperty("database", db ?? "");
+                                    },
+                                    placeholder: `<${Loc.connectionDialog.default}>`,
+                                    invalidOptionErrorMessage:
+                                        Loc.connectionDialog.invalidAzureBrowse(
+                                            Loc.connectionDialog.database,
+                                        ),
+                                }}
+                            />
+                            {context.state.connectionComponents.mainOptions
+                                .filter(
+                                    // filter out inputs that are manually placed above
+                                    (opt) =>
+                                        !["server", "database", "trustServerCertificate"].includes(
+                                            opt,
+                                        ),
+                                )
+                                .map((inputName, idx) => {
+                                    const component =
+                                        context.state.formComponents[
+                                            inputName as keyof IConnectionDialogProfile
+                                        ];
+                                    if (component?.hidden !== false) {
+                                        return undefined;
+                                    }
+
+                                    return (
+                                        <FormField<
+                                            IConnectionDialogProfile,
+                                            ConnectionDialogWebviewState,
+                                            ConnectionDialogFormItemSpec,
+                                            ConnectionDialogContextProps
+                                        >
+                                            key={idx}
+                                            context={context}
+                                            component={component}
+                                            idx={idx}
+                                            props={{ orientation: "horizontal" }}
+                                        />
+                                    );
+                                })}
+                        </>
+                    )}
+
+                    <AdvancedOptionsDrawer
+                        isAdvancedDrawerOpen={isAdvancedDrawerOpen}
+                        setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
+                    />
+                    <div className={formStyles.formNavTray}>
+                        <Button
+                            onClick={(_event) => {
+                                setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
+                            }}
+                            className={formStyles.formNavTrayButton}>
+                            {Loc.connectionDialog.advancedSettings}
+                        </Button>
+                        <div className={formStyles.formNavTrayRight}>
+                            <ConnectButton className={formStyles.formNavTrayButton} />
+                        </div>
+                    </div>
                 </>
             )}
-
-            <AdvancedOptionsDrawer
-                isAdvancedDrawerOpen={isAdvancedDrawerOpen}
-                setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
-            />
-            <div className={formStyles.formNavTray}>
-                <Button
-                    onClick={(_event) => {
-                        setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen);
-                    }}
-                    className={formStyles.formNavTrayButton}>
-                    {Loc.connectionDialog.advancedSettings}
-                </Button>
-                <div className={formStyles.formNavTrayRight}>
-                    <ConnectButton className={formStyles.formNavTrayButton} />
-                </div>
-            </div>
         </div>
     );
 };

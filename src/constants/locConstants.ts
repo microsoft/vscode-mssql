@@ -698,9 +698,13 @@ export class FirewallRule {
 }
 
 export class Azure {
-    public static azureSignInFailedOrWasCancelled = l10n.t(
-        "Azure sign-in failed or was cancelled.",
-    );
+    public static errorSigningIntoAzure(arg0: string): string {
+        return l10n.t({
+            message: "Error signing into Azure: {0}",
+            args: [arg0],
+            comment: ["{0} is the error message"],
+        });
+    }
 
     public static errorLoadingAzureAccountInfoForTenantId = (tenantId: string) => {
         return l10n.t({
@@ -1121,8 +1125,21 @@ export class Connection {
             comment: ["{0} is the connection id", "{1} is the error message"],
         });
     };
+    public static noAccountSelected = l10n.t("No account selected");
+    public static currentAccount = (accountDisplayName: string) => {
+        return l10n.t({
+            message: "{0} (Current Account)",
+            args: [accountDisplayName],
+            comment: ["{0} is the account display name"],
+        });
+    };
+    public static signInToAzure = l10n.t("Sign in to a new account");
+    public static SelectAccountForKeyVault = l10n.t(
+        "Select Azure account with Key Vault access for column decryption",
+    );
+    public static NoTenantSelected = l10n.t("No tenant selected");
+    public static SelectTenant = l10n.t("Select a tenant");
 }
-
 export class MssqlChatAgent {
     public static noModelFound = l10n.t("No model found.");
     public static noToolsToProcess = l10n.t("No tools to process.");
@@ -1442,10 +1459,66 @@ export class MssqlChatAgent {
             comment: ["{0} is the connection ID"],
         });
     };
+    public static RunQueryToolConfirmationTitle = l10n.t("Run Query");
+    public static RunQueryToolConfirmationMessage = (connectionId: string, query: string) => {
+        return l10n.t({
+            message: "Run query on connection '{0}'?\n\nQuery: {1}",
+            args: [connectionId, query],
+            comment: ["{0} is the connection ID", "{1} is the SQL query"],
+        });
+    };
+    public static RunQueryToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Running query on connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
 }
 
 export class QueryEditor {
     public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
+}
+
+export class ConnectionSharing {
+    public static connectionSharingRequestNotification(extensionName: string) {
+        return l10n.t({
+            message:
+                "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    }
+    public static Approve = l10n.t("Approve");
+    public static Deny = l10n.t("Deny");
+    public static GrantAccess = l10n.t("✅ Grant Access");
+    public static GrantAccessCurrent = l10n.t("✅ Grant Access (Current)");
+    public static DenyAccess = l10n.t("❌ Deny Access");
+    public static DenyAccessCurrent = l10n.t("❌ Deny Access (Current)");
+    public static AllowThisExtensionToAccessYourConnections = l10n.t(
+        "Allow this extension to access your connections",
+    );
+    public static BlockThisExtensionFromAccessingYourConnections = l10n.t(
+        "Block this extension from accessing your connections",
+    );
+    public static SelectAnExtensionToManage = l10n.t(
+        "Select an extension to manage connection sharing permissions",
+    );
+    public static SelectNewPermission = (extensionName: string) => {
+        return l10n.t({
+            message: "Select new permission for extension: '{0}'",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    };
+    public static ClearAllPermissions = l10n.t(
+        "Clear permissions for all extensions to access your connections",
+    );
+    public static Clear = l10n.t("Clear");
+    public static Cancel = l10n.t("Cancel");
+    public static AllPermissionsCleared = l10n.t(
+        "All permissions for extensions to access your connections have been cleared.",
+    );
 }
 
 export class ConnectionGroup {

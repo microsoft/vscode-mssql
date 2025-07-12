@@ -115,8 +115,10 @@
   "Select": "Select",
   "Finish": "Finish",
   "Retry": "Retry",
+  "Refresh": "Refresh",
   "Show password": "Show password",
   "Hide password": "Hide password",
+  "Dismiss": "Dismiss",
   "Error": "Error",
   "Clear All": "Clear All",
   "OK": "OK",
@@ -218,7 +220,6 @@
   "A firewall rule is required to access this server.": "A firewall rule is required to access this server.",
   "Add Firewall Rule": "Add Firewall Rule",
   "Sign into Azure in order to add a firewall rule.": "Sign into Azure in order to add a firewall rule.",
-  "Sign into Azure": "Sign into Azure",
   "Tenant": "Tenant",
   "Rule name": "Rule name",
   "Add my client IP ({0})/{0} is the IP address of the client": {
@@ -279,7 +280,20 @@
   "Paste connection string from clipboard": "Paste connection string from clipboard",
   "Paste": "Paste",
   "Search settings...": "Search settings...",
-  "Refresh": "Refresh",
+  "You must be signed into Azure in order to browse SQL databases.": "You must be signed into Azure in order to browse SQL databases.",
+  "Sign into Azure": "Sign into Azure",
+  "Not signed in": "Not signed in",
+  "Azure Account": "Azure Account",
+  "Add Account": "Add Account",
+  "+ Add Azure Account": "+ Add Azure Account",
+  "{0} accounts/{0} is the number of accounts": {
+    "message": "{0} accounts",
+    "comment": [
+      "{0} is the number of accounts"
+    ]
+  },
+  "Click to sign into an Azure account": "Click to sign into an Azure account",
+  "Currently signed in as:": "Currently signed in as:",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
@@ -387,7 +401,6 @@
   "Script": "Script",
   "New column mapping": "New column mapping",
   "Column Name": "Column Name",
-  "Dismiss": "Dismiss",
   "Table '{0}' already exists/{0} is the table name": {
     "message": "Table '{0}' already exists",
     "comment": [
@@ -550,6 +563,7 @@
   "Undo": "Undo",
   "Redo": "Redo",
   "Search tables...": "Search tables...",
+  "Show table relationships": "Show table relationships",
   "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
   "No schema differences were found.": "No schema differences were found.",
   "Initializing comparison, this might take a while...": "Initializing comparison, this might take a while...",
@@ -1134,7 +1148,6 @@
     ]
   },
   "Connection Dialog": "Connection Dialog",
-  "Azure Account": "Azure Account",
   "Azure Account is required": "Azure Account is required",
   "Select an account": "Select an account",
   "Save Password": "Save Password",
@@ -1179,7 +1192,12 @@
       "{0} is the server name"
     ]
   },
-  "Azure sign-in failed or was cancelled.": "Azure sign-in failed or was cancelled.",
+  "Error signing into Azure: {0}/{0} is the error message": {
+    "message": "Error signing into Azure: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
   "Error loading Azure account information for tenant ID '{0}'/{0} is the tenant ID": {
     "message": "Error loading Azure account information for tenant ID '{0}'",
     "comment": [
@@ -1412,6 +1430,16 @@
       "{1} is the error message"
     ]
   },
+  "No account selected": "No account selected",
+  "{0} (Current Account)/{0} is the account display name": {
+    "message": "{0} (Current Account)",
+    "comment": [
+      "{0} is the account display name"
+    ]
+  },
+  "Sign in to a new account": "Sign in to a new account",
+  "Select Azure account with Key Vault access for column decryption": "Select Azure account with Key Vault access for column decryption",
+  "No tenant selected": "No tenant selected",
   "No model found.": "No model found.",
   "No tools to process.": "No tools to process.",
   "You are not connected to any database.": "You are not connected to any database.",
@@ -1670,7 +1698,44 @@
       "{0} is the connection ID"
     ]
   },
+  "Run Query": "Run Query",
+  "Run query on connection '{0}'?\n\nQuery: {1}/{0} is the connection ID{1} is the SQL query": {
+    "message": "Run query on connection '{0}'?\n\nQuery: {1}",
+    "comment": [
+      "{0} is the connection ID",
+      "{1} is the SQL query"
+    ]
+  },
+  "Running query on connection '{0}'/{0} is the connection ID": {
+    "message": "Running query on connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
+  "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
+    "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
+    "comment": [
+      "{0} is the extension name"
+    ]
+  },
+  "Approve": "Approve",
+  "Deny": "Deny",
+  "✅ Grant Access": "✅ Grant Access",
+  "✅ Grant Access (Current)": "✅ Grant Access (Current)",
+  "❌ Deny Access": "❌ Deny Access",
+  "❌ Deny Access (Current)": "❌ Deny Access (Current)",
+  "Allow this extension to access your connections": "Allow this extension to access your connections",
+  "Block this extension from accessing your connections": "Block this extension from accessing your connections",
+  "Select an extension to manage connection sharing permissions": "Select an extension to manage connection sharing permissions",
+  "Select new permission for extension: '{0}'/{0} is the extension name": {
+    "message": "Select new permission for extension: '{0}'",
+    "comment": [
+      "{0} is the extension name"
+    ]
+  },
+  "Clear permissions for all extensions to access your connections": "Clear permissions for all extensions to access your connections",
+  "All permissions for extensions to access your connections have been cleared.": "All permissions for extensions to access your connections have been cleared.",
   "Create Connection Group": "Create Connection Group",
   "Edit Connection Group - {0}/{0} is the connection group name": {
     "message": "Edit Connection Group - {0}",

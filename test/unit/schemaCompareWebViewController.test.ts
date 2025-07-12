@@ -201,6 +201,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             schemaCompareOpenScmpResult: undefined,
             saveScmpResultStatus: undefined,
             cancelResultStatus: undefined,
+            waitingForNewConnection: false,
+            pendingConnectionEndpointType: null,
         };
 
         mockContext = {
@@ -687,6 +689,13 @@ suite("SchemaCompareWebViewController Tests", () => {
             actualResult.schemaCompareOpenScmpResult,
             expectedResultMock,
             "openScmp should return expected result",
+        );
+
+        // Verify that intermediaryOptionsResult is updated with loaded options
+        assert.deepEqual(
+            actualResult.intermediaryOptionsResult?.defaultDeploymentOptions,
+            expectedResultMock.deploymentOptions,
+            "intermediaryOptionsResult should be updated with loaded deployment options",
         );
 
         openScmpStub.restore();

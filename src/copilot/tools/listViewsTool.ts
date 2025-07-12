@@ -11,7 +11,7 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
-import { SimpleExecuteResult } from "../interfaces";
+import { SimpleExecuteResult } from "vscode-mssql";
 import { listViewsQuery } from "../queries";
 
 export interface ListViewsToolParams {

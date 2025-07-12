@@ -5,6 +5,8 @@
 
 import { IProviderSettings } from "../models/contracts/azure";
 
+// TODO: source these values from ms-rest-azure-env package where possible
+
 const publicAzureSettings: IProviderSettings = {
     displayName: "publicCloudDisplayName",
     id: "azure_publicCloud",
@@ -27,6 +29,13 @@ const publicAzureSettings: IProviderSettings = {
             id: "sql",
             resource: "Sql",
             endpoint: "https://database.windows.net/",
+            dnsSuffix: "database.windows.net",
+            analyticsDnsSuffix: "sql.azuresynapse.net",
+        },
+        azureKeyVaultResource: {
+            id: "vault",
+            resource: "AzureKeyVault",
+            endpoint: "https://vault.azure.net/",
         },
     },
     scopes: [

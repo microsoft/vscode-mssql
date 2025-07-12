@@ -13,6 +13,9 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
+    <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
+      <source xml:lang="en">+ Add Azure Account</source>
+    </trans-unit>
     <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
       <source xml:lang="en">+ Create Connection Group</source>
     </trans-unit>
@@ -60,6 +63,9 @@
     <trans-unit id="++CODE++9fd728c66c9a256b121472dabf32a34317aed01d8427d70ec830289cf23a7cc8">
       <source xml:lang="en">Add</source>
     </trans-unit>
+    <trans-unit id="++CODE++3d0d3f78acca7d0def0c881e924ececb285c1791711ab008ae5a0297e09a717a">
+      <source xml:lang="en">Add Account</source>
+    </trans-unit>
     <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
       <source xml:lang="en">Add Column</source>
     </trans-unit>
@@ -101,11 +107,17 @@
     <trans-unit id="++CODE++dfa2817fb2221c8b89c47c4fe8326d07c119b7c32e89e509d1061fc596fdf801">
       <source xml:lang="en">Advanced Options</source>
     </trans-unit>
+    <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
+      <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
       <source xml:lang="en">Allow Null</source>
     </trans-unit>
     <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
       <source xml:lang="en">Allow Nulls</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
+      <source xml:lang="en">Allow this extension to access your connections</source>
     </trans-unit>
     <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
       <source xml:lang="en">Alphabetical</source>
@@ -144,6 +156,9 @@
     </trans-unit>
     <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
       <source xml:lang="en">Apply changes to target</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
+      <source xml:lang="en">Approve</source>
     </trans-unit>
     <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
       <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
@@ -229,9 +244,6 @@
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
     </trans-unit>
-    <trans-unit id="++CODE++bcfba23612af01d6083c1cbc352807182aa4a2a08665615d5e75206766e035c0">
-      <source xml:lang="en">Azure sign-in failed or was cancelled.</source>
-    </trans-unit>
     <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
       <source xml:lang="en">Azure token cache cleared successfully.</source>
     </trans-unit>
@@ -256,6 +268,9 @@
     </trans-unit>
     <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
       <source xml:lang="en">Blanks</source>
+    </trans-unit>
+    <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
+      <source xml:lang="en">Block this extension from accessing your connections</source>
     </trans-unit>
     <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
       <source xml:lang="en">Brightness</source>
@@ -446,8 +461,14 @@
     <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
       <source xml:lang="en">Clear cache and refresh token</source>
     </trans-unit>
+    <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
+      <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
+    </trans-unit>
     <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
       <source xml:lang="en">Click to connect to a database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
+      <source xml:lang="en">Click to sign into an Azure account</source>
     </trans-unit>
     <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
       <source xml:lang="en">Close</source>
@@ -722,6 +743,9 @@
     <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
     </trans-unit>
+    <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
+      <source xml:lang="en">Currently signed in as:</source>
+    </trans-unit>
     <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
       <source xml:lang="en">Custom Zoom</source>
     </trans-unit>
@@ -780,6 +804,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
       <source xml:lang="en">Deleting Container...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++05a2d7332eb9d8bf164487c743a2e93c21b16bb2061a93e3ee2ceb508eadb753">
+      <source xml:lang="en">Deny</source>
     </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
@@ -956,6 +983,10 @@
     </trans-unit>
     <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
       <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7c03518af7ea8058b9f5444011cc402ee48c86c765dfd6ba8e5ce09ed8d836ca">
+      <source xml:lang="en">Error signing into Azure: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
       <source xml:lang="en">Error when refreshing token</source>
@@ -1587,6 +1618,9 @@
     <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
       <source xml:lang="en">No Queries Available</source>
     </trans-unit>
+    <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
+      <source xml:lang="en">No account selected</source>
+    </trans-unit>
     <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
       <source xml:lang="en">No changes detected</source>
     </trans-unit>
@@ -1623,6 +1657,9 @@
     <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
       <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b77c82c64fb4c0907bfdbdcd893ae285b16a8ef67c42e1ecc6ee3d28fe71e708">
+      <source xml:lang="en">No tenant selected</source>
+    </trans-unit>
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
     </trans-unit>
@@ -1649,6 +1686,9 @@
     </trans-unit>
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
+    </trans-unit>
+    <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
+      <source xml:lang="en">Not signed in</source>
     </trans-unit>
     <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
       <source xml:lang="en">Not started</source>
@@ -1945,11 +1985,23 @@
     <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
       <source xml:lang="en">Rule name</source>
     </trans-unit>
+    <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
+      <source xml:lang="en">Run Query</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
       <source xml:lang="en">Run Query History</source>
     </trans-unit>
+    <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
+      <source xml:lang="en">Run query on connection &apos;{0}&apos;?&#10;&#10;Query: {1}</source>
+      <note>{0} is the connection ID
+{1} is the SQL query</note>
+    </trans-unit>
     <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
       <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b1f11c275b04ef9f8ee2c203bbc9e14168767c3bf289f9915aa1e43adb776cf9">
+      <source xml:lang="en">Running query on connection &apos;{0}&apos;</source>
+      <note>{0} is the connection ID</note>
     </trans-unit>
     <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
       <source xml:lang="en">SQL Login</source>
@@ -2078,6 +2130,9 @@
     <trans-unit id="++CODE++d1ec69e64b9609d089aae09f7adc5c566d2cd222f8d8325f0ab3b523f0ac2690">
       <source xml:lang="en">Select All</source>
     </trans-unit>
+    <trans-unit id="++CODE++3052f090b2dd0312f6564fb52c1f06b0efbe9fd7c77fdf38dcb96b4521b06b24">
+      <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
+    </trans-unit>
     <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
       <source xml:lang="en">Select Source</source>
     </trans-unit>
@@ -2104,8 +2159,15 @@
     <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
       <source xml:lang="en">Select an account</source>
     </trans-unit>
+    <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
+      <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
+    </trans-unit>
     <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
       <source xml:lang="en">Select image</source>
+    </trans-unit>
+    <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
+      <source xml:lang="en">Select new permission for extension: &apos;{0}&apos;</source>
+      <note>{0} is the extension name</note>
     </trans-unit>
     <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
       <source xml:lang="en">Select profile to remove</source>
@@ -2182,6 +2244,9 @@
       <source xml:lang="en">Show schema for connection &apos;{0}&apos;?</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
+      <source xml:lang="en">Show table relationships</source>
+    </trans-unit>
     <trans-unit id="++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9">
       <source xml:lang="en">Showing schema for connection &apos;{0}&apos;</source>
       <note>{0} is the connection ID</note>
@@ -2191,6 +2256,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
       <source xml:lang="en">Sign in</source>
+    </trans-unit>
+    <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
+      <source xml:lang="en">Sign in to a new account</source>
     </trans-unit>
     <trans-unit id="++CODE++09a0ee357e3b34ac30c4ae61fcfbcfde87c6941a213e8e60d146e7942c0d76bc">
       <source xml:lang="en">Sign in to your Azure subscription</source>
@@ -2391,6 +2459,10 @@
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dcf10fd537a0660c98f1a3890997024dfebb2ac795ee02dcbc7581ec4a0fe141">
+      <source xml:lang="en">The extension &apos;{0}&apos; is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.</source>
+      <note>{0} is the extension name</note>
+    </trans-unit>
     <trans-unit id="++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e">
       <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
@@ -2565,6 +2637,9 @@
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
     </trans-unit>
+    <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
+      <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
+    </trans-unit>
     <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
       <source xml:lang="en">You must review and accept the terms to proceed</source>
     </trans-unit>
@@ -2653,12 +2728,20 @@
     <trans-unit id="++CODE++f39d8207a23b19fa52f06809909505464af2764c6b3ade40db823f0a46b33487">
       <source xml:lang="en">updatingIntelliSense</source>
     </trans-unit>
+    <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
+      <source xml:lang="en">{0} (Current Account)</source>
+      <note>{0} is the account display name</note>
+    </trans-unit>
     <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
       <source xml:lang="en">{0} (Preview)</source>
       <note>{0} is the database name</note>
     </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
+      <source xml:lang="en">{0} accounts</source>
+      <note>{0} is the number of accounts</note>
     </trans-unit>
     <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
       <source xml:lang="en">{0} column data</source>
@@ -2734,6 +2817,18 @@
     <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
       <source xml:lang="en">{{put-server-name-here}}</source>
     </trans-unit>
+    <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
+      <source xml:lang="en">✅ Grant Access</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56034cb01aa84b5c8abe9389abf03d1c9a91ecea712a8711d611abb0ddd1637c">
+      <source xml:lang="en">✅ Grant Access (Current)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++40609c19f7011fdd42630f286c30982b3d7a2d74640e310c4126b785a384149d">
+      <source xml:lang="en">❌ Deny Access</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d765d766973242c68c5a2d3b20c7164beb22948ceaf7095ce44f901cc2f4052">
+      <source xml:lang="en">❌ Deny Access (Current)</source>
+    </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
     <trans-unit id="mssql.addObjectExplorer">
@@ -2774,6 +2869,9 @@
     </trans-unit>
     <trans-unit id="mssql.chooseAuthMethod">
       <source xml:lang="en">Chooses which Authentication method to use</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionSharing.clearAllConnectionSharingPermissions">
+      <source xml:lang="en">Clear All Connection Sharing Permissions</source>
     </trans-unit>
     <trans-unit id="mssql.clearAllQueryHistory">
       <source xml:lang="en">Clear All Query History</source>
@@ -2835,9 +2933,6 @@
     <trans-unit id="mssql.deleteContainer">
       <source xml:lang="en">Delete Container</source>
     </trans-unit>
-    <trans-unit id="mssql.designSchema">
-      <source xml:lang="en">Design Schema (Preview)</source>
-    </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
       <source xml:lang="en">Disable Actual Plan</source>
     </trans-unit>
@@ -2858,6 +2953,9 @@
     </trans-unit>
     <trans-unit id="mssql.connectionGroups.edit">
       <source xml:lang="en">Edit Connection Group</source>
+    </trans-unit>
+    <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
+      <source xml:lang="en">Edit Connection Sharing Permissions</source>
     </trans-unit>
     <trans-unit id="mssql.editTable">
       <source xml:lang="en">Edit Table</source>
@@ -3099,6 +3197,9 @@
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Schema Compare (Preview)</source>
     </trans-unit>
+    <trans-unit id="mssql.schemaDesigner">
+      <source xml:lang="en">Schema Designer (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>
     </trans-unit>
@@ -3197,6 +3298,9 @@
     </trans-unit>
     <trans-unit id="mssql.connectionGroup.description">
       <source xml:lang="en">The description of the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+      <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
     </trans-unit>
     <trans-unit id="mssql.maxRecentConnections">
       <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>

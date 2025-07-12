@@ -18,7 +18,7 @@ import {
 } from "../constants/constants";
 import { ContainerDeployment, msgYes } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import * as path from "path";
 import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
@@ -333,11 +333,25 @@ export async function startSqlServerDockerContainer(
     try {
         await execCommand(command);
         dockerLogger.append(`SQL Server container ${containerName} started on port ${port}.`);
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.CreateSQLContainer, {
+            version: version,
+        });
         return {
             success: true,
             port,
         };
     } catch (e) {
+        sendErrorEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.CreateSQLContainer,
+            e,
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+            {
+                version: version,
+            },
+        );
         return {
             success: false,
             error: ContainerDeployment.startSqlServerContainerError,
@@ -430,8 +444,6 @@ export async function startDocker(): Promise<DockerCommandParams> {
  * If the container is already running, it returns true without restarting.
  */
 export async function restartContainer(containerName: string): Promise<boolean> {
-    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartContainer);
-
     const isContainerRunning = await isDockerContainerRunning(containerName);
     if (isContainerRunning) return true; // Container is already running
     dockerLogger.appendLine(`Restarting container: ${containerName}`);
@@ -440,8 +452,17 @@ export async function restartContainer(containerName: string): Promise<boolean> 
     const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);
 
     if (!containerReadyResult.success) {
+        sendErrorEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.RestartContainer,
+            new Error(containerReadyResult.error),
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+        );
         return false;
     }
+    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.RestartContainer);
     return true;
 }
 
@@ -473,6 +494,14 @@ export async function checkIfContainerIsReadyForConnections(
                 if (readyLine) {
                     clearInterval(interval);
                     dockerLogger.appendLine(`${containerName} is ready for connections!`);
+                    sendActionEvent(
+                        TelemetryViews.ContainerDeployment,
+                        TelemetryActions.StartContainer,
+                        {}, // additional properties
+                        {
+                            timeToStartInMs: Date.now() - start,
+                        }, // additional measures
+                    );
                     return resolve({ success: true });
                 }
             } catch {
@@ -494,12 +523,19 @@ export async function checkIfContainerIsReadyForConnections(
  * Deletes a Docker container with the specified name.
  */
 export async function deleteContainer(containerName: string): Promise<boolean> {
-    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.DeleteContainer);
-
     try {
         await execCommand(COMMANDS.DELETE_CONTAINER(containerName));
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.DeleteContainer);
         return true;
-    } catch {
+    } catch (e) {
+        sendErrorEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.DeleteContainer,
+            e,
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+        );
         return false;
     }
 }
@@ -508,12 +544,19 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
  * Stops a Docker container with the specified name.
  */
 export async function stopContainer(containerName: string): Promise<boolean> {
-    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StopContainer);
-
     try {
         await execCommand(COMMANDS.STOP_CONTAINER(containerName));
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StopContainer);
         return true;
-    } catch {
+    } catch (e) {
+        sendErrorEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.StopContainer,
+            e,
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+        );
         return false;
     }
 }

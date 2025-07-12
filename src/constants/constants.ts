@@ -102,7 +102,7 @@ export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
-export const cmdDesignSchema = "mssql.designSchema";
+export const cmdDesignSchema = "mssql.schemaDesigner";
 export const cmdDeployLocalDockerContainer = "mssql.deployLocalDockerContainer";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
@@ -126,7 +126,6 @@ export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;
 export const errorFirewallRule = 40615;
 export const errorSSLCertificateValidationFailed = -2146893019;
-export const maxDisplayedStatusTextLength = 50;
 export const outputContentTypeRoot = "root";
 export const outputContentTypeMessages = "messages";
 export const outputContentTypeResultsetMeta = "resultsetsMeta";
@@ -183,6 +182,7 @@ export const copilotListTablesToolName = "mssql_list_tables";
 export const copilotListSchemasToolName = "mssql_list_schemas";
 export const copilotListViewsToolName = "mssql_list_views";
 export const copilotListFunctionsToolName = "mssql_list_functions";
+export const copilotRunQueryToolName = "mssql_run_query";
 export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
@@ -232,6 +232,7 @@ export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
 export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
+export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 
 // ToolsService Constants
