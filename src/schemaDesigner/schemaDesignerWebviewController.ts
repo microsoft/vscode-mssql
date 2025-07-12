@@ -213,13 +213,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 format: payload?.format,
             });
             if (payload.format === "svg") {
-                let fileContents = decodeURIComponent(payload.fileContents.split(",")[1]);
-                await vscode.workspace.fs.writeFile(
-                    outputPath,
-                    new TextEncoder().encode(fileContents),
+                let fileContents = new Uint8Array(
+                    Buffer.from(decodeURIComponent(payload.fileContents.split(",")[1]), "utf8"),
                 );
+                await vscode.workspace.fs.writeFile(outputPath, fileContents);
             } else {
-                let fileContents = new TextEncoder().encode(payload.fileContents.split(",")[1]);
+                let fileContents = new Uint8Array(
+                    Buffer.from(payload.fileContents.split(",")[1], "base64"),
+                );
                 vscode.workspace.fs.writeFile(outputPath, fileContents);
             }
         });
