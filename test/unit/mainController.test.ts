@@ -283,6 +283,82 @@ suite("MainController Tests", function () {
         );
     });
 
+    test("VscodeWrapper activeTextEditorUri fallback works for Gist files", () => {
+        // Test case: activeTextEditor is undefined (GitHub Gist scenario)
+        // but there's one visible SQL editor
+        let vscodeWrapper = new VscodeWrapper();
+
+        // Mock vscode.window to simulate GitHub Gist scenario
+        const originalWindow = (vscode as any).window;
+        (vscode as any).window = {
+            activeTextEditor: undefined,
+            visibleTextEditors: [
+                {
+                    document: {
+                        uri: {
+                            toString: () => "gist://example/file.sql",
+                        },
+                        languageId: "sql",
+                        getText: () => "SELECT * FROM users;",
+                    },
+                },
+            ],
+        };
+
+        let uri = vscodeWrapper.activeTextEditorUri;
+
+        // Restore original window
+        (vscode as any).window = originalWindow;
+
+        assert.equal(
+            uri,
+            "gist://example/file.sql",
+            "Expected activeTextEditorUri to return the gist URI when activeTextEditor is undefined but there's one visible SQL editor",
+        );
+    });
+
+    test("VscodeWrapper activeTextEditorUri returns undefined when multiple SQL editors are visible", () => {
+        // Test case: activeTextEditor is undefined and multiple SQL editors are visible
+        let vscodeWrapper = new VscodeWrapper();
+
+        // Mock vscode.window to simulate multiple SQL editors
+        const originalWindow = (vscode as any).window;
+        (vscode as any).window = {
+            activeTextEditor: undefined,
+            visibleTextEditors: [
+                {
+                    document: {
+                        uri: {
+                            toString: () => "gist://example1/file1.sql",
+                        },
+                        languageId: "sql",
+                        getText: () => "SELECT * FROM users;",
+                    },
+                },
+                {
+                    document: {
+                        uri: {
+                            toString: () => "gist://example2/file2.sql",
+                        },
+                        languageId: "sql",
+                        getText: () => "SELECT * FROM products;",
+                    },
+                },
+            ],
+        };
+
+        let uri = vscodeWrapper.activeTextEditorUri;
+
+        // Restore original window
+        (vscode as any).window = originalWindow;
+
+        assert.equal(
+            uri,
+            undefined,
+            "Expected activeTextEditorUri to return undefined when multiple SQL editors are visible",
+        );
+    });
+
     test("onManageProfiles should call the connetion manager to manage profiles", async () => {
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         connectionManager.setup((c) => c.onManageProfiles());

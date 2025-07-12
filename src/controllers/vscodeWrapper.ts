@@ -31,6 +31,23 @@ export default class VscodeWrapper {
      * Get the current active text editor
      */
     public get activeTextEditor(): vscode.TextEditor {
+        if (vscode.window.activeTextEditor) {
+            return vscode.window.activeTextEditor;
+        }
+
+        // Fallback for cases where activeTextEditor is undefined (e.g., GitHub Gists)
+        // Look for visible editors with SQL documents
+        const visibleEditors = vscode.window.visibleTextEditors;
+        const sqlEditors = visibleEditors.filter(
+            (editor) =>
+                editor.document.languageId === "sql" && editor.document.getText().trim().length > 0,
+        );
+
+        if (sqlEditors.length === 1) {
+            // If there's exactly one visible SQL editor, use it
+            return sqlEditors[0];
+        }
+
         return vscode.window.activeTextEditor!;
     }
 
@@ -67,6 +84,20 @@ export default class VscodeWrapper {
         ) {
             return vscode.window.activeTextEditor.document.uri.toString(true);
         }
+
+        // Fallback for cases where activeTextEditor is undefined (e.g., GitHub Gists)
+        // Look for visible editors with SQL documents
+        const visibleEditors = vscode.window.visibleTextEditors;
+        const sqlEditors = visibleEditors.filter(
+            (editor) =>
+                editor.document.languageId === "sql" && editor.document.getText().trim().length > 0,
+        );
+
+        if (sqlEditors.length === 1) {
+            // If there's exactly one visible SQL editor, use it
+            return sqlEditors[0].document.uri.toString(true);
+        }
+
         return undefined;
     }
 
