@@ -1176,7 +1176,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         ) {
                             const isExcluded = deploymentOptions.excludeObjectTypes.value.some(
                                 (excludedType) =>
-                                    excludedType.toLowerCase() === difference.name.toLowerCase(),
+                                    excludedType
+                                        .toLowerCase()
+                                        .includes(difference.name.toLowerCase()),
                             );
                             if (isExcluded) {
                                 return; // Skip this difference as it's excluded
