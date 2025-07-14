@@ -69,14 +69,24 @@ export const COMMANDS = {
         hostname: string,
     ) =>
         `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
-    CHECK_CONTAINER_RUNNING: (name: string) =>
-        `docker ps --filter "name=${name}" --filter "status=running" --format "{{.Names}}"`,
+    CHECK_CONTAINER_RUNNING: (name: string) => ({
+        command: "docker",
+        args: [
+            "ps",
+            "--filter",
+            `name=${name}`,
+            "--filter",
+            "status=running",
+            "--format",
+            "{{.Names}}",
+        ],
+    }),
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
-    START_CONTAINER: (name: string) => `docker start ${name}`,
+    START_CONTAINER: (name: string) => ({ command: "docker", args: ["start", name] }),
     CHECK_LOGS: (name: string, platform: string, timestamp: string) =>
         `docker logs --since ${timestamp} ${name} | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
     CHECK_CONTAINER_READY: `Recovery is complete`,
-    STOP_CONTAINER: (name: string) => `docker stop ${name}`,
+    STOP_CONTAINER: (name: string) => ({ command: "docker", args: ["stop", name] }),
     DELETE_CONTAINER: (name: string) => `docker stop ${name} && docker rm ${name}`,
     INSPECT_CONTAINER: (id: string) => `docker inspect ${id}`,
     GET_SQL_SERVER_CONTAINER_VERSIONS: `curl -s https://mcr.microsoft.com/v2/mssql/server/tags/list`,
@@ -178,12 +188,42 @@ export function validateSqlServerPassword(password: string): string {
 /**
  * Helper function to execute a command in the shell and return the output.
  */
-async function execCommand(command: string): Promise<string> {
+async function execCommand(command: string): Promise<string>;
+async function execCommand(command: string, args: string[]): Promise<string>;
+async function execCommand(command: string, args?: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
-        exec(command, (error, stdout) => {
-            if (error) return reject(error);
-            resolve(stdout.trim());
-        });
+        if (args) {
+            // Use spawn for safer execution without shell interpretation
+            const childProcess = require("child_process").spawn(command, args, { shell: false });
+            let stdout = "";
+            let stderr = "";
+
+            childProcess.stdout.on("data", (data) => {
+                stdout += data.toString();
+            });
+
+            childProcess.stderr.on("data", (data) => {
+                stderr += data.toString();
+            });
+
+            childProcess.on("close", (code) => {
+                if (code === 0) {
+                    resolve(stdout.trim());
+                } else {
+                    reject(new Error(`Command failed with code ${code}: ${stderr}`));
+                }
+            });
+
+            childProcess.on("error", (err) => {
+                reject(err);
+            });
+        } else {
+            // Legacy shell execution for backward compatibility
+            exec(command, (error, stdout) => {
+                if (error) return reject(error);
+                resolve(stdout.trim());
+            });
+        }
     });
 }
 
@@ -367,7 +407,8 @@ export async function startSqlServerDockerContainer(
  */
 export async function isDockerContainerRunning(name: string): Promise<boolean> {
     try {
-        const output = await execCommand(COMMANDS.CHECK_CONTAINER_RUNNING(name));
+        const cmd = COMMANDS.CHECK_CONTAINER_RUNNING(name);
+        const output = await execCommand(cmd.command, cmd.args);
         const names = output.split("\n").map((line) => line.trim());
         return names.includes(name); // exact match
     } catch {
@@ -447,7 +488,8 @@ export async function restartContainer(containerName: string): Promise<boolean> 
     const isContainerRunning = await isDockerContainerRunning(containerName);
     if (isContainerRunning) return true; // Container is already running
     dockerLogger.appendLine(`Restarting container: ${containerName}`);
-    await execCommand(COMMANDS.START_CONTAINER(containerName));
+    const cmd = COMMANDS.START_CONTAINER(containerName);
+    await execCommand(cmd.command, cmd.args);
     dockerLogger.appendLine(`Container ${containerName} restarted successfully.`);
     const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);
 
@@ -545,7 +587,8 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
  */
 export async function stopContainer(containerName: string): Promise<boolean> {
     try {
-        await execCommand(COMMANDS.STOP_CONTAINER(containerName));
+        const cmd = COMMANDS.STOP_CONTAINER(containerName);
+        await execCommand(cmd.command, cmd.args);
         sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StopContainer);
         return true;
     } catch (e) {
