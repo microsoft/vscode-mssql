@@ -392,6 +392,11 @@
                     "group": "0_mssql"
                 },
                 {
+                    "command": "mssql.toggleSqlCmd",
+                    "when": "editorLangId == sql",
+                    "group": "0_mssql"
+                },
+                {
                     "submenu": "mssql.copilot.editorSubmenu",
                     "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
                     "group": "0_mssql"
@@ -713,10 +718,6 @@
                 {
                     "command": "mssql.disconnectObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/"
-                },
-                {
-                    "command": "mssql.toggleSqlCmd",
-                    "when": "editorFocus && editorLangId == 'sql'"
                 },
                 {
                     "command": "mssql.startQueryHistoryCapture",
