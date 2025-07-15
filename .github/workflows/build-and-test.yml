@@ -203,6 +203,7 @@ jobs:
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
           cd pr
+          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
           DISPLAY=:10 yarn smoketest
           cd ../main
           DISPLAY=:10 yarn smoketest
