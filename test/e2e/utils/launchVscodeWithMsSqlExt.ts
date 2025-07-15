@@ -13,20 +13,37 @@ import { ElectronApplication, Page } from "@playwright/test";
 import { getVsCodeVersionName } from "./envConfigReader";
 import * as cp from "child_process";
 
+export type mssqlExtensionLaunchConfig = {
+    /**
+     * Whether to use the new UI for the MSSQL extension.
+     * Defaults to `true`.
+     */
+    useNewUI?: boolean;
+    /**
+     * Whether to use the VSIX package for the MSSQL extension.
+     * Defaults to `false`.
+     */
+    useVsix?: boolean;
+};
+
 export async function launchVsCodeWithMssqlExtension(
-    oldUi?: boolean,
-    useVsix: boolean = false,
+    options: mssqlExtensionLaunchConfig = {},
 ): Promise<{
     electronApp: ElectronApplication;
     page: Page;
 }> {
+    options = {
+        useNewUI: true,
+        useVsix: false,
+        ...options,
+    };
     const vsCodeVersionName = getVsCodeVersionName();
     const vsCodeExecutablePath = await downloadAndUnzipVSCode(vsCodeVersionName);
     const [cliPath, extensionDir] = resolveCliArgsFromVSCodeExecutablePath(vsCodeExecutablePath);
 
     const mssqlExtensionDevPath = path.resolve(__dirname, "../../../");
 
-    const userDataArg = oldUi
+    const userDataArg = !options.useNewUI
         ? `--user-data-dir=${path.join(process.cwd(), "test", "resources", "launchDir")}`
         : "";
 
@@ -41,7 +58,7 @@ export async function launchVsCodeWithMssqlExtension(
         userDataArg,
     ];
 
-    if (useVsix) {
+    if (options.useVsix) {
         const vsixPath = process.env["BUILT_VSIX_PATH"];
         if (!vsixPath) {
             throw new Error("BUILT_VSIX_PATH environment variable is not set.");

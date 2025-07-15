@@ -14,9 +14,11 @@ test.describe("MSSQL Extension - VSIX Based tests", async () => {
     let vsCodeApp: ElectronApplication;
     let vsCodePage: Page;
 
-    test.beforeAll(async () => {
+    test.beforeEach(async () => {
         // Launch with new UI off
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension(false, true);
+        const { electronApp, page } = await launchVsCodeWithMssqlExtension({
+            useVsix: true,
+        });
         vsCodeApp = electronApp;
         vsCodePage = page;
     });
@@ -40,7 +42,7 @@ test.describe("MSSQL Extension - VSIX Based tests", async () => {
         await screenshotOnFailure(vsCodePage, testInfo);
     });
 
-    test.afterAll(async () => {
+    test.afterEach(async () => {
         await vsCodeApp.close();
     });
 });
