@@ -24,11 +24,12 @@ export async function launchVsCodeWithMssqlExtension(
     let vsixPath = process.env["BUILT_VSIX_PATH"];
     const vsCodeVersionName = getVsCodeVersionName();
     const vsCodeExecutablePath = await downloadAndUnzipVSCode(vsCodeVersionName);
-    const [cliPath, ...cliargs] = resolveCliArgsFromVSCodeExecutablePath(vsCodeExecutablePath);
+    const [cliPath, installedExtensionsPath] =
+        resolveCliArgsFromVSCodeExecutablePath(vsCodeExecutablePath);
 
     const mssqlExtensionPath = path.resolve(__dirname, "../../../");
 
-    const settingsOption = oldUi
+    const userDataPath = oldUi
         ? `--user-data-dir=${path.join(process.cwd(), "test", "resources", "launchDir")}`
         : "";
 
@@ -36,7 +37,7 @@ export async function launchVsCodeWithMssqlExtension(
         console.log(`Using VSIX path: ${vsixPath}`);
         const result = cp.spawnSync(
             cliPath,
-            [...cliargs, settingsOption, "--install-extension", vsixPath],
+            [installedExtensionsPath, userDataPath, "--install-extension", vsixPath],
             {
                 encoding: "utf-8",
                 stdio: "pipe", // capture output for inspection
@@ -58,7 +59,8 @@ export async function launchVsCodeWithMssqlExtension(
         "--no-sandbox", // https://github.com/microsoft/vscode/issues/84238
         "--skip-release-notes",
         "--skip-welcome",
-        settingsOption,
+        installedExtensionsPath,
+        userDataPath,
     ];
 
     if (!vsixPath) {
@@ -76,7 +78,6 @@ export async function launchVsCodeWithMssqlExtension(
         timeout: 10 * 1000, // 10 seconds
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for VS Code to load
     if (testInfo) {
         await page.screenshot({
             path: testInfo.outputPath("vscode-launch.png"),

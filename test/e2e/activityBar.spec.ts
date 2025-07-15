@@ -13,9 +13,9 @@ test.describe("MSSQL Extension - Activity Bar", async () => {
     let vsCodeApp: ElectronApplication;
     let vsCodePage: Page;
 
-    test.beforeAll(async ({}, testInfo) => {
+    test.beforeAll(async () => {
         // Launch with new UI off
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension(true, testInfo);
+        const { electronApp, page } = await launchVsCodeWithMssqlExtension(true);
         vsCodeApp = electronApp;
         vsCodePage = page;
     });

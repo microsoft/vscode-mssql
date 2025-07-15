@@ -3,11 +3,5 @@
     "mssql.enableRichExperiences": false,
     "mssql.useLegacyQueryResultExperience": true,
     "mssql.useLegacyConnectionExperience": true,
-    "mssql.autoDisableNonTSqlLanguageService": false,
-    "mssql.connectionGroups": [
-        {
-            "name": "ROOT",
-            "id": "AA0E906E-B9EA-464E-9E1F-730D8E8C084E"
-        }
-    ]
+    "mssql.autoDisableNonTSqlLanguageService": false
 }
