@@ -9,11 +9,14 @@ import {
 } from "@vscode/test-electron";
 import { _electron as electron } from "playwright";
 import * as path from "path";
-import { ElectronApplication, Page } from "@playwright/test";
+import { ElectronApplication, Page, TestInfo } from "@playwright/test";
 import { getVsCodeVersionName } from "./envConfigReader";
 import * as cp from "child_process";
 
-export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
+export async function launchVsCodeWithMssqlExtension(
+    oldUi?: boolean,
+    testInfo?: TestInfo,
+): Promise<{
     electronApp: ElectronApplication;
     page: Page;
 }> {
@@ -67,6 +70,13 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
     const page = await electronApp.firstWindow({
         timeout: 10 * 1000, // 10 seconds
     });
+
+    await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for VS Code to load
+    if (testInfo) {
+        await page.screenshot({
+            path: testInfo.outputPath("vscode-launch.png"),
+        });
+    }
 
     // Navigate to Sql Server Tab
     const sqlServerTabContainer = page.locator('[role="tab"][aria-label^="SQL Server"]');
