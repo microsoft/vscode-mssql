@@ -52,8 +52,9 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
     ];
 
     if (!vsixPath) {
-        args.push(`--disable-extensions`);
-        args.push(`--extensionDevelopmentPath=${mssqlExtensionPath}`);
+        args.push(`--profile-temp`); // "debug in a clean environment"
+        args.push(`--disable-extensions`); // Disable all extensions except the one we are testing
+        args.push(`--extensionDevelopmentPath=${mssqlExtensionPath}`); // Path to the extension being developed
     }
 
     const electronApp = await electron.launch({
