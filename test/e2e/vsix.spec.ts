@@ -28,12 +28,12 @@ test.describe("MSSQL Extension - VSIX Based tests", async () => {
     });
 
     // Test if extension activates correctly
-    test("MSSQL button is present in activity bar", async () => {
+    test("Extension activates correctly", async () => {
         expect(vsCodeApp).not.toBeNull();
     });
 
     // Test if the webview loads correctly
-    test("MSSQL webview is loaded", async () => {
+    test("MSSQL add connection webview is loaded correctly", async () => {
         const addButton = await vsCodePage.locator(addConnectionButton);
         await addButton.click();
         const connectionDialog = await getWebviewByTitle(vsCodePage, "Connection Dialog");
