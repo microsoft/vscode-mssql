@@ -15,12 +15,16 @@ export async function addDatabaseConnection(
     savePassword: string,
     profileName: string,
 ): Promise<void> {
-    const addConnectionButton = await vsCodePage.locator('div[aria-label="Add Connection"]');
-    let isConnectionButtonVisible = await addConnectionButton.isVisible();
-    if (!isConnectionButtonVisible) {
-        await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
-    }
+    // Navigate to Sql Server Tab
+    const sqlServerTabContainer = vsCodePage.locator('[role="tab"][aria-label^="SQL Server"]');
+    const isSelected = await sqlServerTabContainer.getAttribute("aria-selected");
 
+    if (isSelected !== "true") {
+        const sqlServerTabElement = sqlServerTabContainer.locator("a");
+        await sqlServerTabElement.waitFor({ state: "visible", timeout: 30 * 1000 });
+        await sqlServerTabElement.click();
+    }
+    const addConnectionButton = await vsCodePage.locator('div[aria-label="Add Connection"]');
     await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
     await addConnectionButton.click();
 
@@ -94,7 +98,7 @@ export async function disconnect(vsCodePage: Page): Promise<void> {
 }
 
 export async function executeQuery(vsCodePage: Page): Promise<void> {
-    await vsCodePage.click('a[aria-label="Execute Query (Ctrl+Shift+E)"]');
+    await vsCodePage.click('a[aria-label^="Execute Query"]');
 }
 
 export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
