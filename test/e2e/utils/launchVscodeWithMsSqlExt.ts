@@ -69,9 +69,14 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
     });
 
     // Navigate to Sql Server Tab
-    const sqlServerTabElement = page.locator('[role="tab"][aria-label^="SQL Server"] a');
-    await sqlServerTabElement.waitFor({ state: "visible", timeout: 30 * 1000 });
-    await sqlServerTabElement.click();
+    const sqlServerTabContainer = page.locator('[role="tab"][aria-label^="SQL Server"]');
+    const isSelected = await sqlServerTabContainer.getAttribute("aria-selected");
+
+    if (isSelected !== "true") {
+        const sqlServerTabElement = sqlServerTabContainer.locator("a");
+        await sqlServerTabElement.waitFor({ state: "visible", timeout: 30 * 1000 });
+        await sqlServerTabElement.click();
+    }
 
     // Wait for extension to load
     const objectExplorerProviderElement = page
