@@ -18,7 +18,7 @@ export async function addDatabaseConnection(
     const addConnectionButton = await vsCodePage.locator('div[aria-label="Add Connection"]');
     let isConnectionButtonVisible = await addConnectionButton.isVisible();
     if (!isConnectionButtonVisible) {
-        await vsCodePage.click('a[aria-label="SQL Server (Ctrl+Alt+D)"]');
+        await vsCodePage.click('a[aria-label^="SQL Server"] a');
     }
 
     await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
@@ -94,7 +94,7 @@ export async function disconnect(vsCodePage: Page): Promise<void> {
 }
 
 export async function executeQuery(vsCodePage: Page): Promise<void> {
-    await vsCodePage.click('a[aria-label="Execute Query (Ctrl+Shift+E)"]');
+    await vsCodePage.click('a[aria-label^="Execute Query"]');
 }
 
 export async function enterTextIntoQueryEditor(vsCodePage: Page, text: string): Promise<void> {
