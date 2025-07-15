@@ -202,9 +202,9 @@ jobs:
           PASSWORD=${{ env.PASSWORD }}
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
-          export BUILT_VSIX_PATH=$(find ./pr -name "*.vsix" | head -n 1)
           echo "Running smoke test on PR branch vsix: $BUILT_VSIX_PATH"
           cd pr
+          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
           DISPLAY=:10 yarn smoketest
           cd ../main
           DISPLAY=:10 yarn smoketest
