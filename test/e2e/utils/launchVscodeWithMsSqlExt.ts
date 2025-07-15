@@ -15,12 +15,22 @@ import * as cp from "child_process";
 
 export type mssqlExtensionLaunchConfig = {
     /**
-     * Whether to use the new UI for the MSSQL extension.
+     * Indicates whether to use the new UI for the MSSQL extension.
+     *
+     * If `true`, launches VS Code with the new webview-based UI.
+     * If `false`, falls back to the legacy command-prompt-based UI.
+     *
+     * Ideally, the extension should be launched with the new UI to test the latest features.
      * Defaults to `true`.
      */
     useNewUI?: boolean;
     /**
-     * Whether to use the VSIX package for the MSSQL extension.
+     * Indicates whether to use the VSIX package for the MSSQL extension.
+     *
+     * If `true`, the VSIX is installed in VS Code before running Playwright tests.
+     * If `false`, VS Code is launched with the extension loaded directly from the development source path.
+     *
+     * Ideally, this should be set to `false` to run tests directly against source files for faster execution.
      * Defaults to `false`.
      */
     useVsix?: boolean;
