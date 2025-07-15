@@ -33,6 +33,8 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
         console.log("stderr:", result.stderr);
         console.log("status:", result.status);
         console.log("error:", result.error);
+    } else {
+        console.log("No VSIX path provided, launching with extension development path.");
     }
 
     const mssqlExtensionPath = path.resolve(__dirname, "../../../");
