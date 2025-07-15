@@ -25,12 +25,23 @@ export async function launchVsCodeWithMssqlExtension(
     const vsCodeVersionName = getVsCodeVersionName();
     const vsCodeExecutablePath = await downloadAndUnzipVSCode(vsCodeVersionName);
     const [cliPath, ...cliargs] = resolveCliArgsFromVSCodeExecutablePath(vsCodeExecutablePath);
+
+    const mssqlExtensionPath = path.resolve(__dirname, "../../../");
+
+    const settingsOption = oldUi
+        ? `--user-data-dir=${path.join(process.cwd(), "test", "resources", "launchDir")}`
+        : "";
+
     if (vsixPath) {
         console.log(`Using VSIX path: ${vsixPath}`);
-        const result = cp.spawnSync(cliPath, [...cliargs, "--install-extension", vsixPath], {
-            encoding: "utf-8",
-            stdio: "pipe", // capture output for inspection
-        });
+        const result = cp.spawnSync(
+            cliPath,
+            [...cliargs, settingsOption, "--install-extension", vsixPath],
+            {
+                encoding: "utf-8",
+                stdio: "pipe", // capture output for inspection
+            },
+        );
 
         console.log("stdout:", result.stdout);
         console.log("stderr:", result.stderr);
@@ -39,12 +50,6 @@ export async function launchVsCodeWithMssqlExtension(
     } else {
         console.log("No VSIX path provided, launching with extension development path.");
     }
-
-    const mssqlExtensionPath = path.resolve(__dirname, "../../../");
-
-    const settingsOption = oldUi
-        ? `--user-data-dir=${path.join(process.cwd(), "test", "resources", "launchDir")}`
-        : "";
 
     const args = [
         "--disable-gpu-sandbox", // https://github.com/microsoft/vscode-test/issues/221
