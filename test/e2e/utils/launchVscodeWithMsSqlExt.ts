@@ -3,18 +3,37 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { downloadAndUnzipVSCode } from "@vscode/test-electron";
+import {
+    downloadAndUnzipVSCode,
+    resolveCliArgsFromVSCodeExecutablePath,
+} from "@vscode/test-electron";
 import { _electron as electron } from "playwright";
 import * as path from "path";
 import { ElectronApplication, Page } from "@playwright/test";
 import { getVsCodeVersionName } from "./envConfigReader";
+import * as cp from "child_process";
 
 export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
     electronApp: ElectronApplication;
     page: Page;
 }> {
+    // Check env variable for vsix file path
+    let vsixPath = process.env.BUILT_VSIX_PATH;
     const vsCodeVersionName = getVsCodeVersionName();
     const vsCodeExecutablePath = await downloadAndUnzipVSCode(vsCodeVersionName);
+    const [cliPath, ...cliargs] = resolveCliArgsFromVSCodeExecutablePath(vsCodeExecutablePath);
+    if (vsixPath) {
+        console.log(`Using VSIX path: ${vsixPath}`);
+        const result = cp.spawnSync(cliPath, [...cliargs, "--install-extension", vsixPath], {
+            encoding: "utf-8",
+            stdio: "pipe", // capture output for inspection
+        });
+
+        console.log("stdout:", result.stdout);
+        console.log("stderr:", result.stderr);
+        console.log("status:", result.status);
+        console.log("error:", result.error);
+    }
 
     const mssqlExtensionPath = path.resolve(__dirname, "../../../");
 
@@ -22,20 +41,24 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
         ? `--user-data-dir=${path.join(process.cwd(), "test", "resources", "launchDir")}`
         : "";
 
+    const args = [
+        "--disable-gpu-sandbox", // https://github.com/microsoft/vscode-test/issues/221
+        "--disable-updates", // https://github.com/microsoft/vscode-test/issues/120
+        "--new-window", // Opens a new session of VS Code instead of restoring the previous session (default).
+        "--no-sandbox", // https://github.com/microsoft/vscode/issues/84238
+        "--skip-release-notes",
+        "--skip-welcome",
+        settingsOption,
+    ];
+
+    if (!vsixPath) {
+        args.push(`--disable-extensions`);
+        args.push(`--extensionDevelopmentPath=${mssqlExtensionPath}`);
+    }
+
     const electronApp = await electron.launch({
         executablePath: vsCodeExecutablePath,
-        args: [
-            "--disable-extensions",
-            "--extensionDevelopmentPath=" + mssqlExtensionPath,
-            "--disable-gpu-sandbox", // https://github.com/microsoft/vscode-test/issues/221
-            "--disable-updates", // https://github.com/microsoft/vscode-test/issues/120
-            "--new-window", // Opens a new session of VS Code instead of restoring the previous session (default).
-            "--no-sandbox", // https://github.com/microsoft/vscode/issues/84238
-            "--profile-temp", // "debug in a clean environment"
-            "--skip-release-notes",
-            "--skip-welcome",
-            settingsOption,
-        ],
+        args: args,
     });
 
     const page = await electronApp.firstWindow({
