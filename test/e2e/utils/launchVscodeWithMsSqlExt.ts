@@ -18,7 +18,7 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
     page: Page;
 }> {
     // Check env variable for vsix file path
-    let vsixPath = process.env.BUILT_VSIX_PATH;
+    let vsixPath = process.env["BUILT_VSIX_PATH"];
     const vsCodeVersionName = getVsCodeVersionName();
     const vsCodeExecutablePath = await downloadAndUnzipVSCode(vsCodeVersionName);
     const [cliPath, ...cliargs] = resolveCliArgsFromVSCodeExecutablePath(vsCodeExecutablePath);
