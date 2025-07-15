@@ -13,28 +13,43 @@ import { ElectronApplication, Page } from "@playwright/test";
 import { getVsCodeVersionName } from "./envConfigReader";
 import * as cp from "child_process";
 
-export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
+export async function launchVsCodeWithMssqlExtension(
+    oldUi?: boolean,
+    useVsix: boolean = false,
+): Promise<{
     electronApp: ElectronApplication;
     page: Page;
 }> {
-    // Check env variable for vsix file path
-    let vsixPath = process.env["BUILT_VSIX_PATH"];
     const vsCodeVersionName = getVsCodeVersionName();
     const vsCodeExecutablePath = await downloadAndUnzipVSCode(vsCodeVersionName);
-    const [cliPath, installedExtensionsPath] =
-        resolveCliArgsFromVSCodeExecutablePath(vsCodeExecutablePath);
+    const [cliPath, extensionDir] = resolveCliArgsFromVSCodeExecutablePath(vsCodeExecutablePath);
 
-    const mssqlExtensionPath = path.resolve(__dirname, "../../../");
+    const mssqlExtensionDevPath = path.resolve(__dirname, "../../../");
 
-    const userDataPath = oldUi
+    const userDataArg = oldUi
         ? `--user-data-dir=${path.join(process.cwd(), "test", "resources", "launchDir")}`
         : "";
 
-    if (vsixPath) {
-        console.log(`Using VSIX path: ${vsixPath}`);
+    const vscodeLaunchArgs = [
+        "--disable-gpu-sandbox", // https://github.com/microsoft/vscode-test/issues/221
+        "--disable-updates", // https://github.com/microsoft/vscode-test/issues/120
+        "--new-window", // Opens a new session of VS Code instead of restoring the previous session (default).
+        "--no-sandbox", // https://github.com/microsoft/vscode/issues/84238
+        "--skip-release-notes",
+        "--skip-welcome",
+        extensionDir,
+        userDataArg,
+    ];
+
+    if (useVsix) {
+        const vsixPath = process.env["BUILT_VSIX_PATH"];
+        if (!vsixPath) {
+            throw new Error("BUILT_VSIX_PATH environment variable is not set.");
+        }
+        console.log(`Installing extension from VSIX: ${vsixPath}`);
         const result = cp.spawnSync(
             cliPath,
-            [installedExtensionsPath, userDataPath, "--install-extension", vsixPath],
+            [extensionDir, userDataArg, "--install-extension", vsixPath],
             {
                 encoding: "utf-8",
                 stdio: "pipe", // capture output for inspection
@@ -44,38 +59,28 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
         console.log("stdout:", result.stdout);
         console.log("stderr:", result.stderr);
         console.log("status:", result.status);
-        console.log("error:", result.error);
+        if (result.error) {
+            console.error("error:", result.error);
+        }
     } else {
-        console.log("No VSIX path provided, launching with extension development path.");
-    }
-
-    const args = [
-        "--disable-gpu-sandbox", // https://github.com/microsoft/vscode-test/issues/221
-        "--disable-updates", // https://github.com/microsoft/vscode-test/issues/120
-        "--new-window", // Opens a new session of VS Code instead of restoring the previous session (default).
-        "--no-sandbox", // https://github.com/microsoft/vscode/issues/84238
-        "--skip-release-notes",
-        "--skip-welcome",
-        installedExtensionsPath,
-        userDataPath,
-    ];
-
-    if (!vsixPath) {
-        args.push(`--profile-temp`); // "debug in a clean environment"
-        args.push(`--disable-extensions`); // Disable all extensions except the one we are testing
-        args.push(`--extensionDevelopmentPath=${mssqlExtensionPath}`); // Path to the extension being developed
+        console.log("Launching with extension development path.");
+        vscodeLaunchArgs.push(
+            `--profile-temp`, // Use a temporary profile to avoid conflicts with existing profiles
+            `--disable-extensions`, // Disable all extensions except the one we are testing
+            `--extensionDevelopmentPath=${mssqlExtensionDevPath}`, // Path to the extension being developed
+        );
     }
 
     const electronApp = await electron.launch({
         executablePath: vsCodeExecutablePath,
-        args: args,
+        args: vscodeLaunchArgs,
     });
 
     const page = await electronApp.firstWindow({
         timeout: 10 * 1000, // 10 seconds
     });
 
-    // Navigate to Sql Server Tab
+    // Open SQL Server extension tab if not already selected
     const sqlServerTabContainer = page.locator('[role="tab"][aria-label^="SQL Server"]');
     const isSelected = await sqlServerTabContainer.getAttribute("aria-selected");
 
@@ -85,7 +90,7 @@ export async function launchVsCodeWithMssqlExtension(oldUi?: boolean): Promise<{
         await sqlServerTabElement.click();
     }
 
-    // Wait for extension to load
+    // Wait for Object Explorer to load
     const objectExplorerProviderElement = page
         .getByText("There is no data provider registered that can provide view data.")
         .first();
