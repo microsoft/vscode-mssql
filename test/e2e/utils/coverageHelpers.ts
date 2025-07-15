@@ -21,8 +21,10 @@ export async function writeCoverage(iframe: FrameLocator, testname: string) {
 
         // Ensure coverage data exists before writing
         if (coverage) {
-            await fs.promises.mkdir(istanbulCLIOutput, { recursive: true });
-            console.log(`Ensured directory exists: ${istanbulCLIOutput}`);
+            if (!fs.existsSync(istanbulCLIOutput)) {
+                fs.mkdirSync(istanbulCLIOutput, { recursive: true });
+                console.log(`Created directory: ${istanbulCLIOutput}`);
+            }
 
             const coverageFilePath = path.join(
                 istanbulCLIOutput,
