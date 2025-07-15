@@ -169,7 +169,7 @@
         "remap-istanbul": "0.9.6",
         "rxjs": "5.0.0-beta.12",
         "sinon": "^14.0.0",
-        "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.46",
+        "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.47",
         "source-map-support": "^0.5.21",
         "systemjs": "0.19.40",
         "systemjs-builder": "^0.15.32",
