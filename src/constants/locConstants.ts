@@ -204,7 +204,7 @@ export let msgSavePassword = l10n.t(
     "Save Password? If 'No', password will be required each time you connect",
 );
 export let profileNamePrompt = l10n.t("Profile Name");
-export let profileNamePlaceholder = l10n.t(
+export let profileNameTooltip = l10n.t(
     "[Optional] Enter a display name for this connection profile",
 );
 export let msgCannotOpenContent = l10n.t("Error occurred opening content in editor.");
@@ -924,6 +924,11 @@ export class ContainerDeployment {
     public static containerDoesNotExistError = l10n.t(
         "Container does not exist. Would you like to remove the connection?",
     );
+    public static passwordPlaceholder = l10n.t("Enter password");
+    public static containerNamePlaceholder = l10n.t("Enter container name");
+    public static portPlaceholder = l10n.t("Enter port");
+    public static hostnamePlaceholder = l10n.t("Enter hostname");
+    public static profileNamePlaceholder = l10n.t("Enter profile name");
 }
 
 export class UserSurvey {

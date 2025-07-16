@@ -20,7 +20,7 @@ import {
     ContainerDeployment,
     msgSavePassword,
     passwordPrompt,
-    profileNamePlaceholder,
+    profileNameTooltip,
 } from "../constants/locConstants";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -405,6 +405,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: passwordPrompt,
                 required: true,
                 tooltip: ContainerDeployment.sqlServerPasswordTooltip,
+                placeholder: ContainerDeployment.passwordPlaceholder,
                 componentWidth: "500px",
                 validate(_state, value) {
                     const result = dockerUtils.validateSqlServerPassword(value.toString());
@@ -427,7 +428,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 type: FormItemType.Input,
                 propertyName: "profileName",
                 label: ConnectionDialog.profileName,
-                tooltip: profileNamePlaceholder,
+                tooltip: profileNameTooltip,
+                placeholder: ContainerDeployment.profileNamePlaceholder,
             }),
 
             groupId: createFormItem(
@@ -440,6 +442,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.containerName,
                 isAdvancedOption: true,
                 tooltip: ContainerDeployment.containerNameTooltip,
+                placeholder: ContainerDeployment.containerNamePlaceholder,
             }),
 
             port: createFormItem({
@@ -448,6 +451,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.port,
                 isAdvancedOption: true,
                 tooltip: ContainerDeployment.portTooltip,
+                placeholder: ContainerDeployment.portPlaceholder,
             }),
 
             hostname: createFormItem({
@@ -456,6 +460,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.hostname,
                 isAdvancedOption: true,
                 tooltip: ContainerDeployment.hostnameTooltip,
+                placeholder: ContainerDeployment.hostnamePlaceholder,
             }),
 
             acceptEula: createFormItem({
