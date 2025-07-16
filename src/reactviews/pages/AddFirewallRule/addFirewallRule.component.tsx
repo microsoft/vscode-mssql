@@ -87,6 +87,13 @@ export const AddFirewallRuleDialog = ({
     // Update selected tenant when state.tenants changes
     useEffect(() => {
         if (state.accounts.length > 0) {
+            if (
+                selectedAccountId &&
+                state.accounts.find((account) => account.accountId === selectedAccountId)
+            ) {
+                return; // Currently-selected account is still valid; no need to reset selections
+            }
+
             const accountId = state.accounts[0].accountId;
 
             setSelectedAccountId(accountId);
