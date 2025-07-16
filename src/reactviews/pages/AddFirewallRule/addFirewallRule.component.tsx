@@ -98,7 +98,7 @@ export const AddFirewallRuleDialog = ({
                 setTenantDisplayText(formatTenant(tenant));
             }
         }
-    }, [state.accounts, state.tenants]);
+    }, [JSON.stringify(state.accounts), JSON.stringify(state.tenants)]);
 
     useEffect(() => {
         if (state.clientIp) {
