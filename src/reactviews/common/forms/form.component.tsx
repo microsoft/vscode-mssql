@@ -38,12 +38,14 @@ export const FormInput = <
     value,
     target,
     type,
+    placeholder,
     props,
 }: {
     context: TContext;
     value: string;
     target: keyof TForm;
     type: "input" | "password" | "textarea";
+    placeholder: string;
     props?: any;
 }) => {
     const [formInputValue, setFormInputValue] = useState(value);
@@ -80,6 +82,7 @@ export const FormInput = <
                     onChange={(_value, data) => handleChange(data.value)}
                     onBlur={handleBlur}
                     size="small"
+                    placeholder={placeholder}
                     {...props}
                 />
             )}
@@ -89,6 +92,7 @@ export const FormInput = <
                     value={formInputValue}
                     onChange={(_value, data) => handleChange(data.value)}
                     onBlur={handleBlur}
+                    placeholder={placeholder}
                     size="small"
                     contentAfter={
                         <Button
@@ -234,6 +238,7 @@ export function generateFormComponent<
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="input"
+                    placeholder={component.placeholder ?? ""}
                     props={props}
                 />
             );
@@ -244,6 +249,7 @@ export function generateFormComponent<
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="textarea"
+                    placeholder={component.placeholder ?? ""}
                     props={props}
                 />
             );
@@ -253,6 +259,7 @@ export function generateFormComponent<
                     context={context}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
+                    placeholder={component.placeholder ?? ""}
                     type="password"
                     props={props}
                 />
