@@ -11682,9 +11682,9 @@ slice-ansi@^7.1.0:
     ansi-styles "^6.2.1"
     is-fullwidth-code-point "^5.0.0"
 
-"slickgrid@github:Microsoft/SlickGrid.ADS#2.3.47":
-  version "2.3.46"
-  resolved "https://codeload.github.com/Microsoft/SlickGrid.ADS/tar.gz/4a986364ea934239a62e8ed09e5ae5e5882e88d9"
+"slickgrid@github:Microsoft/SlickGrid.ADS#2.3.48":
+  version "2.3.48"
+  resolved "https://codeload.github.com/Microsoft/SlickGrid.ADS/tar.gz/11995e29965581791571f4e7e432dee533a86137"
 
 snapdragon-node@^2.0.1:
   version "2.1.1"
