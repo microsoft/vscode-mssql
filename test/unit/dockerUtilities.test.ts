@@ -652,6 +652,10 @@ suite("Docker Utilities", () => {
             "Command injection chars should be removed",
         );
 
+        // Test with command injection attempt
+        result = dockerUtils.sanitizeContainerName('container"; rm -rf /');
+        assert.strictEqual(result, "containerrm-rf", "Command injection chars should be removed");
+
         // Test with empty string
         result = dockerUtils.sanitizeContainerName("");
         assert.strictEqual(result, "", "Empty string should remain empty");
