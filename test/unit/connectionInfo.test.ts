@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as sinon from "sinon";
 import { expect } from "chai";
+import { IConnectionInfo } from "vscode-mssql";
 import * as ConnectionInfo from "../../src/models/connectionInfo";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import * as Constants from "../../src/constants/constants";
-import { IConnectionInfo } from "vscode-mssql";
-import { IConnectionProfile } from "../../src/models/interfaces";
-import * as sinon from "sinon";
+import { EncryptOptions, IConnectionProfile } from "../../src/models/interfaces";
 
 suite("getConnectionDisplayName", () => {
     test("Should include server, database, and user for SQL Authentication", () => {
@@ -81,7 +81,6 @@ suite("getConnectionDisplayName", () => {
 });
 
 suite("getConnectionDisplayString", () => {
-    // Setup common test variables
     const mockServer = "test-server";
     const mockDatabase = "test-database";
     const mockUser = "test-user";
@@ -90,18 +89,13 @@ suite("getConnectionDisplayString", () => {
     let getUserNameStub: sinon.SinonStub;
 
     setup(() => {
-        // Create a sandbox for isolated sinon mocks
         sandbox = sinon.createSandbox();
 
-        // Stub the getUserNameOrDomainLogin function
         getUserNameStub = sandbox.stub(ConnectionInfo, "getUserNameOrDomainLogin");
-
-        // Set default constants values
         sandbox.stub(LocalizedConstants, "defaultDatabaseLabel").value("default-db");
     });
 
     teardown(() => {
-        // Restore all stubbed methods after each test
         sandbox.restore();
     });
 
@@ -167,5 +161,77 @@ suite("getConnectionDisplayString", () => {
         const expectedText = `${longServer} : $(database) ${mockDatabase} : ${mockUser}`;
         const trimmedExpected = expectedText.slice(0, 30) + " \u2026";
         expect(result).to.equal(trimmedExpected);
+    });
+});
+
+suite("fixupConnectionCredentials", () => {
+    test("Basic fixups", () => {
+        let connCreds: IConnectionInfo = {} as IConnectionInfo;
+        ConnectionInfo.fixupConnectionCredentials(connCreds);
+
+        expect(connCreds.server, "server should be given a value").to.equal("");
+        expect(connCreds.database, "database should be given a value").to.equal("");
+        expect(connCreds.user, "user should be given a value").to.equal("");
+        expect(connCreds.password, "password should be given a value").to.equal("");
+        expect(
+            connCreds.connectTimeout,
+            "connectTimeout should be set to the default value",
+        ).to.equal(Constants.defaultConnectionTimeout);
+        expect(
+            connCreds.commandTimeout,
+            "commandTimeout should be set to the default value",
+        ).to.equal(Constants.defaultCommandTimeout);
+        expect(
+            connCreds.applicationName,
+            "applicationName should be set to the default value",
+        ).to.equal(Constants.connectionApplicationName);
+    });
+
+    test("Encrypt option defaults", () => {
+        let connCreds: IConnectionInfo = {} as IConnectionInfo;
+
+        const testCases = [
+            { input: true, expected: EncryptOptions.Mandatory },
+            { input: false, expected: EncryptOptions.Optional },
+            { input: "", expected: EncryptOptions.Mandatory },
+            { input: undefined, expected: EncryptOptions.Mandatory },
+            { input: EncryptOptions.Optional, expected: EncryptOptions.Optional },
+            { input: EncryptOptions.Mandatory, expected: EncryptOptions.Mandatory },
+            { input: EncryptOptions.Strict, expected: EncryptOptions.Strict },
+        ];
+
+        for (const { input, expected } of testCases) {
+            connCreds.encrypt = input;
+            ConnectionInfo.fixupConnectionCredentials(connCreds);
+
+            expect(
+                connCreds.encrypt,
+                `${input} should ${input !== expected ? "be converted to" : "stay as"} ${expected}`,
+            ).to.equal(expected);
+        }
+    });
+
+    test("Azure SQL Database specific fixups", () => {
+        let connCreds: IConnectionInfo = {
+            server: "test.database.windows.net",
+            encrypt: EncryptOptions.Optional,
+            connectTimeout: 10,
+        } as IConnectionInfo;
+
+        connCreds = ConnectionInfo.fixupConnectionCredentials(connCreds);
+
+        expect(connCreds.encrypt, "encrypt should be set to Mandatory for Azure SQL").to.equal(
+            EncryptOptions.Mandatory,
+        );
+        expect(
+            connCreds.connectTimeout,
+            "connectTimeout should be set to minimum for Azure SQL",
+        ).to.equal(Constants.azureSqlDbConnectionTimeout);
+
+        connCreds.encrypt = EncryptOptions.Strict;
+        connCreds = ConnectionInfo.fixupConnectionCredentials(connCreds);
+        expect(connCreds.encrypt, "encrypt should remain Strict for Azure SQL").to.equal(
+            EncryptOptions.Strict,
+        );
     });
 });
