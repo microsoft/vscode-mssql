@@ -299,7 +299,7 @@ export function isSameProfile(
     );
 }
 
-enum MatchLevel {
+export enum MatchLevel {
     /**
      * Not a match on core connection properties
      */
@@ -339,45 +339,19 @@ export class ConnInfoMatcher {
         // Check for connection string match - all-or-nothing when connection strings are involved
         if (current.connectionString || expected.connectionString) {
             if (current.connectionString === expected.connectionString) {
-                // For connection string matches, check if all available properties also match
-                if (this.doAllAvailablePropertiesMatch(current, expected)) {
-                    return MatchLevel.AllAvailableProps;
-                }
                 return MatchLevel.ConnectionInfo;
+            } else {
+                return MatchLevel.NotMatch;
             }
-            return MatchLevel.NotMatch;
         }
 
-        // Check for Azure MFA connections
+        // Check for connection information match (server, database, authentication info)
         if (
-            current.authenticationType === Constants.azureMfa &&
-            expected.authenticationType === Constants.azureMfa
-        ) {
-            if (
-                expected.server === current.server &&
-                isSameDatabase(expected.database, current.database) &&
-                isSameAccountKey(expected.accountId, current.accountId)
-            ) {
-                // Check if all available properties also match
-                if (this.doAllAvailablePropertiesMatch(current, expected)) {
-                    return MatchLevel.AllAvailableProps;
-                }
-                return MatchLevel.ConnectionInfo;
-            }
-            return MatchLevel.NotMatch;
-        }
-
-        // Check for regular SQL connections
-        if (
-            expected.server === current.server &&
-            isSameDatabase(expected.database, current.database) &&
-            isSameAuthenticationType(expected.authenticationType, current.authenticationType) &&
-            (current.authenticationType === Constants.sqlAuthentication
-                ? current.user === expected.user
-                : isEmpty(current.user) === isEmpty(expected.user))
+            ConnInfoMatcher.connectionTargetMatches(current, expected) &&
+            ConnInfoMatcher.authenticationMatches(current, expected)
         ) {
             // Check if all available properties also match
-            if (this.doAllAvailablePropertiesMatch(current, expected)) {
+            if (ConnInfoMatcher.additionalPropertiesMatch(current, expected)) {
                 return MatchLevel.AllAvailableProps;
             }
             return MatchLevel.ConnectionInfo;
@@ -386,68 +360,62 @@ export class ConnInfoMatcher {
         return MatchLevel.NotMatch;
     }
 
-    /**
-     * Helper method to check if all available properties in the current profile match the expected profile
-     * @param current the current connection profile (treated as partial)
-     * @param expected the expected connection profile (treated as complete)
-     * @returns true if all available properties in current match expected
-     */
-    private static doAllAvailablePropertiesMatch(
+    public static connectionTargetMatches(
         current: IConnectionProfile,
         expected: IConnectionProfile,
     ): boolean {
-        // Check core connection properties that are always required
-        if (
-            current.server !== expected.server ||
-            !isSameDatabase(current.database, expected.database) ||
-            !isSameAuthenticationType(current.authenticationType, expected.authenticationType)
-        ) {
-            return false;
-        }
+        // Check if the server and database match
+        return (
+            current.server === expected.server &&
+            isSameDatabase(current.database, expected.database)
+        );
+    }
 
-        // Check user property based on authentication type
+    public static authenticationMatches(
+        current: IConnectionProfile,
+        expected: IConnectionProfile,
+    ): boolean {
+        let result = true;
+
+        // confirm same authentication type
+        result &&= isSameAuthenticationType(
+            current.authenticationType,
+            expected.authenticationType,
+        );
+
+        // confirm same user/account
         if (current.authenticationType === Constants.sqlAuthentication) {
-            if (current.user !== expected.user) {
+            result &&= current.user === expected.user;
+        } else if (current.authenticationType === Constants.azureMfa) {
+            result &&= isSameAccountKey(current.accountId, expected.accountId);
+        }
+
+        return result;
+    }
+
+    public static additionalPropertiesMatch(
+        current: IConnectionProfile,
+        expected: IConnectionProfile,
+    ): boolean {
+        const coreKeys = new Set<keyof IConnectionProfile>([
+            "server",
+            "database",
+            "authenticationType",
+            "user",
+            "password",
+            "accountId",
+            "profileName",
+            "connectionString",
+            "savePassword",
+            "id",
+        ]);
+
+        for (const key in Object.keys(current).filter(
+            (k) => !coreKeys.has(k as keyof IConnectionProfile),
+        )) {
+            if (current[key] !== expected[key]) {
                 return false;
             }
-        } else {
-            if (isEmpty(current.user) !== isEmpty(expected.user)) {
-                return false;
-            }
-        }
-
-        // Check Azure-specific properties if applicable
-        if (current.authenticationType === Constants.azureMfa) {
-            if (!isSameAccountKey(current.accountId, expected.accountId)) {
-                return false;
-            }
-        }
-
-        // Check additional profile properties that are available in current
-        if (current.profileName !== undefined && current.profileName !== expected.profileName) {
-            return false;
-        }
-
-        if (current.groupId !== undefined && current.groupId !== expected.groupId) {
-            return false;
-        }
-
-        if (current.savePassword !== undefined && current.savePassword !== expected.savePassword) {
-            return false;
-        }
-
-        if (
-            current.emptyPasswordInput !== undefined &&
-            current.emptyPasswordInput !== expected.emptyPasswordInput
-        ) {
-            return false;
-        }
-
-        if (
-            current.azureAuthType !== undefined &&
-            current.azureAuthType !== expected.azureAuthType
-        ) {
-            return false;
         }
 
         return true;

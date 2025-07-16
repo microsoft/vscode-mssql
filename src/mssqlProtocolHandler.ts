@@ -55,9 +55,8 @@ export class MssqlProtocolHandler {
                 const connProfile = await this.readProfileFromArgs(uri.query);
 
                 // find most similar connection profile
-
                 const foundProfile =
-                    this.mainController.connectionManager.findMatchingProfile(connProfile);
+                    await this.mainController.connectionManager.findMatchingProfile(connProfile);
 
                 if (foundProfile) {
                     await this.mainController.createObjectExplorerSession(foundProfile);
