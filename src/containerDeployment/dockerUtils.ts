@@ -70,15 +70,15 @@ export const COMMANDS = {
     ) =>
         `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
     CHECK_CONTAINER_RUNNING: (name: string) =>
-        `docker ps --filter "name=${name.replace(/[^a-zA-Z0-9_.-]/g, "")}" --filter "status=running" --format "{{.Names}}"`,
+        `docker ps --filter "name=${sanitizeContainerName(name)}" --filter "status=running" --format "{{.Names}}"`,
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
-    START_CONTAINER: (name: string) => `docker start "${name.replace(/[^a-zA-Z0-9_.-]/g, "")}"`,
+    START_CONTAINER: (name: string) => `docker start "${sanitizeContainerName(name)}"`,
     CHECK_LOGS: (name: string, platform: string, timestamp: string) =>
         `docker logs --since ${timestamp} ${name} | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
     CHECK_CONTAINER_READY: `Recovery is complete`,
-    STOP_CONTAINER: (name: string) => `docker stop "${name.replace(/[^a-zA-Z0-9_.-]/g, "")}"`,
+    STOP_CONTAINER: (name: string) => `docker stop "${sanitizeContainerName(name)}"`,
     DELETE_CONTAINER: (name: string) => {
-        const safeName = name.replace(/[^a-zA-Z0-9_.-]/g, "");
+        const safeName = sanitizeContainerName(name);
         return `docker stop "${safeName}" && docker rm "${safeName}"`;
     },
     INSPECT_CONTAINER: (id: string) => `docker inspect ${id}`,
@@ -174,6 +174,13 @@ export function validateSqlServerPassword(password: string): string {
     }
 
     return "";
+}
+
+/**
+ * Sanitizes a container name by removing any characters that aren't alphanumeric, underscore, dot, or hyphen.
+ */
+export function sanitizeContainerName(name: string): string {
+    return name.replace(/[^a-zA-Z0-9_.-]/g, "");
 }
 
 //#region Docker Command Implementations
