@@ -12,6 +12,8 @@ import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
 import { ISelectionData } from "../../src/models/interfaces";
+import * as Sinon from "sinon";
+import { QueryResultWebviewController } from "../../src/queryResult/queryResultWebViewController";
 
 suite("SqlOutputProvider Tests using mocks", () => {
     const testUri = "Test_URI";
@@ -419,6 +421,9 @@ suite("SqlOutputProvider Tests using mocks", () => {
     });
 
     test("A query runner should only exist if a query is run", async () => {
+        contentProvider["_queryResultWebviewController"] = Sinon.createStubInstance(
+            QueryResultWebviewController,
+        );
         vscodeWrapper
             .setup((v) => v.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => {
