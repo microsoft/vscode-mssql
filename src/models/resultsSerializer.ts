@@ -212,7 +212,7 @@ export default class ResultsSerializer {
 
         // send message to the sqlserverclient for converting results to the requested format and saving to filepath
         return self._client.sendRequest(type, saveResultsParams).then(
-            (result: any) => {
+            (result) => {
                 if (result.messages) {
                     self._vscodeWrapper.showErrorMessage(
                         LocalizedConstants.msgSaveFailed + result.messages,
@@ -282,7 +282,7 @@ export default class ResultsSerializer {
         if (format === "excel") {
             // This will not open in VSCode as it's treated as binary. Use the native file opener instead
             // Note: must use filePath here, URI does not open correctly
-            opener(filePath, undefined, (error, stdout, stderr) => {
+            opener(filePath, undefined, (error) => {
                 if (error) {
                     self._vscodeWrapper.showErrorMessage(error);
                 }
@@ -298,11 +298,11 @@ export default class ResultsSerializer {
                             preserveFocus: false,
                             preview: false,
                         })
-                        .then(undefined, (error: any) => {
+                        .then(undefined, (error) => {
                             self._vscodeWrapper.showErrorMessage(error);
                         });
                 },
-                (error: any) => {
+                (error) => {
                     self._vscodeWrapper.showErrorMessage(error);
                 },
             );
