@@ -36,7 +36,7 @@ import {
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity, sendErrorEvent } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
@@ -318,6 +318,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
         } catch (error) {
             this.logger.error(`Failed to get project script files: ${getErrorMessage(error)}`);
+            sendErrorEvent(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.GetDatabaseProjectScriptFiles,
+                error,
+            );
         }
 
         return scriptFiles;
@@ -345,6 +350,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
         } catch (error) {
             this.logger.error(`Failed to get database schema provider: ${getErrorMessage(error)}`);
+            sendErrorEvent(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.GetDatabaseProjectSchemaProvider,
+                error,
+            );
         }
 
         return provider;
@@ -412,6 +422,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             } catch (error) {
                 this.logger.error(`Error listing databases: ${getErrorMessage(error)}`);
                 console.error("Error listing databases:", error);
+                sendErrorEvent(
+                    TelemetryViews.SchemaCompare,
+                    TelemetryActions.ListingDatabasesForActiveServer,
+                    error,
+                );
             }
 
             state.databases = databases;
