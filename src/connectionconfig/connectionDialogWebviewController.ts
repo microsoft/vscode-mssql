@@ -75,6 +75,7 @@ import {
 } from "../controllers/connectionGroupWebviewController";
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -822,21 +823,40 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 cleanedConnection as any,
             );
 
-            await this._mainController.connectionManager.connectionStore.saveProfile(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                cleanedConnection as any,
-            );
-            const node = await this._mainController.createObjectExplorerSession(cleanedConnection);
-            await this.updateLoadedConnections(state);
-            this.updateState();
+            async function saveConnectionAndCreateSession(
+                self: ConnectionDialogWebviewController,
+            ): Promise<TreeNodeInfo> {
+                await self._mainController.connectionManager.connectionStore.saveProfile(
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    cleanedConnection as any,
+                );
+                const node =
+                    await self._mainController.createObjectExplorerSession(cleanedConnection);
+                await self.updateLoadedConnections(state);
+                self.updateState();
+
+                return node;
+            }
+
+            let node = await saveConnectionAndCreateSession(this);
 
             this.state.connectionStatus = ApiStatus.Loaded;
 
-            await this._mainController.objectExplorerTree.reveal(node, {
-                focus: true,
-                select: true,
-                expand: true,
-            });
+            try {
+                await this._mainController.objectExplorerTree.reveal(node, {
+                    focus: true,
+                    select: true,
+                    expand: true,
+                });
+            } catch {
+                // If revealing the node fails, we've hit an event-based race condition; re-saving and creating the profile should fix it.
+                node = await saveConnectionAndCreateSession(this);
+                await this._mainController.objectExplorerTree.reveal(node, {
+                    focus: true,
+                    select: true,
+                    expand: true,
+                });
+            }
 
             await this.panel.dispose();
             this.dispose();
