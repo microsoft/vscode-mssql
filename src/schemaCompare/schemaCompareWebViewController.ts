@@ -48,6 +48,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
     SchemaCompareReducers
 > {
+    private static readonly SQL_DATABASE_PROJECTS_EXTENSION_ID =
+        "ms-mssql.sql-database-projects-vscode";
     private operationId: string;
 
     constructor(
@@ -300,7 +302,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         try {
             const databaseProjectsExtension = vscode.extensions.getExtension(
-                "ms-mssql.sql-database-projects-vscode",
+                SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
             );
             if (databaseProjectsExtension) {
                 this.logger.verbose(`SQL Database Projects extension found, activating...`);
@@ -328,7 +330,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         try {
             const databaseProjectsExtension = vscode.extensions.getExtension(
-                "ms-mssql.sql-database-projects-vscode",
+                SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
             );
 
             if (databaseProjectsExtension) {
@@ -368,7 +370,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.verbose(`Checking if SQL Database Projects extension is installed`);
 
             const extension = vscode.extensions.getExtension(
-                "ms-mssql.sql-database-projects-vscode",
+                SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
             );
 
             if (extension) {
