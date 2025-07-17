@@ -180,7 +180,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         const node = sourceContext as TreeNodeInfo;
         if (node.connectionProfile) {
             this.logger.verbose(
-                `Using connection profile as source: ${JSON.stringify(node.connectionProfile.server)}`,
+                `Using connection profile as source: ${node.connectionProfile.server}`,
             );
             source = await this.getEndpointInfoFromConnectionProfile(
                 node.connectionProfile,
