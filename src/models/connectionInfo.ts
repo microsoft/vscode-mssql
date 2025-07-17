@@ -42,21 +42,24 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
         connCreds.commandTimeout = Constants.defaultCommandTimeout;
     }
 
-    // default value for encrypt
-    if (connCreds.encrypt === "" || connCreds.encrypt === true) {
-        connCreds.encrypt = EncryptOptions.Mandatory;
-    } else if (connCreds.encrypt === false) {
-        connCreds.encrypt = EncryptOptions.Optional;
-    }
-
     // default value for appName
     if (!connCreds.applicationName) {
         connCreds.applicationName = Constants.connectionApplicationName;
     }
 
+    // default value for encrypt
+    if (connCreds.encrypt === undefined || connCreds.encrypt === "" || connCreds.encrypt === true) {
+        connCreds.encrypt = EncryptOptions.Mandatory;
+    } else if (connCreds.encrypt === false) {
+        connCreds.encrypt = EncryptOptions.Optional;
+    }
+
+    // Override specific properties for Azure SQL Database connections
     if (isAzureDatabase(connCreds.server)) {
         // always encrypt connection when connecting to Azure SQL
-        connCreds.encrypt = EncryptOptions.Mandatory;
+        if (connCreds.encrypt === EncryptOptions.Optional) {
+            connCreds.encrypt = EncryptOptions.Mandatory;
+        }
 
         // Ensure minumum connection timeout when connecting to Azure SQL
         if (connCreds.connectTimeout < Constants.azureSqlDbConnectionTimeout) {
@@ -84,7 +87,7 @@ export function updateEncrypt(connection: IConnectionInfo): {
 
 // return true if server name ends with '.database.windows.net'
 function isAzureDatabase(server: string): boolean {
-    return server ? server.endsWith(Constants.sqlDbPrefix) : false;
+    return server ? server.endsWith(Constants.sqlDbSuffix) : false;
 }
 
 /**
