@@ -1200,13 +1200,33 @@
         <source xml:lang="en">Enter connection group name</source>
         <target state="translated">接続グループ名を入力してください</target>
       </trans-unit>
+      <trans-unit id="++CODE++524763fd6773ea93d76fa32d9e5974e1667748b114b90fba93f6a4948b0e5c20">
+        <source xml:lang="en">Enter container name</source>
+        <target state="new">Enter container name</target>
+      </trans-unit>
       <trans-unit id="++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423">
         <source xml:lang="en">Enter description (optional)</source>
         <target state="translated">説明の入力 (省略可)</target>
       </trans-unit>
+      <trans-unit id="++CODE++caaac8aa0d0641aea8406e7f1011aaeab33423fdd4ee9b3354ee88cc1487b0bf">
+        <source xml:lang="en">Enter hostname</source>
+        <target state="new">Enter hostname</target>
+      </trans-unit>
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
         <target state="translated">新しい列幅を入力する</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
+        <source xml:lang="en">Enter password</source>
+        <target state="new">Enter password</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6aa7783e2e2dbd69be673f5f534fa04a7d36683475767069e8030c958e318d47">
+        <source xml:lang="en">Enter port</source>
+        <target state="new">Enter port</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
+        <source xml:lang="en">Enter profile name</source>
+        <target state="new">Enter profile name</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
