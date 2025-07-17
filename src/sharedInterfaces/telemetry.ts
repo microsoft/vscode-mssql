@@ -30,6 +30,9 @@ export enum TelemetryViews {
 }
 
 export enum TelemetryActions {
+    GetDatabaseProjectScriptFiles = "GetDatabaseProjectScriptFiles",
+    GetDatabaseProjectSchemaProvider = "GetDatabaseProjectSchemaProvider",
+    ListingDatabasesForActiveServer = "ListingDatabasesForActiveServer",
     Compare = "Compare",
     Switch = "Switch",
     OpenScmp = "OpenScmp",
