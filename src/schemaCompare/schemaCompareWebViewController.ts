@@ -43,6 +43,7 @@ import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { cmdAddObjectExplorer } from "../constants/constants";
+import { getErrorMessage } from "../utils/utils";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -316,9 +317,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 );
             }
         } catch (error) {
-            this.logger.error(
-                `Failed to get project script files: ${error instanceof Error ? error.message : "Unknown error"}`,
-            );
+            this.logger.error(`Failed to get project script files: ${getErrorMessage(error)}`);
         }
 
         return scriptFiles;
@@ -345,9 +344,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 );
             }
         } catch (error) {
-            this.logger.error(
-                `Failed to get database schema provider: ${error instanceof Error ? error.message : "Unknown error"}`,
-            );
+            this.logger.error(`Failed to get database schema provider: ${getErrorMessage(error)}`);
         }
 
         return provider;
@@ -413,9 +410,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 databases = await this.connectionMgr.listDatabases(payload.connectionUri);
                 this.logger.info(`Found ${databases.length} database(s) on server`);
             } catch (error) {
-                this.logger.error(
-                    `Error listing databases: ${error instanceof Error ? error.message : "Unknown error"}`,
-                );
+                this.logger.error(`Error listing databases: ${getErrorMessage(error)}`);
                 console.error("Error listing databases:", error);
             }
 
@@ -822,9 +817,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         throw new Error(errorMsg);
                 }
             } catch (error) {
-                this.logger.error(
-                    `Exception during publish operation: ${error instanceof Error ? error.message : "Unknown error"}`,
-                );
+                this.logger.error(`Exception during publish operation: ${getErrorMessage(error)}`);
                 endActivity.endFailed(undefined, false, undefined, undefined, {
                     errorMessage: error instanceof Error ? error.message : "Unknown error",
                     operationId: this.operationId,
@@ -895,9 +888,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
                 state.publishDatabaseChangesResultStatus = result;
             } catch (error) {
-                this.logger.error(
-                    `Exception during database publish: ${error instanceof Error ? error.message : "Unknown error"}`,
-                );
+                this.logger.error(`Exception during database publish: ${getErrorMessage(error)}`);
             }
 
             return state;
@@ -924,9 +915,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
                 state.schemaComparePublishProjectResult = result;
             } catch (error) {
-                this.logger.error(
-                    `Exception during project publish: ${error instanceof Error ? error.message : "Unknown error"}`,
-                );
+                this.logger.error(`Exception during project publish: ${getErrorMessage(error)}`);
             }
 
             return state;
@@ -945,9 +934,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
                 sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ResetOptions);
             } catch (error) {
-                this.logger.error(
-                    `Failed to reset options: ${error instanceof Error ? error.message : "Unknown error"}`,
-                );
+                this.logger.error(`Failed to reset options: ${getErrorMessage(error)}`);
             }
 
             return state;
@@ -1082,7 +1069,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 }
             } catch (error) {
                 this.logger.error(
-                    `Exception during ${payload.includeRequest ? "include" : "exclude"} all operation: ${error instanceof Error ? error.message : "Unknown error"}`,
+                    `Exception during ${payload.includeRequest ? "include" : "exclude"} all operation: ${getErrorMessage(error)}`,
                 );
                 this.state.isIncludeExcludeAllOperationInProgress = false;
             }
@@ -1281,9 +1268,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 state.cancelResultStatus = result;
                 this.updateState(state);
             } catch (error) {
-                this.logger.error(
-                    `Exception during cancel operation: ${error instanceof Error ? error.message : "Unknown error"}`,
-                );
+                this.logger.error(`Exception during cancel operation: ${getErrorMessage(error)}`);
             }
 
             return state;
@@ -1397,9 +1382,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.warn(`No databases found for connection: ${connectionUri}`);
             }
         } catch (error) {
-            this.logger.error(
-                `Error auto-selecting new connection: ${error instanceof Error ? error.message : "Unknown error"}`,
-            );
+            this.logger.error(`Error auto-selecting new connection: ${getErrorMessage(error)}`);
         } finally {
             // Reset the waiting state
             this.logger.verbose(`Resetting waiting state`);
