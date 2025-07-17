@@ -834,7 +834,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             } catch (error) {
                 this.logger.error(`Exception during publish operation: ${getErrorMessage(error)}`);
                 endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: error instanceof Error ? error.message : "Unknown error",
+                    errorMessage: getErrorMessage(error),
                     operationId: this.operationId,
                     targetType: getSchemaCompareEndpointTypeString(
                         state.targetEndpointInfo.endpointType,
@@ -842,9 +842,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 });
 
                 vscode.window.showErrorMessage(
-                    locConstants.SchemaCompare.schemaCompareApplyFailed(
-                        error instanceof Error ? error.message : "Unknown error",
-                    ),
+                    locConstants.SchemaCompare.schemaCompareApplyFailed(getErrorMessage(error)),
                 );
 
                 return state;
