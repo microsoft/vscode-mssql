@@ -222,7 +222,7 @@ export function run(testsRoot: string, clb: (error: any, failures?: number) => v
 
             mocha
                 .run()
-                .on("fail", function (test, err): void {
+                .on("fail", function (): void {
                     failureCount++;
                 })
                 .on("end", function (): void {
