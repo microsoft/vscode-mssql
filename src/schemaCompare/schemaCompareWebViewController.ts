@@ -1621,7 +1621,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     (difference.sourceValue !== null && difference.sourceValue.length > 0) ||
                     (difference.targetValue !== null && difference.targetValue.length > 0)
                 ) {
-                    // lewissanchez todo: need to check if difference is excluded before adding to final differences list
                     finalDifferences.push(difference);
                     this.logger.logDebug(
                         `Including difference: ${difference.name} with update action ${difference.updateAction}`,
