@@ -176,7 +176,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         const node = sourceContext as TreeNodeInfo;
         if (node.connectionProfile) {
-            this.logger.verbose("Using connection profile as source");
+            this.logger.verbose(
+                `Using connection profile as source: ${JSON.stringify(node.connectionProfile.server)}`,
+            );
             source = await this.getEndpointInfoFromConnectionProfile(
                 node.connectionProfile,
                 sourceContext,
@@ -186,10 +188,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             (sourceContext as string) &&
             (sourceContext as string).endsWith(".dacpac")
         ) {
-            this.logger.verbose("Using dacpac as source");
+            this.logger.verbose(`Using dacpac as source: ${sourceContext}`);
             source = this.getEndpointInfoFromDacpac(sourceContext as string);
         } else if (sourceContext) {
-            this.logger.verbose("Using project as source");
+            this.logger.verbose(`Using project as source: ${sourceContext}`);
             source = await this.getEndpointInfoFromProject(sourceContext as string);
         } else {
             this.logger.verbose("No source context provided");
@@ -402,6 +404,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("listDatabasesForActiveServer", async (state, payload) => {
+            this.logger.info(`Listing databases for server connection: ${payload.connectionUri}`);
+
             let databases: string[] = [];
             try {
                 databases = await this.connectionMgr.listDatabases(payload.connectionUri);
@@ -516,6 +520,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
 
             const connection = this.connectionMgr.activeConnections[payload.serverConnectionUri];
+            this.logger.verbose(`Using connection: ${payload.serverConnectionUri}`);
 
             const connectionProfile = connection.credentials as IConnectionProfile;
 
@@ -1325,11 +1330,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         connectionUri: string,
         endpointType: "source" | "target",
     ): Promise<void> {
-        this.logger.info(`Auto-selecting new connection for ${endpointType} endpoint`);
+        this.logger.info(
+            `Auto-selecting new connection for ${endpointType} endpoint: ${connectionUri}`,
+        );
 
         try {
             // Get the list of databases for the new connection
-            this.logger.verbose(`Retrieving databases for connection`);
+            this.logger.verbose(`Retrieving databases for connection: ${connectionUri}`);
             const databases = await this.connectionMgr.listDatabases(connectionUri);
             this.logger.verbose(`Found ${databases.length} databases on server`);
 
@@ -1343,7 +1350,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 const connectionProfile = connection?.credentials as IConnectionProfile;
 
                 if (connectionProfile) {
-                    this.logger.verbose(`Creating endpoint info from connection profile`);
+                    this.logger.verbose(
+                        `Creating endpoint info from connection profile: ${connectionProfile.server}`,
+                    );
                     let user = connectionProfile.user;
                     if (!user) {
                         user = locConstants.SchemaCompare.defaultUserName;
@@ -1378,10 +1387,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     // Update the databases list for the UI
                     this.state.databases = databases;
                 } else {
-                    this.logger.warn(`No connection profile found for connection`);
+                    this.logger.warn(
+                        `No connection profile found for connection URI: ${connectionUri}`,
+                    );
                 }
             } else {
-                this.logger.warn(`No databases found for connection`);
+                this.logger.warn(`No databases found for connection: ${connectionUri}`);
             }
         } catch (error) {
             this.logger.error(
