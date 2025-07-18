@@ -235,7 +235,7 @@ jobs:
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
           cd main
-          yarn gulp package:online
+          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
           DISPLAY=:10 yarn smoketest
 
       - name: Merge Smoke and Unit Test Coverage Reports
