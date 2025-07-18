@@ -4427,10 +4427,6 @@ Confira o plano estimado sem executar a consulta ou visualize o plano de consult
         <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
         <target state="translated">Use a experiência de conexão herdada em vez da experiência moderna.</target>
       </trans-unit>
-      <trans-unit id="mssql.useLegacyQueryResultExperience.description">
-        <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
-        <target state="translated">Use a experiência herdada de resultados de consulta em vez da experiência moderna.</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">Visualizar um Plano de Consulta</target>
