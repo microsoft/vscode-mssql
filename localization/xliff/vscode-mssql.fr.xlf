@@ -4427,10 +4427,6 @@ Consultez le plan estimé sans exécuter la requête, ou consultez le plan de re
         <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
         <target state="translated">Utilisez l’expérience de connexion héritée au lieu de l’expérience moderne.</target>
       </trans-unit>
-      <trans-unit id="mssql.useLegacyQueryResultExperience.description">
-        <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
-        <target state="translated">Utilisez l’expérience de résultat de requête héritée au lieu de l’expérience moderne.</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">Visualiser un plan de requête</target>
