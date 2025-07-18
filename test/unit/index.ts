@@ -95,7 +95,7 @@ export async function run(): Promise<void> {
     const mocha = new Mocha({
         ui: "tdd",
         timeout: 10 * 1000,
-        reporter: "tap", // Use TAP reporter for cleaner console output
+        reporter: "mocha-junit-reporter",
         reporterOptions: {
             mochaFile: path.join(
                 __dirname,
@@ -107,9 +107,6 @@ export async function run(): Promise<void> {
             ),
         },
     });
-
-    // Disable Mocha's default coloring since we'll handle it ourselves
-    (mocha.options as any).color = false;
 
     // Add all files to the test suite
     const files = glob.sync("**/*.test.js", { cwd: testsRoot });

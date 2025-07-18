@@ -8,27 +8,13 @@ import * as assert from "assert";
 
 import MainController from "../../src/controllers/mainController";
 import { activateExtension } from "./utils";
+import ConnectionManager from "../../src/controllers/connectionManager";
 
 suite("Initialization Tests", () => {
     test("Connection manager is initialized properly", async () => {
-        console.log("Starting test...");
         await activateExtension();
-        console.log("Extension activated");
-
         let controller: MainController = await Extension.getController();
-        console.log("Controller:", !!controller);
-        console.log("Connection manager:", !!controller?.connectionManager);
-        console.log("Client:", controller?.connectionManager?.client);
-
-        // Add this check
-        if (!controller) {
-            throw new Error("Controller is undefined");
-        }
-
-        if (!controller.connectionManager) {
-            throw new Error("ConnectionManager is undefined");
-        }
-
-        assert.notStrictEqual(undefined, controller.connectionManager);
+        let connectionManager: ConnectionManager = controller.connectionManager;
+        assert.notStrictEqual(undefined, connectionManager);
     });
 });
