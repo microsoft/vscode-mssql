@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import * as os from "os";
+import * as path from "path";
 import { promises as fs } from "fs";
 import { SchemaCompareReducers } from "../sharedInterfaces/schemaCompare";
 import { generateGuid } from "../models/utils";
@@ -223,9 +224,13 @@ export async function publishProjectChanges(
     payload: SchemaCompareReducers["publishProjectChanges"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaComparePublishProjectResult> {
+    // Extract the directory path from the project file path
+    // The service expects a directory path, and not a file path.
+    const projectDirectoryPath = path.dirname(payload.targetProjectPath);
+
     const result = await schemaCompareService.publishProjectChanges(
         operationId,
-        payload.targetProjectPath,
+        projectDirectoryPath,
         payload.targetFolderStructure,
         payload.taskExecutionMode,
     );
