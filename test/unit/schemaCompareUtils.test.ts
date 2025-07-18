@@ -3,21 +3,31 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
-import * as TypeMoq from "typemoq";
 import * as sinon from "sinon";
+import { expect } from "chai";
 import * as path from "path";
 import * as mssql from "vscode-mssql";
 
 import * as schemaCompareUtils from "../../src/schemaCompare/schemaCompareUtils";
 
 suite("Schema Compare Utils Tests", () => {
-    let mockSchemaCompareService: TypeMoq.IMock<mssql.ISchemaCompareService>;
     let sandbox: sinon.SinonSandbox;
+    let mockSchemaCompareService: sinon.SinonStubbedInstance<mssql.ISchemaCompareService>;
 
     setup(() => {
-        mockSchemaCompareService = TypeMoq.Mock.ofType<mssql.ISchemaCompareService>();
         sandbox = sinon.createSandbox();
+        mockSchemaCompareService = {
+            compare: sandbox.stub(),
+            generateScript: sandbox.stub(),
+            publishDatabaseChanges: sandbox.stub(),
+            publishProjectChanges: sandbox.stub(),
+            schemaCompareGetDefaultOptions: sandbox.stub(),
+            includeExcludeNode: sandbox.stub(),
+            includeExcludeAllNodes: sandbox.stub(),
+            openScmp: sandbox.stub(),
+            saveScmp: sandbox.stub(),
+            cancel: sandbox.stub(),
+        } as sinon.SinonStubbedInstance<mssql.ISchemaCompareService>;
     });
 
     teardown(() => {
@@ -46,36 +56,29 @@ suite("Schema Compare Utils Tests", () => {
             deletedFiles: [],
         };
 
-        mockSchemaCompareService
-            .setup((x) =>
-                x.publishProjectChanges(
-                    TypeMoq.It.isValue(operationId),
-                    TypeMoq.It.isValue(projectDirectoryPath),
-                    TypeMoq.It.isValue(extractTarget),
-                    TypeMoq.It.isValue(taskExecutionMode),
-                ),
-            )
-            .returns(() => Promise.resolve(expectedResult))
-            .verifiable(TypeMoq.Times.once());
+        mockSchemaCompareService.publishProjectChanges.resolves(expectedResult);
 
         // Act
         const result = await schemaCompareUtils.publishProjectChanges(
             operationId,
             payload,
-            mockSchemaCompareService.object,
+            mockSchemaCompareService as unknown as mssql.ISchemaCompareService,
         );
 
         // Assert
-        assert.strictEqual(result, expectedResult);
-        mockSchemaCompareService.verify(
-            (x) =>
-                x.publishProjectChanges(
-                    TypeMoq.It.isValue(operationId),
-                    TypeMoq.It.isValue(projectDirectoryPath),
-                    TypeMoq.It.isValue(extractTarget),
-                    TypeMoq.It.isValue(taskExecutionMode),
-                ),
-            TypeMoq.Times.once(),
+        expect(result).to.deep.equal(expectedResult);
+        expect(mockSchemaCompareService.publishProjectChanges.calledOnce).to.be.true;
+        expect(mockSchemaCompareService.publishProjectChanges.firstCall.args[0]).to.equal(
+            operationId,
+        );
+        expect(mockSchemaCompareService.publishProjectChanges.firstCall.args[1]).to.equal(
+            projectDirectoryPath,
+        );
+        expect(mockSchemaCompareService.publishProjectChanges.firstCall.args[2]).to.equal(
+            extractTarget,
+        );
+        expect(mockSchemaCompareService.publishProjectChanges.firstCall.args[3]).to.equal(
+            taskExecutionMode,
         );
     });
 });
