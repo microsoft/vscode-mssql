@@ -254,12 +254,9 @@ export async function run(): Promise<void> {
 
                 if (test.error.stack) {
                     console.log(`   Stack Trace:`);
-                    test.error.stack
-                        .split("\n")
-                        .slice(0, 5)
-                        .forEach((line) => {
-                            console.log(`     ${line}`);
-                        });
+                    test.error.stack.split("\n").forEach((line) => {
+                        console.log(`     ${line}`);
+                    });
                 }
             }
         });

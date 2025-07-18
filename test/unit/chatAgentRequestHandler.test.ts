@@ -64,7 +64,9 @@ suite("Chat Agent Request Handler Tests", () => {
             .returns(() => undefined);
 
         // Stub telemetry functions
-        sandbox.stub(telemetry, "startActivity").returns(mockActivityObject.object);
+        startActivityStub = sandbox
+            .stub(telemetry, "startActivity")
+            .returns(mockActivityObject.object);
         sandbox.stub(telemetry, "sendActionEvent");
 
         // Stub the generateGuid function using sinon
@@ -81,7 +83,7 @@ suite("Chat Agent Request Handler Tests", () => {
         }
 
         // Now stub the function
-        selectChatModelsStub = sinon
+        selectChatModelsStub = sandbox
             .stub(vscode.lm, "selectChatModels")
             .resolves([mockLmChat.object]);
 
