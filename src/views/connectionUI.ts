@@ -241,7 +241,7 @@ export class ConnectionUI {
             message: LocalizedConstants.msgChangeLanguageMode,
         };
 
-        const value = this._prompter.promptSingle(question);
+        const value = await this._prompter.promptSingle(question);
 
         if (value) {
             await this._vscodeWrapper.executeCommand("workbench.action.editor.changeLanguageMode");
