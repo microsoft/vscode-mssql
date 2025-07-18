@@ -1,5 +1,11 @@
 # Change Log
 
+## Version 1.34.0
+* Release date: TBD
+* Release status: GA
+### What's new in 1.34.0
+* Fixed Hot Exit not working for untitled SQL queries - now supports VSCode's Hot Exit feature for automatic backup and restore of unsaved SQL query documents
+
 ## Version 1.33.0
 * Release date: June 18, 2025
 * Release status: GA
