@@ -3356,9 +3356,6 @@
     <trans-unit id="mssql.useLegacyConnectionExperience.description">
       <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
     </trans-unit>
-    <trans-unit id="mssql.useLegacyQueryResultExperience.description">
-      <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
-    </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
     </trans-unit>

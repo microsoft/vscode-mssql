@@ -190,9 +190,6 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
             useLegacyConnectionExperience: vscode.workspace
                 .getConfiguration()
                 .get(constants.configUseLegacyConnectionExperience),
-            useLegacyQueryResultExperience: vscode.workspace
-                .getConfiguration()
-                .get(constants.configUseLegacyQueryResultExperience),
             ...stringAnswers,
         },
         numericalAnswers,
