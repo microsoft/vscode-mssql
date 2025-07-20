@@ -79,9 +79,9 @@ jobs:
       - name: Package both branches
         run: |
           cd main
-          yarn package --online
+          vsce package
           cd ../pr
-          yarn package --online
+          vsce package
 
       - name: Setting up change icons
         run: |
