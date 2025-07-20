@@ -17,7 +17,6 @@ test-reports
 .husky
 .gitignore
 .mention-bot
-coverconfig.json
 extensionlaunched.dat
 gulpfile.js
 tsconfig.json
