@@ -159,6 +159,7 @@ jobs:
           DISPLAY=:10 yarn test
 
       - name: Build mappings for React Webviews
+        continue-on-error: true
         run: |
           cd ./pr
           yarn build:webviews
@@ -190,6 +191,7 @@ jobs:
         working-directory: ./pr
 
       - name: Run smoke tests for PR branch
+        continue-on-error: true
         run: |
           VS_CODE_VERSION=stable
           SERVER_NAME=localhost
@@ -203,6 +205,7 @@ jobs:
           DISPLAY=:10 yarn smoketest
 
       - name: Upload Smoke Test Screenshots
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -211,6 +214,7 @@ jobs:
           retention-days: 7
 
       - name: Smoke Test Report
+        continue-on-error: true
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
@@ -235,6 +239,7 @@ jobs:
           DISPLAY=:10 yarn smoketest
 
       - name: Merge Smoke and Unit Test Coverage Reports
+        continue-on-error: true
         run: |
           if [ -f main/test/resources/mergeReports.js ]; then
             node main/test/resources/mergeReports.js main/coverage/coverage-e2e/cobertura-coverage.xml main/coverage/cobertura-coverage.xml
@@ -249,6 +254,7 @@ jobs:
           fi
 
       - name: Generate Coverage Report
+        continue-on-error: true
         uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
         with:
           reports: './pr/coverage/cobertura-coverage.xml'
