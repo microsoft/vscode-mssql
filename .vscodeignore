@@ -29,3 +29,13 @@ webviews-metafile.json
 images/ux
 FEATURES.md
 .nyc_output
+.eslintcache
+.git-blame-ignore-revs
+.vscode-test.mjs
+CODE_FORMATTING.md
+DEVELOPMENT.md
+eslint
+eslint.config.mjs
+KERBEROS_HELP.md
+prettier.config.mjs
+scripts

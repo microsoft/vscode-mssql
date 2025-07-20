@@ -163,26 +163,6 @@ gulp.task('ext:compile-tests', (done) => {
 
 gulp.task('ext:compile', gulp.series('ext:compile-src', 'ext:compile-tests', 'ext:copy-OE-assets', 'ext:copy-queryHistory-assets'));
 
-gulp.task('ext:copy-tests', () => {
-	return gulp.src(config.paths.project.root + '/test/resources/**/*')
-		.pipe(gulp.dest(config.paths.project.root + '/out/test/resources/'))
-});
-
-gulp.task('ext:copy-config', () => {
-	return gulp.src(config.paths.project.root + '/src/configurations/config.json')
-		.pipe(gulp.dest(config.paths.project.root + '/out/src'));
-});
-
-gulp.task('ext:copy-js', () => {
-	return gulp.src([
-		config.paths.project.root + '/src/**/*.js'
-	])
-		.pipe(gulp.dest(config.paths.project.root + '/out/src'))
-});
-
-// Copy the files which aren't used in compilation
-gulp.task('ext:copy', gulp.series('ext:copy-tests', 'ext:copy-js', 'ext:copy-config'));
-
 gulp.task('ext:build', gulp.series('ext:generate-runtime-localization-files', 'ext:copy', 'ext:compile', 'ext:compile-reactviews')); // removed lint before copy
 
 gulp.task('ext:test', async () => {
@@ -201,10 +181,6 @@ gulp.task('ext:test', async () => {
 		launchArgs: args
 	});
 });
-
-gulp.task('ext:smoke', run('npx playwright test'));
-
-gulp.task('test', gulp.series('ext:test'));
 
 gulp.task('clean', function (done) {
 	return del('out', done);
