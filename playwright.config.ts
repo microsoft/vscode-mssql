@@ -19,7 +19,7 @@ dotenv.config({ path: "./test/e2e/.env" });
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-    testDir: "../test/e2e",
+    testDir: "./test/e2e",
     testMatch: ["**/*.spec.ts"],
     /* Run tests in files in parallel */
     fullyParallel: false,
@@ -34,7 +34,7 @@ export default defineConfig({
         [
             "junit",
             {
-                outputFile: "../test-reports/smoke-results.xml",
+                outputFile: "./test-reports/smoke-results.xml",
             },
         ],
     ],
