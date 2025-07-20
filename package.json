@@ -63,7 +63,7 @@
         "localization": "node scripts/extract-localization.js",
         "smoketest": "yarn instrument && yarn e2eTest",
         "test": "node ./out/test/unit/runTest.js",
-        "package": "node scripts/package-extension.js --online",
+        "package": "node scripts/package-extension.js",
         "prepare": "husky",
         "lint-staged": "lint-staged --quiet",
         "precommit": "run-p lint-staged localization",

@@ -28,20 +28,15 @@ steps:
     displayName: Install extension depedencies
     workingDirectory: "$(Build.SourcesDirectory)"
 
-  - task: gulp@1
+  - pwsh: |
+      yarn run build --prod
     displayName: Build extension
-    inputs:
-      targets: build
-      gulpFile: ${{ parameters.gulpfile }}
-      arguments: '--prod'
-    env:
-      BUILDMACHINE: true
+    workingDirectory: "$(Build.SourcesDirectory)"
 
   - pwsh: |
       yarn lint
     displayName: Lint code
     workingDirectory: "$(Build.SourcesDirectory)"
-
 
   - pwsh: |
       yarn test
@@ -61,18 +56,16 @@ steps:
       summaryFileLocation: '$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml'
     condition: succeededOrFailed()
 
-  - task: gulp@1
-    displayName: Package (online)
-    inputs:
-      targets: package:online
-      gulpFile: ${{ parameters.gulpfile }}
+  - pwsh: |
+      yarn package --online
+    displayName: Package extension (online)
+    workingDirectory: "$(Build.SourcesDirectory)"
 
-  - task: gulp@1
-    displayName: Package (offline)
+  - pwsh: |
+      yarn package --offline
+    displayName: Package extension (offline)
+    workingDirectory: "$(Build.SourcesDirectory)"
     condition: eq( ${{ parameters.packageOffline }}, 'true')
-    inputs:
-      targets: package:offline
-      gulpFile: ${{ parameters.gulpfile }}
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2
