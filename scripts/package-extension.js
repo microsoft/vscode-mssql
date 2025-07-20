@@ -229,9 +229,8 @@ async function main() {
 
   // Validate arguments
   if (!isOnline && !isOffline) {
-    logger.error('Please specify packaging mode: --online or --offline');
-    logger.info('Use --help for more information');
-    process.exit(1);
+    isOnline = true; // Default to online mode if no argument provided
+    logger.info('No mode specified, defaulting to online packaging');
   }
 
   if (isOnline && isOffline) {
