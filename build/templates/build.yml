@@ -1,7 +1,4 @@
 parameters:
-  - name: gulpfile
-    type: string
-    default: "$(Build.SourcesDirectory)/gulpfile.js"
   - name: publishArtifactName  # artifact name for publish task
     type: string
   - name: packageOffline
@@ -17,8 +14,6 @@ steps:
   - pwsh: |
       Write-Host "Installing Yarn"
       npm install --global yarn@1.22.19
-      Write-Host "Installing Gulp CLI"
-      npm install --global gulp-cli@2.3.0
       Write-Host "Installing VSCE"
       npm install --global vsce@2.9.2
     displayName: Install toolchain

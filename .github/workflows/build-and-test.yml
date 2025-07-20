@@ -55,12 +55,8 @@ jobs:
         run: |
           echo "Installing Yarn"
           npm install --global yarn@1.22.19
-          echo "Installing Gulp CLI"
-          npm install --global gulp-cli@2.3.0
           echo "Installing VSCE"
           npm install --global vsce@2.9.2
-          echo "Installing gulp"
-          npm install --global gulp@4.0.2
 
       - name: Install dependencies and build main extension
         uses: ./pr/.github/actions/build-extension
@@ -83,9 +79,9 @@ jobs:
       - name: Package both branches
         run: |
           cd main
-          yarn gulp package:online
+          yarn package --online
           cd ../pr
-          yarn gulp package:online
+          yarn package --online
 
       - name: Setting up change icons
         run: |
@@ -165,9 +161,9 @@ jobs:
       - name: Build mappings for React Webviews
         run: |
           cd ./pr
-          gulp ext:compile-reactviews
+          yarn build:webviews
           cd ../main
-          gulp ext:compile-reactviews
+          yarn build:webviews
 
       - name: Setup environment for smoke tests
         run: |
