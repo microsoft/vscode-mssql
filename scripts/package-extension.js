@@ -1,8 +1,6 @@
-#!/usr/bin/env node
-
 /*---------------------------------------------------------------------------------------------
- * Extension Packaging Script
- * Packages the extension for online/offline distribution with SQL Tools Service
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require('fs');
@@ -11,7 +9,6 @@ const { promisify } = require('util');
 const del = require('del');
 const logger = require('./terminal-logger');
 
-// Parse command line arguments
 const args = process.argv.slice(2);
 const isOnline = args.includes('--online');
 const isOffline = args.includes('--offline');

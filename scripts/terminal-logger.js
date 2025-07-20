@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------------------------------------
- * Build Scripts Logger Utility
- * Provides colored console output with icons for better build script readability
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 // ANSI color codes for terminal output

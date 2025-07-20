@@ -175,9 +175,6 @@
         "vscode-languageclient": "5.2.1",
         "yallist": "^5.0.0"
     },
-    "resolutions": {
-        "gulp-typescript/source-map": "0.7.4"
-    },
     "capabilities": {
         "untrustedWorkspaces": {
             "supported": true

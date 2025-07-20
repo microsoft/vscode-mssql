@@ -18,7 +18,6 @@ test-reports
 .gitignore
 .mention-bot
 extensionlaunched.dat
-gulpfile.js
 tsconfig.json
 tsconfig.*.json
 tslint*.json

@@ -1,15 +1,12 @@
-#!/usr/bin/env node
-
 /*---------------------------------------------------------------------------------------------
- * Simple Asset Copy Script
- * Easy-to-configure file copying that replaces Gulp tasks
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require('fs').promises;
 const path = require('path');
 const logger = require('./terminal-logger');
 
-// 🔧 COPY TASKS CONFIGURATION - Add/remove tasks here
 const COPY_TASKS = [
   {
     name: 'Object Explorer Assets',
@@ -101,9 +98,6 @@ async function executeTask(task) {
   }
 }
 
-/**
- * Run all copy tasks
- */
 async function copyAllAssets() {
   logger.header('Copying Assets');
 
@@ -129,7 +123,6 @@ module.exports = {
   COPY_TASKS
 };
 
-// Run if called directly
 if (require.main === module) {
   copyAllAssets()
     .then(() => process.exit(0))
