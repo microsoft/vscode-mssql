@@ -67,7 +67,6 @@
         "prepare": "husky",
         "lint-staged": "lint-staged --quiet",
         "precommit": "run-p lint-staged localization",
-        "clean-package": "git clean -xfd && yarn install && yarn build && yarn gulp package:online",
         "instrument": "nyc instrument ./out/src ./out/src --in-place",
         "e2eTest": "npx playwright test --config ./scripts/playwright.config.ts; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
     },
