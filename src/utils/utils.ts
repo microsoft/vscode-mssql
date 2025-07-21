@@ -38,13 +38,28 @@ export async function getUniqueFilePath(
 ): Promise<vscode.Uri> {
     let uniqueFileName: vscode.Uri;
     let counter = 1;
-    if (await exists(`${basename}.${fileExtension}`, folder)) {
-        while (await exists(`${basename}${counter}.${fileExtension}`, folder)) {
+
+    // Check if basename already includes the extension to avoid double extensions
+    const expectedExtension = `.${fileExtension}`;
+    const fullBasename = basename.endsWith(expectedExtension)
+        ? basename
+        : `${basename}${expectedExtension}`;
+
+    if (await exists(fullBasename, folder)) {
+        // Extract the base name without extension for numbering
+        const baseNameWithoutExt = basename.endsWith(expectedExtension)
+            ? basename.slice(0, -expectedExtension.length)
+            : basename;
+
+        while (await exists(`${baseNameWithoutExt}${counter}${expectedExtension}`, folder)) {
             counter += 1;
         }
-        uniqueFileName = vscode.Uri.joinPath(folder, `${basename}${counter}.${fileExtension}`);
+        uniqueFileName = vscode.Uri.joinPath(
+            folder,
+            `${baseNameWithoutExt}${counter}${expectedExtension}`,
+        );
     } else {
-        uniqueFileName = vscode.Uri.joinPath(folder, `${basename}.${fileExtension}`);
+        uniqueFileName = vscode.Uri.joinPath(folder, fullBasename);
     }
     return uniqueFileName;
 }
