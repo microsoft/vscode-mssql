@@ -192,7 +192,7 @@ suite("Chat Agent Request Handler Tests", () => {
             mockMainController.object,
         );
 
-        expect(handler).to.be.a("function");
+        expect(typeof handler).to.equal("function");
     });
 
     test("Returns early with a default response when no models are found", async () => {
