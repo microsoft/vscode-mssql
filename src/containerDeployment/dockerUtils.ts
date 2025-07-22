@@ -74,7 +74,7 @@ export const COMMANDS = {
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
     START_CONTAINER: (name: string) => `docker start "${sanitizeContainerName(name)}"`,
     CHECK_LOGS: (name: string, platform: string, timestamp: string) =>
-        `docker logs --since ${timestamp} ${name} | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
+        `docker logs --since ${timestamp} "${sanitizeContainerName(name)}" | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
     CHECK_CONTAINER_READY: `Recovery is complete`,
     STOP_CONTAINER: (name: string) => `docker stop "${sanitizeContainerName(name)}"`,
     DELETE_CONTAINER: (name: string) => {
