@@ -538,6 +538,7 @@ export class ObjectExplorerService {
         );
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
         this._treeNodeToChildrenMap.set(element, [loadingNode]);
+        this._refreshCallback(element);
 
         return this._treeNodeToChildrenMap.get(element);
     }
@@ -750,11 +751,16 @@ export class ObjectExplorerService {
                 TelemetryActions.ConnectToContainer,
             );
             try {
+                const containerNode = this.getConnectionNodeFromProfile(connectionProfile);
                 // start docker and docker container
-                const alreadyRunning = await restartContainer(connectionProfile.containerName);
+                const successfullyRunning = await restartContainer(
+                    connectionProfile.containerName,
+                    containerNode,
+                    this,
+                );
                 this._logger.verbose(
-                    alreadyRunning
-                        ? `Docker container "${connectionProfile.containerName}" is already running.`
+                    successfullyRunning
+                        ? `Failed to restart Docker container "${connectionProfile.containerName}".`
                         : `Docker container "${connectionProfile.containerName}" has been restarted.`,
                 );
             } catch (error) {

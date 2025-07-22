@@ -11,18 +11,29 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     defaultContainerName,
     defaultPortNumber,
+    docker,
+    dockerDeploymentLoggerChannelName,
     localhost,
     localhostIP,
     Platform,
+    windowsDockerDesktopExecutable,
     x64,
 } from "../constants/constants";
-import { ContainerDeployment, msgYes } from "../constants/locConstants";
+import {
+    ContainerDeployment,
+    msgYes,
+    ObjectExplorer,
+    Common,
+    RemoveProfileLabel,
+} from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import * as path from "path";
 import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
+import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
+import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 
 /**
  * The maximum port number that can be used for Docker containers.
@@ -38,7 +49,9 @@ export const invalidPortNumberValidationResult: FormItemValidationState = {
     validationMessage: ContainerDeployment.pleaseChooseUnusedPort,
 };
 
-export const dockerLogger = Logger.create(vscode.window.createOutputChannel("Docker Deployment"));
+export const dockerLogger = Logger.create(
+    vscode.window.createOutputChannel(dockerDeploymentLoggerChannelName),
+);
 
 /**
  * Commands used to interact with Docker.
@@ -191,6 +204,7 @@ export function sanitizeContainerName(name: string): string {
 async function execCommand(command: string): Promise<string> {
     return new Promise((resolve, reject) => {
         exec(command, (error, stdout) => {
+            console.log("!!!!!!!!!!!!!!!!!!!!!!!!!! execCommand", error, stdout);
             if (error) return reject(error);
             resolve(stdout.trim());
         });
@@ -312,7 +326,8 @@ export async function getDockerPath(executable: string): Promise<string> {
         // Find the second "Docker" in the path
         const dockerIndex = parts.findIndex(
             (part, idx) =>
-                part.toLowerCase() === "docker" && parts.slice(0, idx).includes("Docker"),
+                part.toLowerCase() === docker &&
+                parts.slice(0, idx).some((p) => p.toLowerCase() === docker),
         );
 
         if (dockerIndex >= 1) {
@@ -388,15 +403,21 @@ export async function isDockerContainerRunning(name: string): Promise<boolean> {
 /**
  * Attempts to start Docker Desktop within 30 seconds.
  */
-export async function startDocker(): Promise<DockerCommandParams> {
+export async function startDocker(
+    node?: ConnectionNode,
+    objectExplorerService?: ObjectExplorerService,
+): Promise<DockerCommandParams> {
     try {
         await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
         return { success: true };
     } catch {} // If this command fails, docker is not running, so we proceed to start it.
-
+    if (node && objectExplorerService) {
+        node.loadingLabel = ContainerDeployment.startingDockerLoadingLabel;
+        await objectExplorerService.setLoadingUiForNode(node);
+    }
     let dockerDesktopPath = "";
     if (platform() === Platform.Windows) {
-        dockerDesktopPath = await getDockerPath("Docker Desktop.exe");
+        dockerDesktopPath = await getDockerPath(windowsDockerDesktopExecutable);
         if (!dockerDesktopPath) {
             return {
                 success: false,
@@ -453,13 +474,43 @@ export async function startDocker(): Promise<DockerCommandParams> {
  * Restarts a Docker container with the specified name.
  * If the container is already running, it returns true without restarting.
  */
-export async function restartContainer(containerName: string): Promise<boolean> {
+export async function restartContainer(
+    containerName: string,
+    containerNode: ConnectionNode,
+    objectExplorerService: ObjectExplorerService,
+): Promise<boolean> {
+    const dockerPreparedResult = await prepareForDockerContainerCommand(
+        containerName,
+        containerNode,
+        objectExplorerService,
+    );
+    if (!dockerPreparedResult.success) {
+        sendErrorEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.RestartContainer,
+            new Error(dockerPreparedResult.error),
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+        );
+        return false;
+    }
     const isContainerRunning = await isDockerContainerRunning(containerName);
+
     if (isContainerRunning) return true; // Container is already running
+    containerNode.loadingLabel = ContainerDeployment.startingContainerLoadingLabel;
+    await objectExplorerService.setLoadingUiForNode(containerNode);
     dockerLogger.appendLine(`Restarting container: ${containerName}`);
     await execCommand(COMMANDS.START_CONTAINER(containerName));
+
     dockerLogger.appendLine(`Container ${containerName} restarted successfully.`);
+    containerNode.loadingLabel = ContainerDeployment.readyingContainerLoadingLabel;
+    await objectExplorerService.setLoadingUiForNode(containerNode);
+
     const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);
+
+    containerNode.loadingLabel = ObjectExplorer.LoadingNodeLabel;
+    await objectExplorerService.setLoadingUiForNode(containerNode);
 
     if (!containerReadyResult.success) {
         sendErrorEvent(
@@ -699,13 +750,28 @@ export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]
  */
 export async function prepareForDockerContainerCommand(
     containerName: string,
+    containerNode: ConnectionNode,
+    objectExplorerService: ObjectExplorerService,
 ): Promise<DockerCommandParams> {
-    const startDockerResult = await startDocker();
-    if (!startDockerResult.success) return startDockerResult;
+    const startDockerResult = await startDocker(containerNode, objectExplorerService);
+    if (!startDockerResult.success) {
+        vscode.window.showErrorMessage(startDockerResult.error);
+        return startDockerResult;
+    }
 
     const containerExists = await checkContainerExists(containerName);
 
     if (!containerExists) {
+        containerNode.loadingLabel = Common.error;
+        await objectExplorerService.setLoadingUiForNode(containerNode);
+        const confirmation = await vscode.window.showInformationMessage(
+            ContainerDeployment.containerDoesNotExistError,
+            { modal: true },
+            RemoveProfileLabel,
+        );
+        if (confirmation === RemoveProfileLabel) {
+            await objectExplorerService.removeNode(containerNode, false);
+        }
         return {
             success: false,
             error: ContainerDeployment.containerDoesNotExistError,

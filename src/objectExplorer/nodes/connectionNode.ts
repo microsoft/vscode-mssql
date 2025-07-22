@@ -11,7 +11,6 @@ import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as ConnInfo from "../../models/connectionInfo";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
 import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
-import { ContainerDeployment } from "../../constants/locConstants";
 
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
@@ -55,7 +54,6 @@ export class ConnectionNode extends TreeNodeInfo {
         );
         if (connectionProfile.containerName) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DOCKER_SERVER_DISCONNECTED);
-            this.loadingLabel = ContainerDeployment.startingContainerLoadingLabel;
         } else if (connectionProfile.database) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DATABASE_DISCONNECTED);
         } else {
@@ -100,7 +98,6 @@ export class ConnectionNode extends TreeNodeInfo {
         // Update the icon based on connection type
         if (connectionProfile.containerName) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DOCKER_SERVER_CONNECTED);
-            this.loadingLabel = ContainerDeployment.startingContainerLoadingLabel;
         } else if (connectionProfile.database) {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_DATABASE_CONNECTED);
         } else {

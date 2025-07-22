@@ -13,12 +13,29 @@ import * as childProcess from "child_process";
 import { defaultContainerName, Platform } from "../../src/constants/constants";
 import * as path from "path";
 import { stubTelemetry } from "./utils";
+import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
+import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
 
 suite("Docker Utilities", () => {
     let sandbox: sinon.SinonSandbox;
+    let node: ConnectionNode;
+    let mockObjectExplorerService: ObjectExplorerService;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
+        node = {
+            connectionProfile: {
+                containerName: "testContainer",
+                savePassword: true,
+            },
+            loadingLabel: "",
+        } as unknown as ConnectionNode;
+
+        mockObjectExplorerService = {
+            _refreshCallback: sandbox.stub(),
+            setLoadingUiForNode: sandbox.stub(),
+            removeNode: sandbox.stub(),
+        } as unknown as ObjectExplorerService;
     });
 
     teardown(() => {
@@ -462,18 +479,30 @@ suite("Docker Utilities", () => {
         const execStub = sandbox.stub(childProcess, "exec");
         // Stub telemetry method
         const { sendActionEvent } = stubTelemetry(sandbox);
+        const containerName = "testContainer";
 
         // Case 1: Container is already running, should return success
-        execStub.onFirstCall().yields(null, "testContainer"); // CHECK_CONTAINER_RUNNING
-        let result = await dockerUtils.restartContainer("testContainer");
+        execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
+        execStub.onSecondCall().yields(null, containerName); // GET_CONTAINERS_BY_NAME
+
+        execStub.onThirdCall().yields(null, "testContainer"); // CHECK_CONTAINER_RUNNING
+        let result = await dockerUtils.restartContainer(
+            containerName,
+            node,
+            mockObjectExplorerService,
+        );
         assert.ok(result, "Should return success when container is already running");
         execStub.resetHistory();
 
         // Case 2: Container is not running, should restart, send telemetry, and return success
-        execStub.onFirstCall().yields(new Error("Container not running"), null); // CHECK_CONTAINER_RUNNING
-        execStub.onSecondCall().yields(null, "Container restarted"); // START_CONTAINER
-        execStub.onThirdCall().yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
-        result = await dockerUtils.restartContainer("testContainer");
+        execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
+        execStub.onSecondCall().yields(null, containerName); // GET_CONTAINERS_BY_NAME
+
+        execStub.onThirdCall().yields(new Error("Container not running"), null); // CHECK_CONTAINER_RUNNING
+        // onCall has zero-based indexing
+        execStub.onCall(3).yields(null, "Container restarted"); // START_CONTAINER
+        execStub.onCall(4).yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
+        result = await dockerUtils.restartContainer(containerName, node, mockObjectExplorerService);
         assert.ok(result, "Should return success when container is restarted successfully");
         sinon.assert.calledTwice(sendActionEvent);
         execStub.resetHistory();
@@ -588,12 +617,18 @@ suite("Docker Utilities", () => {
         const containerName = "testContainer";
         sandbox.stub(os, "platform").returns(Platform.Linux);
         const execStub = sandbox.stub(childProcess, "exec");
+        const showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
+        const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
 
         // Docker is running, and container exists
         execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
         execStub.onSecondCall().yields(null, containerName); // GET_CONTAINERS_BY_NAME
 
-        let result = await dockerUtils.prepareForDockerContainerCommand(containerName);
+        let result = await dockerUtils.prepareForDockerContainerCommand(
+            containerName,
+            node,
+            mockObjectExplorerService,
+        );
         assert.ok(result.success, "Should return true if container exists");
 
         // Docker is running, container does not exist
@@ -603,9 +638,18 @@ suite("Docker Utilities", () => {
         execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
         execStub.onSecondCall().yields(null, "Container doesn't exist"); // GET_CONTAINERS_BY_NAME
 
-        result = await dockerUtils.prepareForDockerContainerCommand(containerName);
+        result = await dockerUtils.prepareForDockerContainerCommand(
+            containerName,
+            node,
+            mockObjectExplorerService,
+        );
         assert.ok(!result.success, "Should return false if container does not exist");
         assert.strictEqual(result.error, ContainerDeployment.containerDoesNotExistError);
+        assert.strictEqual(
+            showInformationMessageStub.callCount,
+            1,
+            "Should show info message if container does not exist",
+        );
 
         // finding container returns an error
         execStub.resetBehavior();
@@ -613,7 +657,11 @@ suite("Docker Utilities", () => {
         execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
         execStub.onSecondCall().yields(new Error("Something went wrong"), null); // GET_CONTAINERS_BY_NAME
 
-        result = await dockerUtils.prepareForDockerContainerCommand(containerName);
+        result = await dockerUtils.prepareForDockerContainerCommand(
+            containerName,
+            node,
+            mockObjectExplorerService,
+        );
         assert.ok(!result.success, "Should return false if container does not exist");
         assert.strictEqual(result.error, ContainerDeployment.containerDoesNotExistError);
         execStub.resetBehavior();

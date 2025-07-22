@@ -2848,26 +2848,13 @@ export default class MainController implements vscode.Disposable {
 
     private async isContainerReadyForCommands(node: TreeNodeInfo): Promise<boolean> {
         const containerName = node.connectionProfile?.containerName;
-        const prepResult = await prepareForDockerContainerCommand(containerName);
-        if (!prepResult.success) {
-            if (
-                prepResult.error ===
-                LocalizedConstants.ContainerDeployment.containerDoesNotExistError
-            ) {
-                node.loadingLabel = LocalizedConstants.Common.error;
-                const confirmation = await vscode.window.showInformationMessage(
-                    prepResult.error,
-                    { modal: true },
-                    LocalizedConstants.RemoveProfileLabel,
-                );
-                if (confirmation === LocalizedConstants.RemoveProfileLabel) {
-                    await this._objectExplorerProvider.removeNode(node as ConnectionNode, false);
-                }
-            } else {
-                vscode.window.showErrorMessage(prepResult.error);
-            }
-        }
-        return prepResult.success;
+        return (
+            await prepareForDockerContainerCommand(
+                containerName,
+                node as ConnectionNode,
+                this._objectExplorerProvider.objectExplorerService,
+            )
+        ).success;
     }
 
     public removeAadAccount(prompter: IPrompter): void {

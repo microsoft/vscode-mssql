@@ -1937,6 +1937,9 @@
     <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
       <source xml:lang="en">Readying container for connections.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
+      <source xml:lang="en">Readying container for connections...</source>
+    </trans-unit>
     <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
       <source xml:lang="en">Recent Connections</source>
     </trans-unit>
@@ -2335,6 +2338,9 @@
     </trans-unit>
     <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
       <source xml:lang="en">Starting Container...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
+      <source xml:lang="en">Starting Docker...</source>
     </trans-unit>
     <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
       <source xml:lang="en">Starting {0}...</source>

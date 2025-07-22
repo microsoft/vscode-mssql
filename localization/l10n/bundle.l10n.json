@@ -1328,7 +1328,9 @@
   "Container failed to start within the timeout period. Please wait a few minutes and try again.": "Container failed to start within the timeout period. Please wait a few minutes and try again.",
   "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.": "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
   "Install Docker": "Install Docker",
+  "Starting Docker...": "Starting Docker...",
   "Starting Container...": "Starting Container...",
+  "Readying container for connections...": "Readying container for connections...",
   "Stopping Container...": "Stopping Container...",
   "Deleting Container...": "Deleting Container...",
   "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code./{0} is the container name": {
