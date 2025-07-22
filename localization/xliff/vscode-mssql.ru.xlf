@@ -4427,10 +4427,6 @@ See the estimated plan without running the query, or view the actual query plan 
         <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
         <target state="translated">Используйте устаревший интерфейс подключения вместо современного.</target>
       </trans-unit>
-      <trans-unit id="mssql.useLegacyQueryResultExperience.description">
-        <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
-        <target state="translated">Используйте устаревший интерфейс результатов запроса вместо современного.</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">Визуализировать план запроса</target>

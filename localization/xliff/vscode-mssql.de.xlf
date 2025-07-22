@@ -4427,10 +4427,6 @@ Zeigen Sie den geschätzten Plan an, ohne die Abfrage auszuführen, oder zeigen 
         <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
         <target state="translated">Verwenden Sie die Legacy-Benutzeroberfläche für die Verbindung anstelle der modernen Benutzeroberfläche.</target>
       </trans-unit>
-      <trans-unit id="mssql.useLegacyQueryResultExperience.description">
-        <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
-        <target state="translated">Verwenden Sie die Legacy-Benutzeroberfläche für das Abfrageergebnis anstelle der modernen Benutzeroberfläche.</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">Visualisieren eines Abfrageplans</target>
