@@ -135,7 +135,7 @@
         "react-resizable": "^3.0.5",
         "react-resizable-panels": "^3.0.2",
         "sinon": "^14.0.0",
-        "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.48",
+        "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.49",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
         "typemoq": "^1.7.0",
