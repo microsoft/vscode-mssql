@@ -190,7 +190,8 @@ export enum DockerStepOrder {
     dockerInstallation = 0,
     startDockerDesktop = 1,
     checkDockerEngine = 2,
-    startContainer = 3,
-    checkContainer = 4,
-    connectToContainer = 5,
+    pullImage = 3,
+    startContainer = 4,
+    checkContainer = 5,
+    connectToContainer = 6,
 }

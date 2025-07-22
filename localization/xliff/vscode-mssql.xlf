@@ -1097,6 +1097,9 @@
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
     </trans-unit>
+    <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
+      <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
       <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
       <note>{0} is the connection id
@@ -1913,6 +1916,12 @@
     </trans-unit>
     <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
       <source xml:lang="en">Publishing Changes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
+      <source xml:lang="en">Pulling SQL Server Image</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba879fd0d426c59047dc0e24690116f92df6a7ffc9841b7cedae49b2579e2d29">
+      <source xml:lang="en">Pulling the SQL Server Docker image from Docker Hub. This may take a few minutes depending on your internet connection.</source>
     </trans-unit>
     <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
       <source xml:lang="en">Query Plan</source>

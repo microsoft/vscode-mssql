@@ -98,7 +98,7 @@ suite("ContainerDeploymentWebviewController", () => {
         const controllerState = controller["state"];
         assert.strictEqual(controllerState.loadState, ApiStatus.Loaded);
         assert.strictEqual(Object.keys(controllerState.formComponents).length, 9);
-        assert.strictEqual(controllerState.dockerSteps.length, 6);
+        assert.strictEqual(controllerState.dockerSteps.length, 7);
     });
 
     test("Verify the form components are set correctly", () => {

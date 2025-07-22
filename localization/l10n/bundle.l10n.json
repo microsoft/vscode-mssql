@@ -1301,6 +1301,8 @@
   "Error running Docker commands. Please make sure Docker is running.": "Error running Docker commands. Please make sure Docker is running.",
   "Checking Docker Engine Configuration": "Checking Docker Engine Configuration",
   "Checking if the Docker Engine is configured correctly on your machine.": "Checking if the Docker Engine is configured correctly on your machine.",
+  "Pulling SQL Server Image": "Pulling SQL Server Image",
+  "Pulling the SQL Server Docker image from Docker Hub. This may take a few minutes depending on your internet connection.": "Pulling the SQL Server Docker image from Docker Hub. This may take a few minutes depending on your internet connection.",
   "Creating Container": "Creating Container",
   "Creating and starting your SQL Server Docker container": "Creating and starting your SQL Server Docker container",
   "Setting up container": "Setting up container",
@@ -1309,6 +1311,7 @@
   "Connecting to your SQL Server Docker container": "Connecting to your SQL Server Docker container",
   "Please make your password 8-128 characters long.": "Please make your password 8-128 characters long.",
   "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).": "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
+  "Failed to pull SQL Server image. Please check your network connection and try again.": "Failed to pull SQL Server image. Please check your network connection and try again.",
   "Unsupported platform for Docker: {0}/{0} is the platform name of the machine": {
     "message": "Unsupported platform for Docker: {0}",
     "comment": [

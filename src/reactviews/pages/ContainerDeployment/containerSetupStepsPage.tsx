@@ -59,6 +59,9 @@ export const ContainerSetupStepsPage: React.FC = () => {
                         {locConstants.containerDeployment.gettingContainerReadyForConnection}
                     </div>
                     <StepCard
+                        step={containerDeploymentState.dockerSteps[DockerStepOrder.pullImage]}
+                    />
+                    <StepCard
                         step={containerDeploymentState.dockerSteps[DockerStepOrder.startContainer]}
                     />
                     <StepCard

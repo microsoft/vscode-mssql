@@ -45,7 +45,7 @@ suite("Docker Utilities", () => {
     test("initializeDockerSteps: should return correct Docker deployment steps", async () => {
         const steps = dockerUtils.initializeDockerSteps();
 
-        assert.strictEqual(steps.length, 6, "Should return 6 steps");
+        assert.strictEqual(steps.length, 7, "Should return 7 steps");
 
         assert.strictEqual(steps[0].headerText, ContainerDeployment.dockerInstallHeader);
         assert.strictEqual(steps[0].bodyText, ContainerDeployment.dockerInstallBody);
@@ -65,25 +65,30 @@ suite("Docker Utilities", () => {
         assert.strictEqual(steps[2].bodyText, ContainerDeployment.startDockerEngineBody);
         assert.strictEqual(typeof steps[2].stepAction, "function");
 
-        assert.strictEqual(steps[3].headerText, ContainerDeployment.creatingContainerHeader);
-        assert.strictEqual(steps[3].bodyText, ContainerDeployment.creatingContainerBody);
-        assert.deepStrictEqual(steps[3].argNames, [
+        assert.strictEqual(steps[3].headerText, ContainerDeployment.pullImageHeader);
+        assert.strictEqual(steps[3].bodyText, ContainerDeployment.pullImageBody);
+        assert.deepStrictEqual(steps[3].argNames, ["version"]);
+        assert.strictEqual(typeof steps[3].stepAction, "function");
+
+        assert.strictEqual(steps[4].headerText, ContainerDeployment.creatingContainerHeader);
+        assert.strictEqual(steps[4].bodyText, ContainerDeployment.creatingContainerBody);
+        assert.deepStrictEqual(steps[4].argNames, [
             "containerName",
             "password",
             "version",
             "hostname",
             "port",
         ]);
-        assert.strictEqual(typeof steps[3].stepAction, "function");
-
-        assert.strictEqual(steps[4].headerText, ContainerDeployment.settingUpContainerHeader);
-        assert.strictEqual(steps[4].bodyText, ContainerDeployment.settingUpContainerBody);
-        assert.deepStrictEqual(steps[4].argNames, ["containerName"]);
         assert.strictEqual(typeof steps[4].stepAction, "function");
 
-        assert.strictEqual(steps[5].headerText, ContainerDeployment.connectingToContainerHeader);
-        assert.strictEqual(steps[5].bodyText, ContainerDeployment.connectingToContainerBody);
-        assert.strictEqual(steps[5].stepAction, undefined);
+        assert.strictEqual(steps[5].headerText, ContainerDeployment.settingUpContainerHeader);
+        assert.strictEqual(steps[5].bodyText, ContainerDeployment.settingUpContainerBody);
+        assert.deepStrictEqual(steps[5].argNames, ["containerName"]);
+        assert.strictEqual(typeof steps[5].stepAction, "function");
+
+        assert.strictEqual(steps[6].headerText, ContainerDeployment.connectingToContainerHeader);
+        assert.strictEqual(steps[6].bodyText, ContainerDeployment.connectingToContainerBody);
+        assert.strictEqual(steps[6].stepAction, undefined);
     });
     test("sanitizeErrorText: should truncate long error messages and sanitize SA_PASSWORD", () => {
         // Test sanitization
@@ -618,7 +623,7 @@ suite("Docker Utilities", () => {
         sandbox.stub(os, "platform").returns(Platform.Linux);
         const execStub = sandbox.stub(childProcess, "exec");
         const showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
-        const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
+        sandbox.stub(vscode.window, "showErrorMessage");
 
         // Docker is running, and container exists
         execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
@@ -729,5 +734,16 @@ suite("Docker Utilities", () => {
             "mycontainerwithinvalidchars",
             "Invalid characters should be removed",
         );
+    });
+
+    test("pullSqlServerContainerImage: should pull the container image from the docker registry", async () => {
+        const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "Pulled image");
+
+        let result = await dockerUtils.pullSqlServerContainerImage(2025);
+        sinon.assert.calledOnce(execStub);
+
+        assert.ok(result);
+
+        execStub.restore();
     });
 });

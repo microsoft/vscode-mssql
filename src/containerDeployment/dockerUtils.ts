@@ -74,6 +74,7 @@ export const COMMANDS = {
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
     GET_CONTAINERS_BY_NAME: `docker ps -a --format "{{.Names}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
+    PULL_IMAGE: (version: number) => `docker pull mcr.microsoft.com/mssql/server:${version}-latest`,
     START_SQL_SERVER: (
         name: string,
         password: string,
@@ -130,6 +131,13 @@ export function initializeDockerSteps(): DockerStep[] {
                     : undefined,
             errorLinkText: ContainerDeployment.configureLinuxContainers,
             stepAction: checkEngine,
+        },
+        {
+            loadState: ApiStatus.NotStarted,
+            argNames: ["version"],
+            headerText: ContainerDeployment.pullImageHeader,
+            bodyText: ContainerDeployment.pullImageBody,
+            stepAction: pullSqlServerContainerImage,
         },
         {
             loadState: ApiStatus.NotStarted,
@@ -204,7 +212,6 @@ export function sanitizeContainerName(name: string): string {
 async function execCommand(command: string): Promise<string> {
     return new Promise((resolve, reject) => {
         exec(command, (error, stdout) => {
-            console.log("!!!!!!!!!!!!!!!!!!!!!!!!!! execCommand", error, stdout);
             if (error) return reject(error);
             resolve(stdout.trim());
         });
@@ -336,6 +343,22 @@ export async function getDockerPath(executable: string): Promise<string> {
         }
     } catch {}
     return "";
+}
+
+/**
+ * Pulls the SQL Server container image for the specified version.
+ */
+export async function pullSqlServerContainerImage(version: number): Promise<DockerCommandParams> {
+    try {
+        await execCommand(COMMANDS.PULL_IMAGE(version));
+        return { success: true };
+    } catch (e) {
+        return {
+            success: false,
+            error: ContainerDeployment.pullSqlServerContainerImageError,
+            fullErrorText: getErrorMessage(e),
+        };
+    }
 }
 
 /**

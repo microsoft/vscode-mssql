@@ -854,6 +854,11 @@ export class ContainerDeployment {
     public static startDockerEngineBody = l10n.t(
         "Checking if the Docker Engine is configured correctly on your machine.",
     );
+    public static pullImageHeader = l10n.t("Pulling SQL Server Image");
+    public static pullImageBody = l10n.t(
+        "Pulling the SQL Server Docker image from Docker Hub. This may take a few minutes depending on your internet connection.",
+    );
+
     public static creatingContainerHeader = l10n.t("Creating Container");
     public static creatingContainerBody = l10n.t(
         "Creating and starting your SQL Server Docker container",
@@ -867,6 +872,9 @@ export class ContainerDeployment {
     public static passwordLengthError = l10n.t("Please make your password 8-128 characters long.");
     public static passwordComplexityError = l10n.t(
         "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
+    );
+    public static pullSqlServerContainerImageError = l10n.t(
+        "Failed to pull SQL Server image. Please check your network connection and try again.",
     );
     public static unsupportedDockerPlatformError = (platform: string) =>
         l10n.t({
