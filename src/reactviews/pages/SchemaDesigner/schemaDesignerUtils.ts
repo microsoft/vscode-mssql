@@ -53,9 +53,7 @@ export const tableUtils = {
         schema: SchemaDesigner.Schema,
         current: SchemaDesigner.Table,
     ): SchemaDesigner.Table[] => {
-        return schema.tables
-            .filter((t) => t.schema !== current.schema || t.name !== current.name)
-            .sort();
+        return schema.tables.sort();
     },
 
     getTableFromDisplayName: (
@@ -432,6 +430,12 @@ export const foreignKeyUtils = {
         visited = new Set<string>(),
     ): boolean => {
         if (!current || !target) return false;
+        
+        // Allow direct self-references (table referencing itself)
+        if (current.id === target.id && visited.size === 0) {
+            return false;
+        }
+        
         if (visited.has(current.id)) return true;
 
         visited.add(current.id);
