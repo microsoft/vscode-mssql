@@ -90,9 +90,9 @@ async function generateRuntimeLocalizationFiles() {
             }
         }
 
-        logger.success(`✨ Runtime localization generation completed!`);
+        logger.success(`Runtime localization generation completed!`);
         logger.info(
-            `📊 Summary: Processed ${processedLanguages} languages, generated ${generatedFiles} files`,
+            `Summary: Processed ${processedLanguages} languages, generated ${generatedFiles} files`,
         );
     } catch (error) {
         logger.error(`Runtime localization generation failed: ${error.message}`);
@@ -107,11 +107,11 @@ module.exports = {
 if (require.main === module) {
     generateRuntimeLocalizationFiles()
         .then(() => {
-            logger.success("🎉 Script completed successfully!");
+            logger.success("Script completed successfully!");
             process.exit(0);
         })
         .catch((error) => {
-            logger.error(`💥 Script failed: ${error.message}`);
+            logger.error(`Script failed: ${error.message}`);
             process.exit(1);
         });
 }

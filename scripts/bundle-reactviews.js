@@ -125,7 +125,7 @@ async function build() {
     }
 
     await ctx.dispose();
-    logger.success('✨ Build completed!');
+    logger.success('Build completed!');
     return true;
 
   } catch (error) {
@@ -144,7 +144,7 @@ async function watch() {
     const ctx = await esbuild.context(config);
 
     await ctx.watch();
-    logger.success('👀 Watching for changes... (Ctrl+C to stop)');
+    logger.success('Watching for changes... (Ctrl+C to stop)');
 
     // Handle Ctrl+C
     process.on('SIGINT', async () => {

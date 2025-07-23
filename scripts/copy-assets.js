@@ -116,9 +116,9 @@ async function copyAllAssets() {
 
   logger.newline();
   if (errors === 0) {
-    logger.success(`✨ Done! Copied ${totalFiles} files`);
+    logger.success(`Done! Copied ${totalFiles} files`);
   } else {
-    logger.warning(`⚠ Completed with ${errors} errors`);
+    logger.warning(`Completed with ${errors} errors`);
   }
 }
 

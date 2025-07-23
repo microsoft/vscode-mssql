@@ -104,7 +104,7 @@ async function extractLocalizationStrings() {
         await fs.writeFile("./localization/xliff/vscode-mssql.xlf", stringXLIFF);
         logger.success("Created ./localization/xliff/vscode-mssql.xlf");
 
-        logger.success("✨ Localization string extraction completed successfully!");
+        logger.success("Localization string extraction completed successfully!");
     } catch (error) {
         logger.error(`Localization extraction failed: ${error.message}`);
         throw error;
@@ -118,11 +118,11 @@ module.exports = {
 if (require.main === module) {
   extractLocalizationStrings()
     .then(() => {
-      logger.success("🎉 Script completed successfully!");
+      logger.success("Script completed successfully!");
       process.exit(0);
     })
     .catch((error) => {
-      logger.error(`💥 Script failed: ${error.message}`);
+      logger.error(`Script failed: ${error.message}`);
       process.exit(1);
     });
 }

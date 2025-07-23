@@ -106,7 +106,7 @@ async function packageOnline() {
     packageExtension();
 
     logger.newline();
-    logger.success('✨ Online packaging completed successfully!');
+    logger.success('Online packaging completed successfully!');
 
   } catch (error) {
     logger.error(`Online packaging failed: ${error.message}`);
@@ -141,7 +141,7 @@ async function packageOfflinePlatform(platformConfig, packageName) {
     // Clean up for next platform
     await cleanServiceInstallFolder();
 
-    logger.success(`✓ ${rid} package created`);
+    logger.success(`${rid} package created`);
 
   } catch (error) {
     logger.error(`Failed to package ${rid}: ${error.message}`);
@@ -181,7 +181,7 @@ async function packageOffline() {
       logger.newline();
     }
 
-    logger.success('✨ Offline packaging completed for all platforms!');
+    logger.success('Offline packaging completed for all platforms!');
 
   } catch (error) {
     logger.error(`Offline packaging failed: ${error.message}`);
@@ -201,16 +201,17 @@ Usage:
 
 Modes:
   --online     Package for online distribution (downloads service at runtime)
-  --offline    Package for offline distribution (includes service for all platforms)
+  --offline    Package for offline distribution (includes service for all platforms). Defaults to online mode if no argument is provided.
   --help       Show this help message
 
 Examples:
+  node package-extension.js          # Default to online packaging
   node package-extension.js --online    # Create online package
   node package-extension.js --offline   # Create offline packages for all platforms
 
 Requirements:
   - vsce must be installed globally: npm install -g vsce
-  - Extension must be built first: npm run build
+  - Extension must be built first: yarn build
 `);
 }
 
@@ -242,11 +243,11 @@ async function main() {
       await packageOffline();
     }
 
-    logger.success('🎉 Packaging script completed successfully!');
+    logger.success('Packaging script completed successfully!');
     process.exit(0);
 
   } catch (error) {
-    logger.error(`💥 Packaging script failed: ${error.message}`);
+    logger.error(`Packaging script failed: ${error.message}`);
     process.exit(1);
   }
 }
