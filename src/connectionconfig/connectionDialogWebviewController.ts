@@ -164,6 +164,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connectionToEdit: IConnectionInfo,
         initialConnectionGroup?: IConnectionGroup,
     ) {
+        console.time("===: form");
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
             this._mainController.connectionManager,
@@ -185,12 +186,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.connectionComponents,
         );
 
+        console.timeEnd("===: form");
+
         // Display intitial UI since it may take a moment for the connection to load
         // due to fetching Azure account and tenant info
         this.loadEmptyConnection();
         await this.updateItemVisibility();
         this.updateState();
 
+        console.time("===: loadConnections");
         // Load saved/recent connections
         try {
             await this.updateLoadedConnections(this.state);
@@ -225,17 +229,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
             }
         }
+        console.timeEnd("===: loadConnections");
 
         if (initialConnectionGroup) {
             this.state.connectionProfile.groupId = initialConnectionGroup.id;
         }
 
+        console.time("===: visibility");
         await this.updateItemVisibility();
+        console.timeEnd("===: visibility");
 
+        console.time("===: azure accounts");
         this.state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
         this.state.loadingAzureAccountsStatus =
             this.state.azureAccounts.length === 0 ? ApiStatus.NotStarted : ApiStatus.Loaded;
-        this.updateState();
+        console.timeEnd("===: azure accounts");
     }
 
     private registerRpcHandlers() {
