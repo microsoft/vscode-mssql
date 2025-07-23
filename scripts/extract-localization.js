@@ -112,17 +112,18 @@ async function extractLocalizationStrings() {
 }
 
 module.exports = {
-  extractLocalizationStrings
+    extractLocalizationStrings,
+    getL10nJson,
 };
 
 if (require.main === module) {
-  extractLocalizationStrings()
-    .then(() => {
-      logger.success("Script completed successfully!");
-      process.exit(0);
-    })
-    .catch((error) => {
-      logger.error(`Script failed: ${error.message}`);
-      process.exit(1);
-    });
+    extractLocalizationStrings()
+        .then(() => {
+            logger.success("Script completed successfully!");
+            process.exit(0);
+        })
+        .catch((error) => {
+            logger.error(`Script failed: ${error.message}`);
+            process.exit(1);
+        });
 }

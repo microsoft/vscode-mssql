@@ -61,6 +61,7 @@
         "watch": "yarn build:prepare && run-p -l watch:extension watch:webviews",
         "lint": "eslint --quiet --cache",
         "localization": "node scripts/extract-localization.js",
+        "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
         "smoketest": "yarn instrument && yarn e2eTest",
         "test": "node ./out/test/unit/runTest.js",
         "package": "node scripts/package-extension.js",
