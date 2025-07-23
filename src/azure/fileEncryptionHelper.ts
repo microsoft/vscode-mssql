@@ -28,10 +28,13 @@ export class FileEncryptionHelper {
         this._algorithm = "aes-256-cbc";
         this._bufferEncoding = "utf16le";
         this._binaryEncoding = "base64";
+
+        this.ivCredId = `${this._fileName}-iv`;
+        this.keyCredId = `${this._fileName}-key`;
     }
 
-    private ivCredId = `${this._fileName}-iv`;
-    private keyCredId = `${this._fileName}-key`;
+    private readonly ivCredId: string;
+    private readonly keyCredId: string;
 
     private _algorithm: string;
     private _bufferEncoding: BufferEncoding;
@@ -81,7 +84,11 @@ export class FileEncryptionHelper {
         if (!this._keyBuffer || !this._ivBuffer) {
             await this.init();
         }
-        const cipherIv = crypto.createCipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
+        const cipherIv = crypto.createCipheriv(
+            this._algorithm,
+            this._keyBuffer!.toString(),
+            this._ivBuffer!.toString(),
+        );
         let cipherText = `${cipherIv.update(content, "utf8", this._binaryEncoding)}${cipherIv.final(this._binaryEncoding)}`;
         return cipherText;
     };
@@ -94,8 +101,8 @@ export class FileEncryptionHelper {
             let plaintext = content;
             const decipherIv = crypto.createDecipheriv(
                 this._algorithm,
-                this._keyBuffer!,
-                this._ivBuffer!,
+                this._keyBuffer!.toString(),
+                this._ivBuffer!.toString(),
             );
             return `${decipherIv.update(plaintext, this._binaryEncoding, "utf8")}${decipherIv.final("utf8")}`;
         } catch (ex) {
