@@ -10,7 +10,7 @@ import { getCoreRPCs } from "../../common/utils";
 import { WebviewRpc } from "../../common/rpc";
 
 import { Edge, MarkerType, Node, ReactFlowJsonObject, useReactFlow } from "@xyflow/react";
-import { flowUtils, foreignKeyUtils } from "./schemaDesignerUtils";
+import { flowUtils, foreignKeyUtils, tableUtils } from "./schemaDesignerUtils";
 import eventBus from "./schemaDesignerEvents";
 import { UndoRedoStack } from "../../common/undoRedoStack";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
@@ -38,6 +38,7 @@ export interface SchemaDesignerContextProps
     copyToClipboard: (text: string) => void;
     extractSchema: () => SchemaDesigner.Schema;
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
+    addRelatedTables: (table: SchemaDesigner.Table) => Promise<boolean>;
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteSelectedNodes: () => void;
@@ -287,6 +288,86 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     };
 
     /**
+     * Adds related tables (tables with foreign key relationships) to the flow
+     */
+    const addRelatedTables = async (table: SchemaDesigner.Table) => {
+        const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+        const existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+
+        const schemaModel = flowUtils.extractSchemaModel(existingNodes, existingEdges);
+
+        // Find related tables using the utility function
+        const relatedTables = tableUtils.getRelatedTables(schemaModel, table);
+
+        // Filter out tables that are already visible in the diagram
+        const existingTableIds = new Set(existingNodes.map((node) => node.data.id));
+        const tablesToAdd = relatedTables.filter(
+            (relatedTable) => !existingTableIds.has(relatedTable.id),
+        );
+
+        if (tablesToAdd.length === 0) {
+            // No new related tables to add
+            return false;
+        }
+
+        // Add the new tables to the schema model
+        tablesToAdd.forEach((tableToAdd) => {
+            schemaModel.tables.push(tableToAdd);
+        });
+
+        // Generate new flow components
+        const updatedPositions = flowUtils.generateSchemaDesignerFlowComponents(schemaModel);
+
+        // Find the nodes for the new tables
+        const newTableNodes = tablesToAdd
+            .map((tableToAdd) => updatedPositions.nodes.find((node) => node.id === tableToAdd.id))
+            .filter((node) => node !== undefined);
+
+        if (newTableNodes.length === 0) {
+            return false;
+        }
+
+        // Position new tables relative to the selected table
+        const selectedTableNode = existingNodes.find((node) => node.data.id === table.id);
+        if (selectedTableNode) {
+            let offsetX = 350; // Distance from the selected table
+
+            newTableNodes.forEach((newNode, index) => {
+                if (newNode) {
+                    // Arrange new tables to the right and below the selected table
+                    const row = Math.floor(index / 2);
+                    const col = index % 2;
+
+                    newNode.position = {
+                        x: selectedTableNode.position.x + offsetX + col * 300,
+                        y: selectedTableNode.position.y + row * 200,
+                    };
+                }
+            });
+        }
+
+        // Add new edges for the new tables
+        const newEdges = updatedPositions.edges.filter((edge) =>
+            tablesToAdd.some(
+                (tableToAdd) => edge.source === tableToAdd.id || edge.target === tableToAdd.id,
+            ),
+        );
+
+        // Update the flow with new nodes and edges
+        const allNodes = [...existingNodes, ...newTableNodes];
+        const allEdges = [...existingEdges, ...newEdges];
+
+        reactFlow.setNodes(allNodes);
+        reactFlow.setEdges(allEdges);
+
+        // Emit events for script generation and state management
+        eventBus.emit("getScript");
+        eventBus.emit("pushState");
+
+        return true;
+    };
+
+    /**
      * Updates a table in the flow
      */
     const updateTable = async (updatedTable: SchemaDesigner.Table) => {
@@ -473,6 +554,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 getTableWithForeignKeys,
                 updateTable,
                 addTable,
+                addRelatedTables,
                 deleteTable,
                 deleteSelectedNodes,
                 updateSelectedNodes,

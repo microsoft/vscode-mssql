@@ -560,6 +560,7 @@ export class LocConstants {
                     comment: ["{0} is the column name"],
                 }),
             manageRelationships: l10n.t("Manage relationships"),
+            addRelatedTables: l10n.t("Add Related Tables"),
             noChangesDetected: l10n.t("No changes detected"),
             allowNull: l10n.t("Allow Null"),
             maxLength: l10n.t("Max Length"),
