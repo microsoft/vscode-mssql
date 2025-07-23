@@ -32,6 +32,10 @@ const COPY_TASKS = [
 
 /**
  * Copy files from source to destination
+ * @param {*} src source path
+ * @param {*} dest destination path
+ * @param {*} filter optional filter function to select files. If not provided, all files will be copied.
+ * @returns {Promise<number>} number of files copied
  */
 async function copyFiles(src, dest, filter = null) {
   let count = 0;
