@@ -412,12 +412,6 @@ export class ObjectExplorerService {
         const newConnectionGroupNodes = new Map<string, ConnectionGroupNode>();
         const newConnectionNodes = new Map<string, ConnectionNode>();
 
-        void vscode.commands.executeCommand(
-            "setContext",
-            "mssql.hasConnections",
-            savedConnections.length > 0,
-        );
-
         // Add all group nodes from settings first
         for (const group of serverGroups) {
             const groupNode = new ConnectionGroupNode(group);

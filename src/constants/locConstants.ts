@@ -856,13 +856,11 @@ export class ContainerDeployment {
     );
     public static pullImageHeader = l10n.t("Pulling SQL Server Image");
     public static pullImageBody = l10n.t(
-        "Pulling the SQL Server Docker image from Docker Hub. This may take a few minutes depending on your internet connection.",
+        "Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.",
     );
 
     public static creatingContainerHeader = l10n.t("Creating Container");
-    public static creatingContainerBody = l10n.t(
-        "Creating and starting your SQL Server Docker container",
-    );
+    public static creatingContainerBody = l10n.t("Creating and starting your SQL Server container");
     public static settingUpContainerHeader = l10n.t("Setting up container");
     public static settingUpContainerBody = l10n.t("Readying container for connections.");
     public static connectingToContainerHeader = l10n.t("Connecting to Container");

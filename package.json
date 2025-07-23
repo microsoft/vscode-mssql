@@ -468,7 +468,7 @@
                 },
                 {
                     "command": "mssql.deployLocalDockerContainer",
-                    "when": "mssql.hasConnections && config.mssql.enableRichExperiences && view == objectExplorer",
+                    "when": "config.mssql.enableRichExperiences && view == objectExplorer",
                     "title": "%mssql.deployLocalDockerContainer%",
                     "group": "navigation"
                 }
@@ -1525,12 +1525,6 @@
                             }
                         }
                     },
-                    "scope": "resource"
-                },
-                "mssql.hasConnections": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.hasConnections%",
                     "scope": "resource"
                 },
                 "mssql.shortcuts": {

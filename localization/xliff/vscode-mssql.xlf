@@ -737,8 +737,8 @@
     <trans-unit id="++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8">
       <source xml:lang="en">Creating Container</source>
     </trans-unit>
-    <trans-unit id="++CODE++09af7062beeeeb3b9e2346b91902b8e45ea936c57462ca09e997e7280b8f71dc">
-      <source xml:lang="en">Creating and starting your SQL Server Docker container</source>
+    <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
+      <source xml:lang="en">Creating and starting your SQL Server container</source>
     </trans-unit>
     <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1920,8 +1920,8 @@
     <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
       <source xml:lang="en">Pulling SQL Server Image</source>
     </trans-unit>
-    <trans-unit id="++CODE++ba879fd0d426c59047dc0e24690116f92df6a7ffc9841b7cedae49b2579e2d29">
-      <source xml:lang="en">Pulling the SQL Server Docker image from Docker Hub. This may take a few minutes depending on your internet connection.</source>
+    <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
+      <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
     </trans-unit>
     <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
       <source xml:lang="en">Query Plan</source>
@@ -3112,9 +3112,6 @@
     </trans-unit>
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Give Feedback</source>
-    </trans-unit>
-    <trans-unit id="mssql.hasConnections">
-      <source xml:lang="en">Indicates whether the user has defined any connection profiles in &apos;User Settings&apos;.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot (Preview)</source>
