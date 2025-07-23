@@ -53,6 +53,10 @@ export const dockerLogger = Logger.create(
     vscode.window.createOutputChannel(dockerDeploymentLoggerChannelName),
 );
 
+const dockerInstallErrorLink = "https://docs.docker.com/engine/install/";
+const windowsContainersErrorLink =
+    "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
+
 /**
  * Commands used to interact with Docker.
  */
@@ -109,7 +113,7 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.dockerInstallHeader,
             bodyText: ContainerDeployment.dockerInstallBody,
-            errorLink: "https://docs.docker.com/engine/install/",
+            errorLink: dockerInstallErrorLink,
             errorLinkText: ContainerDeployment.installDocker,
             stepAction: checkDockerInstallation,
         },
@@ -127,7 +131,7 @@ export function initializeDockerSteps(): DockerStep[] {
             bodyText: ContainerDeployment.startDockerEngineBody,
             errorLink:
                 platform() === Platform.Windows && arch() === x64
-                    ? "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers"
+                    ? windowsContainersErrorLink
                     : undefined,
             errorLinkText: ContainerDeployment.configureLinuxContainers,
             stepAction: checkEngine,
