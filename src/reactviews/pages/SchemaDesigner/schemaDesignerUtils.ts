@@ -430,13 +430,13 @@ export const foreignKeyUtils = {
         visited = new Set<string>(),
     ): boolean => {
         if (!current || !target) return false;
-        
+
         // Allow direct self-references (table referencing itself)
         // This handles the case where a table wants to reference itself (e.g., Employee.ManagerID → Employee.EmployeeID)
         if (current.id === target.id && visited.size === 0) {
             return false;
         }
-        
+
         if (visited.has(current.id)) return true;
 
         visited.add(current.id);
