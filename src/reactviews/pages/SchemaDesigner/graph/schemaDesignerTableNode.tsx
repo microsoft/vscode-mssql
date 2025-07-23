@@ -63,6 +63,10 @@ const useStyles = makeStyles({
         textOverflow: "ellipsis",
         fontWeight: "600",
     },
+    tableTitleExporting: {
+        flexGrow: 1,
+        fontWeight: "600",
+    },
     tableSubtitle: {
         fontSize: "11px",
         paddingLeft: "35px",
@@ -71,6 +75,9 @@ const useStyles = makeStyles({
         flexGrow: 1,
         overflow: "hidden",
         textOverflow: "ellipsis",
+    },
+    columnNameExporting: {
+        flexGrow: 1,
     },
     columnType: {
         fontSize: "12px",
@@ -215,7 +222,10 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
             <div className={styles.tableHeaderRow}>
                 <FluentIcons.TableRegular className={styles.tableIcon} />
                 <Tooltip content={`${table.schema}.${table.name}`} relationship="label">
-                    <Text className={styles.tableTitle}>
+                    <Text
+                        className={
+                            context.isExporting ? styles.tableTitleExporting : styles.tableTitle
+                        }>
                         {highlightText(`${table.schema}.${table.name}`)}
                     </Text>
                 </Tooltip>
@@ -237,6 +247,7 @@ const TableColumn = ({
     table: SchemaDesigner.Table;
 }) => {
     const styles = useStyles();
+    const context = useContext(SchemaDesignerContext);
 
     // Check if this column is a foreign key
     const isForeignKey = table.foreignKeys.some((fk) => fk.columns.includes(column.name));
@@ -256,7 +267,7 @@ const TableColumn = ({
 
             <Tooltip content={column.name} relationship="label">
                 <Text
-                    className={styles.columnName}
+                    className={context.isExporting ? styles.columnNameExporting : styles.columnName}
                     style={{ paddingLeft: column.isPrimaryKey || isForeignKey ? "0px" : "30px" }}>
                     {column.name}
                 </Text>
