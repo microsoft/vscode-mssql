@@ -14,6 +14,7 @@ import {
     MenuPopover,
     MenuTrigger,
     Text,
+    Tooltip,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
@@ -213,9 +214,11 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
         <div className={styles.tableHeader}>
             <div className={styles.tableHeaderRow}>
                 <FluentIcons.TableRegular className={styles.tableIcon} />
-                <Text className={styles.tableTitle}>
-                    {highlightText(`${table.schema}.${table.name}`)}
-                </Text>
+                <Tooltip content={`${table.schema}.${table.name}`} relationship="label">
+                    <Text className={styles.tableTitle}>
+                        {highlightText(`${table.schema}.${table.name}`)}
+                    </Text>
+                </Tooltip>
                 <TableHeaderActions table={table} />
             </div>
             <div className={styles.tableSubtitle}>
@@ -251,11 +254,13 @@ const TableColumn = ({
             {column.isPrimaryKey && <PrimaryKeyIcon className={styles.keyIcon} />}
             {!column.isPrimaryKey && isForeignKey && <ForeignKeyIcon className={styles.keyIcon} />}
 
-            <Text
-                className={styles.columnName}
-                style={{ paddingLeft: column.isPrimaryKey || isForeignKey ? "0px" : "30px" }}>
-                {column.name}
-            </Text>
+            <Tooltip content={column.name} relationship="label">
+                <Text
+                    className={styles.columnName}
+                    style={{ paddingLeft: column.isPrimaryKey || isForeignKey ? "0px" : "30px" }}>
+                    {column.name}
+                </Text>
+            </Tooltip>
 
             <Text className={styles.columnType}>
                 {column.isComputed ? "COMPUTED" : column.dataType?.toUpperCase()}
