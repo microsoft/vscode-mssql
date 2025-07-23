@@ -205,7 +205,7 @@ Modes:
   --help       Show this help message
 
 Examples:
-  node package-extension.js          # Default to online packaging
+  node package-extension.js [--online]  # Create online package. Default behavior if none specified
   node package-extension.js --online    # Create online package
   node package-extension.js --offline   # Create offline packages for all platforms
 
