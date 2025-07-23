@@ -200,10 +200,6 @@ export default class MainController implements vscode.Disposable {
         return this.configuration.get(Constants.configUseLegacyConnectionExperience);
     }
 
-    public get useLegacyQueryResultExperience(): boolean {
-        return this.configuration.get(Constants.configUseLegacyQueryResultExperience);
-    }
-
     /**
      * Initializes the extension
      */
@@ -890,7 +886,6 @@ export default class MainController implements vscode.Disposable {
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
-            this._context,
             this._statusview,
             this._vscodeWrapper,
         );
@@ -923,7 +918,6 @@ export default class MainController implements vscode.Disposable {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
             useLegacyConnections: this.useLegacyConnectionExperience.toString(),
-            useLegacyQueryResults: this.useLegacyQueryResultExperience.toString(),
         });
 
         await this._connectionMgr.initialized;
@@ -2661,7 +2655,6 @@ export default class MainController implements vscode.Disposable {
             Constants.configEnableExperimentalFeatures,
             Constants.configEnableRichExperiences,
             Constants.configUseLegacyConnectionExperience,
-            Constants.configUseLegacyQueryResultExperience,
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {

@@ -965,7 +965,7 @@ suite("OE Service Tests", () => {
             const savedPassword = generateUUID(); //random password
             mockConnectionStore.lookupPassword.resolves(savedPassword);
 
-            const containerStub = sinon
+            const containerStub = sandbox
                 .stub(DockerUtils, "restartContainer")
                 .throws(new Error("Failed to restart container"));
 
