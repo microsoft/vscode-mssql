@@ -84,3 +84,11 @@ const test = t(`Test loc`);
 
 ### Step 4: Using the Localization Files
 - The extension uses these generated JSON files to localize the strings in the user interface (UI). The root of the l10n is provided in the `package.json` file with `l10n` key. For now it is set to `localization/l10n`.
+
+## To test localization.
+
+ 1. Run `yarn localization:generate-pseudoloc` to generate pseudo localization files.
+ 2. This generates `bundle.l10n.qps-ploc.json` and `package.nls.qps-ploc.json` files in the `localization\l10n` and root folders respectively.
+ 3. Install the `Pseudo Language Language Pack` extension in VS Code.
+ 4. Set the display language to `Pseudo Language` using `Configure Display Language` command in the command palette.
+ 5. Reload vscode and test the extension to see the pseudo localized strings in the UI.
