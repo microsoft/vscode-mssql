@@ -30,13 +30,13 @@ From the root of the repo, install all of the build dependencies:
 2. Compile the extension and tests by running:
 
 ```shell
-gulp build
+yarn build
 ```
 
 or watch for changes in the tests by running:
 
 ```shell
-gulp watch-tests
+yarn watch
 ```
 
 ### Running tests
