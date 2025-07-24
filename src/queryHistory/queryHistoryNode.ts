@@ -25,9 +25,7 @@ export class EmptyHistoryNode extends vscode.TreeItem {
  * Query history node
  */
 export class QueryHistoryNode extends vscode.TreeItem {
-    private static readonly contextValue = "queryHistoryNode";
-    private successIcon: string;
-    private failureIcon: string;
+    private static readonly _contextValue = "queryHistoryNode";
     private _ownerUri: string;
     private _timeStamp: Date;
     private _isSuccess: boolean;
@@ -49,19 +47,20 @@ export class QueryHistoryNode extends vscode.TreeItem {
         this._timeStamp = timeStamp;
         this._isSuccess = isSuccess;
         this._connectionLabel = connectionLabel;
-        this.iconPath = this._isSuccess ? this.successIcon : this.failureIcon;
         const queryStatusLabel = this._isSuccess
             ? LocalizedConstants.querySuccess
             : LocalizedConstants.queryFailed;
         this.tooltip = `${tooltip}${os.EOL}${os.EOL}${queryStatusLabel}`;
-        this.contextValue = QueryHistoryNode.contextValue;
+        this.contextValue = QueryHistoryNode._contextValue;
         this.initializeIcons();
     }
 
     private initializeIcons(): void {
-        const iconsPath: string = path.join(extensionUri.fsPath, "media", "queryHistory");
-        this.successIcon = path.join(iconsPath, "status_success.svg");
-        this.failureIcon = path.join(iconsPath, "status_error.svg");
+        const basePath: string = path.join(extensionUri.fsPath, "media", "queryHistory");
+        this.iconPath = path.join(
+            basePath,
+            this._isSuccess ? "status_success.svg" : "status_error.svg",
+        );
     }
 
     /** Getters */

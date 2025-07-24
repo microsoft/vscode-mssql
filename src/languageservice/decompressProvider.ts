@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DecompressTar from "tar";
-import * as DecompressZip from "decompress-zip";
+import * as yauzl from "yauzl";
 
 import { IDecompressProvider, IPackage } from "./interfaces";
 
@@ -12,21 +12,44 @@ import { ILogger } from "../models/interfaces";
 
 export default class DecompressProvider implements IDecompressProvider {
     private decompressZip(pkg: IPackage, logger: ILogger): Promise<void> {
-        const unzipper = new DecompressZip(pkg.tmpFile.name);
         return new Promise<void>((resolve, reject) => {
-            let totalFiles = 0;
-            unzipper.on("progress", async (index, fileCount) => {
-                totalFiles = fileCount;
+            yauzl.open(pkg.tmpFile.name, { lazyEntries: true }, (err, zipfile) => {
+                if (err) {
+                    logger.appendLine(`[ERROR] ${err}`);
+                    reject(err);
+                    return;
+                }
+
+                zipfile.readEntry();
+                zipfile.on("entry", (entry) => {
+                    if (/\/$/.test(entry.fileName)) {
+                        // Directory file names end with '/'
+                        zipfile.readEntry();
+                    } else {
+                        // File entry
+                        zipfile.openReadStream(entry, (err, readStream) => {
+                            if (err) {
+                                logger.appendLine(`[ERROR] ${err}`);
+                                reject(err);
+                                return;
+                            }
+                            readStream.on("end", () => {
+                                zipfile.readEntry();
+                            });
+                            readStream.pipe(
+                                require("fs").createWriteStream(
+                                    `${pkg.installPath}/${entry.fileName}`,
+                                ),
+                            );
+                        });
+                    }
+                });
+
+                zipfile.on("end", () => {
+                    logger.appendLine(`Done! Files unpacked.\n`);
+                    resolve();
+                });
             });
-            unzipper.on("extract", async () => {
-                logger.appendLine(`Done! ${totalFiles} files unpacked.\n`);
-                resolve();
-            });
-            unzipper.on("error", async (decompressErr) => {
-                logger.appendLine(`[ERROR] ${decompressErr}`);
-                reject(decompressErr);
-            });
-            unzipper.extract({ path: pkg.installPath });
         });
     }
 
