@@ -361,7 +361,7 @@ export async function pullSqlServerContainerImage(version: string): Promise<Dock
     try {
         await execCommand(COMMANDS.PULL_IMAGE(version.substring(0, yearStringLength)));
         sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.PullImage, {
-            version: version,
+            containerVersion: version,
         });
         return { success: true };
     } catch (e) {
@@ -394,7 +394,7 @@ export async function startSqlServerDockerContainer(
         await execCommand(command);
         dockerLogger.append(`SQL Server container ${containerName} started on port ${port}.`);
         sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.CreateSQLContainer, {
-            version: version,
+            containerVersion: version,
         });
         return {
             success: true,
@@ -409,7 +409,7 @@ export async function startSqlServerDockerContainer(
             undefined, // errorCode
             undefined, // errorType
             {
-                version: version,
+                containerVersion: version,
             },
         );
         return {
