@@ -46,9 +46,9 @@ const useStyles = makeStyles({
     tableHeaderRow: {
         width: "100%",
         display: "flex",
-        minHeight: "30px",
+        height: "30px",
         flexDirection: "row",
-        alignItems: "flex-start",
+        alignItems: "center",
         gap: "5px",
         paddingTop: "10px",
     },
@@ -59,17 +59,16 @@ const useStyles = makeStyles({
     },
     tableTitle: {
         flexGrow: 1,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
         fontWeight: "600",
-        whiteSpace: "normal",
-        overflowWrap: "break-word",
-        lineHeight: "1.2",
     },
     tableTitleExporting: {
         flexGrow: 1,
         fontWeight: "600",
+        overflowWrap: "anywhere",
         whiteSpace: "normal",
-        overflowWrap: "break-word",
-        lineHeight: "1.2",
+        hyphens: "auto",
     },
     tableSubtitle: {
         fontSize: "11px",
@@ -221,6 +220,7 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
             </>
         );
     };
+
     return (
         <div className={styles.tableHeader}>
             <div className={styles.tableHeaderRow}>
@@ -230,7 +230,9 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
                         className={
                             context.isExporting ? styles.tableTitleExporting : styles.tableTitle
                         }>
-                        {highlightText(`${table.schema}.${table.name}`)}
+                        {context.isExporting
+                            ? `${table.schema}.${table.name}`
+                            : highlightText(`${table.schema}.${table.name}`)}
                     </Text>
                 </Tooltip>
                 {!context.isExporting && <TableHeaderActions table={table} />}
