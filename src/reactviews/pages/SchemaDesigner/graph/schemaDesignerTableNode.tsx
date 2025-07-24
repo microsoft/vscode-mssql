@@ -40,15 +40,15 @@ const useStyles = makeStyles({
     tableHeader: {
         width: "100%",
         display: "flex",
-        height: "50px",
+        minHeight: "50px",
         flexDirection: "column",
     },
     tableHeaderRow: {
         width: "100%",
         display: "flex",
-        height: "30px",
+        minHeight: "30px",
         flexDirection: "row",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: "5px",
         paddingTop: "10px",
     },
@@ -59,13 +59,17 @@ const useStyles = makeStyles({
     },
     tableTitle: {
         flexGrow: 1,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
         fontWeight: "600",
+        whiteSpace: "normal",
+        overflowWrap: "break-word",
+        lineHeight: "1.2",
     },
     tableTitleExporting: {
         flexGrow: 1,
         fontWeight: "600",
+        whiteSpace: "normal",
+        overflowWrap: "break-word",
+        lineHeight: "1.2",
     },
     tableSubtitle: {
         fontSize: "11px",
