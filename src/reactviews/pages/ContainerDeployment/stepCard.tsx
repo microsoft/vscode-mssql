@@ -62,7 +62,7 @@ interface StepCardProps {
 export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     const classes = useStyles();
     const state = useContext(ContainerDeploymentContext);
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useState(true);
     // This state is used to track if the step has just errored, and expand then
     const [isNewlyErrored, setIsNewlyErrored] = useState(false);
     const [showFullErrorText, setShowFullErrorText] = useState(false);

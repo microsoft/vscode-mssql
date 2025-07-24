@@ -737,8 +737,8 @@
     <trans-unit id="++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8">
       <source xml:lang="en">Creating Container</source>
     </trans-unit>
-    <trans-unit id="++CODE++09af7062beeeeb3b9e2346b91902b8e45ea936c57462ca09e997e7280b8f71dc">
-      <source xml:lang="en">Creating and starting your SQL Server Docker container</source>
+    <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
+      <source xml:lang="en">Creating and starting your SQL Server container</source>
     </trans-unit>
     <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1096,6 +1096,9 @@
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
+    </trans-unit>
+    <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
+      <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
     </trans-unit>
     <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
       <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -1914,6 +1917,12 @@
     <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
       <source xml:lang="en">Publishing Changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
+      <source xml:lang="en">Pulling SQL Server Image</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
+      <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
       <source xml:lang="en">Query Plan</source>
     </trans-unit>
@@ -1936,6 +1945,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
       <source xml:lang="en">Readying container for connections.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
+      <source xml:lang="en">Readying container for connections...</source>
     </trans-unit>
     <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
       <source xml:lang="en">Recent Connections</source>
@@ -2335,6 +2347,9 @@
     </trans-unit>
     <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
       <source xml:lang="en">Starting Container...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
+      <source xml:lang="en">Starting Docker...</source>
     </trans-unit>
     <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
       <source xml:lang="en">Starting {0}...</source>
@@ -3097,9 +3112,6 @@
     </trans-unit>
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Give Feedback</source>
-    </trans-unit>
-    <trans-unit id="mssql.hasConnections">
-      <source xml:lang="en">Indicates whether the user has defined any connection profiles in &apos;User Settings&apos;.</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot (Preview)</source>
