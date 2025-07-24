@@ -738,9 +738,11 @@ suite("Docker Utilities", () => {
 
     test("pullSqlServerContainerImage: should pull the container image from the docker registry", async () => {
         const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "Pulled image");
+        const { sendActionEvent } = stubTelemetry(sandbox);
 
-        let result = await dockerUtils.pullSqlServerContainerImage(2025);
+        let result = await dockerUtils.pullSqlServerContainerImage("2025");
         sinon.assert.calledOnce(execStub);
+        sinon.assert.calledOnce(sendActionEvent);
 
         assert.ok(result);
 

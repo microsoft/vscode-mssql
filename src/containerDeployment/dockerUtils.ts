@@ -40,6 +40,11 @@ import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
  */
 const MAX_PORT_NUMBER = 65535;
 
+/**
+ * The length of the year string in the version number
+ */
+const yearStringLength = 4;
+
 export const invalidContainerNameValidationResult: FormItemValidationState = {
     isValid: false,
     validationMessage: ContainerDeployment.pleaseChooseUniqueContainerName,
@@ -78,12 +83,12 @@ export const COMMANDS = {
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
     GET_CONTAINERS_BY_NAME: `docker ps -a --format "{{.Names}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
-    PULL_IMAGE: (version: number) => `docker pull mcr.microsoft.com/mssql/server:${version}-latest`,
+    PULL_IMAGE: (version: string) => `docker pull mcr.microsoft.com/mssql/server:${version}-latest`,
     START_SQL_SERVER: (
         name: string,
         password: string,
         port: number,
-        version: number,
+        version: string,
         hostname: string,
     ) =>
         `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
@@ -352,9 +357,12 @@ export async function getDockerPath(executable: string): Promise<string> {
 /**
  * Pulls the SQL Server container image for the specified version.
  */
-export async function pullSqlServerContainerImage(version: number): Promise<DockerCommandParams> {
+export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
     try {
-        await execCommand(COMMANDS.PULL_IMAGE(version));
+        await execCommand(COMMANDS.PULL_IMAGE(version.substring(0, yearStringLength)));
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.PullImage, {
+            version: version,
+        });
         return { success: true };
     } catch (e) {
         return {
@@ -379,7 +387,7 @@ export async function startSqlServerDockerContainer(
         containerName,
         password,
         port,
-        Number(version),
+        version.substring(0, yearStringLength),
         hostname,
     );
     try {
@@ -745,32 +753,45 @@ export async function findAvailablePort(startPort: number): Promise<number> {
 export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]> {
     try {
         const stdout = await execCommand(COMMANDS.GET_SQL_SERVER_CONTAINER_VERSIONS);
-        const versions = stdout.split("\n");
-        const uniqueYears = Array.from(
-            new Set(
-                versions
-                    .map(
-                        (v) =>
-                            v
-                                .trim() // trim whitespace
-                                .replace(/^"|"[,]*$/g, "") //remove starting and ending quotes and trailing commas
-                                .slice(0, 4), // take first 4 chars
-                    )
-                    .filter((v) => /^\d{4}$/.test(v)), // ensure all digits
-            ),
-        ).reverse();
+        const parsed = JSON.parse(stdout);
+        const tags: string[] = parsed.tags ?? [];
 
-        return uniqueYears.map((year) => ({
-            displayName: ContainerDeployment.sqlServerVersionImage(year),
-            value: year,
-        })) as FormItemOptions[];
+        const versions: string[] = [];
+        const yearSet = new Set<string>();
+
+        for (const tag of tags) {
+            if (!tag) continue;
+
+            versions.push(tag);
+
+            const year = tag.slice(0, 4);
+            if (/^\d{4}$/.test(year)) {
+                yearSet.add(year);
+            }
+        }
+
+        const uniqueYears = Array.from(yearSet);
+        const latestVersionIndex = versions.length - 4;
+        const latestImage = versions[latestVersionIndex];
+
+        const versionOptions = uniqueYears
+            .map((year) => ({
+                displayName: ContainerDeployment.sqlServerVersionImage(year),
+                value: year,
+            }))
+            .reverse();
+
+        versionOptions[0].value = latestImage; // Version options is guaranteed to have at least one element
+
+        return versionOptions;
     } catch (e) {
         dockerLogger.appendLine(
-            `Error fetching SQL Server container versions: ${getErrorMessage(e)}`,
+            `Error parsing SQL Server container versions: ${getErrorMessage(e)}`,
         );
         return [];
     }
 }
+
 /**
  * Prepares the given Docker container for command execution.
  * This function checks if Docker is running and if the specified container exists.
