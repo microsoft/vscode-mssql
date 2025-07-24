@@ -20,11 +20,14 @@ import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 
+export let extensionUri: vscode.Uri;
+
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
     let vscodeWrapper = new VscodeWrapper();
+    extensionUri = context.extensionUri;
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
 

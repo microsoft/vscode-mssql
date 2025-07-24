@@ -9,16 +9,6 @@ const logger = require("./terminal-logger");
 
 const COPY_TASKS = [
     {
-        name: "Object Explorer Assets",
-        source: "src/objectExplorer/objectTypes",
-        destination: "out/src/objectExplorer/objectTypes",
-    },
-    {
-        name: "Query History Assets",
-        source: "src/queryHistory/icons",
-        destination: "out/src/queryHistory/icons",
-    },
-    {
         name: "Test Resources",
         source: "test/resources",
         destination: "out/test/resources",

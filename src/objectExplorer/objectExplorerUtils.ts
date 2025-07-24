@@ -11,9 +11,12 @@ import * as LocalizedConstants from "../constants/locConstants";
 import * as vscodeMssql from "vscode-mssql";
 import { TreeNodeType } from "./nodes/connectTreeNode";
 import * as vscode from "vscode";
+import { extensionUri } from "../extension";
 
 export class ObjectExplorerUtils {
-    public static readonly rootPath: string = path.join(__dirname, "objectTypes");
+    public static get rootPath(): string {
+        return path.join(extensionUri.fsPath, "media", "objectTypes");
+    }
 
     /**
      * Gets the path to the icon for a given node type.
