@@ -522,7 +522,7 @@ export const SchemaDesignerEditorForeignKeyPanel = () => {
     // Get all available tables for foreign key references
     const availableTables = useMemo(() => {
         if (!context.schema) return [];
-        return tableUtils.getAllTables(context.schema, context.table);
+        return tableUtils.getAllTables(context.schema);
     }, [context.table]);
 
     // Reset focus when the selected table changes
