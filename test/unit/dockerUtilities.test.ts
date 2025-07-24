@@ -346,6 +346,7 @@ suite("Docker Utilities", () => {
         const port = 1433;
 
         const execStub = sandbox.stub(childProcess, "exec");
+        const { sendActionEvent } = stubTelemetry(sandbox);
 
         // Success case: exec yields (null error, stdout)
         execStub.onCall(0).yields(null, "some output");
@@ -359,6 +360,7 @@ suite("Docker Utilities", () => {
         );
 
         sinon.assert.calledOnce(execStub);
+        sinon.assert.calledOnce(sendActionEvent);
         assert.deepEqual(resultSuccess, {
             success: true,
             port,
@@ -516,9 +518,12 @@ suite("Docker Utilities", () => {
     test("checkIfContainerIsReadyForConnections: should return true if container is ready, false otherwise", async () => {
         // Stub platform and dependent modules
         const execStub = sandbox.stub(childProcess, "exec");
+        const { sendActionEvent } = stubTelemetry(sandbox);
+
         execStub.onFirstCall().yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
         let result = await dockerUtils.checkIfContainerIsReadyForConnections("testContainer");
         assert.ok(result, "Should return success when container is ready for connections");
+        sinon.assert.calledOnce(sendActionEvent);
         execStub.resetHistory();
     });
 
