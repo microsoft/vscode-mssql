@@ -317,7 +317,7 @@ suite("ContainerDeploymentWebviewController", () => {
             "addContainerConnection",
         );
         // Stub telemetry method
-        const { sendErrorEvent } = stubTelemetry(sandbox);
+        const { sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox);
         let callState = controller["state"];
 
         // --- Test general step success ---
@@ -342,6 +342,7 @@ suite("ContainerDeploymentWebviewController", () => {
 
         assert.equal(resultSuccess.dockerSteps[0].loadState, ApiStatus.Loaded);
         assert.ok(!resultSuccess.dockerSteps[0].errorMessage);
+        sinon.assert.called(sendActionEvent);
 
         // --- Test general step failure ---
         const mockStepActionFailure = sandbox.stub().resolves({
