@@ -229,7 +229,7 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
                         {highlightText(`${table.schema}.${table.name}`)}
                     </Text>
                 </Tooltip>
-                <TableHeaderActions table={table} />
+                {!context.isExporting && <TableHeaderActions table={table} />}
             </div>
             <div className={styles.tableSubtitle}>
                 {locConstants.schemaDesigner.tableNodeSubText(table.columns.length)}
