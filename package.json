@@ -50,20 +50,26 @@
         "ms-mssql.sql-bindings-vscode"
     ],
     "scripts": {
-        "build": "gulp build",
-        "compile": "gulp ext:compile",
-        "watch": "gulp watch",
+        "build:runtime-localization": "node scripts/generate-localization.js",
+        "build:copy-assets": "node scripts/copy-assets.js",
+        "build:prepare": "yarn build:copy-assets && yarn build:runtime-localization",
+        "build:extension": "tsc -p tsconfig.extension.json",
+        "build:webviews": "node scripts/bundle-reactviews.js",
+        "build": "yarn build:prepare && yarn build:extension && yarn build:webviews",
+        "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
+        "watch:webviews": "node scripts/bundle-reactviews.js --watch",
+        "watch": "yarn build:prepare && run-p -l watch:extension watch:webviews",
         "lint": "eslint --quiet --cache",
-        "localization": "gulp ext:extract-localization-strings",
+        "localization": "node scripts/extract-localization.js",
+        "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
         "smoketest": "yarn instrument && yarn e2eTest",
         "test": "node ./out/test/unit/runTest.js",
-        "package": "vsce package",
+        "package": "node scripts/package-extension.js",
         "prepare": "husky",
         "lint-staged": "lint-staged --quiet",
         "precommit": "run-p lint-staged localization",
-        "clean-package": "git clean -xfd && yarn install && yarn build && yarn gulp package:online",
         "instrument": "nyc instrument ./out/src ./out/src --in-place",
-        "e2eTest": "npx playwright test; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
+        "e2eTest": "npx playwright test ; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
     },
     "lint-staged": {
         "*.ts": "eslint --quiet --cache",
@@ -97,7 +103,6 @@
         "@types/vscode-webview": "^1.57.5",
         "@typescript-eslint/eslint-plugin": "^8.7.0",
         "@typescript-eslint/parser": "^8.7.0",
-        "@vitejs/plugin-react": "^4.3.4",
         "@vscode/l10n": "^0.0.18",
         "@vscode/l10n-dev": "^0.0.35",
         "@vscode/test-cli": "^0.0.10",
@@ -118,10 +123,6 @@
         "eslint-plugin-notice": "^1.0.0",
         "eslint-plugin-prettier": "^5.2.1",
         "eslint-plugin-react": "^7.35.2",
-        "gulp": "^4.0.2",
-        "gulp-run-command": "^0.0.10",
-        "gulp-sourcemaps": "^1.6.0",
-        "gulp-typescript": "^5.0.1",
         "html-to-image": "1.11.11",
         "husky": "^9.0.11",
         "lint-staged": "^15.2.10",
@@ -141,8 +142,6 @@
         "typemoq": "^1.7.0",
         "typescript": "^5.8.3",
         "typescript-eslint": "^8.34.0",
-        "vite": "^6.2.7",
-        "vite-plugin-istanbul": "^7.0.0",
         "xliff": "^6.2.1",
         "xml2js": "^0.6.2",
         "yargs": "^17.7.2"
@@ -176,9 +175,6 @@
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
         "yallist": "^5.0.0"
-    },
-    "resolutions": {
-        "gulp-typescript/source-map": "0.7.4"
     },
     "capabilities": {
         "untrustedWorkspaces": {
