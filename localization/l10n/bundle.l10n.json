@@ -579,6 +579,7 @@
   "Search options...": "Search options...",
   "General Options": "General Options",
   "Include Object Types": "Include Object Types",
+  "Select all": "Select all",
   "Option Description": "Option Description",
   "Reset": "Reset",
   "Stop": "Stop",
@@ -1020,7 +1021,6 @@
   "CSV": "CSV",
   "JSON": "JSON",
   "Excel": "Excel",
-  "Select all": "Select all",
   "Executing query...": "Executing query...",
   "Query executed": "Query executed",
   "Total execution time: {0}/{0} is the elapsed time": {
