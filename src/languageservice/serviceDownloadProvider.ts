@@ -78,7 +78,7 @@ export default class ServiceDownloadProvider {
             basePath = installDirFromConfig;
         } else {
             // The path from config is relative to the out folder
-            basePath = path.join(__dirname, "../../" + installDirFromConfig);
+            basePath = path.join(__dirname, "../" + installDirFromConfig);
         }
         return basePath;
     }

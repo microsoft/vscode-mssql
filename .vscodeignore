@@ -38,3 +38,4 @@ KERBEROS_HELP.md
 prettier.config.mjs
 scripts
 out
+node_modules/**
