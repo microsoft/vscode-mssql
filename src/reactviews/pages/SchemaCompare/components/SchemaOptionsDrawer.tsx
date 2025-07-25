@@ -30,11 +30,6 @@ import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
 
 const useStyles = makeStyles({
-    optionsContainer: {
-        height: "75vh",
-        overflowY: "auto",
-    },
-
     listItemContainer: {
         display: "flex",
         alignItems: "center",
@@ -49,6 +44,22 @@ const useStyles = makeStyles({
         padding: "8px 0",
         borderBottom: "1px solid var(--colorNeutralStroke2)",
         marginBottom: "8px",
+        backgroundColor: "var(--colorNeutralBackground1)",
+        position: "sticky",
+        top: 0,
+        zIndex: 1,
+    },
+
+    tabContentContainer: {
+        display: "flex",
+        flexDirection: "column",
+        height: "75vh",
+    },
+
+    scrollableList: {
+        flex: 1,
+        overflowY: "auto",
+        minHeight: 0,
     },
 });
 
@@ -214,7 +225,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                 </TabList>
 
                 {selectedValue === "generalOptions" && (
-                    <List className={classes.optionsContainer}>
+                    <div className={classes.tabContentContainer}>
                         {optionsToValueNameLookup && filteredGeneralOptions.length > 0 && (
                             <div className={classes.masterCheckboxContainer}>
                                 <Checkbox
@@ -232,33 +243,35 @@ const SchemaOptionsDrawer = (props: Props) => {
                                 />
                             </div>
                         )}
-                        {optionsToValueNameLookup &&
-                            filteredGeneralOptions.map(([key, value]) => {
-                                return (
-                                    <ListItem
-                                        className={classes.listItemContainer}
-                                        key={key}
-                                        value={key}
-                                        aria-label={value.displayName}>
-                                        <Checkbox
-                                            checked={value.value}
-                                            onChange={() => handleSettingChanged(key)}
-                                            label={
-                                                <InfoLabel
-                                                    aria-label={value.displayName}
-                                                    info={<>{value.description}</>}>
-                                                    {value.displayName}
-                                                </InfoLabel>
-                                            }
-                                        />
-                                    </ListItem>
-                                );
-                            })}
-                    </List>
+                        <List className={classes.scrollableList}>
+                            {optionsToValueNameLookup &&
+                                filteredGeneralOptions.map(([key, value]) => {
+                                    return (
+                                        <ListItem
+                                            className={classes.listItemContainer}
+                                            key={key}
+                                            value={key}
+                                            aria-label={value.displayName}>
+                                            <Checkbox
+                                                checked={value.value}
+                                                onChange={() => handleSettingChanged(key)}
+                                                label={
+                                                    <InfoLabel
+                                                        aria-label={value.displayName}
+                                                        info={<>{value.description}</>}>
+                                                        {value.displayName}
+                                                    </InfoLabel>
+                                                }
+                                            />
+                                        </ListItem>
+                                    );
+                                })}
+                        </List>
+                    </div>
                 )}
 
                 {selectedValue === "includeObjectTypes" && (
-                    <List className={classes.optionsContainer}>
+                    <div className={classes.tabContentContainer}>
                         {includeObjectTypesLookup && filteredObjectTypes.length > 0 && (
                             <div className={classes.masterCheckboxContainer}>
                                 <Checkbox
@@ -276,23 +289,25 @@ const SchemaOptionsDrawer = (props: Props) => {
                                 />
                             </div>
                         )}
-                        {includeObjectTypesLookup &&
-                            filteredObjectTypes.map(([key, value]) => {
-                                return (
-                                    <ListItem
-                                        className={classes.listItemContainer}
-                                        key={key}
-                                        value={key}
-                                        aria-label={value}>
-                                        <Checkbox
-                                            checked={handleSetObjectTypesCheckedState(key)}
-                                            onChange={() => handleObjectTypesOptionChanged(key)}
-                                            label={<Label aria-label={value}>{value}</Label>}
-                                        />
-                                    </ListItem>
-                                );
-                            })}
-                    </List>
+                        <List className={classes.scrollableList}>
+                            {includeObjectTypesLookup &&
+                                filteredObjectTypes.map(([key, value]) => {
+                                    return (
+                                        <ListItem
+                                            className={classes.listItemContainer}
+                                            key={key}
+                                            value={key}
+                                            aria-label={value}>
+                                            <Checkbox
+                                                checked={handleSetObjectTypesCheckedState(key)}
+                                                onChange={() => handleObjectTypesOptionChanged(key)}
+                                                label={<Label aria-label={value}>{value}</Label>}
+                                            />
+                                        </ListItem>
+                                    );
+                                })}
+                        </List>
+                    </div>
                 )}
             </DrawerBody>
             <DrawerFooter>
