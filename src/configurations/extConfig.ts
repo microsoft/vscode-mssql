@@ -3,22 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import Config from "./configUtils";
+import ConfigUtils from "./configUtils";
 import { workspace, WorkspaceConfiguration } from "vscode";
 import * as Constants from "../constants/constants";
-import { IConfig } from "../languageservice/interfaces";
+import { IConfigUtils } from "../languageservice/interfaces";
 
 /*
  * ExtConfig class handles getting values from workspace config or config.json.
  */
-export default class ExtConfig implements IConfig {
+export default class ExtConfig implements IConfigUtils {
     constructor(
-        private _config?: IConfig,
+        private _config?: IConfigUtils,
         private _extensionConfig?: WorkspaceConfiguration,
         private _workspaceConfig?: WorkspaceConfiguration,
     ) {
         if (this._config === undefined) {
-            this._config = new Config();
+            this._config = new ConfigUtils();
         }
         if (this._extensionConfig === undefined) {
             this._extensionConfig = workspace.getConfiguration(

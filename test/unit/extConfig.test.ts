@@ -5,14 +5,14 @@
 
 import * as assert from "assert";
 import * as TypeMoq from "typemoq";
-import { IConfig } from "../../src/languageservice/interfaces";
+import { IConfigUtils } from "../../src/languageservice/interfaces";
 import { WorkspaceConfiguration, workspace } from "vscode";
 import * as Constants from "../../src/constants/constants";
 import ExtConfig from "../../src/configurations/extConfig";
-import Config from "../../src/configurations/configUtils";
+import ConfigUtils from "../../src/configurations/configUtils";
 
 suite("ExtConfig Tests", () => {
-    let config: TypeMoq.IMock<IConfig>;
+    let config: TypeMoq.IMock<IConfigUtils>;
     let extensionConfig: TypeMoq.IMock<WorkspaceConfiguration>;
     let workspaceConfig: TypeMoq.IMock<WorkspaceConfiguration>;
     let fromConfig = "fromConfig";
@@ -37,7 +37,7 @@ suite("ExtConfig Tests", () => {
     }
 
     setup(() => {
-        config = TypeMoq.Mock.ofType(Config, TypeMoq.MockBehavior.Strict);
+        config = TypeMoq.Mock.ofType(ConfigUtils, TypeMoq.MockBehavior.Strict);
         let configInstance = workspace.getConfiguration();
         extensionConfig = TypeMoq.Mock.ofInstance<WorkspaceConfiguration>(
             configInstance,

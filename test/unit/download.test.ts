@@ -6,7 +6,7 @@
 import * as assert from "assert";
 import * as TypeMoq from "typemoq";
 import {
-    IConfig,
+    IConfigUtils,
     IStatusView,
     IHttpClient,
     IDecompressProvider,
@@ -14,7 +14,7 @@ import {
 import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
 import HttpClient from "../../src/languageservice/httpClient";
 import DecompressProvider from "../../src/languageservice/decompressProvider";
-import Config from "../../src/configurations/configUtils";
+import ConfigUtils from "../../src/configurations/configUtils";
 import { Runtime } from "../../src/models/platform";
 import * as path from "path";
 import { ILogger } from "../../src/models/interfaces";
@@ -29,14 +29,14 @@ interface IFixture {
 }
 
 suite("ServiceDownloadProvider Tests", () => {
-    let config: TypeMoq.IMock<IConfig>;
+    let config: TypeMoq.IMock<IConfigUtils>;
     let testStatusView: TypeMoq.IMock<IStatusView>;
     let testHttpClient: TypeMoq.IMock<IHttpClient>;
     let testDecompressProvider: TypeMoq.IMock<IDecompressProvider>;
     let testLogger: TypeMoq.IMock<ILogger>;
 
     setup(() => {
-        config = TypeMoq.Mock.ofType(Config, TypeMoq.MockBehavior.Strict);
+        config = TypeMoq.Mock.ofType(ConfigUtils, TypeMoq.MockBehavior.Strict);
         testStatusView = TypeMoq.Mock.ofType<IStatusView>();
         testHttpClient = TypeMoq.Mock.ofType(HttpClient, TypeMoq.MockBehavior.Strict);
         testDecompressProvider = TypeMoq.Mock.ofType(DecompressProvider);

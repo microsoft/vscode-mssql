@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Runtime, PlatformInformation } from "../models/platform";
-import Config from "../configurations/configUtils";
+import ConfigUtils from "../configurations/configUtils";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
 import DecompressProvider from "./decompressProvider";
 import HttpClient from "./httpClient";
@@ -54,7 +54,7 @@ export class StubLogger implements ILogger {
     }
 }
 
-const config = new Config();
+const config = new ConfigUtils();
 const logger = new StubLogger(console.log);
 const statusView = new StubStatusView(console.log);
 const httpClient = new HttpClient();

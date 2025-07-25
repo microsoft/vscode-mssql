@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as Constants from "../constants/constants";
-import { IConfig } from "../languageservice/interfaces";
+import { IConfigUtils } from "../languageservice/interfaces";
 import { config } from "./config";
 
 /*
  * Config class handles getting values from config.json.
  */
-export default class Config implements IConfig {
+export default class ConfigUtils implements IConfigUtils {
     private _configJsonContent = undefined;
     private _sqlToolsServiceConfigKey: string;
     private _version: number;
