@@ -2171,6 +2171,9 @@
     <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
       <source xml:lang="en">Select all</source>
     </trans-unit>
+    <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
+      <source xml:lang="en">Select all options</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
       <source xml:lang="en">Select an account</source>
     </trans-unit>
