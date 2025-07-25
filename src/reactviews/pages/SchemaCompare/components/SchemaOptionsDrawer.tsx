@@ -30,6 +30,13 @@ import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
 
 const useStyles = makeStyles({
+    drawerBody: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        overflow: "hidden",
+    },
+
     listItemContainer: {
         display: "flex",
         alignItems: "center",
@@ -38,6 +45,11 @@ const useStyles = makeStyles({
     searchContainer: {
         margin: "10px 0",
         width: "100%",
+        flexShrink: 0,
+    },
+
+    tabContainer: {
+        flexShrink: 0,
     },
 
     masterCheckboxContainer: {
@@ -48,12 +60,15 @@ const useStyles = makeStyles({
         position: "sticky",
         top: 0,
         zIndex: 1,
+        flexShrink: 0,
     },
 
     tabContentContainer: {
         display: "flex",
         flexDirection: "column",
-        height: "75vh",
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
     },
 
     scrollableList: {
@@ -207,7 +222,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                     {loc.schemaCompare.schemaCompareOptions}
                 </DrawerHeaderTitle>
             </DrawerHeader>
-            <DrawerBody>
+            <DrawerBody className={classes.drawerBody}>
                 <SearchBox
                     className={classes.searchContainer}
                     placeholder={loc.schemaCompare.searchOptions}
@@ -215,7 +230,10 @@ const SchemaOptionsDrawer = (props: Props) => {
                     onChange={(_, data) => setSearchQuery(data.value)}
                 />
 
-                <TabList selectedValue={selectedValue} onTabSelect={onTabSelect}>
+                <TabList
+                    className={classes.tabContainer}
+                    selectedValue={selectedValue}
+                    onTabSelect={onTabSelect}>
                     <Tab id="GeneralOptions" value="generalOptions">
                         {loc.schemaCompare.generalOptions}
                     </Tab>
