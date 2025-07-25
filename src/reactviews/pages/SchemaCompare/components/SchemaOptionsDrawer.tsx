@@ -53,14 +53,19 @@ const useStyles = makeStyles({
     },
 
     masterCheckboxContainer: {
-        padding: "8px 0",
+        margin: "10px 0",
         borderBottom: "1px solid var(--colorNeutralStroke2)",
-        marginBottom: "8px",
-        backgroundColor: "var(--colorNeutralBackground1)",
+        marginBottom: "0px",
+        backgroundColor: "var(--colorNeutralBackground2)",
         position: "sticky",
         top: 0,
         zIndex: 1,
         flexShrink: 0,
+    },
+
+    masterCheckbox: {
+        fontWeight: "600",
+        fontSize: "14px",
     },
 
     tabContentContainer: {
@@ -75,6 +80,8 @@ const useStyles = makeStyles({
         flex: 1,
         overflowY: "auto",
         minHeight: 0,
+        paddingTop: "8px",
+        width: "100%",
     },
 });
 
@@ -247,6 +254,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                         {optionsToValueNameLookup && filteredGeneralOptions.length > 0 && (
                             <div className={classes.masterCheckboxContainer}>
                                 <Checkbox
+                                    className={classes.masterCheckbox}
                                     checked={
                                         generalMasterState.indeterminate
                                             ? "mixed"
@@ -257,7 +265,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                                             data.checked === "mixed" ? true : !!data.checked;
                                         handleGeneralOptionsMasterCheckbox(isChecked);
                                     }}
-                                    label={loc.schemaCompare.selectAll}
+                                    label="Select all options"
                                 />
                             </div>
                         )}
@@ -293,6 +301,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                         {includeObjectTypesLookup && filteredObjectTypes.length > 0 && (
                             <div className={classes.masterCheckboxContainer}>
                                 <Checkbox
+                                    className={classes.masterCheckbox}
                                     checked={
                                         objectTypesMasterState.indeterminate
                                             ? "mixed"
@@ -303,7 +312,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                                             data.checked === "mixed" ? true : !!data.checked;
                                         handleObjectTypesMasterCheckbox(isChecked);
                                     }}
-                                    label={loc.schemaCompare.selectAll}
+                                    label="Select all object types"
                                 />
                             </div>
                         )}
