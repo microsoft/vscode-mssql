@@ -265,7 +265,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                                             data.checked === "mixed" ? true : !!data.checked;
                                         handleGeneralOptionsMasterCheckbox(isChecked);
                                     }}
-                                    label="Select all options"
+                                    label={loc.schemaCompare.selectAllOptions}
                                 />
                             </div>
                         )}
