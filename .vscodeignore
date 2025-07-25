@@ -37,3 +37,4 @@ eslint.config.mjs
 KERBEROS_HELP.md
 prettier.config.mjs
 scripts
+out

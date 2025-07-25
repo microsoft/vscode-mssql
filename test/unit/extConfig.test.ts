@@ -9,7 +9,7 @@ import { IConfig } from "../../src/languageservice/interfaces";
 import { WorkspaceConfiguration, workspace } from "vscode";
 import * as Constants from "../../src/constants/constants";
 import ExtConfig from "../../src/configurations/extConfig";
-import Config from "../../src/configurations/config";
+import Config from "../../src/configurations/configUtils";
 
 suite("ExtConfig Tests", () => {
     let config: TypeMoq.IMock<IConfig>;

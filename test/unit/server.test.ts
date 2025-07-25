@@ -8,7 +8,7 @@ import * as assert from "assert";
 import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
 import ServerProvider from "../../src/languageservice/server";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
-import Config from "../../src/configurations/config";
+import Config from "../../src/configurations/configUtils";
 import { Runtime } from "../../src/models/platform";
 import { IConfig, IStatusView } from "../../src/languageservice/interfaces";
 

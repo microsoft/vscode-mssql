@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Runtime, PlatformInformation } from "../models/platform";
-import Config from "../configurations/config";
+import Config from "../configurations/configUtils";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
 import DecompressProvider from "./decompressProvider";
 import HttpClient from "./httpClient";

@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fs from "fs";
-import * as path from "path";
 import * as Constants from "../constants/constants";
 import { IConfig } from "../languageservice/interfaces";
+import { config } from "./configuration";
 
 /*
  * Config class handles getting values from config.json.
@@ -14,18 +13,18 @@ import { IConfig } from "../languageservice/interfaces";
 export default class Config implements IConfig {
     private _configJsonContent = undefined;
     private _sqlToolsServiceConfigKey: string;
-    private version: number;
+    private _version: number;
 
-    public get configJsonContent(): any {
+    public get configJsonContent(): JSON {
         if (this._configJsonContent === undefined) {
-            this._configJsonContent = this.loadConfig();
+            this._configJsonContent = config;
         }
         return this._configJsonContent;
     }
 
     constructor() {
         this._sqlToolsServiceConfigKey = Constants.sqlToolsServiceConfigKey;
-        this.version = 2;
+        this._version = 2;
     }
 
     public getSqlToolsServiceDownloadUrl(): string {
@@ -52,11 +51,11 @@ export default class Config implements IConfig {
             default:
                 this._sqlToolsServiceConfigKey = Constants.sqlToolsServiceConfigKey;
         }
-        this.version = version;
+        this._version = version;
     }
 
     public getServiceVersion(): number {
-        return this.version;
+        return this._version;
     }
 
     public getSqlToolsConfigValue(configKey: string): any {
@@ -86,10 +85,5 @@ export default class Config implements IConfig {
             configValue = defaultValue;
         }
         return configValue;
-    }
-
-    private loadConfig(): any {
-        let configContent = fs.readFileSync(path.join(__dirname, "./config.json"));
-        return JSON.parse(configContent.toString());
     }
 }

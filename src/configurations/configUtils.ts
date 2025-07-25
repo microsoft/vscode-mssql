@@ -3,31 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import Config from "./configUtils";
-import { workspace, WorkspaceConfiguration } from "vscode";
 import * as Constants from "../constants/constants";
 import { IConfig } from "../languageservice/interfaces";
+import { config } from "./config";
 
 /*
- * ExtConfig class handles getting values from workspace config or config.json.
+ * Config class handles getting values from config.json.
  */
-export default class ExtConfig implements IConfig {
-    constructor(
-        private _config?: IConfig,
-        private _extensionConfig?: WorkspaceConfiguration,
-        private _workspaceConfig?: WorkspaceConfiguration,
-    ) {
-        if (this._config === undefined) {
-            this._config = new Config();
+export default class Config implements IConfig {
+    private _configJsonContent = undefined;
+    private _sqlToolsServiceConfigKey: string;
+    private _version: number;
+
+    public get configJsonContent(): JSON {
+        if (this._configJsonContent === undefined) {
+            this._configJsonContent = config;
         }
-        if (this._extensionConfig === undefined) {
-            this._extensionConfig = workspace.getConfiguration(
-                Constants.extensionConfigSectionName,
-            );
-        }
-        if (this._workspaceConfig === undefined) {
-            this._workspaceConfig = workspace.getConfiguration();
-        }
+        return this._configJsonContent;
+    }
+
+    constructor() {
+        this._sqlToolsServiceConfigKey = Constants.sqlToolsServiceConfigKey;
+        this._version = 2;
     }
 
     public getSqlToolsServiceDownloadUrl(): string {
@@ -47,34 +44,44 @@ export default class ExtConfig implements IConfig {
     }
 
     public useServiceVersion(version: number): void {
-        return this._config.useServiceVersion(version);
+        switch (version) {
+            case 1:
+                this._sqlToolsServiceConfigKey = Constants.v1SqlToolsServiceConfigKey;
+                break;
+            default:
+                this._sqlToolsServiceConfigKey = Constants.sqlToolsServiceConfigKey;
+        }
+        this._version = version;
     }
 
     public getServiceVersion(): number {
-        return this._config.getServiceVersion();
+        return this._version;
     }
 
     public getSqlToolsConfigValue(configKey: string): any {
-        let configValue: string = <string>(
-            this.getExtensionConfig(`${Constants.sqlToolsServiceConfigKey}.${configKey}`)
-        );
-        if (!configValue) {
-            configValue = this._config.getSqlToolsConfigValue(configKey);
+        let json = this.configJsonContent;
+        let toolsConfig = json[this._sqlToolsServiceConfigKey];
+        let configValue: string = undefined;
+        if (toolsConfig !== undefined) {
+            configValue = toolsConfig[configKey];
         }
         return configValue;
     }
 
     public getExtensionConfig(key: string, defaultValue?: any): any {
-        let configValue = this._extensionConfig.get(key);
-        if (configValue === undefined) {
+        let json = this.configJsonContent;
+        let extensionConfig = json[Constants.extensionConfigSectionName];
+        let configValue = extensionConfig[key];
+        if (!configValue) {
             configValue = defaultValue;
         }
         return configValue;
     }
 
     public getWorkspaceConfig(key: string, defaultValue?: any): any {
-        let configValue = this._workspaceConfig.get(key);
-        if (configValue === undefined) {
+        let json = this.configJsonContent;
+        let configValue = json[key];
+        if (!configValue) {
             configValue = defaultValue;
         }
         return configValue;

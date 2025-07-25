@@ -12,17 +12,7 @@ const COPY_TASKS = [
         name: "Test Resources",
         source: "test/resources",
         destination: "out/test/resources",
-    },
-    {
-        name: "Configuration Files",
-        source: "src/configurations/config.json",
-        destination: "out/configuration/config.json",
-    },
-    {
-        name: "Configuration Files",
-        source: "src/configurations/config.json",
-        destination: "dist/config.json",
-    },
+    }
 ];
 
 /**

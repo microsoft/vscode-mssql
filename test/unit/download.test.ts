@@ -14,7 +14,7 @@ import {
 import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
 import HttpClient from "../../src/languageservice/httpClient";
 import DecompressProvider from "../../src/languageservice/decompressProvider";
-import Config from "../../src/configurations/config";
+import Config from "../../src/configurations/configUtils";
 import { Runtime } from "../../src/models/platform";
 import * as path from "path";
 import { ILogger } from "../../src/models/interfaces";

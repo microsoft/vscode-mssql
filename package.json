@@ -39,7 +39,7 @@
         "onUri",
         "onCommand:mssql.loadCompletionExtension"
     ],
-    "main": "./out/extension/extension",
+    "main": "./dist/extension",
     "l10n": "./localization/l10n",
     "extensionDependencies": [
         "vscode.sql"
@@ -54,7 +54,7 @@
         "build:copy-assets": "node scripts/copy-assets.js",
         "build:prepare": "yarn build:copy-assets && yarn build:runtime-localization",
         "build:extension": "tsc -p tsconfig.extension.json",
-        "build:extension-bundle": "run-p node scripts/bundle-extension.js",
+        "build:extension-bundle": "node scripts/bundle-extension.js",
         "build:webviews": "node scripts/bundle-reactviews.js",
         "build": "yarn build:prepare && yarn build:extension && yarn build:extension-bundle && yarn build:webviews",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
