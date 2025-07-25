@@ -676,6 +676,47 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("intermediaryBulkGeneralOptionsChanged", (state, payload) => {
+            this.logger.verbose(`Bulk changing general options: selectAll=${payload.selectAll}`);
+
+            const generalOptionsDictionary =
+                state.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary;
+
+            Object.keys(generalOptionsDictionary).forEach((key) => {
+                generalOptionsDictionary[key].value = payload.selectAll;
+            });
+
+            this.logger.info(`Bulk changed all general options to ${payload.selectAll}`);
+
+            this.updateState(state);
+            return state;
+        });
+
+        this.registerReducer(
+            "intermediaryBulkIncludeObjectTypesOptionsChanged",
+            (state, payload) => {
+                this.logger.verbose(
+                    `Bulk changing object type inclusion options: selectAll=${payload.selectAll}`,
+                );
+
+                const deploymentOptions = state.intermediaryOptionsResult.defaultDeploymentOptions;
+                const objectTypesDictionary = deploymentOptions.objectTypesDictionary;
+
+                if (payload.selectAll) {
+                    // Select all - clear the exclusion list
+                    deploymentOptions.excludeObjectTypes.value = [];
+                    this.logger.info(`Cleared all object type exclusions (selected all)`);
+                } else {
+                    // Deselect all - add all available object types to exclusion list
+                    deploymentOptions.excludeObjectTypes.value = Object.keys(objectTypesDictionary);
+                    this.logger.info(`Added all object types to exclusion list (deselected all)`);
+                }
+
+                this.updateState(state);
+                return state;
+            },
+        );
+
         this.registerReducer("switchEndpoints", async (state, payload) => {
             this.logger.info(`Switching source and target endpoints`);
 

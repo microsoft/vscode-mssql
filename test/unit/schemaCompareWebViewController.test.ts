@@ -1044,4 +1044,164 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         includeExcludeAllStub.restore();
     });
+
+    test("intermediaryBulkGeneralOptionsChanged reducer - when selectAll is true - selects all general options", () => {
+        // Arrange
+        const mockState = { ...mockInitialState };
+        mockState.intermediaryOptionsResult = {
+            defaultDeploymentOptions: {
+                booleanOptionsDictionary: {
+                    option1: {
+                        value: false,
+                        displayName: "Option 1",
+                        description: "Description 1",
+                    },
+                    option2: { value: true, displayName: "Option 2", description: "Description 2" },
+                    option3: {
+                        value: false,
+                        displayName: "Option 3",
+                        description: "Description 3",
+                    },
+                },
+                excludeObjectTypes: { value: [] },
+                objectTypesDictionary: {},
+            },
+        } as any;
+
+        const payload = { selectAll: true };
+
+        // Act
+        const result = controller["_reducerHandlers"].get("intermediaryBulkGeneralOptionsChanged")(
+            mockState,
+            payload,
+        ) as SchemaCompareWebViewState;
+
+        // Assert
+        assert.strictEqual(
+            result.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary
+                .option1.value,
+            true,
+            "Option 1 should be selected",
+        );
+        assert.strictEqual(
+            result.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary
+                .option2.value,
+            true,
+            "Option 2 should remain selected",
+        );
+        assert.strictEqual(
+            result.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary
+                .option3.value,
+            true,
+            "Option 3 should be selected",
+        );
+    });
+
+    test("intermediaryBulkGeneralOptionsChanged reducer - when selectAll is false - deselects all general options", () => {
+        // Arrange
+        const mockState = { ...mockInitialState };
+        mockState.intermediaryOptionsResult = {
+            defaultDeploymentOptions: {
+                booleanOptionsDictionary: {
+                    option1: {
+                        value: false,
+                        displayName: "Option 1",
+                        description: "Description 1",
+                    },
+                    option2: { value: true, displayName: "Option 2", description: "Description 2" },
+                    option3: { value: true, displayName: "Option 3", description: "Description 3" },
+                },
+                excludeObjectTypes: { value: [] },
+                objectTypesDictionary: {},
+            },
+        } as any;
+
+        const payload = { selectAll: false };
+
+        // Act
+        const result = controller["_reducerHandlers"].get("intermediaryBulkGeneralOptionsChanged")(
+            mockState,
+            payload,
+        ) as SchemaCompareWebViewState;
+
+        // Assert
+        assert.strictEqual(
+            result.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary
+                .option1.value,
+            false,
+            "Option 1 should remain deselected",
+        );
+        assert.strictEqual(
+            result.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary
+                .option2.value,
+            false,
+            "Option 2 should be deselected",
+        );
+        assert.strictEqual(
+            result.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary
+                .option3.value,
+            false,
+            "Option 3 should be deselected",
+        );
+    });
+
+    test("intermediaryBulkIncludeObjectTypesOptionsChanged reducer - when selectAll is true - selects all object types", () => {
+        // Arrange
+        const mockState = { ...mockInitialState };
+        mockState.intermediaryOptionsResult = {
+            defaultDeploymentOptions: {
+                booleanOptionsDictionary: {},
+                excludeObjectTypes: { value: ["Table", "View"] },
+                objectTypesDictionary: {
+                    Table: "Table",
+                    View: "View",
+                    StoredProcedure: "Stored Procedure",
+                },
+            },
+        } as any;
+
+        const payload = { selectAll: true };
+
+        // Act
+        const result = controller["_reducerHandlers"].get(
+            "intermediaryBulkIncludeObjectTypesOptionsChanged",
+        )(mockState, payload) as SchemaCompareWebViewState;
+
+        // Assert
+        assert.deepEqual(
+            result.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes.value,
+            [],
+            "All object types should be included (exclusion list should be empty)",
+        );
+    });
+
+    test("intermediaryBulkIncludeObjectTypesOptionsChanged reducer - when selectAll is false - deselects all object types", () => {
+        // Arrange
+        const mockState = { ...mockInitialState };
+        mockState.intermediaryOptionsResult = {
+            defaultDeploymentOptions: {
+                booleanOptionsDictionary: {},
+                excludeObjectTypes: { value: [] },
+                objectTypesDictionary: {
+                    Table: "Table",
+                    View: "View",
+                    StoredProcedure: "Stored Procedure",
+                },
+            },
+        } as any;
+
+        const payload = { selectAll: false };
+
+        // Act
+        const result = controller["_reducerHandlers"].get(
+            "intermediaryBulkIncludeObjectTypesOptionsChanged",
+        )(mockState, payload) as SchemaCompareWebViewState;
+
+        // Assert
+        assert.deepEqual(
+            result.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes.value,
+            ["Table", "View", "StoredProcedure"],
+            "All object types should be excluded",
+        );
+    });
 });

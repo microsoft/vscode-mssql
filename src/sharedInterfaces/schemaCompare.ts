@@ -104,6 +104,10 @@ export interface SchemaCompareReducers {
 
     intermediaryIncludeObjectTypesOptionsChanged: { key: string };
 
+    intermediaryBulkGeneralOptionsChanged: { selectAll: boolean };
+
+    intermediaryBulkIncludeObjectTypesOptionsChanged: { selectAll: boolean };
+
     resetSchemaOptions: {};
 
     confirmSchemaOptions: { optionsChanged: boolean };
@@ -190,6 +194,10 @@ export interface SchemaCompareContextProps {
     intermediaryGeneralOptionsChanged: (key: string) => void;
 
     intermediaryIncludeObjectTypesOptionsChanged: (key: string) => void;
+
+    intermediaryBulkGeneralOptionsChanged: (selectAll: boolean) => void;
+
+    intermediaryBulkIncludeObjectTypesOptionsChanged: (selectAll: boolean) => void;
 
     confirmSchemaOptions: (optionsChanged: boolean) => void;
 

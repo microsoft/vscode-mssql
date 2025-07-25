@@ -119,6 +119,63 @@ const SchemaOptionsDrawer = (props: Props) => {
         return isFound === undefined ? true : false;
     };
 
+    // Helper functions for select all functionality
+    const getGeneralOptionsSelectAllState = (): {
+        checked: boolean;
+        indeterminate: boolean;
+    } => {
+        if (!optionsToValueNameLookup || filteredGeneralOptions.length === 0) {
+            return { checked: false, indeterminate: false };
+        }
+
+        const totalOptions = filteredGeneralOptions.length;
+        const checkedOptions = filteredGeneralOptions.filter(([_, value]) => value.value).length;
+
+        if (checkedOptions === totalOptions) {
+            return { checked: true, indeterminate: false };
+        } else if (checkedOptions === 0) {
+            return { checked: false, indeterminate: false };
+        } else {
+            return { checked: false, indeterminate: true };
+        }
+    };
+
+    const getObjectTypesSelectAllState = (): {
+        checked: boolean;
+        indeterminate: boolean;
+    } => {
+        if (!includeObjectTypesLookup || filteredObjectTypes.length === 0) {
+            return { checked: false, indeterminate: false };
+        }
+
+        const totalOptions = filteredObjectTypes.length;
+        const checkedOptions = filteredObjectTypes.filter(([key, _]) =>
+            handleSetObjectTypesCheckedState(key),
+        ).length;
+
+        if (checkedOptions === totalOptions) {
+            return { checked: true, indeterminate: false };
+        } else if (checkedOptions === 0) {
+            return { checked: false, indeterminate: false };
+        } else {
+            return { checked: false, indeterminate: true };
+        }
+    };
+
+    const handleGeneralOptionsSelectAll = () => {
+        const selectAllState = getGeneralOptionsSelectAllState();
+        const shouldSelectAll = !selectAllState.checked;
+        context.intermediaryBulkGeneralOptionsChanged(shouldSelectAll);
+        setOptionsChanged(true);
+    };
+
+    const handleObjectTypesSelectAll = () => {
+        const selectAllState = getObjectTypesSelectAllState();
+        const shouldSelectAll = !selectAllState.checked;
+        context.intermediaryBulkIncludeObjectTypesOptionsChanged(shouldSelectAll);
+        setOptionsChanged(true);
+    };
+
     return (
         <Drawer
             separator
@@ -157,51 +214,83 @@ const SchemaOptionsDrawer = (props: Props) => {
                 </TabList>
 
                 {selectedValue === "generalOptions" && (
-                    <List className={classes.optionsContainer}>
-                        {optionsToValueNameLookup &&
-                            filteredGeneralOptions.map(([key, value]) => {
-                                return (
-                                    <ListItem
-                                        className={classes.listItemContainer}
-                                        key={key}
-                                        value={key}
-                                        aria-label={value.displayName}>
-                                        <Checkbox
-                                            checked={value.value}
-                                            onChange={() => handleSettingChanged(key)}
-                                            label={
-                                                <InfoLabel
-                                                    aria-label={value.displayName}
-                                                    info={<>{value.description}</>}>
-                                                    {value.displayName}
-                                                </InfoLabel>
-                                            }
-                                        />
-                                    </ListItem>
-                                );
-                            })}
-                    </List>
+                    <div>
+                        <ListItem className={classes.listItemContainer}>
+                            <Checkbox
+                                checked={getGeneralOptionsSelectAllState().checked}
+                                indeterminate={getGeneralOptionsSelectAllState().indeterminate}
+                                onChange={handleGeneralOptionsSelectAll}
+                                label={
+                                    <Label>
+                                        {getGeneralOptionsSelectAllState().checked
+                                            ? loc.schemaCompare.deselectAll
+                                            : loc.schemaCompare.selectAll}
+                                    </Label>
+                                }
+                            />
+                        </ListItem>
+                        <List className={classes.optionsContainer}>
+                            {optionsToValueNameLookup &&
+                                filteredGeneralOptions.map(([key, value]) => {
+                                    return (
+                                        <ListItem
+                                            className={classes.listItemContainer}
+                                            key={key}
+                                            value={key}
+                                            aria-label={value.displayName}>
+                                            <Checkbox
+                                                checked={value.value}
+                                                onChange={() => handleSettingChanged(key)}
+                                                label={
+                                                    <InfoLabel
+                                                        aria-label={value.displayName}
+                                                        info={<>{value.description}</>}>
+                                                        {value.displayName}
+                                                    </InfoLabel>
+                                                }
+                                            />
+                                        </ListItem>
+                                    );
+                                })}
+                        </List>
+                    </div>
                 )}
 
                 {selectedValue === "includeObjectTypes" && (
-                    <List className={classes.optionsContainer}>
-                        {includeObjectTypesLookup &&
-                            filteredObjectTypes.map(([key, value]) => {
-                                return (
-                                    <ListItem
-                                        className={classes.listItemContainer}
-                                        key={key}
-                                        value={key}
-                                        aria-label={value}>
-                                        <Checkbox
-                                            checked={handleSetObjectTypesCheckedState(key)}
-                                            onChange={() => handleObjectTypesOptionChanged(key)}
-                                            label={<Label aria-label={value}>{value}</Label>}
-                                        />
-                                    </ListItem>
-                                );
-                            })}
-                    </List>
+                    <div>
+                        <ListItem className={classes.listItemContainer}>
+                            <Checkbox
+                                checked={getObjectTypesSelectAllState().checked}
+                                indeterminate={getObjectTypesSelectAllState().indeterminate}
+                                onChange={handleObjectTypesSelectAll}
+                                label={
+                                    <Label>
+                                        {getObjectTypesSelectAllState().checked
+                                            ? loc.schemaCompare.deselectAll
+                                            : loc.schemaCompare.selectAll}
+                                    </Label>
+                                }
+                            />
+                        </ListItem>
+                        <List className={classes.optionsContainer}>
+                            {includeObjectTypesLookup &&
+                                filteredObjectTypes.map(([key, value]) => {
+                                    return (
+                                        <ListItem
+                                            className={classes.listItemContainer}
+                                            key={key}
+                                            value={key}
+                                            aria-label={value}>
+                                            <Checkbox
+                                                checked={handleSetObjectTypesCheckedState(key)}
+                                                onChange={() => handleObjectTypesOptionChanged(key)}
+                                                label={<Label aria-label={value}>{value}</Label>}
+                                            />
+                                        </ListItem>
+                                    );
+                                })}
+                        </List>
+                    </div>
                 )}
             </DrawerBody>
             <DrawerFooter>
