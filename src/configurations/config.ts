@@ -89,7 +89,7 @@ export default class Config implements IConfig {
     }
 
     private loadConfig(): any {
-        let configContent = fs.readFileSync(path.join(__dirname, "../config.json"));
+        let configContent = fs.readFileSync(path.join(__dirname, "./config.json"));
         return JSON.parse(configContent.toString());
     }
 }

@@ -192,36 +192,6 @@ declare module "vscode-mssql" {
     }
 
     /**
-     * Well-known Authentication types.
-     */
-    export const enum AuthenticationType {
-        /**
-         * Username and password
-         */
-        SqlLogin = "SqlLogin",
-        /**
-         * Windows Authentication
-         */
-        Integrated = "Integrated",
-        /**
-         * Microsoft Entra Id - Universal with MFA support
-         */
-        AzureMFA = "AzureMFA",
-        /**
-         * Microsoft Entra Id - Password
-         */
-        AzureMFAAndUser = "AzureMFAAndUser",
-        /**
-         * Datacenter Security Token Service Authentication
-         */
-        DSTSAuth = "dstsAuth",
-        /**
-         * No authentication required
-         */
-        None = "None",
-    }
-
-    /**
      * The possible values of the server engine edition
      * EngineEdition under https://docs.microsoft.com/sql/t-sql/functions/serverproperty-transact-sql is associated with these values
      */
@@ -446,16 +416,6 @@ declare module "vscode-mssql" {
          * connection is not hosted by a container
          */
         containerName: string | undefined;
-    }
-
-    // If this enum changes, please update the SharedExtractTarget enum in schemaCompare.ts
-    export const enum ExtractTarget {
-        dacpac = 0,
-        file = 1,
-        flat = 2,
-        objectType = 3,
-        schema = 4,
-        schemaObjectType = 5,
     }
 
     /**
@@ -1235,11 +1195,7 @@ declare module "vscode-mssql" {
         getLocations(session: IAzureAccountSession): Promise<azure.subscription.Location[]>;
     }
 
-    export const enum TaskExecutionMode {
-        execute = 0,
-        script = 1,
-        executeAndScript = 2,
-    }
+
 
     /**
      * Interface containing deployment options of boolean type
@@ -1353,14 +1309,6 @@ declare module "vscode-mssql" {
         createStreamingJobTsql: string;
     }
 
-    export const enum SchemaCompareEndpointType {
-        Database = 0,
-        Dacpac = 1,
-        Project = 2,
-        // must be kept in-sync with SchemaCompareEndpointType in SQL Tools Service
-        // located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
-    }
-
     export interface SchemaCompareConnectionInfo {
         options: { [name: string]: any };
     }
@@ -1386,10 +1334,6 @@ declare module "vscode-mssql" {
         Add = 2,
     }
 
-    export const enum SchemaDifferenceType {
-        Object = 0,
-        Property = 1,
-    }
 
     export interface DiffEntry {
         updateAction: SchemaUpdateAction;

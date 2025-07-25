@@ -29,7 +29,7 @@ const config = {
     'schemaCompare': 'src/reactviews/pages/SchemaCompare/index.tsx',
   },
   bundle: true,
-  outdir: 'out/views',
+  outdir: 'dist/views',
   platform: 'browser',
   loader: {
     '.tsx': 'tsx',

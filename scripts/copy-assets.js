@@ -16,7 +16,12 @@ const COPY_TASKS = [
     {
         name: "Configuration Files",
         source: "src/configurations/config.json",
-        destination: "out/src/config.json",
+        destination: "out/configuration/config.json",
+    },
+    {
+        name: "Configuration Files",
+        source: "src/configurations/config.json",
+        destination: "dist/config.json",
     },
 ];
 

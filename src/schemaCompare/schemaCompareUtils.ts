@@ -8,7 +8,11 @@ import * as mssql from "vscode-mssql";
 import * as os from "os";
 import * as path from "path";
 import { promises as fs } from "fs";
-import { SchemaCompareReducers } from "../sharedInterfaces/schemaCompare";
+import {
+    SchemaCompareEndpointType,
+    SchemaCompareReducers,
+    TaskExecutionMode,
+} from "../sharedInterfaces/schemaCompare";
 import { generateGuid } from "../models/utils";
 import * as locConstants from "../constants/locConstants";
 /**
@@ -148,7 +152,7 @@ async function fileExists(path: string): Promise<boolean> {
  */
 export async function compare(
     operationId: string,
-    taskExecutionMode: mssql.TaskExecutionMode,
+    taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["compare"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareResult> {
@@ -173,7 +177,7 @@ export async function compare(
  */
 export async function generateScript(
     operationId: string,
-    taskExecutionMode: mssql.TaskExecutionMode,
+    taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["generateScript"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
@@ -197,7 +201,7 @@ export async function generateScript(
  */
 export async function publishDatabaseChanges(
     operationId: string,
-    taskExecutionMode: mssql.TaskExecutionMode,
+    taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["publishChanges"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
@@ -263,7 +267,7 @@ export async function getDefaultOptions(
  */
 export async function includeExcludeNode(
     operationId: string,
-    taskExecutionMode: mssql.TaskExecutionMode,
+    taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["includeExcludeNode"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareIncludeExcludeResult> {
@@ -288,7 +292,7 @@ export async function includeExcludeNode(
  */
 export async function includeExcludeAllNodes(
     operationId: string,
-    taskExecutionMode: mssql.TaskExecutionMode,
+    taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["includeExcludeAllNodes"],
     schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareIncludeExcludeAllResult> {
@@ -333,7 +337,7 @@ export async function openScmp(
 export async function saveScmp(
     sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
     targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-    taskExecutionMode: mssql.TaskExecutionMode,
+    taskExecutionMode: TaskExecutionMode,
     deploymentOptions: mssql.DeploymentOptions,
     scmpFilePath: string,
     excludedSourceObjects: mssql.SchemaCompareObjectId[],
@@ -377,14 +381,14 @@ export async function cancel(
  *          Possible values are "Database", "Dacpac", "Project", or "Unknown: {endpointType}".
  */
 export function getSchemaCompareEndpointTypeString(
-    endpointType: mssql.SchemaCompareEndpointType,
+    endpointType: SchemaCompareEndpointType,
 ): string {
     switch (endpointType) {
-        case mssql.SchemaCompareEndpointType.Database:
+        case SchemaCompareEndpointType.Database:
             return "Database";
-        case mssql.SchemaCompareEndpointType.Dacpac:
+        case SchemaCompareEndpointType.Dacpac:
             return "Dacpac";
-        case mssql.SchemaCompareEndpointType.Project:
+        case SchemaCompareEndpointType.Project:
             return "Project";
         default:
             return `Unknown: ${endpointType}`;

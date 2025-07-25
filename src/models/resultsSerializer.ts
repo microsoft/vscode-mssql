@@ -13,8 +13,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as Contracts from "../models/contracts";
 import * as Utils from "../models/utils";
-import * as opener from "open";
-import { getErrorMessage } from "../utils/utils";
+import opener from "opener";
 
 type SaveAsRequestParams =
     | Contracts.SaveResultsAsCsvRequestParams
@@ -283,8 +282,10 @@ export default class ResultsSerializer {
         if (format === "excel") {
             // This will not open in VSCode as it's treated as binary. Use the native file opener instead
             // Note: must use filePath here, URI does not open correctly
-            opener.default(filePath).catch((error) => {
-                self._vscodeWrapper.showErrorMessage(getErrorMessage(error));
+            opener(filePath, undefined, (error) => {
+                if (error) {
+                    self._vscodeWrapper.showErrorMessage(error);
+                }
             });
         } else {
             let uri = vscode.Uri.file(filePath);

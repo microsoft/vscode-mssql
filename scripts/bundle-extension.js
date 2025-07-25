@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 const logger = require("./terminal-logger");
-const { typecheckPlugin } = require("@jgoz/esbuild-plugin-typecheck");
 const { esbuildProblemMatcherPlugin, build, watch } = require("./esbuild-utils");
 const path = require("path");
 
@@ -20,7 +19,7 @@ const config = {
         serviceInstallerUtil: "src/languageService/serviceInstallerUtil.ts",
     },
     bundle: true,
-    outdir: "out/extension",
+    outdir: "dist",
     platform: "node",
     loader: {
         ".ts": "ts",
@@ -29,16 +28,7 @@ const config = {
     },
     tsconfig: "./tsconfig.extension.json",
     plugins: [
-        {
-            name: "custom-types",
-            setup(build) {
-                build.onResolve({ filter: /^vscode-mssql$/ }, (args) => {
-                    return { path: path.resolve(__dirname, "../typings/vscode-mssql.d.ts") };
-                });
-            },
-        },
         esbuildProblemMatcherPlugin("extension"),
-        typecheckPlugin(),
     ],
     nodePaths: ["./node_modules"],
     sourcemap: !isProd,
@@ -46,7 +36,6 @@ const config = {
     metafile: !isProd,
     external: ["vscode", "vscode-mssql"],
     minify: isProd,
-    format: "cjs",
 };
 
 // Main execution
