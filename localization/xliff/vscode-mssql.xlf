@@ -814,6 +814,9 @@
     <trans-unit id="++CODE++b16cf0590a6c78b2e8047509582e5448bd55e408cd112bd1f064e34529f6ce3d">
       <source xml:lang="en">Description for the table.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5cd261bcc680ffdaef07096b65379d9358316948ef7fddce644405f7e518c848">
+      <source xml:lang="en">Deselect All</source>
+    </trans-unit>
     <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
       <source xml:lang="en">Details</source>
     </trans-unit>
