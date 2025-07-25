@@ -854,10 +854,13 @@ export class ContainerDeployment {
     public static startDockerEngineBody = l10n.t(
         "Checking if the Docker Engine is configured correctly on your machine.",
     );
-    public static creatingContainerHeader = l10n.t("Creating Container");
-    public static creatingContainerBody = l10n.t(
-        "Creating and starting your SQL Server Docker container",
+    public static pullImageHeader = l10n.t("Pulling SQL Server Image");
+    public static pullImageBody = l10n.t(
+        "Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.",
     );
+
+    public static creatingContainerHeader = l10n.t("Creating Container");
+    public static creatingContainerBody = l10n.t("Creating and starting your SQL Server container");
     public static settingUpContainerHeader = l10n.t("Setting up container");
     public static settingUpContainerBody = l10n.t("Readying container for connections.");
     public static connectingToContainerHeader = l10n.t("Connecting to Container");
@@ -867,6 +870,9 @@ export class ContainerDeployment {
     public static passwordLengthError = l10n.t("Please make your password 8-128 characters long.");
     public static passwordComplexityError = l10n.t(
         "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
+    );
+    public static pullSqlServerContainerImageError = l10n.t(
+        "Failed to pull SQL Server image. Please check your network connection and try again.",
     );
     public static unsupportedDockerPlatformError = (platform: string) =>
         l10n.t({
@@ -900,7 +906,9 @@ export class ContainerDeployment {
     );
     public static installDocker = l10n.t("Install Docker");
     public static msgCreateLocalSqlContainer = l10n.t("Create Local SQL Container");
+    public static startingDockerLoadingLabel = l10n.t("Starting Docker...");
     public static startingContainerLoadingLabel = l10n.t("Starting Container...");
+    public static readyingContainerLoadingLabel = l10n.t("Readying container for connections...");
     public static stoppingContainerLoadingLabel = l10n.t("Stopping Container...");
     public static deletingContainerLoadingLabel = l10n.t("Deleting Container...");
     public static deleteContainerConfirmation = (containerName: string) => {
