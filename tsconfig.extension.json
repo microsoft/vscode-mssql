@@ -1,7 +1,6 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-
         "outDir": "out",
         "module": "CommonJS",
         "target": "ES2024",
@@ -17,13 +16,7 @@
         "jsx": "react-jsx",
         "rootDir": ".",
         "noUnusedLocals": true,
-        "skipLibCheck": true,
-        "typeRoots": [
-            "./node_modules/@types",
-            "./typings"
-        ],
-        "preserveConstEnums": false, // ✅ ensure inlining
-        "isolatedModules": false
+        "skipLibCheck": true
     },
     "exclude": [
         "node_modules",

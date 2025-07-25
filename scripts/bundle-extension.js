@@ -29,10 +29,16 @@ const config = {
     },
     tsconfig: "./tsconfig.extension.json",
     plugins: [
+        {
+            name: "custom-types",
+            setup(build) {
+                build.onResolve({ filter: /^vscode-mssql$/ }, (args) => {
+                    return { path: path.resolve(__dirname, "../typings/vscode-mssql.d.ts") };
+                });
+            },
+        },
         esbuildProblemMatcherPlugin("extension"),
-        typecheckPlugin({
-            buildMode: "write-output",
-        })
+        typecheckPlugin(),
     ],
     nodePaths: ["./node_modules"],
     sourcemap: !isProd,
