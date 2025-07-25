@@ -2343,11 +2343,6 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.6.tgz#628effeeae2064a1b4e79f78e81d87b7e5fc7b50"
   integrity sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==
 
-"@types/find-remove@^2.0.3":
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/@types/find-remove/-/find-remove-2.0.3.tgz#65528d636742f434d0296059ef17934dd8b404ae"
-  integrity sha512-FF9QKGSLfRk5O/R/KImfvwfj8NVlc8xIIDSvmfVR4FXbFMgN3urI720/2FUYtul+1iwfLl/j+6Wqq+52dPQxBQ==
-
 "@types/hast@^3.0.0":
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/@types/hast/-/hast-3.0.4.tgz#1d6b39993b82cea6ad783945b0508c25903e15aa"
