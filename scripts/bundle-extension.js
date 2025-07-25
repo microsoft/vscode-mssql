@@ -6,6 +6,7 @@
 const logger = require("./terminal-logger");
 const { typecheckPlugin } = require("@jgoz/esbuild-plugin-typecheck");
 const { esbuildProblemMatcherPlugin, build, watch } = require("./esbuild-utils");
+const path = require("path");
 
 // Parse arguments
 const args = process.argv.slice(2);
@@ -19,7 +20,7 @@ const config = {
         serviceInstallerUtil: "src/languageService/serviceInstallerUtil.ts",
     },
     bundle: true,
-    outdir: "out/src",
+    outdir: "out/extension",
     platform: "node",
     loader: {
         ".ts": "ts",
@@ -27,8 +28,15 @@ const config = {
         ".json": "json",
     },
     tsconfig: "./tsconfig.extension.json",
-    plugins: [esbuildProblemMatcherPlugin("extension"), typecheckPlugin()],
+    plugins: [
+        esbuildProblemMatcherPlugin("extension"),
+        typecheckPlugin({
+            buildMode: "write-output",
+        })
+    ],
+    nodePaths: ["./node_modules"],
     sourcemap: !isProd,
+    sourcesContent: false,
     metafile: !isProd,
     external: ["vscode", "vscode-mssql"],
     minify: isProd,
@@ -38,10 +46,10 @@ const config = {
 // Main execution
 async function main() {
     if (isWatch) {
-        logger.header("Building webviews (watch mode)");
+        logger.header("Building extension (watch mode)");
         await watch(config);
     } else {
-        logger.header(`Building webviews`);
+        logger.header(`Building extension`);
         const success = await build(config, isProd);
         process.exit(success ? 0 : 1);
     }

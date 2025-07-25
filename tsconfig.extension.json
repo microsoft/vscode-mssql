@@ -1,10 +1,14 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
+
         "outDir": "out",
         "module": "CommonJS",
         "target": "ES2024",
-        "lib": ["ES2024", "dom"],
+        "lib": [
+            "ES2024",
+            "dom"
+        ],
         "sourceMap": true,
         "allowUnusedLabels": false,
         "allowSyntheticDefaultImports": true,
@@ -13,7 +17,17 @@
         "jsx": "react-jsx",
         "rootDir": ".",
         "noUnusedLocals": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "typeRoots": [
+            "./node_modules/@types",
+            "./typings"
+        ],
+        "preserveConstEnums": false, // ✅ ensure inlining
+        "isolatedModules": false
     },
-    "exclude": ["node_modules", "src/reactviews", "samples"]
+    "exclude": [
+        "node_modules",
+        "src/reactviews",
+        "samples"
+    ]
 }
