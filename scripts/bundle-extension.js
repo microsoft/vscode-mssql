@@ -16,7 +16,7 @@ const isWatch = args.includes("--watch") || args.includes("-w");
 const config = {
     entryPoints: {
         extension: "src/extension.ts",
-        serviceInstallerUtil: "src/languageService/serviceInstallerUtil.ts",
+        serviceInstallerUtil: "src/languageservice/serviceInstallerUtil.ts",
     },
     bundle: true,
     outdir: "dist",
