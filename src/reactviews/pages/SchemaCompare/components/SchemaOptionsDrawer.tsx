@@ -312,7 +312,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                                             data.checked === "mixed" ? true : !!data.checked;
                                         handleObjectTypesMasterCheckbox(isChecked);
                                     }}
-                                    label="Select all object types"
+                                    label={loc.schemaCompare.includeAllObjectTypes}
                                 />
                             </div>
                         )}
