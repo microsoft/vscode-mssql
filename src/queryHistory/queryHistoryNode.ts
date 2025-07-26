@@ -4,10 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as path from "path";
 import * as os from "os";
 import * as LocalizedConstants from "../constants/locConstants";
-import { extensionUri } from "../extension";
+import { IconUtils } from "../utils/iconUtils";
 
 /**
  * Empty Node shown when no queries are available
@@ -56,9 +55,8 @@ export class QueryHistoryNode extends vscode.TreeItem {
     }
 
     private initializeIcons(): void {
-        const basePath: string = path.join(extensionUri.fsPath, "media", "queryHistory");
-        this.iconPath = path.join(
-            basePath,
+        this.iconPath = IconUtils.getIcon(
+            "queryHistory",
             this._isSuccess ? "status_success.svg" : "status_error.svg",
         );
     }
