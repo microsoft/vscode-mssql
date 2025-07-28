@@ -94,7 +94,7 @@ export async function run(): Promise<void> {
     // Create the mocha test with a custom reporter for cleaner output
     const mocha = new Mocha({
         ui: "tdd",
-        timeout: 10 * 1000,
+        timeout: 30 * 1000, // some tests require installing sts and can take longer
         reporter: "mocha-junit-reporter",
         reporterOptions: {
             mochaFile: path.join(

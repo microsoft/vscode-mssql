@@ -46,7 +46,7 @@ To pick up coverage data while testing, you have to run the instrumentation comm
 However, if you've only changed the tests, then you can run
 
 ```shell
-gulp ext:compile-tests; npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
+yarn build; npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
 ```
 
 This will recompile your tests and run them for coverage.

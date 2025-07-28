@@ -17,7 +17,7 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
-        "composite": true,
+        "composite": false,
         "allowSyntheticDefaultImports": true
     },
     "include": ["src/reactviews", "typings", "src/sharedInterfaces", "media"]
