@@ -18,6 +18,11 @@
         "noUnusedLocals": true,
         "skipLibCheck": true
     },
+    "include": [
+        "src",
+        "test",
+        "typings",
+    ],
     "exclude": [
         "node_modules",
         "src/reactviews",

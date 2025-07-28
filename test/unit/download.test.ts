@@ -78,9 +78,10 @@ suite("ServiceDownloadProvider Tests", () => {
     });
 
     test("getInstallDirectory should add the platform to the path given the path with the platform template key", async () => {
-        let expectedPathFromConfig = __dirname + "/{#version#}/{#platform#}";
+        let rootPath = path.resolve(__dirname);
+        let expectedPathFromConfig = path.join(rootPath, "{#version#}", "{#platform#}");
         let expectedVersionFromConfig = "0.0.4";
-        let expected = __dirname + "/0.0.4/OSX";
+        let expected = path.join(rootPath, "0.0.4", "OSX");
         config.setup((x) => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
         config.setup((x) => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
         let downloadProvider = new ServiceDownloadProvider(
@@ -91,24 +92,7 @@ suite("ServiceDownloadProvider Tests", () => {
             testDecompressProvider.object,
         );
         let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
-        assert.equal(expected, actual);
-    });
-
-    test("getInstallDirectory should add the platform to the path given the path with the platform template key", async () => {
-        let expectedPathFromConfig = "../service/{#version#}/{#platform#}";
-        let expectedVersionFromConfig = "0.0.4";
-        let expected = path.join(__dirname, "../../../service/0.0.4/OSX");
-        config.setup((x) => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
-        config.setup((x) => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-        let downloadProvider = new ServiceDownloadProvider(
-            config.object,
-            undefined,
-            testStatusView.object,
-            testHttpClient.object,
-            testDecompressProvider.object,
-        );
-        let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
-        assert.equal(expected, actual);
+        assert.equal(actual, expected);
     });
 
     test("getDownloadFileName should return the expected file name given a runtime", (done) => {
