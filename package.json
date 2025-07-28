@@ -70,8 +70,8 @@
         "prepare": "husky",
         "lint-staged": "lint-staged --quiet",
         "precommit": "run-p lint-staged localization",
-        "instrument": "nyc instrument ./out/src ./out/src --in-place",
-        "e2eTest": "npx playwright test ; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
+        "instrument": "nyc instrument ./dist/src ./dist/src --in-place",
+        "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
     },
     "lint-staged": {
         "*.ts": "eslint --quiet --cache",
