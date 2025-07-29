@@ -567,6 +567,7 @@
   "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
   "Select Source Schema": "Select Source Schema",
   "Select Target Schema": "Select Target Schema",
+  "Add Server Connection": "Add Server Connection",
   "No schema differences were found.": "No schema differences were found.",
   "Initializing comparison, this might take a while...": "Initializing comparison, this might take a while...",
   "default": "default",
