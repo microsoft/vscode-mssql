@@ -60,6 +60,7 @@ export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
+export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
 export const cmdRewriteQuery = "mssql.copilot.rewriteQuery";
 export const cmdAnalyzeQueryPerformance = "mssql.copilot.analyzeQueryPerformance";
@@ -101,7 +102,7 @@ export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
-export const cmdDesignSchema = "mssql.designSchema";
+export const cmdDesignSchema = "mssql.schemaDesigner";
 export const cmdDeployLocalDockerContainer = "mssql.deployLocalDockerContainer";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
@@ -110,7 +111,7 @@ export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
 export const enableConnectionPooling = "mssql.enableConnectionPooling";
-export const sqlDbPrefix = ".database.windows.net";
+export const sqlDbSuffix = ".database.windows.net";
 export const defaultConnectionTimeout = 15;
 export const azureSqlDbConnectionTimeout = 30;
 export const defaultCommandTimeout = 30;
@@ -125,7 +126,6 @@ export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;
 export const errorFirewallRule = 40615;
 export const errorSSLCertificateValidationFailed = -2146893019;
-export const maxDisplayedStatusTextLength = 50;
 export const outputContentTypeRoot = "root";
 export const outputContentTypeMessages = "messages";
 export const outputContentTypeResultsetMeta = "resultsetsMeta";
@@ -142,7 +142,6 @@ export const outputServiceLocalhost = "http://localhost:";
 export const localhost = "localhost";
 export const localhostIP = "127.0.0.1";
 export const defaultContainerName = "sql_server_container";
-export const defaultContainerPort = 1433;
 export const msgContentProviderSqlOutputHtml = "dist/html/sqlOutput.ejs";
 export const contentProviderMinFile = "dist/js/app.min.js";
 export const untitledSaveTimeThreshold = 50.0;
@@ -178,7 +177,15 @@ export const msalCacheFileName = "accessTokenCache";
 export const copilotConnectToolName = "mssql_connect";
 export const copilotDisconnectToolName = "mssql_disconnect";
 export const copilotListServersToolName = "mssql_list_servers";
+export const copilotListDatabasesToolName = "mssql_list_databases";
+export const copilotListTablesToolName = "mssql_list_tables";
+export const copilotListSchemasToolName = "mssql_list_schemas";
+export const copilotListViewsToolName = "mssql_list_views";
+export const copilotListFunctionsToolName = "mssql_list_functions";
+export const copilotRunQueryToolName = "mssql_run_query";
+export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotShowSchemaToolName = "mssql_show_schema";
+export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 
 // Configuration Constants
 export const copyIncludeHeaders = "copyIncludeHeaders";
@@ -215,7 +222,6 @@ export const configEnableRichExperiencesDoNotShowPrompt =
 export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configUseLegacyConnectionExperience = "mssql.useLegacyConnectionExperience";
-export const configUseLegacyQueryResultExperience = "mssql.useLegacyQueryResultExperience";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
@@ -225,6 +231,8 @@ export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
 export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
+export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
+export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
@@ -260,3 +268,7 @@ export enum Platform {
 }
 export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
+export const x64 = "x64";
+export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
+export const docker = "docker";
+export const dockerDeploymentLoggerChannelName = "Docker Deployment";

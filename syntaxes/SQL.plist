@@ -225,7 +225,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i:\b((?:primary|foreign)\s+key|references|on\sdelete(\s+cascade)?|nocheck|check|constraint|collate|default)\b)</string>
+			<string>(?i:\b((?:primary|foreign)\s+key|references|on\s+(delete|update)(\s+cascade)?|nocheck|check|constraint|collate|default)\b)</string>
 			<key>name</key>
 			<string>storage.modifier.sql</string>
 		</dict>
@@ -273,7 +273,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>(?i:^\s*(comment\s+on\s+(table|column|aggregate|constraint|database|domain|function|index|operator|rule|schema|sequence|trigger|type|view))\s+.*?\s+(is)\s+)</string>
+			<string>(?i:^\s*(comment\s+on\s+(table|column|aggregate|constraint|database|domain|function|index|operator|rule|schema|sequence|trigger|type|view))\s+)</string>
 			<key>name</key>
 			<string>keyword.other.object-comments.sql</string>
 		</dict>

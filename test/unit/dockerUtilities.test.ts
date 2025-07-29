@@ -12,13 +12,30 @@ import { ContainerDeployment } from "../../src/constants/locConstants";
 import * as childProcess from "child_process";
 import { defaultContainerName, Platform } from "../../src/constants/constants";
 import * as path from "path";
-import * as telemetry from "../../src/telemetry/telemetry";
+import { stubTelemetry } from "./utils";
+import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
+import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
 
 suite("Docker Utilities", () => {
     let sandbox: sinon.SinonSandbox;
+    let node: ConnectionNode;
+    let mockObjectExplorerService: ObjectExplorerService;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
+        node = {
+            connectionProfile: {
+                containerName: "testContainer",
+                savePassword: true,
+            },
+            loadingLabel: "",
+        } as unknown as ConnectionNode;
+
+        mockObjectExplorerService = {
+            _refreshCallback: sandbox.stub(),
+            setLoadingUiForNode: sandbox.stub(),
+            removeNode: sandbox.stub(),
+        } as unknown as ObjectExplorerService;
     });
 
     teardown(() => {
@@ -28,7 +45,7 @@ suite("Docker Utilities", () => {
     test("initializeDockerSteps: should return correct Docker deployment steps", async () => {
         const steps = dockerUtils.initializeDockerSteps();
 
-        assert.strictEqual(steps.length, 6, "Should return 6 steps");
+        assert.strictEqual(steps.length, 7, "Should return 7 steps");
 
         assert.strictEqual(steps[0].headerText, ContainerDeployment.dockerInstallHeader);
         assert.strictEqual(steps[0].bodyText, ContainerDeployment.dockerInstallBody);
@@ -48,25 +65,30 @@ suite("Docker Utilities", () => {
         assert.strictEqual(steps[2].bodyText, ContainerDeployment.startDockerEngineBody);
         assert.strictEqual(typeof steps[2].stepAction, "function");
 
-        assert.strictEqual(steps[3].headerText, ContainerDeployment.creatingContainerHeader);
-        assert.strictEqual(steps[3].bodyText, ContainerDeployment.creatingContainerBody);
-        assert.deepStrictEqual(steps[3].argNames, [
+        assert.strictEqual(steps[3].headerText, ContainerDeployment.pullImageHeader);
+        assert.strictEqual(steps[3].bodyText, ContainerDeployment.pullImageBody);
+        assert.deepStrictEqual(steps[3].argNames, ["version"]);
+        assert.strictEqual(typeof steps[3].stepAction, "function");
+
+        assert.strictEqual(steps[4].headerText, ContainerDeployment.creatingContainerHeader);
+        assert.strictEqual(steps[4].bodyText, ContainerDeployment.creatingContainerBody);
+        assert.deepStrictEqual(steps[4].argNames, [
             "containerName",
             "password",
             "version",
             "hostname",
             "port",
         ]);
-        assert.strictEqual(typeof steps[3].stepAction, "function");
-
-        assert.strictEqual(steps[4].headerText, ContainerDeployment.settingUpContainerHeader);
-        assert.strictEqual(steps[4].bodyText, ContainerDeployment.settingUpContainerBody);
-        assert.deepStrictEqual(steps[4].argNames, ["containerName"]);
         assert.strictEqual(typeof steps[4].stepAction, "function");
 
-        assert.strictEqual(steps[5].headerText, ContainerDeployment.connectingToContainerHeader);
-        assert.strictEqual(steps[5].bodyText, ContainerDeployment.connectingToContainerBody);
-        assert.strictEqual(steps[5].stepAction, undefined);
+        assert.strictEqual(steps[5].headerText, ContainerDeployment.settingUpContainerHeader);
+        assert.strictEqual(steps[5].bodyText, ContainerDeployment.settingUpContainerBody);
+        assert.deepStrictEqual(steps[5].argNames, ["containerName"]);
+        assert.strictEqual(typeof steps[5].stepAction, "function");
+
+        assert.strictEqual(steps[6].headerText, ContainerDeployment.connectingToContainerHeader);
+        assert.strictEqual(steps[6].bodyText, ContainerDeployment.connectingToContainerBody);
+        assert.strictEqual(steps[6].stepAction, undefined);
     });
     test("sanitizeErrorText: should truncate long error messages and sanitize SA_PASSWORD", () => {
         // Test sanitization
@@ -151,8 +173,10 @@ suite("Docker Utilities", () => {
     test("checkEngine: combined test covering multiple scenarios", async () => {
         // Stub platform and dependent modules
         const platformStub = sandbox.stub(os, "platform");
+        const archStub = sandbox.stub(os, "arch");
         const execStub = sandbox.stub(childProcess, "exec");
         const messageStub = sandbox.stub(vscode.window, "showInformationMessage");
+        archStub.returns("x64");
 
         // 1. Linux - success path
         platformStub.returns(Platform.Linux);
@@ -160,6 +184,7 @@ suite("Docker Utilities", () => {
         execStub.yields(null, `'${Platform.Linux}'`);
 
         let result = await dockerUtils.checkEngine();
+        assert.strictEqual(result.error, undefined, "This should not have an error");
         assert.ok(result.success, "Linux platform should return success");
 
         // 2. Windows - engine needs switching, user confirms
@@ -186,7 +211,17 @@ suite("Docker Utilities", () => {
             ContainerDeployment.switchToLinuxContainersCanceled,
         );
 
-        // 4. Unsupported platform
+        // 4. Windows- arm architecture, should gracefully error
+        archStub.returns("arm");
+        result = await dockerUtils.checkEngine();
+        assert.ok(!result.success, "Should fail on unsupported architecture");
+        assert.strictEqual(
+            result.error,
+            ContainerDeployment.unsupportedDockerArchitectureError("arm"),
+        );
+
+        // 5. Unsupported platform
+        archStub.returns("x64");
         platformStub.returns("fakePlatform" as Platform); // Fake unsupported platform
 
         result = await dockerUtils.checkEngine();
@@ -196,7 +231,7 @@ suite("Docker Utilities", () => {
             ContainerDeployment.unsupportedDockerPlatformError("fakePlatform"),
         );
 
-        // 5. Command fails on Linux (e.g., permissions error)
+        // 6. Command fails on Linux (e.g., permissions error)
         platformStub.returns(Platform.Linux);
         execStub.resetBehavior();
         execStub.yields(new Error("Permission denied"), undefined);
@@ -206,8 +241,9 @@ suite("Docker Utilities", () => {
         assert.strictEqual(result.fullErrorText, "Permission denied");
         assert.strictEqual(result.error, ContainerDeployment.linuxDockerPermissionsError);
 
-        // 5. Command fails on Mac (e.g., permissions error)
+        // 7. Command fails on Mac (e.g., permissions error)
         platformStub.returns(Platform.Mac);
+        archStub.returns("arm");
         execStub.resetBehavior();
         execStub.yields(new Error("Rosetta not Enabled"), undefined);
 
@@ -215,6 +251,12 @@ suite("Docker Utilities", () => {
         assert.ok(!result.success);
         assert.strictEqual(result.fullErrorText, "Rosetta not Enabled");
         assert.strictEqual(result.error, ContainerDeployment.rosettaError);
+
+        // 8. Intel Mac, command succeeds
+        archStub.returns("x64");
+        execStub.resetBehavior();
+        result = await dockerUtils.checkEngine();
+        assert.ok(result.success);
     });
 
     test("validateContainerName: handles various input scenarios", async () => {
@@ -304,6 +346,7 @@ suite("Docker Utilities", () => {
         const port = 1433;
 
         const execStub = sandbox.stub(childProcess, "exec");
+        const { sendActionEvent } = stubTelemetry(sandbox);
 
         // Success case: exec yields (null error, stdout)
         execStub.onCall(0).yields(null, "some output");
@@ -317,6 +360,7 @@ suite("Docker Utilities", () => {
         );
 
         sinon.assert.calledOnce(execStub);
+        sinon.assert.calledOnce(sendActionEvent);
         assert.deepEqual(resultSuccess, {
             success: true,
             port,
@@ -441,44 +485,55 @@ suite("Docker Utilities", () => {
         sandbox.stub(os, "platform").returns(Platform.Linux);
         const execStub = sandbox.stub(childProcess, "exec");
         // Stub telemetry method
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
+        const { sendActionEvent } = stubTelemetry(sandbox);
+        const containerName = "testContainer";
 
         // Case 1: Container is already running, should return success
-        execStub.onFirstCall().yields(null, "Docker Running"); // START_DOCKER
-        execStub.onSecondCall().yields(null, "testContainer"); // CHECK_CONTAINER_RUNNING
-        let result = await dockerUtils.restartContainer("testContainer");
+        execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
+        execStub.onSecondCall().yields(null, containerName); // GET_CONTAINERS_BY_NAME
+
+        execStub.onThirdCall().yields(null, "testContainer"); // CHECK_CONTAINER_RUNNING
+        let result = await dockerUtils.restartContainer(
+            containerName,
+            node,
+            mockObjectExplorerService,
+        );
         assert.ok(result, "Should return success when container is already running");
-        sinon.assert.calledOnce(sendActionEventStub);
         execStub.resetHistory();
 
-        // Case 2: Container is not running, should restart and return success
-        execStub.onFirstCall().yields(null, "Docker Running"); // START_DOCKER
-        execStub.onSecondCall().yields(new Error("Container not running"), null); // CHECK_CONTAINER_RUNNING
-        execStub.onThirdCall().yields(null, "Container restarted"); // START_CONTAINER
+        // Case 2: Container is not running, should restart, send telemetry, and return success
+        execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
+        execStub.onSecondCall().yields(null, containerName); // GET_CONTAINERS_BY_NAME
+
+        execStub.onThirdCall().yields(new Error("Container not running"), null); // CHECK_CONTAINER_RUNNING
+        // onCall has zero-based indexing
+        execStub.onCall(3).yields(null, "Container restarted"); // START_CONTAINER
         execStub.onCall(4).yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
-        result = await dockerUtils.restartContainer("testContainer");
+        result = await dockerUtils.restartContainer(containerName, node, mockObjectExplorerService);
         assert.ok(result, "Should return success when container is restarted successfully");
-        sinon.assert.calledTwice(sendActionEventStub);
+        sinon.assert.calledTwice(sendActionEvent);
         execStub.resetHistory();
-        sendActionEventStub.restore();
     });
 
     test("checkIfContainerIsReadyForConnections: should return true if container is ready, false otherwise", async () => {
         // Stub platform and dependent modules
         const execStub = sandbox.stub(childProcess, "exec");
+        const { sendActionEvent } = stubTelemetry(sandbox);
+
         execStub.onFirstCall().yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
         let result = await dockerUtils.checkIfContainerIsReadyForConnections("testContainer");
         assert.ok(result, "Should return success when container is ready for connections");
+        sinon.assert.calledOnce(sendActionEvent);
         execStub.resetHistory();
     });
 
     test("deleteContainer: should delete the container and return success or error", async () => {
         const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "container delete");
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
+        const { sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox);
 
         let result = await dockerUtils.deleteContainer("testContainer");
         sinon.assert.calledOnce(execStub);
-        sinon.assert.calledOnce(sendActionEventStub);
+        sinon.assert.calledOnce(sendActionEvent);
 
         assert.ok(result);
 
@@ -491,21 +546,20 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.deleteContainer("testContainer");
 
         sinon.assert.calledOnce(execErrorStub);
-        sinon.assert.calledTwice(sendActionEventStub);
+        sinon.assert.calledOnce(sendErrorEvent);
 
         assert.ok(!result, "Should return false on failure");
 
         execErrorStub.restore();
-        sendActionEventStub.restore();
     });
 
     test("stopContainer: should stop the container and return success or error", async () => {
         const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "container stop");
-        const sendActionEventStub = sinon.stub(telemetry, "sendActionEvent");
+        const { sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox);
 
         let result = await dockerUtils.stopContainer("testContainer");
         sinon.assert.calledOnce(execStub);
-        sinon.assert.calledOnce(sendActionEventStub);
+        sinon.assert.calledOnce(sendActionEvent);
 
         assert.ok(result);
 
@@ -518,12 +572,11 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.stopContainer("testContainer");
 
         sinon.assert.calledOnce(execErrorStub);
-        sinon.assert.calledTwice(sendActionEventStub);
 
         assert.ok(!result, "Should return false on failure");
+        sinon.assert.calledOnce(sendErrorEvent);
 
         execErrorStub.restore();
-        sendActionEventStub.restore();
     });
 
     test("checkIfContainerIsDockerContainer: should return true if the container is a Docker container", async () => {
@@ -568,5 +621,136 @@ suite("Docker Utilities", () => {
         assert.strictEqual(result, 1434, "Should return 1434 when 1433 is taken");
 
         execStub.resetBehavior();
+    });
+
+    test("prepareForDockerContainerCommand: should prepare the command with correct parameters", async () => {
+        const containerName = "testContainer";
+        sandbox.stub(os, "platform").returns(Platform.Linux);
+        const execStub = sandbox.stub(childProcess, "exec");
+        const showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
+        sandbox.stub(vscode.window, "showErrorMessage");
+
+        // Docker is running, and container exists
+        execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
+        execStub.onSecondCall().yields(null, containerName); // GET_CONTAINERS_BY_NAME
+
+        let result = await dockerUtils.prepareForDockerContainerCommand(
+            containerName,
+            node,
+            mockObjectExplorerService,
+        );
+        assert.ok(result.success, "Should return true if container exists");
+
+        // Docker is running, container does not exist
+        execStub.resetBehavior();
+        execStub.resetHistory();
+
+        execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
+        execStub.onSecondCall().yields(null, "Container doesn't exist"); // GET_CONTAINERS_BY_NAME
+
+        result = await dockerUtils.prepareForDockerContainerCommand(
+            containerName,
+            node,
+            mockObjectExplorerService,
+        );
+        assert.ok(!result.success, "Should return false if container does not exist");
+        assert.strictEqual(result.error, ContainerDeployment.containerDoesNotExistError);
+        assert.strictEqual(
+            showInformationMessageStub.callCount,
+            1,
+            "Should show info message if container does not exist",
+        );
+
+        // finding container returns an error
+        execStub.resetBehavior();
+        execStub.resetHistory();
+        execStub.onFirstCall().yields(null, "Docker is running"); // START_DOCKER
+        execStub.onSecondCall().yields(new Error("Something went wrong"), null); // GET_CONTAINERS_BY_NAME
+
+        result = await dockerUtils.prepareForDockerContainerCommand(
+            containerName,
+            node,
+            mockObjectExplorerService,
+        );
+        assert.ok(!result.success, "Should return false if container does not exist");
+        assert.strictEqual(result.error, ContainerDeployment.containerDoesNotExistError);
+        execStub.resetBehavior();
+    });
+
+    test("sanitizeContainerName: should properly sanitize container names", () => {
+        // Test with valid input
+        let result = dockerUtils.sanitizeContainerName("valid-container");
+        assert.strictEqual(result, "valid-container", "Valid name should remain unchanged");
+
+        // Test with alphanumeric and allowed special characters
+        result = dockerUtils.sanitizeContainerName("test_container.1-2");
+        assert.strictEqual(
+            result,
+            "test_container.1-2",
+            "Name with allowed special chars should remain unchanged",
+        );
+
+        // Test with disallowed special characters
+        result = dockerUtils.sanitizeContainerName("test@container!");
+        assert.strictEqual(result, "testcontainer", "Disallowed special chars should be removed");
+
+        // Test with SQL injection attempt
+        result = dockerUtils.sanitizeContainerName("container';DROP TABLE users;--");
+        assert.strictEqual(
+            result,
+            "containerDROPTABLEusers--",
+            "SQL injection chars should be removed",
+        );
+
+        // Test with command injection attempt
+        result = dockerUtils.sanitizeContainerName('container" && echo Injected');
+        assert.strictEqual(
+            result,
+            "containerechoInjected",
+            "Command injection chars should be removed",
+        );
+
+        // Test with command injection attempt
+        result = dockerUtils.sanitizeContainerName('container"; rm -rf /');
+        assert.strictEqual(result, "containerrm-rf", "Command injection chars should be removed");
+
+        // Test with empty string
+        result = dockerUtils.sanitizeContainerName("");
+        assert.strictEqual(result, "", "Empty string should remain empty");
+
+        // Test with only disallowed characters
+        result = dockerUtils.sanitizeContainerName("@#$%^&*()");
+        assert.strictEqual(result, "", "String with only disallowed chars should become empty");
+
+        // Test with command injection attempts
+        const sanitizedInjection = dockerUtils.sanitizeContainerName('container"; rm -rf / #');
+        assert.strictEqual(
+            sanitizedInjection,
+            "containerrm-rf",
+            "Command injection characters should be removed",
+        );
+
+        // Test with invalid characters (should be removed)
+        const sanitizedInvalid = dockerUtils.sanitizeContainerName(
+            "my container/with\\invalid:chars",
+        );
+        assert.strictEqual(
+            sanitizedInvalid,
+            "mycontainerwithinvalidchars",
+            "Invalid characters should be removed",
+        );
+    });
+
+    test("pullSqlServerContainerImage: should pull the container image from the docker registry", async () => {
+        const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "Pulled image");
+        const { sendActionEvent } = stubTelemetry(sandbox);
+
+        let result = await dockerUtils.pullSqlServerContainerImage("2025");
+        sinon.assert.calledOnce(execStub);
+        sinon.assert.calledOnce(sendActionEvent);
+
+        assert.ok(result);
+
+        execStub.restore();
     });
 });

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import {
     ExecutionPlanProvider,
     ExecutionPlanReducers,
@@ -181,4 +182,218 @@ export interface SelectionSummaryStats {
     nullCount: number;
     sum?: number;
     removeSelectionStats: boolean;
+}
+
+export enum SortProperties {
+    ASC = "ASC",
+    DESC = "DESC",
+    NONE = "NONE", // no sort
+}
+
+export interface ColumnFilterState {
+    filterValues: string[];
+    sorted?: SortProperties;
+    seachText?: string;
+    columnDef: string;
+}
+
+/**
+ * Maps the column filter state for a specific column
+ */
+export type ColumnFilterMap = Record<string, ColumnFilterState[]>;
+
+/**
+ * Maps all the column filters for a specific grid ID
+ */
+export type GridColumnMap = Record<string, ColumnFilterMap[]>;
+
+export interface GetFiltersParams {
+    uri: string;
+}
+export namespace GetFiltersRequest {
+    export const type = new RequestType<GetFiltersParams, GridColumnMap[], void>("getFilters");
+}
+
+export interface SetFiltersParams {
+    uri: string;
+    filters: GridColumnMap[];
+}
+
+export namespace SetFiltersRequest {
+    export const type = new RequestType<SetFiltersParams, void, void>("setFilters");
+}
+
+export interface getColumnWidthsParams {
+    uri: string;
+}
+
+export namespace GetColumnWidthsRequest {
+    export const type = new RequestType<getColumnWidthsParams, number[], void>("getColumnWidths");
+}
+
+export interface SetColumnWidthsParams {
+    uri: string;
+    columnWidths: number[];
+}
+
+export namespace SetColumnWidthsRequest {
+    export const type = new RequestType<SetColumnWidthsParams, void, void>("setColumnWidths");
+}
+
+export namespace ShowFilterDisabledMessageRequest {
+    export const type = new RequestType<void, void, void>("showFilterDisabledMessage");
+}
+
+export interface CopySelectionRequestParams {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+}
+export namespace CopySelectionRequest {
+    export const type = new RequestType<CopySelectionRequestParams, void, void>("copySelection");
+}
+
+export interface SendToClipboardParams {
+    uri: string;
+    data: DbCellValue[][];
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+    headersFlag?: boolean;
+}
+export namespace SendToClipboardRequest {
+    export const type = new RequestType<SendToClipboardParams, void, void>("sendToClipboard");
+}
+
+export interface CopyHeadersParams {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+}
+export namespace CopyHeadersRequest {
+    export const type = new RequestType<CopyHeadersParams, void, void>("copyHeaders");
+}
+
+export interface CopyWithHeadersParams extends CopyHeadersParams {}
+export namespace CopyWithHeadersRequest {
+    export const type = new RequestType<CopyWithHeadersParams, void, void>("copyWithHeaders");
+}
+
+export interface SetSelectionSummary {
+    summary: SelectionSummaryStats;
+}
+export namespace SetSelectionSummaryRequest {
+    export const type = new RequestType<SetSelectionSummary, void, void>("setSelectionSummary");
+}
+
+export interface OpenInNewTabParams {
+    uri: string;
+}
+export namespace OpenInNewTabRequest {
+    export const type = new RequestType<OpenInNewTabParams, void, void>("openInNewTab");
+}
+
+export interface GetWebviewLocationParams {
+    uri: string;
+}
+export namespace GetWebviewLocationRequest {
+    export const type = new RequestType<GetWebviewLocationParams, QueryResultWebviewLocation, void>(
+        "getWebviewLocation",
+    );
+}
+
+export interface SetEditorSelectionParams {
+    uri: string;
+    selectionData: ISelectionData;
+}
+export namespace SetEditorSelectionRequest {
+    export const type = new RequestType<SetEditorSelectionParams, void, void>("setEditorSelection");
+}
+
+export interface SaveResultsWebviewParams {
+    uri: string;
+    batchId?: number;
+    resultId?: number;
+    format: string;
+    selection?: ISlickRange[];
+    origin: QueryResultSaveAsTrigger;
+}
+export namespace SaveResultsWebviewRequest {
+    export const type = new RequestType<SaveResultsWebviewParams, void, void>("saveResults");
+}
+
+export interface GetRowsParams {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    rowStart: number;
+    numberOfRows: number;
+}
+export namespace GetRowsRequest {
+    export const type = new RequestType<GetRowsParams, ResultSetSubset, void>("getRows");
+}
+
+/**
+ * Sets the scroll position for a grid in the webview
+ */
+export interface SetGridScrollPositionParams {
+    uri: string;
+    gridId: string;
+    scrollTop: number;
+    scrollLeft: number;
+}
+
+/**
+ * Sets the scroll position for a grid in the webview
+ * @param uri The URI of the query result state this request is associated with
+ */
+export namespace SetGridScrollPositionNotification {
+    export const type = new NotificationType<SetGridScrollPositionParams>("setGridScrollPosition");
+}
+
+export interface GetGridScrollPositionParams {
+    uri: string;
+    gridId: string;
+}
+
+export interface GetGridScrollPositionResponse {
+    scrollTop: number;
+    scrollLeft: number;
+}
+
+export namespace GetGridScrollPositionRequest {
+    export const type = new RequestType<
+        GetGridScrollPositionParams,
+        GetGridScrollPositionResponse,
+        void
+    >("getGridScrollPosition");
+}
+
+export interface SetGridPaneScrollPositionParams {
+    uri: string;
+    scrollTop: number;
+}
+
+export namespace SetGridPaneScrollPositionNotification {
+    export const type = new NotificationType<SetGridPaneScrollPositionParams>(
+        "setPaneScrollPosition",
+    );
+}
+
+export interface GetGridPaneScrollPositionParams {
+    uri: string;
+}
+
+export interface GetGridPaneScrollPositionResponse {
+    scrollTop: number;
+}
+
+export namespace GetGridPaneScrollPositionRequest {
+    export const type = new RequestType<
+        GetGridPaneScrollPositionParams,
+        GetGridPaneScrollPositionResponse,
+        void
+    >("getGridPaneScrollPosition");
 }

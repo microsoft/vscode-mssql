@@ -62,44 +62,12 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this._key = `${this.connectionString}-${this.databaseName}`;
 
-        this.registerReducers();
+        this.setupRequestHandlers();
     }
 
-    private registerReducers() {
-        this.registerRequestHandler("exportToFile", async (payload) => {
-            // Determine the base folder for saving the file
-            const baseFolder =
-                vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(homedir());
-
-            // Prompt the user with a Save dialog
-            const outputPath = await vscode.window.showSaveDialog({
-                filters: { [payload.format]: [payload.format] },
-                defaultUri: await getUniqueFilePath(
-                    baseFolder,
-                    `schema-${this.databaseName}`,
-                    payload.format,
-                ),
-                saveLabel: LocConstants.SchemaDesigner.Save,
-                title: LocConstants.SchemaDesigner.SaveAs,
-            });
-            if (!outputPath) {
-                // User cancelled the save dialog
-                return;
-            }
-            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportToImage, {
-                format: payload?.format,
-            });
-            if (payload.format === "svg") {
-                let fileContents = decodeURIComponent(payload.fileContents.split(",")[1]);
-                await vscode.workspace.fs.writeFile(outputPath, Buffer.from(fileContents, "utf8"));
-            } else {
-                let fileContents = Buffer.from(payload.fileContents.split(",")[1], "base64");
-                vscode.workspace.fs.writeFile(outputPath, fileContents);
-            }
-        });
-
-        this.registerRequestHandler("initializeSchemaDesigner", async () => {
-            const intializationActivity = startActivity(
+    private setupRequestHandlers() {
+        this.onRequest(SchemaDesigner.InitializeSchemaDesignerRequest.type, async () => {
+            const schemaDesignerInitActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.Initialize,
                 undefined,
@@ -124,17 +92,17 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 }
                 this.schemaDesignerDetails = sessionResponse;
                 this._sessionId = sessionResponse.sessionId;
-                intializationActivity.end(ActivityStatus.Succeeded, undefined, {
+                schemaDesignerInitActivity.end(ActivityStatus.Succeeded, undefined, {
                     tableCount: sessionResponse?.schema?.tables?.length,
                 });
                 return sessionResponse;
             } catch (error) {
-                intializationActivity.endFailed(error, false);
+                schemaDesignerInitActivity.endFailed(error, false);
                 throw error;
             }
         });
 
-        this.registerRequestHandler("getDefinition", async (payload) => {
+        this.onRequest(SchemaDesigner.GetDefinitionRequest.type, async (payload) => {
             const script = await this.schemaDesignerService.getDefinition({
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
@@ -143,13 +111,13 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             return script;
         });
 
-        this.registerRequestHandler("getReport", async (payload) => {
+        this.onRequest(SchemaDesigner.GetReportWebviewRequest.type, async (payload) => {
             const reportActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.GetReport,
                 undefined,
                 {
-                    tableCount: payload.updatedSchema.tables.length,
+                    tableCount: payload.updatedSchema.tables.length.toString(),
                 },
             );
             try {
@@ -195,7 +163,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             }
         });
 
-        this.registerRequestHandler("publishSession", async (payload) => {
+        this.onRequest(SchemaDesigner.PublishSessionRequest.type, async (payload) => {
             const publishActivity = startActivity(
                 TelemetryViews.SchemaDesigner,
                 TelemetryActions.PublishSession,
@@ -206,7 +174,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     sessionId: this._sessionId,
                 });
                 publishActivity.end(ActivityStatus.Succeeded, undefined, {
-                    tableCount: payload.updatedSchema?.tables?.length,
+                    tableCount: payload.schema?.tables?.length,
                 });
                 this.updateCacheItem(undefined, false);
                 return {
@@ -221,12 +189,48 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             }
         });
 
-        this.registerRequestHandler("copyToClipboard", async (payload) => {
-            await vscode.env.clipboard.writeText(payload.text);
+        this.onNotification(SchemaDesigner.ExportToFileNotification.type, async (payload) => {
+            // Determine the base folder for saving the file
+            const baseFolder =
+                vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(homedir());
+
+            // Prompt the user with a Save dialog
+            const outputPath = await vscode.window.showSaveDialog({
+                filters: { [payload.format]: [payload.format] },
+                defaultUri: await getUniqueFilePath(
+                    baseFolder,
+                    `schema-${this.databaseName}`,
+                    payload.format,
+                ),
+                saveLabel: LocConstants.SchemaDesigner.Save,
+                title: LocConstants.SchemaDesigner.SaveAs,
+            });
+            if (!outputPath) {
+                // User cancelled the save dialog
+                return;
+            }
+            sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportToImage, {
+                format: payload?.format,
+            });
+            if (payload.format === "svg") {
+                let fileContents = new Uint8Array(
+                    Buffer.from(decodeURIComponent(payload.fileContents.split(",")[1]), "utf8"),
+                );
+                await vscode.workspace.fs.writeFile(outputPath, fileContents);
+            } else {
+                let fileContents = new Uint8Array(
+                    Buffer.from(payload.fileContents.split(",")[1], "base64"),
+                );
+                vscode.workspace.fs.writeFile(outputPath, fileContents);
+            }
         });
 
-        this.registerRequestHandler("openInEditor", async (payload) => {
-            const document = await this.vscodeWrapper.openMsSqlTextDocument(payload.text);
+        this.onNotification(SchemaDesigner.CopyToClipboardNotification.type, async (params) => {
+            await vscode.env.clipboard.writeText(params.text);
+        });
+
+        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async (params) => {
+            const document = await this.vscodeWrapper.openMsSqlTextDocument(params.text);
             // Open the document in the editor
             await this.vscodeWrapper.showTextDocument(document, {
                 viewColumn: vscode.ViewColumn.Active,
@@ -234,56 +238,62 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             });
         });
 
-        this.registerRequestHandler("openInEditorWithConnection", async (payload) => {
-            const generateScriptActivity = startActivity(
-                TelemetryViews.SchemaDesigner,
-                TelemetryActions.GenerateScript,
-                undefined,
-            );
-            vscode.window.withProgress(
-                {
-                    location: vscode.ProgressLocation.Notification,
-                    title: LocConstants.SchemaDesigner.OpeningPublishScript,
-                    cancellable: false,
-                },
-                async () => {
-                    try {
-                        const result = await this.schemaDesignerService.generateScript({
-                            sessionId: this._sessionId,
-                        });
-                        generateScriptActivity.end(
-                            ActivityStatus.Succeeded,
-                            undefined,
-                            result?.script
-                                ? { scriptLength: result?.script?.length }
-                                : { scriptLength: 0 },
-                        );
-                        // Open the document in the editor with the connection
-                        if (this.treeNode) {
-                            void this.mainController.onNewQuery(this.treeNode, result?.script);
-                        } else if (this.connectionUri) {
-                            const editor =
-                                await this.mainController.untitledSqlDocumentService.newQuery(
-                                    result?.script,
+        this.onNotification(
+            SchemaDesigner.OpenInEditorWithConnectionNotification.type,
+            (params) => {
+                const generateScriptActivity = startActivity(
+                    TelemetryViews.SchemaDesigner,
+                    TelemetryActions.GenerateScript,
+                    undefined,
+                );
+                vscode.window.withProgress(
+                    {
+                        location: vscode.ProgressLocation.Notification,
+                        title: LocConstants.SchemaDesigner.OpeningPublishScript,
+                        cancellable: false,
+                    },
+                    async () => {
+                        try {
+                            const result = await this.schemaDesignerService.generateScript({
+                                sessionId: this._sessionId,
+                            });
+                            generateScriptActivity.end(
+                                ActivityStatus.Succeeded,
+                                undefined,
+                                result?.script
+                                    ? { scriptLength: result?.script?.length }
+                                    : { scriptLength: 0 },
+                            );
+                            // Open the document in the editor with the connection
+                            if (this.treeNode) {
+                                void this.mainController.onNewQuery(this.treeNode, result?.script);
+                            } else if (this.connectionUri) {
+                                const editor =
+                                    await this.mainController.untitledSqlDocumentService.newQuery(
+                                        result?.script,
+                                    );
+                                await this.mainController.connectionManager.connect(
+                                    editor.document.uri.toString(true),
+                                    this.mainController.connectionManager.getConnectionInfo(
+                                        this.connectionUri,
+                                    ).credentials,
                                 );
-                            await this.mainController.connectionManager.connect(
-                                editor.document.uri.toString(true),
-                                this.mainController.connectionManager.getConnectionInfo(
-                                    this.connectionUri,
-                                ).credentials,
+                            }
+                        } catch (error) {
+                            generateScriptActivity.endFailed(error, false);
+                            vscode.window.showErrorMessage(
+                                LocConstants.SchemaDesigner.PublishScriptFailed(
+                                    getErrorMessage(error),
+                                ),
                             );
                         }
-                    } catch (error) {
-                        generateScriptActivity.endFailed(error, false);
-                        vscode.window.showErrorMessage(
-                            LocConstants.SchemaDesigner.PublishScriptFailed(getErrorMessage(error)),
-                        );
-                    }
-                },
-            );
-        });
+                    },
+                );
+            },
+        );
 
-        this.registerRequestHandler("closeDesigner", async () => {
+        this.onNotification(SchemaDesigner.CloseSchemaDesignerNotification.type, () => {
+            // Close the schema designer panel
             this.panel.dispose();
         });
     }
@@ -305,7 +315,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
     }
 
     override async dispose(): Promise<void> {
-        this.updateCacheItem(this.schemaDesignerDetails!.schema);
+        if (this.schemaDesignerDetails) {
+            this.updateCacheItem(this.schemaDesignerDetails!.schema);
+        }
         super.dispose();
     }
 }

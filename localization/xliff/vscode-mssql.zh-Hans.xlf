@@ -10,9 +10,21 @@
         <source xml:lang="en">$(plug)  Connect to MSSQL</source>
         <target state="translated">$(plug)连接到 MSSQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++b52e3b22bc74f576e4eb67d09ab37f79383db3c62b03686731fe777b42e5f0e6">
+        <source xml:lang="en">&lt;Default&gt;</source>
+        <target state="translated">&lt;Default&gt;</target>
+      </trans-unit>
       <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="translated">&lt;default&gt;</target>
+      </trans-unit>
+      <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
+        <source xml:lang="en">+ Add Azure Account</source>
+        <target state="translated">+ 添加 Azure 帐户</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
+        <source xml:lang="en">+ Create Connection Group</source>
+        <target state="translated">+ 创建连接组</target>
       </trans-unit>
       <trans-unit id="++CODE++08fef8ce26bbc554c749504c8d169642c3039345674331079add345b808e96a7">
         <source xml:lang="en">A SQL editor must have focus before executing this command</source>
@@ -29,6 +41,14 @@
       <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
         <target state="translated">此编辑器会话的查询已在运行。请取消此查询或等待其完成。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++89713b9c9c1b8f659c9f49db25e4a47886dd673fee248c3f650391f09a759cef">
+        <source xml:lang="en">Accept</source>
+        <target state="translated">接受</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34">
+        <source xml:lang="en">Accept the SQL Server EULA to deploy a SQL Server Docker container</source>
+        <target state="translated">接受 SQL Server EULA 以部署 SQL Server Docker 容器</target>
       </trans-unit>
       <trans-unit id="++CODE++fa0563b6f04578f7a2a7cff43aed611c4835bbb2f3a21dfed76a0601a1d63859">
         <source xml:lang="en">Access denied. Please ensure you have the necessary permissions to use this tool or model.</source>
@@ -63,6 +83,10 @@
       <trans-unit id="++CODE++9fd728c66c9a256b121472dabf32a34317aed01d8427d70ec830289cf23a7cc8">
         <source xml:lang="en">Add</source>
         <target state="translated">添加</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3d0d3f78acca7d0def0c881e924ececb285c1791711ab008ae5a0297e09a717a">
+        <source xml:lang="en">Add Account</source>
+        <target state="translated">添加帐户</target>
       </trans-unit>
       <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
         <source xml:lang="en">Add Column</source>
@@ -118,6 +142,10 @@
         <source xml:lang="en">Advanced Options</source>
         <target state="translated">高级选项</target>
       </trans-unit>
+      <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
+        <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
+        <target state="translated">已清除用于访问你的连接的扩展的所有权限。</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
         <target state="translated">允许为 NULL</target>
@@ -125,6 +153,10 @@
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
         <target state="translated">允许 Null</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
+        <source xml:lang="en">Allow this extension to access your connections</source>
+        <target state="translated">允许此扩展访问你的连接</target>
       </trans-unit>
       <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
         <source xml:lang="en">Alphabetical</source>
@@ -176,18 +208,37 @@
         <source xml:lang="en">Apply changes to target</source>
         <target state="translated">将更改应用到目标</target>
       </trans-unit>
+      <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
+        <source xml:lang="en">Approve</source>
+        <target state="translated">审批</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
+        <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
+        <note>{0} is the container name</note>
+        <target state="translated">是否确实要删除容器 {0}?此操作将从 VS Code 中移除容器及其连接。</target>
+      </trans-unit>
       <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
         <source xml:lang="en">Are you sure you want to delete the selected items?</source>
         <target state="translated">确实要删除选定项目吗?</target>
       </trans-unit>
-      <trans-unit id="++CODE++d06cb9591349a9b98151fca38054ea9703b643b570f3b4557f3d2c07d76a7403">
+      <trans-unit id="++CODE++64f0ebe202fcbb5561671715f3bff0cf6b5219648ffe9bca961824b243d4c5bc">
         <source xml:lang="en">Are you sure you want to delete {0}?</source>
-        <note>{0} is the node label</note>
+        <note>{0} is the group name</note>
         <target state="translated">是否确定要删除 {0}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26c70151bceb55fb84b8e652a205659bd5736420cfa72a4e3fa92bdaa5a3b526">
+        <source xml:lang="en">Are you sure you want to delete {0}?  You can delete its connections as well, or move them to the root folder.</source>
+        <note>{0} is the group name</note>
+        <target state="translated">是否确定要删除 {0}? 也可以删除其连接，或将其移动到根文件夹。</target>
       </trans-unit>
       <trans-unit id="++CODE++3d283f80f43f1833dcab882ad9efc24a86c0b17b0febb10fc37336590a7016e1">
         <source xml:lang="en">Are you sure you want to disconnect?</source>
         <target state="translated">是否确定要断开连接?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8a6ddc1941c7b1576cc5674f2969dde12347408d66861ed151f2ed506588f42c">
+        <source xml:lang="en">Are you sure you want to remove {0}?</source>
+        <note>{0} is the node label</note>
+        <target state="translated">是否确实要删除 {0}?</target>
       </trans-unit>
       <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
         <source xml:lang="en">Are you sure you want to update the target?</source>
@@ -270,10 +321,6 @@
         <source xml:lang="en">Azure sign in failed.</source>
         <target state="translated">Azure 登录失败。</target>
       </trans-unit>
-      <trans-unit id="++CODE++bcfba23612af01d6083c1cbc352807182aa4a2a08665615d5e75206766e035c0">
-        <source xml:lang="en">Azure sign-in failed or was cancelled.</source>
-        <target state="translated">Azure 登录失败或被取消。</target>
-      </trans-unit>
       <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
         <target state="translated">已成功清除 Azure 令牌缓存。</target>
@@ -306,6 +353,14 @@
       <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
         <source xml:lang="en">Blanks</source>
         <target state="translated">空白</target>
+      </trans-unit>
+      <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
+        <source xml:lang="en">Block this extension from accessing your connections</source>
+        <target state="translated">阻止此扩展访问你的连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
+        <source xml:lang="en">Brightness</source>
+        <target state="translated">亮度</target>
       </trans-unit>
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
@@ -389,6 +444,16 @@
         <source xml:lang="en">Change</source>
         <target state="translated">更改</target>
       </trans-unit>
+      <trans-unit id="++CODE++6bd09f9171ad9aa3824a8e54ea5edf59d28c768124be9dc7f9d2c5c7eee6780b">
+        <source xml:lang="en">Change Database</source>
+        <target state="translated">更改数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00aecebb859a5ba020dd5aa5ffb71e7f9a4279e35f9c94e6d34ebf7c889a3f7e">
+        <source xml:lang="en">Change database to '{1}' for connection '{0}'?</source>
+        <note>{0} is the connection ID
+{1} is the database name</note>
+        <target state="translated">将连接“{0}”的数据库更改为“{1}”?</target>
+      </trans-unit>
       <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
         <source xml:lang="en">Changed Tables</source>
         <target state="translated">已更改的表</target>
@@ -417,6 +482,12 @@
 {2} is the document name</note>
         <target state="translated">对于文挡“{2}”，正在将服务器“{1}”上的数据库上下文更改为“{0}”。</target>
       </trans-unit>
+      <trans-unit id="++CODE++5cca02706714579b1ebf65a02aa3db359c9533120430137485af41e5ec1ab285">
+        <source xml:lang="en">Changing database to '{1}' for connection '{0}'</source>
+        <note>{0} is the connection ID
+{1} is the database name</note>
+        <target state="translated">正在将连接“{0}”的数据库更改为“{1}”</target>
+      </trans-unit>
       <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
         <source xml:lang="en">Check Constraint</source>
         <target state="translated">CHECK 约束</target>
@@ -424,6 +495,34 @@
       <trans-unit id="++CODE++4a41af1285aa71f4e677bc3fa729070b3c3c0af177cb4e9f12e34f1e21045894">
         <source xml:lang="en">Check Constraints</source>
         <target state="translated">CHECK 约束</target>
+      </trans-unit>
+      <trans-unit id="++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0">
+        <source xml:lang="en">Checking Docker Engine Configuration</source>
+        <target state="translated">正在检查 Docker 引擎配置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4">
+        <source xml:lang="en">Checking if Docker is installed</source>
+        <target state="translated">正在检查是否已安装 Docker</target>
+      </trans-unit>
+      <trans-unit id="++CODE++75053118ac86a00be268a5a2a66b8b40a5249559ce3fc76bb45463dcc532782d">
+        <source xml:lang="en">Checking if Docker is installed on your machine</source>
+        <target state="translated">检查计算机上是否安装了 Docker</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2341d1c3197fc3205cd4550c118259316a51c665389e9a3c74db361c6e11d83a">
+        <source xml:lang="en">Checking if Docker is running on your machine. If not, we'll start it for you.</source>
+        <target state="translated">正在检查 Docker 是否正在计算机上运行。如果为否，我们将为你启动它。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6be7e803f4291ec5e83f38d2789fd4ea6c31923cdf1eedfa48564e33708cc5d3">
+        <source xml:lang="en">Checking if Docker is started</source>
+        <target state="translated">正在检查 Docker 是否已启动</target>
+      </trans-unit>
+      <trans-unit id="++CODE++741262e58e1274cef3f38a5aa8042fcf05db92d4ca8e9c9e573acd0e2242ba97">
+        <source xml:lang="en">Checking if the Docker Engine is configured correctly on your machine.</source>
+        <target state="translated">正在检查计算机上是否正确配置了 Docker 引擎。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++38ccc9db5b300e54116d6f6e8b8ee1420fea7792e8483c7368fdd964b6ecef0a">
+        <source xml:lang="en">Checking pre-requisites</source>
+        <target state="translated">正在检查先决条件</target>
       </trans-unit>
       <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
         <source xml:lang="en">Choose An Action</source>
@@ -452,6 +551,26 @@
       <trans-unit id="++CODE++3b961516b68d49db85d3ded5bc5c1129e02be1a647845d77b1eb2ab5260284cb">
         <source xml:lang="en">Choose a database from the list below</source>
         <target state="translated">从下面的列表中选择一个数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f374a2978746011d60b5e1785696b4f2c1fe9165edc4f876767d2f1282240cb2">
+        <source xml:lang="en">Choose a hostname for the container</source>
+        <target state="translated">选择容器的主机名</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3152aa1eecc4ae815f286d840683f8a27d00ed17af850886caef1ff5e3d9e122">
+        <source xml:lang="en">Choose a name for the SQL Server Docker Container</source>
+        <target state="translated">选择 SQL Server Docker 容器的名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
+        <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
+        <target state="translated">选择端口以托管 SQL Server Docker 容器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
+        <source xml:lang="en">Choose color</source>
+        <target state="translated">选择颜色</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4e42da2b0c2533c1a0dfa98e9f4ec67fbaf07a0da192dafa93aaf98bc07fd959">
+        <source xml:lang="en">Choose the Right Version</source>
+        <target state="translated">选择正确的版本</target>
       </trans-unit>
       <trans-unit id="++CODE++be798452e0ca7a38f6487ecb9115f26ba148e2d4475608bdc4277d34d41be0a7">
         <source xml:lang="en">Circular reference detected: '{0}' → '{1}' creates a cycle</source>
@@ -483,9 +602,17 @@
         <source xml:lang="en">Clear cache and refresh token</source>
         <target state="translated">清除缓存并刷新令牌</target>
       </trans-unit>
+      <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
+        <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
+        <target state="translated">清除所有扩展访问你的连接的权限</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">单击以连接到数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
+        <source xml:lang="en">Click to sign into an Azure account</source>
+        <target state="translated">单击以登录到 Azure 帐户</target>
       </trans-unit>
       <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
         <source xml:lang="en">Close</source>
@@ -510,6 +637,10 @@
       <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
         <source xml:lang="en">Collapse All</source>
         <target state="translated">全部折叠</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
+        <source xml:lang="en">Color</source>
+        <target state="translated">颜色</target>
       </trans-unit>
       <trans-unit id="++CODE++3fdc9a587693f9e63574b30ec55c2b947a7fb4ba5fd11f0cf213072f53d91bdd">
         <source xml:lang="en">Column</source>
@@ -569,9 +700,21 @@
         <source xml:lang="en">Compare</source>
         <target state="translated">比较</target>
       </trans-unit>
+      <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
+        <source xml:lang="en">Compare SQL Server editions</source>
+        <target state="translated">比较 SQL Server 版本</target>
+      </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
         <target state="translated">比较详细信息</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
+        <source xml:lang="en">Configure Linux containers</source>
+        <target state="translated">配置 Linux 容器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
+        <source xml:lang="en">Configure and customize SQL Server containers</source>
+        <target state="translated">配置和自定义 SQL Server 容器</target>
       </trans-unit>
       <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
         <source xml:lang="en">Confirm to clear recent connections list</source>
@@ -593,6 +736,31 @@
         <source xml:lang="en">Connect to MSSQL</source>
         <target state="translated">连接到 MSSQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54">
+        <source xml:lang="en">Connect to Server</source>
+        <target state="translated">连接到服务器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3">
+        <source xml:lang="en">Connect to server {0} and database {1}?</source>
+        <note>{0} is the server name
+{1} is the database name</note>
+        <target state="translated">连接到服务器 {0} 和数据库 {1}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c629f4154b93588541a43212104dda942f74b6b1c384f17ed00ccd062e649fb4">
+        <source xml:lang="en">Connect to server {0}?</source>
+        <note>{0} is the server name</note>
+        <target state="translated">连接到服务器 {0}?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ea9acac28e2644caf0dd7884eec71c1a92d541701276abf4acd5de8d04aa8af9">
+        <source xml:lang="en">Connect to {0}</source>
+        <note>{0} is the name of the connection profile</note>
+        <target state="translated">连接到 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6f00f15723c8b6718a4b05d9bb29188131a2a38b58f11c451e6522a7762c5ad5">
+        <source xml:lang="en">Connect using profile {0}?</source>
+        <note>{0} is the profile ID</note>
+        <target state="translated">是否使用配置文件 {0} 进行连接?</target>
+      </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
         <note>{0} is the server name
@@ -602,11 +770,15 @@
       </trans-unit>
       <trans-unit id="++CODE++00aaa2ec4a2146b807cc64a6f59880630adc5d451cd1a68a80e2d2ccf2d21bbc">
         <source xml:lang="en">Connected to:</source>
-        <target state="new">Connected to:</target>
+        <target state="translated">已连接到:</target>
       </trans-unit>
       <trans-unit id="++CODE++d403c686f6a1048014bdd230f59963271b0123ea48245754fc9f264b962a2182">
         <source xml:lang="en">Connecting</source>
         <target state="translated">正在连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fc83034782062ce727014f496892adc8087186e29e686533f40d6064c70e7c7c">
+        <source xml:lang="en">Connecting to Container</source>
+        <target state="translated">正在连接到容器</target>
       </trans-unit>
       <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
@@ -614,9 +786,29 @@
 {1} is the document name</note>
         <target state="translated">对于文档“{1}”，正在连接到服务器“{0}”。</target>
       </trans-unit>
+      <trans-unit id="++CODE++cdfa68f01c8258a3933e2cc436e46a47425d2c5cde4ad327b70a59615b4a4892">
+        <source xml:lang="en">Connecting to server {0}</source>
+        <note>{0} is the server name</note>
+        <target state="translated">正在连接到服务器 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d568f5700106a3d28657010405b5ef04ac5e6f31499216360661ba4f19256e15">
+        <source xml:lang="en">Connecting to server {0} and database {1}</source>
+        <note>{0} is the server name
+{1} is the database name</note>
+        <target state="translated">正在连接到服务器 {0} 和数据库 {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744">
+        <source xml:lang="en">Connecting to your SQL Server Docker container</source>
+        <target state="translated">正在连接到 SQL Server Docker 容器</target>
+      </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">正在连接至:</target>
+      </trans-unit>
+      <trans-unit id="++CODE++efb70e946b81dee71e5439537f7160292d511bb79830c8edd338f32e232cf183">
+        <source xml:lang="en">Connecting using profile {0}</source>
+        <note>{0} is the profile ID</note>
+        <target state="translated">正在使用配置文件 {0} 进行连接</target>
       </trans-unit>
       <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
         <source xml:lang="en">Connecting...</source>
@@ -629,6 +821,10 @@
       <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
         <source xml:lang="en">Connection Error</source>
         <target state="translated">连接错误</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fea70af0cad96e7c97f889724e5dfe0e2d28cbf958e905f5e51ba2584c3d9458">
+        <source xml:lang="en">Connection Group</source>
+        <target state="translated">连接组</target>
       </trans-unit>
       <trans-unit id="++CODE++d913a8ab7732ff7d26c8afceb2e2706c5c991762df193b236fd839bd3a616cb6">
         <source xml:lang="en">Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.</source>
@@ -647,6 +843,11 @@
         <note>{0} is the uri</note>
         <target state="translated">找不到 URI“{0}”的连接。</target>
       </trans-unit>
+      <trans-unit id="++CODE++392f78e8df5a591be501949632cd689e0fd59c4e0233c8b002a2dce8518ad4e4">
+        <source xml:lang="en">Connection profile '{0}' not found.</source>
+        <note>{0} is the profile ID</note>
+        <target state="translated">找不到连接配置文件“{0}”。</target>
+      </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">连接字符串是必需的</target>
@@ -654,6 +855,18 @@
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
         <target state="translated">请考虑为此外键添加名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
+        <source xml:lang="en">Container Name</source>
+        <target state="translated">容器名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
+        <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
+        <target state="translated">容器不存在。是否要移除连接?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8ad8440f3fcfd714e6310b217eaae7d43f1100a0730348dff4116c3aa3f08fcd">
+        <source xml:lang="en">Container failed to start within the timeout period. Please wait a few minutes and try again.</source>
+        <target state="translated">容器无法在超时期限内启动。请稍等几分钟，然后重试。</target>
       </trans-unit>
       <trans-unit id="++CODE++2eaecb3d0cf1282f01fc09568b63dc633753a0dbf337365d929d9c28df3d6ca4">
         <source xml:lang="en">Contains</source>
@@ -708,13 +921,33 @@
         <source xml:lang="en">Create As Script</source>
         <target state="translated">创建为脚本</target>
       </trans-unit>
+      <trans-unit id="++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d">
+        <source xml:lang="en">Create Connection Group</source>
+        <target state="translated">创建连接组</target>
+      </trans-unit>
       <trans-unit id="++CODE++71c1ec27a8c136ecdc781c1fd2364676155fbab7abf8837b9075eb3b9f9af7c0">
         <source xml:lang="en">Create Connection Profile</source>
         <target state="translated">创建连接配置文件</target>
       </trans-unit>
+      <trans-unit id="++CODE++4b0281fd3c02c610c7ff9f781b1666d54182ee7c48812ea9332055a7814872ad">
+        <source xml:lang="en">Create Container</source>
+        <target state="translated">创建容器</target>
+      </trans-unit>
       <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
         <source xml:lang="en">Create Firewall Rule</source>
         <target state="translated">创建防火墙规则</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f7450e89276bf601752a2ef286965fb13e17c418012b0aa68be16f8941cc7321">
+        <source xml:lang="en">Create Local SQL Container</source>
+        <target state="translated">创建本地 SQL 容器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
+        <source xml:lang="en">Create New Connection Group</source>
+        <target state="translated">创建新连接组</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
+        <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
+        <target state="translated">在数秒内创建 SQL Server 容器 - 无需任何手动步骤。无需离开 VS Code 即可从 MSSQL 扩展轻松管理它。</target>
       </trans-unit>
       <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
         <source xml:lang="en">Create a new firewall rule</source>
@@ -725,9 +958,21 @@
         <note>{0} is the server name that the firewall rule will be created for</note>
         <target state="translated">为 {0} 创建新的防火墙规则</target>
       </trans-unit>
+      <trans-unit id="++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8">
+        <source xml:lang="en">Creating Container</source>
+        <target state="translated">正在创建容器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
+        <source xml:lang="en">Creating and starting your SQL Server container</source>
+        <target state="translated">正在创建和启动 SQL Server 容器</target>
+      </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
         <target state="translated">凭据错误: 尝试刷新帐户凭据时出错。请重新进行身份验证。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
+        <source xml:lang="en">Currently signed in as:</source>
+        <target state="translated">当前登录身份:</target>
       </trans-unit>
       <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
         <source xml:lang="en">Custom Zoom</source>
@@ -756,7 +1001,7 @@
       <trans-unit id="++CODE++84a2b1ae34166a218282ec6156f3af9c67f4ccb6c03ec1cc0a03d9b3792069aa">
         <source xml:lang="en">Database - {0}</source>
         <note>{0} is the database name</note>
-        <target state="new">Database - {0}</target>
+        <target state="translated">数据库 - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++667dd91d86c6b574073536489e39f0c5ab034846a63d946e8ef9f7bedeb1f4fb">
         <source xml:lang="en">Database Project</source>
@@ -794,9 +1039,21 @@
         <source xml:lang="en">Delete Confirmation</source>
         <target state="translated">删除确认</target>
       </trans-unit>
+      <trans-unit id="++CODE++129eabad7bcc761eb7966091c2bc01163b650ca0613f42c58db97eae5420a7bb">
+        <source xml:lang="en">Delete Contents</source>
+        <target state="translated">删除内容</target>
+      </trans-unit>
       <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
         <source xml:lang="en">Delete saved connection</source>
         <target state="translated">删除保存的连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
+        <source xml:lang="en">Deleting Container...</source>
+        <target state="translated">正在删除容器...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++05a2d7332eb9d8bf164487c743a2e93c21b16bb2061a93e3ee2ceb508eadb753">
+        <source xml:lang="en">Deny</source>
+        <target state="translated">拒绝</target>
       </trans-unit>
       <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
         <source xml:lang="en">Description</source>
@@ -818,10 +1075,20 @@
         <source xml:lang="en">Disconnect</source>
         <target state="translated">断开连接</target>
       </trans-unit>
+      <trans-unit id="++CODE++85b5093bef4e68ee847dba78ba2e33392c8998bb4d39598442f8713cdeec5c89">
+        <source xml:lang="en">Disconnect from connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">是否与连接“{0}”断开连接?</target>
+      </trans-unit>
       <trans-unit id="++CODE++2458834a3d92abf750b8161a959ff2bb0405a29bd8b3b77015d065249bd02b7f">
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <note>{0} is the document name</note>
         <target state="translated">已断开文档“{0}”的连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b">
+        <source xml:lang="en">Disconnecting from connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">正在断开与连接“{0}”的连接</target>
       </trans-unit>
       <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
         <source xml:lang="en">Dismiss</source>
@@ -851,6 +1118,18 @@
         <source xml:lang="en">Do you want to always display query results in a new tab instead of the query pane?</source>
         <target state="translated">是否要始终在新选项卡而不是查询窗格中显示查询结果?</target>
       </trans-unit>
+      <trans-unit id="++CODE++6ca9d6623e40335fc13a80d426d2dd39b8c8a8b656c66b0d973cee8d5d49e4d9">
+        <source xml:lang="en">Docker failed to start within the timeout period. Please manually start Docker and try again.</source>
+        <target state="translated">Docker 未能在超时期限内启动。请手动启动 Docker，然后重试。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a5d38a76e9010d59374fafce6a3d75189df15be61859ee1ffa33da6e9cf97b05">
+        <source xml:lang="en">Docker is not installed or not in PATH. Please install Docker Desktop and try again.</source>
+        <target state="translated">未安装 Docker 或 Docker 不在 PATH 中。请安装 Docker 桌面，然后重试。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1">
+        <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
+        <target state="translated">Docker 需要根权限才能运行。请使用 sudo 运行 Docker，或使用 sudo usermod -aG docker $USER 将用户添加到 docker 组。然后重新启动计算机并重试。</target>
+      </trans-unit>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
         <target state="translated">不再显示</target>
@@ -859,6 +1138,16 @@
         <source xml:lang="en">Edit</source>
         <target state="translated">编辑</target>
       </trans-unit>
+      <trans-unit id="++CODE++8b45c43d0d9a0c27cbecb2683ef02b292a7f2626dee0f8443d4e62ac3e0e88c4">
+        <source xml:lang="en">Edit Connection Group - {0}</source>
+        <note>{0} is the connection group name</note>
+        <target state="translated">编辑连接组 - {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++82beb1b74986a2b292e8084ee59f9bedf5e0decc13f020369faebf40ce2981c7">
+        <source xml:lang="en">Edit Connection Group: {0}</source>
+        <note>{0} is the name of the connection group being edited</note>
+        <target state="translated">编辑连接组: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++a43dafda7f271d0796fb53cc6c2d8f302b8c8892ea0fed0b1096e9c7769f91c1">
         <source xml:lang="en">Edit Connection Profile</source>
         <target state="translated">编辑连接配置文件</target>
@@ -866,6 +1155,10 @@
       <trans-unit id="++CODE++3ed3609cfd38169ffe27957c6ef1ad4df5bdf9c403542839533396143d436b41">
         <source xml:lang="en">Edit Table</source>
         <target state="translated">编辑表</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
+        <source xml:lang="en">Either profileId or serverName must be provided.</source>
+        <target state="translated">必须提供 profileId 或 serverName。</target>
       </trans-unit>
       <trans-unit id="++CODE++1e71b5c8f3211f1f01b27341d3ddc6a2ad651800264b495c12b50867f998662c">
         <source xml:lang="en">Enable 'Trust Server Certificate'</source>
@@ -903,9 +1196,37 @@
         <source xml:lang="en">Ends With</source>
         <target state="translated">结尾为</target>
       </trans-unit>
+      <trans-unit id="++CODE++cad17aa68a83418367684821ea4734c877707d1f340846dc7b17b04a8a04c1c0">
+        <source xml:lang="en">Enter connection group name</source>
+        <target state="translated">输入连接组名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++524763fd6773ea93d76fa32d9e5974e1667748b114b90fba93f6a4948b0e5c20">
+        <source xml:lang="en">Enter container name</source>
+        <target state="translated">输入容器名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423">
+        <source xml:lang="en">Enter description (optional)</source>
+        <target state="translated">输入描述(可选)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++caaac8aa0d0641aea8406e7f1011aaeab33423fdd4ee9b3354ee88cc1487b0bf">
+        <source xml:lang="en">Enter hostname</source>
+        <target state="translated">输入主机名</target>
+      </trans-unit>
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
         <target state="translated">输入新列宽</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
+        <source xml:lang="en">Enter password</source>
+        <target state="translated">输入密码</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6aa7783e2e2dbd69be673f5f534fa04a7d36683475767069e8030c958e318d47">
+        <source xml:lang="en">Enter port</source>
+        <target state="translated">输入端口</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
+        <source xml:lang="en">Enter profile name</source>
+        <target state="translated">输入配置文件名称</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
@@ -984,6 +1305,15 @@ Error:
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">在编辑器中打开內容时发生错误。</target>
       </trans-unit>
+      <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
+        <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
+        <target state="translated">运行 Docker 命令时出错。请确保 Docker 正在运行。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c03518af7ea8058b9f5444011cc402ee48c86c765dfd6ba8e5ce09ed8d836ca">
+        <source xml:lang="en">Error signing into Azure: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">登录到 Azure 时出错: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
         <source xml:lang="en">Error when refreshing token</source>
         <target state="translated">刷新令牌时出错</target>
@@ -1057,6 +1387,15 @@ Error:
         <note>{0} is the error message returned from the publish changes operation</note>
         <target state="translated">无法应用更改:“{0}”</target>
       </trans-unit>
+      <trans-unit id="++CODE++6e543be4255a8c4362baca16d0850278f1d95a7df9cd38f4b94ecbda4abe57e5">
+        <source xml:lang="en">Failed to connect to database: {0}</source>
+        <note>{0} is the database name</note>
+        <target state="translated">未能连接到数据库: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d6ca257a745c3035dfd24b1cf8bddd511b93f0c4ae8036dc0d88ece8501d4d13">
+        <source xml:lang="en">Failed to connect to server.</source>
+        <target state="translated">无法连接到服务器。</target>
+      </trans-unit>
       <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
         <source xml:lang="en">Failed to connect: {0}</source>
         <note>{0} is the error message</note>
@@ -1068,9 +1407,19 @@ Error:
 {1} is the error</note>
         <target state="translated">无法删除 ID 为 {0} 的凭据。{1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++21be0d0cbfd3dc3a4c9bbb0fc261d09ba6b93641dcbaba9f6202b815e5ccb3f2">
+        <source xml:lang="en">Failed to delete {0}.</source>
+        <note>Failed to delete {0}.</note>
+        <target state="translated">无法删除 {0}。</target>
+      </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
         <target state="translated">无法提取用户令牌。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe1cb43be8ed9ac5acc09fb31eba382f60c86eaadf55b6931322b9b139162a9e">
+        <source xml:lang="en">Failed to generate publish script: '{0}'</source>
+        <note>{0} is the error message returned from the generate script operation</note>
+        <target state="translated">无法生成发布脚本:“{0}”</target>
       </trans-unit>
       <trans-unit id="++CODE++cdf943bd7b320469af4343440384b361de46832547d9bc9c08b3bd9a90610364">
         <source xml:lang="en">Failed to generate script: '{0}'</source>
@@ -1086,6 +1435,10 @@ Error:
         <note>{0} is the error message returned from the open scmp operation</note>
         <target state="translated">无法打开 scmp 文件:“{0}”</target>
       </trans-unit>
+      <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
+        <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
+        <target state="translated">未能拉取 SQL Server 映像。请检查网络连接，然后重试。</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <note>{0} is the connection id
@@ -1100,6 +1453,20 @@ Error:
         <source xml:lang="en">Failed to save scmp file: '{0}'</source>
         <note>{0} is the error message returned from the save scmp operation</note>
         <target state="translated">未能保存 scmp 文件:“{0}”</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
+        <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
+        <target state="translated">未能启动 SQL Server 容器。请查看错误消息以了解更多详细信息，然后重试。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
+        <source xml:lang="en">Failed to start {0}.</source>
+        <note>Failed to start {0}.</note>
+        <target state="translated">未能启动 {0}。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++de0b1da84a5d216abd9f65d2a4f32a258f97126fc0bb19e0fb9fecd1e89ea514">
+        <source xml:lang="en">Failed to stop {0}.</source>
+        <note>Failed to stop {0}.</note>
+        <target state="translated">未能停止 {0}。</target>
       </trans-unit>
       <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
         <source xml:lang="en">Fetching {0} script...</source>
@@ -1150,6 +1517,10 @@ Error:
       <trans-unit id="++CODE++bf0e5179cb962af6329b97f24951139ae47f60ff00cdcd1ccbacd816608b6866">
         <source xml:lang="en">Find Previous</source>
         <target state="translated">查找上一个</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
+        <source xml:lang="en">Finish</source>
+        <target state="translated">完成</target>
       </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
@@ -1242,11 +1613,37 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++15bb1f371098735851e4d1d531c37e3652b2ceaf16055231f0a38312650cb08b">
         <source xml:lang="en">Generating Report. This may take a while...</source>
-        <target state="new">Generating Report. This may take a while...</target>
+        <target state="translated">正在生成报表。这可能需要一些时间...</target>
       </trans-unit>
       <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
         <source xml:lang="en">Generating report, this might take a while...</source>
         <target state="translated">正在生成报表，这可能需要一段时间...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
+        <source xml:lang="en">Get Connection Details</source>
+        <target state="translated">获取连接详细信息</target>
+      </trans-unit>
+      <trans-unit id="++CODE++983f311018642b0ae60c71253b5735579906d43d260ea926ebe5e815b1c97abb">
+        <source xml:lang="en">Get Started</source>
+        <target state="translated">开始使用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++833b64c15a94f939c4123ec646882d4b8943eb80c95ce91fffb06a7e95a82b61">
+        <source xml:lang="en">Get connection details for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">获取连接“{0}”的连接详细信息?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
+        <source xml:lang="en">Getting Docker Ready...</source>
+        <target state="translated">正在准备 Docker...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0">
+        <source xml:lang="en">Getting connection details for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">获取连接“{0}”的连接详细信息</target>
+      </trans-unit>
+      <trans-unit id="++CODE++407c9ce5c11270b1d15836456ad1efdbe70f71f3c845186e535f82f02112be4e">
+        <source xml:lang="en">Getting container ready for connections</source>
+        <target state="translated">正在准备容器以进行连接</target>
       </trans-unit>
       <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
         <source xml:lang="en">Getting definition ...</source>
@@ -1270,6 +1667,14 @@ Error:
         <source xml:lang="en">Help</source>
         <target state="translated">帮助</target>
       </trans-unit>
+      <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
+        <source xml:lang="en">Hide full error message</source>
+        <target state="translated">隐藏完整的错误消息</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a60a56c584b3b05b1a95076a36edbab7131a447910cf21124efcb35f769502df">
+        <source xml:lang="en">Hide password</source>
+        <target state="translated">隐藏密码</target>
+      </trans-unit>
       <trans-unit id="++CODE++7a364dd1e84a9c227a255eac46ca09a24bf78df77f50f95dec04e8899516908d">
         <source xml:lang="en">Hide this panel</source>
         <target state="translated">隐藏此面板</target>
@@ -1277,6 +1682,10 @@ Error:
       <trans-unit id="++CODE++881cda150f08bbb74d0fa62b161f8a953cf0e98bf734b60d0e059b408b75522b">
         <source xml:lang="en">Highlight Expensive Operation</source>
         <target state="translated">突出显示高开销操作</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e">
+        <source xml:lang="en">Hostname</source>
+        <target state="translated">主机名</target>
       </trans-unit>
       <trans-unit id="++CODE++cdcc527989217aea79f51128ad3c86fa74d6c9def496f199f6b8d9728791d3b4">
         <source xml:lang="en">How likely it is that you would recommend the MSSQL extension to a friend or colleague?</source>
@@ -1286,6 +1695,10 @@ Error:
         <source xml:lang="en">How likely it is that you would recommend {0} to a friend or colleague?</source>
         <note>{0} is the feature name</note>
         <target state="translated">你向朋友或同事推荐 {0} 的可能性有多大?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
+        <source xml:lang="en">Hue</source>
+        <target state="translated">色调</target>
       </trans-unit>
       <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
         <source xml:lang="en">I have read the summary and understand the potential risks.</source>
@@ -1315,6 +1728,10 @@ Error:
         <source xml:lang="en">Include Object Types</source>
         <target state="translated">包括对象类型</target>
       </trans-unit>
+      <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
+        <source xml:lang="en">Include all object types</source>
+        <target state="new">Include all object types</target>
+      </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
         <target state="translated">索引</target>
@@ -1330,6 +1747,14 @@ Error:
       <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
         <source xml:lang="en">Insert</source>
         <target state="translated">插入</target>
+      </trans-unit>
+      <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
+        <source xml:lang="en">Install Docker</source>
+        <target state="translated">安装 Docker</target>
+      </trans-unit>
+      <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
+        <source xml:lang="en">Instant Container Setup</source>
+        <target state="translated">即时容器设置</target>
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
@@ -1393,6 +1818,10 @@ Error:
         <source xml:lang="en">Learn More</source>
         <target state="translated">了解详细信息</target>
       </trans-unit>
+      <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
+        <source xml:lang="en">Learn more about SQL Server 2025 features</source>
+        <target state="translated">详细了解 SQL Server 2025 功能</target>
+      </trans-unit>
       <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
         <source xml:lang="en">Length</source>
         <target state="translated">长度</target>
@@ -1417,6 +1846,88 @@ Error:
         <source xml:lang="en">Line {0}</source>
         <note>{0} is the line number</note>
         <target state="translated">行 {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ffa355be76c7d5e9f39081d405b5a1d2d9cae27b4016b7588b4b812f2146556">
+        <source xml:lang="en">List Connections</source>
+        <target state="translated">列出连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b993796f53424becc0d08d41a72c0c3381ee7691cc518bc8bdccc8d4013ad4ef">
+        <source xml:lang="en">List Databases</source>
+        <target state="translated">列出数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e5c4507bf20d72d00bff4c289eb11be5c9a297933beec5db5969eb33b7bc5690">
+        <source xml:lang="en">List Functions</source>
+        <target state="translated">列出函数</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0b795cd3bad85a0e394c340640be776b2c7765598fd7ac3dc8d2430baf78e77a">
+        <source xml:lang="en">List Schemas</source>
+        <target state="translated">列出架构</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00806af7575cfd81acd74e3d602bb671403cbddfdf02754be73db121177d235f">
+        <source xml:lang="en">List Tables</source>
+        <target state="translated">列出表</target>
+      </trans-unit>
+      <trans-unit id="++CODE++68053ffe844804d37eced757d4d0582e750a9b20d8ec5084aaab907846177b86">
+        <source xml:lang="en">List Views</source>
+        <target state="translated">列出视图</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
+        <source xml:lang="en">List all connections registered with the mssql extension?</source>
+        <target state="translated">是否列出已注册到 mssql 扩展的所有连接?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++abfc45dd4a240e3758d4d22759dd9fc99cc5e1d16aec7594708638c368bddb3d">
+        <source xml:lang="en">List databases for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">列出连接“{0}”的数据库?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b1eb24f69841df721c66f542d63319e22c5d55ea1bee75d7e60c451023e6c3d2">
+        <source xml:lang="en">List functions for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">列出连接“{0}”的函数?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f9fdea6ffd1d5c93340eff3cb4b0f75abcada7d160a99fd8f3092b3632661d84">
+        <source xml:lang="en">List schemas for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">列出连接“{0}”的架构?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6f60c2f7be85c72c70f3e1803f001d9b89cf11c25d82a6a16ddb4835b2bdc3f">
+        <source xml:lang="en">List tables for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">列出连接“{0}”的表?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a951e5e9bc9076528c081d96624e0a6b73e1ae9034bc9aa4c1e8bd77e9dffcc4">
+        <source xml:lang="en">List views for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">列出连接“{0}”的视图?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5">
+        <source xml:lang="en">Listing databases for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">正在列出连接“{0}”的数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6c5a3eebc541922b6846fac5140eecc1c8cca7d49fd516d6d492b823bd080339">
+        <source xml:lang="en">Listing functions for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">正在列出连接“{0}”的函数</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33ed9f224eba0860b9cfb0063fdbd1680208c1e358cecb479c7bd8c46236000e">
+        <source xml:lang="en">Listing schemas for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">列出连接“{0}”的架构</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
+        <source xml:lang="en">Listing server connections</source>
+        <target state="translated">正在列出服务器连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++22f9095eec94b234a5b2eee74a4c22e23b42d785b67c2027c13fd5b309a93ffa">
+        <source xml:lang="en">Listing tables for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">列出连接“{0}”的表</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d77ec2c188180112be2e819880b4ea2a8f5f86ec8917db4e18c39bcd02cacc10">
+        <source xml:lang="en">Listing views for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">正在列出连接“{0}”的视图</target>
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
@@ -1450,9 +1961,21 @@ Error:
         <source xml:lang="en">Loading Table Designer</source>
         <target state="translated">正在加载表设计器</target>
       </trans-unit>
+      <trans-unit id="++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2">
+        <source xml:lang="en">Loading deployment page...</source>
+        <target state="translated">正在加载部署页...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
+        <source xml:lang="en">Loading execution plan...</source>
+        <target state="translated">正在加载执行计划...</target>
+      </trans-unit>
       <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
         <source xml:lang="en">Loading...</source>
         <target state="translated">正在加载...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
+        <source xml:lang="en">Local SQL Server database container</source>
+        <target state="translated">本地 SQL Server 数据库容器</target>
       </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
@@ -1559,6 +2082,10 @@ Error:
         <source xml:lang="en">Move Up</source>
         <target state="translated">上移</target>
       </trans-unit>
+      <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
+        <source xml:lang="en">Move to Root</source>
+        <target state="translated">移动到根</target>
+      </trans-unit>
       <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
         <source xml:lang="en">NULL</source>
         <target state="translated">NULL</target>
@@ -1619,9 +2146,18 @@ Error:
         <source xml:lang="en">No Queries Available</source>
         <target state="translated">没有可用的查询</target>
       </trans-unit>
+      <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
+        <source xml:lang="en">No account selected</source>
+        <target state="translated">未选择任何帐户</target>
+      </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
         <target state="translated">未检测到更改</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bb6f0c310647145d31546d24967be9eb8ebae90f640642e9fbb5d7713e6e8550">
+        <source xml:lang="en">No connection found for connectionId: {0}</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">找不到 connectionId 为 {0} 的连接</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -1661,6 +2197,10 @@ Error:
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">没有可用的订阅。调整订阅筛选器以重试。</target>
       </trans-unit>
+      <trans-unit id="++CODE++b77c82c64fb4c0907bfdbdcd893ae285b16a8ef67c42e1ecc6ee3d28fe71e708">
+        <source xml:lang="en">No tenant selected</source>
+        <target state="translated">未选择租户</target>
+      </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
         <target state="translated">没有要处理的工具。</target>
@@ -1696,6 +2236,10 @@ Error:
       <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
         <source xml:lang="en">Not likely at all</source>
         <target state="translated">根本不可能</target>
+      </trans-unit>
+      <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
+        <source xml:lang="en">Not signed in</source>
+        <target state="translated">未登录</target>
       </trans-unit>
       <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
         <source xml:lang="en">Not started</source>
@@ -1783,7 +2327,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
-        <target state="new">Opening Publish Script. This may take a while...</target>
+        <target state="translated">正在打开发布脚本。这可能需要一些时间...</target>
       </trans-unit>
       <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
         <source xml:lang="en">Operator</source>
@@ -1847,6 +2391,38 @@ Error:
         <note>{0} is the path of the node in the object explorer</note>
         <target state="translated">路径: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++0a59729d88d37ed0f6bddc3a9a92d14b94528c315fec4cd3c70cd2d4bcabe1ff">
+        <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 (Preview) with built-in AI capabilities like vector search and JSON enhancements.</source>
+        <target state="translated">从多个 SQL Server 版本中进行选择，包括具有内置 AI 功能(如矢量搜索和 JSON 增强功能)的 SQL Server 2025 (预览版)。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
+        <source xml:lang="en">Please Accept the SQL Server EULA</source>
+        <target state="translated">请接受 SQL Server EULA</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e9867ec277676c80767b62a3ccde695a9fd4b9927c6541f6bfb0be08bed55596">
+        <source xml:lang="en">Please choose a unique name for the container</source>
+        <target state="translated">请为容器选择唯一名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aa9bb805dc517bc0164702b53526a013fbfece6dabeb9871e0b9910d23978c5e">
+        <source xml:lang="en">Please choose a unique name for the profile</source>
+        <target state="translated">请选择配置文件的唯一名称</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2048d236cea5afafe8b7e125d9b86eb44250c4ac6f382bc412dca8e4188292fa">
+        <source xml:lang="en">Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.</source>
+        <target state="translated">请确保已启用 Rosetta 虚拟化。可以在 Docker 桌面设置中执行此操作。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
+        <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
+        <target state="translated">请确保端口为数字，然后选择未使用的端口</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d81d6eb21f473c77ba01056237fcd372e9021b555b36efc68d24d22a5d608ba5">
+        <source xml:lang="en">Please make your password 8-128 characters long.</source>
+        <target state="translated">请将密码长度设置为 8-128 个字符。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
+        <source xml:lang="en">Port</source>
+        <target state="translated">端口</target>
+      </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
         <target state="translated">检测到可能的数据丢失。请查看更改。</target>
@@ -1879,6 +2455,10 @@ Error:
         <source xml:lang="en">Previous pending reconnection for uri {0}, succeeded.</source>
         <note>{0} is the uri</note>
         <target state="translated">URI {0} 的先前挂起的重新连接已成功。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d196df298e2df96370fbe47015195f865db9761ab45899b56376f17df4174a88">
+        <source xml:lang="en">Previous step failed. Please check the error message and try again.</source>
+        <target state="translated">上一步失败。请检查错误消息，然后重试。</target>
       </trans-unit>
       <trans-unit id="++CODE++92022c2f45b6a9ba92c51438e6fed444d69673e4bd6c529e3ea8f0a8bfe1e969">
         <source xml:lang="en">Primary Key</source>
@@ -1937,6 +2517,14 @@ Error:
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">正在发布更改</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
+        <source xml:lang="en">Pulling SQL Server Image</source>
+        <target state="translated">正在拉取 SQL Server 映像</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
+        <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
+        <target state="translated">正在拉取 SQL Server 容器映像。这可能需要几分钟，具体取决于你的网络连接。</target>
+      </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
         <target state="translated">查询计划</target>
@@ -1962,6 +2550,14 @@ Error:
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
         <target state="translated">了解详细信息</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
+        <source xml:lang="en">Readying container for connections.</source>
+        <target state="translated">正在准备容器以进行连接。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
+        <source xml:lang="en">Readying container for connections...</source>
+        <target state="translated">正在准备容器以进行连接...</target>
       </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
@@ -2046,13 +2642,32 @@ Error:
         <source xml:lang="en">Rule name</source>
         <target state="translated">规则名称</target>
       </trans-unit>
+      <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
+        <source xml:lang="en">Run Query</source>
+        <target state="translated">运行查询</target>
+      </trans-unit>
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
         <target state="translated">运行“查询历史记录”</target>
       </trans-unit>
+      <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
+        <source xml:lang="en">Run query on connection '{0}'?
+
+Query: {1}</source>
+        <note>{0} is the connection ID
+{1} is the SQL query</note>
+        <target state="translated">在连接“{0}”上运行查询?
+
+查询: {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
         <target state="translated">当编辑器处于多重选择模式时，不支持运行查询。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b1f11c275b04ef9f8ee2c203bbc9e14168767c3bf289f9915aa1e43adb776cf9">
+        <source xml:lang="en">Running query on connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">正在连接“{0}”上运行查询</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -2062,6 +2677,19 @@ Error:
         <source xml:lang="en">SQL Plan Files</source>
         <target state="translated">SQL 计划文件</target>
       </trans-unit>
+      <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
+        <source xml:lang="en">SQL Server Container SA Password</source>
+        <target state="translated">SQL Server 容器 SA 密码</target>
+      </trans-unit>
+      <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
+        <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
+        <target state="translated">SQL Server 不支持 Windows 容器。请在 Docker 桌面设置中切换到 Linux 容器。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
+        <source xml:lang="en">SQL Server {0} - latest</source>
+        <note>{0} is the SQL Server version</note>
+        <target state="translated">SQL Server {0} - 最新</target>
+      </trans-unit>
       <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
         <source xml:lang="en">SVG</source>
         <target state="translated">SVG</target>
@@ -2069,6 +2697,10 @@ Error:
       <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
         <source xml:lang="en">Satisfied</source>
         <target state="translated">满意</target>
+      </trans-unit>
+      <trans-unit id="++CODE++993f024b650eaf0f1c64118f6033c44b7c98d220539bcb51454ca578f6f2b477">
+        <source xml:lang="en">Saturation</source>
+        <target state="translated">饱和度</target>
       </trans-unit>
       <trans-unit id="++CODE++1509f561f2416598629b886ad7d3c05a7e221e4e0675c84bbff4ee6d9e03913d">
         <source xml:lang="en">Save</source>
@@ -2081,6 +2713,10 @@ Error:
       <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
         <source xml:lang="en">Save As</source>
         <target state="translated">另存为</target>
+      </trans-unit>
+      <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
+        <source xml:lang="en">Save Connection Group</source>
+        <target state="translated">保存连接组</target>
       </trans-unit>
       <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
         <source xml:lang="en">Save Password</source>
@@ -2153,6 +2789,10 @@ Error:
         <source xml:lang="en">Schema Designer Model is ready. Changes can now be published.</source>
         <target state="translated">架构设计器模型已准备就绪。现在可以发布更改。</target>
       </trans-unit>
+      <trans-unit id="++CODE++625f64194868ec34a2b8b5b02385d3999fc9cdddbb2e823e10a1d965574d8e6c">
+        <source xml:lang="en">Schema visualization opened.</source>
+        <target state="translated">已打开架构可视化效果。</target>
+      </trans-unit>
       <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
         <source xml:lang="en">Schema/Object Type</source>
         <target state="translated">架构/对象类型</target>
@@ -2168,6 +2808,10 @@ Error:
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
         <target state="translated">复制到剪贴板的脚本</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
+        <source xml:lang="en">Search connection groups</source>
+        <target state="translated">搜索连接组</target>
       </trans-unit>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
@@ -2193,6 +2837,10 @@ Error:
         <source xml:lang="en">Select All</source>
         <target state="translated">全选</target>
       </trans-unit>
+      <trans-unit id="++CODE++3052f090b2dd0312f6564fb52c1f06b0efbe9fd7c77fdf38dcb96b4521b06b24">
+        <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
+        <target state="translated">选择具有列解密 Key Vault 访问权限的 Azure 帐户</target>
+      </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
         <target state="translated">选择源</target>
@@ -2200,6 +2848,10 @@ Error:
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
         <target state="translated">选择目标</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
+        <source xml:lang="en">Select a connection group</source>
+        <target state="translated">选择连接组</target>
       </trans-unit>
       <trans-unit id="++CODE++ebe0dbee443b4562c7925a01e3bc69a3d5d0a3b0e8b3e11041c69fa067b65ef7">
         <source xml:lang="en">Select a tenant</source>
@@ -2219,9 +2871,26 @@ Error:
         <source xml:lang="en">Select all</source>
         <target state="translated">全选</target>
       </trans-unit>
+      <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
+        <source xml:lang="en">Select all options</source>
+        <target state="new">Select all options</target>
+      </trans-unit>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
         <target state="translated">选择帐户</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
+        <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
+        <target state="translated">选择用于管理连接共享权限的扩展</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
+        <source xml:lang="en">Select image</source>
+        <target state="translated">选择映像</target>
+      </trans-unit>
+      <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
+        <source xml:lang="en">Select new permission for extension: '{0}'</source>
+        <note>{0} is the extension name</note>
+        <target state="translated">为扩展选择新权限:“{0}”</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -2230,6 +2899,10 @@ Error:
       <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
         <source xml:lang="en">Select subscriptions</source>
         <target state="translated">选择订阅</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c61a29b1d409ff2b70f6fbd1032d7250ac322407dc4b8bbff19eb20af562291">
+        <source xml:lang="en">Select the SQL Server Container Image</source>
+        <target state="translated">选择 SQL Server 容器映像</target>
       </trans-unit>
       <trans-unit id="++CODE++5354479c5248dd63b7110fca45437164866ebbdc35bd5d19a5b814535534024e">
         <source xml:lang="en">Selected Microsoft Entra account removed successfully.</source>
@@ -2242,7 +2915,7 @@ Error:
       <trans-unit id="++CODE++f6cd8550a42862c96bedf199eb6415f9f6859b49211e35694080e73978042cf8">
         <source xml:lang="en">Server - {0}</source>
         <note>{0} is the server name</note>
-        <target state="new">Server - {0}</target>
+        <target state="translated">服务器 - {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
         <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
@@ -2264,6 +2937,11 @@ Error:
         <source xml:lang="en">Server name or ADO.NET connection string</source>
         <target state="translated">服务器名称或 ADO.NET 连接字符串</target>
       </trans-unit>
+      <trans-unit id="++CODE++40c6cdb719db3469fb83c776d850e85fc70bdfa14e6685d6ac62061ac85b8eed">
+        <source xml:lang="en">Server {0} not found.</source>
+        <note>{0} is the server name</note>
+        <target state="translated">找不到服务器 {0}。</target>
+      </trans-unit>
       <trans-unit id="++CODE++c365f1cb6d8e84e7476450255ffb4dd9360ed4a895c83b5378238bcc764e39f8">
         <source xml:lang="en">Set Default</source>
         <target state="translated">设置默认值</target>
@@ -2271,6 +2949,14 @@ Error:
       <trans-unit id="++CODE++7dcc1c2a0bebbc604d5c15ae5e2a764048d5936bda66f0137af772be71d7a145">
         <source xml:lang="en">Set Null</source>
         <target state="translated">设置 Null</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dbdf27e5db8d8cde8cc8a3b15f491db14868513a3253b62b194eb20cf414741a">
+        <source xml:lang="en">Setting up</source>
+        <target state="translated">正在设置</target>
+      </trans-unit>
+      <trans-unit id="++CODE++98a2e618e690165268025ae1d25d8d84ea575af666bdd7a5b719bc777e3d584f">
+        <source xml:lang="en">Setting up container</source>
+        <target state="translated">正在设置容器</target>
       </trans-unit>
       <trans-unit id="++CODE++74a883a037bc227f91891ab654a753d3a99f31ab06ae5b5d2b6e594a692b41f8">
         <source xml:lang="en">Settings</source>
@@ -2288,6 +2974,32 @@ Error:
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">显示 MSSQL 输出</target>
       </trans-unit>
+      <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
+        <source xml:lang="en">Show Schema</source>
+        <target state="translated">显示架构</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
+        <source xml:lang="en">Show full error message</source>
+        <target state="translated">显示完整的错误消息</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa">
+        <source xml:lang="en">Show password</source>
+        <target state="translated">显示密码</target>
+      </trans-unit>
+      <trans-unit id="++CODE++523fa7449e8252600e65c811dcd62983315d0f9f528741627033a45754f591cf">
+        <source xml:lang="en">Show schema for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">是否显示连接“{0}”的架构?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
+        <source xml:lang="en">Show table relationships</source>
+        <target state="translated">显示表关系</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9">
+        <source xml:lang="en">Showing schema for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">正在显示连接“{0}”的架构</target>
+      </trans-unit>
       <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
         <source xml:lang="en">Showplan XML</source>
         <target state="translated">显示计划 XML</target>
@@ -2295,6 +3007,10 @@ Error:
       <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
         <source xml:lang="en">Sign in</source>
         <target state="translated">登录</target>
+      </trans-unit>
+      <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
+        <source xml:lang="en">Sign in to a new account</source>
+        <target state="translated">登录到新帐户</target>
       </trans-unit>
       <trans-unit id="++CODE++09a0ee357e3b34ac30c4ae61fcfbcfde87c6941a213e8e60d146e7942c0d76bc">
         <source xml:lang="en">Sign in to your Azure subscription</source>
@@ -2319,6 +3035,10 @@ Error:
       <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
         <source xml:lang="en">Signing in to Azure...</source>
         <target state="translated">正在登录到 Azure...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
+        <source xml:lang="en">Simple Container Management</source>
+        <target state="translated">简单容器管理</target>
       </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>
@@ -2352,6 +3072,10 @@ Error:
         <source xml:lang="en">Start IP Address</source>
         <target state="translated">起始 IP 地址</target>
       </trans-unit>
+      <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
+        <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
+        <target state="translated">直接从扩展中启动、停止和移除容器。</target>
+      </trans-unit>
       <trans-unit id="++CODE++26254424b6f10bfd397e77bc2c93c10fc436795145ee5f2a09b27d54518ec9d6">
         <source xml:lang="en">Started executing query at </source>
         <target state="translated">开始执行查询的位置</target>
@@ -2365,6 +3089,19 @@ Error:
         <source xml:lang="en">Started saving results to </source>
         <target state="translated">开始保存结果至</target>
       </trans-unit>
+      <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
+        <source xml:lang="en">Starting Container...</source>
+        <target state="translated">正在启动容器...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
+        <source xml:lang="en">Starting Docker...</source>
+        <target state="translated">正在启动 Docker...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
+        <source xml:lang="en">Starting {0}...</source>
+        <note>{0} is the container name</note>
+        <target state="translated">正在启动 {0}...</target>
+      </trans-unit>
       <trans-unit id="++CODE++72927b6fdb5388115d478bb5e0e69c203231f35ad2e0721d77750626ea4fe4db">
         <source xml:lang="en">Starts With</source>
         <target state="translated">开头为</target>
@@ -2372,6 +3109,10 @@ Error:
       <trans-unit id="++CODE++cae7d57bc067a514b8e34c9589631a95c7dc051638ddd2a190773269279a99df">
         <source xml:lang="en">Stop</source>
         <target state="translated">停止</target>
+      </trans-unit>
+      <trans-unit id="++CODE++22ca65e3703408eaba50f90cab80da663692eb6331d25d7552e03cea2fb432a9">
+        <source xml:lang="en">Stopping Container...</source>
+        <target state="translated">正在停止容器...</target>
       </trans-unit>
       <trans-unit id="++CODE++155f816c0407310c0dab222493370773e045ee7fe04e6c9a951b07f495531264">
         <source xml:lang="en">Submit</source>
@@ -2397,6 +3138,15 @@ Error:
         <source xml:lang="en">Succeeded with warning</source>
         <target state="translated">成功，但出现警告</target>
       </trans-unit>
+      <trans-unit id="++CODE++2e71037756b80741dc7aff95ef179d5a25c08df7a40cd7b16af9a5edb6f64047">
+        <source xml:lang="en">Successfully changed to database: {0}</source>
+        <note>{0} is the database name</note>
+        <target state="translated">已成功更改为数据库: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fbd52c8b91de95b69593d008ca2108476ccb1ea5a45657b3393d878499e3fe1f">
+        <source xml:lang="en">Successfully connected to server.</source>
+        <target state="translated">已成功连接到服务器。</target>
+      </trans-unit>
       <trans-unit id="++CODE++f0266af4455c8f348df74a77502b563a575637604e905429b302d78ec39c00e4">
         <source xml:lang="en">Successfully refreshed token for connection {0} with uri {1}, {2}</source>
         <note>{0} is the connection id
@@ -2419,6 +3169,10 @@ Error:
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
         <target state="translated">切换到 MSAL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
+        <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
+        <target state="translated">已取消切换到 Linux 容器。SQL Server 仅支持 Linux 容器。</target>
       </trans-unit>
       <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
         <source xml:lang="en">Table</source>
@@ -2470,6 +3224,10 @@ Error:
         <source xml:lang="en">Tenant ID is required</source>
         <target state="translated">租户 ID 为必填项</target>
       </trans-unit>
+      <trans-unit id="++CODE++2af9bc0ac247853b98b854b657784c881cc649d3f1a660aafecd1b8b1a26d535">
+        <source xml:lang="en">Terms &amp; Conditions</source>
+        <target state="translated">条款和条件</target>
+      </trans-unit>
       <trans-unit id="++CODE++c02977b07ec93816f236c57b4c30d4544904e87e0a43a1daf344c229594320b9">
         <source xml:lang="en">Test Connection</source>
         <target state="translated">测试连接</target>
@@ -2519,6 +3277,11 @@ Error:
       <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
         <source xml:lang="en">The expression defining the check constraint.</source>
         <target state="translated">定义 CHECK 约束的表达式。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dcf10fd537a0660c98f1a3890997024dfebb2ac795ee02dcbc7581ec4a0fe141">
+        <source xml:lang="en">The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.</source>
+        <note>{0} is the extension name</note>
+        <target state="translated">扩展“{0}”正在请求访问你的 SQL Server 连接。这将允许它执行查询并访问你的数据库。</target>
       </trans-unit>
       <trans-unit id="++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e">
         <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
@@ -2646,6 +3409,16 @@ Error:
         <source xml:lang="en">Undo</source>
         <target state="translated">撤消</target>
       </trans-unit>
+      <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
+        <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
+        <note>{0} is the architecture name of the machine</note>
+        <target state="translated">Docker 的体系结构不受支持: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
+        <source xml:lang="en">Unsupported platform for Docker: {0}</source>
+        <note>{0} is the platform name of the machine</note>
+        <target state="translated">不支持的 Docker 平台: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++c1c1009d3f37ec058070a62e22caf9ac9dae2169d452487c5c271a8bcf57a291">
         <source xml:lang="en">Update</source>
         <target state="translated">更新</target>
@@ -2717,8 +3490,12 @@ Error:
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">检测到警告。请查看更改。</target>
       </trans-unit>
-      <trans-unit id="++CODE++f01e36aaf60d2146e1cf906fce3e055116bd19954ad018908f8a7cd8bd2a8b0c">
-        <source xml:lang="en">We couldn’t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
+      <trans-unit id="++CODE++d054fcb4284fd66975e378de56c04bda7b8e951e8e13f66834d9510e2b5461aa">
+        <source xml:lang="en">We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.</source>
+        <target state="translated">找不到 Docker 桌面在你的计算机上的位置。请手动启动 Docker 桌面，然后重试。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
+        <source xml:lang="en">We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
         <target state="translated">无法使用当前连接信息进行连接。是否要重试连接或编辑连接配置文件?</target>
       </trans-unit>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
@@ -2737,9 +3514,17 @@ Error:
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">你未连接到任何数据库。</target>
       </trans-unit>
+      <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
+        <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
+        <target state="translated">必须登录到 Azure 才能浏览 SQL 数据库。</target>
+      </trans-unit>
       <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
         <source xml:lang="en">You must review and accept the terms to proceed</source>
         <target state="translated">必须查看并接受条款才能继续操作</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe">
+        <source xml:lang="en">Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?</source>
+        <target state="translated">Docker 引擎当前运行 Windows 容器。SQL Server 仅支持 Linux 容器。是否要切换到 Linux 容器?</target>
       </trans-unit>
       <trans-unit id="++CODE++4d665ff14f7810a8d97b139336a650d9bf37854683886f2df4679232ec55bae4">
         <source xml:lang="en">Your account needs re-authentication to access {0} resources. Press Open to start the authentication process.</source>
@@ -2755,6 +3540,10 @@ Error:
       <trans-unit id="++CODE++a687a5a3cf1800c09d10d73ae6c128de7b617482ef262db645470c6f4ae9d54d">
         <source xml:lang="en">Your client IP address does not have access to the server. Add a Microsoft Entra account and create a new firewall rule to enable access.</source>
         <target state="translated">你的客户端 IP 地址没有访问服务器所需的权限。添加 Microsoft Entra 帐户并创建新的防火墙规则以启用访问权限。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e22a8e55997a44b12ff4f976b12df9cf1fd9b41a7521198b72b15a3cb9952ed0">
+        <source xml:lang="en">Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).</source>
+        <target state="translated">密码必须包含以下至少三个类别的字符: 大写字母、小写字母、数字(0-9)和特殊字符(!、$、#、% 等)。</target>
       </trans-unit>
       <trans-unit id="++CODE++5dc504d43e14657bd7f0298bc51688ba1bb0b809a8060f3b9106ca9411db9cd4">
         <source xml:lang="en">Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.</source>
@@ -2844,6 +3633,11 @@ Error:
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">updatingIntelliSense</target>
       </trans-unit>
+      <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
+        <source xml:lang="en">{0} (Current Account)</source>
+        <note>{0} is the account display name</note>
+        <target state="translated">{0} (当前帐户)</target>
+      </trans-unit>
       <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
         <source xml:lang="en">{0} (Preview)</source>
         <note>{0} is the database name</note>
@@ -2853,10 +3647,20 @@ Error:
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (已筛选)</target>
       </trans-unit>
+      <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
+        <source xml:lang="en">{0} accounts</source>
+        <note>{0} is the number of accounts</note>
+        <target state="translated">{0} 个帐户</target>
+      </trans-unit>
       <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
         <source xml:lang="en">{0} column data</source>
         <note>{0} is the number of columns</note>
         <target state="translated">{0} 列数据</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
+        <source xml:lang="en">{0} deleted successfully.</source>
+        <note>{0} deleted successfully.</note>
+        <target state="translated">已成功删除 {0}。</target>
       </trans-unit>
       <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
         <source xml:lang="en">{0} errors</source>
@@ -2888,6 +3692,16 @@ Error:
         <source xml:lang="en">{0} properties</source>
         <note>{0} is the object type</note>
         <target state="translated">{0} 属性</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
+        <source xml:lang="en">{0} started successfully.</source>
+        <note>{0} started successfully.</note>
+        <target state="translated">已成功启动 {0}。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1bc61380dfa94d79a64b67b2a483332c51a6263dcf5379519cd36b691f6469e3">
+        <source xml:lang="en">{0} stopped successfully.</source>
+        <note>{0} stopped successfully.</note>
+        <target state="translated">已成功停止 {0}。</target>
       </trans-unit>
       <trans-unit id="++CODE++c4777dc358a4dd9d44e2865392ea9fb6b761d10b718279ab38df4f72f5645fa7">
         <source xml:lang="en">{0} warnings</source>
@@ -2929,6 +3743,22 @@ Error:
         <source xml:lang="en">{{put-server-name-here}}</source>
         <target state="translated">{{put-server-name-here}}</target>
       </trans-unit>
+      <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
+        <source xml:lang="en">✅ Grant Access</source>
+        <target state="translated">✅ 授予访问权限</target>
+      </trans-unit>
+      <trans-unit id="++CODE++56034cb01aa84b5c8abe9389abf03d1c9a91ecea712a8711d611abb0ddd1637c">
+        <source xml:lang="en">✅ Grant Access (Current)</source>
+        <target state="translated">✅ 授予访问权限(当前)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++40609c19f7011fdd42630f286c30982b3d7a2d74640e310c4126b785a384149d">
+        <source xml:lang="en">❌ Deny Access</source>
+        <target state="translated">❌ 拒绝访问</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4d765d766973242c68c5a2d3b20c7164beb22948ceaf7095ce44f901cc2f4052">
+        <source xml:lang="en">❌ Deny Access (Current)</source>
+        <target state="translated">❌ 拒绝访问(当前)</target>
+      </trans-unit>
     </body>
   </file>
   <file original="package" source-language="en" datatype="plaintext" target-language="zh-Hans">
@@ -2940,6 +3770,10 @@ Error:
       <trans-unit id="mssql.addObjectExplorerLegacy">
         <source xml:lang="en">Add Connection (Legacy)</source>
         <target state="translated">添加连接(旧版)</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroups.create">
+        <source xml:lang="en">Add Connection Group</source>
+        <target state="translated">添加连接组</target>
       </trans-unit>
       <trans-unit id="mssql.addAadAccount">
         <source xml:lang="en">Add Microsoft Entra Account</source>
@@ -2973,10 +3807,6 @@ Error:
         <source xml:lang="en">Change Database</source>
         <target state="translated">更改数据库</target>
       </trans-unit>
-      <trans-unit id="mssql.objectExplorerChatWithDatabase">
-        <source xml:lang="en">Chat with this database (Preview)</source>
-        <target state="translated">与此数据库聊天(预览)</target>
-      </trans-unit>
       <trans-unit id="mssql.chooseLanguageFlavor">
         <source xml:lang="en">Choose SQL handler for this file</source>
         <target state="translated">为此文件选择 SQL 句柄</target>
@@ -2984,6 +3814,10 @@ Error:
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
         <target state="translated">选择要使用的身份验证方法</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionSharing.clearAllConnectionSharingPermissions">
+        <source xml:lang="en">Clear All Connection Sharing Permissions</source>
+        <target state="translated">清除所有连接共享权限</target>
       </trans-unit>
       <trans-unit id="mssql.clearAllQueryHistory">
         <source xml:lang="en">Clear All Query History</source>
@@ -3051,13 +3885,21 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">在数据库中创建新表，或使用表设计器编辑现有表。
 完成更改后，单击“发布”按钮以将更改发送到数据库。</target>
       </trans-unit>
+      <trans-unit id="mssql.deployLocalDockerContainer">
+        <source xml:lang="en">Create local SQL Container</source>
+        <target state="translated">创建本地 SQL 容器</target>
+      </trans-unit>
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
         <target state="translated">删除</target>
       </trans-unit>
-      <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
-        <target state="translated">设计架构(预览版)</target>
+      <trans-unit id="mssql.connectionGroups.delete">
+        <source xml:lang="en">Delete Connection Group</source>
+        <target state="translated">删除连接组</target>
+      </trans-unit>
+      <trans-unit id="mssql.deleteContainer">
+        <source xml:lang="en">Delete Container</source>
+        <target state="translated">删除容器</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>
@@ -3082,6 +3924,14 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.editConnection">
         <source xml:lang="en">Edit Connection</source>
         <target state="translated">编辑连接</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionGroups.edit">
+        <source xml:lang="en">Edit Connection Group</source>
+        <target state="translated">编辑连接组</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
+        <source xml:lang="en">Edit Connection Sharing Permissions</source>
+        <target state="translated">编辑连接共享权限</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Edit Table</source>
@@ -3202,8 +4052,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">在 MSSQL 扩展中启用基于 UI 的功能，以获得更丰富、更强大的功能。请在更改此设置后重启 Visual Studio Code。</target>
       </trans-unit>
       <trans-unit id="mssql.enableConnectionPooling">
-        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is enabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'</source>
-        <target state="translated">启用连接池以提高整体连接性能。默认启用此设置。更改值时，需要重新启动 Visual Studio Code。若要清除共用连接，请运行以下命令:“MS SQL: Clear Pooled Connections”</target>
+        <source xml:lang="en">Enables connection pooling to improve overall connectivity performance. This setting is disabled by default. Visual Studio Code is required to be relaunched when the value is changed. To clear pooled connections, run the command: 'MS SQL: Clear Pooled Connections'. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="translated">启用连接池以提高整体连接性能。默认情况下禁用此设置。更改该值时，需要重新启动 Visual Studio Code。要清除共用连接，请运行以下命令: 'MS SQL: Clear Pooled Connections'。注意: 可以保持无服务器数据库处于活动状态，并防止自动暂停。</target>
       </trans-unit>
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
@@ -3339,6 +4189,14 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Open Query History in Command Palette</source>
         <target state="translated">在命令面板中打开查询历史记录</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
+        <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
+        <target state="translated">在 Copilot 代理模式下打开(预览)</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorerChatWithDatabase">
+        <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
+        <target state="translated">在 Copilot 询问模式下打开(预览)</target>
+      </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
         <target state="translated">暂停查询历史记录捕获</target>
@@ -3398,6 +4256,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare (Preview)</source>
         <target state="translated">架构比较 (预览)</target>
+      </trans-unit>
+      <trans-unit id="mssql.schemaDesigner">
+        <source xml:lang="en">Schema Designer (Preview)</source>
+        <target state="translated">架构设计器(预览版)</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -3507,9 +4369,17 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
         <target state="translated">对查询结果进行排序和筛选，以快速查找所需的数据。</target>
       </trans-unit>
+      <trans-unit id="mssql.startContainer">
+        <source xml:lang="en">Start Container</source>
+        <target state="translated">启动容器</target>
+      </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
         <target state="translated">开始查询历史记录捕获</target>
+      </trans-unit>
+      <trans-unit id="mssql.stopContainer">
+        <source xml:lang="en">Stop Container</source>
+        <target state="translated">停止容器</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
@@ -3522,6 +4392,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.connectionGroup.description">
         <source xml:lang="en">The description of the connection group.</source>
         <target state="translated">连接组的说明。</target>
+      </trans-unit>
+      <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+        <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
+        <target state="translated">为状态栏中的连接信息显示的最大字符数。设置为 -1 (无限制)。</target>
       </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
@@ -3577,13 +4451,13 @@ See the estimated plan without running the query, or view the actual query plan 
         <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
         <target state="translated">使用旧版连接体验，而不是新式体验。</target>
       </trans-unit>
-      <trans-unit id="mssql.useLegacyQueryResultExperience.description">
-        <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
-        <target state="translated">使用旧版查询结果体验，而不是新式体验。</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">可视化查询计划</target>
+      </trans-unit>
+      <trans-unit id="mssql.statusBar.enableConnectionColor">
+        <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
+        <target state="translated">启用后，使用连接组的颜色对连接状态栏项进行着色。默认情况下禁用此设置。 此操作直接使用连接组文件夹的颜色，并且不会更改它，以确保与当前 VS Code 主题的对比度。用户应选择适合其主题的连接组颜色。</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
@@ -3642,6 +4516,10 @@ You can also click the 'Open in New Tab' button to view your query results in th
       <trans-unit id="mssql.connection.currentLanguage">
         <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
         <target state="translated">[可选] 指定 SQL Server 语言设置。</target>
+      </trans-unit>
+      <trans-unit id="mssql.connection.containerName">
+        <source xml:lang="en">[Optional] Indicates the name of local docker container the connection is on</source>
+        <target state="translated">[可选] 指示连接所在的本地 docker 容器的名称</target>
       </trans-unit>
       <trans-unit id="mssql.connection.emptyPasswordInput">
         <source xml:lang="en">[Optional] Indicates whether this profile has an empty password explicitly set</source>
@@ -3756,8 +4634,8 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[可选] 当设置为“true”时，如果通信层使用 SSL 进行加密，将自动信任 SQL Server SSL 证书。使用 Azure SQL 数据库连接时，请设置为“false”。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.pooling">
-        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool.</source>
-        <target state="translated">[可选] 当设置为“true”时，将从合适的池中提取连接对象，或者必要时，将创建对象并添加到合适的池中。</target>
+        <source xml:lang="en">[Optional] When set to 'true', the connection object is drawn from the appropriate pool, or if necessary, is created and added to the appropriate pool. Note: May keep serverless databases active and prevent auto-pausing.</source>
+        <target state="translated">[可选] 当设置为 ‘true’ 时，将从合适的池中提取连接对象，或根据需要创建连接对象并将其添加到合适的池中。注意: 可以保持无服务器数据库处于活动状态，并防止自动暂停。</target>
       </trans-unit>
       <trans-unit id="mssql.connection.multiSubnetFailover">
         <source xml:lang="en">[Optional] When set to 'true', the detection and connection to the active server is faster if AlwaysOn Availability Group is configured on different subnets.</source>

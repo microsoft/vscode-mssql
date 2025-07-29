@@ -150,6 +150,25 @@ const SchemaSelectorDrawer = (props: Props) => {
         updateOkButtonState(schemaType);
     }, [context.state.auxiliaryEndpointInfo, serverConnectionUri, databaseName]);
 
+    // Handle auto-selection of newly created connections
+    useEffect(() => {
+        if (currentEndpoint?.ownerUri && currentEndpoint?.databaseName) {
+            // Update local state when endpoint info changes (e.g., from auto-selection)
+            if (serverConnectionUri !== currentEndpoint.ownerUri) {
+                setServerConnectionUri(currentEndpoint.ownerUri);
+                setServerName(currentEndpoint.connectionName || currentEndpoint.serverName || "");
+            }
+            if (databaseName !== currentEndpoint.databaseName) {
+                setDatabaseName(currentEndpoint.databaseName);
+            }
+        }
+    }, [
+        currentEndpoint?.ownerUri,
+        currentEndpoint?.databaseName,
+        currentEndpoint?.connectionName,
+        currentEndpoint?.serverName,
+    ]);
+
     const drawerTitle =
         props.endpointType === "source"
             ? loc.schemaCompare.selectSource
@@ -297,7 +316,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                                 size="large"
                                 icon={<PlugDisconnectedRegular />}
                                 onClick={() => {
-                                    context.openAddNewConnectionDialog();
+                                    context.openAddNewConnectionDialog(props.endpointType);
                                 }}
                             />
                         </div>

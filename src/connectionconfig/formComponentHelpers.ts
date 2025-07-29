@@ -31,7 +31,6 @@ export async function generateConnectionComponents(
     azureAccountOptions: Promise<FormItemOptions[]>,
     azureActionButtons: Promise<FormItemActionButton[]>,
     connectionGroupOptions: Promise<FormItemOptions[]>,
-    connectionGroupButton: Promise<FormItemActionButton>,
 ): Promise<Record<keyof IConnectionDialogProfile, ConnectionDialogFormItemSpec>> {
     // get list of connection options from Tools Service
     const capabilitiesResult: CapabilitiesResult = await connectionManager.client.sendRequest(
@@ -86,7 +85,6 @@ export async function generateConnectionComponents(
         await azureAccountOptions,
         await azureActionButtons,
         await connectionGroupOptions,
-        await connectionGroupButton,
     );
 
     return result;
@@ -200,7 +198,6 @@ export async function completeFormComponents(
     azureAccountOptions: FormItemOptions[],
     azureActionButtons: FormItemActionButton[],
     connectionGroupOptions: FormItemOptions[],
-    connectionGroupButton: FormItemActionButton,
 ) {
     // Add additional components that are not part of the connection options
     components["profileName"] = {
@@ -211,15 +208,9 @@ export async function completeFormComponents(
         isAdvancedOption: false,
     };
 
-    components["groupId"] = {
-        propertyName: "groupId",
-        label: Loc.connectionGroup,
-        required: false,
-        type: FormItemType.Dropdown,
-        options: connectionGroupOptions,
-        actionButtons: [connectionGroupButton],
-        isAdvancedOption: false,
-    };
+    components["groupId"] = getGroupIdFormItem(
+        connectionGroupOptions,
+    ) as ConnectionDialogFormItemSpec;
 
     components["savePassword"] = {
         propertyName: "savePassword",
@@ -314,5 +305,18 @@ export async function completeFormComponents(
             isValid: true,
             validationMessage: "",
         };
+    };
+}
+
+export function getGroupIdFormItem(connectionGroupOptions: FormItemOptions[]) {
+    return {
+        propertyName: "groupId",
+        label: Loc.connectionGroup,
+        required: false,
+        type: FormItemType.SearchableDropdown,
+        options: connectionGroupOptions,
+        isAdvancedOption: false,
+        placeholder: Loc.selectConnectionGroup,
+        searchBoxPlaceholder: Loc.searchConnectionGroups,
     };
 }

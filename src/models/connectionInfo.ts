@@ -42,21 +42,24 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
         connCreds.commandTimeout = Constants.defaultCommandTimeout;
     }
 
-    // default value for encrypt
-    if (connCreds.encrypt === "" || connCreds.encrypt === true) {
-        connCreds.encrypt = EncryptOptions.Mandatory;
-    } else if (connCreds.encrypt === false) {
-        connCreds.encrypt = EncryptOptions.Optional;
-    }
-
     // default value for appName
     if (!connCreds.applicationName) {
         connCreds.applicationName = Constants.connectionApplicationName;
     }
 
+    // default value for encrypt
+    if (connCreds.encrypt === undefined || connCreds.encrypt === "" || connCreds.encrypt === true) {
+        connCreds.encrypt = EncryptOptions.Mandatory;
+    } else if (connCreds.encrypt === false) {
+        connCreds.encrypt = EncryptOptions.Optional;
+    }
+
+    // Override specific properties for Azure SQL Database connections
     if (isAzureDatabase(connCreds.server)) {
         // always encrypt connection when connecting to Azure SQL
-        connCreds.encrypt = EncryptOptions.Mandatory;
+        if (connCreds.encrypt === EncryptOptions.Optional) {
+            connCreds.encrypt = EncryptOptions.Mandatory;
+        }
 
         // Ensure minumum connection timeout when connecting to Azure SQL
         if (connCreds.connectTimeout < Constants.azureSqlDbConnectionTimeout) {
@@ -84,7 +87,7 @@ export function updateEncrypt(connection: IConnectionInfo): {
 
 // return true if server name ends with '.database.windows.net'
 function isAzureDatabase(server: string): boolean {
-    return server ? server.endsWith(Constants.sqlDbPrefix) : false;
+    return server ? server.endsWith(Constants.sqlDbSuffix) : false;
 }
 
 /**
@@ -137,15 +140,19 @@ export function getPicklistDetails(connCreds: IConnectionInfo): string {
  * @param conn connection
  * @returns display string that can be used in status view or other locations
  */
-export function getConnectionDisplayString(creds: IConnectionInfo, trim: boolean = false): string {
+export function getConnectionDisplayString(creds: IConnectionInfo, trimLength?: number): string {
     const server = generateServerDisplayName(creds);
     const database = generateDatabaseDisplayName(creds);
     const user = getUserNameOrDomainLogin(creds);
 
     let result = user ? `${server} : ${database} : ${user}` : `${server} : ${database}`;
 
-    if (trim && result.length > Constants.maxDisplayedStatusTextLength) {
-        result = result.slice(0, Constants.maxDisplayedStatusTextLength) + " \u2026"; // add ellipsis
+    if (trimLength) {
+        if (trimLength === 0) {
+            result = "";
+        } else if (trimLength > 0 && result.length > trimLength) {
+            result = result.slice(0, trimLength) + " \u2026"; // add ellipsis
+        }
     }
 
     return result;

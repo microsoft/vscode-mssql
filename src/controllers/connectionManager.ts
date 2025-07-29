@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { NotificationHandler, RequestType } from "vscode-languageclient";
-import { ConnectionDetails, IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { ConnectionDetails, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
 import { AccountService } from "../azure/accountService";
 import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
@@ -19,7 +19,12 @@ import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { ConnectionStore } from "../models/connectionStore";
-import { IAccount } from "../models/contracts/azure";
+import {
+    IAccount,
+    RequestSecurityTokenParams,
+    RequestSecurityTokenResponse,
+    SecurityTokenRequest,
+} from "../models/contracts/azure";
 import * as ConnectionContracts from "../models/contracts/connection";
 import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
@@ -107,6 +112,7 @@ export default class ConnectionManager {
     >;
     private _failedUriToFirewallIpMap: Map<string, ConnectionContracts.ConnectionCompleteParams>;
     private _failedUriToSSLMap: Map<string, string>;
+    private _keyVaultTokenCache: Map<string, IToken> = new Map<string, IToken>();
     private _accountService: AccountService;
     private _firewallService: FirewallService;
     public azureController: AzureController;
@@ -215,8 +221,11 @@ export default class ConnectionManager {
                 LanguageServiceContracts.NonTSqlNotification.type,
                 this.handleNonTSqlNotification(),
             );
+            this.client.onRequest(
+                SecurityTokenRequest.type,
+                this.handleSecurityTokenRequest.bind(this),
+            );
         }
-
         void this.initialize();
     }
 
@@ -542,7 +551,7 @@ export default class ConnectionManager {
                 connectionInfo.credentials.database = event.connection.databaseName;
                 connectionInfo.credentials.user = event.connection.userName;
 
-                self._statusView.connectSuccess(
+                void self._statusView.connectSuccess(
                     event.ownerUri,
                     connectionInfo.credentials,
                     connectionInfo.serverInfo,
@@ -650,7 +659,7 @@ export default class ConnectionManager {
         connection.errorNumber = undefined;
         connection.errorMessage = undefined;
 
-        this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
+        void this.statusView.connectSuccess(fileUri, newCredentials, connection.serverInfo);
         this.statusView.languageServiceStatusChanged(
             fileUri,
             LocalizedConstants.updatingIntelliSenseStatus,
@@ -1525,7 +1534,18 @@ export default class ConnectionManager {
         }
     }
 
-    public async transferFileConnection(oldFileUri: string, newFileUri: string): Promise<void> {
+    /**
+     * Copies the connection info from one file to another, optionally disconnecting the old file.
+     * @param oldFileUri File to copy the connection info from
+     * @param newFileUri File to copy the connection info to
+     * @param keepOldConnected Whether to keep the old file connected after copying the connection info.  Defaults to false.
+     * @returns
+     */
+    public async copyConnectionToFile(
+        oldFileUri: string,
+        newFileUri: string,
+        keepOldConnected: boolean = false,
+    ): Promise<void> {
         // Is the new file connected or the old file not connected?
         if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
@@ -1534,7 +1554,7 @@ export default class ConnectionManager {
         // Connect the saved uri and disconnect the untitled uri on successful connection
         let creds: IConnectionInfo = this._connections[oldFileUri].credentials;
         let result = await this.connect(newFileUri, creds);
-        if (result) {
+        if (result && !keepOldConnected) {
             await this.disconnect(oldFileUri);
         }
     }
@@ -1763,4 +1783,170 @@ export default class ConnectionManager {
             return "error";
         }
     }
+
+    /**
+     * Get the connection info for a given file URI
+     * @param uri The file URI
+     * @returns The connection info or undefined if not found
+     */
+    public getConnectionInfoFromUri(uri: string): IConnectionInfo | undefined {
+        if (this._connections[uri]) {
+            return this._connections[uri].credentials;
+        }
+        return undefined;
+    }
+
+    private async handleSecurityTokenRequest(
+        params: RequestSecurityTokenParams,
+    ): Promise<RequestSecurityTokenResponse> {
+        if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
+            const token = this._keyVaultTokenCache.get(JSON.stringify(params));
+            const isExpired = AzureController.isTokenExpired(token.expiresOn);
+            if (!isExpired) {
+                return {
+                    accountKey: token.key,
+                    token: token.token,
+                };
+            } else {
+                this._keyVaultTokenCache.delete(JSON.stringify(params));
+            }
+        }
+        const account = await this.selectAccount();
+        const tenant = await this.selectTenantId(account);
+
+        const token = await this.azureController.getAccountSecurityToken(
+            account,
+            tenant,
+            providerSettings.resources.azureKeyVaultResource,
+        );
+
+        this._keyVaultTokenCache.set(JSON.stringify(params), token);
+
+        return {
+            accountKey: token.key,
+            token: token.token,
+        };
+    }
+
+    private async selectAccount(): Promise<IAccount> {
+        const activeEditorConnection =
+            this._connections[this._vscodeWrapper.activeTextEditorUri]?.credentials;
+        const currentAccountId = activeEditorConnection?.accountId;
+        const accounts = this._accountStore.getAccounts();
+
+        const quickPickItems = this.createAccountQuickPickItems(accounts, currentAccountId);
+        const selectedAccount = await this.showAccountQuickPick(quickPickItems);
+
+        if (!selectedAccount) {
+            throw new Error(LocalizedConstants.Connection.noAccountSelected);
+        }
+
+        return selectedAccount;
+    }
+
+    private createAccountQuickPickItems(
+        accounts: IAccount[],
+        currentAccountId?: string,
+    ): AccountQuickPickItem[] {
+        const accountItems: AccountQuickPickItem[] = accounts.map((account) => ({
+            label:
+                account.key.id === currentAccountId
+                    ? LocalizedConstants.Connection.currentAccount(account.displayInfo.name)
+                    : account.displayInfo.name,
+            description: account.displayInfo.email,
+            account,
+        }));
+
+        accountItems.push({
+            label: LocalizedConstants.Connection.signInToAzure,
+            description: LocalizedConstants.Connection.signInToAzure,
+            account: undefined,
+        });
+
+        return accountItems;
+    }
+
+    private async showAccountQuickPick(
+        items: AccountQuickPickItem[],
+    ): Promise<IAccount | undefined> {
+        const account = await new Promise<IAccount | undefined>((resolve, reject) => {
+            const quickPick = vscode.window.createQuickPick<AccountQuickPickItem>();
+            quickPick.items = items;
+            quickPick.placeholder = LocalizedConstants.Connection.SelectAccountForKeyVault;
+
+            quickPick.onDidAccept(async () => {
+                try {
+                    const selectedItem = quickPick.selectedItems[0];
+                    if (!selectedItem) {
+                        resolve(undefined);
+                        return;
+                    }
+
+                    const account = selectedItem.account;
+                    quickPick.dispose();
+                    resolve(account);
+                } catch (error) {
+                    quickPick.dispose();
+                    reject(error);
+                }
+            });
+            quickPick.show();
+        });
+        return account;
+    }
+
+    private async selectTenantId(account: IAccount): Promise<string> {
+        if (account.properties?.tenants?.length === 1) {
+            return account.properties.tenants[0].id;
+        }
+        const tenantItems = account.properties.tenants.map((tenant) => ({
+            label: tenant.displayName,
+            description: tenant.id,
+            tenant: tenant.id,
+        }));
+
+        const selectedTenant = await this.showTenantQuickPick(tenantItems);
+        if (!selectedTenant) {
+            throw new Error(LocalizedConstants.Connection.NoTenantSelected);
+        }
+
+        return selectedTenant;
+    }
+
+    private async showTenantQuickPick(items: TenantQuickPickItem[]): Promise<string | undefined> {
+        return new Promise((resolve, reject) => {
+            const quickPick = vscode.window.createQuickPick<TenantQuickPickItem>();
+            quickPick.items = items;
+            quickPick.placeholder = LocalizedConstants.Connection.SelectTenant;
+
+            quickPick.onDidAccept(() => {
+                const selectedItem = quickPick.selectedItems[0];
+                if (selectedItem) {
+                    quickPick.dispose();
+                    resolve(selectedItem.tenant);
+                } else {
+                    quickPick.dispose();
+                    resolve(undefined);
+                }
+            });
+
+            quickPick.onDidHide(() => {
+                quickPick.dispose();
+            });
+
+            quickPick.show();
+        });
+    }
+}
+
+interface AccountQuickPickItem {
+    label: string;
+    description: string;
+    account?: IAccount;
+}
+
+interface TenantQuickPickItem {
+    label: string;
+    description: string;
+    tenant: string; // Replace with proper tenant type
 }

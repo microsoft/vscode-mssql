@@ -262,6 +262,52 @@ suite("ConnectionConfig Tests", () => {
                 );
             });
 
+            test("removeConnection does not write config if asked to remove a connection that doesn't exist", async () => {
+                const testConnProfile = {
+                    id: "profile-id",
+                    groupId: rootGroupId,
+                    server: "TestServer",
+                    authenticationType: "Integrated",
+                    profileName: "Test Profile",
+                } as IConnectionProfile;
+
+                // Set up initial connections with a different profile
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [
+                    {
+                        id: "different-profile-id",
+                        groupId: rootGroupId,
+                        server: "DifferentServer",
+                        authenticationType: "Integrated",
+                        profileName: "Different Profile",
+                    } as IConnectionProfile,
+                ]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                // Try to remove a profile that doesn't exist in the config
+                const result = await connConfig.removeConnection(testConnProfile);
+
+                expect(result, "Profile should not have been found").to.be.false;
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)).to.have.lengthOf(
+                    1,
+                );
+                expect(mockGlobalConfigData.get(Constants.connectionsArrayName)[0].id).to.equal(
+                    "different-profile-id",
+                );
+
+                // Verify setConfiguration was not called
+                mockVscodeWrapper.verify(
+                    (v) =>
+                        v.setConfiguration(
+                            TypeMoq.It.isValue(Constants.extensionName),
+                            TypeMoq.It.isAny(),
+                            TypeMoq.It.isAny(),
+                        ),
+                    TypeMoq.Times.never(),
+                );
+            });
+
             test("getConnections filters out workspace connections that are missing IDs", async () => {
                 const testConnProfiles = [
                     {
@@ -412,7 +458,7 @@ suite("ConnectionConfig Tests", () => {
                 const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
                 await connConfig.initialized;
 
-                const result = await connConfig.removeGroup(testGroup.id);
+                const result = await connConfig.removeGroup(testGroup.id, "delete");
 
                 expect(result, "Group should have been found and removed").to.be.true;
                 const savedGroups = mockGlobalConfigData.get(
@@ -422,7 +468,7 @@ suite("ConnectionConfig Tests", () => {
                 expect(savedGroups[0].name).to.equal("ROOT");
             });
 
-            test("removeGroup removes child groups and their connections recursively", async () => {
+            test("removeGroup with delete option removes child groups and their connections recursively", async () => {
                 // Set up test groups: Group A with children B and C
                 const groupA = { name: "Group A", id: "group-a", parentId: rootGroupId };
                 const groupB = { name: "Group B", id: "group-b", parentId: "group-a" };
@@ -438,7 +484,7 @@ suite("ConnectionConfig Tests", () => {
                 // Set up test connections: one in Group B, one in Group A
                 const conn1 = {
                     id: "conn1",
-                    groupId: "group-b",
+                    groupId: "group-a",
                     server: "server1",
                     authenticationType: "Integrated",
                     profileName: "Connection 1",
@@ -446,7 +492,7 @@ suite("ConnectionConfig Tests", () => {
 
                 const conn2 = {
                     id: "conn2",
-                    groupId: "group-a",
+                    groupId: "group-b",
                     server: "server2",
                     authenticationType: "Integrated",
                     profileName: "Connection 2",
@@ -458,7 +504,7 @@ suite("ConnectionConfig Tests", () => {
                 await connConfig.initialized;
 
                 // Remove Group A
-                const result = await connConfig.removeGroup(groupA.id);
+                const result = await connConfig.removeGroup(groupA.id, "delete");
 
                 expect(result, "Group should have been found and removed").to.be.true;
 
@@ -474,6 +520,76 @@ suite("ConnectionConfig Tests", () => {
                     Constants.connectionsArrayName,
                 ) as IConnectionProfile[];
                 expect(savedConnections).to.have.lengthOf(0, "All connections should be removed");
+            });
+
+            test("removeGroup with move option moves immediate children to root and removes subgroups", async () => {
+                // Set up test groups: Group A with children B and C
+                const groupA = { name: "Group A", id: "group-a", parentId: rootGroupId };
+                const groupB = { name: "Group B", id: "group-b", parentId: "group-a" };
+                const groupC = { name: "Group C", id: "group-c", parentId: "group-a" };
+
+                mockGlobalConfigData.set(Constants.connectionGroupsArrayName, [
+                    { name: "ROOT", id: rootGroupId },
+                    groupA,
+                    groupB,
+                    groupC,
+                ]);
+
+                // Set up test connections: one in Group A (immediate child), one in Group B (nested)
+                const conn1 = {
+                    id: "conn1",
+                    groupId: "group-a",
+                    server: "server1",
+                    authenticationType: "Integrated",
+                    profileName: "Connection 1",
+                } as IConnectionProfile;
+
+                const conn2 = {
+                    id: "conn2",
+                    groupId: "group-b",
+                    server: "server2",
+                    authenticationType: "Integrated",
+                    profileName: "Connection 2",
+                } as IConnectionProfile;
+
+                mockGlobalConfigData.set(Constants.connectionsArrayName, [conn1, conn2]);
+
+                const connConfig = new ConnectionConfig(mockVscodeWrapper.object);
+                await connConfig.initialized;
+
+                // Remove Group A with move option
+                const result = await connConfig.removeGroup(groupA.id, "move");
+
+                expect(result, "Group should have been found and removed").to.be.true;
+
+                // Verify group A was removed and immediate children (B and C) were moved to root
+                const savedGroups = mockGlobalConfigData.get(
+                    Constants.connectionGroupsArrayName,
+                ) as IConnectionGroup[];
+                expect(savedGroups).to.have.lengthOf(3, "ROOT and two child groups should remain");
+
+                // Verify group hierarchy
+                const groupB_Saved = savedGroups.find((g) => g.id === groupB.id);
+                const groupC_Saved = savedGroups.find((g) => g.id === groupC.id);
+                expect(groupB_Saved.parentId).to.equal(
+                    rootGroupId,
+                    "Group B should be moved to root",
+                );
+                expect(groupC_Saved.parentId).to.equal(
+                    rootGroupId,
+                    "Group C should be moved to root",
+                );
+
+                // Verify immediate child connection was moved to root, keeping its internal hierarchy
+                const savedConnections = mockGlobalConfigData.get(
+                    Constants.connectionsArrayName,
+                ) as IConnectionProfile[];
+                const conn1_Saved = savedConnections.find((c) => c.id === conn1.id);
+                expect(conn1_Saved).to.not.be.undefined;
+                expect(conn1_Saved.groupId).to.equal(
+                    rootGroupId,
+                    "Connection 1 should be moved to root",
+                );
             });
 
             test("getGroups returns all connection groups", async () => {

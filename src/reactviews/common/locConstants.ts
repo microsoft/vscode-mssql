@@ -51,6 +51,10 @@ export class LocConstants {
             select: l10n.t("Select"),
             finish: l10n.t("Finish"),
             retry: l10n.t("Retry"),
+            refresh: l10n.t("Refresh"),
+            showPassword: l10n.t("Show password"),
+            hidePassword: l10n.t("Hide password"),
+            dismiss: l10n.t("Dismiss"),
         };
     }
 
@@ -180,7 +184,6 @@ export class LocConstants {
             signIntoAzureToAddFirewallRule: l10n.t(
                 "Sign into Azure in order to add a firewall rule.",
             ),
-            signIntoAzure: l10n.t("Sign into Azure"),
             tenant: l10n.t("Tenant"),
             ruleName: l10n.t("Rule name"),
             addMyClientIp: (ipAddress: string) =>
@@ -200,6 +203,12 @@ export class LocConstants {
             advancedSettings: l10n.t("Advanced"),
             testConnection: l10n.t("Test Connection"),
             connectToDatabase: l10n.t("Connect to Database"),
+            connectTo: (profileName: string) =>
+                l10n.t({
+                    message: "Connect to {0}",
+                    args: [profileName],
+                    comment: ["{0} is the name of the connection profile"],
+                }),
             parameters: l10n.t("Parameters"),
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
@@ -250,6 +259,27 @@ export class LocConstants {
             copy: l10n.t("Copy"),
             paste: l10n.t("Paste"),
             searchSettings: l10n.t("Search settings..."),
+            signIntoAzureToBrowse: l10n.t(
+                "You must be signed into Azure in order to browse SQL databases.",
+            ),
+        };
+    }
+
+    public get azure() {
+        return {
+            signIntoAzure: l10n.t("Sign into Azure"),
+            notSignedIn: l10n.t("Not signed in"),
+            azureAccount: l10n.t("Azure Account"),
+            addAccount: l10n.t("Add Account"),
+            addAzureAccount: l10n.t("+ Add Azure Account"),
+            nAccounts: (n: number) =>
+                l10n.t({
+                    message: "{0} accounts",
+                    args: [n],
+                    comment: ["{0} is the number of accounts"],
+                }),
+            clickToSignIntoAnAzureAccount: l10n.t("Click to sign into an Azure account"),
+            currentlySignedInAs: l10n.t("Currently signed in as:"),
         };
     }
 
@@ -404,7 +434,6 @@ export class LocConstants {
             },
             clearFilter: l10n.t("Clear All"),
             applyFilter: l10n.t("Apply"),
-            refresh: l10n.t("Refresh"),
             publishChanges: l10n.t("Publish Changes"),
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
@@ -602,6 +631,7 @@ export class LocConstants {
             undo: l10n.t("Undo"),
             redo: l10n.t("Redo"),
             searchTables: l10n.t("Search tables..."),
+            showTableRelationships: l10n.t("Show table relationships"),
         };
     }
 
@@ -628,6 +658,8 @@ export class LocConstants {
             searchOptions: l10n.t("Search options..."),
             generalOptions: l10n.t("General Options"),
             includeObjectTypes: l10n.t("Include Object Types"),
+            selectAllOptions: l10n.t("Select all options"),
+            includeAllObjectTypes: l10n.t("Include all object types"),
             optionDescription: l10n.t("Option Description"),
             reset: l10n.t("Reset"),
             stop: l10n.t("Stop"),

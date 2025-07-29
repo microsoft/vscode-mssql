@@ -88,7 +88,10 @@ suite("ExecutionPlanWebviewController", () => {
             .stub(epUtils, "createExecutionPlanGraphs")
             .resolves(mockResultState);
 
-        const result = await controller["_reducers"]["getExecutionPlan"](mockInitialState, {});
+        const result = await controller["_reducerHandlers"].get("getExecutionPlan")(
+            mockInitialState,
+            {},
+        );
 
         assert.ok(
             createExecutionPlanGraphsStub.calledOnce,
@@ -124,7 +127,7 @@ suite("ExecutionPlanWebviewController", () => {
             sqlPlanContent: executionPlanContents,
         };
 
-        const result = await controller["_reducers"]["saveExecutionPlan"](
+        const result = await controller["_reducerHandlers"].get("saveExecutionPlan")(
             mockInitialState,
             mockPayload,
         );
@@ -149,7 +152,10 @@ suite("ExecutionPlanWebviewController", () => {
             sqlPlanContent: executionPlanContents,
         };
 
-        const result = await controller["_reducers"]["showPlanXml"](mockInitialState, mockPayload);
+        const result = await controller["_reducerHandlers"].get("showPlanXml")(
+            mockInitialState,
+            mockPayload,
+        );
 
         assert.ok(showPlanXmlStub.calledOnce, "showPlanXml should be called once");
 
@@ -171,7 +177,10 @@ suite("ExecutionPlanWebviewController", () => {
             query: "select * from sys.objects;",
         };
 
-        const result = await controller["_reducers"]["showQuery"](mockInitialState, mockPayload);
+        const result = await controller["_reducerHandlers"].get("showQuery")(
+            mockInitialState,
+            mockPayload,
+        );
 
         assert.ok(showQueryStub.calledOnce, "showQuery should be called once");
 
@@ -199,7 +208,7 @@ suite("ExecutionPlanWebviewController", () => {
             addedCost: 100,
         };
 
-        const result = await controller["_reducers"]["updateTotalCost"](
+        const result = await controller["_reducerHandlers"].get("updateTotalCost")(
             mockInitialState,
             mockPayload,
         );
@@ -286,7 +295,7 @@ suite("Execution Plan Utilities", () => {
     });
 
     test("showXml: should call showXml and return the state", async () => {
-        const openDocumentStub = sinon.stub(vscode.workspace, "openTextDocument");
+        const openDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
 
         const mockPayload = { sqlPlanContent: executionPlanContents };
 

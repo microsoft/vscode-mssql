@@ -28,6 +28,8 @@ import { CancelError } from "../utils/utils";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { AddFirewallRuleWebviewController } from "../controllers/addFirewallRuleWebviewController";
 import { SessionCreatedParameters } from "../models/contracts/objectExplorer/createSessionRequest";
+import { CREATE_NEW_GROUP_ID, IConnectionGroup } from "../sharedInterfaces/connectionGroup";
+import { FormItemOptions } from "../sharedInterfaces/form";
 
 /**
  * The different tasks for managing connection profiles.
@@ -119,7 +121,7 @@ export class ConnectionUI {
 
     public promptLanguageFlavor(): Promise<string> {
         const self = this;
-        return new Promise<string>((resolve, reject) => {
+        return new Promise<string>(async (resolve, reject) => {
             let picklist: ISqlProviderItem[] = [
                 {
                     label: LocalizedConstants.mssqlProviderName,
@@ -132,19 +134,18 @@ export class ConnectionUI {
                     providerId: constants.noneProviderName,
                 },
             ];
-            self.promptItemChoice(
+            const selection = await self.promptItemChoice(
                 {
                     placeHolder: LocalizedConstants.flavorChooseLanguage,
                     matchOnDescription: true,
                 },
                 picklist,
-            ).then((selection) => {
-                if (selection) {
-                    resolve(selection.providerId);
-                } else {
-                    resolve(undefined);
-                }
-            });
+            );
+            if (selection) {
+                resolve(selection.providerId);
+            } else {
+                resolve(undefined);
+            }
         });
     }
 
@@ -233,37 +234,22 @@ export class ConnectionUI {
         });
     }
 
-    /**
-     * Prompt the user to change language mode to SQL.
-     * @returns resolves to true if the user changed the language mode to SQL.
-     */
-    public promptToChangeLanguageMode(): Promise<boolean> {
-        const self = this;
-        return new Promise<boolean>((resolve, reject) => {
-            let question: IQuestion = {
-                type: QuestionTypes.confirm,
-                name: LocalizedConstants.msgChangeLanguageMode,
-                message: LocalizedConstants.msgChangeLanguageMode,
-            };
-            self._prompter
-                .promptSingle(question)
-                .then((value) => {
-                    if (value) {
-                        this._vscodeWrapper
-                            .executeCommand("workbench.action.editor.changeLanguageMode")
-                            .then(() => {
-                                self.waitForLanguageModeToBeSql().then((result) => {
-                                    resolve(result);
-                                });
-                            });
-                    } else {
-                        resolve(false);
-                    }
-                })
-                .catch((err) => {
-                    resolve(false);
-                });
-        });
+    public async promptToChangeLanguageMode(): Promise<boolean> {
+        let question: IQuestion = {
+            type: QuestionTypes.confirm,
+            name: LocalizedConstants.msgChangeLanguageMode,
+            message: LocalizedConstants.msgChangeLanguageMode,
+        };
+
+        const value = await this._prompter.promptSingle(question);
+
+        if (value) {
+            await this._vscodeWrapper.executeCommand("workbench.action.editor.changeLanguageMode");
+            const result = await this.waitForLanguageModeToBeSql();
+            return result;
+        } else {
+            return false;
+        }
     }
 
     // Helper to let the user choose a database on the current server
@@ -366,7 +352,7 @@ export class ConnectionUI {
             this._prompter,
             this._connectionStore,
             connection,
-            false // shouldSaveUpdates
+            false, // shouldSaveUpdates
         );
     }
 
@@ -381,7 +367,10 @@ export class ConnectionUI {
                     connectFunc = this.createAndSaveProfile();
                 } else {
                     // user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
-                    connectFunc = this.fillOrPromptForMissingInfo(selection, false /* shouldSaveUpdates */);
+                    connectFunc = this.fillOrPromptForMissingInfo(
+                        selection,
+                        false /* shouldSaveUpdates */,
+                    );
                 }
 
                 connectFunc.then(
@@ -448,34 +437,34 @@ export class ConnectionUI {
                 name: LocalizedConstants.ManageProfilesPrompt,
                 message: LocalizedConstants.ManageProfilesPrompt,
                 choices: choices,
-                onAnswered: (value) => {
+                onAnswered: async (value) => {
                     switch (value) {
                         case ManageProfileTask.Create:
-                            self.connectionManager.onCreateProfile().then((result) => {
-                                resolve(result);
-                            });
+                            const result = await self.connectionManager.onCreateProfile();
+                            resolve(result);
                             break;
                         case ManageProfileTask.ClearRecentlyUsed:
-                            self.promptToClearRecentConnectionsList().then((result) => {
+                            try {
+                                const result = await self.promptToClearRecentConnectionsList();
                                 if (result) {
-                                    self.connectionManager
-                                        .clearRecentConnectionsList()
-                                        .then((credentialsDeleted) => {
-                                            if (credentialsDeleted) {
-                                                self.vscodeWrapper.showInformationMessage(
-                                                    LocalizedConstants.msgClearedRecentConnections,
-                                                );
-                                            } else {
-                                                self.vscodeWrapper.showWarningMessage(
-                                                    LocalizedConstants.msgClearedRecentConnectionsWithErrors,
-                                                );
-                                            }
-                                            resolve(true);
-                                        });
+                                    const credentialsDeleted =
+                                        await self.connectionManager.clearRecentConnectionsList();
+                                    if (credentialsDeleted) {
+                                        self.vscodeWrapper.showInformationMessage(
+                                            LocalizedConstants.msgClearedRecentConnections,
+                                        );
+                                    } else {
+                                        self.vscodeWrapper.showWarningMessage(
+                                            LocalizedConstants.msgClearedRecentConnectionsWithErrors,
+                                        );
+                                    }
+                                    resolve(true);
                                 } else {
                                     resolve(false);
                                 }
-                            });
+                            } catch (error) {
+                                reject(error);
+                            }
                             break;
                         case ManageProfileTask.Edit:
                             self.vscodeWrapper
@@ -485,9 +474,8 @@ export class ConnectionUI {
                                 });
                             break;
                         case ManageProfileTask.Remove:
-                            self.connectionManager.onRemoveProfile().then((result) => {
-                                resolve(result);
-                            });
+                            const removeProfileResult = self.connectionManager.onRemoveProfile();
+                            resolve(removeProfileResult);
                             break;
                         default:
                             resolve(false);
@@ -496,7 +484,7 @@ export class ConnectionUI {
                 },
             };
 
-            this._prompter.promptSingle(question);
+            void this._prompter.promptSingle(question);
         });
     }
 
@@ -667,6 +655,63 @@ export class ConnectionUI {
 
             return success;
         }
+    }
+
+    /**
+     * Get the options for connection groups.
+     * @returns A promise that resolves to an array of FormItemOptions for connection groups.
+     */
+    public async getConnectionGroupOptions(): Promise<FormItemOptions[]> {
+        const rootId = this._connectionManager.connectionStore.rootGroupId;
+        let connectionGroups =
+            await this._connectionManager.connectionStore.readAllConnectionGroups();
+        connectionGroups = connectionGroups.filter((g) => g.id !== rootId);
+
+        // Count occurrences of group names to handle naming conflicts
+        const nameOccurrences = new Map<string, number>();
+        for (const group of connectionGroups) {
+            const count = nameOccurrences.get(group.name) || 0;
+            nameOccurrences.set(group.name, count + 1);
+        }
+
+        // Create a map of group IDs to their full paths
+        const groupById = new Map(connectionGroups.map((g) => [g.id, g]));
+
+        // Helper function to get parent path
+        const getParentPath = (group: IConnectionGroup): string => {
+            if (!group.parentId || group.parentId === rootId) {
+                return group.name;
+            }
+            const parent = groupById.get(group.parentId);
+            if (!parent) {
+                return group.name;
+            }
+            return `${getParentPath(parent)} > ${group.name}`;
+        };
+
+        const result = connectionGroups
+            .map((g) => {
+                // If there are naming conflicts, use the full path
+                const displayName = nameOccurrences.get(g.name) > 1 ? getParentPath(g) : g.name;
+
+                return {
+                    displayName,
+                    value: g.id,
+                };
+            })
+            .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+        return [
+            {
+                displayName: LocalizedConstants.ConnectionDialog.default,
+                value: rootId,
+            },
+            {
+                displayName: LocalizedConstants.ConnectionDialog.createConnectionGroup,
+                value: CREATE_NEW_GROUP_ID,
+            },
+            ...result,
+        ];
     }
 
     /**
@@ -901,7 +946,7 @@ export class ConnectionUI {
 
     private fillOrPromptForMissingInfo(
         selection: IConnectionCredentialsQuickPickItem,
-        shouldSaveUpdates: boolean = true
+        shouldSaveUpdates: boolean = true,
     ): Promise<IConnectionInfo> {
         // If a connection string is present, don't prompt for any other info
         if (selection.connectionCreds.connectionString) {
@@ -922,7 +967,7 @@ export class ConnectionUI {
                 this._prompter,
                 this._connectionStore,
                 undefined, // defaultProfileValues
-                shouldSaveUpdates
+                shouldSaveUpdates,
             );
         });
     }

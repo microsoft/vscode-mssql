@@ -9,6 +9,7 @@ import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
+import { RequestType } from "vscode-jsonrpc/browser";
 
 export class ConnectionDialogWebviewState
     implements
@@ -36,16 +37,17 @@ export class ConnectionDialogWebviewState
         mainOptions: [],
         groupedAdvancedOptions: [],
     };
+    public azureAccounts: string[] = [];
+    public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureSubscriptions: AzureSubscriptionInfo[] = [];
+    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureServers: AzureSqlServerInfo[] = [];
+    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
-    public connectionGroups: IConnectionGroup[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public readyToConnect: boolean = false;
     public formError: string = "";
-    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
-    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public dialog: IDialogProps | undefined;
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
@@ -82,7 +84,6 @@ export interface ConnectionStringDialogProps extends IDialogProps {
     connectionString: string;
     connectionStringError?: string;
 }
-
 export interface CreateConnectionGroupDialogProps extends IDialogProps {
     type: "createConnectionGroup";
     props: ConnectionGroupState;
@@ -100,6 +101,7 @@ export interface AzureSqlServerInfo {
     location: string;
     resourceGroup: string;
     subscription: string;
+    uri: string;
 }
 
 export interface ConnectionComponentsInfo {
@@ -132,19 +134,11 @@ export enum ConnectionInputMode {
 // optional name and details on whether password should be saved
 export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     profileName?: string;
+    groupId?: string;
     savePassword?: boolean;
     emptyPasswordInput?: boolean;
     azureAuthType?: vscodeMssql.AzureAuthType;
     id?: string;
-    groupId?: string;
-}
-
-export interface IConnectionGroup {
-    id: string;
-    name: string;
-    parentId?: string;
-    color?: string;
-    description?: string;
 }
 
 export interface ConnectionDialogContextProps
@@ -159,7 +153,9 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
+    closeMessage: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
+    openCreateConnectionGroupDialog: () => void;
     createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
     filterAzureSubscriptions: () => void;
     refreshConnectionsList: () => void;
@@ -168,6 +164,7 @@ export interface ConnectionDialogContextProps
     loadFromConnectionString: (connectionString: string) => void;
     openConnectionStringDialog: () => void;
     signIntoAzureForFirewallRule: () => void;
+    signIntoAzureForBrowse: () => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
@@ -196,7 +193,9 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     createConnectionGroup: {
         connectionGroupSpec: ConnectionGroupSpec;
     };
+    openCreateConnectionGroupDialog: {};
     closeDialog: {};
+    closeMessage: {};
     filterAzureSubscriptions: {};
     refreshConnectionsList: {};
     deleteSavedConnection: {
@@ -208,4 +207,11 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
+    signIntoAzureForBrowse: {};
+}
+
+export namespace GetConnectionDisplayNameRequest {
+    export const type = new RequestType<IConnectionDialogProfile, string, void>(
+        "getConnectionDisplayName",
+    );
 }

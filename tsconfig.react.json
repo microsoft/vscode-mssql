@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "target": "ES2020",
+        "target": "ES2024",
         "useDefineForClassFields": true,
-        "lib": ["ES2020", "DOM", "DOM.Iterable"],
+        "lib": ["ES2024", "DOM", "DOM.Iterable"],
         "module": "ESNext",
         "skipLibCheck": true,
         /* Bundler mode */
@@ -17,7 +17,7 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
-        "composite": true,
+        "composite": false,
         "allowSyntheticDefaultImports": true
     },
     "include": ["src/reactviews", "typings", "src/sharedInterfaces", "media"]

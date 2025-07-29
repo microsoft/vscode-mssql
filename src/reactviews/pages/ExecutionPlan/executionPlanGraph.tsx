@@ -214,7 +214,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
 
         const onMouseMove = (e: any) => {
             const newWidth = startWidth - (e.pageX - startX);
-            setPropertiesWidth(newWidth);
+            if (newWidth >= 275) {
+                setPropertiesWidth(newWidth);
+            }
         };
 
         const onMouseUp = () => {
@@ -237,7 +239,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
             <div
                 id="planContainer"
                 className={classes.planContainer}
-                style={{ height: containerHeight }}>
+                style={{
+                    height: containerHeight,
+                }}>
                 <div
                     id="queryCostContainer"
                     className={classes.queryCostContainer}
@@ -245,6 +249,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         background: tokens.colorNeutralBackground2,
                         // 35px is the width of the side toolbar with some extra room for padding
                         width: propertiesClicked
+                            ? `calc(100% - ${propertiesWidth}px - 35px)`
+                            : "calc(100% - 35px)",
+                        maxWidth: propertiesClicked
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
                             : "calc(100% - 35px)",
                     }}
@@ -344,7 +351,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         ref={resizableRef}>
                         <div className={classes.resizer} onMouseDown={onMouseDown}></div>
                         <Popover open={propertiesClicked}>
-                            <div>
+                            <div style={{ height: "100%" }} tabIndex={0}>
                                 <PropertiesPane
                                     // guaranteed to be non-null
                                     executionPlanView={executionPlanView!}

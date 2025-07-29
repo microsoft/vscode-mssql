@@ -63,6 +63,7 @@ import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import { AddLocalContainerConnectionTreeNode } from "../containerDeployment/addLocalContainerConnectionTreeNode";
+import { getErrorMessage } from "../utils/utils";
 
 export interface CreateSessionResult {
     sessionId?: string;
@@ -411,12 +412,6 @@ export class ObjectExplorerService {
         const newConnectionGroupNodes = new Map<string, ConnectionGroupNode>();
         const newConnectionNodes = new Map<string, ConnectionNode>();
 
-        void vscode.commands.executeCommand(
-            "setContext",
-            "mssql.hasConnections",
-            savedConnections.length > 0,
-        );
-
         // Add all group nodes from settings first
         for (const group of serverGroups) {
             const groupNode = new ConnectionGroupNode(group);
@@ -537,6 +532,7 @@ export class ObjectExplorerService {
         );
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
         this._treeNodeToChildrenMap.set(element, [loadingNode]);
+        this._refreshCallback(element);
 
         return this._treeNodeToChildrenMap.get(element);
     }
@@ -619,6 +615,13 @@ export class ObjectExplorerService {
     public async createSession(
         connectionInfo?: IConnectionInfo,
     ): Promise<CreateSessionResult | undefined> {
+        if (!this._rootTreeNodeArray) {
+            // Ensure root nodes are loaded.
+            // This is needed when connection attempts are made before OE has been activated
+            // e.g. User clicks connect button from Editor before ever viewing the OE panel
+            await this.getRootNodes();
+        }
+
         const createSessionActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.CreateSession,
@@ -741,8 +744,24 @@ export class ObjectExplorerService {
                 TelemetryViews.ContainerDeployment,
                 TelemetryActions.ConnectToContainer,
             );
-            // start docker and docker container
-            await restartContainer(connectionProfile.containerName);
+            try {
+                const containerNode = this.getConnectionNodeFromProfile(connectionProfile);
+                // start docker and docker container
+                const successfullyRunning = await restartContainer(
+                    connectionProfile.containerName,
+                    containerNode,
+                    this,
+                );
+                this._logger.verbose(
+                    successfullyRunning
+                        ? `Failed to restart Docker container "${connectionProfile.containerName}".`
+                        : `Docker container "${connectionProfile.containerName}" has been restarted.`,
+                );
+            } catch (error) {
+                this._logger.error(
+                    `Error when attempting to ensure container "${connectionProfile.containerName}" is started.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
+                );
+            }
         }
         if (connectionProfile.connectionString) {
             if (connectionProfile.savePassword) {
