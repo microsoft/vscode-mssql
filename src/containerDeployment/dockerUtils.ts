@@ -61,6 +61,8 @@ export const dockerLogger = Logger.create(
 const dockerInstallErrorLink = "https://docs.docker.com/engine/install/";
 const windowsContainersErrorLink =
     "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
+const rosettaErrorLink =
+    "https://docs.docker.com/desktop/settings-and-maintenance/settings/#general";
 
 /**
  * Commands used to interact with Docker.
@@ -137,8 +139,10 @@ export function initializeDockerSteps(): DockerStep[] {
             errorLink:
                 platform() === Platform.Windows && arch() === x64
                     ? windowsContainersErrorLink
-                    : undefined,
-            errorLinkText: ContainerDeployment.configureLinuxContainers,
+                    : platform() === Platform.Mac
+                      ? rosettaErrorLink
+                      : undefined,
+            errorLinkText: ContainerDeployment.configureDockerEngine,
             stepAction: checkEngine,
         },
         {

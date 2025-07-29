@@ -542,8 +542,8 @@
     <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
       <source xml:lang="en">Comparison Details</source>
     </trans-unit>
-    <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
-      <source xml:lang="en">Configure Linux containers</source>
+    <trans-unit id="++CODE++cdf33a28b23ac6f90856686b17ce93b5e9fa61c6c0c654fd9a2df70e104e0e01">
+      <source xml:lang="en">Configure Docker engine</source>
     </trans-unit>
     <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
       <source xml:lang="en">Configure and customize SQL Server containers</source>
