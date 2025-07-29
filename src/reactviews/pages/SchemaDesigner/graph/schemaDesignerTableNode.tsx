@@ -132,6 +132,10 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
         eventBus.emit("editTable", tableCopy, schema, true);
     };
 
+    const handleAddRelatedTables = async () => {
+        await context.addRelatedTables(table);
+    };
+
     return (
         <>
             <Button
@@ -157,6 +161,11 @@ const TableHeaderActions = ({ table }: { table: SchemaDesigner.Table }) => {
                             icon={<FluentIcons.FlowRegular />}
                             onClick={handleManageRelationships}>
                             {locConstants.schemaDesigner.manageRelationships}
+                        </MenuItem>
+                        <MenuItem
+                            icon={<FluentIcons.AddRegular />}
+                            onClick={handleAddRelatedTables}>
+                            {locConstants.schemaDesigner.addRelatedTables}
                         </MenuItem>
                         <MenuItem icon={<FluentIcons.DeleteRegular />} onClick={handleDeleteTable}>
                             {locConstants.schemaDesigner.delete}

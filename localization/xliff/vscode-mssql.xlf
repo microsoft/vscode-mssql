@@ -79,6 +79,9 @@
       <source xml:lang="en">Add Firewall Rule to {0}</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++c905216d2acea4ef0b944fdca475fca771ceeacee7f4c2b72ebb83188f7e91d2">
+      <source xml:lang="en">Add Related Tables</source>
+    </trans-unit>
     <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
       <source xml:lang="en">Add Table</source>
     </trans-unit>

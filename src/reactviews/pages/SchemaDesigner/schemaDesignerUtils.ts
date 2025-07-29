@@ -112,6 +112,51 @@ export const tableUtils = {
             id: uuidv4(),
         };
     },
+
+    /**
+     * Find tables that have foreign key relationships with the specified table.
+     * Returns tables that either reference the target table or are referenced by it.
+     */
+    getRelatedTables: (
+        schema: SchemaDesigner.Schema,
+        targetTable: SchemaDesigner.Table,
+    ): SchemaDesigner.Table[] => {
+        const relatedTables: SchemaDesigner.Table[] = [];
+        const addedTableIds = new Set<string>();
+
+        // Find tables that reference the target table (child tables)
+        for (const table of schema.tables) {
+            if (table.id === targetTable.id) continue;
+
+            for (const fk of table.foreignKeys) {
+                if (
+                    fk.referencedTableName === targetTable.name &&
+                    fk.referencedSchemaName === targetTable.schema &&
+                    !addedTableIds.has(table.id)
+                ) {
+                    relatedTables.push(table);
+                    addedTableIds.add(table.id);
+                    break;
+                }
+            }
+        }
+
+        // Find tables that are referenced by the target table (parent tables)
+        for (const fk of targetTable.foreignKeys) {
+            const referencedTable = schema.tables.find(
+                (t) =>
+                    t.name === fk.referencedTableName &&
+                    t.schema === fk.referencedSchemaName &&
+                    !addedTableIds.has(t.id),
+            );
+            if (referencedTable) {
+                relatedTables.push(referencedTable);
+                addedTableIds.add(referencedTable.id);
+            }
+        }
+
+        return relatedTables;
+    },
 };
 
 export interface AdvancedColumnOption {
