@@ -42,6 +42,49 @@ const useStyles = makeStyles({
         margin: "10px 0",
         width: "100%",
     },
+
+    drawerBody: {
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        overflow: "hidden",
+    },
+
+    tabContainer: {
+        flexShrink: 0,
+    },
+
+    masterCheckboxContainer: {
+        margin: "10px 0",
+        borderBottom: "1px solid var(--colorNeutralStroke2)",
+        marginBottom: "0px",
+        backgroundColor: "var(--colorNeutralBackground2)",
+        position: "sticky",
+        top: 0,
+        zIndex: 1,
+        flexShrink: 0,
+    },
+
+    masterCheckbox: {
+        fontWeight: "600",
+        fontSize: "14px",
+    },
+
+    tabContentContainer: {
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
+    },
+
+    scrollableList: {
+        flex: 1,
+        overflowY: "auto",
+        minHeight: 0,
+        paddingTop: "8px",
+        width: "100%",
+    },
 });
 
 interface Props {
@@ -117,6 +160,57 @@ const SchemaOptionsDrawer = (props: Props) => {
         return isFound === undefined ? true : false;
     };
 
+    // Helper functions for master checkbox states
+    const getGeneralOptionsMasterCheckboxState = () => {
+        if (!optionsToValueNameLookup || filteredGeneralOptions.length === 0) {
+            return { checked: false, indeterminate: false };
+        }
+
+        const checkedCount = filteredGeneralOptions.filter(([_, value]) => value.value).length;
+
+        if (checkedCount === 0) {
+            return { checked: false, indeterminate: false };
+        } else if (checkedCount === filteredGeneralOptions.length) {
+            return { checked: true, indeterminate: false };
+        } else {
+            return { checked: false, indeterminate: true };
+        }
+    };
+
+    const getObjectTypesMasterCheckboxState = () => {
+        if (!includeObjectTypesLookup || filteredObjectTypes.length === 0) {
+            return { checked: false, indeterminate: false };
+        }
+
+        const checkedCount = filteredObjectTypes.filter(([key, _]) =>
+            handleSetObjectTypesCheckedState(key),
+        ).length;
+
+        if (checkedCount === 0) {
+            return { checked: false, indeterminate: false };
+        } else if (checkedCount === filteredObjectTypes.length) {
+            return { checked: true, indeterminate: false };
+        } else {
+            return { checked: false, indeterminate: true };
+        }
+    };
+
+    // Handlers for master checkboxes
+    const handleGeneralOptionsMasterCheckbox = (checked: boolean) => {
+        const keys = filteredGeneralOptions.map(([key, _]) => key);
+        context.intermediaryGeneralOptionsBulkChanged(keys, checked);
+        setOptionsChanged(true);
+    };
+
+    const handleObjectTypesMasterCheckbox = (checked: boolean) => {
+        const keys = filteredObjectTypes.map(([key, _]) => key);
+        context.intermediaryIncludeObjectTypesBulkChanged(keys, checked);
+        setOptionsChanged(true);
+    };
+
+    const generalMasterState = getGeneralOptionsMasterCheckboxState();
+    const objectTypesMasterState = getObjectTypesMasterCheckboxState();
+
     return (
         <Drawer
             separator
@@ -145,7 +239,10 @@ const SchemaOptionsDrawer = (props: Props) => {
                     onChange={(_, data) => setSearchQuery(data.value)}
                 />
 
-                <TabList selectedValue={selectedValue} onTabSelect={onTabSelect}>
+                <TabList
+                    className={classes.tabContainer}
+                    selectedValue={selectedValue}
+                    onTabSelect={onTabSelect}>
                     <Tab id="GeneralOptions" value="generalOptions">
                         {loc.schemaCompare.generalOptions}
                     </Tab>
@@ -155,42 +252,82 @@ const SchemaOptionsDrawer = (props: Props) => {
                 </TabList>
 
                 {selectedValue === "generalOptions" && (
-                    <div className={classes.optionsContainer}>
-                        {optionsToValueNameLookup &&
-                            filteredGeneralOptions.map(([key, value]) => {
-                                return (
-                                    <div className={classes.listItemContainer} key={key}>
-                                        <Checkbox
-                                            checked={value.value}
-                                            onChange={() => handleSettingChanged(key)}
-                                            label={
-                                                <InfoLabel
-                                                    aria-label={value.displayName}
-                                                    info={<>{value.description}</>}>
-                                                    {value.displayName}
-                                                </InfoLabel>
-                                            }
-                                        />
-                                    </div>
-                                );
-                            })}
+                    <div className={classes.tabContentContainer}>
+                        {optionsToValueNameLookup && filteredGeneralOptions.length > 0 && (
+                            <div className={classes.masterCheckboxContainer}>
+                                <Checkbox
+                                    className={classes.masterCheckbox}
+                                    checked={
+                                        generalMasterState.indeterminate
+                                            ? "mixed"
+                                            : generalMasterState.checked
+                                    }
+                                    onChange={(_, data) => {
+                                        const isChecked =
+                                            data.checked === "mixed" ? true : !!data.checked;
+                                        handleGeneralOptionsMasterCheckbox(isChecked);
+                                    }}
+                                    label={loc.schemaCompare.selectAllOptions}
+                                />
+                            </div>
+                        )}
+                        <div className={classes.optionsContainer}>
+                            {optionsToValueNameLookup &&
+                                filteredGeneralOptions.map(([key, value]) => {
+                                    return (
+                                        <div className={classes.listItemContainer} key={key}>
+                                            <Checkbox
+                                                checked={value.value}
+                                                onChange={() => handleSettingChanged(key)}
+                                                label={
+                                                    <InfoLabel
+                                                        aria-label={value.displayName}
+                                                        info={<>{value.description}</>}>
+                                                        {value.displayName}
+                                                    </InfoLabel>
+                                                }
+                                            />
+                                        </div>
+                                    );
+                                })}
+                        </div>
                     </div>
                 )}
 
                 {selectedValue === "includeObjectTypes" && (
-                    <div className={classes.optionsContainer}>
-                        {includeObjectTypesLookup &&
-                            filteredObjectTypes.map(([key, value]) => {
-                                return (
-                                    <div className={classes.listItemContainer} key={key}>
-                                        <Checkbox
-                                            checked={handleSetObjectTypesCheckedState(key)}
-                                            onChange={() => handleObjectTypesOptionChanged(key)}
-                                            label={<Label aria-label={value}>{value}</Label>}
-                                        />
-                                    </div>
-                                );
-                            })}
+                    <div className={classes.tabContentContainer}>
+                        {includeObjectTypesLookup && filteredObjectTypes.length > 0 && (
+                            <div className={classes.masterCheckboxContainer}>
+                                <Checkbox
+                                    className={classes.masterCheckbox}
+                                    checked={
+                                        objectTypesMasterState.indeterminate
+                                            ? "mixed"
+                                            : objectTypesMasterState.checked
+                                    }
+                                    onChange={(_, data) => {
+                                        const isChecked =
+                                            data.checked === "mixed" ? true : !!data.checked;
+                                        handleObjectTypesMasterCheckbox(isChecked);
+                                    }}
+                                    label={loc.schemaCompare.includeAllObjectTypes}
+                                />
+                            </div>
+                        )}
+                        <div className={classes.optionsContainer}>
+                            {includeObjectTypesLookup &&
+                                filteredObjectTypes.map(([key, value]) => {
+                                    return (
+                                        <div className={classes.listItemContainer} key={key}>
+                                            <Checkbox
+                                                checked={handleSetObjectTypesCheckedState(key)}
+                                                onChange={() => handleObjectTypesOptionChanged(key)}
+                                                label={<Label aria-label={value}>{value}</Label>}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                        </div>
                     </div>
                 )}
             </DrawerBody>

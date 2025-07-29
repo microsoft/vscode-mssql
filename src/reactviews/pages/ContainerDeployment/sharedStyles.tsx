@@ -16,6 +16,7 @@ export const stepPageStyles = makeStyles({
         width: "100%",
         minWidth: "650px",
         minHeight: "fit-content",
+        paddingBottom: "50px",
     },
     stepsDiv: {
         display: "flex",

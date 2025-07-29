@@ -661,6 +661,8 @@ export class LocConstants {
             searchOptions: l10n.t("Search options..."),
             generalOptions: l10n.t("General Options"),
             includeObjectTypes: l10n.t("Include Object Types"),
+            selectAllOptions: l10n.t("Select all options"),
+            includeAllObjectTypes: l10n.t("Include all object types"),
             optionDescription: l10n.t("Option Description"),
             reset: l10n.t("Reset"),
             stop: l10n.t("Stop"),
