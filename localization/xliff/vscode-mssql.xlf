@@ -1272,6 +1272,9 @@
     <trans-unit id="++CODE++0ca098e2022c5054b1ec77c08df3f3b1d5ccecfbf78f232071f644eb71161e8d">
       <source xml:lang="en">Greater Than or Equals</source>
     </trans-unit>
+    <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
+      <source xml:lang="en">Grid View</source>
+    </trans-unit>
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
     </trans-unit>
@@ -2404,8 +2407,14 @@
     <trans-unit id="++CODE++d7a3cd6cbe28889d5ba18259f276a78a6023030468a7b4013b74a45a2923b9d9">
       <source xml:lang="en">Switch Source and Target</source>
     </trans-unit>
+    <trans-unit id="++CODE++a8e5ca29d45327e2790dbaef626ac6f467741af4efddd4d0aede688f4612677e">
+      <source xml:lang="en">Switch to Grid View</source>
+    </trans-unit>
     <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
       <source xml:lang="en">Switch to MSAL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fe49fbfd86c4792c2bd6cf8b59085cc2d787fa377a2af3ebdcbd88104e556d8c">
+      <source xml:lang="en">Switch to Text View</source>
     </trans-unit>
     <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
       <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
@@ -2456,6 +2465,9 @@
     </trans-unit>
     <trans-unit id="++CODE++90c8505baad739c0925471e0d594ba9d83f84d3a96dbdfa16a47ae7a3ad95d91">
       <source xml:lang="en">Testing connection profile...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
+      <source xml:lang="en">Text View</source>
     </trans-unit>
     <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
       <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
@@ -2954,6 +2966,9 @@
     <trans-unit id="mssql.deployLocalDockerContainer">
       <source xml:lang="en">Create local SQL Container</source>
     </trans-unit>
+    <trans-unit id="mssql.defaultQueryResultsViewMode.description">
+      <source xml:lang="en">Default view mode for query results display.</source>
+    </trans-unit>
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
     </trans-unit>
@@ -2971,6 +2986,12 @@
     </trans-unit>
     <trans-unit id="mssql.disconnect">
       <source xml:lang="en">Disconnect</source>
+    </trans-unit>
+    <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
+      <source xml:lang="en">Display results in a formatted text format, similar to SSMS text mode</source>
+    </trans-unit>
+    <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
+      <source xml:lang="en">Display results in a tabular grid format (default)</source>
     </trans-unit>
     <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
       <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
