@@ -76,26 +76,12 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                         const columnInfo = resultSetSummary.columnInfo;
                         const columnNames = columnInfo.map((col) => col.columnName);
 
-                        // Calculate column widths for formatting
-                        const columnWidths = columnNames.map((name, index) => {
-                            let maxWidth = name.length;
-                            // We'll adjust this when we have the actual data
-                            return Math.max(maxWidth, 10); // minimum width of 10
-                        });
+                        // Initialize column widths with column name lengths
+                        const columnWidths = columnNames.map((name) => name.length);
 
-                        // Add column headers
-                        const headerLine = columnNames
-                            .map((name, index) => name.padEnd(columnWidths[index]))
-                            .join("  ");
-                        content += headerLine + "\n";
+                        let formattedRows: string[] = [];
 
-                        // Add separator line
-                        const separatorLine = columnWidths
-                            .map((width) => "-".repeat(width))
-                            .join("  ");
-                        content += separatorLine + "\n";
-
-                        // Get all rows for this result set
+                        // Get all rows for this result set first to calculate proper column widths
                         if (resultSetSummary.rowCount > 0) {
                             const response = await webViewState.extensionRpc.sendRequest(
                                 qr.GetRowsRequest.type,
@@ -109,6 +95,26 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                             );
 
                             if (response && response.rows) {
+                                // Calculate proper column widths by considering all data values
+                                for (const row of response.rows) {
+                                    row.forEach((cell, index) => {
+                                        const displayValue = cell.isNull
+                                            ? "NULL"
+                                            : cell.displayValue || "";
+                                        const valueLength = displayValue.toString().length;
+                                        columnWidths[index] = Math.max(
+                                            columnWidths[index],
+                                            valueLength,
+                                        );
+                                    });
+                                }
+
+                                // Apply minimum width of 10 to each column
+                                for (let i = 0; i < columnWidths.length; i++) {
+                                    columnWidths[i] = Math.max(columnWidths[i], 10);
+                                }
+
+                                // Format all data rows with proper column widths
                                 for (const row of response.rows) {
                                     const formattedRow = row
                                         .map((cell, index) => {
@@ -120,10 +126,35 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                                                 .padEnd(columnWidths[index]);
                                         })
                                         .join("  ");
-                                    content += formattedRow + "\n";
+                                    formattedRows.push(formattedRow);
                                 }
                             }
+                        } else {
+                            // Apply minimum width of 10 to each column even with no data
+                            for (let i = 0; i < columnWidths.length; i++) {
+                                columnWidths[i] = Math.max(columnWidths[i], 10);
+                            }
+                        }
 
+                        // Add column headers with proper alignment
+                        const headerLine = columnNames
+                            .map((name, index) => name.padEnd(columnWidths[index]))
+                            .join("  ");
+                        content += headerLine + "\n";
+
+                        // Add separator line
+                        const separatorLine = columnWidths
+                            .map((width) => "-".repeat(width))
+                            .join("  ");
+                        content += separatorLine + "\n";
+
+                        // Add the formatted data rows
+                        for (const formattedRow of formattedRows) {
+                            content += formattedRow + "\n";
+                        }
+
+                        // Add row count information
+                        if (resultSetSummary.rowCount > 0) {
                             content += `(${resultSetSummary.rowCount} row${resultSetSummary.rowCount === 1 ? "" : "s"} affected)\n`;
                         } else {
                             content += "(0 rows affected)\n";
