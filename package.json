@@ -162,6 +162,7 @@
         "find-remove": "1.2.1",
         "jquery": "^3.4.1",
         "lockfile": "1.0.4",
+        "monaco-editor": "^0.52.2",
         "opener": "1.4.2",
         "plist": "^3.0.6",
         "prettier": "^3.3.3",

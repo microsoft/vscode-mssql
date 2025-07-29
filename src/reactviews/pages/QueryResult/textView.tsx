@@ -5,36 +5,26 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@fluentui/react-components";
+import { Editor } from "@monaco-editor/react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { resolveVscodeThemeType } from "../../common/utils";
+import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
 
 const useStyles = makeStyles({
     textViewContainer: {
         width: "100%",
         height: "100%",
-        fontFamily: "var(--vscode-editor-font-family)",
-        fontSize: "var(--vscode-editor-font-size)",
-        backgroundColor: "var(--vscode-editor-background)",
-        color: "var(--vscode-editor-foreground)",
-        padding: "10px",
-        overflow: "auto",
-        whiteSpace: "pre-wrap",
-        lineHeight: "1.3",
-    },
-    resultSetHeader: {
-        fontWeight: "bold",
-        marginBottom: "8px",
-        marginTop: "16px",
-        borderBottom: "1px solid var(--vscode-panel-border)",
-        paddingBottom: "4px",
-    },
-    resultSetContent: {
-        marginBottom: "16px",
+        display: "flex",
+        flexDirection: "column",
     },
     noResults: {
         fontStyle: "italic",
         color: "var(--vscode-descriptionForeground)",
+        padding: "10px",
+        fontFamily: "var(--vscode-editor-font-family)",
+        fontSize: "var(--vscode-editor-font-size)",
     },
 });
 
@@ -60,8 +50,15 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
 
             setLoading(true);
             let content = "";
+            let resultSetNumber = 1; // Sequential numbering for result sets
 
             try {
+                // Count total result sets for proper numbering
+                let totalResultSets = 0;
+                for (const batchIdStr in resultSetSummaries) {
+                    totalResultSets += Object.keys(resultSetSummaries[parseInt(batchIdStr)]).length;
+                }
+
                 for (const batchIdStr in resultSetSummaries) {
                     const batchId = parseInt(batchIdStr);
 
@@ -69,12 +66,9 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                         const resultId = parseInt(resultIdStr);
                         const resultSetSummary = resultSetSummaries[batchId][resultId];
 
-                        // Add result set header
-                        if (
-                            Object.keys(resultSetSummaries).length > 1 ||
-                            Object.keys(resultSetSummaries[batchId]).length > 1
-                        ) {
-                            content += `Result Set ${batchId + 1}.${resultId + 1}\n`;
+                        // Add result set header only if there are multiple result sets
+                        if (totalResultSets > 1) {
+                            content += `Result Set ${resultSetNumber}\n`;
                             content += "=".repeat(40) + "\n\n";
                         }
 
@@ -129,11 +123,14 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                                     content += formattedRow + "\n";
                                 }
                             }
+
+                            content += `(${resultSetSummary.rowCount} row${resultSetSummary.rowCount === 1 ? "" : "s"} affected)\n`;
                         } else {
                             content += "(0 rows affected)\n";
                         }
 
                         content += "\n";
+                        resultSetNumber++; // Increment for next result set
                     }
                 }
 
@@ -153,17 +150,38 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
     }, [uri, resultSetSummaries, webViewState]);
 
     if (loading) {
-        return <div className={classes.textViewContainer}>Loading text view...</div>;
+        return <div className={classes.noResults}>Loading text view...</div>;
     }
 
     return (
-        <div
-            className={classes.textViewContainer}
-            style={{
-                fontFamily: fontSettings.fontFamily || "var(--vscode-editor-font-family)",
-                fontSize: `${fontSettings.fontSize || 12}px`,
-            }}>
-            {textContent || (
+        <div className={classes.textViewContainer}>
+            {textContent ? (
+                <Editor
+                    height="100%"
+                    language="plaintext"
+                    theme={resolveVscodeThemeType(context?.themeKind || ColorThemeKind.Light)}
+                    value={textContent}
+                    options={{
+                        readOnly: true,
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        wordWrap: "off",
+                        fontFamily: fontSettings.fontFamily || "var(--vscode-editor-font-family)",
+                        fontSize: fontSettings.fontSize || 12,
+                        lineNumbers: "off",
+                        glyphMargin: false,
+                        folding: false,
+                        lineDecorationsWidth: 0,
+                        lineNumbersMinChars: 0,
+                        renderLineHighlight: "none",
+                        scrollbar: {
+                            vertical: "auto",
+                            horizontal: "auto",
+                        },
+                        automaticLayout: true,
+                    }}
+                />
+            ) : (
                 <div className={classes.noResults}>No results to display in text format.</div>
             )}
         </div>
