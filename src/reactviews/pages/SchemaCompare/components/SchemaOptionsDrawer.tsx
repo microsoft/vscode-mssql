@@ -29,8 +29,10 @@ import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
 
 const useStyles = makeStyles({
     optionsContainer: {
-        height: "75vh",
+        flex: 1,
         overflowY: "auto",
+        minHeight: 0,
+        paddingTop: "8px",
     },
 
     listItemContainer: {
@@ -231,7 +233,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                     {loc.schemaCompare.schemaCompareOptions}
                 </DrawerHeaderTitle>
             </DrawerHeader>
-            <DrawerBody>
+            <DrawerBody className={classes.drawerBody}>
                 <SearchBox
                     className={classes.searchContainer}
                     placeholder={loc.schemaCompare.searchOptions}
@@ -271,7 +273,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                                 />
                             </div>
                         )}
-                        <div className={classes.optionsContainer}>
+                        <div className={classes.scrollableList}>
                             {optionsToValueNameLookup &&
                                 filteredGeneralOptions.map(([key, value]) => {
                                     return (
@@ -314,7 +316,7 @@ const SchemaOptionsDrawer = (props: Props) => {
                                 />
                             </div>
                         )}
-                        <div className={classes.optionsContainer}>
+                        <div className={classes.scrollableList}>
                             {includeObjectTypesLookup &&
                                 filteredObjectTypes.map(([key, value]) => {
                                     return (
