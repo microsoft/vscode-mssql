@@ -28,23 +28,6 @@ import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { DacDeployOptionPropertyBoolean } from "vscode-mssql";
 
 const useStyles = makeStyles({
-    optionsContainer: {
-        flex: 1,
-        overflowY: "auto",
-        minHeight: 0,
-        paddingTop: "8px",
-    },
-
-    listItemContainer: {
-        display: "flex",
-        alignItems: "center",
-    },
-
-    searchContainer: {
-        margin: "10px 0",
-        width: "100%",
-    },
-
     drawerBody: {
         display: "flex",
         flexDirection: "column",
@@ -52,8 +35,21 @@ const useStyles = makeStyles({
         overflow: "hidden",
     },
 
+    searchContainer: {
+        margin: "10px 0",
+        width: "100%",
+    },
+
     tabContainer: {
         flexShrink: 0,
+    },
+
+    tabContentContainer: {
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
     },
 
     masterCheckboxContainer: {
@@ -72,20 +68,17 @@ const useStyles = makeStyles({
         fontSize: "14px",
     },
 
-    tabContentContainer: {
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        minHeight: 0,
-        overflow: "hidden",
-    },
-
     scrollableList: {
         flex: 1,
         overflowY: "auto",
         minHeight: 0,
         paddingTop: "8px",
         width: "100%",
+    },
+
+    listItemContainer: {
+        display: "flex",
+        alignItems: "center",
     },
 });
 
