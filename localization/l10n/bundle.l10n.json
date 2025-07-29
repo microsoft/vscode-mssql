@@ -362,6 +362,7 @@
   "Select All": "Select All",
   "Copy with Headers": "Copy with Headers",
   "Copy Headers": "Copy Headers",
+  "Copy as INSERT INTO": "Copy as INSERT INTO",
   "NULL": "NULL",
   "Blanks": "Blanks",
   "Search...": "Search...",
