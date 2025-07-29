@@ -251,6 +251,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             messages: [],
             tabStates: {
                 resultPaneTab: qr.QueryResultPaneTabs.Messages,
+                resultViewMode: this.getDefaultViewModeConfig(),
             },
             uri: uri,
             title: title,
@@ -299,6 +300,14 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this.vscodeWrapper
             .getConfiguration(Constants.extensionName)
             .get(Constants.extConfigResultKeys.ResultsFontFamily) as string;
+    }
+
+    public getDefaultViewModeConfig(): qr.QueryResultViewMode {
+        const configValue = this.vscodeWrapper
+            .getConfiguration(Constants.extensionName)
+            .get("defaultQueryResultsViewMode") as string;
+
+        return configValue === "text" ? qr.QueryResultViewMode.Text : qr.QueryResultViewMode.Grid;
     }
 
     public setQueryResultState(uri: string, state: qr.QueryResultWebviewState) {

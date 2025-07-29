@@ -1192,6 +1192,20 @@
                     "description": "%mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description%",
                     "scope": "application"
                 },
+                "mssql.defaultQueryResultsViewMode": {
+                    "type": "string",
+                    "default": "grid",
+                    "enum": [
+                        "grid",
+                        "text"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.defaultQueryResultsViewMode.grid.description%",
+                        "%mssql.defaultQueryResultsViewMode.text.description%"
+                    ],
+                    "description": "%mssql.defaultQueryResultsViewMode.description%",
+                    "scope": "application"
+                },
                 "mssql.selectedAzureSubscriptions": {
                     "type": "array",
                     "description": "%mssql.selectedAzureSubscriptions%",

@@ -11,7 +11,12 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import { saveAsCsvIcon, saveAsExcelIcon, saveAsJsonIcon } from "./queryResultUtils";
 import { QueryResultSaveAsTrigger } from "../../../sharedInterfaces/queryResult";
-import { ArrowMaximize16Filled, ArrowMinimize16Filled } from "@fluentui/react-icons";
+import {
+    ArrowMaximize16Filled,
+    ArrowMinimize16Filled,
+    Grid16Regular,
+    Document16Regular,
+} from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
     commandBar: {
@@ -30,6 +35,7 @@ export interface CommandBarProps {
     resultSetSummary?: qr.ResultSetSummary;
     maximizeResults?: () => void;
     restoreResults?: () => void;
+    viewMode?: qr.QueryResultViewMode;
 }
 
 const CommandBar = (props: CommandBarProps) => {
@@ -54,6 +60,14 @@ const CommandBar = (props: CommandBarProps) => {
         });
     };
 
+    const toggleViewMode = () => {
+        const newMode =
+            props.viewMode === qr.QueryResultViewMode.Grid
+                ? qr.QueryResultViewMode.Text
+                : qr.QueryResultViewMode.Grid;
+        context.setResultViewMode(newMode);
+    };
+
     const checkMultipleResults = () => {
         if (Object.keys(context.state.resultSetSummaries).length > 1) {
             return true;
@@ -72,6 +86,32 @@ const CommandBar = (props: CommandBarProps) => {
 
     return (
         <div className={classes.commandBar}>
+            {/* View Mode Toggle */}
+            <Tooltip
+                content={
+                    props.viewMode === qr.QueryResultViewMode.Grid
+                        ? locConstants.queryResult.toggleToTextView
+                        : locConstants.queryResult.toggleToGridView
+                }
+                relationship="label">
+                <Button
+                    appearance="subtle"
+                    onClick={toggleViewMode}
+                    icon={
+                        props.viewMode === qr.QueryResultViewMode.Grid ? (
+                            <Document16Regular />
+                        ) : (
+                            <Grid16Regular />
+                        )
+                    }
+                    title={
+                        props.viewMode === qr.QueryResultViewMode.Grid
+                            ? locConstants.queryResult.toggleToTextView
+                            : locConstants.queryResult.toggleToGridView
+                    }
+                />
+            </Tooltip>
+
             {hasMultipleResults() && (
                 <Tooltip content={locConstants.queryResult.maximize} relationship="label">
                     <Button
