@@ -21,8 +21,6 @@ import {
     Tab,
     TabList,
     TabValue,
-    List,
-    ListItem,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../../common/locConstants";
@@ -157,15 +155,11 @@ const SchemaOptionsDrawer = (props: Props) => {
                 </TabList>
 
                 {selectedValue === "generalOptions" && (
-                    <List className={classes.optionsContainer}>
+                    <div className={classes.optionsContainer}>
                         {optionsToValueNameLookup &&
                             filteredGeneralOptions.map(([key, value]) => {
                                 return (
-                                    <ListItem
-                                        className={classes.listItemContainer}
-                                        key={key}
-                                        value={key}
-                                        aria-label={value.displayName}>
+                                    <div className={classes.listItemContainer} key={key}>
                                         <Checkbox
                                             checked={value.value}
                                             onChange={() => handleSettingChanged(key)}
@@ -177,31 +171,27 @@ const SchemaOptionsDrawer = (props: Props) => {
                                                 </InfoLabel>
                                             }
                                         />
-                                    </ListItem>
+                                    </div>
                                 );
                             })}
-                    </List>
+                    </div>
                 )}
 
                 {selectedValue === "includeObjectTypes" && (
-                    <List className={classes.optionsContainer}>
+                    <div className={classes.optionsContainer}>
                         {includeObjectTypesLookup &&
                             filteredObjectTypes.map(([key, value]) => {
                                 return (
-                                    <ListItem
-                                        className={classes.listItemContainer}
-                                        key={key}
-                                        value={key}
-                                        aria-label={value}>
+                                    <div className={classes.listItemContainer} key={key}>
                                         <Checkbox
                                             checked={handleSetObjectTypesCheckedState(key)}
                                             onChange={() => handleObjectTypesOptionChanged(key)}
                                             label={<Label aria-label={value}>{value}</Label>}
                                         />
-                                    </ListItem>
+                                    </div>
                                 );
                             })}
-                    </List>
+                    </div>
                 )}
             </DrawerBody>
             <DrawerFooter>
