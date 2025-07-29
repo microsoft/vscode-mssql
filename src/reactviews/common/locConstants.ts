@@ -376,6 +376,7 @@ export class LocConstants {
             copy: l10n.t("Copy"),
             copyWithHeaders: l10n.t("Copy with Headers"),
             copyHeaders: l10n.t("Copy Headers"),
+            copyAsInsert: l10n.t("Copy as INSERT INTO"),
             null: l10n.t("NULL"),
             blankString: l10n.t("Blanks"),
             apply: l10n.t("Apply"),

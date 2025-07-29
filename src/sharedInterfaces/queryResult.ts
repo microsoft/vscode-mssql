@@ -281,6 +281,17 @@ export namespace CopyWithHeadersRequest {
     export const type = new RequestType<CopyWithHeadersParams, void, void>("copyWithHeaders");
 }
 
+export interface CopyAsInsertParams {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+    tableName?: string;
+}
+export namespace CopyAsInsertRequest {
+    export const type = new RequestType<CopyAsInsertParams, void, void>("copyAsInsert");
+}
+
 export interface SetSelectionSummary {
     summary: SelectionSummaryStats;
 }

@@ -537,6 +537,133 @@ export default class QueryRunner {
     }
 
     /**
+     * Copy the result range to the system clip-board as INSERT INTO statements
+     * @param selection The selection range array to copy
+     * @param batchId The id of the batch to copy from
+     * @param resultId The id of the result to copy from
+     * @param tableName Optional table name for INSERT statements
+     */
+    public async copyAsInsert(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+        tableName?: string,
+    ): Promise<void> {
+        // Get column information for the INSERT statement
+        let firstCol: number;
+        let lastCol: number;
+        for (let range of selection) {
+            if (firstCol === undefined || range.fromCell < firstCol) {
+                firstCol = range.fromCell;
+            }
+            if (lastCol === undefined || range.toCell > lastCol) {
+                lastCol = range.toCell;
+            }
+        }
+
+        let columnRange: ISlickRange = {
+            fromCell: firstCol,
+            toCell: lastCol,
+            fromRow: undefined,
+            toRow: undefined,
+        };
+
+        let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
+        let insertStatements: string[] = [];
+
+        // Use provided table name or default to 'your_table_name'
+        const tableNameForInsert = tableName || "your_table_name";
+
+        // Sort the selections by row to maintain order
+        selection.sort((a, b) => a.fromRow - b.fromRow);
+
+        // Create a mapping of rows to selections
+        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        let rowIdToRowMap = new Map<number, DbCellValue[]>();
+
+        // Create a mapping of the ranges to get promises
+        let tasks = selection.map((range) => {
+            return async () => {
+                const result = await this.getRows(
+                    range.fromRow,
+                    range.toRow - range.fromRow + 1,
+                    batchId,
+                    resultId,
+                );
+                this.getRowMappings(
+                    result.resultSubset.rows,
+                    range,
+                    rowIdToSelectionMap,
+                    rowIdToRowMap,
+                );
+            };
+        });
+
+        // Get all the rows
+        let p = tasks[0]();
+        for (let i = 1; i < tasks.length; i++) {
+            p = p.then(tasks[i]);
+        }
+        await p;
+
+        // Generate INSERT statements for each row
+        let sortedRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
+
+        for (let rowId of sortedRowIds) {
+            let row = rowIdToRowMap.get(rowId);
+            let selections = rowIdToSelectionMap.get(rowId);
+
+            if (row && selections) {
+                // Build column list
+                let selectedColumns: string[] = [];
+                let selectedValues: string[] = [];
+
+                for (let selection of selections) {
+                    for (
+                        let colIndex = selection.fromCell;
+                        colIndex <= selection.toCell;
+                        colIndex++
+                    ) {
+                        selectedColumns.push(`[${columnHeaders[colIndex - firstCol]}]`);
+
+                        let cellValue = row[colIndex];
+                        let formattedValue: string;
+
+                        if (
+                            cellValue === null ||
+                            cellValue === undefined ||
+                            cellValue.displayValue === "NULL"
+                        ) {
+                            formattedValue = "NULL";
+                        } else {
+                            // Escape single quotes and wrap string values in quotes
+                            let displayValue = cellValue.displayValue || "";
+                            let displayValueStr = String(displayValue);
+
+                            // Check if it's a numeric value by trying to parse
+                            if (!isNaN(Number(displayValueStr)) && displayValueStr.trim() !== "") {
+                                formattedValue = displayValueStr;
+                            } else {
+                                // Escape single quotes and wrap in quotes
+                                formattedValue = `'${displayValueStr.replace(/'/g, "''")}'`;
+                            }
+                        }
+
+                        selectedValues.push(formattedValue);
+                    }
+                }
+
+                // Create INSERT statement
+                let insertStatement = `INSERT INTO [${tableNameForInsert}] (${selectedColumns.join(", ")}) VALUES (${selectedValues.join(", ")});`;
+                insertStatements.push(insertStatement);
+            }
+        }
+
+        let copyString = insertStatements.join(os.EOL);
+        await this.writeStringToClipboard(copyString);
+    }
+
+    /**
      * Copy the result range to the system clip-board
      * @param selection The selection range array to copy
      * @param batchId The id of the batch to copy from

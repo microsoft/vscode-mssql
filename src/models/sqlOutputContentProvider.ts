@@ -137,6 +137,18 @@ export class SqlOutputContentProvider {
             .queryRunner.exportCellsToClipboard(data, batchId, resultId, selection, headersFlag);
     }
 
+    public copyAsInsertRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+        tableName?: string,
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyAsInsert(selection, batchId, resultId, tableName);
+    }
+
     public editorSelectionRequestHandler(uri: string, selection: ISelectionData): void {
         void this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection);
     }
