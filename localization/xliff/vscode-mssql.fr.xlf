@@ -962,9 +962,9 @@
         <source xml:lang="en">Creating Container</source>
         <target state="translated">Création du conteneur</target>
       </trans-unit>
-      <trans-unit id="++CODE++09af7062beeeeb3b9e2346b91902b8e45ea936c57462ca09e997e7280b8f71dc">
-        <source xml:lang="en">Creating and starting your SQL Server Docker container</source>
-        <target state="translated">Création et démarrage de votre conteneur Docker SQL Server</target>
+      <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
+        <source xml:lang="en">Creating and starting your SQL Server container</source>
+        <target state="translated">Création et démarrage de votre conteneur SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1435,6 +1435,10 @@ Erreur :
         <note>{0} is the error message returned from the open scmp operation</note>
         <target state="translated">Échec de l'ouverture du fichier scmp : '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
+        <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
+        <target state="translated">Échec de l'extraction de l'image SQL Server. Veuillez vérifier votre connexion réseau et réessayer.</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <note>{0} is the connection id
@@ -1723,6 +1727,10 @@ Erreur :
       <trans-unit id="++CODE++e6918522718725ba7a74b087c48f889648bbfc7627b1d4ab826ac2cc1b30aa31">
         <source xml:lang="en">Include Object Types</source>
         <target state="translated">Inclure les types d’objets</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
+        <source xml:lang="en">Include all object types</source>
+        <target state="new">Include all object types</target>
       </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
@@ -2509,6 +2517,14 @@ Erreur :
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">Modifications de publication</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
+        <source xml:lang="en">Pulling SQL Server Image</source>
+        <target state="translated">Extraction d'une image SQL Server</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
+        <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
+        <target state="translated">Extraction de l'image du conteneur SQL Server. Cela peut prendre quelques minutes en fonction de votre connexion Internet.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
         <target state="translated">Plan de requête</target>
@@ -2538,6 +2554,10 @@ Erreur :
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
         <target state="translated">Préparation du conteneur pour les connexions.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
+        <source xml:lang="en">Readying container for connections...</source>
+        <target state="translated">Préparation du conteneur pour les connexions...</target>
       </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
@@ -2851,6 +2871,10 @@ Requête : {1}</target>
         <source xml:lang="en">Select all</source>
         <target state="translated">Sélectionner tout</target>
       </trans-unit>
+      <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
+        <source xml:lang="en">Select all options</source>
+        <target state="new">Select all options</target>
+      </trans-unit>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
         <target state="translated">Sélectionner un compte</target>
@@ -3068,6 +3092,10 @@ Requête : {1}</target>
       <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
         <source xml:lang="en">Starting Container...</source>
         <target state="translated">Conteneur de départ...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
+        <source xml:lang="en">Starting Docker...</source>
+        <target state="translated">Démarrage de Docker...</target>
       </trans-unit>
       <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
         <source xml:lang="en">Starting {0}...</source>
@@ -4074,10 +4102,6 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       <trans-unit id="mssql.userFeedback">
         <source xml:lang="en">Give Feedback</source>
         <target state="translated">Envoyer des commentaires</target>
-      </trans-unit>
-      <trans-unit id="mssql.hasConnections">
-        <source xml:lang="en">Indicates whether the user has defined any connection profiles in 'User Settings'.</source>
-        <target state="translated">Indique si l’utilisateur(-trice) a défini des profils de connexion dans « Paramètres utilisateur ».</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot (Preview)</source>
