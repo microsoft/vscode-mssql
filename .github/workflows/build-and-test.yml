@@ -84,6 +84,12 @@ jobs:
           cd ../pr
           vsce package
 
+      - name: Upload PR VSIX files
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-files
+          path: ./pr/*.vsix
+
       - name: Setting up change icons
         run: |
           echo "better_change_icon=🟢" >> $GITHUB_ENV
