@@ -47,6 +47,7 @@ import {
     SessionCreatedParameters,
 } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
+import * as DockerUtils from "../../src/containerDeployment/dockerUtils";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import providerSettings from "../../src/azure/providerSettings";
@@ -945,6 +946,40 @@ suite("OE Service Tests", () => {
                 mockConnectionUI.promptForPassword.called,
                 "Connection UI should not prompt for password",
             ).to.be.false;
+        });
+
+        test("prepareConnectionProfile should proceed if container connection throws when attempting to check container status", async () => {
+            // Create a mock SQL Login profile with empty password but savePassword=true
+            const mockProfile: IConnectionProfile = {
+                id: "test-id",
+                server: "testServer",
+                database: "testDB",
+                authenticationType: "SqlLogin",
+                user: "testUser",
+                password: "", // Empty password
+                savePassword: true,
+                containerName: "someContainer",
+            } as IConnectionProfile;
+
+            // Setup connection store to return a saved password
+            const savedPassword = generateUUID(); //random password
+            mockConnectionStore.lookupPassword.resolves(savedPassword);
+
+            const containerStub = sandbox
+                .stub(DockerUtils, "restartContainer")
+                .throws(new Error("Failed to restart container"));
+
+            // Call the method with the mock profile
+            const result = await (objectExplorerService as any).prepareConnectionProfile(
+                mockProfile,
+            );
+
+            expect(containerStub.called, "Container restart should be attempted").to.be.true;
+
+            // Verify the result has the saved password
+            expect(result.password, "Result password should match saved password").to.equal(
+                savedPassword,
+            );
         });
 
         test("prepareConnectionProfile should prompt for password for SQL Login with no saved password", async () => {

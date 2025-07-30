@@ -5,28 +5,45 @@
 
 import * as vscode from "vscode";
 import { exec } from "child_process";
-import { platform } from "os";
+import { arch, platform } from "os";
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeploymentInterfaces";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     defaultContainerName,
     defaultPortNumber,
+    docker,
+    dockerDeploymentLoggerChannelName,
     localhost,
     localhostIP,
     Platform,
+    windowsDockerDesktopExecutable,
+    x64,
 } from "../constants/constants";
-import { ContainerDeployment, msgYes } from "../constants/locConstants";
+import {
+    ContainerDeployment,
+    msgYes,
+    ObjectExplorer,
+    Common,
+    RemoveProfileLabel,
+} from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import * as path from "path";
 import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
+import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
+import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 
 /**
  * The maximum port number that can be used for Docker containers.
  */
 const MAX_PORT_NUMBER = 65535;
+
+/**
+ * The length of the year string in the version number
+ */
+const yearStringLength = 4;
 
 export const invalidContainerNameValidationResult: FormItemValidationState = {
     isValid: false,
@@ -37,7 +54,13 @@ export const invalidPortNumberValidationResult: FormItemValidationState = {
     validationMessage: ContainerDeployment.pleaseChooseUnusedPort,
 };
 
-export const dockerLogger = Logger.create(vscode.window.createOutputChannel("Docker Deployment"));
+export const dockerLogger = Logger.create(
+    vscode.window.createOutputChannel(dockerDeploymentLoggerChannelName),
+);
+
+const dockerInstallErrorLink = "https://docs.docker.com/engine/install/";
+const windowsContainersErrorLink =
+    "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
 
 /**
  * Commands used to interact with Docker.
@@ -60,23 +83,27 @@ export const COMMANDS = {
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
     GET_CONTAINERS_BY_NAME: `docker ps -a --format "{{.Names}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
+    PULL_IMAGE: (version: string) => `docker pull mcr.microsoft.com/mssql/server:${version}-latest`,
     START_SQL_SERVER: (
         name: string,
         password: string,
         port: number,
-        version: number,
+        version: string,
         hostname: string,
     ) =>
         `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
     CHECK_CONTAINER_RUNNING: (name: string) =>
-        `docker ps --filter "name=${name}" --filter "status=running" --format "{{.Names}}"`,
+        `docker ps --filter "name=${sanitizeContainerName(name)}" --filter "status=running" --format "{{.Names}}"`,
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
-    START_CONTAINER: (name: string) => `docker start ${name}`,
+    START_CONTAINER: (name: string) => `docker start "${sanitizeContainerName(name)}"`,
     CHECK_LOGS: (name: string, platform: string, timestamp: string) =>
-        `docker logs --since ${timestamp} ${name} | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
+        `docker logs --since ${timestamp} "${sanitizeContainerName(name)}" | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
     CHECK_CONTAINER_READY: `Recovery is complete`,
-    STOP_CONTAINER: (name: string) => `docker stop ${name}`,
-    DELETE_CONTAINER: (name: string) => `docker stop ${name} && docker rm ${name}`,
+    STOP_CONTAINER: (name: string) => `docker stop "${sanitizeContainerName(name)}"`,
+    DELETE_CONTAINER: (name: string) => {
+        const safeName = sanitizeContainerName(name);
+        return `docker stop "${safeName}" && docker rm "${safeName}"`;
+    },
     INSPECT_CONTAINER: (id: string) => `docker inspect ${id}`,
     GET_SQL_SERVER_CONTAINER_VERSIONS: `curl -s https://mcr.microsoft.com/v2/mssql/server/tags/list`,
 };
@@ -91,7 +118,7 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.dockerInstallHeader,
             bodyText: ContainerDeployment.dockerInstallBody,
-            errorLink: "https://docs.docker.com/engine/install/",
+            errorLink: dockerInstallErrorLink,
             errorLinkText: ContainerDeployment.installDocker,
             stepAction: checkDockerInstallation,
         },
@@ -108,11 +135,18 @@ export function initializeDockerSteps(): DockerStep[] {
             headerText: ContainerDeployment.startDockerEngineHeader,
             bodyText: ContainerDeployment.startDockerEngineBody,
             errorLink:
-                platform() === Platform.Windows
-                    ? "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers"
+                platform() === Platform.Windows && arch() === x64
+                    ? windowsContainersErrorLink
                     : undefined,
             errorLinkText: ContainerDeployment.configureLinuxContainers,
             stepAction: checkEngine,
+        },
+        {
+            loadState: ApiStatus.NotStarted,
+            argNames: ["version"],
+            headerText: ContainerDeployment.pullImageHeader,
+            bodyText: ContainerDeployment.pullImageBody,
+            stepAction: pullSqlServerContainerImage,
         },
         {
             loadState: ApiStatus.NotStarted,
@@ -172,6 +206,13 @@ export function validateSqlServerPassword(password: string): string {
     return "";
 }
 
+/**
+ * Sanitizes a container name by removing any characters that aren't alphanumeric, underscore, dot, or hyphen.
+ */
+export function sanitizeContainerName(name: string): string {
+    return name.replace(/[^a-zA-Z0-9_.-]/g, "");
+}
+
 //#region Docker Command Implementations
 
 /**
@@ -210,16 +251,23 @@ export async function checkDockerInstallation(): Promise<DockerCommandParams> {
  */
 export async function checkEngine(): Promise<DockerCommandParams> {
     let dockerCliPath = "";
-    if (platform() === Platform.Windows) {
-        dockerCliPath = await getDockerPath("DockerCli.exe");
+    if (platform() === Platform.Mac && arch() === x64) return { success: true }; // No need to check Rosetta on x64 macOS
+    if (platform() !== Platform.Mac && arch() !== x64) {
+        return {
+            success: false,
+            error: ContainerDeployment.unsupportedDockerArchitectureError(arch()),
+        };
     }
-
     const engineCommand = COMMANDS.CHECK_ENGINE[platform()];
     if (engineCommand === undefined) {
         return {
             success: false,
             error: ContainerDeployment.unsupportedDockerPlatformError(platform()),
         };
+    }
+
+    if (platform() === Platform.Windows) {
+        dockerCliPath = await getDockerPath("DockerCli.exe");
     }
 
     try {
@@ -294,7 +342,8 @@ export async function getDockerPath(executable: string): Promise<string> {
         // Find the second "Docker" in the path
         const dockerIndex = parts.findIndex(
             (part, idx) =>
-                part.toLowerCase() === "docker" && parts.slice(0, idx).includes("Docker"),
+                part.toLowerCase() === docker &&
+                parts.slice(0, idx).some((p) => p.toLowerCase() === docker),
         );
 
         if (dockerIndex >= 1) {
@@ -303,6 +352,25 @@ export async function getDockerPath(executable: string): Promise<string> {
         }
     } catch {}
     return "";
+}
+
+/**
+ * Pulls the SQL Server container image for the specified version.
+ */
+export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
+    try {
+        await execCommand(COMMANDS.PULL_IMAGE(version.substring(0, yearStringLength)));
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.PullImage, {
+            containerVersion: version,
+        });
+        return { success: true };
+    } catch (e) {
+        return {
+            success: false,
+            error: ContainerDeployment.pullSqlServerContainerImageError,
+            fullErrorText: getErrorMessage(e),
+        };
+    }
 }
 
 /**
@@ -319,17 +387,31 @@ export async function startSqlServerDockerContainer(
         containerName,
         password,
         port,
-        Number(version),
+        version.substring(0, yearStringLength),
         hostname,
     );
     try {
         await execCommand(command);
         dockerLogger.append(`SQL Server container ${containerName} started on port ${port}.`);
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.CreateSQLContainer, {
+            containerVersion: version,
+        });
         return {
             success: true,
             port,
         };
     } catch (e) {
+        sendErrorEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.CreateSQLContainer,
+            e,
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+            {
+                containerVersion: version,
+            },
+        );
         return {
             success: false,
             error: ContainerDeployment.startSqlServerContainerError,
@@ -356,15 +438,21 @@ export async function isDockerContainerRunning(name: string): Promise<boolean> {
 /**
  * Attempts to start Docker Desktop within 30 seconds.
  */
-export async function startDocker(): Promise<DockerCommandParams> {
+export async function startDocker(
+    node?: ConnectionNode,
+    objectExplorerService?: ObjectExplorerService,
+): Promise<DockerCommandParams> {
     try {
         await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
         return { success: true };
     } catch {} // If this command fails, docker is not running, so we proceed to start it.
-
+    if (node && objectExplorerService) {
+        node.loadingLabel = ContainerDeployment.startingDockerLoadingLabel;
+        await objectExplorerService.setLoadingUiForNode(node);
+    }
     let dockerDesktopPath = "";
     if (platform() === Platform.Windows) {
-        dockerDesktopPath = await getDockerPath("Docker Desktop.exe");
+        dockerDesktopPath = await getDockerPath(windowsDockerDesktopExecutable);
         if (!dockerDesktopPath) {
             return {
                 success: false,
@@ -421,19 +509,56 @@ export async function startDocker(): Promise<DockerCommandParams> {
  * Restarts a Docker container with the specified name.
  * If the container is already running, it returns true without restarting.
  */
-export async function restartContainer(containerName: string): Promise<boolean> {
-    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartContainer);
-
-    const isContainerRunning = await isDockerContainerRunning(containerName);
-    if (isContainerRunning) return true; // Container is already running
-    dockerLogger.appendLine(`Restarting container: ${containerName}`);
-    await execCommand(COMMANDS.START_CONTAINER(containerName));
-    dockerLogger.appendLine(`Container ${containerName} restarted successfully.`);
-    const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);
-
-    if (!containerReadyResult.success) {
+export async function restartContainer(
+    containerName: string,
+    containerNode: ConnectionNode,
+    objectExplorerService: ObjectExplorerService,
+): Promise<boolean> {
+    const dockerPreparedResult = await prepareForDockerContainerCommand(
+        containerName,
+        containerNode,
+        objectExplorerService,
+    );
+    if (!dockerPreparedResult.success) {
+        sendErrorEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.RestartContainer,
+            new Error(dockerPreparedResult.error),
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+        );
         return false;
     }
+    const isContainerRunning = await isDockerContainerRunning(containerName);
+
+    if (isContainerRunning) return true; // Container is already running
+    containerNode.loadingLabel = ContainerDeployment.startingContainerLoadingLabel;
+    await objectExplorerService.setLoadingUiForNode(containerNode);
+    dockerLogger.appendLine(`Restarting container: ${containerName}`);
+    await execCommand(COMMANDS.START_CONTAINER(containerName));
+
+    dockerLogger.appendLine(`Container ${containerName} restarted successfully.`);
+    containerNode.loadingLabel = ContainerDeployment.readyingContainerLoadingLabel;
+    await objectExplorerService.setLoadingUiForNode(containerNode);
+
+    const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);
+
+    containerNode.loadingLabel = ObjectExplorer.LoadingNodeLabel;
+    await objectExplorerService.setLoadingUiForNode(containerNode);
+
+    if (!containerReadyResult.success) {
+        sendErrorEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.RestartContainer,
+            new Error(containerReadyResult.error),
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+        );
+        return false;
+    }
+    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.RestartContainer);
     return true;
 }
 
@@ -465,6 +590,14 @@ export async function checkIfContainerIsReadyForConnections(
                 if (readyLine) {
                     clearInterval(interval);
                     dockerLogger.appendLine(`${containerName} is ready for connections!`);
+                    sendActionEvent(
+                        TelemetryViews.ContainerDeployment,
+                        TelemetryActions.StartContainer,
+                        {}, // additional properties
+                        {
+                            timeToStartInMs: Date.now() - start,
+                        }, // additional measures
+                    );
                     return resolve({ success: true });
                 }
             } catch {
@@ -486,12 +619,19 @@ export async function checkIfContainerIsReadyForConnections(
  * Deletes a Docker container with the specified name.
  */
 export async function deleteContainer(containerName: string): Promise<boolean> {
-    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.DeleteContainer);
-
     try {
         await execCommand(COMMANDS.DELETE_CONTAINER(containerName));
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.DeleteContainer);
         return true;
-    } catch {
+    } catch (e) {
+        sendErrorEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.DeleteContainer,
+            e,
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+        );
         return false;
     }
 }
@@ -500,12 +640,19 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
  * Stops a Docker container with the specified name.
  */
 export async function stopContainer(containerName: string): Promise<boolean> {
-    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StopContainer);
-
     try {
         await execCommand(COMMANDS.STOP_CONTAINER(containerName));
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StopContainer);
         return true;
-    } catch {
+    } catch (e) {
+        sendErrorEvent(
+            TelemetryViews.ContainerDeployment,
+            TelemetryActions.StopContainer,
+            e,
+            false, // includeErrorMessage
+            undefined, // errorCode
+            undefined, // errorType
+        );
         return false;
     }
 }
@@ -606,45 +753,73 @@ export async function findAvailablePort(startPort: number): Promise<number> {
 export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]> {
     try {
         const stdout = await execCommand(COMMANDS.GET_SQL_SERVER_CONTAINER_VERSIONS);
-        const versions = stdout.split("\n");
-        const uniqueYears = Array.from(
-            new Set(
-                versions
-                    .map(
-                        (v) =>
-                            v
-                                .trim() // trim whitespace
-                                .replace(/^"|"[,]*$/g, "") //remove starting and ending quotes and trailing commas
-                                .slice(0, 4), // take first 4 chars
-                    )
-                    .filter((v) => /^\d{4}$/.test(v)), // ensure all digits
-            ),
-        ).reverse();
+        const parsed = JSON.parse(stdout);
+        const tags: string[] = parsed.tags ?? [];
 
-        return uniqueYears.map((year) => ({
-            displayName: ContainerDeployment.sqlServerVersionImage(year),
-            value: year,
-        })) as FormItemOptions[];
+        const versions: string[] = [];
+        const yearSet = new Set<string>();
+
+        for (const tag of tags) {
+            if (!tag) continue;
+
+            versions.push(tag);
+
+            const year = tag.slice(0, 4);
+            if (/^\d{4}$/.test(year)) {
+                yearSet.add(year);
+            }
+        }
+
+        const uniqueYears = Array.from(yearSet);
+        const latestVersionIndex = versions.length - 4;
+        const latestImage = versions[latestVersionIndex];
+
+        const versionOptions = uniqueYears
+            .map((year) => ({
+                displayName: ContainerDeployment.sqlServerVersionImage(year),
+                value: year,
+            }))
+            .reverse();
+
+        versionOptions[0].value = latestImage; // Version options is guaranteed to have at least one element
+
+        return versionOptions;
     } catch (e) {
         dockerLogger.appendLine(
-            `Error fetching SQL Server container versions: ${getErrorMessage(e)}`,
+            `Error parsing SQL Server container versions: ${getErrorMessage(e)}`,
         );
         return [];
     }
 }
+
 /**
  * Prepares the given Docker container for command execution.
  * This function checks if Docker is running and if the specified container exists.
  */
 export async function prepareForDockerContainerCommand(
     containerName: string,
+    containerNode: ConnectionNode,
+    objectExplorerService: ObjectExplorerService,
 ): Promise<DockerCommandParams> {
-    const startDockerResult = await startDocker();
-    if (!startDockerResult.success) return startDockerResult;
+    const startDockerResult = await startDocker(containerNode, objectExplorerService);
+    if (!startDockerResult.success) {
+        vscode.window.showErrorMessage(startDockerResult.error);
+        return startDockerResult;
+    }
 
     const containerExists = await checkContainerExists(containerName);
 
     if (!containerExists) {
+        containerNode.loadingLabel = Common.error;
+        await objectExplorerService.setLoadingUiForNode(containerNode);
+        const confirmation = await vscode.window.showInformationMessage(
+            ContainerDeployment.containerDoesNotExistError,
+            { modal: true },
+            RemoveProfileLabel,
+        );
+        if (confirmation === RemoveProfileLabel) {
+            await objectExplorerService.removeNode(containerNode, false);
+        }
         return {
             success: false,
             error: ContainerDeployment.containerDoesNotExistError,

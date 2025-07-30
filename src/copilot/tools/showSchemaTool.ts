@@ -22,8 +22,8 @@ export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
     public readonly toolName = Constants.copilotShowSchemaToolName;
 
     constructor(
-        private connectionManager: ConnectionManager,
-        private showSchema: (connectionUri: string, database: string) => Promise<void>,
+        private _connectionManager: ConnectionManager,
+        private _showSchema: (connectionUri: string, database: string) => Promise<void>,
     ) {
         super();
     }
@@ -34,16 +34,16 @@ export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
     ) {
         const { connectionId } = options.input;
         try {
-            const connInfo = this.connectionManager.getConnectionInfo(connectionId);
+            const connInfo = this._connectionManager.getConnectionInfo(connectionId);
             const connCreds = connInfo?.credentials;
             if (!connCreds) {
                 return JSON.stringify({
                     success: false,
-                    message: loc.showSchemaToolNoConnectionError(connectionId),
+                    message: loc.noConnectionError(connectionId),
                 });
             }
 
-            await this.showSchema(connectionId, connCreds.database);
+            await this._showSchema(connectionId, connCreds.database);
             return JSON.stringify({
                 success: true,
                 message: loc.showSchemaToolSuccessMessage,

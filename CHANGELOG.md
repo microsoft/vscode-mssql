@@ -1,5 +1,32 @@
 # Change Log
 
+## Version 1.34.0
+* Release date: July 23, 2025
+* Release status: GA
+### What’s new in 1.34.0
+* Expanded GitHub Copilot Agent Mode to support running T-SQL queries, listing database objects, switching databases, and retrieving connection details
+* Fixed GitHub Copilot chat participant repeating previous prompts when switching database connections
+* Added connection group support to Local SQL Server container wizard
+* Fixed missing key icons for foreign keys and improved filter behavior to reflect table relationships in Schema Designer
+* Enhanced connection status bar with optional group-based coloring and configurable length — Thanks to @bathetrade for the configurable length contribution!
+* Added connection-sharing permissions API for other VS Code extensions that wish to use MSSQL connections
+* Added support for multiple Azure account sign-in to browsing Azure and firewall rule management dialogs
+* Fixed an issue where Always Encrypted columns protected by AKV-based master keys could not be queried
+* Fixed several accessibility issues in the connection dialog, schema designer, and schema compare features
+
+## Version 1.33.0
+* Release date: June 18, 2025
+* Release status: GA
+### What’s new in 1.33.0
+* Introduced Local SQL Server Containers (Public Preview) for local development — spin up SQL Server containers in seconds inside VS Code with SQL Server 2025 by default, no Docker commands needed
+* Introduced GitHub Copilot Agent Mode (Public Preview) to connect, disconnect, or switch databases, and explore and visualize schemas with smart, context-aware suggestions
+* Added Connection Groups for organized connection management — group local, staging, and production connections for clearer structure and faster switching
+* Fixed query execution issues with GitHub Copilot
+* Improved connection pooling behavior for serverless databases
+* Fixed JSON export handling for decimal values in Query Results
+* Fixed Schema Compare dropdown selection
+* Enhanced Schema Designer usability — faster loading, better filters, improved auto-arrange, clearer export options, and UI refinements
+
 ## Version 1.32.1
 * Release date: June 2, 2025
 * Release status: GA

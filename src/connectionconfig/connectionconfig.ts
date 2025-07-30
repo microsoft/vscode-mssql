@@ -159,8 +159,9 @@ export class ConnectionConfig implements IConnectionConfig {
         let profiles = await this.getConnections(false /* getWorkspaceConnections */);
 
         const found = this.removeConnectionHelper(profile, profiles);
-
-        await this.writeConnectionsToSettings(profiles);
+        if (found) {
+            await this.writeConnectionsToSettings(profiles);
+        }
         return found;
     }
 
@@ -227,44 +228,94 @@ export class ConnectionConfig implements IConnectionConfig {
         return this.writeConnectionGroupsToSettings(groups);
     }
 
-    public async removeGroup(id: string): Promise<boolean> {
+    /**
+     * Remove a connection group and handle its contents.
+     * @param id The ID of the group to remove
+     * @param deleteContents If true, delete all connections and subgroups in this group.
+     *                      If false, move immediate child connections and groups to root, preserving their hierarchies.
+     * @returns true if the group was removed, false if the group wasn't found.
+     */
+    public async removeGroup(
+        id: string,
+        contentAction: "delete" | "move" = "delete",
+    ): Promise<boolean> {
         const connections = this.getConnectionsFromSettings();
         const groups = this.getGroupsFromSettings();
+        const rootGroup = this.getRootGroup();
 
-        // Find all subgroup IDs recursively
-        const groupsToRemove = new Set<string>();
-        const findChildGroups = (groupId: string) => {
-            groupsToRemove.add(groupId);
+        if (!rootGroup) {
+            throw new Error("Root group not found when removing group");
+        }
+
+        // Find all subgroup IDs recursively for the delete case
+        const getAllSubgroupIds = (groupId: string): Set<string> => {
+            const subgroupIds = new Set<string>();
+            subgroupIds.add(groupId);
             for (const group of groups) {
                 if (group.parentId === groupId) {
-                    findChildGroups(group.id);
+                    const childSubgroups = getAllSubgroupIds(group.id);
+                    childSubgroups.forEach((id) => subgroupIds.add(id));
                 }
             }
+            return subgroupIds;
         };
-        findChildGroups(id);
 
-        // Remove all connections in the groups being removed
-        let connectionRemoved = false;
-        const remainingConnections = connections.filter((conn) => {
-            if (groupsToRemove.has(conn.groupId)) {
-                this._logger.verbose(
-                    `Removing connection '${conn.id}' because its group '${conn.groupId}' was removed`,
-                );
-                connectionRemoved = true;
-                return false;
-            }
-            return true;
-        });
+        let connectionModified = false;
+        let remainingConnections: IConnectionProfile[];
+        let remainingGroups: IConnectionGroup[];
 
-        // Remove all groups that were marked for removal
-        const remainingGroups = groups.filter((g) => !groupsToRemove.has(g.id));
+        if (contentAction === "delete") {
+            // Get all nested subgroups to remove
+            const groupsToRemove = getAllSubgroupIds(id);
+
+            // Remove all connections in the groups being removed
+            remainingConnections = connections.filter((conn) => {
+                if (groupsToRemove.has(conn.groupId)) {
+                    this._logger.verbose(
+                        `Removing connection '${conn.id}' because its group '${conn.groupId}' was removed`,
+                    );
+                    connectionModified = true;
+                    return false;
+                }
+                return true;
+            });
+
+            // Remove all groups that were marked for removal
+            remainingGroups = groups.filter((g) => !groupsToRemove.has(g.id));
+        } else {
+            // Move immediate child connections to root
+            remainingConnections = connections.map((conn) => {
+                if (conn.groupId === id) {
+                    this._logger.verbose(
+                        `Moving connection '${conn.id}' to root group because its immediate parent group '${id}' was removed`,
+                    );
+                    connectionModified = true;
+                    return { ...conn, groupId: rootGroup.id };
+                }
+                return conn;
+            });
+
+            // First remove the target group
+            remainingGroups = groups.filter((g) => g.id !== id);
+
+            // Then reparent immediate children to root
+            remainingGroups = remainingGroups.map((g) => {
+                if (g.parentId === id) {
+                    this._logger.verbose(
+                        `Moving group '${g.id}' to root group because its immediate parent group '${id}' was removed`,
+                    );
+                    return { ...g, parentId: rootGroup.id };
+                }
+                return g;
+            });
+        }
 
         if (remainingGroups.length === groups.length) {
             this._logger.error(`Connection group with ID '${id}' not found when removing.`);
             return false;
         }
 
-        if (connectionRemoved) {
+        if (connectionModified) {
             await this.writeConnectionsToSettings(remainingConnections);
         }
 

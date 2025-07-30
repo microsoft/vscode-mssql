@@ -59,11 +59,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         void this.initialize();
 
-        if (
-            !this.vscodeWrapper
-                .getConfiguration()
-                .get(Constants.configUseLegacyQueryResultExperience)
-        ) {
+        context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor((editor) => {
                 const uri = editor?.document?.uri?.toString(true);
                 if (uri && this._queryResultStateMap.has(uri)) {
@@ -85,15 +81,20 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                             this.getInMemoryDataProcessingThresholdConfig(),
                     };
                 }
-            });
+            }),
+        );
 
-            // not the best api but it's the best we can do in VSCode
+        // not the best api but it's the best we can do in VSCode
+        context.subscriptions.push(
             this.vscodeWrapper.onDidOpenTextDocument((document) => {
                 const uri = document.uri.toString(true);
                 if (this._queryResultStateMap.has(uri)) {
                     this._queryResultStateMap.delete(uri);
                 }
-            });
+            }),
+        );
+
+        context.subscriptions.push(
             this.vscodeWrapper.onDidChangeConfiguration((e) => {
                 if (e.affectsConfiguration("mssql.resultsFontFamily")) {
                     for (const [uri, state] of this._queryResultStateMap) {
@@ -129,8 +130,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
-            });
-        }
+            }),
+        );
     }
 
     private async initialize() {
@@ -157,7 +158,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     }
 
     private registerRpcHandlers() {
-        this.registerRequestHandler("openInNewTab", async (message) => {
+        this.onRequest(qr.OpenInNewTabRequest.type, async (message) => {
             void this.createPanelController(message.uri);
 
             if (this.shouldShowDefaultQueryResultToDocumentPrompt) {
@@ -205,10 +206,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                     );
             }
         });
-        this.registerRequestHandler("getWebviewLocation", async () => {
+        this.onRequest(qr.GetWebviewLocationRequest.type, async () => {
             return qr.QueryResultWebviewLocation.Panel;
         });
-        this.registerRequestHandler("showFilterDisabledMessage", () => {
+        this.onRequest(qr.ShowFilterDisabledMessageRequest.type, async () => {
             this.vscodeWrapper.showInformationMessage(
                 LocalizedConstants.inMemoryDataProcessingThresholdExceeded,
             );

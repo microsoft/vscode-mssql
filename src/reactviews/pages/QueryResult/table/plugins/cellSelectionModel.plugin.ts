@@ -12,6 +12,7 @@ import {
     QueryResultReducers,
     QueryResultWebviewState,
     SelectionSummaryStats,
+    SetSelectionSummaryRequest,
 } from "../../../../../sharedInterfaces/queryResult";
 
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
@@ -429,7 +430,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private async setSelectionSummaryText(isSelection?: boolean) {
-        await this.webViewState.extensionRpc.call("setSelectionSummary", {
+        await this.webViewState.extensionRpc.sendRequest(SetSelectionSummaryRequest.type, {
             summary: await selectionSummaryHelper(this.getSelectedRanges(), this.grid, isSelection),
         });
     }

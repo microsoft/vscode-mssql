@@ -25,6 +25,8 @@ import {
     FormState,
 } from "../../../sharedInterfaces/form";
 import { useEffect, useState } from "react";
+import { SearchableDropdown } from "../searchableDropdown.component";
+import { locConstants } from "../locConstants";
 
 export const FormInput = <
     TForm,
@@ -36,12 +38,14 @@ export const FormInput = <
     value,
     target,
     type,
+    placeholder,
     props,
 }: {
     context: TContext;
     value: string;
     target: keyof TForm;
     type: "input" | "password" | "textarea";
+    placeholder: string;
     props?: any;
 }) => {
     const [formInputValue, setFormInputValue] = useState(value);
@@ -78,6 +82,7 @@ export const FormInput = <
                     onChange={(_value, data) => handleChange(data.value)}
                     onBlur={handleBlur}
                     size="small"
+                    placeholder={placeholder}
                     {...props}
                 />
             )}
@@ -87,13 +92,24 @@ export const FormInput = <
                     value={formInputValue}
                     onChange={(_value, data) => handleChange(data.value)}
                     onBlur={handleBlur}
+                    placeholder={placeholder}
                     size="small"
                     contentAfter={
                         <Button
                             onClick={() => setShowPassword(!showPassword)}
                             icon={showPassword ? <EyeRegular /> : <EyeOffRegular />}
                             appearance="transparent"
-                            size="small"></Button>
+                            size="small"
+                            aria-label={
+                                showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }
+                            title={
+                                showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }></Button>
                     }
                     {...props}
                 />
@@ -222,6 +238,7 @@ export function generateFormComponent<
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="input"
+                    placeholder={component.placeholder ?? ""}
                     props={props}
                 />
             );
@@ -232,6 +249,7 @@ export function generateFormComponent<
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="textarea"
+                    placeholder={component.placeholder ?? ""}
                     props={props}
                 />
             );
@@ -241,6 +259,7 @@ export function generateFormComponent<
                     context={context}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
+                    placeholder={component.placeholder ?? ""}
                     type="password"
                     props={props}
                 />
@@ -278,6 +297,45 @@ export function generateFormComponent<
                     })}
                 </Dropdown>
             );
+        case FormItemType.SearchableDropdown:
+            if (component.options === undefined) {
+                throw new Error("Dropdown component must have options");
+            }
+            const selectedOption = component.options.find(
+                (option) => option.value === formState[component.propertyName],
+            );
+            return (
+                <SearchableDropdown
+                    options={component.options.map((opt) => ({
+                        value: opt.value,
+                        text: opt.displayName,
+                    }))}
+                    placeholder={component.placeholder}
+                    searchBoxPlaceholder={component.searchBoxPlaceholder}
+                    selectedOption={
+                        selectedOption
+                            ? {
+                                  value: selectedOption.value,
+                                  text: selectedOption.displayName,
+                              }
+                            : undefined
+                    }
+                    onSelect={(option) => {
+                        if (props && props.onSelect) {
+                            props.onSelect(option.value);
+                        } else {
+                            context?.formAction({
+                                propertyName: component.propertyName,
+                                isAction: false,
+                                value: option.value,
+                            });
+                        }
+                    }}
+                    size="small"
+                    clearable={true}
+                    {...props}
+                />
+            );
         case FormItemType.Checkbox:
             return (
                 <Checkbox
@@ -304,7 +362,7 @@ export const useFormStyles = makeStyles({
     },
     formDiv: {
         padding: "10px",
-        maxWidth: "600px",
+        maxWidth: "650px",
         display: "flex",
         flexDirection: "column",
         "> *": {

@@ -6,7 +6,7 @@
 // Adopted and converted to typescript from https://github.com/danny-sg/slickgrid-spreadsheet-plugins/blob/master/ext.headerfilter.js
 // heavily modified
 
-import { ColumnFilterState, FilterableColumn, GridColumnMap, SortProperties } from "../interfaces";
+import { FilterableColumn } from "../interfaces";
 import { append, $ } from "../dom";
 import { IDisposableDataProvider, instanceOfIDisposableDataProvider } from "../dataProvider";
 import "../../../../media/table.css";
@@ -18,8 +18,14 @@ import { EventManager } from "../../../../common/eventManager";
 
 import { QueryResultContextProps } from "../../queryResultStateProvider";
 import {
+    ColumnFilterState,
+    GetFiltersRequest,
+    GridColumnMap,
     QueryResultReducers,
     QueryResultWebviewState,
+    SetFiltersRequest,
+    ShowFilterDisabledMessageRequest,
+    SortProperties,
 } from "../../../../../sharedInterfaces/queryResult";
 import { ColorThemeKind } from "../../../../../sharedInterfaces/webview";
 
@@ -110,12 +116,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
         args.node.classList.add("slick-header-with-filter");
         args.node.classList.add(theme);
         const $filterButton = jQuery(
-            `<button tabindex="-1" id="anchor-btn" aria-label="${locConstants.queryResult.showFilter}" title="${locConstants.queryResult.showFilter}"></button>`,
+            `<button tabindex="0" id="anchor-btn" aria-label="${locConstants.queryResult.showFilter}" title="${locConstants.queryResult.showFilter}"></button>`,
         )
             .addClass("slick-header-menubutton")
             .data("column", column);
         const $sortButton = jQuery(
-            `<button tabindex="-1" id="anchor-btn" aria-label="${locConstants.queryResult.sortAscending}" title="${locConstants.queryResult.sortAscending}" data-column-id="${column.id}"></button>`,
+            `<button tabindex="0" id="anchor-btn" aria-label="${locConstants.queryResult.sortAscending}" title="${locConstants.queryResult.sortAscending}" data-column-id="${column.id}"></button>`,
         )
             .addClass("slick-header-sort-button")
             .data("column", column);
@@ -143,7 +149,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 e.stopPropagation();
                 e.preventDefault();
                 if (!this.enabled) {
-                    await this.webviewState.extensionRpc.call("showFilterDisabledMessage", {});
+                    await this.webviewState.extensionRpc.sendRequest(
+                        ShowFilterDisabledMessageRequest.type,
+                    );
                     return;
                 }
                 this.columnDef = jQuery(sortButton).data("column"); //TODO: fix, shouldn't assign in the event handler
@@ -221,7 +229,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
     private async showFilter(filterButton: HTMLElement) {
         if (!this.enabled) {
-            await this.webviewState.extensionRpc.call("showFilterDisabledMessage", {});
+            await this.webviewState.extensionRpc.sendRequest(ShowFilterDisabledMessageRequest.type);
             return;
         }
         let $menuButton: JQuery<HTMLElement> | undefined;
@@ -245,15 +253,15 @@ export class HeaderFilter<T extends Slick.SlickData> {
         // Proceed to open the new popup for the clicked column
         const offset = jQuery(filterButton).offset();
         const $popup = jQuery(
-            '<div id="popup-menu" class="slick-header-menu">' +
+            '<div id="popup-menu" class="slick-header-menu" tabindex="0">' +
                 `<div style="display: flex; align-items: center; margin-bottom: 8px;">` +
-                `<input type="checkbox" id="select-all-checkbox" style="margin-right: 8px;" />` +
-                `<input type="text" id="search-input" class="searchbox" placeholder=${locConstants.queryResult.search}  />` +
+                `<input type="checkbox" id="select-all-checkbox" style="margin-right: 8px;" tabindex="0"/>` +
+                `<input type="text" id="search-input" class="searchbox" placeholder=${locConstants.queryResult.search} tabindex="0"/>` +
                 `</div>` +
                 `<div id="checkbox-list" class="checkbox-list"></div>` +
-                `<button id="apply-${this.columnDef.id}" type="button" class="filter-btn-primary">${locConstants.queryResult.apply}</button>` +
-                `<button id="clear-${this.columnDef.id}" type="button" class="filter-btn">${locConstants.queryResult.clear}</button>` +
-                `<button id="close-popup-${this.columnDef.id}" type="button" class="filter-btn">${locConstants.queryResult.close}</button>` +
+                `<button id="apply-${this.columnDef.id}" type="button" class="filter-btn-primary" tabindex="0">${locConstants.queryResult.apply}</button>` +
+                `<button id="clear-${this.columnDef.id}" type="button" class="filter-btn" tabindex="0">${locConstants.queryResult.clear}</button>` +
+                `<button id="close-popup-${this.columnDef.id}" type="button" class="filter-btn" tabindex="0">${locConstants.queryResult.close}</button>` +
                 "</div>",
         );
 
@@ -317,7 +325,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
             this.selectAllFiltered(isChecked);
         });
 
-        // Add event listeners for closing or interacting with the popup
         jQuery(document).on("click", (e: JQuery.ClickEvent) => {
             const $target = jQuery(e.target);
 
@@ -376,7 +383,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
         function openPopup($popup: JQuery<HTMLElement>) {
             $popup.show();
-            $popup.find("#sort-ascending").focus();
+            ($popup[0] as HTMLElement).focus();
         }
     }
 
@@ -389,6 +396,28 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 itemContainer.style.display = "flex";
                 itemContainer.style.alignItems = "center";
                 itemContainer.style.padding = "0 5px";
+                itemContainer.id = `listitemcontainer-${item.index}`;
+
+                itemContainer.addEventListener("keydown", (e) => {
+                    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                        e.preventDefault();
+
+                        let nextIndex = e.key === "ArrowDown" ? item.index + 1 : item.index - 1;
+                        const nextItemContainer = checkboxContainer
+                            .get(0)
+                            .querySelectorAll(`[id="listitemcontainer-${nextIndex}"]`);
+                        if (nextItemContainer) {
+                            const nextItem = nextItemContainer[0] as HTMLElement;
+                            nextItem.scrollIntoView({
+                                behavior: "smooth",
+                                block: "nearest",
+                            });
+                            nextItem.tabIndex = 0; // Set tabIndex to 0 for the next item
+                            itemContainer.tabIndex = -1; // Remove focus from the current item
+                            nextItem.focus();
+                        }
+                    }
+                });
 
                 const id = `checkbox-${item.index}`;
                 const checkboxElement = document.createElement("input");
@@ -482,9 +511,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
             };
             if (this.queryResultContext.state.uri) {
                 // Get the current filters from the query result singleton store
-                let gridColumnMapArray = (await this.webviewState.extensionRpc.call("getFilters", {
-                    uri: this.queryResultContext.state.uri,
-                })) as GridColumnMap[];
+                let gridColumnMapArray = await this.webviewState.extensionRpc.sendRequest(
+                    GetFiltersRequest.type,
+                    {
+                        uri: this.queryResultContext.state.uri,
+                    },
+                );
                 if (!gridColumnMapArray) {
                     gridColumnMapArray = [];
                 }
@@ -493,7 +525,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     gridColumnMapArray,
                     columnDef.id!,
                 );
-                await this.webviewState.extensionRpc.call("setFilters", {
+                await this.webviewState.extensionRpc.sendRequest(SetFiltersRequest.type, {
                     uri: this.queryResultContext.state.uri,
                     filters: gridColumnMapArray,
                 });
@@ -522,14 +554,17 @@ export class HeaderFilter<T extends Slick.SlickData> {
             this.queryResultContext.log("no uri set for query result state");
             return;
         }
-        let currentFiltersArray = (await this.webviewState.extensionRpc.call("getFilters", {
-            uri: this.queryResultContext.state.uri,
-        })) as GridColumnMap[];
+        let currentFiltersArray = await this.webviewState.extensionRpc.sendRequest(
+            GetFiltersRequest.type,
+            {
+                uri: this.queryResultContext.state.uri,
+            },
+        );
         if (!currentFiltersArray) {
             currentFiltersArray = [];
         }
         newStateArray = this.combineFilters(currentFiltersArray, newState, columnId);
-        await this.webviewState.extensionRpc.call("setFilters", {
+        await this.webviewState.extensionRpc.sendRequest(SetFiltersRequest.type, {
             uri: this.queryResultContext.state.uri,
             filters: newStateArray,
         });

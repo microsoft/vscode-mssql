@@ -65,7 +65,7 @@ export function registerCommonRequestHandlers(
             ? webviewController
             : webviewController.getQueryResultWebviewViewController();
 
-    webviewController.registerRequestHandler("getRows", async (message) => {
+    webviewController.onRequest(qr.GetRowsRequest.type, async (message) => {
         const result = await webviewViewController
             .getSqlOutputContentProvider()
             .rowRequestHandler(
@@ -105,7 +105,8 @@ export function registerCommonRequestHandlers(
         webviewViewController.setQueryResultState(message.uri, currentState);
         return result;
     });
-    webviewController.registerRequestHandler("setEditorSelection", async (message) => {
+
+    webviewController.onRequest(qr.SetEditorSelectionRequest.type, async (message) => {
         if (!message.uri || !message.selectionData) {
             console.warn(
                 `Invalid setEditorSelection request.  Uri: ${message.uri}; selectionData: ${JSON.stringify(message.selectionData)}`,
@@ -117,11 +118,12 @@ export function registerCommonRequestHandlers(
             .getSqlOutputContentProvider()
             .editorSelectionRequestHandler(message.uri, message.selectionData);
     });
-    webviewController.registerRequestHandler("saveResults", async (message) => {
+
+    webviewController.onRequest(qr.SaveResultsWebviewRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.SaveResults, {
             correlationId: correlationId,
             format: message.format,
-            selection: message.selection,
+            selection: JSON.stringify(message.selection),
             origin: message.origin,
         });
         return await webviewViewController
@@ -135,7 +137,7 @@ export function registerCommonRequestHandlers(
             );
     });
 
-    webviewController.registerRequestHandler("sendToClipboard", async (message) => {
+    webviewController.onRequest(qr.SendToClipboardRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
             correlationId: correlationId,
         });
@@ -151,7 +153,7 @@ export function registerCommonRequestHandlers(
             );
     });
 
-    webviewController.registerRequestHandler("copySelection", async (message) => {
+    webviewController.onRequest(qr.CopySelectionRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
             correlationId: correlationId,
         });
@@ -165,7 +167,8 @@ export function registerCommonRequestHandlers(
                 false,
             );
     });
-    webviewController.registerRequestHandler("copyWithHeaders", async (message) => {
+
+    webviewController.onRequest(qr.CopyWithHeadersRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResultsHeaders, {
             correlationId: correlationId,
             format: undefined,
@@ -180,7 +183,8 @@ export function registerCommonRequestHandlers(
             true, //copy headers flag
         );
     });
-    webviewController.registerRequestHandler("copyHeaders", async (message) => {
+
+    webviewController.onRequest(qr.CopyHeadersRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyHeaders, {
             correlationId: correlationId,
         });
@@ -227,30 +231,80 @@ export function registerCommonRequestHandlers(
     });
 
     // Register request handlers for query result filters
-    webviewController.registerRequestHandler("getFilters", async (message) => {
+    webviewController.onRequest(qr.GetFiltersRequest.type, async (message) => {
         return store.get(message.uri, SubKeys.Filter);
     });
 
-    webviewController.registerRequestHandler("setFilters", async (message) => {
+    webviewController.onRequest(qr.SetFiltersRequest.type, async (message) => {
         store.set(message.uri, SubKeys.Filter, message.filters);
-        return true;
     });
 
-    webviewController.registerRequestHandler("setColumnWidths", async (message) => {
+    webviewController.onRequest(qr.SetColumnWidthsRequest.type, async (message) => {
         store.set(message.uri, SubKeys.ColumnWidth, message.columnWidths);
-        return true;
     });
 
-    webviewController.registerRequestHandler("getColumnWidths", async (message) => {
+    webviewController.onRequest(qr.GetColumnWidthsRequest.type, async (message) => {
         return store.get(message.uri, SubKeys.ColumnWidth);
     });
 
-    webviewController.registerRequestHandler("deleteFilter", async (message) => {
-        store.delete(message.uri, SubKeys.Filter);
-        return true;
+    webviewController.onNotification(qr.SetGridScrollPositionNotification.type, async (message) => {
+        if (message.scrollLeft === 0 && message.scrollTop === 0) {
+            // If both scrollLeft and scrollTop are 0, we don't need to store this position
+            return;
+        }
+        let scrollPositions: Map<string, { scrollTop: number; scrollLeft: number }> = store.get(
+            message.uri,
+            SubKeys.GridScrollPosition,
+        );
+        if (!scrollPositions) {
+            scrollPositions = new Map<
+                string,
+                {
+                    scrollTop: number;
+                    scrollLeft: number;
+                }
+            >();
+        }
+
+        scrollPositions.set(message.gridId, {
+            scrollTop: message.scrollTop,
+            scrollLeft: message.scrollLeft,
+        });
+        // Update the scroll positions in the store
+        store.set(message.uri, SubKeys.GridScrollPosition, scrollPositions);
     });
 
-    webviewController.registerRequestHandler("setSelectionSummary", async (message) => {
+    webviewController.onRequest(qr.GetGridScrollPositionRequest.type, async (message) => {
+        const scrollPositions = store.get(message.uri, SubKeys.GridScrollPosition) as Map<
+            string,
+            { scrollTop: number; scrollLeft: number }
+        >;
+        if (scrollPositions && scrollPositions.has(message.gridId)) {
+            return scrollPositions.get(message.gridId);
+        } else {
+            // If no scroll position is found, return default values
+            return undefined;
+        }
+    });
+
+    webviewController.onNotification(
+        qr.SetGridPaneScrollPositionNotification.type,
+        async (message) => {
+            if (message.scrollTop === 0) {
+                // If scrollTop is 0, we don't need to store this position
+                return;
+            }
+            store.set(message.uri, SubKeys.PaneScrollPosition, {
+                scrollTop: message.scrollTop,
+            });
+        },
+    );
+
+    webviewController.onRequest(qr.GetGridPaneScrollPositionRequest.type, async (message) => {
+        return store.get(message.uri, SubKeys.PaneScrollPosition) ?? { scrollTop: 0 };
+    });
+
+    webviewController.onRequest(qr.SetSelectionSummaryRequest.type, async (message) => {
         const controller =
             webviewController instanceof QueryResultWebviewPanelController
                 ? webviewController.getQueryResultWebviewViewController()

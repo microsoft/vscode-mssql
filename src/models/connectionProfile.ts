@@ -171,7 +171,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 type: QuestionTypes.input,
                 name: LocalizedConstants.profileNamePrompt,
                 message: LocalizedConstants.profileNamePrompt,
-                placeHolder: LocalizedConstants.profileNamePlaceholder,
+                placeHolder: LocalizedConstants.profileNameTooltip,
                 default: defaultProfileValues ? defaultProfileValues.profileName : undefined,
                 onAnswered: (value) => {
                     // Fall back to a default name if none specified

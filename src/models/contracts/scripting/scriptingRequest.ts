@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType, RequestType } from "vscode-jsonrpc";
+import { NotificationType, RequestType } from "vscode-languageclient";
+import { IScriptingObject } from "vscode-mssql";
 
 export interface IConnectionInfo {
     options: { [name: string]: any };
@@ -189,33 +190,6 @@ export interface IScriptOptions {
      * Script the unique keys for each table or view scripted.
      */
     uniqueKeys?: boolean;
-}
-
-export interface IScriptingObject {
-    /**
-     * The database object type
-     */
-    type: string;
-
-    /**
-     * The schema of the database object
-     */
-    schema: string;
-
-    /**
-     * The database object name
-     */
-    name: string;
-
-    /**
-     * The parent object name which is needed for scripting subobjects like triggers or indexes
-     */
-    parentName?: string;
-
-    /**
-     * The parent object type name such as Table, View, etc.
-     */
-    parentTypeName?: string;
 }
 
 export interface IScriptingParams {
