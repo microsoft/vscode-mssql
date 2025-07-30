@@ -139,7 +139,7 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                     height: "100%",
                     width: "100%",
                 }}
-                theme={webviewTheme}>
+                theme={webviewTheme(theme)}>
                 {
                     // don't render webview unless necessary dependencies are initialized
                     isInitialized() && children
