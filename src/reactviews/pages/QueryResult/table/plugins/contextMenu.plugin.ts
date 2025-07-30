@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    CopyAsCsvRequest,
+    CopyAsJsonRequest,
     CopyHeadersRequest,
     CopySelectionRequest,
     CopyWithHeadersRequest,
@@ -195,7 +197,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 break;
             case "copy-as-csv":
                 this.queryResultContext.log("Copy as CSV action triggered");
-                await this.webViewState.extensionRpc.call("copyAsCsv", {
+                await this.webViewState.extensionRpc.sendRequest(CopyAsCsvRequest.type, {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
@@ -205,7 +207,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 break;
             case "copy-as-json":
                 this.queryResultContext.log("Copy as JSON action triggered");
-                await this.webViewState.extensionRpc.call("copyAsJson", {
+                await this.webViewState.extensionRpc.sendRequest(CopyAsJsonRequest.type, {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,

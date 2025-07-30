@@ -281,6 +281,30 @@ export namespace CopyWithHeadersRequest {
     export const type = new RequestType<CopyWithHeadersParams, void, void>("copyWithHeaders");
 }
 
+export interface CopyAsCsvRequest {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+    includeHeaders: boolean;
+}
+
+export namespace CopyAsCsvRequest {
+    export const type = new RequestType<CopyAsCsvRequest, void, void>("copyAsCsv");
+}
+
+export interface copyAsJsonRequest {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+    includeHeaders: boolean;
+}
+
+export namespace CopyAsJsonRequest {
+    export const type = new RequestType<copyAsJsonRequest, void, void>("copyAsJson");
+}
+
 export interface SetSelectionSummary {
     summary: SelectionSummaryStats;
 }

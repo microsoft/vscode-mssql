@@ -198,7 +198,7 @@ export function registerCommonRequestHandlers(
             );
     });
 
-    webviewController.registerRequestHandler("copyAsCsv", async (message) => {
+    webviewController.onRequest(qr.CopyAsCsvRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
             correlationId: correlationId,
             format: "csv",
@@ -214,7 +214,7 @@ export function registerCommonRequestHandlers(
             );
     });
 
-    webviewController.registerRequestHandler("copyAsJson", async (message) => {
+    webviewController.onRequest(qr.CopyAsJsonRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
             correlationId: correlationId,
             format: "json",
