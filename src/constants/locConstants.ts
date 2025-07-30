@@ -919,7 +919,8 @@ export class ContainerDeployment {
             comment: ["{0} is the container name"],
         });
     };
-    public static configureDockerEngine = l10n.t("Configure Docker engine");
+    public static configureLinuxContainers = l10n.t("Configure Linux containers");
+    public static configureRosetta = l10n.t("Configure Rosetta Virtualization");
     public static switchToLinuxContainersConfirmation = l10n.t(
         "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
     );

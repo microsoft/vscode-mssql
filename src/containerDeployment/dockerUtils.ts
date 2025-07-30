@@ -136,13 +136,8 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.startDockerEngineHeader,
             bodyText: ContainerDeployment.startDockerEngineBody,
-            errorLink:
-                platform() === Platform.Windows && arch() === x64
-                    ? windowsContainersErrorLink
-                    : platform() === Platform.Mac
-                      ? rosettaErrorLink
-                      : undefined,
-            errorLinkText: ContainerDeployment.configureDockerEngine,
+            errorLink: getEngineErrorLink(),
+            errorLinkText: getEngineErrorLinkText(),
             stepAction: checkEngine,
         },
         {
@@ -174,6 +169,32 @@ export function initializeDockerSteps(): DockerStep[] {
             stepAction: undefined,
         },
     ];
+}
+
+/**
+ * Gets the link to the Docker engine error documentation based on the platform and architecture.
+ * @returns The link to the Docker engine error documentation based on the platform and architecture.
+ */
+export function getEngineErrorLink() {
+    if (platform() === Platform.Windows && arch() === x64) {
+        return windowsContainersErrorLink;
+    } else if (platform() === Platform.Mac && arch() !== x64) {
+        return rosettaErrorLink;
+    }
+    return undefined;
+}
+
+/**
+ * Gets the text to the Docker engine error documentation based on the platform and architecture.
+ * @returns The text to the Docker engine error documentation based on the platform and architecture.
+ */
+export function getEngineErrorLinkText() {
+    if (platform() === Platform.Windows && arch() === x64) {
+        return ContainerDeployment.configureLinuxContainers;
+    } else if (platform() === Platform.Mac && arch() !== x64) {
+        return ContainerDeployment.configureRosetta;
+    }
+    return undefined;
 }
 
 /**
