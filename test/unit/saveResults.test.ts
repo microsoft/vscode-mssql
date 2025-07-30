@@ -12,14 +12,17 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as vscode from "vscode";
 import * as os from "os";
+import * as sinon from "sinon";
 
 suite("save results tests", () => {
     const testFile = "file:///my/test/file.sql";
     let fileUri: vscode.Uri;
     let serverClient: TypeMoq.IMock<SqlToolsServerClient>;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let sandbox: sinon.SinonSandbox;
 
     setup(() => {
+        sandbox = sinon.createSandbox();
         serverClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Strict);
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapper
@@ -32,6 +35,10 @@ suite("save results tests", () => {
         } else {
             fileUri = vscode.Uri.file("/test.csv");
         }
+    });
+
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("check if filepath prompt displays and right value is set", (done) => {
@@ -266,35 +273,21 @@ suite("save results tests", () => {
     });
 
     test("CSV configuration options are properly applied", (done) => {
-        // setup mock filepath prompt
-        vscodeWrapper
-            .setup((x) => x.showSaveDialog(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(fileUri));
+        let vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
 
-        // setup mock configuration with custom delimiter and encoding
-        const mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
-        mockConfig
-            .setup((x) => x.get("saveAsCsv"))
-            .returns(() => ({
+        vscodeWrapper.showSaveDialog = sinon
+            .stub<[vscode.SaveDialogOptions], Thenable<vscode.Uri>>()
+            .resolves(fileUri);
+
+        vscodeWrapper.getConfiguration = sinon.stub<any>().returns({
+            saveAsCsv: {
                 delimiter: "\t",
                 encoding: "utf-16le",
                 includeHeaders: false,
                 textIdentifier: "'",
                 lineSeparator: "\r\n",
-            }));
-        mockConfig
-            .setup((x) => x["saveAsCsv"])
-            .returns(() => ({
-                delimiter: "\t",
-                encoding: "utf-16le",
-                includeHeaders: false,
-                textIdentifier: "'",
-                lineSeparator: "\r\n",
-            }));
-
-        vscodeWrapper
-            .setup((x) => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => mockConfig.object);
+            },
+        } as any);
 
         // setup mock sql tools server client
         serverClient
@@ -316,7 +309,7 @@ suite("save results tests", () => {
                 return Promise.resolve({ messages: undefined });
             });
 
-        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper);
         saveResults.onSaveResults(testFile, 0, 0, "csv", undefined);
     });
 });
