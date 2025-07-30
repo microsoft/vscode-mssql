@@ -91,6 +91,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
             <SelectSchemaInput
                 id={sourceId}
                 label={loc.schemaCompare.source}
+                buttonAriaLabel={loc.schemaCompare.selectSourceSchema}
                 value={sourceEndpointDisplay}
                 disableBrowseButton={context.state.isComparisonInProgress}
                 selectFile={() => onSelectSchemaClicked("source")}
@@ -100,6 +101,7 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
             <SelectSchemaInput
                 id={targetId}
                 label={loc.schemaCompare.target}
+                buttonAriaLabel={loc.schemaCompare.selectTargetSchema}
                 value={targetEndpointDisplay}
                 disableBrowseButton={context.state.isComparisonInProgress}
                 selectFile={() => onSelectSchemaClicked("target")}

@@ -21,8 +21,6 @@ import {
     Tab,
     TabList,
     TabValue,
-    List,
-    ListItem,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../../common/locConstants";
@@ -37,19 +35,21 @@ const useStyles = makeStyles({
         overflow: "hidden",
     },
 
-    listItemContainer: {
-        display: "flex",
-        alignItems: "center",
-    },
-
     searchContainer: {
         margin: "10px 0",
         width: "100%",
-        flexShrink: 0,
     },
 
     tabContainer: {
         flexShrink: 0,
+    },
+
+    tabContentContainer: {
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
+        overflow: "hidden",
     },
 
     masterCheckboxContainer: {
@@ -68,20 +68,17 @@ const useStyles = makeStyles({
         fontSize: "14px",
     },
 
-    tabContentContainer: {
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        minHeight: 0,
-        overflow: "hidden",
-    },
-
     scrollableList: {
         flex: 1,
         overflowY: "auto",
         minHeight: 0,
         paddingTop: "8px",
         width: "100%",
+    },
+
+    listItemContainer: {
+        display: "flex",
+        alignItems: "center",
     },
 });
 
@@ -269,15 +266,11 @@ const SchemaOptionsDrawer = (props: Props) => {
                                 />
                             </div>
                         )}
-                        <List className={classes.scrollableList}>
+                        <div className={classes.scrollableList}>
                             {optionsToValueNameLookup &&
                                 filteredGeneralOptions.map(([key, value]) => {
                                     return (
-                                        <ListItem
-                                            className={classes.listItemContainer}
-                                            key={key}
-                                            value={key}
-                                            aria-label={value.displayName}>
+                                        <div className={classes.listItemContainer} key={key}>
                                             <Checkbox
                                                 checked={value.value}
                                                 onChange={() => handleSettingChanged(key)}
@@ -289,10 +282,10 @@ const SchemaOptionsDrawer = (props: Props) => {
                                                     </InfoLabel>
                                                 }
                                             />
-                                        </ListItem>
+                                        </div>
                                     );
                                 })}
-                        </List>
+                        </div>
                     </div>
                 )}
 
@@ -316,24 +309,20 @@ const SchemaOptionsDrawer = (props: Props) => {
                                 />
                             </div>
                         )}
-                        <List className={classes.scrollableList}>
+                        <div className={classes.scrollableList}>
                             {includeObjectTypesLookup &&
                                 filteredObjectTypes.map(([key, value]) => {
                                     return (
-                                        <ListItem
-                                            className={classes.listItemContainer}
-                                            key={key}
-                                            value={key}
-                                            aria-label={value}>
+                                        <div className={classes.listItemContainer} key={key}>
                                             <Checkbox
                                                 checked={handleSetObjectTypesCheckedState(key)}
                                                 onChange={() => handleObjectTypesOptionChanged(key)}
                                                 label={<Label aria-label={value}>{value}</Label>}
                                             />
-                                        </ListItem>
+                                        </div>
                                     );
                                 })}
-                        </List>
+                        </div>
                     </div>
                 )}
             </DrawerBody>

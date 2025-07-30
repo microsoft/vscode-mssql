@@ -640,6 +640,9 @@ export class LocConstants {
             intro: l10n.t(
                 "To compare two schemas, first select a source schema and target schema, then press compare.",
             ),
+            selectSourceSchema: l10n.t("Select Source Schema"),
+            selectTargetSchema: l10n.t("Select Target Schema"),
+            addServerConnection: l10n.t("Add Server Connection"),
             noDifferences: l10n.t("No schema differences were found."),
             initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
             server: l10n.t("Server"),
