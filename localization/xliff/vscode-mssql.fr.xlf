@@ -105,6 +105,10 @@
         <note>{0} is the server name</note>
         <target state="translated">Ajouter une règle de pare-feu à {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
+        <source xml:lang="en">Add Server Connection</source>
+        <target state="new">Add Server Connection</target>
+      </trans-unit>
       <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
         <source xml:lang="en">Add Table</source>
         <target state="translated">Ajouter une table</target>
@@ -2845,9 +2849,17 @@ Requête : {1}</target>
         <source xml:lang="en">Select Source</source>
         <target state="translated">Sélectionner une source</target>
       </trans-unit>
+      <trans-unit id="++CODE++5807729000cb38665e918bf3d7ac25f319624d3024eb2760aba5f15f7eb53559">
+        <source xml:lang="en">Select Source Schema</source>
+        <target state="new">Select Source Schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
         <target state="translated">Sélectionner une cible</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
+        <source xml:lang="en">Select Target Schema</source>
+        <target state="new">Select Target Schema</target>
       </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
