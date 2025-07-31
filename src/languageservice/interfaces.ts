@@ -14,7 +14,7 @@ export interface IStatusView {
     updateServiceDownloadingProgress(downloadPercentage: number): void;
 }
 
-export interface IConfig {
+export interface IConfigUtils {
     getSqlToolsServiceDownloadUrl(): string;
     getSqlToolsInstallDirectory(): string;
     getSqlToolsExecutableFiles(): string[];

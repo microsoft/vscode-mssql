@@ -6,6 +6,7 @@
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as schemaCompareContracts from "../models/contracts/schemaCompare/schemaCompareContracts";
 import * as mssql from "vscode-mssql";
+import { ExtractTarget, TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
 export class SchemaCompareService implements mssql.ISchemaCompareService {
     constructor(private _client: SqlToolsServiceClient) {}
@@ -14,7 +15,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         operationId: string,
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
         deploymentOptions: mssql.DeploymentOptions,
     ): Thenable<mssql.SchemaCompareResult> {
         const params: mssql.SchemaCompareParams = {
@@ -32,7 +33,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         operationId: string,
         targetServerName: string,
         targetDatabaseName: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ): Thenable<mssql.ResultStatus> {
         const params: mssql.SchemaCompareGenerateScriptParams = {
             operationId: operationId,
@@ -51,7 +52,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         operationId: string,
         targetServerName: string,
         targetDatabaseName: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ): Thenable<mssql.ResultStatus> {
         const params: mssql.SchemaComparePublishDatabaseChangesParams = {
             operationId: operationId,
@@ -69,8 +70,8 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
     public publishProjectChanges(
         operationId: string,
         targetProjectPath: string,
-        targetFolderStructure: mssql.ExtractTarget,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        targetFolderStructure: ExtractTarget,
+        taskExecutionMode: TaskExecutionMode,
     ): Thenable<mssql.SchemaComparePublishProjectResult> {
         const params: mssql.SchemaComparePublishProjectChangesParams = {
             operationId: operationId,
@@ -98,7 +99,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
         operationId: string,
         diffEntry: mssql.DiffEntry,
         includeRequest: boolean,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ): Thenable<mssql.SchemaCompareIncludeExcludeResult> {
         const params: mssql.SchemaCompareNodeParams = {
             operationId: operationId,
@@ -116,7 +117,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
     public includeExcludeAllNodes(
         operationId: string,
         includeRequest: boolean,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ): Thenable<mssql.SchemaCompareIncludeExcludeAllResult> {
         const params: mssql.SchemaCompareIncludeExcludeAllNodesParams = {
             operationId: operationId,
@@ -144,7 +145,7 @@ export class SchemaCompareService implements mssql.ISchemaCompareService {
     public saveScmp(
         sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
         targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
         deploymentOptions: mssql.DeploymentOptions,
         scmpFilePath: string,
         excludedSourceObjects: mssql.SchemaCompareObjectId[],

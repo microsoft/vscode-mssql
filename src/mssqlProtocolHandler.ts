@@ -5,10 +5,11 @@
 
 import * as vscode from "vscode";
 import * as Utils from "./models/utils";
-import { AuthenticationType, IConnectionInfo } from "vscode-mssql";
+import { IConnectionInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "./languageservice/serviceclient";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "./models/contracts/connection";
 import { IConnectionProfile } from "./models/interfaces";
+import { AuthenticationType } from "./sharedInterfaces/connectionDialog";
 
 enum Command {
     connect = "/connect",

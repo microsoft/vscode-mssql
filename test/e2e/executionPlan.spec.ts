@@ -129,7 +129,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const customZoomInput = iframe.locator("#customZoomInputBox");
         await expect(customZoomInput).toBeVisible();
 
-        await customZoomInput.fill("25");
+        await customZoomInput.fill((currentZoom - 5).toString());
         const customZoomApplyButton = iframe.locator(
             '[type="button"][aria-label="Apply"][class*="fui-Button"]',
         );

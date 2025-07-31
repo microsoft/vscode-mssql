@@ -13,7 +13,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as Contracts from "../models/contracts";
 import * as Utils from "../models/utils";
-import * as opener from "opener";
+import opener from "opener";
 
 type SaveAsRequestParams =
     | Contracts.SaveResultsAsCsvRequestParams

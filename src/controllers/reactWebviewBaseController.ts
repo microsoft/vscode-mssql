@@ -207,7 +207,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         const nonce = getNonce();
 
         const baseUrl = this._getWebview().asWebviewUri(
-            vscode.Uri.joinPath(this._context.extensionUri, "out", "src", "reactviews", "assets"),
+            vscode.Uri.joinPath(this._context.extensionUri, "dist", "views"),
         );
         const baseUrlString = baseUrl.toString() + "/";
 

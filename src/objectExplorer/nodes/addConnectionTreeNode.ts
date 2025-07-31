@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from "path";
 import * as vscode from "vscode";
 import * as Constants from "../../constants/constants";
 import * as LocalizedConstants from "../../constants/locConstants";
@@ -17,8 +16,8 @@ export class AddConnectionTreeNode extends vscode.TreeItem {
             command: Constants.cmdAddObjectExplorer,
         };
         this.iconPath = {
-            light: vscode.Uri.file(path.join(ObjectExplorerUtils.rootPath, "add_light.svg")),
-            dark: vscode.Uri.file(path.join(ObjectExplorerUtils.rootPath, "add_dark.svg")),
+            light: ObjectExplorerUtils.iconPath("add_light"),
+            dark: ObjectExplorerUtils.iconPath("add_dark"),
         };
     }
 }

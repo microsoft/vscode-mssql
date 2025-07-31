@@ -7,7 +7,7 @@ import * as path from "path";
 import * as tmp from "tmp";
 import { Runtime, getRuntimeDisplayName } from "../models/platform";
 import {
-    IConfig,
+    IConfigUtils,
     IStatusView,
     IPackage,
     PackageError,
@@ -23,7 +23,7 @@ import * as fs from "fs/promises";
  */
 export default class ServiceDownloadProvider {
     constructor(
-        private _config: IConfig,
+        private _config: IConfigUtils,
         private _logger: ILogger,
         private _statusView: IStatusView,
         private _httpClient: IHttpClient,
@@ -78,7 +78,7 @@ export default class ServiceDownloadProvider {
             basePath = installDirFromConfig;
         } else {
             // The path from config is relative to the out folder
-            basePath = path.join(__dirname, "../../" + installDirFromConfig);
+            basePath = path.join(__dirname, "../" + installDirFromConfig);
         }
         return basePath;
     }

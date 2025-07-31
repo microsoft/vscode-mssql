@@ -13,11 +13,13 @@ import { ObjectMetadata, MetadataType } from "vscode-mssql";
 import * as vscode from "vscode";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as sinon from "sinon";
+import { initializeIconUtils } from "./utils";
 
 suite("Object Explorer Utils Tests", () => {
     let sandbox: sinon.SinonSandbox;
 
     setup(() => {
+        initializeIconUtils();
         sandbox = sinon.createSandbox();
     });
 

@@ -3,26 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from "path";
+import * as vscode from "vscode";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { IConnectionProfile } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as vscodeMssql from "vscode-mssql";
 import { TreeNodeType } from "./nodes/connectTreeNode";
-import * as vscode from "vscode";
+import { IconUtils } from "../utils/iconUtils";
 
 export class ObjectExplorerUtils {
-    public static readonly rootPath: string = path.join(__dirname, "objectTypes");
-
     /**
      * Gets the path to the icon for a given node type.
      * @param nodeType The type of node to get the icon for
      * @returns The path to the icon for the node type
      */
     public static iconPath(nodeType: string): vscode.Uri | undefined {
-        const fullPath = path.join(ObjectExplorerUtils.rootPath, `${nodeType}.svg`);
-        return vscode.Uri.file(fullPath);
+        return IconUtils.getIcon("objectTypes", `${nodeType}.svg`);
     }
 
     public static getNodeUri(node: TreeNodeType): string {

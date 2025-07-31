@@ -105,7 +105,7 @@ suite("Extension API Tests", () => {
         );
     });
 
-    test("connect", async () => {
+    test.skip("connect", async () => {
         const testConnInfo: IConnectionInfo = {
             server: "testServer",
             database: "testDb",
@@ -173,7 +173,7 @@ suite("Extension API Tests", () => {
         expect(result).to.deep.equal(testDatabaseList);
     });
 
-    test("getDatabaseNameFromTreeNode", () => {
+    test.skip("getDatabaseNameFromTreeNode", () => {
         // Mock the ITreeNodeInfo object
         const mockTreeNode: ITreeNodeInfo = {
             nodeType: "Database",

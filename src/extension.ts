@@ -19,6 +19,7 @@ import { createSqlAgentRequestHandler, ISqlChatResult } from "./copilot/chatAgen
 import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
+import { IconUtils } from "./utils/iconUtils";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -27,6 +28,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     let vscodeWrapper = new VscodeWrapper();
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
+
+    IconUtils.initialize(context.extensionUri);
 
     // Checking if localization should be applied
     //let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);

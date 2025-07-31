@@ -171,9 +171,30 @@ export interface ConnectionDialogContextProps
 }
 
 export enum AuthenticationType {
+    /**
+     * Username and password
+     */
     SqlLogin = "SqlLogin",
+    /**
+     * Windows Authentication
+     */
     Integrated = "Integrated",
+    /**
+     * Microsoft Entra Id - Universal with MFA support
+     */
     AzureMFA = "AzureMFA",
+    /**
+     * Microsoft Entra Id - Password
+     */
+    AzureMFAAndUser = "AzureMFAAndUser",
+    /**
+     * Datacenter Security Token Service Authentication
+     */
+    DSTSAuth = "dstsAuth",
+    /**
+     * No authentication required
+     */
+    None = "None",
 }
 
 export interface ConnectionDialogReducers extends FormReducers<IConnectionDialogProfile> {

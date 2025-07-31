@@ -16,6 +16,7 @@ import { Logger } from "../../src/models/logger";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import { IConnectionProfile, IConnectionGroup } from "../../src/models/interfaces";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { initializeIconUtils } from "./utils";
 
 suite("ObjectExplorerDragAndDropController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -29,6 +30,7 @@ suite("ObjectExplorerDragAndDropController Tests", () => {
     const TEST_ROOT_GROUP_ID = "test-root-group-id";
 
     setup(() => {
+        initializeIconUtils();
         sandbox = sinon.createSandbox();
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         mockConnectionStore = sandbox.createStubInstance(ConnectionStore);

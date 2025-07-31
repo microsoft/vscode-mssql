@@ -6,7 +6,7 @@
 import * as path from "path";
 import { Runtime } from "../models/platform";
 import ServiceDownloadProvider from "./serviceDownloadProvider";
-import { IConfig, IStatusView } from "./interfaces";
+import { IConfigUtils, IStatusView } from "./interfaces";
 import * as fs from "fs/promises";
 
 /*
@@ -15,7 +15,7 @@ import * as fs from "fs/promises";
 export default class ServerProvider {
     constructor(
         private _downloadProvider: ServiceDownloadProvider,
-        private _config: IConfig,
+        private _config: IConfigUtils,
         private _statusView: IStatusView,
     ) {}
 

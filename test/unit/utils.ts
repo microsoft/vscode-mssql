@@ -9,8 +9,9 @@ import * as telemetry from "../../src/telemetry/telemetry";
 import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import * as path from "path";
 
-// Launches and activates the extension.
+// Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
     const extension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
     return await extension.activate();
@@ -44,4 +45,9 @@ export function stubVscodeWrapper(
     });
 
     return vscodeWrapper;
+}
+
+export function initializeIconUtils(): void {
+    const { IconUtils } = require("../../src/utils/iconUtils");
+    IconUtils.initialize(vscode.Uri.file(path.join(__dirname, "..", "..")));
 }
