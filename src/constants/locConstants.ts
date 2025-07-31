@@ -1085,13 +1085,6 @@ export class SchemaDesigner {
     public static SaveAs = l10n.t("Save As");
     public static Save = l10n.t("Save");
     public static SchemaDesigner = l10n.t("Schema Designer");
-    public static tabTitle(databaseName: string) {
-        return l10n.t({
-            message: "{0} (Preview)",
-            args: [databaseName],
-            comment: ["{0} is the database name"],
-        });
-    }
     public static OpeningPublishScript = l10n.t("Opening Publish Script. This may take a while...");
     public static GeneratingReport = l10n.t("Generating Report. This may take a while...");
     public static PublishScriptFailed = (errorMessage: string) =>

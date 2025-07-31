@@ -1408,12 +1408,6 @@
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",
   "Schema Designer": "Schema Designer",
-  "{0} (Preview)/{0} is the database name": {
-    "message": "{0} (Preview)",
-    "comment": [
-      "{0} is the database name"
-    ]
-  },
   "Opening Publish Script. This may take a while...": "Opening Publish Script. This may take a while...",
   "Generating Report. This may take a while...": "Generating Report. This may take a while...",
   "Failed to generate publish script: '{0}'/{0} is the error message returned from the generate script operation": {
