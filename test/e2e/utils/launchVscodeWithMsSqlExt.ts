@@ -60,6 +60,11 @@ export async function launchVsCodeWithMssqlExtension(
         const vsixPath = process.env["BUILT_VSIX_PATH"];
         if (!vsixPath) throw new Error("BUILT_VSIX_PATH environment variable is not set.");
 
+        /*
+         * Launching standalone vsix based tests from a temporary directory so the extension does not pick up
+         * node_modules from the codebase. There can be an edge case where the required node module is present
+         * in the codebase (as a dev dependency) but not in the vsix package. This can lead to false positives
+         */
         console.log("Installing VSIX before launch...");
         const result = cp.spawnSync(
             cliPath,
