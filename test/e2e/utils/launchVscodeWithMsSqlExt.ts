@@ -68,32 +68,46 @@ export async function launchVsCodeWithMssqlExtension(
         userDataArg,
     ];
 
+    const randomProfileName = `profile-${Math.random().toString(36).substring(2, 15)}`;
+
     if (options.useVsix) {
         const vsixPath = process.env["BUILT_VSIX_PATH"];
         if (!vsixPath) {
             throw new Error("BUILT_VSIX_PATH environment variable is not set.");
         }
-        console.log("Installing extension: ", cliPath, "with args:", vscodeLaunchArgs);
-        const result = cp.spawnSync(
-            cliPath,
-            [extensionDir, userDataArg, "--install-extension", vsixPath],
-            {
-                encoding: "utf-8",
-                stdio: "pipe", // capture output for inspection
-            },
-        );
+        const installArgs = [
+            "--install-extension",
+            vsixPath,
+            "--profile",
+            randomProfileName, // Use a temporary profile to avoid conflicts with existing profiles
+        ];
 
-        console.log("stdout:", result.stdout);
-        console.log("stderr:", result.stderr);
-        console.log("status:", result.status);
-        if (result.error) {
-            console.error("error:", result.error);
+        console.log("Installing extension: ", cliPath, "with args:", installArgs);
+
+        const extensionInstallationOutput = cp.spawnSync(cliPath, installArgs, {
+            encoding: "utf-8",
+            stdio: "pipe", // capture output for inspection
+        });
+
+        console.log("stdout:", extensionInstallationOutput.stdout);
+        console.log("stderr:", extensionInstallationOutput.stderr);
+        console.log("status:", extensionInstallationOutput.status);
+        if (extensionInstallationOutput.error) {
+            console.error("error:", extensionInstallationOutput.error);
         }
 
-        const installedExtensions = cp.execSync(`${cliPath} --list-extensions`, {
+        const listArgs = [
+            "--list-extensions",
+            "--profile",
+            randomProfileName, // Use the same temporary profile to list installed extensions
+        ];
+        const listOutput = cp.spawnSync(cliPath, listArgs, {
             encoding: "utf-8",
         });
-        console.log("Installed extensions:", installedExtensions);
+        console.log("Installed extensions:", listOutput.stdout);
+        vscodeLaunchArgs.push(
+            `--profile=${randomProfileName}`, // Use the temporary profile with the installed extension
+        );
     } else {
         console.log("Launching with extension development path.");
         vscodeLaunchArgs.push(
