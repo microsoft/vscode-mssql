@@ -74,6 +74,25 @@ export async function launchVsCodeWithMssqlExtension(
         if (!vsixPath) {
             throw new Error("BUILT_VSIX_PATH environment variable is not set.");
         }
+
+        const createProfile = cp.spawnSync(
+            cliPath,
+            [
+                "--profile",
+                randomProfileName, // Use a temporary profile to avoid conflicts with existing profiles
+            ],
+            {
+                encoding: "utf-8",
+                stdio: "pipe", // capture output for inspection
+            },
+        );
+
+        console.log("Profile creation output:", createProfile.stdout);
+        if (createProfile.error) {
+            console.error("Error creating profile:", createProfile.error);
+            throw createProfile.error;
+        }
+
         const installArgs = [
             "--install-extension",
             vsixPath,
