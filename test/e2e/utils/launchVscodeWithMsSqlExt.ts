@@ -13,6 +13,7 @@ import * as fs from "fs";
 import * as cp from "child_process";
 import { ElectronApplication, Page } from "@playwright/test";
 import { getVsCodeVersionName } from "./envConfigReader";
+import * as os from "os";
 
 export type mssqlExtensionLaunchConfig = {
     useNewUI?: boolean;
@@ -21,7 +22,13 @@ export type mssqlExtensionLaunchConfig = {
 
 export async function launchVsCodeWithMssqlExtension(
     options: mssqlExtensionLaunchConfig = {},
-): Promise<{ electronApp: ElectronApplication; page: Page }> {
+): Promise<{
+    electronApp: ElectronApplication;
+    page: Page;
+    userDataDir: string;
+    extensionsDir: string;
+    nodePathDir?: string;
+}> {
     const config = { useNewUI: true, useVsix: false, ...options };
 
     const vsCodeVersion = getVsCodeVersionName();
@@ -29,10 +36,16 @@ export async function launchVsCodeWithMssqlExtension(
     const [cliPath, extensionDir] = resolveCliArgsFromVSCodeExecutablePath(vscodePath);
     const devExtensionPath = path.resolve(__dirname, "../../../");
 
-    // Persistent paths for test session
-    const launchRoot = path.join(process.cwd(), "test", "resources", "vscode-test-session");
-    const userDataDir = path.join(launchRoot, "user-data");
-    const extensionsDir = path.join(launchRoot, "extensions");
+    const tmpRoot = path.join(os.tmpdir(), `vscode-mssql-test-${Date.now()}`);
+    const userDataDir = path.join(tmpRoot, "user-data");
+    const extensionsDir = path.join(tmpRoot, "extensions");
+    const nodePathDir = path.join(tmpRoot, "node_modules");
+
+    console.log("Using VS Code path:", vscodePath);
+    console.log("Using CLI path:", cliPath);
+    console.log("Using user data directory:", userDataDir);
+    console.log("Using extensions directory:", extensionsDir);
+    console.log("Using node path directory:", nodePathDir);
 
     fs.mkdirSync(userDataDir, { recursive: true });
     fs.mkdirSync(extensionsDir, { recursive: true });
@@ -41,11 +54,11 @@ export async function launchVsCodeWithMssqlExtension(
         "--disable-gpu-sandbox",
         "--disable-updates",
         "--new-window",
-        "--no-sandbox",
         "--skip-release-notes",
         "--skip-welcome",
         `--user-data-dir=${userDataDir}`,
         `--extensions-dir=${extensionsDir}`,
+        "--no-sandbox",
     ];
 
     if (config.useVsix) {
@@ -81,9 +94,15 @@ export async function launchVsCodeWithMssqlExtension(
     }
 
     console.log("Launching VS Code with:", vscodePath, launchArgs);
+    // Set up a clean node_modules path (optional: symlink/copy required deps here)
+    fs.mkdirSync(nodePathDir, { recursive: true });
+
     const electronApp = await electron.launch({
         executablePath: vscodePath,
         args: launchArgs,
+        env: {
+            NODE_PATH: nodePathDir,
+        },
     });
 
     const page = await electronApp.firstWindow({ timeout: 10_000 });
@@ -107,5 +126,16 @@ export async function launchVsCodeWithMssqlExtension(
         timeout: 30_000,
     });
 
-    return { electronApp, page };
+    return { electronApp, page, userDataDir, extensionsDir };
+}
+
+export async function cleanupDirectories(userDir: string, extDir: string, nodePathDir: string) {
+    try {
+        console.log("Cleaning up directories:", userDir, extDir, nodePathDir);
+        fs.rmSync(userDir, { recursive: true, force: true });
+        fs.rmSync(extDir, { recursive: true, force: true });
+        fs.rmSync(nodePathDir, { recursive: true, force: true });
+    } catch (error) {
+        console.error("Error cleaning up directories:", error);
+    }
 }
