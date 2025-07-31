@@ -56,8 +56,6 @@ export async function launchVsCodeWithMssqlExtension(
         "--new-window",
         "--skip-release-notes",
         "--skip-welcome",
-        `--user-data-dir=${userDataDir}`,
-        `--extensions-dir=${extensionsDir}`,
         "--no-sandbox",
     ];
 
@@ -79,6 +77,8 @@ export async function launchVsCodeWithMssqlExtension(
                 stdio: "pipe",
             },
         );
+
+        launchArgs.push(`--user-data-dir=${userDataDir}`, `--extensions-dir=${extensionsDir}`);
 
         console.log("VSIX install stdout:", result.stdout);
         console.log("VSIX install stderr:", result.stderr);
