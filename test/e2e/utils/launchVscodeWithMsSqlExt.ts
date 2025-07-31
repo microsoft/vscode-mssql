@@ -88,7 +88,7 @@ export async function launchVsCodeWithMssqlExtension(
             throw createProfile.error;
         }
 
-        const installArgs = ["--install-extension", vsixPath, profileArg];
+        const installArgs = ["--install-extension", vsixPath, ...profileArg];
 
         console.log("Installing extension: ", cliPath, "with args:", installArgs);
 
