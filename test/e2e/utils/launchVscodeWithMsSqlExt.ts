@@ -73,8 +73,7 @@ export async function launchVsCodeWithMssqlExtension(
         if (!vsixPath) {
             throw new Error("BUILT_VSIX_PATH environment variable is not set.");
         }
-        console.log(`Installing extension from VSIX: ${vsixPath}`);
-        console.log("Launching VS Code", cliPath, "with args:", vscodeLaunchArgs);
+        console.log("Installing extension: ", cliPath, "with args:", vscodeLaunchArgs);
         const result = cp.spawnSync(
             cliPath,
             [extensionDir, userDataArg, "--install-extension", vsixPath],
@@ -99,6 +98,7 @@ export async function launchVsCodeWithMssqlExtension(
         );
     }
 
+    console.log("Launching VS Code with args:", vsCodeExecutablePath, vscodeLaunchArgs);
     const electronApp = await electron.launch({
         executablePath: vsCodeExecutablePath,
         args: vscodeLaunchArgs,
