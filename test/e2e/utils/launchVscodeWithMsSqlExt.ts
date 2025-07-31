@@ -74,6 +74,7 @@ export async function launchVsCodeWithMssqlExtension(
             throw new Error("BUILT_VSIX_PATH environment variable is not set.");
         }
         console.log(`Installing extension from VSIX: ${vsixPath}`);
+        console.log("Launching VS Code", cliPath, "with args:", vscodeLaunchArgs);
         const result = cp.spawnSync(
             cliPath,
             [extensionDir, userDataArg, "--install-extension", vsixPath],
