@@ -89,6 +89,11 @@ export async function launchVsCodeWithMssqlExtension(
         if (result.error) {
             console.error("error:", result.error);
         }
+
+        const installedExtensions = cp.execSync(`${cliPath} --list-extensions`, {
+            encoding: "utf-8",
+        });
+        console.log("Installed extensions:", installedExtensions);
     } else {
         console.log("Launching with extension development path.");
         vscodeLaunchArgs.push(
