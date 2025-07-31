@@ -64,7 +64,6 @@ export async function launchVsCodeWithMssqlExtension(
         "--no-sandbox", // https://github.com/microsoft/vscode/issues/84238
         "--skip-release-notes",
         "--skip-welcome",
-        extensionDir,
         userDataArg,
     ];
 
@@ -103,6 +102,7 @@ export async function launchVsCodeWithMssqlExtension(
         ];
         const listOutput = cp.spawnSync(cliPath, listArgs, {
             encoding: "utf-8",
+            stdio: "pipe", // capture output for inspection
         });
         console.log("Installed extensions:", listOutput.stdout);
         vscodeLaunchArgs.push(
@@ -114,6 +114,7 @@ export async function launchVsCodeWithMssqlExtension(
             `--profile-temp`, // Use a temporary profile to avoid conflicts with existing profiles
             `--disable-extensions`, // Disable all extensions except the one we are testing
             `--extensionDevelopmentPath=${mssqlExtensionDevPath}`, // Path to the extension being developed
+            extensionDir,
         );
     }
 
