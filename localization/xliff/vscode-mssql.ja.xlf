@@ -3650,11 +3650,6 @@ Query: {1}</source>
         <note>{0} is the account display name</note>
         <target state="translated">{0} (現在のアカウント)</target>
       </trans-unit>
-      <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
-        <source xml:lang="en">{0} (Preview)</source>
-        <note>{0} is the database name</note>
-        <target state="translated">{0} (プレビュー)</target>
-      </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (フィルター処理済み)</target>
@@ -4270,8 +4265,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">Schema Compare (プレビュー)</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
-        <source xml:lang="en">Schema Designer (Preview)</source>
-        <target state="translated">スキーマ デザイナー (プレビュー)</target>
+        <source xml:lang="en">Schema Designer</source>
+        <target state="new">Schema Designer</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
