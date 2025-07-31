@@ -75,7 +75,7 @@ export async function launchVsCodeWithMssqlExtension(
         if (!vsixPath) {
             throw new Error("BUILT_VSIX_PATH environment variable is not set.");
         }
-
+        console.log(`Running ${cliPath} ${profileArg}`);
         const createProfile = cp.spawnSync(cliPath, [profileArg], {
             encoding: "utf-8",
             stdio: "pipe", // capture output for inspection
