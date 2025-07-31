@@ -39,7 +39,9 @@ export async function launchVsCodeWithMssqlExtension(
     const tmpRoot = path.join(os.tmpdir(), `vscode-mssql-test-${Date.now()}`);
     const userDataDir = path.join(tmpRoot, "user-data");
     const extensionsDir = path.join(tmpRoot, "extensions");
-    const nodePathDir = path.join(tmpRoot, "node_modules");
+
+    fs.mkdirSync(userDataDir, { recursive: true });
+    fs.mkdirSync(extensionsDir, { recursive: true });
 
     const launchArgs: string[] = [
         "--disable-gpu-sandbox",
@@ -48,12 +50,11 @@ export async function launchVsCodeWithMssqlExtension(
         "--skip-release-notes",
         "--skip-welcome",
         "--no-sandbox",
+        `--user-data-dir=${userDataDir}`,
+        `--extensions-dir=${extensionsDir}`,
     ];
 
     if (config.useVsix) {
-        fs.mkdirSync(userDataDir, { recursive: true });
-        fs.mkdirSync(extensionsDir, { recursive: true });
-
         const vsixPath = process.env["BUILT_VSIX_PATH"];
         if (!vsixPath) throw new Error("BUILT_VSIX_PATH environment variable is not set.");
 
@@ -81,6 +82,7 @@ export async function launchVsCodeWithMssqlExtension(
         }
     } else {
         launchArgs.push(
+            "--temp-profile",
             "--disable-extensions",
             `--extensionDevelopmentPath=${devExtensionPath}`,
             extensionDir,
@@ -88,8 +90,6 @@ export async function launchVsCodeWithMssqlExtension(
     }
 
     console.log("Launching VS Code with:", vscodePath, launchArgs);
-    // Set up a clean node_modules path (optional: symlink/copy required deps here)
-    fs.mkdirSync(nodePathDir, { recursive: true });
 
     const electronApp = await electron.launch({
         executablePath: vscodePath,
