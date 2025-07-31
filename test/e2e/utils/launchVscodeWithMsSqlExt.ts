@@ -75,8 +75,6 @@ export async function launchVsCodeWithMssqlExtension(
             },
         );
 
-        launchArgs.push(`--user-data-dir=${userDataDir}`, `--extensions-dir=${extensionsDir}`);
-
         console.log("VSIX install stdout:", result.stdout);
         console.log("VSIX install stderr:", result.stderr);
         if (result.status !== 0 || result.error) {
