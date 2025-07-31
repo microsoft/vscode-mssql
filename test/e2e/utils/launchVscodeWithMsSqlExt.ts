@@ -41,15 +41,6 @@ export async function launchVsCodeWithMssqlExtension(
     const extensionsDir = path.join(tmpRoot, "extensions");
     const nodePathDir = path.join(tmpRoot, "node_modules");
 
-    console.log("Using VS Code path:", vscodePath);
-    console.log("Using CLI path:", cliPath);
-    console.log("Using user data directory:", userDataDir);
-    console.log("Using extensions directory:", extensionsDir);
-    console.log("Using node path directory:", nodePathDir);
-
-    fs.mkdirSync(userDataDir, { recursive: true });
-    fs.mkdirSync(extensionsDir, { recursive: true });
-
     const launchArgs: string[] = [
         "--disable-gpu-sandbox",
         "--disable-updates",
@@ -60,6 +51,9 @@ export async function launchVsCodeWithMssqlExtension(
     ];
 
     if (config.useVsix) {
+        fs.mkdirSync(userDataDir, { recursive: true });
+        fs.mkdirSync(extensionsDir, { recursive: true });
+
         const vsixPath = process.env["BUILT_VSIX_PATH"];
         if (!vsixPath) throw new Error("BUILT_VSIX_PATH environment variable is not set.");
 
@@ -100,9 +94,6 @@ export async function launchVsCodeWithMssqlExtension(
     const electronApp = await electron.launch({
         executablePath: vscodePath,
         args: launchArgs,
-        env: {
-            NODE_PATH: nodePathDir,
-        },
     });
 
     const page = await electronApp.firstWindow({ timeout: 10_000 });
