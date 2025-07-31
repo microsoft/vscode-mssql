@@ -68,6 +68,7 @@ export async function launchVsCodeWithMssqlExtension(
     ];
 
     const randomProfileName = `profile-${Math.random().toString(36).substring(2, 15)}`;
+    const profileArg = `--profile="${randomProfileName}"`;
 
     if (options.useVsix) {
         const vsixPath = process.env["BUILT_VSIX_PATH"];
@@ -75,17 +76,11 @@ export async function launchVsCodeWithMssqlExtension(
             throw new Error("BUILT_VSIX_PATH environment variable is not set.");
         }
 
-        const createProfile = cp.spawnSync(
-            cliPath,
-            [
-                "--profile",
-                randomProfileName, // Use a temporary profile to avoid conflicts with existing profiles
-            ],
-            {
-                encoding: "utf-8",
-                stdio: "pipe", // capture output for inspection
-            },
-        );
+        const createProfile = cp.spawnSync(cliPath, [profileArg], {
+            encoding: "utf-8",
+            stdio: "pipe", // capture output for inspection
+            shell: true, // Use shell to interpret the command
+        });
 
         console.log("Profile creation output:", createProfile.stdout);
         if (createProfile.error) {
@@ -93,18 +88,14 @@ export async function launchVsCodeWithMssqlExtension(
             throw createProfile.error;
         }
 
-        const installArgs = [
-            "--install-extension",
-            vsixPath,
-            "--profile",
-            randomProfileName, // Use a temporary profile to avoid conflicts with existing profiles
-        ];
+        const installArgs = ["--install-extension", vsixPath, profileArg];
 
         console.log("Installing extension: ", cliPath, "with args:", installArgs);
 
         const extensionInstallationOutput = cp.spawnSync(cliPath, installArgs, {
             encoding: "utf-8",
             stdio: "pipe", // capture output for inspection
+            shell: true, // Use shell to interpret the command
         });
 
         console.log("stdout:", extensionInstallationOutput.stdout);
@@ -116,16 +107,16 @@ export async function launchVsCodeWithMssqlExtension(
 
         const listArgs = [
             "--list-extensions",
-            "--profile",
-            randomProfileName, // Use the same temporary profile to list installed extensions
+            profileArg, // Use the same temporary profile to list installed extensions
         ];
         const listOutput = cp.spawnSync(cliPath, listArgs, {
             encoding: "utf-8",
             stdio: "pipe", // capture output for inspection
+            shell: true, // Use shell to interpret the command
         });
         console.log("Installed extensions:", listOutput.stdout);
         vscodeLaunchArgs.push(
-            `--profile=${randomProfileName}`, // Use the temporary profile with the installed extension
+            profileArg, // Use the temporary profile with the installed extension
         );
     } else {
         console.log("Launching with extension development path.");
