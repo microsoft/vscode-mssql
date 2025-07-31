@@ -19,13 +19,71 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
-import { useContext } from "react";
+import { useContext, useRef, useEffect, useState } from "react";
+import React from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
 import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
+
+// Custom hook to detect text overflow
+const useTextOverflow = (text: string) => {
+    const [isOverflowing, setIsOverflowing] = useState(false);
+    const textRef = useRef<HTMLElement>(null);
+
+    useEffect(() => {
+        const checkOverflow = () => {
+            if (textRef.current) {
+                const isTextOverflowing = textRef.current.scrollWidth > textRef.current.clientWidth;
+                setIsOverflowing(isTextOverflowing);
+            }
+        };
+
+        // Use requestAnimationFrame to ensure the element is fully rendered
+        const timeoutId = setTimeout(checkOverflow, 0);
+        
+        // Check overflow on window resize
+        window.addEventListener('resize', checkOverflow);
+        
+        return () => {
+            clearTimeout(timeoutId);
+            window.removeEventListener('resize', checkOverflow);
+        };
+    }, [text]); // Re-run when text changes
+
+    return { isOverflowing, textRef };
+};
+
+// ConditionalTooltip component that only shows tooltip when text overflows
+const ConditionalTooltip = ({ 
+    content, 
+    children, 
+    ...props 
+}: { 
+    content: string; 
+    children: React.ReactElement;
+    [key: string]: any;
+}) => {
+    const { isOverflowing, textRef } = useTextOverflow(content);
+
+    // Clone the child element and add the ref
+    const childWithRef = React.cloneElement(children, {
+        ref: textRef,
+        ...children.props
+    });
+
+    if (isOverflowing) {
+        return (
+            <Tooltip content={content} {...props}>
+                {childWithRef}
+            </Tooltip>
+        );
+    }
+
+    return childWithRef;
+};
 
 // Styles for the table node components
 const useStyles = makeStyles({
@@ -225,7 +283,7 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
         <div className={styles.tableHeader}>
             <div className={styles.tableHeaderRow}>
                 <FluentIcons.TableRegular className={styles.tableIcon} />
-                <Tooltip content={`${table.schema}.${table.name}`} relationship="label">
+                <ConditionalTooltip content={`${table.schema}.${table.name}`} relationship="label">
                     <Text
                         className={
                             context.isExporting ? styles.tableTitleExporting : styles.tableTitle
@@ -234,7 +292,7 @@ const TableHeader = ({ table }: { table: SchemaDesigner.Table }) => {
                             ? `${table.schema}.${table.name}`
                             : highlightText(`${table.schema}.${table.name}`)}
                     </Text>
-                </Tooltip>
+                </ConditionalTooltip>
                 {!context.isExporting && <TableHeaderActions table={table} />}
             </div>
             <div className={styles.tableSubtitle}>
@@ -271,13 +329,13 @@ const TableColumn = ({
             {column.isPrimaryKey && <PrimaryKeyIcon className={styles.keyIcon} />}
             {!column.isPrimaryKey && isForeignKey && <ForeignKeyIcon className={styles.keyIcon} />}
 
-            <Tooltip content={column.name} relationship="label">
+            <ConditionalTooltip content={column.name} relationship="label">
                 <Text
                     className={context.isExporting ? styles.columnNameExporting : styles.columnName}
                     style={{ paddingLeft: column.isPrimaryKey || isForeignKey ? "0px" : "30px" }}>
                     {column.name}
                 </Text>
-            </Tooltip>
+            </ConditionalTooltip>
 
             <Text className={styles.columnType}>
                 {column.isComputed ? "COMPUTED" : column.dataType?.toUpperCase()}
