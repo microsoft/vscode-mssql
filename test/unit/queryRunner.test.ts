@@ -1215,7 +1215,6 @@ suite("Query Runner tests", () => {
                 textIdentifier: '"',
                 lineSeperator: "\n",
             };
-            setupWorkspaceConfig(configResult);
 
             let queryRunner = new QueryRunner(
                 testuri,
