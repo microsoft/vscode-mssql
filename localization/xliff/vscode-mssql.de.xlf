@@ -2772,9 +2772,9 @@ Abfrage: {1}</target>
         <source xml:lang="en">Schema</source>
         <target state="translated">Schema</target>
       </trans-unit>
-      <trans-unit id="++CODE++becc525b09db5d2c09fe7aa2203290938cd5cb1438f065f216e73957338265e2">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">Schemavergleich (Vorschau)</target>
+      <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
+        <source xml:lang="en">Schema Compare</source>
+        <target state="new">Schema Compare</target>
       </trans-unit>
       <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
         <source xml:lang="en">Schema Compare Options</source>
@@ -4261,8 +4261,8 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <target state="translated">Ausführen einer SQL-Abfrage</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">Schemavergleich (Vorschau)</target>
+        <source xml:lang="en">Schema Compare</source>
+        <target state="new">Schema Compare</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
         <source xml:lang="en">Schema Designer</source>
