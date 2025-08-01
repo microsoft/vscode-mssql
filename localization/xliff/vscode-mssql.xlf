@@ -548,6 +548,9 @@
     <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
       <source xml:lang="en">Configure Linux containers</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b5a87aab0b35066c5d44a28ffb8f99178615e8492900858280a511388314d4f">
+      <source xml:lang="en">Configure Rosetta Virtualization</source>
+    </trans-unit>
     <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
       <source xml:lang="en">Configure and customize SQL Server containers</source>
     </trans-unit>

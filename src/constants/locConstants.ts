@@ -920,6 +920,7 @@ export class ContainerDeployment {
         });
     };
     public static configureLinuxContainers = l10n.t("Configure Linux containers");
+    public static configureRosetta = l10n.t("Configure Rosetta Virtualization");
     public static switchToLinuxContainersConfirmation = l10n.t(
         "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
     );
