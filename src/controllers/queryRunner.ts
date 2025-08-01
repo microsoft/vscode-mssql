@@ -569,7 +569,6 @@ export default class QueryRunner {
         };
 
         let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
-        let insertStatements: string[] = [];
 
         // Use provided table name or default to 'your_table_name'
         const tableNameForInsert = tableName || "your_table_name";
@@ -606,16 +605,34 @@ export default class QueryRunner {
         }
         await p;
 
-        // Generate INSERT statements for each row
+        // Generate single INSERT statement with multiple VALUES clauses
         let sortedRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
+        let selectedColumns: string[] = [];
+        let allValuesClauses: string[] = [];
 
+        // Build column list from first row
+        let firstRowId = sortedRowIds[0];
+        if (firstRowId !== undefined) {
+            let firstSelections = rowIdToSelectionMap.get(firstRowId);
+            if (firstSelections) {
+                for (let selection of firstSelections) {
+                    for (
+                        let colIndex = selection.fromCell;
+                        colIndex <= selection.toCell;
+                        colIndex++
+                    ) {
+                        selectedColumns.push(`[${columnHeaders[colIndex - firstCol]}]`);
+                    }
+                }
+            }
+        }
+
+        // Generate VALUES clauses for each row
         for (let rowId of sortedRowIds) {
             let row = rowIdToRowMap.get(rowId);
             let selections = rowIdToSelectionMap.get(rowId);
 
             if (row && selections) {
-                // Build column list
-                let selectedColumns: string[] = [];
                 let selectedValues: string[] = [];
 
                 for (let selection of selections) {
@@ -624,20 +641,22 @@ export default class QueryRunner {
                         colIndex <= selection.toCell;
                         colIndex++
                     ) {
-                        selectedColumns.push(`[${columnHeaders[colIndex - firstCol]}]`);
                         let cellValue = row[colIndex];
                         let formattedValue = this.formatCellValue(cellValue);
                         selectedValues.push(formattedValue);
                     }
                 }
 
-                // Create INSERT statement
-                let insertStatement = `INSERT INTO [${tableNameForInsert}] (${selectedColumns.join(", ")}) VALUES (${selectedValues.join(", ")});`;
-                insertStatements.push(insertStatement);
+                // Create VALUES clause for this row
+                allValuesClauses.push(`(${selectedValues.join(", ")})`);
             }
         }
 
-        let copyString = insertStatements.join(os.EOL);
+        // Create single INSERT statement with all VALUES clauses
+        let copyString = "";
+        if (allValuesClauses.length > 0) {
+            copyString = `INSERT INTO [${tableNameForInsert}] (${selectedColumns.join(", ")}) VALUES ${allValuesClauses.join(", " + os.EOL + "  ")};`;
+        }
         await this.writeStringToClipboard(copyString);
     }
 
@@ -720,19 +739,23 @@ export default class QueryRunner {
 
             if (row && selections) {
                 let columnIndices: number[] = [];
-                
+
                 // Collect all column indices from selections
                 for (let selection of selections) {
-                    for (let colIndex = selection.fromCell; colIndex <= selection.toCell; colIndex++) {
+                    for (
+                        let colIndex = selection.fromCell;
+                        colIndex <= selection.toCell;
+                        colIndex++
+                    ) {
                         if (!columnIndices.includes(colIndex)) {
                             columnIndices.push(colIndex);
                         }
                     }
                 }
-                
+
                 // Sort column indices
                 columnIndices.sort((a, b) => a - b);
-                
+
                 if (columnIndices.length === 0) continue;
 
                 // Use first column for WHERE clause (typically primary key)
@@ -839,13 +862,17 @@ export default class QueryRunner {
 
             if (row && selections) {
                 let whereClauses: string[] = [];
-                
+
                 // Use all selected columns in WHERE clause for precise identification
                 for (let selection of selections) {
-                    for (let colIndex = selection.fromCell; colIndex <= selection.toCell; colIndex++) {
+                    for (
+                        let colIndex = selection.fromCell;
+                        colIndex <= selection.toCell;
+                        colIndex++
+                    ) {
                         let columnName = columnHeaders[colIndex - firstCol];
                         let formattedValue = this.formatCellValue(row[colIndex]);
-                        
+
                         if (formattedValue === "NULL") {
                             whereClauses.push(`[${columnName}] IS NULL`);
                         } else {
@@ -872,11 +899,7 @@ export default class QueryRunner {
      * @returns Formatted SQL value string
      */
     private formatCellValue(cellValue: DbCellValue): string {
-        if (
-            cellValue === null ||
-            cellValue === undefined ||
-            cellValue.displayValue === "NULL"
-        ) {
+        if (cellValue === null || cellValue === undefined || cellValue.displayValue === "NULL") {
             return "NULL";
         } else {
             // Escape single quotes and wrap string values in quotes
