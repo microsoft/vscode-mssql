@@ -411,7 +411,7 @@ export const QueryResultPane = () => {
                 if (item.link?.text && item.selection) {
                     return (
                         <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
-                            <div style={{ whiteSpace: "nowrap" }}>
+                            <div style={{ whiteSpace: "pre" }}>
                                 {item.message}{" "}
                                 <Link
                                     className={classes.messagesLink}
@@ -435,7 +435,7 @@ export const QueryResultPane = () => {
                         <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
                             <div
                                 style={{
-                                    whiteSpace: "nowrap",
+                                    whiteSpace: "pre",
                                     color: item.isError
                                         ? "var(--vscode-errorForeground)"
                                         : undefined,
