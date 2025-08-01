@@ -5,6 +5,8 @@
 
 import {
     CopyAsInsertRequest,
+    CopyAsUpdateRequest,
+    CopyAsDeleteRequest,
     CopyHeadersRequest,
     CopySelectionRequest,
     CopyWithHeadersRequest,
@@ -67,6 +69,8 @@ export class ContextMenu<T extends Slick.SlickData> {
                 `<li data-action="copy-with-headers" class="contextMenu">${locConstants.queryResult.copyWithHeaders}</li>` +
                 `<li data-action="copy-headers" class="contextMenu">${locConstants.queryResult.copyHeaders}</li>` +
                 `<li data-action="copy-as-insert" class="contextMenu">${locConstants.queryResult.copyAsInsert}</li>` +
+                `<li data-action="copy-as-update" class="contextMenu">${locConstants.queryResult.copyAsUpdate}</li>` +
+                `<li data-action="copy-as-delete" class="contextMenu">${locConstants.queryResult.copyAsDelete}</li>` +
                 `</ul>`,
         );
         // Remove any existing context menus to avoid duplication
@@ -196,6 +200,24 @@ export class ContextMenu<T extends Slick.SlickData> {
             case "copy-as-insert":
                 this.queryResultContext.log("Copy as INSERT INTO action triggered");
                 await this.webViewState.extensionRpc.sendRequest(CopyAsInsertRequest.type, {
+                    uri: this.uri,
+                    batchId: this.resultSetSummary.batchId,
+                    resultId: this.resultSetSummary.id,
+                    selection: selection,
+                });
+                break;
+            case "copy-as-update":
+                this.queryResultContext.log("Copy as UPDATE action triggered");
+                await this.webViewState.extensionRpc.sendRequest(CopyAsUpdateRequest.type, {
+                    uri: this.uri,
+                    batchId: this.resultSetSummary.batchId,
+                    resultId: this.resultSetSummary.id,
+                    selection: selection,
+                });
+                break;
+            case "copy-as-delete":
+                this.queryResultContext.log("Copy as DELETE action triggered");
+                await this.webViewState.extensionRpc.sendRequest(CopyAsDeleteRequest.type, {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,

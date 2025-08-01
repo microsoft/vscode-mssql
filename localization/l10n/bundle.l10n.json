@@ -363,6 +363,8 @@
   "Copy with Headers": "Copy with Headers",
   "Copy Headers": "Copy Headers",
   "Copy as INSERT INTO": "Copy as INSERT INTO",
+  "Copy as UPDATE": "Copy as UPDATE",
+  "Copy as DELETE": "Copy as DELETE",
   "NULL": "NULL",
   "Blanks": "Blanks",
   "Search...": "Search...",

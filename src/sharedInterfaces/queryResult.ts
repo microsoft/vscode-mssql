@@ -292,6 +292,28 @@ export namespace CopyAsInsertRequest {
     export const type = new RequestType<CopyAsInsertParams, void, void>("copyAsInsert");
 }
 
+export interface CopyAsUpdateParams {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+    tableName?: string;
+}
+export namespace CopyAsUpdateRequest {
+    export const type = new RequestType<CopyAsUpdateParams, void, void>("copyAsUpdate");
+}
+
+export interface CopyAsDeleteParams {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+    tableName?: string;
+}
+export namespace CopyAsDeleteRequest {
+    export const type = new RequestType<CopyAsDeleteParams, void, void>("copyAsDelete");
+}
+
 export interface SetSelectionSummary {
     summary: SelectionSummaryStats;
 }

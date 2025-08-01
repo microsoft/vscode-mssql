@@ -625,30 +625,8 @@ export default class QueryRunner {
                         colIndex++
                     ) {
                         selectedColumns.push(`[${columnHeaders[colIndex - firstCol]}]`);
-
                         let cellValue = row[colIndex];
-                        let formattedValue: string;
-
-                        if (
-                            cellValue === null ||
-                            cellValue === undefined ||
-                            cellValue.displayValue === "NULL"
-                        ) {
-                            formattedValue = "NULL";
-                        } else {
-                            // Escape single quotes and wrap string values in quotes
-                            let displayValue = cellValue.displayValue || "";
-                            let displayValueStr = String(displayValue);
-
-                            // Check if it's a numeric value by trying to parse
-                            if (!isNaN(Number(displayValueStr)) && displayValueStr.trim() !== "") {
-                                formattedValue = displayValueStr;
-                            } else {
-                                // Escape single quotes and wrap in quotes
-                                formattedValue = `'${displayValueStr.replace(/'/g, "''")}'`;
-                            }
-                        }
-
+                        let formattedValue = this.formatCellValue(cellValue);
                         selectedValues.push(formattedValue);
                     }
                 }
@@ -661,6 +639,258 @@ export default class QueryRunner {
 
         let copyString = insertStatements.join(os.EOL);
         await this.writeStringToClipboard(copyString);
+    }
+
+    /**
+     * Copy the result range to the system clip-board as UPDATE statements
+     * @param selection The selection range array to copy
+     * @param batchId The id of the batch to copy from
+     * @param resultId The id of the result to copy from
+     * @param tableName Optional table name for UPDATE statements
+     */
+    public async copyAsUpdate(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+        tableName?: string,
+    ): Promise<void> {
+        // Get column information for the UPDATE statement
+        let firstCol: number;
+        let lastCol: number;
+        for (let range of selection) {
+            if (firstCol === undefined || range.fromCell < firstCol) {
+                firstCol = range.fromCell;
+            }
+            if (lastCol === undefined || range.toCell > lastCol) {
+                lastCol = range.toCell;
+            }
+        }
+
+        let columnRange: ISlickRange = {
+            fromCell: firstCol,
+            toCell: lastCol,
+            fromRow: undefined,
+            toRow: undefined,
+        };
+
+        let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
+        let updateStatements: string[] = [];
+
+        // Use provided table name or default to 'your_table_name'
+        const tableNameForUpdate = tableName || "your_table_name";
+
+        // Sort the selections by row to maintain order
+        selection.sort((a, b) => a.fromRow - b.fromRow);
+
+        // Create a mapping of rows to selections
+        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        let rowIdToRowMap = new Map<number, DbCellValue[]>();
+
+        // Create a mapping of the ranges to get promises
+        let tasks = selection.map((range) => {
+            return async () => {
+                const result = await this.getRows(
+                    range.fromRow,
+                    range.toRow - range.fromRow + 1,
+                    batchId,
+                    resultId,
+                );
+                this.getRowMappings(
+                    result.resultSubset.rows,
+                    range,
+                    rowIdToSelectionMap,
+                    rowIdToRowMap,
+                );
+            };
+        });
+
+        // Get all the rows
+        let p = tasks[0]();
+        for (let i = 1; i < tasks.length; i++) {
+            p = p.then(tasks[i]);
+        }
+        await p;
+
+        // Generate UPDATE statements for each row
+        let sortedRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
+
+        for (let rowId of sortedRowIds) {
+            let row = rowIdToRowMap.get(rowId);
+            let selections = rowIdToSelectionMap.get(rowId);
+
+            if (row && selections) {
+                let columnIndices: number[] = [];
+                
+                // Collect all column indices from selections
+                for (let selection of selections) {
+                    for (let colIndex = selection.fromCell; colIndex <= selection.toCell; colIndex++) {
+                        if (!columnIndices.includes(colIndex)) {
+                            columnIndices.push(colIndex);
+                        }
+                    }
+                }
+                
+                // Sort column indices
+                columnIndices.sort((a, b) => a - b);
+                
+                if (columnIndices.length === 0) continue;
+
+                // Use first column for WHERE clause (typically primary key)
+                let whereColumn = columnHeaders[columnIndices[0] - firstCol];
+                let whereValue = this.formatCellValue(row[columnIndices[0]]);
+
+                // Use remaining columns for SET clause
+                let setClauses: string[] = [];
+                for (let i = 1; i < columnIndices.length; i++) {
+                    let colIndex = columnIndices[i];
+                    let columnName = columnHeaders[colIndex - firstCol];
+                    let formattedValue = this.formatCellValue(row[colIndex]);
+                    setClauses.push(`[${columnName}] = ${formattedValue}`);
+                }
+
+                // Only create UPDATE statement if there are columns to update
+                if (setClauses.length > 0) {
+                    let updateStatement = `UPDATE [${tableNameForUpdate}] SET ${setClauses.join(", ")} WHERE [${whereColumn}] = ${whereValue};`;
+                    updateStatements.push(updateStatement);
+                }
+            }
+        }
+
+        let copyString = updateStatements.join(os.EOL);
+        await this.writeStringToClipboard(copyString);
+    }
+
+    /**
+     * Copy the result range to the system clip-board as DELETE statements
+     * @param selection The selection range array to copy
+     * @param batchId The id of the batch to copy from
+     * @param resultId The id of the result to copy from
+     * @param tableName Optional table name for DELETE statements
+     */
+    public async copyAsDelete(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+        tableName?: string,
+    ): Promise<void> {
+        // Get column information for the DELETE statement
+        let firstCol: number;
+        let lastCol: number;
+        for (let range of selection) {
+            if (firstCol === undefined || range.fromCell < firstCol) {
+                firstCol = range.fromCell;
+            }
+            if (lastCol === undefined || range.toCell > lastCol) {
+                lastCol = range.toCell;
+            }
+        }
+
+        let columnRange: ISlickRange = {
+            fromCell: firstCol,
+            toCell: lastCol,
+            fromRow: undefined,
+            toRow: undefined,
+        };
+
+        let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
+        let deleteStatements: string[] = [];
+
+        // Use provided table name or default to 'your_table_name'
+        const tableNameForDelete = tableName || "your_table_name";
+
+        // Sort the selections by row to maintain order
+        selection.sort((a, b) => a.fromRow - b.fromRow);
+
+        // Create a mapping of rows to selections
+        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        let rowIdToRowMap = new Map<number, DbCellValue[]>();
+
+        // Create a mapping of the ranges to get promises
+        let tasks = selection.map((range) => {
+            return async () => {
+                const result = await this.getRows(
+                    range.fromRow,
+                    range.toRow - range.fromRow + 1,
+                    batchId,
+                    resultId,
+                );
+                this.getRowMappings(
+                    result.resultSubset.rows,
+                    range,
+                    rowIdToSelectionMap,
+                    rowIdToRowMap,
+                );
+            };
+        });
+
+        // Get all the rows
+        let p = tasks[0]();
+        for (let i = 1; i < tasks.length; i++) {
+            p = p.then(tasks[i]);
+        }
+        await p;
+
+        // Generate DELETE statements for each row
+        let sortedRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
+
+        for (let rowId of sortedRowIds) {
+            let row = rowIdToRowMap.get(rowId);
+            let selections = rowIdToSelectionMap.get(rowId);
+
+            if (row && selections) {
+                let whereClauses: string[] = [];
+                
+                // Use all selected columns in WHERE clause for precise identification
+                for (let selection of selections) {
+                    for (let colIndex = selection.fromCell; colIndex <= selection.toCell; colIndex++) {
+                        let columnName = columnHeaders[colIndex - firstCol];
+                        let formattedValue = this.formatCellValue(row[colIndex]);
+                        
+                        if (formattedValue === "NULL") {
+                            whereClauses.push(`[${columnName}] IS NULL`);
+                        } else {
+                            whereClauses.push(`[${columnName}] = ${formattedValue}`);
+                        }
+                    }
+                }
+
+                // Create DELETE statement
+                if (whereClauses.length > 0) {
+                    let deleteStatement = `DELETE FROM [${tableNameForDelete}] WHERE ${whereClauses.join(" AND ")};`;
+                    deleteStatements.push(deleteStatement);
+                }
+            }
+        }
+
+        let copyString = deleteStatements.join(os.EOL);
+        await this.writeStringToClipboard(copyString);
+    }
+
+    /**
+     * Helper method to format cell values for SQL statements
+     * @param cellValue The cell value to format
+     * @returns Formatted SQL value string
+     */
+    private formatCellValue(cellValue: DbCellValue): string {
+        if (
+            cellValue === null ||
+            cellValue === undefined ||
+            cellValue.displayValue === "NULL"
+        ) {
+            return "NULL";
+        } else {
+            // Escape single quotes and wrap string values in quotes
+            let displayValue = cellValue.displayValue || "";
+            let displayValueStr = String(displayValue);
+
+            // Check if it's a numeric value by trying to parse
+            if (!isNaN(Number(displayValueStr)) && displayValueStr.trim() !== "") {
+                return displayValueStr;
+            } else {
+                // Escape single quotes and wrap in quotes
+                return `'${displayValueStr.replace(/'/g, "''")}'`;
+            }
+        }
     }
 
     /**

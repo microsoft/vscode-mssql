@@ -684,6 +684,12 @@
     <trans-unit id="++CODE++20e0663f2c175c2d6a5a11120ce06def7ecea5fd1cfb3cb837232bbd0aab34cd">
       <source xml:lang="en">Copy as INSERT INTO</source>
     </trans-unit>
+    <trans-unit id="++CODE++20e0663f2c175c2d6a5a11120ce06def7ecea5fd1cfb3cb837232bbd0aab34ce">
+      <source xml:lang="en">Copy as UPDATE</source>
+    </trans-unit>
+    <trans-unit id="++CODE++20e0663f2c175c2d6a5a11120ce06def7ecea5fd1cfb3cb837232bbd0aab34cf">
+      <source xml:lang="en">Copy as DELETE</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
       <source xml:lang="en">Copy code and open webpage</source>
     </trans-unit>
