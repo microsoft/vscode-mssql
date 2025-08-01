@@ -991,7 +991,7 @@ export class TableDesigner {
 }
 
 export class SchemaCompare {
-    public static Title = l10n.t("Schema Compare (Preview)");
+    public static Title = l10n.t("Schema Compare");
     public static Open = l10n.t("Open");
     public static Save = l10n.t("Save");
     public static defaultUserName = l10n.t("default");
