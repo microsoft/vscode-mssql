@@ -54,6 +54,8 @@ export interface SchemaDesignerContextProps
     isInitialized: boolean;
     renderOnlyVisibleTables: boolean;
     setRenderOnlyVisibleTables: (value: boolean) => void;
+    isExporting: boolean;
+    setIsExporting: (value: boolean) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -83,6 +85,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [isInitialized, setIsInitialized] = useState(false);
     const [findTableText, setFindTableText] = useState<string>("");
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
+    const [isExporting, setIsExporting] = useState<boolean>(false);
 
     useEffect(() => {
         const handleScript = () => {
@@ -484,6 +487,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 resetView,
                 renderOnlyVisibleTables,
                 setRenderOnlyVisibleTables,
+                isExporting,
+                setIsExporting,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
