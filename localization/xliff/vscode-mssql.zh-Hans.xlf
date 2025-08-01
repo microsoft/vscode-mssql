@@ -2772,9 +2772,9 @@ Query: {1}</source>
         <source xml:lang="en">Schema</source>
         <target state="translated">架构</target>
       </trans-unit>
-      <trans-unit id="++CODE++becc525b09db5d2c09fe7aa2203290938cd5cb1438f065f216e73957338265e2">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">架构比较(预览)</target>
+      <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
+        <source xml:lang="en">Schema Compare</source>
+        <target state="new">Schema Compare</target>
       </trans-unit>
       <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
         <source xml:lang="en">Schema Compare Options</source>
@@ -4261,8 +4261,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">运行 SQL 查询</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">架构比较 (预览)</target>
+        <source xml:lang="en">Schema Compare</source>
+        <target state="new">Schema Compare</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
         <source xml:lang="en">Schema Designer</source>
