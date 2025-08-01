@@ -161,6 +161,7 @@
         "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
         "lockfile": "1.0.4",
+        "monaco-editor": "^0.52.2",
         "opener": "1.4.2",
         "plist": "^3.0.6",
         "prettier": "^3.3.3",
@@ -1189,6 +1190,20 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description%",
+                    "scope": "application"
+                },
+                "mssql.defaultQueryResultsViewMode": {
+                    "type": "string",
+                    "default": "grid",
+                    "enum": [
+                        "grid",
+                        "text"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.defaultQueryResultsViewMode.grid.description%",
+                        "%mssql.defaultQueryResultsViewMode.text.description%"
+                    ],
+                    "description": "%mssql.defaultQueryResultsViewMode.description%",
                     "scope": "application"
                 },
                 "mssql.selectedAzureSubscriptions": {

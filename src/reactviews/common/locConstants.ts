@@ -384,6 +384,10 @@ export class LocConstants {
             close: l10n.t("Close"),
             maximize: l10n.t("Maximize"),
             restore: l10n.t("Restore"),
+            gridView: l10n.t("Grid View"),
+            textView: l10n.t("Text View"),
+            toggleToGridView: l10n.t("Switch to Grid View"),
+            toggleToTextView: l10n.t("Switch to Text View"),
         };
     }
 
