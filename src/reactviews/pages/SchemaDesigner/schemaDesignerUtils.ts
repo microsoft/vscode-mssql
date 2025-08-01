@@ -5,7 +5,7 @@
 
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { locConstants } from "../../common/locConstants";
-import { Connection, Edge, MarkerType, Node } from "@xyflow/react";
+import { Connection, ConnectionLineType, Edge, MarkerType, Node } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
 import { v4 as uuidv4 } from "uuid";
 
@@ -51,10 +51,10 @@ export const namingUtils = {
 export const tableUtils = {
     getAllTables: (
         schema: SchemaDesigner.Schema,
-        current: SchemaDesigner.Table,
+        current?: SchemaDesigner.Table,
     ): SchemaDesigner.Table[] => {
         return schema.tables
-            .filter((t) => t.schema !== current.schema || t.name !== current.name)
+            .filter((t) => !current || t.schema !== current.schema || t.name !== current.name)
             .sort();
     },
 
@@ -432,6 +432,13 @@ export const foreignKeyUtils = {
         visited = new Set<string>(),
     ): boolean => {
         if (!current || !target) return false;
+
+        // Allow direct self-references (table referencing itself)
+        // This handles the case where a table wants to reference itself (e.g., Employee.ManagerID → Employee.EmployeeID)
+        if (current.id === target.id && visited.size === 0) {
+            return false;
+        }
+
         if (visited.has(current.id)) return true;
 
         visited.add(current.id);
@@ -902,6 +909,10 @@ export const flowUtils = {
                             onDeleteAction: fk.onDeleteAction,
                             onUpdateAction: fk.onUpdateAction,
                         },
+                        type:
+                            table.id === referencedTable.id
+                                ? ConnectionLineType.SmoothStep
+                                : undefined,
                     });
                 });
             }
