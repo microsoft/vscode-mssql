@@ -2075,26 +2075,22 @@ export default class MainController implements vscode.Disposable {
         }
 
         const uri = this._vscodeWrapper.activeTextEditorUri;
-        this._vscodeWrapper.logToOutputChannel(
-            `[DEBUG] checkIsReadyToExecuteQuery called for URI: ${uri}`,
-        );
+        Utils.logDebug(`checkIsReadyToExecuteQuery called for ${uri}`);
 
         if (this._connectionMgr.isConnected(uri)) {
-            this._vscodeWrapper.logToOutputChannel(`[DEBUG] Already connected to URI: ${uri}`);
+            Utils.logDebug(`Connection already established in ${uri}`);
             return true;
         }
 
-        this._vscodeWrapper.logToOutputChannel(`[DEBUG] Not connected, trying default connection`);
+        Utils.logDebug(`Not connected, trying default connection`);
         // Try to connect with default connection from configuration
         const defaultConnectionResult = await this._connectionMgr.connectWithDefaultConnection(uri);
         if (defaultConnectionResult) {
-            this._vscodeWrapper.logToOutputChannel(
-                `[DEBUG] Successfully connected with default connection`,
-            );
+            Utils.logDebug(`Successfully connected with default connection`);
             return true;
         }
 
-        this._vscodeWrapper.logToOutputChannel(`[DEBUG] Default connection failed, prompting user`);
+        Utils.logDebug(`Default connection failed, prompting user`);
         // If no default connection or default connection failed, prompt user for connection
         const result = await this.onNewConnection();
 

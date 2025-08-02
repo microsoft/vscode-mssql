@@ -408,6 +408,86 @@ export function msgDisconnected(documentName: string) {
         comment: ["{0} is the document name"],
     });
 }
+
+// Default connection messages
+export function msgCheckingDefaultConnection(fileUri: string) {
+    return l10n.t({
+        message: "Checking for default connection for URI: {0}",
+        args: [fileUri],
+        comment: ["{0} is the file URI"],
+    });
+}
+export function msgDefaultConnectionNameFromConfig(defaultConnectionName: string) {
+    return l10n.t({
+        message: "Default connection name from config: {0}",
+        args: [defaultConnectionName],
+        comment: ["{0} is the default connection name"],
+    });
+}
+export let msgNoDefaultConnectionNameConfigured = l10n.t("No default connection name configured");
+export function msgFoundSavedConnections(count: number) {
+    return l10n.t({
+        message: "Found {0} saved connections.",
+        args: [count],
+        comment: ["{0} is the number of saved connections"],
+    });
+}
+export function msgCheckingProfile(profileName: string, label: string) {
+    return l10n.t({
+        message: "Checking profile: {0} / {1}",
+        args: [profileName, label],
+        comment: ["{0} is the profile name", "{1} is the label"],
+    });
+}
+export function msgFoundMatchingConnection(label: string) {
+    return l10n.t({
+        message: "Found matching connection: {0}",
+        args: [label],
+        comment: ["{0} is the connection label"],
+    });
+}
+export function msgNoMatchingConnectionFound(defaultConnectionName: string) {
+    return l10n.t({
+        message: "No matching connection found for name: {0}",
+        args: [defaultConnectionName],
+        comment: ["{0} is the default connection name"],
+    });
+}
+export function msgSearchingForDefaultConnection(fileUri: string) {
+    return l10n.t({
+        message: "Searching for default connection for file {0}",
+        args: [fileUri],
+        comment: ["{0} is the file URI"],
+    });
+}
+export let msgNoDefaultConnectionAvailable = l10n.t("No default connection available");
+export let msgAttemptingToConnectWithDefaultConnection = l10n.t(
+    "Attempting to connect with default connection",
+);
+export function msgConnectedToDefaultConnection(serverOrConnectionString: string) {
+    return l10n.t({
+        message: "Connected to default connection: {0}",
+        args: [serverOrConnectionString],
+        comment: ["{0} is the server name or connection string"],
+    });
+}
+export let msgConnectionAttemptFailed = l10n.t("Connection attempt failed");
+export function msgDefaultConnectionFailed(errorMessage: string) {
+    return l10n.t({
+        message: "Default connection failed: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+}
+export let msgUnknownErrorOccurred = l10n.t("Unknown error occurred");
+export function msgFailedToConnectWithDefaultConnection(errorMessage: string) {
+    return l10n.t({
+        message: "Failed to connect with default connection: {0}",
+        args: [errorMessage],
+        comment: ["{0} is the error message"],
+    });
+}
+
 export let macOpenSslErrorMessage = l10n.t("OpenSSL version >=1.0.1 is required to connect.");
 export let macOpenSslHelpButton = l10n.t("Help");
 export let macSierraRequiredErrorMessage = l10n.t(

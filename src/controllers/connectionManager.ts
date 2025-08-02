@@ -1066,27 +1066,29 @@ export default class ConnectionManager {
 
         // Debug logging
         this.vscodeWrapper.logToOutputChannel(
-            `[DEBUG] Checking for default connection. URI: ${fileUri}`,
+            LocalizedConstants.msgCheckingDefaultConnection(fileUri),
         );
         this.vscodeWrapper.logToOutputChannel(
-            `[DEBUG] Default connection name from config: ${defaultConnectionName}`,
+            LocalizedConstants.msgDefaultConnectionNameFromConfig(defaultConnectionName),
         );
 
         if (!defaultConnectionName) {
-            this.vscodeWrapper.logToOutputChannel(`[DEBUG] No default connection name configured`);
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgNoDefaultConnectionNameConfigured,
+            );
             return undefined;
         }
 
         // Get saved connections to find the one with the matching name
         const connectionProfileList = await this._connectionStore.getPickListItems();
         this.vscodeWrapper.logToOutputChannel(
-            `[DEBUG] Found ${connectionProfileList.length} saved connections`,
+            LocalizedConstants.msgFoundSavedConnections(connectionProfileList.length),
         );
 
         const matchingConnection = connectionProfileList.find((profile) => {
             const connectionProfile = profile.connectionCreds as IConnectionProfile;
             this.vscodeWrapper.logToOutputChannel(
-                `[DEBUG] Checking profile: ${connectionProfile.profileName} / ${profile.label}`,
+                LocalizedConstants.msgCheckingProfile(connectionProfile.profileName, profile.label),
             );
             return (
                 connectionProfile.profileName === defaultConnectionName ||
@@ -1096,11 +1098,11 @@ export default class ConnectionManager {
 
         if (matchingConnection) {
             this.vscodeWrapper.logToOutputChannel(
-                `[DEBUG] Found matching connection: ${matchingConnection.label}`,
+                LocalizedConstants.msgFoundMatchingConnection(matchingConnection.label),
             );
         } else {
             this.vscodeWrapper.logToOutputChannel(
-                `[DEBUG] No matching connection found for name: ${defaultConnectionName}`,
+                LocalizedConstants.msgNoMatchingConnectionFound(defaultConnectionName),
             );
         }
 
@@ -1112,17 +1114,19 @@ export default class ConnectionManager {
      */
     public async connectWithDefaultConnection(fileUri: string): Promise<boolean> {
         this.vscodeWrapper.logToOutputChannel(
-            `[DEBUG] connectWithDefaultConnection called for URI: ${fileUri}`,
+            LocalizedConstants.msgSearchingForDefaultConnection(fileUri),
         );
 
         const defaultConnection = await this.getDefaultConnectionFromConfig(fileUri);
         if (!defaultConnection) {
-            this.vscodeWrapper.logToOutputChannel(`[DEBUG] No default connection available`);
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgNoDefaultConnectionAvailable,
+            );
             return false;
         }
 
         this.vscodeWrapper.logToOutputChannel(
-            `[DEBUG] Attempting to connect with default connection`,
+            LocalizedConstants.msgAttemptingToConnectWithDefaultConnection,
         );
 
         try {
@@ -1134,26 +1138,33 @@ export default class ConnectionManager {
 
             if (result) {
                 this.vscodeWrapper.logToOutputChannel(
-                    `Connected to default connection: ${defaultConnection.server || "connection string"}`,
+                    LocalizedConstants.msgConnectedToDefaultConnection(
+                        defaultConnection.server || "connection string",
+                    ),
                 );
                 return true;
             }
 
-            this.vscodeWrapper.logToOutputChannel(`[DEBUG] Connection attempt failed`);
+            this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgConnectionAttemptFailed);
 
             // Show toaster notification for connection failure
             const connectionInfo = this.getConnectionInfo(fileUri);
-            const errorMessage = connectionInfo?.errorMessage || "Unknown error occurred";
-            this.vscodeWrapper.showErrorMessage(`Default connection failed: ${errorMessage}`);
+            const errorMessage =
+                connectionInfo?.errorMessage || LocalizedConstants.msgUnknownErrorOccurred;
+            this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.msgDefaultConnectionFailed(errorMessage),
+            );
 
             return false;
         } catch (error) {
             this.vscodeWrapper.logToOutputChannel(
-                `Failed to connect with default connection: ${error.message}`,
+                LocalizedConstants.msgFailedToConnectWithDefaultConnection(error.message),
             );
 
             // Show toaster notification for exception
-            this.vscodeWrapper.showErrorMessage(`Default connection failed: ${error.message}`);
+            this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.msgDefaultConnectionFailed(error.message),
+            );
 
             return false;
         }
