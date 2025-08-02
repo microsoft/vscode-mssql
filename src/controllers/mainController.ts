@@ -367,7 +367,13 @@ export default class MainController implements vscode.Disposable {
                 }
                 // create new connection
                 if (!this.connectionManager.isConnected(uri)) {
-                    await this.onNewConnection();
+                    // Try to connect with default connection from configuration
+                    const defaultConnectionResult =
+                        await this.connectionManager.connectWithDefaultConnection(uri);
+                    if (!defaultConnectionResult) {
+                        // If no default connection or default connection failed, prompt user for connection
+                        await this.onNewConnection();
+                    }
                     sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
                 }
 
@@ -2068,10 +2074,28 @@ export default class MainController implements vscode.Disposable {
             return false;
         }
 
-        if (this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+        const uri = this._vscodeWrapper.activeTextEditorUri;
+        this._vscodeWrapper.logToOutputChannel(
+            `[DEBUG] checkIsReadyToExecuteQuery called for URI: ${uri}`,
+        );
+
+        if (this._connectionMgr.isConnected(uri)) {
+            this._vscodeWrapper.logToOutputChannel(`[DEBUG] Already connected to URI: ${uri}`);
             return true;
         }
 
+        this._vscodeWrapper.logToOutputChannel(`[DEBUG] Not connected, trying default connection`);
+        // Try to connect with default connection from configuration
+        const defaultConnectionResult = await this._connectionMgr.connectWithDefaultConnection(uri);
+        if (defaultConnectionResult) {
+            this._vscodeWrapper.logToOutputChannel(
+                `[DEBUG] Successfully connected with default connection`,
+            );
+            return true;
+        }
+
+        this._vscodeWrapper.logToOutputChannel(`[DEBUG] Default connection failed, prompting user`);
+        // If no default connection or default connection failed, prompt user for connection
         const result = await this.onNewConnection();
 
         return result;

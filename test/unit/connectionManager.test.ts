@@ -401,4 +401,109 @@ suite("ConnectionManager Tests", () => {
             ).to.deep.equal(token, "New token should be cached");
         });
     });
+
+    suite("Default Connection Tests", () => {
+        test("getDefaultConnectionFromConfig should return undefined when no default connection configured", async () => {
+            // Setup - mock configuration to return undefined
+            const mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
+            mockConfig.setup((c) => c.get("defaultConnectionName")).returns(() => undefined);
+            mockVscodeWrapper
+                .setup((v) => v.getConfiguration("mssql", "test-uri"))
+                .returns(() => mockConfig.object);
+
+            const result = await connectionManager.getDefaultConnectionFromConfig("test-uri");
+
+            expect(result).to.be.undefined;
+        });
+
+        test("getDefaultConnectionFromConfig should return connection when matching profile name found", async () => {
+            // Setup - mock configuration and connection store
+            const mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
+            mockConfig.setup((c) => c.get("defaultConnectionName")).returns(() => "Test Profile");
+            mockVscodeWrapper
+                .setup((v) => v.getConfiguration("mssql", "test-uri"))
+                .returns(() => mockConfig.object);
+
+            const testConnectionProfile: IConnectionProfile = {
+                profileName: "Test Profile",
+                server: "test-server",
+                database: "test-db",
+                user: "test-user",
+                password: "",
+                email: undefined,
+                accountId: undefined,
+                tenantId: undefined,
+                port: 1433,
+                authenticationType: "SqlLogin",
+                azureAccountToken: undefined,
+                expiresOn: undefined,
+                encrypt: false,
+                trustServerCertificate: false,
+                hostNameInCertificate: undefined,
+                persistSecurityInfo: false,
+                secureEnclaves: undefined,
+                columnEncryptionSetting: undefined,
+                attestationProtocol: undefined,
+                enclaveAttestationUrl: undefined,
+                connectTimeout: undefined,
+                commandTimeout: undefined,
+                connectRetryCount: undefined,
+                connectRetryInterval: undefined,
+                applicationName: undefined,
+                workstationId: undefined,
+                applicationIntent: undefined,
+                currentLanguage: undefined,
+                pooling: undefined,
+                maxPoolSize: undefined,
+                minPoolSize: undefined,
+                loadBalanceTimeout: undefined,
+                replication: undefined,
+                attachDbFilename: undefined,
+                failoverPartner: undefined,
+                multiSubnetFailover: undefined,
+                multipleActiveResultSets: undefined,
+                packetSize: undefined,
+                typeSystemVersion: undefined,
+                connectionString: undefined,
+                containerName: undefined,
+                id: "test-id",
+                groupId: "test-group",
+                savePassword: false,
+                emptyPasswordInput: false,
+                azureAuthType: 0,
+                accountStore: undefined,
+                isValidProfile: () => true,
+                isAzureActiveDirectory: () => false,
+            };
+
+            const mockPickListItem = {
+                label: "Test Profile",
+                description: "test description",
+                detail: "test detail",
+                connectionCreds: testConnectionProfile,
+                quickPickItemType: 0,
+            };
+
+            mockConnectionStore
+                .setup((c) => c.getPickListItems())
+                .returns(() => Promise.resolve([mockPickListItem]));
+
+            const result = await connectionManager.getDefaultConnectionFromConfig("test-uri");
+
+            expect(result).to.equal(testConnectionProfile);
+        });
+
+        test("connectWithDefaultConnection should return false when no default connection configured", async () => {
+            // Setup - mock configuration to return undefined
+            const mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
+            mockConfig.setup((c) => c.get("defaultConnectionName")).returns(() => undefined);
+            mockVscodeWrapper
+                .setup((v) => v.getConfiguration("mssql", "test-uri"))
+                .returns(() => mockConfig.object);
+
+            const result = await connectionManager.connectWithDefaultConnection("test-uri");
+
+            expect(result).to.be.false;
+        });
+    });
 });

@@ -219,6 +219,7 @@ export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeature
 export const configEnableRichExperiences = "mssql.enableRichExperiences";
 export const configEnableRichExperiencesDoNotShowPrompt =
     "mssql.enableRichExperiencesDoNotShowPrompt";
+export const configDefaultConnectionName = "defaultConnectionName";
 export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configUseLegacyConnectionExperience = "mssql.useLegacyConnectionExperience";

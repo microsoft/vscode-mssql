@@ -1224,6 +1224,11 @@
                     "description": "%mssql.maxRecentConnections%",
                     "scope": "window"
                 },
+                "mssql.defaultConnectionName": {
+                    "type": "string",
+                    "description": "Name of the default connection profile to use when executing queries without an active connection. This should match the name of a saved connection profile.",
+                    "scope": "resource"
+                },
                 "mssql.connectionGroups": {
                     "type": "array",
                     "description": "%mssql.connectionGroups%",
