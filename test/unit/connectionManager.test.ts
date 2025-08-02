@@ -403,6 +403,22 @@ suite("ConnectionManager Tests", () => {
     });
 
     suite("Default Connection Tests", () => {
+        setup(() => {
+            connectionManager = new ConnectionManager(
+                mockContext.object,
+                mockStatusView.object,
+                undefined, // prompter
+                true, // isRichExperiencesEnabled
+                mockLogger.object,
+                mockServiceClient.object,
+                mockVscodeWrapper.object,
+                mockConnectionStore.object,
+                mockCredentialStore.object,
+                undefined, // connectionUI
+                undefined, // accountStore
+            );
+        });
+
         test("getDefaultConnectionFromConfig should return undefined when no default connection configured", async () => {
             // Setup - mock configuration to return undefined
             const mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
