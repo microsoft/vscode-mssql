@@ -424,10 +424,10 @@ suite("ConnectionManager Tests", () => {
             const mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
             mockConfig.setup((c) => c.get("defaultConnectionName")).returns(() => undefined);
             mockVscodeWrapper
-                .setup((v) => v.getConfiguration("mssql", "test-uri"))
+                .setup((v) => v.getConfiguration("mssql", "test.sql"))
                 .returns(() => mockConfig.object);
 
-            const result = await connectionManager.getDefaultConnectionFromConfig("test-uri");
+            const result = await connectionManager.getDefaultConnectionFromConfig("test.sql");
 
             expect(result).to.be.undefined;
         });
@@ -437,7 +437,7 @@ suite("ConnectionManager Tests", () => {
             const mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
             mockConfig.setup((c) => c.get("defaultConnectionName")).returns(() => "Test Profile");
             mockVscodeWrapper
-                .setup((v) => v.getConfiguration("mssql", "test-uri"))
+                .setup((v) => v.getConfiguration("mssql", "test.sql"))
                 .returns(() => mockConfig.object);
 
             const testConnectionProfile: IConnectionProfile = {
@@ -504,7 +504,7 @@ suite("ConnectionManager Tests", () => {
                 .setup((c) => c.getPickListItems())
                 .returns(() => Promise.resolve([mockPickListItem]));
 
-            const result = await connectionManager.getDefaultConnectionFromConfig("test-uri");
+            const result = await connectionManager.getDefaultConnectionFromConfig("test.sql");
 
             expect(result).to.equal(testConnectionProfile);
         });
@@ -514,10 +514,10 @@ suite("ConnectionManager Tests", () => {
             const mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
             mockConfig.setup((c) => c.get("defaultConnectionName")).returns(() => undefined);
             mockVscodeWrapper
-                .setup((v) => v.getConfiguration("mssql", "test-uri"))
+                .setup((v) => v.getConfiguration("mssql", "test.sql"))
                 .returns(() => mockConfig.object);
 
-            const result = await connectionManager.connectWithDefaultConnection("test-uri");
+            const result = await connectionManager.connectWithDefaultConnection("test.sql");
 
             expect(result).to.be.false;
         });
