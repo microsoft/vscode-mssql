@@ -195,6 +195,9 @@
     <trans-unit id="++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7">
       <source xml:lang="en">Are you sure?</source>
     </trans-unit>
+    <trans-unit id="++CODE++d9d5b45d8b6ee37678794f0002aa623ac7066290dabc974f7cf0318d398dce08">
+      <source xml:lang="en">Attempting to connect with default connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
       <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
     </trans-unit>
@@ -387,6 +390,10 @@
     <trans-unit id="++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0">
       <source xml:lang="en">Checking Docker Engine Configuration</source>
     </trans-unit>
+    <trans-unit id="++CODE++badc3c0fdbfad5674d3b3a6510e47036048fc5001e749b63f273272a16577468">
+      <source xml:lang="en">Checking for default connection for URI: {0}</source>
+      <note>{0} is the file URI</note>
+    </trans-unit>
     <trans-unit id="++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4">
       <source xml:lang="en">Checking if Docker is installed</source>
     </trans-unit>
@@ -404,6 +411,11 @@
     </trans-unit>
     <trans-unit id="++CODE++38ccc9db5b300e54116d6f6e8b8ee1420fea7792e8483c7368fdd964b6ecef0a">
       <source xml:lang="en">Checking pre-requisites</source>
+    </trans-unit>
+    <trans-unit id="++CODE++394e5128fb6f6e753e75c7df5237e414270ff2e07f4671621b485d0b705f194f">
+      <source xml:lang="en">Checking profile: {0} / {1}</source>
+      <note>{0} is the profile name
+{1} is the label</note>
     </trans-unit>
     <trans-unit id="++CODE++de88f00e461bb1cd413f9c556b06e1b903006bb3c0123f2e75fdff92532034af">
       <source xml:lang="en">Choose An Action</source>
@@ -586,6 +598,10 @@
       <source xml:lang="en">Connect using profile {0}?</source>
       <note>{0} is the profile ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++018a87fe55a4f4c0188ef37f529a2e81a7c14223612abe5154f13031ae22d8b2">
+      <source xml:lang="en">Connected to default connection: {0}</source>
+      <note>{0} is the server name or connection string</note>
+    </trans-unit>
     <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
       <source xml:lang="en">Connected to server &quot;{0}&quot; on document &quot;{1}&quot;. Server information: {2}</source>
       <note>{0} is the server name
@@ -642,6 +658,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a2caae6025f30a0976030ae3ea92ab948f6b580d5f50272514ba36e31c8d1d09">
       <source xml:lang="en">Connection String</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a99fc2ee2e6215fdd5eb5e651fcb437a79de6b02ab12cad4de2f57c91b4be222">
+      <source xml:lang="en">Connection attempt failed</source>
     </trans-unit>
     <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
       <source xml:lang="en">Connection error</source>
@@ -783,6 +802,14 @@
     </trans-unit>
     <trans-unit id="++CODE++647cc4253428b25fe686fa8d5d5da5841fed53ad85395cdd43920d0226900c1d">
       <source xml:lang="en">Default Value</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e06da654218ff071701262583d3e9236d0fd49dfb52343c2a2b31ce92eceb7fc">
+      <source xml:lang="en">Default connection failed: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++6dab915cd8d4eb0360d224d1092fc3739f6af40abf73b1fff4689f5c868a2c95">
+      <source xml:lang="en">Default connection name from config: {0}</source>
+      <note>{0} is the default connection name</note>
     </trans-unit>
     <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
       <source xml:lang="en">Definition</source>
@@ -1069,6 +1096,10 @@
     <trans-unit id="++CODE++d6ca257a745c3035dfd24b1cf8bddd511b93f0c4ae8036dc0d88ece8501d4d13">
       <source xml:lang="en">Failed to connect to server.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c26d95fde5312a12ff8eaedfa30665bfc30fbba359e10593dc8dc195530bca31">
+      <source xml:lang="en">Failed to connect with default connection: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++1bad386b21fcdca2a014d1f185f32ca31c641b4b0218b478988b8e7b373447b5">
       <source xml:lang="en">Failed to connect: {0}</source>
       <note>{0} is the error message</note>
@@ -1215,6 +1246,10 @@
     <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
       <source xml:lang="en">Formula</source>
     </trans-unit>
+    <trans-unit id="++CODE++cd436ba3f6d4706333d29b38a3988d51b26cf39c0de332ee4fb5d62b4eacf482">
+      <source xml:lang="en">Found matching connection: {0}</source>
+      <note>{0} is the connection label</note>
+    </trans-unit>
     <trans-unit id="++CODE++936af734b4badd8602cb27237f8dea0fd3950e12b5bab278565babc15e854136">
       <source xml:lang="en">Found pending reconnect promise for uri {0}, failed.</source>
       <note>{0} is the uri</note>
@@ -1222,6 +1257,10 @@
     <trans-unit id="++CODE++463124bedefc986e5dc0c3e34607c881ba0337297037552decc1df70945e57e8">
       <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
       <note>{0} is the uri</note>
+    </trans-unit>
+    <trans-unit id="++CODE++daebd1d94c1fd61998197407369daabe48d90d1803952e76184a3d3e964facc6">
+      <source xml:lang="en">Found {0} saved connections.</source>
+      <note>{0} is the number of saved connections</note>
     </trans-unit>
     <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
       <source xml:lang="en">General</source>
@@ -1658,8 +1697,18 @@
     <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
       <source xml:lang="en">No connection was found. Please connect to a server first.</source>
     </trans-unit>
+    <trans-unit id="++CODE++56494858bbfceec1687cd287d297cc44850086570df02cd04bfcf9702bf464c9">
+      <source xml:lang="en">No default connection available</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f6c786efa847a72e43d175ef8b02c57052707bc87c75f3806b897c0ce53ef38f">
+      <source xml:lang="en">No default connection name configured</source>
+    </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b122506fe646724b732c5ea5def358ba13fa658e6b04cdd4942857a565b63a8a">
+      <source xml:lang="en">No matching connection found for name: {0}</source>
+      <note>{0} is the default connection name</note>
     </trans-unit>
     <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
       <source xml:lang="en">No model found.</source>
@@ -2157,6 +2206,10 @@
     <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
       <source xml:lang="en">Search...</source>
     </trans-unit>
+    <trans-unit id="++CODE++2b7b36ccbbc006822275e4c70269ed7083617feb685318cad1a0def3dc555f65">
+      <source xml:lang="en">Searching for default connection for file {0}</source>
+      <note>{0} is the file URI</note>
+    </trans-unit>
     <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
       <source xml:lang="en">Select</source>
     </trans-unit>
@@ -2601,6 +2654,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
       <source xml:lang="en">Undo</source>
+    </trans-unit>
+    <trans-unit id="++CODE++43c4deec555b4c7e98436193901102c98a73bc09e3a8a8c5bd945d95851cd8a0">
+      <source xml:lang="en">Unknown error occurred</source>
     </trans-unit>
     <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
       <source xml:lang="en">Unsupported architecture for Docker: {0}</source>

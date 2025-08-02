@@ -1003,6 +1003,72 @@
       "{0} is the document name"
     ]
   },
+  "Checking for default connection for URI: {0}/{0} is the file URI": {
+    "message": "Checking for default connection for URI: {0}",
+    "comment": [
+      "{0} is the file URI"
+    ]
+  },
+  "Default connection name from config: {0}/{0} is the default connection name": {
+    "message": "Default connection name from config: {0}",
+    "comment": [
+      "{0} is the default connection name"
+    ]
+  },
+  "No default connection name configured": "No default connection name configured",
+  "Found {0} saved connections./{0} is the number of saved connections": {
+    "message": "Found {0} saved connections.",
+    "comment": [
+      "{0} is the number of saved connections"
+    ]
+  },
+  "Checking profile: {0} / {1}/{0} is the profile name{1} is the label": {
+    "message": "Checking profile: {0} / {1}",
+    "comment": [
+      "{0} is the profile name",
+      "{1} is the label"
+    ]
+  },
+  "Found matching connection: {0}/{0} is the connection label": {
+    "message": "Found matching connection: {0}",
+    "comment": [
+      "{0} is the connection label"
+    ]
+  },
+  "No matching connection found for name: {0}/{0} is the default connection name": {
+    "message": "No matching connection found for name: {0}",
+    "comment": [
+      "{0} is the default connection name"
+    ]
+  },
+  "Searching for default connection for file {0}/{0} is the file URI": {
+    "message": "Searching for default connection for file {0}",
+    "comment": [
+      "{0} is the file URI"
+    ]
+  },
+  "No default connection available": "No default connection available",
+  "Attempting to connect with default connection": "Attempting to connect with default connection",
+  "Connected to default connection: {0}/{0} is the server name or connection string": {
+    "message": "Connected to default connection: {0}",
+    "comment": [
+      "{0} is the server name or connection string"
+    ]
+  },
+  "Connection attempt failed": "Connection attempt failed",
+  "Default connection failed: {0}/{0} is the error message": {
+    "message": "Default connection failed: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Unknown error occurred": "Unknown error occurred",
+  "Failed to connect with default connection: {0}/{0} is the error message": {
+    "message": "Failed to connect with default connection: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
   "OpenSSL version >=1.0.1 is required to connect.": "OpenSSL version >=1.0.1 is required to connect.",
   "Help": "Help",
   "macOS Sierra or newer is required to use this feature.": "macOS Sierra or newer is required to use this feature.",
