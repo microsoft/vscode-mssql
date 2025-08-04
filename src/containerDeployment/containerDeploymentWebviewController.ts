@@ -195,6 +195,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return state;
         });
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
+            state.formValidationLoadState = ApiStatus.Loading;
+            this.updateState(state);
             state = await this.validateDockerConnectionProfile(state, state.formState);
             if (!state.formState.containerName) {
                 state.formState.containerName = await dockerUtils.validateContainerName(
@@ -207,6 +209,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             }
 
             state.isDockerProfileValid = state.formErrors.length === 0;
+            state.formValidationLoadState = ApiStatus.NotStarted;
+            this.updateState(state);
             return state;
         });
 
