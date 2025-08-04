@@ -50,7 +50,7 @@ import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getConnectionDisplayName } from "../models/connectionInfo";
-import { getErrorMessage, groupBy } from "../utils/utils";
+import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
 import {
     CredentialsQuickPickItemType,
@@ -1228,9 +1228,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this._azureSubscriptions = new Map(
                 (await auth.getSubscriptions(shouldUseFilter)).map((s) => [s.subscriptionId, s]),
             );
-            const tenantSubMap = groupBy<string, AzureSubscription>(
+            const tenantSubMap = Map.groupBy<string, AzureSubscription>(
                 Array.from(this._azureSubscriptions.values()),
-                "tenantId",
+                (s) => s.tenantId,
             );
 
             const subs: AzureSubscriptionInfo[] = [];

@@ -222,7 +222,6 @@ export const configEnableRichExperiencesDoNotShowPrompt =
 export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configUseLegacyConnectionExperience = "mssql.useLegacyConnectionExperience";
-export const configUseLegacyQueryResultExperience = "mssql.useLegacyQueryResultExperience";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
@@ -270,3 +269,6 @@ export enum Platform {
 export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
 export const x64 = "x64";
+export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
+export const docker = "docker";
+export const dockerDeploymentLoggerChannelName = "Docker Deployment";

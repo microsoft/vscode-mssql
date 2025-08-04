@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ElectronApplication, Page } from "@playwright/test";
-import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
+import {
+    cleanupDirectories,
+    launchVsCodeWithMssqlExtension,
+} from "./utils/launchVscodeWithMsSqlExt";
 import { addConnectionButton } from "./utils/commonSelectors";
 import { test, expect } from "./baseFixtures";
 import { screenshotOnFailure } from "./utils/screenshotOnError";
@@ -17,14 +20,20 @@ import { getWebviewByTitle } from "./utils/testHelpers";
 test.describe("MSSQL Extension - VSIX Based tests", async () => {
     let vsCodeApp: ElectronApplication;
     let vsCodePage: Page;
+    let userDir: string;
+    let extDir: string;
+    let nodePathDir: string;
 
     test.beforeEach(async () => {
         // Launch vscode with the VSIX package
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension({
-            useVsix: true,
-        });
+        const { electronApp, page, userDataDir, extensionsDir } =
+            await launchVsCodeWithMssqlExtension({
+                useVsix: true,
+            });
         vsCodeApp = electronApp;
         vsCodePage = page;
+        userDir = userDataDir;
+        extDir = extensionsDir;
     });
 
     // Test if extension activates correctly
@@ -42,9 +51,7 @@ test.describe("MSSQL Extension - VSIX Based tests", async () => {
 
     test.afterEach(async ({}, testInfo) => {
         await screenshotOnFailure(vsCodePage, testInfo);
-    });
-
-    test.afterEach(async () => {
         await vsCodeApp.close();
+        await cleanupDirectories(userDir, extDir, nodePathDir);
     });
 });

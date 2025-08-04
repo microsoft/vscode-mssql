@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { groupBy } from "./utils";
 
 export interface MssqlQuickPickItem extends vscode.QuickPickItem {
     /** Optional group label for the quick pick item */
@@ -19,7 +18,7 @@ export interface MssqlQuickPickItem extends vscode.QuickPickItem {
 export function groupQuickPickItems<TQuickPickItem extends MssqlQuickPickItem>(
     items: TQuickPickItem[],
 ): TQuickPickItem[] {
-    const grouped = groupBy<string, TQuickPickItem>(items, "group");
+    const grouped = Map.groupBy<string, TQuickPickItem>(items, (x) => x.group);
     const result: TQuickPickItem[] = [];
 
     // Ungrouped items first...

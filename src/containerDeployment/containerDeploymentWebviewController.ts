@@ -147,7 +147,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                         TelemetryViews.ContainerDeployment,
                         TelemetryActions.FinishContainerDeployment,
                         {
-                            version: state.formState.version,
+                            containerVersion: state.formState.version,
                         },
                     );
                 }

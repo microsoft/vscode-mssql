@@ -1,5 +1,19 @@
 # Change Log
 
+## Version 1.34.0
+* Release date: July 23, 2025
+* Release status: GA
+### What’s new in 1.34.0
+* Expanded GitHub Copilot Agent Mode to support running T-SQL queries, listing database objects, switching databases, and retrieving connection details
+* Fixed GitHub Copilot chat participant repeating previous prompts when switching database connections
+* Added connection group support to Local SQL Server container wizard
+* Fixed missing key icons for foreign keys and improved filter behavior to reflect table relationships in Schema Designer
+* Enhanced connection status bar with optional group-based coloring and configurable length — Thanks to @bathetrade for the configurable length contribution!
+* Added connection-sharing permissions API for other VS Code extensions that wish to use MSSQL connections
+* Added support for multiple Azure account sign-in to browsing Azure and firewall rule management dialogs
+* Fixed an issue where Always Encrypted columns protected by AKV-based master keys could not be queried
+* Fixed several accessibility issues in the connection dialog, schema designer, and schema compare features
+
 ## Version 1.33.0
 * Release date: June 18, 2025
 * Release status: GA
