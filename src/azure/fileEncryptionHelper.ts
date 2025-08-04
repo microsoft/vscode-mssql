@@ -84,10 +84,11 @@ export class FileEncryptionHelper {
         if (!this._keyBuffer || !this._ivBuffer) {
             await this.init();
         }
+        // Use Buffer objects directly for key and IV
         const cipherIv = crypto.createCipheriv(
             this._algorithm,
-            this._keyBuffer!.toString(),
-            this._ivBuffer!.toString(),
+            new Uint8Array(this._keyBuffer!),
+            new Uint8Array(this._ivBuffer!),
         );
         let cipherText = `${cipherIv.update(content, "utf8", this._binaryEncoding)}${cipherIv.final(this._binaryEncoding)}`;
         return cipherText;
@@ -99,10 +100,11 @@ export class FileEncryptionHelper {
                 await this.init();
             }
             let plaintext = content;
+            // Use Buffer objects directly for key and IV
             const decipherIv = crypto.createDecipheriv(
                 this._algorithm,
-                this._keyBuffer!.toString(),
-                this._ivBuffer!.toString(),
+                new Uint8Array(this._keyBuffer!),
+                new Uint8Array(this._ivBuffer!),
             );
             return `${decipherIv.update(plaintext, this._binaryEncoding, "utf8")}${decipherIv.final("utf8")}`;
         } catch (ex) {
