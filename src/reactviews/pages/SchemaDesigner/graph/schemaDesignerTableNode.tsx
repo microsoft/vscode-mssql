@@ -19,8 +19,7 @@ import {
 import * as FluentIcons from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import { Handle, NodeProps, Position } from "@xyflow/react";
-import { useContext, useRef, useEffect, useState } from "react";
-import React from "react";
+import { useContext, useRef, useEffect, useState, cloneElement } from "react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
@@ -43,13 +42,13 @@ const useTextOverflow = (text: string) => {
 
         // Use requestAnimationFrame to ensure the element is fully rendered
         const timeoutId = setTimeout(checkOverflow, 0);
-        
+
         // Check overflow on window resize
-        window.addEventListener('resize', checkOverflow);
-        
+        window.addEventListener("resize", checkOverflow);
+
         return () => {
             clearTimeout(timeoutId);
-            window.removeEventListener('resize', checkOverflow);
+            window.removeEventListener("resize", checkOverflow);
         };
     }, [text]); // Re-run when text changes
 
@@ -57,26 +56,26 @@ const useTextOverflow = (text: string) => {
 };
 
 // ConditionalTooltip component that only shows tooltip when text overflows
-const ConditionalTooltip = ({ 
-    content, 
-    children, 
-    ...props 
-}: { 
-    content: string; 
+const ConditionalTooltip = ({
+    content,
+    children,
+    ...props
+}: {
+    content: string;
     children: React.ReactElement;
     [key: string]: any;
 }) => {
     const { isOverflowing, textRef } = useTextOverflow(content);
 
     // Clone the child element and add the ref
-    const childWithRef = React.cloneElement(children, {
+    const childWithRef = cloneElement(children, {
         ref: textRef,
-        ...children.props
+        ...children.props,
     });
 
     if (isOverflowing) {
         return (
-            <Tooltip content={content} {...props}>
+            <Tooltip relationship={"label"} content={content} {...props}>
                 {childWithRef}
             </Tooltip>
         );
