@@ -202,7 +202,6 @@ export const ContainerInputForm: React.FC = () => {
                         <Button
                             className={classes.button}
                             type="submit"
-                            onClick={() => {}}
                             appearance="secondary"
                             disabled>
                             <div className={classes.buttonContent}>
