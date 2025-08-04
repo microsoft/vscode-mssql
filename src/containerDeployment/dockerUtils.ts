@@ -59,9 +59,10 @@ export const dockerLogger = Logger.create(
 );
 
 const dockerInstallErrorLink = "https://docs.docker.com/engine/install/";
-const windowsContainersErrorLink =
+// Exported for testing purposes
+export const windowsContainersErrorLink =
     "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
-const rosettaErrorLink =
+export const rosettaErrorLink =
     "https://docs.docker.com/desktop/settings-and-maintenance/settings/#general";
 
 /**
