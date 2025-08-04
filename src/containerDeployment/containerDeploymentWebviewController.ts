@@ -87,6 +87,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             hostname: "",
             acceptEula: false,
             groupId: groupOptions[0].value,
+            defaultDatabase: false,
         } as cd.DockerConnectionProfile;
         this.state.dockerSteps = dockerUtils.initializeDockerSteps();
         this.registerRpcHandlers();

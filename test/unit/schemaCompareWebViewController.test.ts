@@ -262,6 +262,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             groupId: "",
             savePassword: false,
             emptyPasswordInput: false,
+            defaultDatabase: false,
             azureAuthType: AzureAuthType.AuthCodeGrant,
             accountStore: undefined,
             isValidProfile: function (): boolean {

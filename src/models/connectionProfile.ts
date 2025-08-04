@@ -35,6 +35,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
     public accountStore: AccountStore;
     public declare accountId: string;
     public declare tenantId: string;
+    public declare defaultDatabase: boolean;
 
     constructor(connectionCredentials?: ConnectionCredentials) {
         super();

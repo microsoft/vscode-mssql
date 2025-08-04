@@ -183,6 +183,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 connectTimeout: 30,
                 applicationName: "vscode-mssql",
                 applicationIntent: "ReadWrite",
+                defaultDatabase: false,
             };
 
             expect(controller.state.formState).to.deep.equal(
@@ -258,6 +259,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 server: "SavedServer",
                 database: "SavedDatabase",
                 authenticationType: AuthenticationType.Integrated,
+                defaultDatabase: false,
             } as IConnectionDialogProfile;
 
             controller = new ConnectionDialogWebviewController(
@@ -288,6 +290,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 authenticationType: AuthenticationType.SqlLogin,
                 user: "testUser",
                 password: "testPassword",
+                defaultDatabase: false,
             } as IConnectionDialogProfile;
 
             controller = new ConnectionDialogWebviewController(

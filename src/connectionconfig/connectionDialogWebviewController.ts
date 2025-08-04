@@ -87,6 +87,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     public readonly initialized: Deferred<void> = new Deferred<void>();
 
+    /// <summary>
+    /// The main options for the connection dialog. The names here correspond to the properties in the connection profile.
+    /// If a name is added here, it is going to be rendered in the main options section of the connection dialog.
+    /// </summary>
     public static mainOptions: readonly (keyof IConnectionDialogProfile)[] = [
         "server",
         "trustServerCertificate",
@@ -970,6 +974,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             );
             this.state.connectionProfile = connection;
             this.state.selectedInputMode = ConnectionInputMode.Parameters;
+            // If the connection doesn't define a database name, it will be considered as using 'default' database
+            connection.defaultDatabase =
+                connection.database === "" || connection.database === undefined;
 
             if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
                 await this.handleAzureMFAEdits("accountId");
@@ -987,6 +994,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             connectTimeout: 30, // seconds
             applicationName: "vscode-mssql",
             applicationIntent: "ReadWrite",
+            defaultDatabase: false,
         } as IConnectionDialogProfile;
     }
 
@@ -1374,6 +1382,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 : connDetails.options.applicationName;
 
         toProfile.savePassword = !!toProfile.password; // Save password if it's included in the connection string
+        toProfile.defaultDatabase = connDetails.options.defaultDatabase;
 
         toProfile.profileName = fromProfile.profileName;
         toProfile.id = fromProfile.id;

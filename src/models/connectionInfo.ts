@@ -166,7 +166,12 @@ export function generateDatabaseDisplayName(
     creds: IConnectionInfo,
     includeDatabaseIcon: boolean = true,
 ): string {
-    const databaseName = creds.database || LocalizedConstants.defaultDatabaseLabel;
+    let databaseName = creds.database;
+
+    if (creds.defaultDatabase || !creds.database) {
+        databaseName = LocalizedConstants.defaultDatabaseLabel;
+    }
+
     if (includeDatabaseIcon) {
         return `$(database) ${databaseName}`;
     } else {
@@ -268,7 +273,7 @@ export function getConnectionDisplayName(connection: IConnectionInfo): string {
         if (authType === Constants.azureMfa) {
             userOrAuthType = connection.email;
         }
-        if (!database || database === "") {
+        if (!database || database === "" || connection.defaultDatabase) {
             database = LocalizedConstants.defaultDatabaseLabel;
         }
         return `${server}, ${database} (${userOrAuthType})`;
