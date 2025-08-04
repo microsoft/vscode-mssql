@@ -887,7 +887,7 @@ export class ContainerDeployment {
             comment: ["{0} is the architecture name of the machine"],
         });
     public static rosettaError = l10n.t(
-        "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
+        'Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop > Settings > General.',
     );
     public static windowsContainersError = l10n.t(
         "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
@@ -920,6 +920,7 @@ export class ContainerDeployment {
         });
     };
     public static configureLinuxContainers = l10n.t("Configure Linux containers");
+    public static configureRosetta = l10n.t("Configure Rosetta in Docker Desktop");
     public static switchToLinuxContainersConfirmation = l10n.t(
         "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
     );

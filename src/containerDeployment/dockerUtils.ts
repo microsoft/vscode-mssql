@@ -59,8 +59,11 @@ export const dockerLogger = Logger.create(
 );
 
 const dockerInstallErrorLink = "https://docs.docker.com/engine/install/";
-const windowsContainersErrorLink =
+// Exported for testing purposes
+export const windowsContainersErrorLink =
     "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
+export const rosettaErrorLink =
+    "https://docs.docker.com/desktop/settings-and-maintenance/settings/#general";
 
 /**
  * Commands used to interact with Docker.
@@ -134,11 +137,8 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.startDockerEngineHeader,
             bodyText: ContainerDeployment.startDockerEngineBody,
-            errorLink:
-                platform() === Platform.Windows && arch() === x64
-                    ? windowsContainersErrorLink
-                    : undefined,
-            errorLinkText: ContainerDeployment.configureLinuxContainers,
+            errorLink: getEngineErrorLink(),
+            errorLinkText: getEngineErrorLinkText(),
             stepAction: checkEngine,
         },
         {
@@ -170,6 +170,32 @@ export function initializeDockerSteps(): DockerStep[] {
             stepAction: undefined,
         },
     ];
+}
+
+/**
+ * Gets the link to the Docker engine error documentation based on the platform and architecture.
+ * @returns The link to the Docker engine error documentation based on the platform and architecture.
+ */
+export function getEngineErrorLink() {
+    if (platform() === Platform.Windows && arch() === x64) {
+        return windowsContainersErrorLink;
+    } else if (platform() === Platform.Mac && arch() !== x64) {
+        return rosettaErrorLink;
+    }
+    return undefined;
+}
+
+/**
+ * Gets the text to the Docker engine error documentation based on the platform and architecture.
+ * @returns The text to the Docker engine error documentation based on the platform and architecture.
+ */
+export function getEngineErrorLinkText() {
+    if (platform() === Platform.Windows && arch() === x64) {
+        return ContainerDeployment.configureLinuxContainers;
+    } else if (platform() === Platform.Mac && arch() !== x64) {
+        return ContainerDeployment.configureRosetta;
+    }
+    return undefined;
 }
 
 /**
