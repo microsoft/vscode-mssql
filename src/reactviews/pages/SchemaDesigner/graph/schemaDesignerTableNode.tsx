@@ -159,20 +159,7 @@ const useStyles = makeStyles({
         marginLeft: "auto",
     },
     collapseButton: {
-        backgroundColor: "var(--vscode-button-background)",
-        color: "var(--vscode-button-foreground)",
-        border: "1px solid var(--vscode-button-border)",
-        borderRadius: "3px",
-        fontSize: "11px",
-        padding: "2px 6px",
-        margin: "2px",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
-        "&:hover": {
-            backgroundColor: "var(--vscode-button-hoverBackground)",
-        },
+        width: "100%",
     },
     tableOverlay: {
         position: "absolute",
@@ -374,11 +361,12 @@ const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.
         <div
             style={{
                 position: "absolute",
-                top: 0,
+                bottom: 0,
                 left: 0,
-                width: "100%",
-                height: "100%",
+                right: 0,
+                height: "32px", // Approximate height of the collapse button
                 pointerEvents: "none",
+                zIndex: 1,
             }}>
             {hiddenColumns.map((column) => (
                 <div key={column.name}>
@@ -387,14 +375,26 @@ const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.
                         position={Position.Left}
                         id={`left-${column.name}`}
                         isConnectable={true}
-                        style={{ visibility: "hidden", position: "absolute", left: 0 }}
+                        style={{
+                            visibility: "hidden",
+                            position: "absolute",
+                            left: 0,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                        }}
                     />
                     <Handle
                         type="source"
                         position={Position.Right}
                         id={`right-${column.name}`}
                         isConnectable={true}
-                        style={{ visibility: "hidden", position: "absolute", right: 0 }}
+                        style={{
+                            visibility: "hidden",
+                            position: "absolute",
+                            right: 0,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                        }}
                     />
                 </div>
             ))}
@@ -415,7 +415,12 @@ const TableColumns = ({
     onToggleCollapse: () => void;
 }) => {
     const styles = useStyles();
-    const showCollapseButton = columns.length > 10;
+    const context = useContext(SchemaDesignerContext);
+
+    // Get setting from webview state, default to true if not set
+    const expandCollapseEnabled = context.state?.enableExpandCollapseButtons ?? true;
+
+    const showCollapseButton = expandCollapseEnabled && columns.length > 10;
     const visibleColumns = showCollapseButton && isCollapsed ? columns.slice(0, 10) : columns;
     const hiddenColumns = showCollapseButton && isCollapsed ? columns.slice(10) : [];
 
@@ -432,32 +437,20 @@ const TableColumns = ({
             ))}
 
             {showCollapseButton && (
-                <div
+                <Button
                     className={styles.collapseButton}
                     onClick={onToggleCollapse}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                            onToggleCollapse();
-                        }
-                    }}>
-                    {isCollapsed ? (
-                        <>
-                            <FluentIcons.ChevronDownRegular
-                                style={{ width: "12px", height: "12px" }}
-                            />
-                            <span>{EXPAND}</span>
-                        </>
-                    ) : (
-                        <>
-                            <FluentIcons.ChevronUpRegular
-                                style={{ width: "12px", height: "12px" }}
-                            />
-                            <span>{COLLAPSE}</span>
-                        </>
-                    )}
-                </div>
+                    appearance="subtle"
+                    icon={
+                        isCollapsed ? (
+                            <FluentIcons.ChevronDownRegular />
+                        ) : (
+                            <FluentIcons.ChevronUpRegular />
+                        )
+                    }
+                    tabIndex={0}>
+                    {isCollapsed ? <span>{EXPAND}</span> : <span>{COLLAPSE}</span>}
+                </Button>
             )}
         </div>
     );
