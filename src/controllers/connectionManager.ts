@@ -1490,9 +1490,7 @@ export default class ConnectionManager {
 
     public async onCreateProfile(): Promise<boolean> {
         let self = this;
-        const profile = await self.connectionUI.createAndSaveProfile(
-            self.vscodeWrapper.isEditingSqlFile,
-        );
+        const profile = await self.connectionUI.createAndSaveProfile();
         return profile ? true : false;
     }
 
