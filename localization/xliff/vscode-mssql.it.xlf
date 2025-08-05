@@ -4048,6 +4048,10 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
         <target state="translated">Abilita l'opzione SET XACT_ABORT ON</target>
       </trans-unit>
+      <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
+        <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
+        <target state="new">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
         <source xml:lang="en">Enable modern features in MSSQL</source>
         <target state="translated">Abilita funzionalità moderne in MSSQL</target>
