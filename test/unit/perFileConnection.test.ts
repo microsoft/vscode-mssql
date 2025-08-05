@@ -89,6 +89,7 @@ function createTestCredentials(): IConnectionInfo {
         typeSystemVersion: "Latest",
         connectionString: "",
         containerName: "",
+        defaultDatabase: false,
     };
     return creds;
 }

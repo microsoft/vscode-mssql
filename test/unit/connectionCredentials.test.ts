@@ -357,6 +357,7 @@ suite("ConnectionCredentials Tests", () => {
                 typeSystemVersion: "testTypeSystemVersion",
                 connectionString: "testConnectionString",
                 containerName: "",
+                defaultDatabase: false,
             };
 
             const connDetails = ConnectionCredentials.createConnectionDetails(originalConnInfo);
