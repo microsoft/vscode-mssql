@@ -3079,6 +3079,9 @@
     <trans-unit id="mssql.query.xactAbortOn">
       <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
     </trans-unit>
+    <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
+      <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
       <source xml:lang="en">Enable modern features in MSSQL</source>
     </trans-unit>
