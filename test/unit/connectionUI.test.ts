@@ -266,24 +266,6 @@ suite("Connection UI tests", () => {
         prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
 
-    // test("promptForRetryCreateProfile should show an error message and create profile", async () => {
-    //     let profile = new ConnectionProfile();
-    //     let mockConnection = { connectionString: "test" };
-    //     vscodeWrapper
-    //         .setup((v) => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-    //         .returns(() => Promise.resolve(LocalizedConstants.retryLabel));
-    //     prompter
-    //         .setup((p) => p.prompt(TypeMoq.It.isAny(), true))
-    //         .returns(() => Promise.resolve(mockConnection));
-
-    //     await connectionUI.promptForRetryCreateProfile(profile);
-
-    //     vscodeWrapper.verify(
-    //         (v) => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-    //         TypeMoq.Times.once(),
-    //     );
-    // });
-
     test("createProfileWithDifferentCredentials should prompt to recreate connection", () => {
         let credentials = new ConnectionCredentials();
         vscodeWrapper

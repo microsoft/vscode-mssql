@@ -185,9 +185,7 @@ suite("Connection Profile tests", () => {
         // create a new connection profile
         await connectionUI.createAndSaveProfile();
 
-        // Verify the command was called
-        sinon.assert.calledOnce(executeCommandStub);
-        sinon.assert.calledWith(executeCommandStub, Constants.cmdAddObjectExplorer);
+        executeCommandStub.calledOnceWith(Constants.cmdAddObjectExplorer);
     });
 
     test("Profile is not saved when connection validation fails", async () => {
