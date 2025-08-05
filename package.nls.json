@@ -220,5 +220,6 @@
     "mssql.walkthroughs.nextSteps.objectExplorerFilters.altText": "Object Explorer filters",
     "mssql.connectionSharing.editConnectionSharingPermissions": "Edit Connection Sharing Permissions",
     "mssql.connectionSharing.clearAllConnectionSharingPermissions": "Clear All Connection Sharing Permissions",
-    "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit."
+    "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.",
+    "mssql.azureAutoClearTokenCache.description": "Automatically clear the Azure token cache when multiple matching tokens are detected, without prompting the user"
 }
