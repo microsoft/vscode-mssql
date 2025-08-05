@@ -152,10 +152,48 @@ export default class QueryRunner {
     public async cancel(): Promise<QueryCancelResult> {
         // Make the request to cancel the query
         let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
-        let queryCancelResult = await this._client.sendRequest(
-            QueryCancelRequest.type,
-            cancelParams,
+        let queryCancelResult: QueryCancelResult;
+        try {
+            queryCancelResult = await this._client.sendRequest(
+                QueryCancelRequest.type,
+                cancelParams,
+            );
+        } catch (error) {
+            // Ensure state is reset on error
+            this._isExecuting = false;
+            this._hasCompleted = true;
+            this.removeRunningQuery();
+            // Removed call to unregisterRunner (does not exist)
+            const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
+            if (promise) {
+                promise.reject(error);
+                this._uriToQueryPromiseMap.delete(this._ownerUri);
+            }
+            this.eventEmitter.emit(
+                "complete",
+                Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+                true,
+            );
+            this._statusView.executedQuery(this._ownerUri);
+            this._vscodeWrapper.showErrorMessage("Cancel failed: " + error.message);
+            return;
+        }
+        // Always reset state after cancel
+        this._isExecuting = false;
+        this._hasCompleted = true;
+        this.removeRunningQuery();
+        // Removed call to unregisterRunner (does not exist)
+        const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
+        if (promise) {
+            promise.resolve();
+            this._uriToQueryPromiseMap.delete(this._ownerUri);
+        }
+        this.eventEmitter.emit(
+            "complete",
+            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            true,
         );
+        this._statusView.executedQuery(this._ownerUri);
         return queryCancelResult;
     }
 
@@ -226,7 +264,13 @@ export default class QueryRunner {
     }
 
     // Pulls the query text from the current document/selection and initiates the query
-    private async doRunQuery(selection: ISelectionData, queryCallback: any): Promise<void> {
+    private async doRunQuery(
+        selection: ISelectionData,
+        queryCallback: (
+            onSuccess: (result: unknown) => void,
+            onError: (error: Error) => void,
+        ) => Promise<void>,
+    ): Promise<void> {
         this._vscodeWrapper.logToOutputChannel(
             LocalizedConstants.msgStartedExecute(this._ownerUri),
         );
@@ -237,7 +281,7 @@ export default class QueryRunner {
         this._totalElapsedMilliseconds = 0;
         this._statusView.executingQuery(this.uri);
 
-        let onSuccess = (result) => {
+        let onSuccess = (_result: unknown) => {
             // The query has started, so lets fire up the result pane
             QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).fsPath);
             vscode.commands.executeCommand(
@@ -248,10 +292,22 @@ export default class QueryRunner {
             this.eventEmitter.emit("start", this.uri);
             this._notificationHandler.registerRunner(this, this._ownerUri);
         };
-        let onError = (error) => {
+        let onError = (error: Error) => {
             this._statusView.executedQuery(this.uri);
             this._isExecuting = false;
+            this._hasCompleted = true;
             this.removeRunningQuery();
+            // Removed call to unregisterRunner (does not exist)
+            const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
+            if (promise) {
+                promise.reject(error);
+                this._uriToQueryPromiseMap.delete(this._ownerUri);
+            }
+            this.eventEmitter.emit(
+                "complete",
+                Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+                true,
+            );
             // TODO: localize
             this._vscodeWrapper.showErrorMessage("Execution failed: " + error.message);
         };
@@ -480,10 +536,42 @@ export default class QueryRunner {
         try {
             await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
         } catch (error) {
-            // TODO: Localize
+            // Ensure state is reset on error
+            this._isExecuting = false;
+            this._hasCompleted = true;
+            this.removeRunningQuery();
+            // Removed call to unregisterRunner (does not exist)
+            const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
+            if (promise) {
+                promise.reject(error);
+                this._uriToQueryPromiseMap.delete(this._ownerUri);
+            }
+            this.eventEmitter.emit(
+                "complete",
+                Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+                true,
+            );
+            this._statusView.executedQuery(this._ownerUri);
             this._vscodeWrapper.showErrorMessage("Failed disposing query: " + error.message);
             void Promise.reject(error);
+            return;
         }
+        // Always reset state after dispose
+        this._isExecuting = false;
+        this._hasCompleted = true;
+        this.removeRunningQuery();
+        // Removed call to unregisterRunner (does not exist)
+        const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
+        if (promise) {
+            promise.resolve();
+            this._uriToQueryPromiseMap.delete(this._ownerUri);
+        }
+        this.eventEmitter.emit(
+            "complete",
+            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            true,
+        );
+        this._statusView.executedQuery(this._ownerUri);
     }
 
     private getColumnHeaders(batchId: number, resultId: number, range: ISlickRange): string[] {
@@ -493,7 +581,7 @@ export default class QueryRunner {
             let resultSetSummary = batchSummary.resultSetSummaries[resultId];
             headers = resultSetSummary.columnInfo
                 .slice(range.fromCell, range.toCell + 1)
-                .map((info, i) => {
+                .map((info) => {
                     return info.columnName;
                 });
         }
