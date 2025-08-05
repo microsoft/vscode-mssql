@@ -20,12 +20,8 @@ runs:
       run: |
         echo "Installing Yarn"
         npm install --global yarn@1.22.19
-        echo "Installing Gulp CLI"
-        npm install --global gulp-cli@2.3.0
         echo "Installing VSCE"
         npm install --global vsce@2.9.2
-        echo "Installing gulp"
-        npm install --global gulp@4.0.2
 
     - name: Install extension dependencies
       shell: bash

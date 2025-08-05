@@ -20,6 +20,7 @@ import {
     type Edge,
     addEdge,
     FinalConnectionState,
+    ConnectionLineType,
 } from "@xyflow/react";
 import { SchemaDesignerTableNode } from "./schemaDesignerTableNode.js";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -149,6 +150,7 @@ export const SchemaDesignerFlow = () => {
                 uuidv4(),
                 namingUtils.getNextForeignKeyName(existingForeignKeys, schema.tables),
             ),
+            type: sourceNode.id === targetNode.id ? ConnectionLineType.SmoothStep : undefined, // Use SmoothStep for self-references
         };
 
         setRelationshipEdges((eds) => addEdge(newEdge, eds));

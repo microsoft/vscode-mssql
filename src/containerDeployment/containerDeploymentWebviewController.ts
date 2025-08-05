@@ -96,10 +96,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
     private registerRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            (this.state.formState[
-                payload.event.propertyName
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ] as any) = payload.event.value;
+            (state.formState as any)[payload.event.propertyName] = payload.event.value;
+            this.updateState(state);
 
             const newState = await this.validateDockerConnectionProfile(
                 state,
@@ -146,7 +144,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                         TelemetryViews.ContainerDeployment,
                         TelemetryActions.FinishContainerDeployment,
                         {
-                            version: state.formState.version,
+                            containerVersion: state.formState.version,
                         },
                     );
                 }
@@ -195,6 +193,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             return state;
         });
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
+            state.formValidationLoadState = ApiStatus.Loading;
+            this.updateState(state);
             state = await this.validateDockerConnectionProfile(state, state.formState);
             if (!state.formState.containerName) {
                 state.formState.containerName = await dockerUtils.validateContainerName(
@@ -207,6 +207,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             }
 
             state.isDockerProfileValid = state.formErrors.length === 0;
+            state.formValidationLoadState = ApiStatus.NotStarted;
+            this.updateState(state);
             return state;
         });
 

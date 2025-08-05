@@ -240,7 +240,9 @@ export const ConnectionInfoFormContainer = () => {
                                                             <ul>
                                                                 {context.state.azureAccounts.map(
                                                                     (account) => (
-                                                                        <li>{account}</li>
+                                                                        <li key={account}>
+                                                                            {account}
+                                                                        </li>
                                                                     ),
                                                                 )}
                                                             </ul>

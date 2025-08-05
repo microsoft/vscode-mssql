@@ -98,7 +98,7 @@ suite("ContainerDeploymentWebviewController", () => {
         const controllerState = controller["state"];
         assert.strictEqual(controllerState.loadState, ApiStatus.Loaded);
         assert.strictEqual(Object.keys(controllerState.formComponents).length, 9);
-        assert.strictEqual(controllerState.dockerSteps.length, 6);
+        assert.strictEqual(controllerState.dockerSteps.length, 7);
     });
 
     test("Verify the form components are set correctly", () => {
@@ -306,7 +306,10 @@ suite("ContainerDeploymentWebviewController", () => {
         });
 
         assert.ok(validateProfileSpy.calledOnce, "profile validation should be called once");
-        assert.ok(updateStateSpy.calledOnce, "updateState should be called once within formAction");
+        assert.ok(
+            updateStateSpy.calledTwice,
+            "updateState should be called once within formAction",
+        );
 
         assert.equal(newState.isValidContainerName, true);
     });
@@ -317,7 +320,7 @@ suite("ContainerDeploymentWebviewController", () => {
             "addContainerConnection",
         );
         // Stub telemetry method
-        const { sendErrorEvent } = stubTelemetry(sandbox);
+        const { sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox);
         let callState = controller["state"];
 
         // --- Test general step success ---
@@ -342,6 +345,7 @@ suite("ContainerDeploymentWebviewController", () => {
 
         assert.equal(resultSuccess.dockerSteps[0].loadState, ApiStatus.Loaded);
         assert.ok(!resultSuccess.dockerSteps[0].errorMessage);
+        sinon.assert.called(sendActionEvent);
 
         // --- Test general step failure ---
         const mockStepActionFailure = sandbox.stub().resolves({
