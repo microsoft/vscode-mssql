@@ -444,6 +444,11 @@
                     "group": "1_MSSQL_serverAndDbManagement@2"
                 },
                 {
+                    "command": "mssql.setAsWorkspaceDefault",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
+                    "group": "1_MSSQL_serverAndDbManagement@2.5"
+                },
+                {
                     "command": "mssql.disconnectObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
                     "group": "1_MSSQL_serverAndDbManagement@3"
@@ -889,6 +894,12 @@
                 "title": "%mssql.editConnection%",
                 "category": "MS SQL",
                 "icon": "$(edit)"
+            },
+            {
+                "command": "mssql.setAsWorkspaceDefault",
+                "title": "%mssql.setAsWorkspaceDefault%",
+                "category": "MS SQL",
+                "icon": "$(star)"
             },
             {
                 "command": "mssql.refreshObjectExplorerNode",

@@ -479,6 +479,13 @@ export function msgDefaultConnectionFailed(errorMessage: string) {
         comment: ["{0} is the error message"],
     });
 }
+export function msgConnectionSetAsWorkspaceDefault(connectionName: string) {
+    return l10n.t({
+        message: "Connection '{0}' has been set as the workspace default connection",
+        args: [connectionName],
+        comment: ["{0} is the connection name"],
+    });
+}
 export let msgUnknownErrorOccurred = l10n.t("Unknown error occurred");
 export function msgFailedToConnectWithDefaultConnection(errorMessage: string) {
     return l10n.t({

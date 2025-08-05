@@ -1291,6 +1291,15 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
+                    Constants.cmdSetAsWorkspaceDefault,
+                    async (node: TreeNodeInfo) => {
+                        await this.onSetAsWorkspaceDefault(node);
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
                     Constants.cmdDesignSchema,
                     async (node: TreeNodeInfo) => {
                         const schemaDesigner =
@@ -1856,6 +1865,38 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    /**
+     * Sets the selected connection as the workspace default connection
+     */
+    public async onSetAsWorkspaceDefault(node: TreeNodeInfo): Promise<void> {
+        if (!node || !node.connectionProfile) {
+            this._vscodeWrapper.showErrorMessage("Connection profile not found");
+            return;
+        }
+
+        try {
+            const connectionProfile = node.connectionProfile;
+            const connectionName = ConnInfo.getConnectionDisplayName(connectionProfile);
+
+            // Save the connection name to workspace settings
+            await this._vscodeWrapper.setConfiguration(
+                Constants.extensionName,
+                Constants.configDefaultConnectionName,
+                connectionName,
+                vscode.ConfigurationTarget.Workspace,
+            );
+
+            // Show success message
+            this._vscodeWrapper.showInformationMessage(
+                LocalizedConstants.msgConnectionSetAsWorkspaceDefault(connectionName),
+            );
+        } catch (error) {
+            this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.Common.error + ": " + error.toString(),
+            );
+        }
     }
 
     public onDeployContainer(): void {

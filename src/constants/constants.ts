@@ -101,6 +101,7 @@ export const cmdDisableActualPlan = "mssql.disableActualPlan";
 export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
+export const cmdSetAsWorkspaceDefault = "mssql.setAsWorkspaceDefault";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
 export const cmdDesignSchema = "mssql.schemaDesigner";
 export const cmdDeployLocalDockerContainer = "mssql.deployLocalDockerContainer";
