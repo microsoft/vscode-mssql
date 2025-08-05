@@ -90,6 +90,20 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
         let selectedRanges = grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
 
+        if (!selection || selection.length === 0) {
+            const data = grid.getData() as any;
+            const totalRows = data.length;
+            const totalColumns = grid.getColumns().length;
+            selection = [
+                {
+                    fromRow: 0,
+                    toRow: totalRows - 1,
+                    fromCell: 0,
+                    toCell: totalColumns - 2, // Subtract 2 to account for row number column and 0-based indexing
+                },
+            ];
+        }
+
         if (this.dataProvider.isDataInMemory) {
             let range = selectionToRange(selection[0]);
             let data = await this.dataProvider.getRangeAsync(range.start, range.length);

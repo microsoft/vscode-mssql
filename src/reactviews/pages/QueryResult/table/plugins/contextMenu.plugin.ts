@@ -97,6 +97,22 @@ export class ContextMenu<T extends Slick.SlickData> {
     private async handleMenuAction(action: string): Promise<void> {
         let selectedRanges = this.grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
+
+        // If no selection exists, create a selection for the entire grid
+        if (!selection || selection.length === 0) {
+            const data = this.grid.getData() as HybridDataProvider<T>;
+            const totalRows = data.length;
+            const totalColumns = this.grid.getColumns().length;
+            selection = [
+                {
+                    fromRow: 0,
+                    toRow: totalRows - 1,
+                    fromCell: 0,
+                    toCell: totalColumns - 2, // Subtract 2 to account for row number column and 0-based indexing
+                },
+            ];
+        }
+
         switch (action) {
             case "select-all":
                 this.queryResultContext.log("Select All action triggered");
