@@ -11,7 +11,7 @@ const logger = require('./terminal-logger');
 
 const args = process.argv.slice(2);
 let isOnline = args.includes('--online');
-let isOffline = args.includes('--offline');
+const isOffline = args.includes('--offline');
 
 // Platform configurations for offline packaging
 const OFFLINE_PLATFORMS = [
