@@ -753,4 +753,49 @@ suite("Docker Utilities", () => {
 
         execStub.restore();
     });
+
+    test("getEngineErrorLink and getEngineErrorLinkText: should return correct error link and text", () => {
+        const platformStub = sandbox.stub(os, "platform");
+        const archStub = sandbox.stub(os, "arch");
+
+        // 1. Windows platform, x64 architecture
+        platformStub.returns(Platform.Windows);
+        archStub.returns("x64");
+
+        let errorLink = dockerUtils.getEngineErrorLink();
+        let errorLinkText = dockerUtils.getEngineErrorLinkText();
+        assert.strictEqual(
+            errorLink,
+            dockerUtils.windowsContainersErrorLink,
+            "Error link should match",
+        );
+        assert.strictEqual(
+            errorLinkText,
+            ContainerDeployment.configureLinuxContainers,
+            "Error link text should match",
+        );
+        platformStub.resetBehavior();
+        archStub.resetBehavior();
+
+        // 2. Mac platform, non x64 architecture
+        platformStub.returns(Platform.Mac);
+        archStub.returns("arm64");
+
+        errorLink = dockerUtils.getEngineErrorLink();
+        errorLinkText = dockerUtils.getEngineErrorLinkText();
+        assert.strictEqual(errorLink, dockerUtils.rosettaErrorLink, "Error link should match");
+        assert.strictEqual(
+            errorLinkText,
+            ContainerDeployment.configureRosetta,
+            "Error link text should match",
+        );
+        platformStub.resetBehavior();
+        archStub.resetBehavior();
+
+        // 3. Linux platform
+        platformStub.returns(Platform.Linux);
+        errorLink = dockerUtils.getEngineErrorLink();
+        errorLinkText = dockerUtils.getEngineErrorLinkText();
+        platformStub.resetBehavior();
+    });
 });

@@ -604,6 +604,42 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("intermediaryIncludeObjectTypesBulkChanged", (state, payload) => {
+            this.logger.verbose(
+                `Bulk updating object type inclusion options: ${payload.keys.join(", ")}`,
+            );
+
+            const deploymentOptions = state.intermediaryOptionsResult.defaultDeploymentOptions;
+            const excludeObjectTypeOptions = deploymentOptions.excludeObjectTypes.value;
+
+            payload.keys.forEach((key) => {
+                const optionIndex = excludeObjectTypeOptions.findIndex(
+                    (o) => o.toLowerCase() === key.toLowerCase(),
+                );
+                const isFound = optionIndex !== -1;
+
+                if (payload.checked) {
+                    // If we want to check (include) the option, remove it from exclude list
+                    if (isFound) {
+                        excludeObjectTypeOptions.splice(optionIndex, 1);
+                    }
+                } else {
+                    // If we want to uncheck (exclude) the option, add it to exclude list
+                    if (!isFound) {
+                        excludeObjectTypeOptions.push(key);
+                    }
+                }
+            });
+
+            this.logger.info(
+                `Bulk changed ${payload.keys.length} object types to ${payload.checked ? "included" : "excluded"}`,
+            );
+
+            this.updateState(state);
+
+            return state;
+        });
+
         this.registerReducer("confirmSchemaOptions", async (state, payload) => {
             this.logger.info(`Confirming schema comparison options`);
 
@@ -671,6 +707,24 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             generalOptionsDictionary[payload.key].value = !oldValue;
 
             this.logger.info(`Changed option ${payload.key} from ${oldValue} to ${!oldValue}`);
+
+            this.updateState(state);
+            return state;
+        });
+
+        this.registerReducer("intermediaryGeneralOptionsBulkChanged", (state, payload) => {
+            this.logger.verbose(`Bulk changing general options: ${payload.keys.join(", ")}`);
+
+            const generalOptionsDictionary =
+                state.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary;
+
+            payload.keys.forEach((key) => {
+                if (generalOptionsDictionary[key]) {
+                    generalOptionsDictionary[key].value = payload.checked;
+                }
+            });
+
+            this.logger.info(`Bulk changed ${payload.keys.length} options to ${payload.checked}`);
 
             this.updateState(state);
             return state;

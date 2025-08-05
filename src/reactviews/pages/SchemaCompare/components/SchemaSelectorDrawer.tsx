@@ -312,6 +312,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                             <Button
                                 className={classes.buttonLeftMargin}
                                 size="large"
+                                aria-label={loc.schemaCompare.addServerConnection}
                                 icon={<PlugDisconnectedRegular />}
                                 onClick={() => {
                                     context.openAddNewConnectionDialog(props.endpointType);

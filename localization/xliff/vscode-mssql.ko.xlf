@@ -105,6 +105,10 @@
         <note>{0} is the server name</note>
         <target state="translated">{0}에 방화벽 규칙 추가</target>
       </trans-unit>
+      <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
+        <source xml:lang="en">Add Server Connection</source>
+        <target state="new">Add Server Connection</target>
+      </trans-unit>
       <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
         <source xml:lang="en">Add Table</source>
         <target state="translated">테이블 추가</target>
@@ -712,6 +716,10 @@
         <source xml:lang="en">Configure Linux containers</source>
         <target state="translated">Linux 컨테이너 구성</target>
       </trans-unit>
+      <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
+        <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
+        <target state="new">Configure Rosetta in Docker Desktop</target>
+      </trans-unit>
       <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
         <source xml:lang="en">Configure and customize SQL Server containers</source>
         <target state="translated">SQL Server 컨테이너 구성 및 사용자 지정</target>
@@ -962,9 +970,9 @@
         <source xml:lang="en">Creating Container</source>
         <target state="translated">컨테이너 만드는 중</target>
       </trans-unit>
-      <trans-unit id="++CODE++09af7062beeeeb3b9e2346b91902b8e45ea936c57462ca09e997e7280b8f71dc">
-        <source xml:lang="en">Creating and starting your SQL Server Docker container</source>
-        <target state="translated">SQL Server Docker 컨테이너를 만들고 시작하는 중입니다.</target>
+      <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
+        <source xml:lang="en">Creating and starting your SQL Server container</source>
+        <target state="translated">SQL Server 컨테이너를 만들고 시작하는 중입니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1435,6 +1443,10 @@ Error:
         <note>{0} is the error message returned from the open scmp operation</note>
         <target state="translated">scmp 파일을 열지 못했습니다. '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
+        <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
+        <target state="translated">SQL Server 이미지를 다운로드하지 못했습니다. 네트워크 연결 상태를 확인하고 다시 시도하세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
         <note>{0} is the connection id
@@ -1723,6 +1735,10 @@ Error:
       <trans-unit id="++CODE++e6918522718725ba7a74b087c48f889648bbfc7627b1d4ab826ac2cc1b30aa31">
         <source xml:lang="en">Include Object Types</source>
         <target state="translated">개체 유형 포함</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
+        <source xml:lang="en">Include all object types</source>
+        <target state="new">Include all object types</target>
       </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
@@ -2399,10 +2415,6 @@ Error:
         <source xml:lang="en">Please choose a unique name for the profile</source>
         <target state="translated">프로필에 대한 고유한 이름을 선택하세요</target>
       </trans-unit>
-      <trans-unit id="++CODE++2048d236cea5afafe8b7e125d9b86eb44250c4ac6f382bc412dca8e4188292fa">
-        <source xml:lang="en">Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.</source>
-        <target state="translated">Rosetta 가상화를 사용하도록 설정했는지 확인하세요. Docker Desktop 설정 내에서 이 작업을 수행할 수 있습니다.</target>
-      </trans-unit>
       <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
         <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
         <target state="translated">포트가 숫자인지 확인하고 사용하지 않는 포트를 선택하세요.</target>
@@ -2509,6 +2521,14 @@ Error:
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">변경 내용 게시</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
+        <source xml:lang="en">Pulling SQL Server Image</source>
+        <target state="translated">SQL Server 이미지를 가져오는 중입니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
+        <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
+        <target state="translated">SQL Server 컨테이너 이미지를 다운로드하는 중입니다. 인터넷 연결에 따라 몇 분 정도 소요될 수 있습니다.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
         <target state="translated">쿼리 계획</target>
@@ -2537,6 +2557,10 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
+        <target state="translated">연결에 대한 컨테이너를 준비하는 중입니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
+        <source xml:lang="en">Readying container for connections...</source>
         <target state="translated">연결에 대한 컨테이너를 준비하는 중입니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
@@ -2617,6 +2641,10 @@ Error:
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
         <target state="translated">사전순 반대로</target>
+      </trans-unit>
+      <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
+        <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
+        <target state="new">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</target>
       </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
@@ -2748,9 +2776,9 @@ Query: {1}</source>
         <source xml:lang="en">Schema</source>
         <target state="translated">스키마</target>
       </trans-unit>
-      <trans-unit id="++CODE++becc525b09db5d2c09fe7aa2203290938cd5cb1438f065f216e73957338265e2">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">스키마 비교(미리 보기)</target>
+      <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
+        <source xml:lang="en">Schema Compare</source>
+        <target state="new">Schema Compare</target>
       </trans-unit>
       <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
         <source xml:lang="en">Schema Compare Options</source>
@@ -2825,9 +2853,17 @@ Query: {1}</source>
         <source xml:lang="en">Select Source</source>
         <target state="translated">원본 선택</target>
       </trans-unit>
+      <trans-unit id="++CODE++5807729000cb38665e918bf3d7ac25f319624d3024eb2760aba5f15f7eb53559">
+        <source xml:lang="en">Select Source Schema</source>
+        <target state="new">Select Source Schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
         <target state="translated">대상 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
+        <source xml:lang="en">Select Target Schema</source>
+        <target state="new">Select Target Schema</target>
       </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
@@ -2850,6 +2886,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
         <source xml:lang="en">Select all</source>
         <target state="translated">모두 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
+        <source xml:lang="en">Select all options</source>
+        <target state="new">Select all options</target>
       </trans-unit>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
@@ -3068,6 +3108,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
         <source xml:lang="en">Starting Container...</source>
         <target state="translated">컨테이너를 시작하는 중...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
+        <source xml:lang="en">Starting Docker...</source>
+        <target state="translated">Docker를 시작하고 있습니다...</target>
       </trans-unit>
       <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
         <source xml:lang="en">Starting {0}...</source>
@@ -3610,11 +3654,6 @@ Query: {1}</source>
         <note>{0} is the account display name</note>
         <target state="translated">{0} (현재 계정)</target>
       </trans-unit>
-      <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
-        <source xml:lang="en">{0} (Preview)</source>
-        <note>{0} is the database name</note>
-        <target state="translated">{0}(미리 보기)</target>
-      </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0}(필터링됨)</target>
@@ -4075,10 +4114,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Give Feedback</source>
         <target state="translated">피드백 제공</target>
       </trans-unit>
-      <trans-unit id="mssql.hasConnections">
-        <source xml:lang="en">Indicates whether the user has defined any connection profiles in 'User Settings'.</source>
-        <target state="translated">사용자가 '사용자 설정'에서 연결 프로필을 정의했는지 여부를 나타냅니다.</target>
-      </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot (Preview)</source>
         <target state="translated">MSSQL Copilot(미리 보기)</target>
@@ -4230,12 +4265,12 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">SQL 쿼리 실행</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">스키마 비교(미리 보기)</target>
+        <source xml:lang="en">Schema Compare</source>
+        <target state="new">Schema Compare</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
-        <source xml:lang="en">Schema Designer (Preview)</source>
-        <target state="translated">스키마 디자이너(미리 보기)</target>
+        <source xml:lang="en">Schema Designer</source>
+        <target state="new">Schema Designer</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>

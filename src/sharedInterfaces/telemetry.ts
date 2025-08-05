@@ -124,6 +124,7 @@ export enum TelemetryActions {
     ExportToImage = "ExportToImage",
     GetReport = "getReport",
     PublishSession = "PublishSession",
+    GetDefinition = "GetDefinition",
 }
 
 /**

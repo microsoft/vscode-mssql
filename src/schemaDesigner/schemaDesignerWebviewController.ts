@@ -42,7 +42,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             "schemaDesigner",
             {},
             {
-                title: LocConstants.SchemaDesigner.tabTitle(databaseName),
+                title: databaseName,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
@@ -103,9 +103,20 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.onRequest(SchemaDesigner.GetDefinitionRequest.type, async (payload) => {
+            const definitionActivity = startActivity(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.GetDefinition,
+                undefined,
+                {
+                    tableCount: payload.updatedSchema.tables.length.toString(),
+                },
+            );
             const script = await this.schemaDesignerService.getDefinition({
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
+            });
+            definitionActivity.end(ActivityStatus.Succeeded, undefined, {
+                tableCount: payload.updatedSchema.tables.length,
             });
             this.updateCacheItem(payload.updatedSchema, true);
             return script;
