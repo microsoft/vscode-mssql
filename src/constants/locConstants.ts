@@ -673,17 +673,18 @@ export class ConnectionDialog {
     public static multipleMatchingTokensError(accountDisplayName?: string, tenantId?: string) {
         if (!accountDisplayName || !tenantId) {
             return l10n.t(
-                "Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+                "Multiple authentication tokens detected for your account. This is usually caused by using VS Code with different user accounts. To resolve this issue, we recommend clearing your token cache.",
             );
         }
         return l10n.t({
             message:
-                "Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+                "Multiple authentication tokens detected for account '{0}' (tenant '{1}'). This is usually caused by using VS Code with different user accounts. To resolve this issue, we recommend clearing your token cache.",
             args: [accountDisplayName, tenantId],
             comment: ["{0} is the account display name", "{1} is the tenant id"],
         });
     }
-    public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+    public static ClearCacheAndRefreshToken = l10n.t("Clear Token Cache");
+    public static AlwaysClearCache = l10n.t("Always Clear Cache");
 }
 
 export class FirewallRule {

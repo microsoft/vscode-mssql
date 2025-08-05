@@ -1894,6 +1894,12 @@
                     "type": "number",
                     "default": -1,
                     "description": "%mssql.statusBar.connectionInfoMaxLength.description%"
+                },
+                "mssql.azureAutoClearTokenCache": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.azureAutoClearTokenCache.description%",
+                    "scope": "application"
                 }
             }
         },

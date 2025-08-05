@@ -233,6 +233,7 @@ export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
+export const configAutoClearTokenCache = "mssql.azureAutoClearTokenCache";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";

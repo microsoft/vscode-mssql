@@ -204,17 +204,57 @@ export class MsalAzureController extends AzureController {
                 }
             }
             if (getErrorMessage(ex).includes(AzureConstants.multiple_matching_tokens_error)) {
-                const response = await this._vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.ConnectionDialog.multipleMatchingTokensError(
-                        account?.displayInfo?.displayName,
-                        tenantId,
-                    ),
-                    LocalizedConstants.ConnectionDialog.ClearCacheAndRefreshToken,
-                    LocalizedConstants.Common.cancel,
-                );
-                if (response === LocalizedConstants.msgYes) {
+                // Check if auto-clear is enabled
+                const autoClearEnabled = this._vscodeWrapper
+                    .getConfiguration(Constants.extensionConfigSectionName)
+                    .get<boolean>(Constants.configAutoClearTokenCache.replace("mssql.", ""), false);
+
+                if (autoClearEnabled) {
+                    // Auto-clear the cache without prompting
+                    this.logger.info(
+                        "Auto-clearing token cache due to multiple matching tokens error",
+                    );
                     await this.clearTokenCache();
                     return await this.refreshAccessToken(account, accountStore, tenantId, settings);
+                } else {
+                    // Show improved error dialog with multiple options
+                    const response = await this._vscodeWrapper.showErrorMessage(
+                        LocalizedConstants.ConnectionDialog.multipleMatchingTokensError(
+                            account?.displayInfo?.displayName,
+                            tenantId,
+                        ),
+                        LocalizedConstants.ConnectionDialog.ClearCacheAndRefreshToken,
+                        LocalizedConstants.ConnectionDialog.AlwaysClearCache,
+                        LocalizedConstants.Common.cancel,
+                    );
+
+                    if (
+                        response === LocalizedConstants.ConnectionDialog.ClearCacheAndRefreshToken
+                    ) {
+                        await this.clearTokenCache();
+                        return await this.refreshAccessToken(
+                            account,
+                            accountStore,
+                            tenantId,
+                            settings,
+                        );
+                    } else if (response === LocalizedConstants.ConnectionDialog.AlwaysClearCache) {
+                        // Enable auto-clear and clear cache
+                        await this._vscodeWrapper
+                            .getConfiguration(Constants.extensionConfigSectionName)
+                            .update(
+                                Constants.configAutoClearTokenCache.replace("mssql.", ""),
+                                true,
+                                true,
+                            );
+                        await this.clearTokenCache();
+                        return await this.refreshAccessToken(
+                            account,
+                            accountStore,
+                            tenantId,
+                            settings,
+                        );
+                    }
                 }
             } else {
                 this._vscodeWrapper.showErrorMessage(ex);
