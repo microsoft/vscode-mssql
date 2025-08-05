@@ -24,6 +24,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import eventBus from "../schemaDesignerEvents";
 import { LAYOUT_CONSTANTS } from "../schemaDesignerUtils";
+import * as l10n from "@vscode/l10n";
 import { ForeignKeyIcon } from "../../../common/icons/foreignKey";
 import { PrimaryKeyIcon } from "../../../common/icons/primaryKey";
 
@@ -156,6 +157,9 @@ const useStyles = makeStyles({
     },
     actionButton: {
         marginLeft: "auto",
+    },
+    collapseButton: {
+        width: "100%",
     },
     tableOverlay: {
         position: "absolute",
@@ -351,19 +355,103 @@ const TableColumn = ({
     );
 };
 
+// ConsolidatedHandles component for rendering invisible handles of hidden columns
+const ConsolidatedHandles = ({ hiddenColumns }: { hiddenColumns: SchemaDesigner.Column[] }) => {
+    return (
+        <div
+            style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: "32px", // Approximate height of the collapse button
+                pointerEvents: "none",
+                zIndex: 1,
+            }}>
+            {hiddenColumns.map((column) => (
+                <div key={column.name}>
+                    <Handle
+                        type="source"
+                        position={Position.Left}
+                        id={`left-${column.name}`}
+                        isConnectable={true}
+                        style={{
+                            visibility: "hidden",
+                            position: "absolute",
+                            left: 0,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                        }}
+                    />
+                    <Handle
+                        type="source"
+                        position={Position.Right}
+                        id={`right-${column.name}`}
+                        isConnectable={true}
+                        style={{
+                            visibility: "hidden",
+                            position: "absolute",
+                            right: 0,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                        }}
+                    />
+                </div>
+            ))}
+        </div>
+    );
+};
+
 // TableColumns component for rendering all columns
 const TableColumns = ({
     columns,
     table,
+    isCollapsed,
+    onToggleCollapse,
 }: {
     columns: SchemaDesigner.Column[];
     table: SchemaDesigner.Table;
+    isCollapsed: boolean;
+    onToggleCollapse: () => void;
 }) => {
+    const styles = useStyles();
+    const context = useContext(SchemaDesignerContext);
+
+    // Get setting from webview state, default to true if not set
+    const expandCollapseEnabled = context.state?.enableExpandCollapseButtons ?? true;
+
+    const showCollapseButton = expandCollapseEnabled && columns.length > 10;
+    const visibleColumns = showCollapseButton && isCollapsed ? columns.slice(0, 10) : columns;
+    const hiddenColumns = showCollapseButton && isCollapsed ? columns.slice(10) : [];
+
+    const EXPAND = l10n.t("Expand");
+    const COLLAPSE = l10n.t("Collapse");
+
     return (
-        <div>
-            {columns.map((column, index) => (
+        <div style={{ position: "relative" }}>
+            {/* Always render all column handles for consistency */}
+            {hiddenColumns.length > 0 && <ConsolidatedHandles hiddenColumns={hiddenColumns} />}
+
+            {visibleColumns.map((column, index) => (
                 <TableColumn key={`${index}-${column.name}`} column={column} table={table} />
             ))}
+
+            {showCollapseButton && (
+                <Button
+                    className={styles.collapseButton}
+                    onClick={onToggleCollapse}
+                    appearance="subtle"
+                    icon={
+                        isCollapsed ? (
+                            <FluentIcons.ChevronDownRegular />
+                        ) : (
+                            <FluentIcons.ChevronUpRegular />
+                        )
+                    }
+                    tabIndex={0}>
+                    {isCollapsed ? <span>{EXPAND}</span> : <span>{COLLAPSE}</span>}
+                </Button>
+            )}
         </div>
     );
 };
@@ -372,13 +460,24 @@ const TableColumns = ({
 export const SchemaDesignerTableNode = (props: NodeProps) => {
     const styles = useStyles();
     const table = props.data as SchemaDesigner.Table;
+    // Default to collapsed state if table has more than 10 columns
+    const [isCollapsed, setIsCollapsed] = useState(table.columns.length > 10);
+
+    const handleToggleCollapse = () => {
+        setIsCollapsed(!isCollapsed);
+    };
 
     return (
         <div className={styles.tableNodeContainer}>
             {(props.data?.dimmed as boolean) && <div className={styles.tableOverlay} />}
             <TableHeader table={table} />
             <Divider />
-            <TableColumns columns={table.columns} table={table} />
+            <TableColumns
+                columns={table.columns}
+                table={table}
+                isCollapsed={isCollapsed}
+                onToggleCollapse={handleToggleCollapse}
+            />
         </div>
     );
 };

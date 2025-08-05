@@ -1676,6 +1676,12 @@
                     "description": "%mssql.enableQueryHistoryFeature%",
                     "scope": "window"
                 },
+                "mssql.schemaDesigner.enableExpandCollapseButtons": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.schemaDesigner.enableExpandCollapseButtons%",
+                    "scope": "window"
+                },
                 "mssql.tracingLevel": {
                     "type": "string",
                     "description": "%mssql.tracingLevel%",
