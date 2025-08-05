@@ -644,6 +644,10 @@
     <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
       <source xml:lang="en">Connecting...</source>
     </trans-unit>
+    <trans-unit id="++CODE++18416f102e21ac3d8fb75bed9da4cccccac1975698be189ba031be06d289929b">
+      <source xml:lang="en">Connection &apos;{0}&apos; has been set as the workspace default connection</source>
+      <note>{0} is the connection name</note>
+    </trans-unit>
     <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
       <source xml:lang="en">Connection Dialog</source>
     </trans-unit>
@@ -3311,6 +3315,9 @@
     </trans-unit>
     <trans-unit id="mssql.selectedAzureSubscriptions">
       <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
+    </trans-unit>
+    <trans-unit id="mssql.setAsWorkspaceDefault">
+      <source xml:lang="en">Set as Workspace Default</source>
     </trans-unit>
     <trans-unit id="mssql.resultsFontFamily">
       <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>

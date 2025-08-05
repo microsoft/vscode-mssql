@@ -1062,6 +1062,12 @@
       "{0} is the error message"
     ]
   },
+  "Connection '{0}' has been set as the workspace default connection/{0} is the connection name": {
+    "message": "Connection '{0}' has been set as the workspace default connection",
+    "comment": [
+      "{0} is the connection name"
+    ]
+  },
   "Unknown error occurred": "Unknown error occurred",
   "Failed to connect with default connection: {0}/{0} is the error message": {
     "message": "Failed to connect with default connection: {0}",
