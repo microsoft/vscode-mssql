@@ -128,7 +128,6 @@ export default class ConnectionManager {
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
-        private _useLegacyConnectionExperience: boolean = false,
         private _logger?: Logger,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
@@ -176,7 +175,6 @@ export default class ConnectionManager {
                 this._connectionStore,
                 this._accountStore,
                 prompter,
-                _useLegacyConnectionExperience,
                 this.vscodeWrapper,
             );
         }
@@ -1124,10 +1122,7 @@ export default class ConnectionManager {
                 } else {
                     return false;
                 }
-            } else if (
-                connection.errorNumber === Constants.errorFirewallRule &&
-                !this._useLegacyConnectionExperience
-            ) {
+            } else if (connection.errorNumber === Constants.errorFirewallRule) {
                 const addFirewallRuleController = new AddFirewallRuleWebviewController(
                     this.context,
                     this._vscodeWrapper,
@@ -1143,16 +1138,6 @@ export default class ConnectionManager {
 
                 if (wasCreated === true /** dialog closed is undefined */) {
                     return await this.connect(fileUri, connection.credentials);
-                } else {
-                    return false;
-                }
-            } else if (connection.errorNumber === Constants.errorSSLCertificateValidationFailed) {
-                const updatedConnection = await this.handleSSLError(
-                    fileUri,
-                    connectionCreds as IConnectionProfile,
-                );
-                if (updatedConnection) {
-                    return await this.connect(fileUri, updatedConnection);
                 } else {
                     return false;
                 }

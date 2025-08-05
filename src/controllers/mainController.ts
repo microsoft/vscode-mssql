@@ -196,10 +196,6 @@ export default class MainController implements vscode.Disposable {
         return this.configuration.get(Constants.configEnableRichExperiences);
     }
 
-    public get useLegacyConnectionExperience(): boolean {
-        return this.configuration.get(Constants.configUseLegacyConnectionExperience);
-    }
-
     /**
      * Initializes the extension
      */
@@ -899,7 +895,6 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._statusview,
             this._prompter,
-            this.useLegacyConnectionExperience,
         );
 
         void this.showOnLaunchPrompts();
@@ -917,7 +912,6 @@ export default class MainController implements vscode.Disposable {
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
-            useLegacyConnections: this.useLegacyConnectionExperience.toString(),
         });
 
         await this._connectionMgr.initialized;
@@ -1056,32 +1050,28 @@ export default class MainController implements vscode.Disposable {
         this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
-            if (this.useLegacyConnectionExperience) {
-                await self.createObjectExplorerSession();
-            } else {
-                let connectionInfo: IConnectionInfo | undefined = undefined;
-                let connectionGroup: IConnectionGroup | undefined = undefined;
-                if (args) {
-                    // validate that `args` is an IConnectionInfo before assigning
-                    if (isIConnectionInfo(args)) {
-                        connectionInfo = args;
-                    } else {
-                        if (args instanceof ConnectionGroupNode) {
-                            connectionGroup = args.connectionGroup;
-                        }
+            let connectionInfo: IConnectionInfo | undefined = undefined;
+            let connectionGroup: IConnectionGroup | undefined = undefined;
+            if (args) {
+                // validate that `args` is an IConnectionInfo before assigning
+                if (isIConnectionInfo(args)) {
+                    connectionInfo = args;
+                } else {
+                    if (args instanceof ConnectionGroupNode) {
+                        connectionGroup = args.connectionGroup;
                     }
                 }
-
-                const connDialog = new ConnectionDialogWebviewController(
-                    this._context,
-                    this._vscodeWrapper,
-                    this,
-                    this._objectExplorerProvider,
-                    connectionInfo,
-                    connectionGroup,
-                );
-                connDialog.revealToForeground();
             }
+
+            const connDialog = new ConnectionDialogWebviewController(
+                this._context,
+                this._vscodeWrapper,
+                this,
+                this._objectExplorerProvider,
+                connectionInfo,
+                connectionGroup,
+            );
+            connDialog.revealToForeground();
         });
 
         // redirect the "Legacy" command to the core command; that handler will differentiate
@@ -2654,7 +2644,6 @@ export default class MainController implements vscode.Disposable {
             Constants.enableConnectionPooling,
             Constants.configEnableExperimentalFeatures,
             Constants.configEnableRichExperiences,
-            Constants.configUseLegacyConnectionExperience,
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {

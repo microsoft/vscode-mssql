@@ -61,7 +61,6 @@ suite("ConnectionManager Tests", () => {
                     mockContext.object,
                     mockStatusView.object,
                     undefined, // prompter
-                    true, // isRichExperiencesEnabled
                     mockLogger.object,
                     mockServiceClient.object,
                     mockVscodeWrapper.object,
@@ -146,7 +145,6 @@ suite("ConnectionManager Tests", () => {
                 mockContext.object,
                 mockStatusView.object,
                 undefined, // prompter
-                true, // isRichExperiencesEnabled
                 mockLogger.object,
                 mockServiceClient.object,
                 mockVscodeWrapper.object,
@@ -232,7 +230,6 @@ suite("ConnectionManager Tests", () => {
                 mockContext.object,
                 mockStatusView.object,
                 undefined, // prompter
-                true, // isRichExperiencesEnabled
                 mockLogger.object,
                 mockServiceClient.object,
                 mockVscodeWrapper.object,
@@ -264,7 +261,6 @@ suite("ConnectionManager Tests", () => {
                 mockContext.object,
                 mockStatusView.object,
                 undefined, // prompter
-                true, // isRichExperiencesEnabled
                 mockLogger.object,
                 mockServiceClient.object,
                 mockVscodeWrapper.object,
@@ -317,7 +313,6 @@ suite("ConnectionManager Tests", () => {
                 mockContext.object,
                 mockStatusView.object,
                 undefined, // prompter
-                true, // isRichExperiencesEnabled
                 mockLogger.object,
                 mockServiceClient.object,
                 mockVscodeWrapper.object,

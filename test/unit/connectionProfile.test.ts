@@ -8,17 +8,17 @@ import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import { IConnectionInfo } from "vscode-mssql";
 import { AccountStore } from "../../src/azure/accountStore";
-import { AzureController } from "../../src/azure/azureController";
-import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
+// import { AzureController } from "../../src/azure/azureController";
+// import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import { AuthenticationTypes, IConnectionProfile } from "../../src/models/interfaces";
+import { AuthenticationTypes } from "../../src/models/interfaces";
 import { Logger } from "../../src/models/logger";
-import { INameValueChoice, IPrompter, IQuestion } from "../../src/prompts/question";
+import { IPrompter } from "../../src/prompts/question";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { TestPrompter } from "./stubs";
 
@@ -69,11 +69,11 @@ function createTestCredentials(): IConnectionInfo {
 }
 
 suite("Connection Profile tests", () => {
-    let authTypeQuestionIndex = 2;
+    // let authTypeQuestionIndex = 2;
     let mockAccountStore: AccountStore;
-    let mockAzureController: AzureController;
+    // let mockAzureController: AzureController;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let mockPrompter: TypeMoq.IMock<IPrompter>;
+    // let mockPrompter: TypeMoq.IMock<IPrompter>;
     let mockLogger: TypeMoq.IMock<Logger>;
     let globalstate: TypeMoq.IMock<
         vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
@@ -84,145 +84,145 @@ suite("Connection Profile tests", () => {
             vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
         >();
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockPrompter = TypeMoq.Mock.ofType<IPrompter>();
+        // mockPrompter = TypeMoq.Mock.ofType<IPrompter>();
         mockLogger = TypeMoq.Mock.ofType<Logger>();
         mockContext.setup((c) => c.globalState).returns(() => globalstate.object);
-        mockAzureController = new MsalAzureController(
-            mockContext.object,
-            mockPrompter.object,
-            undefined,
-        );
+        // mockAzureController = new MsalAzureController(
+        //     mockContext.object,
+        //     mockPrompter.object,
+        //     undefined,
+        // );
         mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
     });
 
-    test("CreateProfile should ask questions in correct order", async () => {
-        // Given
-        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-        let answers: { [key: string]: string } = {};
-        let profileQuestions: IQuestion[];
-        let profileReturned: IConnectionProfile;
+    // test("CreateProfile should ask questions in correct order", async () => {
+    //     // Given
+    //     let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+    //     let answers: { [key: string]: string } = {};
+    //     let profileQuestions: IQuestion[];
+    //     let profileReturned: IConnectionProfile;
 
-        // When createProfile is called and user cancels out
-        prompter
-            .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .callback((questions) => {
-                // Capture questions for verification
-                profileQuestions = questions;
-            })
-            .returns((questions) => {
-                //
-                return Promise.resolve(answers);
-            });
+    //     // When createProfile is called and user cancels out
+    //     prompter
+    //         .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+    //         .callback((questions) => {
+    //             // Capture questions for verification
+    //             profileQuestions = questions;
+    //         })
+    //         .returns((questions) => {
+    //             //
+    //             return Promise.resolve(answers);
+    //         });
 
-        await ConnectionProfile.createProfile(
-            prompter.object,
-            undefined,
-            undefined,
-            mockAzureController,
-            mockAccountStore,
-        ).then((profile) => (profileReturned = profile));
+    //     await ConnectionProfile.createProfile(
+    //         prompter.object,
+    //         undefined,
+    //         undefined,
+    //         mockAzureController,
+    //         mockAccountStore,
+    //     ).then((profile) => (profileReturned = profile));
 
-        // Then expect the following flow:
-        let questionNames: string[] = [
-            LocalizedConstants.serverPrompt, // Server
-            LocalizedConstants.databasePrompt, // DB Name
-            LocalizedConstants.authTypeName, // Authentication Type
-            LocalizedConstants.usernamePrompt, // UserName
-            LocalizedConstants.passwordPrompt, // Password
-            LocalizedConstants.msgSavePassword, // Save Password
-            LocalizedConstants.aad, // Choose MEID Account
-            LocalizedConstants.tenant, // Choose ME Tenant
-            LocalizedConstants.profileNamePrompt, // Profile Name
-        ];
+    //     // Then expect the following flow:
+    //     let questionNames: string[] = [
+    //         LocalizedConstants.serverPrompt, // Server
+    //         LocalizedConstants.databasePrompt, // DB Name
+    //         LocalizedConstants.authTypeName, // Authentication Type
+    //         LocalizedConstants.usernamePrompt, // UserName
+    //         LocalizedConstants.passwordPrompt, // Password
+    //         LocalizedConstants.msgSavePassword, // Save Password
+    //         LocalizedConstants.aad, // Choose MEID Account
+    //         LocalizedConstants.tenant, // Choose ME Tenant
+    //         LocalizedConstants.profileNamePrompt, // Profile Name
+    //     ];
 
-        assert.strictEqual(
-            profileQuestions.length,
-            questionNames.length,
-            "unexpected number of questions",
-        );
-        for (let i = 0; i < profileQuestions.length; i++) {
-            assert.strictEqual(
-                profileQuestions[i].name,
-                questionNames[i],
-                `Missing question for ${questionNames[i]}`,
-            );
-        }
-        // And expect result to be undefined as questions were not answered
-        assert.strictEqual(profileReturned, undefined);
-    });
+    //     assert.strictEqual(
+    //         profileQuestions.length,
+    //         questionNames.length,
+    //         "unexpected number of questions",
+    //     );
+    //     for (let i = 0; i < profileQuestions.length; i++) {
+    //         assert.strictEqual(
+    //             profileQuestions[i].name,
+    //             questionNames[i],
+    //             `Missing question for ${questionNames[i]}`,
+    //         );
+    //     }
+    //     // And expect result to be undefined as questions were not answered
+    //     assert.strictEqual(profileReturned, undefined);
+    // });
 
-    test("CreateProfile - SqlPassword should be default auth type", async () => {
-        // Given
-        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-        let answers: { [key: string]: string } = {};
-        let profileQuestions: IQuestion[];
+    // test("CreateProfile - SqlPassword should be default auth type", async () => {
+    //     // Given
+    //     let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+    //     let answers: { [key: string]: string } = {};
+    //     let profileQuestions: IQuestion[];
 
-        // When createProfile is called
-        prompter
-            .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .callback((questions) => {
-                // Capture questions for verification
-                profileQuestions = questions;
-            })
-            .returns(async (questions) => {
-                //
-                return answers;
-            });
+    //     // When createProfile is called
+    //     prompter
+    //         .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+    //         .callback((questions) => {
+    //             // Capture questions for verification
+    //             profileQuestions = questions;
+    //         })
+    //         .returns(async (questions) => {
+    //             //
+    //             return answers;
+    //         });
 
-        await ConnectionProfile.createProfile(
-            prompter.object,
-            undefined,
-            undefined,
-            mockAzureController,
-            mockAccountStore,
-        );
+    //     await ConnectionProfile.createProfile(
+    //         prompter.object,
+    //         undefined,
+    //         undefined,
+    //         mockAzureController,
+    //         mockAccountStore,
+    //     );
 
-        // Then expect SqlAuth to be the only default type
-        let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
-        assert.strictEqual(authChoices[0].name, LocalizedConstants.authTypeSql);
-    });
+    //     // Then expect SqlAuth to be the only default type
+    //     let authChoices = <INameValueChoice[]>profileQuestions[authTypeQuestionIndex].choices;
+    //     assert.strictEqual(authChoices[0].name, LocalizedConstants.authTypeSql);
+    // });
 
-    test("CreateProfile - Integrated auth support", async () => {
-        // Given
-        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-        let answers: { [key: string]: string } = {};
-        let profileQuestions: IQuestion[];
-        prompter
-            .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .callback((questions) => {
-                // Capture questions for verification
-                profileQuestions = questions;
-            })
-            .returns(async (questions) => {
-                //
-                return answers;
-            });
+    // test("CreateProfile - Integrated auth support", async () => {
+    //     // Given
+    //     let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+    //     let answers: { [key: string]: string } = {};
+    //     let profileQuestions: IQuestion[];
+    //     prompter
+    //         .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+    //         .callback((questions) => {
+    //             // Capture questions for verification
+    //             profileQuestions = questions;
+    //         })
+    //         .returns(async (questions) => {
+    //             //
+    //             return answers;
+    //         });
 
-        // When createProfile is called on an OS
-        await ConnectionProfile.createProfile(
-            prompter.object,
-            undefined,
-            undefined,
-            mockAzureController,
-            mockAccountStore,
-        );
+    //     // When createProfile is called on an OS
+    //     await ConnectionProfile.createProfile(
+    //         prompter.object,
+    //         undefined,
+    //         undefined,
+    //         mockAzureController,
+    //         mockAccountStore,
+    //     );
 
-        // Then integrated auth should/should not be supported
-        // TODO if possible the test should mock out the OS dependency but it's not clear
-        // how to do this without implementing a facade and doing full factory/dependency injection
-        // for now, just validates expected behavior on the platform tests are running on
-        let authQuestion: IQuestion = profileQuestions[authTypeQuestionIndex];
-        let authChoices = <INameValueChoice[]>authQuestion.choices;
-        assert.strictEqual(authChoices.length, 3);
-        assert.strictEqual(authChoices[1].name, LocalizedConstants.authTypeIntegrated);
-        assert.strictEqual(
-            authChoices[1].value,
-            AuthenticationTypes[AuthenticationTypes.Integrated],
-        );
+    //     // Then integrated auth should/should not be supported
+    //     // TODO if possible the test should mock out the OS dependency but it's not clear
+    //     // how to do this without implementing a facade and doing full factory/dependency injection
+    //     // for now, just validates expected behavior on the platform tests are running on
+    //     let authQuestion: IQuestion = profileQuestions[authTypeQuestionIndex];
+    //     let authChoices = <INameValueChoice[]>authQuestion.choices;
+    //     assert.strictEqual(authChoices.length, 3);
+    //     assert.strictEqual(authChoices[1].name, LocalizedConstants.authTypeIntegrated);
+    //     assert.strictEqual(
+    //         authChoices[1].value,
+    //         AuthenticationTypes[AuthenticationTypes.Integrated],
+    //     );
 
-        // And on a platform with multiple choices, should prompt for input
-        assert.strictEqual(authQuestion.shouldPrompt(answers), true);
-    });
+    //     // And on a platform with multiple choices, should prompt for input
+    //     assert.strictEqual(authQuestion.shouldPrompt(answers), true);
+    // });
 
     test("Port number is applied to server name when connection credentials are transformed into details", () => {
         // Given a connection credentials object with server and a port
@@ -327,7 +327,6 @@ suite("Connection Profile tests", () => {
             connectionStoreMock.object,
             mockAccountStore,
             prompter.object,
-            true, // useLegacyConnectionExperience
             vscodeWrapperMock.object,
         );
 
@@ -433,7 +432,6 @@ suite("Connection Profile tests", () => {
             connectionStoreMock.object,
             mockAccountStore,
             prompter.object,
-            true, // useLegacyConnectionExperience
             vscodeWrapperMock.object,
         );
 
@@ -523,7 +521,6 @@ suite("Connection Profile tests", () => {
             connectionStoreMock.object,
             mockAccountStore,
             prompter.object,
-            true, // useLegacyConnectionExperience
             vscodeWrapperMock.object,
         );
 
@@ -547,39 +544,39 @@ suite("Connection Profile tests", () => {
             });
     });
 
-    test("Profile can be created from a connection string", async () => {
-        let answers = {};
-        answers[LocalizedConstants.serverPrompt] = "Server=my-server";
+    // test("Profile can be created from a connection string", async () => {
+    //     let answers = {};
+    //     answers[LocalizedConstants.serverPrompt] = "Server=my-server";
 
-        // Set up the prompter to answer the server prompt with the connection string
-        let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
-        prompter
-            .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns((questions) => {
-                questions
-                    .filter((question) => question.name === LocalizedConstants.serverPrompt)[0]
-                    .onAnswered(answers[LocalizedConstants.serverPrompt]);
-                questions
-                    .filter(
-                        (question) =>
-                            question.name !== LocalizedConstants.serverPrompt &&
-                            question.name !== LocalizedConstants.profileNamePrompt,
-                    )
-                    .forEach((question) => {
-                        // Verify that none of the other questions prompt once a connection string is given
-                        assert.equal(question.shouldPrompt(answers), false);
-                    });
-                return Promise.resolve(answers);
-            });
+    //     // Set up the prompter to answer the server prompt with the connection string
+    //     let prompter: TypeMoq.IMock<IPrompter> = TypeMoq.Mock.ofType(TestPrompter);
+    //     prompter
+    //         .setup((x) => x.prompt(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+    //         .returns((questions) => {
+    //             questions
+    //                 .filter((question) => question.name === LocalizedConstants.serverPrompt)[0]
+    //                 .onAnswered(answers[LocalizedConstants.serverPrompt]);
+    //             questions
+    //                 .filter(
+    //                     (question) =>
+    //                         question.name !== LocalizedConstants.serverPrompt &&
+    //                         question.name !== LocalizedConstants.profileNamePrompt,
+    //                 )
+    //                 .forEach((question) => {
+    //                     // Verify that none of the other questions prompt once a connection string is given
+    //                     assert.equal(question.shouldPrompt(answers), false);
+    //                 });
+    //             return Promise.resolve(answers);
+    //         });
 
-        // Verify that a profile was created
-        let profile = await ConnectionProfile.createProfile(
-            prompter.object,
-            undefined,
-            undefined,
-            mockAzureController,
-            mockAccountStore,
-        );
-        assert.equal(Boolean(profile), true);
-    });
+    //     // Verify that a profile was created
+    //     let profile = await ConnectionProfile.createProfile(
+    //         prompter.object,
+    //         undefined,
+    //         undefined,
+    //         mockAzureController,
+    //         mockAccountStore,
+    //     );
+    //     assert.equal(Boolean(profile), true);
+    // });
 });

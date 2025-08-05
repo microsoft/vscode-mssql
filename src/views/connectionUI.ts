@@ -4,17 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { IAccount, IConnectionInfo, ITenant } from "vscode-mssql";
+import { IAccount, IConnectionInfo } from "vscode-mssql";
 import { AccountStore } from "../azure/accountStore";
-import providerSettings from "../azure/providerSettings";
 import * as constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionCredentials } from "../models/connectionCredentials";
-import { ConnectionProfile } from "../models/connectionProfile";
 import { ConnectionStore } from "../models/connectionStore";
-import { ICreateFirewallRuleParams } from "../models/contracts/firewall/firewallRequest";
 import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
@@ -22,9 +19,7 @@ import {
 } from "../models/interfaces";
 import * as Utils from "../models/utils";
 import { Timer } from "../models/utils";
-import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
-import { CancelError } from "../utils/utils";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { AddFirewallRuleWebviewController } from "../controllers/addFirewallRuleWebviewController";
 import { SessionCreatedParameters } from "../models/contracts/objectExplorer/createSessionRequest";
@@ -52,7 +47,6 @@ export class ConnectionUI {
         private _connectionStore: ConnectionStore,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
-        private _useLegacyConnectionExperience: boolean = false,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!this._vscodeWrapper) {
@@ -496,71 +490,12 @@ export class ConnectionUI {
     public async createAndSaveProfile(
         validate: boolean = true,
     ): Promise<IConnectionProfile | undefined> {
-        if (!this._useLegacyConnectionExperience) {
-            // Opening the Connection Dialog is considering the end of the flow regardless of whether they create a new connection,
-            // so undefined is returned.
-            // It's considered the end of the flow because opening a complex dialog in the middle of a flow then continuing is disorienting.
-            // If they want to use their new connection, they can execute their query again.
-            vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
-            return undefined;
-        } else {
-            let profile = await this.promptForCreateProfile();
-            if (profile) {
-                let savedProfile = validate
-                    ? await this.validateAndSaveProfile(profile)
-                    : await this.saveProfile(profile);
-                if (savedProfile) {
-                    if (validate) {
-                        this.vscodeWrapper.showInformationMessage(
-                            LocalizedConstants.msgProfileCreatedAndConnected,
-                        );
-                    } else {
-                        this.vscodeWrapper.showInformationMessage(
-                            LocalizedConstants.msgProfileCreated,
-                        );
-                    }
-                }
-                return savedProfile;
-            }
-        }
-    }
-
-    /**
-     * Validate a connection profile by connecting to it, and save it if we are successful.
-     */
-    public async validateAndSaveProfile(
-        profile: IConnectionProfile,
-    ): Promise<IConnectionProfile | undefined> {
-        let uri = this.vscodeWrapper.activeTextEditorUri;
-        if (!uri || !this.vscodeWrapper.isEditingSqlFile) {
-            uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
-        }
-
-        const success = await this.connectionManager.connect(uri, profile);
-
-        if (success) {
-            // Success! save it
-            return await this.saveProfile(profile);
-        } else {
-            // Check whether the error was for firewall rule or not
-            if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
-                let success = await this.addFirewallRule(uri, profile);
-                if (success) {
-                    return await this.validateAndSaveProfile(profile);
-                }
-                return undefined;
-            } else if (this.connectionManager.failedUriToSSLMap.has(uri)) {
-                // SSL error
-                let updatedConn = await this.connectionManager.handleSSLError(uri, profile);
-                if (updatedConn) {
-                    return await this.validateAndSaveProfile(updatedConn as IConnectionProfile);
-                }
-                return undefined;
-            } else {
-                // Normal connection error! Let the user try again, prefilling values that they already entered
-                return await this.promptToRetryAndSaveProfile(profile);
-            }
-        }
+        // Opening the Connection Dialog is considering the end of the flow regardless of whether they create a new connection,
+        // so undefined is returned.
+        // It's considered the end of the flow because opening a complex dialog in the middle of a flow then continuing is disorienting.
+        // If they want to use their new connection, they can execute their query again.
+        vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
+        return undefined;
     }
 
     /**
@@ -596,65 +531,26 @@ export class ConnectionUI {
         profile: IConnectionInfo,
         connectionResponse: ConnectionCompleteParams | SessionCreatedParameters,
     ): Promise<boolean> {
-        if (!this._useLegacyConnectionExperience) {
-            if (connectionResponse.errorNumber !== constants.errorFirewallRule) {
-                Utils.logDebug(
-                    `handleFirewallError called with non-firewall-error response; error number: '${connectionResponse.errorNumber}'`,
-                );
-            }
-
-            const addFirewallRuleController = new AddFirewallRuleWebviewController(
-                this._context,
-                this._vscodeWrapper,
-                {
-                    serverName: profile.server,
-                    errorMessage: connectionResponse.errorMessage,
-                },
-                this.connectionManager.firewallService,
+        if (connectionResponse.errorNumber !== constants.errorFirewallRule) {
+            Utils.logDebug(
+                `handleFirewallError called with non-firewall-error response; error number: '${connectionResponse.errorNumber}'`,
             );
-            addFirewallRuleController.panel.reveal();
-
-            const wasCreated = await addFirewallRuleController.dialogResult;
-
-            return wasCreated === true; // dialog closed is undefined
-        } else {
-            // TODO: Access account which firewall error needs to be added from:
-            // Try to match accountId to an account in account storage
-            if (profile.accountId) {
-                let account = this._accountStore.getAccount(profile.accountId);
-                this.connectionManager.accountService.setAccount(account);
-                // take that account from account storage and refresh tokens and create firewall rule
-            } else {
-                // If no match or no accountId present, need to add an azure account
-                let selection = await this._vscodeWrapper.showInformationMessage(
-                    LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
-                    LocalizedConstants.azureAddAccount,
-                );
-                if (selection === LocalizedConstants.azureAddAccount) {
-                    profile =
-                        await this.connectionManager.azureController.populateAccountProperties(
-                            profile as IConnectionProfile,
-                            this._accountStore,
-                            providerSettings.resources.azureManagementResource,
-                        );
-                }
-                let account = this._accountStore.getAccount(profile.accountId);
-                this.connectionManager.accountService.setAccount(account!);
-            }
-
-            const handleResponse = await this.connectionManager.firewallService.handleFirewallRule(
-                connectionResponse.errorNumber,
-                connectionResponse.errorMessage,
-            );
-
-            let success = handleResponse.result;
-
-            if (success) {
-                success = await this.createFirewallRule(profile.server, handleResponse.ipAddress);
-            }
-
-            return success;
         }
+
+        const addFirewallRuleController = new AddFirewallRuleWebviewController(
+            this._context,
+            this._vscodeWrapper,
+            {
+                serverName: profile.server,
+                errorMessage: connectionResponse.errorMessage,
+            },
+            this.connectionManager.firewallService,
+        );
+        addFirewallRuleController.panel.reveal();
+
+        const wasCreated = await addFirewallRuleController.dialogResult;
+
+        return wasCreated === true; // dialog closed is undefined
     }
 
     /**
@@ -719,219 +615,6 @@ export class ConnectionUI {
      */
     public async saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
         return await this._connectionStore.saveProfile(profile);
-    }
-
-    private async promptForCreateProfile(): Promise<IConnectionProfile> {
-        const profile = await ConnectionProfile.createProfile(
-            this._prompter,
-            this._connectionStore,
-            this._context,
-            this.connectionManager.azureController,
-            this._accountStore,
-        );
-
-        return profile;
-    }
-
-    private async promptToRetryAndSaveProfile(
-        profile: IConnectionProfile,
-        isFirewallError: boolean = false,
-    ): Promise<IConnectionProfile> {
-        const updatedProfile = await this.promptForRetryCreateProfile(profile, isFirewallError);
-        if (updatedProfile) {
-            return await this.validateAndSaveProfile(updatedProfile);
-        } else {
-            return undefined;
-        }
-    }
-
-    public async promptForRetryCreateProfile(
-        profile: IConnectionProfile,
-        isFirewallError: boolean = false,
-    ): Promise<IConnectionProfile> {
-        // Ask if the user would like to fix the profile
-        let errorMessage = isFirewallError
-            ? LocalizedConstants.msgPromptRetryFirewallRuleAdded
-            : LocalizedConstants.msgPromptRetryCreateProfile;
-        let result = await this._vscodeWrapper.showErrorMessage(
-            errorMessage,
-            LocalizedConstants.retryLabel,
-        );
-        if (result === LocalizedConstants.retryLabel) {
-            const newProfile = await ConnectionProfile.createProfile(
-                this._prompter,
-                this._connectionStore,
-                this._context,
-                this.connectionManager.azureController,
-                this._accountStore,
-                profile,
-            );
-
-            return newProfile;
-        } else {
-            // user cancelled the prompt - throw error so that we know user cancelled
-            throw new CancelError();
-        }
-    }
-
-    private async promptForFirewallRuleCreation(
-        startIpAddress: string,
-        server: string,
-    ): Promise<ICreateFirewallRuleParams | undefined> {
-        function padTo2Digits(num: number): string {
-            return num.toString().padStart(2, "0");
-        }
-
-        // format as "YYYY-MM-DD_hh-mm-ss" (default Azure rulename format)
-        function formatDate(date: Date): string {
-            return (
-                [
-                    date.getFullYear(),
-                    padTo2Digits(date.getMonth() + 1),
-                    padTo2Digits(date.getDate()),
-                ].join("-") +
-                "_" +
-                [
-                    padTo2Digits(date.getHours()),
-                    padTo2Digits(date.getMinutes()),
-                    padTo2Digits(date.getSeconds()),
-                ].join("-")
-            );
-        }
-
-        let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(
-            this._accountStore,
-        );
-        let tenantChoices: INameValueChoice[] = [];
-        let defaultFirewallRuleName = `ClientIPAddress_${formatDate(new Date())}`;
-
-        let accountAnswer: IAccount;
-        let tenantIdAnswer: string;
-        let firewallRuleNameAnswer: string;
-
-        let questions: IQuestion[] = [
-            {
-                type: QuestionTypes.input,
-                name: LocalizedConstants.startIpAddressPrompt,
-                message: LocalizedConstants.startIpAddressPrompt,
-                placeHolder: startIpAddress,
-                default: startIpAddress,
-                validate: (value: string) => {
-                    if (!Number.parseFloat(value) || !value.match(constants.ipAddressRegex)) {
-                        return LocalizedConstants.msgInvalidIpAddress;
-                    }
-                },
-            },
-            {
-                type: QuestionTypes.input,
-                name: LocalizedConstants.endIpAddressPrompt,
-                message: LocalizedConstants.endIpAddressPrompt,
-                placeHolder: startIpAddress,
-                validate: (value: string) => {
-                    if (
-                        !Number.parseFloat(value) ||
-                        !value.match(constants.ipAddressRegex) ||
-                        Number.parseFloat(value) > Number.parseFloat(startIpAddress)
-                    ) {
-                        return LocalizedConstants.msgInvalidIpAddress;
-                    }
-                },
-                default: startIpAddress,
-            },
-            {
-                type: QuestionTypes.input,
-                name: LocalizedConstants.firewallRuleNamePrompt,
-                message: LocalizedConstants.firewallRuleNamePrompt,
-                placeHolder: defaultFirewallRuleName,
-                validate: (value: string) => {
-                    if (!value.match(constants.ruleNameRegex)) {
-                        return LocalizedConstants.msgInvalidRuleName;
-                    }
-                    firewallRuleNameAnswer = value;
-                },
-                default: defaultFirewallRuleName,
-            },
-            {
-                type: QuestionTypes.expand,
-                name: LocalizedConstants.aad,
-                message: LocalizedConstants.azureChooseAccount,
-                choices: azureAccountChoices,
-                onAnswered: async (value: IAccount) => {
-                    accountAnswer = value;
-                    let account = value;
-                    tenantChoices.push(
-                        ...account?.properties?.tenants!.map((t) => ({
-                            name: t.displayName,
-                            value: t,
-                        })),
-                    );
-                    if (tenantChoices.length === 1) {
-                        tenantIdAnswer = tenantChoices[0].value.id;
-                    }
-                },
-            },
-            {
-                type: QuestionTypes.expand,
-                name: LocalizedConstants.tenant,
-                message: LocalizedConstants.azureChooseTenant,
-                choices: tenantChoices,
-                shouldPrompt: () => tenantChoices.length > 1,
-                onAnswered: (value: ITenant) => {
-                    tenantIdAnswer = value.id;
-                },
-            },
-        ];
-
-        // Prompt and return the value if the user confirmed
-        let answers = await this._prompter.prompt(questions);
-        if (answers) {
-            let result: ICreateFirewallRuleParams = {
-                account: accountAnswer,
-                startIpAddress: answers[LocalizedConstants.startIpAddressPrompt]
-                    ? (answers[LocalizedConstants.startIpAddressPrompt] as string)
-                    : startIpAddress,
-                endIpAddress: answers[LocalizedConstants.endIpAddressPrompt]
-                    ? (answers[LocalizedConstants.endIpAddressPrompt] as string)
-                    : startIpAddress,
-                firewallRuleName: firewallRuleNameAnswer,
-                serverName: server,
-                securityTokenMappings:
-                    await this.connectionManager.accountService.createSecurityTokenMapping(
-                        accountAnswer,
-                        tenantIdAnswer,
-                    ),
-            };
-            return result;
-        } else {
-            return undefined;
-        }
-    }
-
-    private async createFirewallRule(serverName: string, ipAddress: string): Promise<boolean> {
-        let result = await this._vscodeWrapper.showInformationMessage(
-            LocalizedConstants.msgPromptRetryFirewallRuleSignedIn(ipAddress, serverName),
-            LocalizedConstants.createFirewallRuleLabel,
-        );
-        if (result === LocalizedConstants.createFirewallRuleLabel) {
-            const firewallService = this.connectionManager.firewallService;
-            let params = await this.promptForFirewallRuleCreation(ipAddress, serverName);
-            if (params) {
-                let firewallResult = await firewallService.createFirewallRule(params);
-                if (firewallResult.result) {
-                    this._vscodeWrapper.showInformationMessage(
-                        LocalizedConstants.msgPromptFirewallRuleCreated,
-                    );
-                    return true;
-                } else {
-                    Utils.showErrorMsg(firewallResult.errorMessage);
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
     }
 
     private async promptForRetryConnectWithDifferentCredentials(): Promise<boolean> {
