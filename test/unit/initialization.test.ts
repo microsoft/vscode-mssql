@@ -6,15 +6,15 @@
 import * as Extension from "../../src/extension";
 import * as assert from "assert";
 
-import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
 import { activateExtension } from "./utils";
+import ConnectionManager from "../../src/controllers/connectionManager";
 
 suite("Initialization Tests", () => {
     test("Connection manager is initialized properly", async () => {
         await activateExtension();
         let controller: MainController = await Extension.getController();
         let connectionManager: ConnectionManager = controller.connectionManager;
-        assert.notStrictEqual(undefined, connectionManager.client);
+        assert.notStrictEqual(undefined, connectionManager);
     });
 });

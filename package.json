@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.34.0",
+    "version": "1.35.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -50,20 +50,26 @@
         "ms-mssql.sql-bindings-vscode"
     ],
     "scripts": {
-        "build": "gulp build",
-        "compile": "gulp ext:compile",
-        "watch": "gulp watch",
+        "build:runtime-localization": "node scripts/generate-localization.js",
+        "build:copy-assets": "node scripts/copy-assets.js",
+        "build:prepare": "yarn build:copy-assets && yarn build:runtime-localization",
+        "build:extension": "tsc -p tsconfig.extension.json",
+        "build:webviews": "node scripts/bundle-reactviews.js",
+        "build": "yarn build:prepare && yarn build:extension && yarn build:webviews",
+        "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
+        "watch:webviews": "node scripts/bundle-reactviews.js --watch",
+        "watch": "yarn build:prepare && run-p -l watch:extension watch:webviews",
         "lint": "eslint --quiet --cache",
-        "localization": "gulp ext:extract-localization-strings",
+        "localization": "node scripts/extract-localization.js",
+        "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
         "smoketest": "yarn instrument && yarn e2eTest",
         "test": "node ./out/test/unit/runTest.js",
-        "package": "vsce package",
+        "package": "node scripts/package-extension.js",
         "prepare": "husky",
         "lint-staged": "lint-staged --quiet",
         "precommit": "run-p lint-staged localization",
-        "clean-package": "git clean -xfd && yarn install && yarn build && yarn gulp package:online",
-        "instrument": "nyc instrument ./out/src ./out/src --in-place --exclude=**/views/htmlcontent/**",
-        "e2eTest": "npx playwright test; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
+        "instrument": "nyc instrument ./out/src ./out/src --in-place",
+        "e2eTest": "npx playwright test ; npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
     },
     "lint-staged": {
         "*.ts": "eslint --quiet --cache",
@@ -71,19 +77,10 @@
         "*.css": "prettier --check"
     },
     "devDependencies": {
-        "@angular/common": "~2.1.2",
-        "@angular/compiler": "~2.1.2",
-        "@angular/core": "~2.1.2",
-        "@angular/forms": "~2.1.2",
-        "@angular/platform-browser": "~2.1.2",
-        "@angular/platform-browser-dynamic": "~2.1.2",
-        "@angular/router": "~3.1.2",
-        "@angular/upgrade": "~2.1.2",
         "@azure/core-paging": "^1.6.2",
         "@ctrl/tinycolor": "^4.1.0",
         "@dagrejs/dagre": "^1.1.4",
         "@eslint/compat": "^1.1.0",
-        "@eslint/js": "^9.5.0",
         "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
         "@fluentui/react-components": "^9.64.0",
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
@@ -92,97 +89,57 @@
         "@playwright/test": "^1.45.0",
         "@stylistic/eslint-plugin": "^2.8.0",
         "@types/azdata": "^1.46.6",
-        "@types/ejs": "^3.1.0",
-        "@types/eslint__js": "^8.42.3",
         "@types/jquery": "^3.3.31",
-        "@types/jqueryui": "^1.12.7",
-        "@types/keytar": "^4.4.2",
         "@types/lockfile": "^1.0.2",
         "@types/mocha": "^5.2.7",
-        "@types/node": "^20.14.8",
-        "@types/node-fetch": "^2.6.2",
+        "@types/node": "^22.13.14",
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
         "@types/react-resizable": "^3.0.8",
-        "@types/react-window": "^1.8.8",
         "@types/sinon": "^10.0.12",
         "@types/tmp": "0.0.28",
         "@types/tunnel": "0.0.1",
-        "@types/underscore": "1.8.3",
         "@types/vscode": "1.98.0",
         "@types/vscode-webview": "^1.57.5",
         "@typescript-eslint/eslint-plugin": "^8.7.0",
         "@typescript-eslint/parser": "^8.7.0",
-        "@vitejs/plugin-react": "^4.3.4",
         "@vscode/l10n": "^0.0.18",
         "@vscode/l10n-dev": "^0.0.35",
         "@vscode/test-cli": "^0.0.10",
         "@vscode/test-electron": "^2.4.1",
         "@vscode/vsce": "^3.1.1",
-        "@xmldom/xmldom": "0.8.4",
         "@xyflow/react": "^12.4.4",
-        "angular-in-memory-web-api": "0.1.13",
-        "angular2-slickgrid": "github:microsoft/angular2-slickgrid#1.4.7",
         "assert": "^1.4.1",
         "azdataGraph": "github:Microsoft/azdataGraph#0.0.137",
         "chai": "^3.5.0",
         "cli-color": "^2.0.4",
-        "coveralls": "^3.0.2",
-        "decache": "^4.1.0",
         "del": "^2.2.1",
         "esbuild": "^0.25.0",
-        "esbuild-plugin-copy": "^2.1.1",
         "eslint": "^9.11.1",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-custom-eslint-rules": "file:eslint/custom-rules",
-        "eslint-plugin-deprecation": "^3.0.0",
         "eslint-plugin-jsdoc": "^50.2.2",
-        "eslint-plugin-jsx-a11y": "^6.10.0",
         "eslint-plugin-notice": "^1.0.0",
         "eslint-plugin-prettier": "^5.2.1",
         "eslint-plugin-react": "^7.35.2",
-        "eslint-plugin-react-hooks": "^4.6.2",
-        "gulp": "^4.0.2",
-        "gulp-concat": "^2.6.0",
-        "gulp-eslint-new": "^2.1.0",
-        "gulp-istanbul-report": "0.0.1",
-        "gulp-rename": "^1.2.2",
-        "gulp-run-command": "^0.0.10",
-        "gulp-shell": "^0.7.0",
-        "gulp-sourcemaps": "^1.6.0",
-        "gulp-typescript": "^5.0.1",
-        "gulp-uglify": "^2.0.0",
         "html-to-image": "1.11.11",
         "husky": "^9.0.11",
-        "istanbul": "^0.4.5",
         "lint-staged": "^15.2.10",
         "mocha-junit-reporter": "^2.2.1",
         "npm-run-all": "^4.1.5",
         "nyc": "^17.1.0",
-        "prettier": "^3.3.3",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "react-markdown": "^9.0.1",
         "react-resizable": "^3.0.5",
         "react-resizable-panels": "^3.0.2",
-        "react-router-dom": "^6.24.1",
-        "remap-istanbul": "0.9.6",
-        "rxjs": "5.0.0-beta.12",
         "sinon": "^14.0.0",
-        "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.46",
+        "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.49",
         "source-map-support": "^0.5.21",
-        "systemjs": "0.19.40",
-        "systemjs-builder": "^0.15.32",
-        "systemjs-plugin-json": "^0.2.0",
         "ts-node": "^10.9.2",
         "typemoq": "^1.7.0",
-        "typescript": "^5.6.2",
+        "typescript": "^5.8.3",
         "typescript-eslint": "^8.34.0",
-        "uglify-js": "mishoo/UglifyJS2#harmony-v2.8.22",
-        "vite": "^6.2.7",
-        "vite-plugin-istanbul": "^7.0.0",
-        "vscode-jsonrpc": "^8.2.1",
-        "vscode-nls-dev": "2.0.1",
         "xliff": "^6.2.1",
         "xml2js": "^0.6.2",
         "yargs": "^17.7.2"
@@ -196,39 +153,27 @@
         "@microsoft/ads-extension-telemetry": "^3.0.2",
         "@microsoft/vscode-azext-azureauth": "^4.1.1",
         "axios": "^1.8.2",
-        "core-js": "^2.4.1",
         "decompress-zip": "^0.2.2",
         "dotenv": "^16.4.5",
-        "ejs": "^3.1.10",
         "error-ex": "^1.3.0",
         "figures": "^1.4.0",
         "find-remove": "1.2.1",
-        "getmac": "1.2.1",
+        "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
         "lockfile": "1.0.4",
-        "node-fetch": "^2.6.2",
         "opener": "1.4.2",
         "plist": "^3.0.6",
         "prettier": "^3.3.3",
         "pretty-data": "^0.40.0",
-        "qs": "^6.9.1",
-        "rangy": "^1.3.0",
-        "reflect-metadata": "0.1.12",
         "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
         "shallow-equal": "^3.1.0",
-        "signal-exit": "^4.1.0",
         "tar": "^7.4.3",
         "tmp": "^0.0.28",
         "tunnel": "0.0.6",
-        "underscore": "^1.8.3",
         "uuid": "^11.0.5",
+        "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
-        "vscode-nls": "^2.0.2",
-        "yallist": "^5.0.0",
-        "zone.js": "^0.6.26"
-    },
-    "resolutions": {
-        "gulp-typescript/source-map": "0.7.4"
+        "yallist": "^5.0.0"
     },
     "capabilities": {
         "untrustedWorkspaces": {
@@ -257,8 +202,7 @@
                 {
                     "type": "webview",
                     "id": "queryResult",
-                    "name": "%extension.queryResult%",
-                    "when": "!config.mssql.useLegacyQueryResultExperience"
+                    "name": "%extension.queryResult%"
                 }
             ],
             "objectExplorer": [
@@ -350,7 +294,7 @@
                 },
                 {
                     "command": "mssql.revealQueryResultPanel",
-                    "when": "editorLangId == sql && !isInDiffEditor && !config.mssql.useLegacyQueryResultExperience && view.queryResult.visible == false",
+                    "when": "editorLangId == sql && !isInDiffEditor && view.queryResult.visible == false",
                     "group": "navigation@2"
                 },
                 {
@@ -467,7 +411,7 @@
                 },
                 {
                     "command": "mssql.deployLocalDockerContainer",
-                    "when": "mssql.hasConnections && config.mssql.enableRichExperiences && view == objectExplorer",
+                    "when": "config.mssql.enableRichExperiences && view == objectExplorer",
                     "title": "%mssql.deployLocalDockerContainer%",
                     "group": "navigation"
                 }
@@ -510,7 +454,7 @@
                     "group": "1_MSSQL_serverAndDbManagement@4"
                 },
                 {
-                    "command": "mssql.designSchema",
+                    "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences",
                     "group": "2_MSSQL_serverDbActions@1"
                 },
@@ -746,8 +690,20 @@
                     "when": "config.mssql.useLegacyConnectionExperience"
                 },
                 {
-                    "command": "mssql.designSchema",
+                    "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences"
+                },
+                {
+                    "command": "mssql.connectionGroups.edit",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.connectionGroups.delete",
+                    "when": "false"
+                },
+                {
+                    "command": "mssql.editConnection",
+                    "when": "false"
                 }
             ],
             "webview/context": [
@@ -975,12 +931,12 @@
                 }
             },
             {
-                "command": "mssql.designSchema",
-                "title": "%mssql.designSchema%",
+                "command": "mssql.schemaDesigner",
+                "title": "%mssql.schemaDesigner%",
                 "category": "MS SQL",
                 "icon": {
                     "dark": "media/designSchema_dark.svg",
-                    "light": "media/vdesignSchema_light.svg"
+                    "light": "media/designSchema_light.svg"
                 }
             },
             {
@@ -1094,34 +1050,44 @@
             {
                 "command": "mssql.copilot.explainQuery",
                 "title": "%mssql.copilot.explainQuery%",
-                "category": "MSSQL"
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.copilot.analyzeQueryPerformance",
                 "title": "%mssql.copilot.analyzeQueryPerformance%",
-                "category": "MSSQL"
+                "category": "MS SQL"
             },
             {
                 "command": "mssql.copilot.rewriteQuery",
                 "title": "%mssql.copilot.rewriteQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.connectionSharing.editConnectionSharingPermissions",
+                "title": "%mssql.connectionSharing.editConnectionSharingPermissions%",
+                "category": "MSSQL"
+            },
+            {
+                "command": "mssql.connectionSharing.clearAllConnectionSharingPermissions",
+                "title": "%mssql.connectionSharing.clearAllConnectionSharingPermissions%",
                 "category": "MSSQL"
             },
             {
                 "command": "mssql.connectionGroups.create",
                 "title": "%mssql.connectionGroups.create%",
-                "category": "MSSQL",
+                "category": "MS SQL",
                 "icon": "$(new-folder)"
             },
             {
                 "command": "mssql.connectionGroups.edit",
                 "title": "%mssql.connectionGroups.edit%",
-                "category": "MSSQL",
+                "category": "MS SQL",
                 "icon": "$(edit)"
             },
             {
                 "command": "mssql.connectionGroups.delete",
                 "title": "%mssql.connectionGroups.delete%",
-                "category": "MSSQL",
+                "category": "MS SQL",
                 "icon": "$(trash)"
             },
             {
@@ -1210,13 +1176,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.useLegacyConnectionExperience.description%",
-                    "deprecationMessage": "%mssql.legacySetting.deprecationMessage%",
-                    "scope": "application"
-                },
-                "mssql.useLegacyQueryResultExperience": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.useLegacyQueryResultExperience.description%",
                     "deprecationMessage": "%mssql.legacySetting.deprecationMessage%",
                     "scope": "application"
                 },
@@ -1502,12 +1461,6 @@
                             }
                         }
                     },
-                    "scope": "resource"
-                },
-                "mssql.hasConnections": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.hasConnections%",
                     "scope": "resource"
                 },
                 "mssql.shortcuts": {
@@ -1936,6 +1889,11 @@
                     "default": 45,
                     "minimum": 1,
                     "description": "%mssql.objectExplorer.expandTimeout%"
+                },
+                "mssql.statusBar.connectionInfoMaxLength": {
+                    "type": "number",
+                    "default": -1,
+                    "description": "%mssql.statusBar.connectionInfoMaxLength.description%"
                 }
             }
         },
@@ -2351,6 +2309,41 @@
                 "toolReferenceName": "mssql_list_functions",
                 "userDescription": "List all functions in a database for a connected MSSQL server.",
                 "icon": "$(symbol-function)"
+            },
+            {
+                "name": "mssql_run_query",
+                "modelDescription": "Execute a SQL query against a connected MSSQL database. Returns query results including row count, column information, and data rows. Use this tool to run SELECT, INSERT, UPDATE, DELETE, or other SQL statements. IMPORTANT: This tool will execute ANY SQL statement provided - be extremely careful with write operations (INSERT, UPDATE, DELETE, CREATE, ALTER, DROP) as they will modify or destroy data. Always verify the query is safe before execution, especially for operations without WHERE clauses or that affect system objects.",
+                "tags": [
+                    "databases",
+                    "mssql",
+                    "query",
+                    "execute",
+                    "sql"
+                ],
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "connectionId": {
+                            "description": "Connection ID to execute the query against.",
+                            "title": "Connection ID",
+                            "type": "string"
+                        },
+                        "query": {
+                            "description": "SQL query to execute.",
+                            "title": "SQL Query",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "connectionId",
+                        "query"
+                    ]
+                },
+                "canBeReferencedInPrompt": true,
+                "displayName": "Run MSSQL Query",
+                "toolReferenceName": "mssql_run_query",
+                "userDescription": "Execute a SQL query against a connected MSSQL database.",
+                "icon": "$(play)"
             }
         ]
     }

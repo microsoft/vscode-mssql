@@ -31,7 +31,7 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { ConnectionCompleteParams } from "../../src/models/contracts/connection";
 import { stubTelemetry } from "./utils";
 import {
-    stubConfirmVscodeAzureSignin,
+    stubVscodeAzureSignIn,
     stubFetchServersFromAzure,
     stubPromptForAzureSubscriptionFilter,
 } from "./azureHelperStubs";
@@ -200,6 +200,18 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "Connection status should be NotStarted",
             );
 
+            expect(controller.state.azureAccounts).to.be.empty;
+
+            expect(controller.state.loadingAzureAccountsStatus).to.equal(
+                ApiStatus.NotStarted,
+                "Azure account load status should be NotStarted",
+            );
+
+            expect(controller.state.loadingAzureSubscriptionsStatus).to.equal(
+                ApiStatus.NotStarted,
+                "Azure subscription load status should be NotStarted",
+            );
+
             expect(controller.state.loadingAzureServersStatus).to.equal(
                 ApiStatus.NotStarted,
                 "Azure server load status should be NotStarted",
@@ -335,7 +347,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("should set connection input mode correctly and load server info for AzureBrowse", async () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
-                stubConfirmVscodeAzureSignin(sandbox);
+                stubVscodeAzureSignIn(sandbox);
                 stubFetchServersFromAzure(sandbox);
 
                 await controller["_reducerHandlers"].get("setConnectionInputType")(
@@ -504,7 +516,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
                 stubPromptForAzureSubscriptionFilter(sandbox, true);
-                stubConfirmVscodeAzureSignin(sandbox);
+                stubVscodeAzureSignIn(sandbox);
                 stubFetchServersFromAzure(sandbox);
 
                 expect(

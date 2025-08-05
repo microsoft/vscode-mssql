@@ -18,6 +18,10 @@
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="translated">&lt;default&gt;</target>
       </trans-unit>
+      <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
+        <source xml:lang="en">+ Add Azure Account</source>
+        <target state="translated">+ Aggiungi account Azure</target>
+      </trans-unit>
       <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
         <source xml:lang="en">+ Create Connection Group</source>
         <target state="translated">+ Crea gruppo di connessione</target>
@@ -80,6 +84,10 @@
         <source xml:lang="en">Add</source>
         <target state="translated">Aggiungi</target>
       </trans-unit>
+      <trans-unit id="++CODE++3d0d3f78acca7d0def0c881e924ececb285c1791711ab008ae5a0297e09a717a">
+        <source xml:lang="en">Add Account</source>
+        <target state="translated">Aggiungi account</target>
+      </trans-unit>
       <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
         <source xml:lang="en">Add Column</source>
         <target state="translated">Aggiungi colonna</target>
@@ -96,6 +104,10 @@
         <source xml:lang="en">Add Firewall Rule to {0}</source>
         <note>{0} is the server name</note>
         <target state="translated">Aggiungi regola del firewall a {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
+        <source xml:lang="en">Add Server Connection</source>
+        <target state="new">Add Server Connection</target>
       </trans-unit>
       <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
         <source xml:lang="en">Add Table</source>
@@ -134,6 +146,10 @@
         <source xml:lang="en">Advanced Options</source>
         <target state="translated">Opzioni avanzate</target>
       </trans-unit>
+      <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
+        <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
+        <target state="translated">Tutte le autorizzazioni per consentire alle estensioni di accedere alle tue connessioni sono state cancellate.</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
         <target state="translated">Consenti Null</target>
@@ -141,6 +157,10 @@
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
         <target state="translated">Consenti valori Null</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
+        <source xml:lang="en">Allow this extension to access your connections</source>
+        <target state="translated">Consentire a questa estensione di accedere alle tue connessioni</target>
       </trans-unit>
       <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
         <source xml:lang="en">Alphabetical</source>
@@ -191,6 +211,10 @@
       <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
         <source xml:lang="en">Apply changes to target</source>
         <target state="translated">Applica modifiche alla destinazione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
+        <source xml:lang="en">Approve</source>
+        <target state="translated">Approva</target>
       </trans-unit>
       <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
         <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
@@ -301,10 +325,6 @@
         <source xml:lang="en">Azure sign in failed.</source>
         <target state="translated">L'accesso ad Azure non è riuscito.</target>
       </trans-unit>
-      <trans-unit id="++CODE++bcfba23612af01d6083c1cbc352807182aa4a2a08665615d5e75206766e035c0">
-        <source xml:lang="en">Azure sign-in failed or was cancelled.</source>
-        <target state="translated">L'accesso ad Azure non è riuscito o è stato annullato.</target>
-      </trans-unit>
       <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
         <target state="translated">La cache dei token di Azure è stata cancellata.</target>
@@ -337,6 +357,10 @@
       <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
         <source xml:lang="en">Blanks</source>
         <target state="translated">Vuoti</target>
+      </trans-unit>
+      <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
+        <source xml:lang="en">Block this extension from accessing your connections</source>
+        <target state="translated">Impedire a questa estensione di accedere alle connessioni</target>
       </trans-unit>
       <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
         <source xml:lang="en">Brightness</source>
@@ -582,9 +606,17 @@
         <source xml:lang="en">Clear cache and refresh token</source>
         <target state="translated">Cancella la cache e aggiorna il token</target>
       </trans-unit>
+      <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
+        <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
+        <target state="translated">Cancellare le autorizzazioni per consentire a tutte le estensioni di accedere alle tue connessioni</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">Fare clic per connettersi a un database</target>
+      </trans-unit>
+      <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
+        <source xml:lang="en">Click to sign into an Azure account</source>
+        <target state="translated">Fare clic per accedere a un account Azure</target>
       </trans-unit>
       <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
         <source xml:lang="en">Close</source>
@@ -683,6 +715,10 @@
       <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
         <source xml:lang="en">Configure Linux containers</source>
         <target state="translated">Configura contenitori Linux</target>
+      </trans-unit>
+      <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
+        <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
+        <target state="new">Configure Rosetta in Docker Desktop</target>
       </trans-unit>
       <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
         <source xml:lang="en">Configure and customize SQL Server containers</source>
@@ -934,13 +970,17 @@
         <source xml:lang="en">Creating Container</source>
         <target state="translated">Creazione del contenitore</target>
       </trans-unit>
-      <trans-unit id="++CODE++09af7062beeeeb3b9e2346b91902b8e45ea936c57462ca09e997e7280b8f71dc">
-        <source xml:lang="en">Creating and starting your SQL Server Docker container</source>
-        <target state="translated">Creazione e avvio del contenitore Docker di SQL Server</target>
+      <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
+        <source xml:lang="en">Creating and starting your SQL Server container</source>
+        <target state="translated">Creazione e avvio del contenitore di SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
         <target state="translated">Errore delle credenziali: si è verificato un errore durante il tentativo di aggiornare le credenziali dell'account. Ripeti l'autenticazione.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
+        <source xml:lang="en">Currently signed in as:</source>
+        <target state="translated">Accesso attualmente eseguito come:</target>
       </trans-unit>
       <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
         <source xml:lang="en">Custom Zoom</source>
@@ -1018,6 +1058,10 @@
       <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
         <source xml:lang="en">Deleting Container...</source>
         <target state="translated">Eliminazione del contenitore...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++05a2d7332eb9d8bf164487c743a2e93c21b16bb2061a93e3ee2ceb508eadb753">
+        <source xml:lang="en">Deny</source>
+        <target state="translated">Nega</target>
       </trans-unit>
       <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
         <source xml:lang="en">Description</source>
@@ -1164,13 +1208,33 @@
         <source xml:lang="en">Enter connection group name</source>
         <target state="translated">Immettere il nome del gruppo di connessione</target>
       </trans-unit>
+      <trans-unit id="++CODE++524763fd6773ea93d76fa32d9e5974e1667748b114b90fba93f6a4948b0e5c20">
+        <source xml:lang="en">Enter container name</source>
+        <target state="translated">Immetti il nome contenitore</target>
+      </trans-unit>
       <trans-unit id="++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423">
         <source xml:lang="en">Enter description (optional)</source>
         <target state="translated">Immettere la descrizione (facoltativo)</target>
       </trans-unit>
+      <trans-unit id="++CODE++caaac8aa0d0641aea8406e7f1011aaeab33423fdd4ee9b3354ee88cc1487b0bf">
+        <source xml:lang="en">Enter hostname</source>
+        <target state="translated">Immetti il nome host</target>
+      </trans-unit>
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
         <target state="translated">Specificare la larghezza della nuova colonna</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
+        <source xml:lang="en">Enter password</source>
+        <target state="translated">Immetti la password</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6aa7783e2e2dbd69be673f5f534fa04a7d36683475767069e8030c958e318d47">
+        <source xml:lang="en">Enter port</source>
+        <target state="translated">Immetti la porta</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
+        <source xml:lang="en">Enter profile name</source>
+        <target state="translated">Immetti il nome profilo</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
@@ -1252,6 +1316,11 @@ Errore:
       <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
         <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
         <target state="translated">Errore durante l'esecuzione dei comandi Docker. Assicurarsi che Docker sia in esecuzione.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c03518af7ea8058b9f5444011cc402ee48c86c765dfd6ba8e5ce09ed8d836ca">
+        <source xml:lang="en">Error signing into Azure: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">Errore durante l'accesso ad Azure: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
         <source xml:lang="en">Error when refreshing token</source>
@@ -1373,6 +1442,10 @@ Errore:
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
         <target state="translated">Non è stato possibile aprire il file scmp: '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
+        <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
+        <target state="translated">Pull dell'immagine di SQL Server non riuscito. Controllare la connessione di rete e riprovare.</target>
       </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -1663,6 +1736,10 @@ Errore:
         <source xml:lang="en">Include Object Types</source>
         <target state="translated">Includi tipi di oggetto</target>
       </trans-unit>
+      <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
+        <source xml:lang="en">Include all object types</source>
+        <target state="new">Include all object types</target>
+      </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
         <target state="translated">Indice</target>
@@ -1786,6 +1863,22 @@ Errore:
         <source xml:lang="en">List Databases</source>
         <target state="translated">Elenca i database</target>
       </trans-unit>
+      <trans-unit id="++CODE++e5c4507bf20d72d00bff4c289eb11be5c9a297933beec5db5969eb33b7bc5690">
+        <source xml:lang="en">List Functions</source>
+        <target state="translated">Elenca funzioni</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0b795cd3bad85a0e394c340640be776b2c7765598fd7ac3dc8d2430baf78e77a">
+        <source xml:lang="en">List Schemas</source>
+        <target state="translated">Elenca schemi</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00806af7575cfd81acd74e3d602bb671403cbddfdf02754be73db121177d235f">
+        <source xml:lang="en">List Tables</source>
+        <target state="translated">Elenca tabelle</target>
+      </trans-unit>
+      <trans-unit id="++CODE++68053ffe844804d37eced757d4d0582e750a9b20d8ec5084aaab907846177b86">
+        <source xml:lang="en">List Views</source>
+        <target state="translated">Elenca visualizzazioni</target>
+      </trans-unit>
       <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
         <source xml:lang="en">List all connections registered with the mssql extension?</source>
         <target state="translated">Elencare tutte le connessioni registrate con l'estensione mssql?</target>
@@ -1795,14 +1888,54 @@ Errore:
         <note>{0} is the connection ID</note>
         <target state="translated">Elencare i database per la connessione '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++b1eb24f69841df721c66f542d63319e22c5d55ea1bee75d7e60c451023e6c3d2">
+        <source xml:lang="en">List functions for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">Elencare le funzioni per la connessione '{0}'?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f9fdea6ffd1d5c93340eff3cb4b0f75abcada7d160a99fd8f3092b3632661d84">
+        <source xml:lang="en">List schemas for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">Elencare gli schemi per la connessione '{0}'?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6f60c2f7be85c72c70f3e1803f001d9b89cf11c25d82a6a16ddb4835b2bdc3f">
+        <source xml:lang="en">List tables for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">Elencare le tabelle per la connessione '{0}'?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a951e5e9bc9076528c081d96624e0a6b73e1ae9034bc9aa4c1e8bd77e9dffcc4">
+        <source xml:lang="en">List views for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">Elencare le visualizzazioni per la connessione '{0}'?</target>
+      </trans-unit>
       <trans-unit id="++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5">
         <source xml:lang="en">Listing databases for connection '{0}'</source>
         <note>{0} is the connection ID</note>
         <target state="translated">Elenco dei database per la connessione '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++6c5a3eebc541922b6846fac5140eecc1c8cca7d49fd516d6d492b823bd080339">
+        <source xml:lang="en">Listing functions for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">Elenco delle funzioni per la connessione '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33ed9f224eba0860b9cfb0063fdbd1680208c1e358cecb479c7bd8c46236000e">
+        <source xml:lang="en">Listing schemas for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">Elenco schemi per la connessione '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
         <source xml:lang="en">Listing server connections</source>
         <target state="translated">Elenco delle connessioni server</target>
+      </trans-unit>
+      <trans-unit id="++CODE++22f9095eec94b234a5b2eee74a4c22e23b42d785b67c2027c13fd5b309a93ffa">
+        <source xml:lang="en">Listing tables for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">Elenco tabelle per la connessione '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d77ec2c188180112be2e819880b4ea2a8f5f86ec8917db4e18c39bcd02cacc10">
+        <source xml:lang="en">Listing views for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">Elenco delle visualizzazioni per la connessione '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
@@ -2021,6 +2154,10 @@ Errore:
         <source xml:lang="en">No Queries Available</source>
         <target state="translated">Nessuna query disponibile</target>
       </trans-unit>
+      <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
+        <source xml:lang="en">No account selected</source>
+        <target state="translated">Nessun account selezionato</target>
+      </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
         <target state="translated">Nessuna modifica rilevata</target>
@@ -2068,6 +2205,10 @@ Errore:
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">Non sono disponibili sottoscrizioni.  Modificare i filtri della sottoscrizione per riprovare.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b77c82c64fb4c0907bfdbdcd893ae285b16a8ef67c42e1ecc6ee3d28fe71e708">
+        <source xml:lang="en">No tenant selected</source>
+        <target state="translated">Nessun tenant selezionato</target>
+      </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
         <target state="translated">Nessuno strumento da elaborare.</target>
@@ -2103,6 +2244,10 @@ Errore:
       <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
         <source xml:lang="en">Not likely at all</source>
         <target state="translated">Per niente</target>
+      </trans-unit>
+      <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
+        <source xml:lang="en">Not signed in</source>
+        <target state="translated">Accesso non eseguito</target>
       </trans-unit>
       <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
         <source xml:lang="en">Not started</source>
@@ -2270,10 +2415,6 @@ Errore:
         <source xml:lang="en">Please choose a unique name for the profile</source>
         <target state="translated">Scegliere un nome univoco per il profilo</target>
       </trans-unit>
-      <trans-unit id="++CODE++2048d236cea5afafe8b7e125d9b86eb44250c4ac6f382bc412dca8e4188292fa">
-        <source xml:lang="en">Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.</source>
-        <target state="translated">Verificare che la virtualizzazione Rosetta sia abilitata. È possibile eseguire questa operazione all'interno delle impostazioni di Docker Desktop.</target>
-      </trans-unit>
       <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
         <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
         <target state="translated">Assicurarsi che la porta sia un numero e scegliere una porta che non sia in uso</target>
@@ -2380,6 +2521,14 @@ Errore:
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">Pubblicazione delle modifiche</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
+        <source xml:lang="en">Pulling SQL Server Image</source>
+        <target state="translated">Pull dell'immagine di SQL Server</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
+        <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
+        <target state="translated">Pull dell'immagine del contenitore di SQL Server in corso... Questa operazione potrebbe richiedere alcuni minuti a seconda della connessione Internet.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
         <target state="translated">Piano di query</target>
@@ -2409,6 +2558,10 @@ Errore:
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
         <target state="translated">Preparazione del contenitore per le connessioni.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
+        <source xml:lang="en">Readying container for connections...</source>
+        <target state="translated">Preparazione del contenitore per le connessioni in corso...</target>
       </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
@@ -2489,17 +2642,40 @@ Errore:
         <source xml:lang="en">Reverse Alphabetical</source>
         <target state="translated">Ordine alfabetico inverso</target>
       </trans-unit>
+      <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
+        <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
+        <target state="new">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</target>
+      </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
         <target state="translated">Nome regola</target>
+      </trans-unit>
+      <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
+        <source xml:lang="en">Run Query</source>
+        <target state="translated">Esegui query</target>
       </trans-unit>
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
         <target state="translated">Eseguire la cronologia delle query</target>
       </trans-unit>
+      <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
+        <source xml:lang="en">Run query on connection '{0}'?
+
+Query: {1}</source>
+        <note>{0} is the connection ID
+{1} is the SQL query</note>
+        <target state="translated">Eseguire la query sulla connessione "{0}"?
+
+Query: {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
         <target state="translated">L'esecuzione di query non è supportata quando l'editor è in modalità di selezione multipla.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b1f11c275b04ef9f8ee2c203bbc9e14168767c3bf289f9915aa1e43adb776cf9">
+        <source xml:lang="en">Running query on connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">Esecuzione della query sulla connessione "{0}"</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -2600,9 +2776,9 @@ Errore:
         <source xml:lang="en">Schema</source>
         <target state="translated">Schema</target>
       </trans-unit>
-      <trans-unit id="++CODE++becc525b09db5d2c09fe7aa2203290938cd5cb1438f065f216e73957338265e2">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">Confronto schemi (anteprima)</target>
+      <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
+        <source xml:lang="en">Schema Compare</source>
+        <target state="new">Schema Compare</target>
       </trans-unit>
       <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
         <source xml:lang="en">Schema Compare Options</source>
@@ -2669,13 +2845,25 @@ Errore:
         <source xml:lang="en">Select All</source>
         <target state="translated">Seleziona tutto</target>
       </trans-unit>
+      <trans-unit id="++CODE++3052f090b2dd0312f6564fb52c1f06b0efbe9fd7c77fdf38dcb96b4521b06b24">
+        <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
+        <target state="translated">Seleziona un account Azure con accesso a Key Vault per la decrittografia delle colonne</target>
+      </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
         <target state="translated">Seleziona origine</target>
       </trans-unit>
+      <trans-unit id="++CODE++5807729000cb38665e918bf3d7ac25f319624d3024eb2760aba5f15f7eb53559">
+        <source xml:lang="en">Select Source Schema</source>
+        <target state="new">Select Source Schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
         <target state="translated">Seleziona destinazione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
+        <source xml:lang="en">Select Target Schema</source>
+        <target state="new">Select Target Schema</target>
       </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
@@ -2699,13 +2887,26 @@ Errore:
         <source xml:lang="en">Select all</source>
         <target state="translated">Seleziona tutto</target>
       </trans-unit>
+      <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
+        <source xml:lang="en">Select all options</source>
+        <target state="new">Select all options</target>
+      </trans-unit>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
         <target state="translated">Scegli un account</target>
       </trans-unit>
+      <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
+        <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
+        <target state="translated">Selezionare un'estensione per gestire le autorizzazioni di condivisione delle connessioni</target>
+      </trans-unit>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
         <target state="translated">Seleziona immagine</target>
+      </trans-unit>
+      <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
+        <source xml:lang="en">Select new permission for extension: '{0}'</source>
+        <note>{0} is the extension name</note>
+        <target state="translated">Selezionare una nuova autorizzazione per l'estensione: "{0}"</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -2806,6 +3007,10 @@ Errore:
         <note>{0} is the connection ID</note>
         <target state="translated">Visualizzare lo schema per la connessione '{0}'?</target>
       </trans-unit>
+      <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
+        <source xml:lang="en">Show table relationships</source>
+        <target state="translated">Mostra relazioni tra tabelle</target>
+      </trans-unit>
       <trans-unit id="++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9">
         <source xml:lang="en">Showing schema for connection '{0}'</source>
         <note>{0} is the connection ID</note>
@@ -2818,6 +3023,10 @@ Errore:
       <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
         <source xml:lang="en">Sign in</source>
         <target state="translated">Accedi</target>
+      </trans-unit>
+      <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
+        <source xml:lang="en">Sign in to a new account</source>
+        <target state="translated">Accedi a un nuovo account</target>
       </trans-unit>
       <trans-unit id="++CODE++09a0ee357e3b34ac30c4ae61fcfbcfde87c6941a213e8e60d146e7942c0d76bc">
         <source xml:lang="en">Sign in to your Azure subscription</source>
@@ -2899,6 +3108,10 @@ Errore:
       <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
         <source xml:lang="en">Starting Container...</source>
         <target state="translated">Avvio del contenitore...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
+        <source xml:lang="en">Starting Docker...</source>
+        <target state="translated">Avvio di Docker in corso...</target>
       </trans-unit>
       <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
         <source xml:lang="en">Starting {0}...</source>
@@ -3081,6 +3294,11 @@ Errore:
         <source xml:lang="en">The expression defining the check constraint.</source>
         <target state="translated">Espressione che definisce il vincolo CHECK.</target>
       </trans-unit>
+      <trans-unit id="++CODE++dcf10fd537a0660c98f1a3890997024dfebb2ac795ee02dcbc7581ec4a0fe141">
+        <source xml:lang="en">The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.</source>
+        <note>{0} is the extension name</note>
+        <target state="translated">L'estensione "{0}" richiede l'accesso alle tue connessioni di SQL Server. In questo modo, potrà eseguire query e accedere al tuo database.</target>
+      </trans-unit>
       <trans-unit id="++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e">
         <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
         <note>{0} is the operator for the filter
@@ -3210,7 +3428,7 @@ Errore:
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
         <note>{0} is the architecture name of the machine</note>
-        <target state="new">Unsupported architecture for Docker: {0}</target>
+        <target state="translated">Architettura non supportata per Docker: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
         <source xml:lang="en">Unsupported platform for Docker: {0}</source>
@@ -3311,6 +3529,10 @@ Errore:
       <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">Non si è connessi ad alcun database.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
+        <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
+        <target state="translated">Devi aver effettuato l'accesso ad Azure per esplorare i database SQL.</target>
       </trans-unit>
       <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
         <source xml:lang="en">You must review and accept the terms to proceed</source>
@@ -3427,14 +3649,19 @@ Errore:
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">Aggiornamento di IntelliSense</target>
       </trans-unit>
-      <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
-        <source xml:lang="en">{0} (Preview)</source>
-        <note>{0} is the database name</note>
-        <target state="translated">{0} (anteprima)</target>
+      <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
+        <source xml:lang="en">{0} (Current Account)</source>
+        <note>{0} is the account display name</note>
+        <target state="translated">{0} (Account corrente)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (filtro applicato)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
+        <source xml:lang="en">{0} accounts</source>
+        <note>{0} is the number of accounts</note>
+        <target state="translated">{0} account</target>
       </trans-unit>
       <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
         <source xml:lang="en">{0} column data</source>
@@ -3527,6 +3754,22 @@ Errore:
         <source xml:lang="en">{{put-server-name-here}}</source>
         <target state="translated">{{put-server-name-here}}</target>
       </trans-unit>
+      <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
+        <source xml:lang="en">✅ Grant Access</source>
+        <target state="translated">✅ Concedi accesso</target>
+      </trans-unit>
+      <trans-unit id="++CODE++56034cb01aa84b5c8abe9389abf03d1c9a91ecea712a8711d611abb0ddd1637c">
+        <source xml:lang="en">✅ Grant Access (Current)</source>
+        <target state="translated">✅ Concedi accesso (corrente)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++40609c19f7011fdd42630f286c30982b3d7a2d74640e310c4126b785a384149d">
+        <source xml:lang="en">❌ Deny Access</source>
+        <target state="translated">❌ Nega accesso</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4d765d766973242c68c5a2d3b20c7164beb22948ceaf7095ce44f901cc2f4052">
+        <source xml:lang="en">❌ Deny Access (Current)</source>
+        <target state="translated">❌ Nega accesso (corrente)</target>
+      </trans-unit>
     </body>
   </file>
   <file original="package" source-language="en" datatype="plaintext" target-language="it">
@@ -3582,6 +3825,10 @@ Errore:
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
         <target state="translated">Sceglie il metodo di autenticazione da usare</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionSharing.clearAllConnectionSharingPermissions">
+        <source xml:lang="en">Clear All Connection Sharing Permissions</source>
+        <target state="translated">Cancellare tutte le autorizzazioni di condivisione delle connessioni</target>
       </trans-unit>
       <trans-unit id="mssql.clearAllQueryHistory">
         <source xml:lang="en">Clear All Query History</source>
@@ -3665,10 +3912,6 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Delete Container</source>
         <target state="translated">Elimina contenitore</target>
       </trans-unit>
-      <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
-        <target state="translated">Progettazione dello schema (anteprima)</target>
-      </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>
         <target state="translated">Disabilita piano effettivo</target>
@@ -3696,6 +3939,10 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
         <target state="translated">Modifica gruppo di connessione</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
+        <source xml:lang="en">Edit Connection Sharing Permissions</source>
+        <target state="translated">Modificare le autorizzazioni di condivisione delle connessioni</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Edit Table</source>
@@ -3867,10 +4114,6 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Give Feedback</source>
         <target state="translated">Inviare feedback</target>
       </trans-unit>
-      <trans-unit id="mssql.hasConnections">
-        <source xml:lang="en">Indicates whether the user has defined any connection profiles in 'User Settings'.</source>
-        <target state="translated">Indica se l'utente ha definito profili di connessione in 'Impostazioni utente'.</target>
-      </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot (Preview)</source>
         <target state="translated">MSSQL Copilot (Anteprima)</target>
@@ -4022,8 +4265,12 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <target state="translated">Esegui una query SQL</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">confronto schemi (anteprima)</target>
+        <source xml:lang="en">Schema Compare</source>
+        <target state="new">Schema Compare</target>
+      </trans-unit>
+      <trans-unit id="mssql.schemaDesigner">
+        <source xml:lang="en">Schema Designer</source>
+        <target state="new">Schema Designer</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -4157,6 +4404,10 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">The description of the connection group.</source>
         <target state="translated">Descrizione del gruppo di connessione.</target>
       </trans-unit>
+      <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+        <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
+        <target state="translated">Numero massimo di caratteri da visualizzare per le informazioni di connessione nella barra di stato. Impostare su -1 per non impostare alcun limite.</target>
+      </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
         <target state="translated">Numero massimo di connessioni usate di recente da archiviare nell'elenco delle connessioni.</target>
@@ -4210,10 +4461,6 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
       <trans-unit id="mssql.useLegacyConnectionExperience.description">
         <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
         <target state="translated">Utilizzare l'esperienza di connessione legacy invece dell'esperienza moderna.</target>
-      </trans-unit>
-      <trans-unit id="mssql.useLegacyQueryResultExperience.description">
-        <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
-        <target state="translated">Utilizzare l'esperienza dei risultati della legacy invece dell'esperienza moderna.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

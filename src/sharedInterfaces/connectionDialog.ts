@@ -37,15 +37,17 @@ export class ConnectionDialogWebviewState
         mainOptions: [],
         groupedAdvancedOptions: [],
     };
+    public azureAccounts: string[] = [];
+    public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureSubscriptions: AzureSubscriptionInfo[] = [];
+    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureServers: AzureSqlServerInfo[] = [];
+    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public readyToConnect: boolean = false;
     public formError: string = "";
-    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
-    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public dialog: IDialogProps | undefined;
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
@@ -99,6 +101,7 @@ export interface AzureSqlServerInfo {
     location: string;
     resourceGroup: string;
     subscription: string;
+    uri: string;
 }
 
 export interface ConnectionComponentsInfo {
@@ -150,6 +153,7 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
+    closeMessage: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     openCreateConnectionGroupDialog: () => void;
     createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
@@ -160,6 +164,7 @@ export interface ConnectionDialogContextProps
     loadFromConnectionString: (connectionString: string) => void;
     openConnectionStringDialog: () => void;
     signIntoAzureForFirewallRule: () => void;
+    signIntoAzureForBrowse: () => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
@@ -190,6 +195,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     };
     openCreateConnectionGroupDialog: {};
     closeDialog: {};
+    closeMessage: {};
     filterAzureSubscriptions: {};
     refreshConnectionsList: {};
     deleteSavedConnection: {
@@ -201,6 +207,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
+    signIntoAzureForBrowse: {};
 }
 
 export namespace GetConnectionDisplayNameRequest {

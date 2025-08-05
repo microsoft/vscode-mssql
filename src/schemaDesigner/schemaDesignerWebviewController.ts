@@ -42,7 +42,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             "schemaDesigner",
             {},
             {
-                title: LocConstants.SchemaDesigner.tabTitle(databaseName),
+                title: databaseName,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
@@ -103,9 +103,20 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.onRequest(SchemaDesigner.GetDefinitionRequest.type, async (payload) => {
+            const definitionActivity = startActivity(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.GetDefinition,
+                undefined,
+                {
+                    tableCount: payload.updatedSchema.tables.length.toString(),
+                },
+            );
             const script = await this.schemaDesignerService.getDefinition({
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
+            });
+            definitionActivity.end(ActivityStatus.Succeeded, undefined, {
+                tableCount: payload.updatedSchema.tables.length,
             });
             this.updateCacheItem(payload.updatedSchema, true);
             return script;
@@ -213,10 +224,14 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 format: payload?.format,
             });
             if (payload.format === "svg") {
-                let fileContents = decodeURIComponent(payload.fileContents.split(",")[1]);
-                await vscode.workspace.fs.writeFile(outputPath, Buffer.from(fileContents, "utf8"));
+                let fileContents = new Uint8Array(
+                    Buffer.from(decodeURIComponent(payload.fileContents.split(",")[1]), "utf8"),
+                );
+                await vscode.workspace.fs.writeFile(outputPath, fileContents);
             } else {
-                let fileContents = Buffer.from(payload.fileContents.split(",")[1], "base64");
+                let fileContents = new Uint8Array(
+                    Buffer.from(payload.fileContents.split(",")[1], "base64"),
+                );
                 vscode.workspace.fs.writeFile(outputPath, fileContents);
             }
         });

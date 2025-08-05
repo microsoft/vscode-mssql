@@ -24,11 +24,15 @@ export enum TelemetryViews {
     ExecutionPlan = "ExecutionPlan",
     AddFirewallRule = "AddFirewallRule",
     MssqlCopilot = "MssqlCopilot",
+    AzureAccountManagement = "AzureAccountManagement",
     ConnectionGroup = "ConnectionGroup",
     SchemaDesigner = "SchemaDesigner",
 }
 
 export enum TelemetryActions {
+    GetDatabaseProjectScriptFiles = "GetDatabaseProjectScriptFiles",
+    GetDatabaseProjectSchemaProvider = "GetDatabaseProjectSchemaProvider",
+    ListingDatabasesForActiveServer = "ListingDatabasesForActiveServer",
     Compare = "Compare",
     Switch = "Switch",
     OpenScmp = "OpenScmp",
@@ -83,12 +87,19 @@ export enum TelemetryActions {
     SubmitGithubIssue = "SubmitGithubIssue",
     AutoColumnSize = "AutoColumnSize",
     DisableLanguageServiceForNonTSqlFiles = "DisableLanguageServiceForNonTSqlFiles",
-    StartContainerDeployment = "StartContainerDeployment",
+    OpenContainerDeployment = "OpenContainerDeploymentDialog",
+    CloseContainerDeployment = "CloseContainerDeploymentDialog",
     CreateSQLContainer = "CreateSQLContainer",
     ConnectToContainer = "ConnectToContainer",
     StartContainer = "StartContainer",
     StopContainer = "StopContainer",
     DeleteContainer = "DeleteContainer",
+    RestartContainer = "RestartContainer",
+    PullImage = "PullImage",
+    RunDockerStep = "RunDockerStep",
+    RetryDockerStep = "RetryDockerStep",
+    StartContainerDeployment = "StartContainerDeployment",
+    FinishContainerDeployment = "FinishContainerDeployment",
     LoadFromConnectionString = "LoadFromConnectionString",
     MigrateLegacyConnections = "MigrateLegacyConnections",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
@@ -104,6 +115,7 @@ export enum TelemetryActions {
     ChatWithDatabase = "ChatWithDatabase",
     ChatWithDatabaseInAgentMode = "ChatWithDatabaseInAgentMode",
     StartConversation = "StartConversation",
+    AzureSignIn = "AzureSignIn",
     GetQueryResultState = "GetQueryResultState",
     SavePlan = "SavePlan",
     CopilotAgentModeToolCall = "CopilotAgentModeToolCall",
@@ -112,6 +124,7 @@ export enum TelemetryActions {
     ExportToImage = "ExportToImage",
     GetReport = "getReport",
     PublishSession = "PublishSession",
+    GetDefinition = "GetDefinition",
 }
 
 /**

@@ -5,6 +5,18 @@
 
 The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql) is designed to empower developers by providing a seamless and modern database development experience. Our goal is to make SQL development more productive and intuitive by integrating essential features such as schema management, query execution, and AI-powered assistance.
 
+## Explore and Learn
+
+<a href="https://aka.ms/vscode-mssql-demos">
+  <img src="images/yt-thumbnail.png" alt="MSSQL Extension Demo Playlist" width="720"/>
+</a>
+
+- [Watch the demos](https://aka.ms/vscode-mssql-demos): Explore key features through our YouTube playlist
+- [Read our blog posts](https://aka.ms/vscode-mssql-blogs): Learn from use cases, walkthroughs, and product updates
+- [View the documentation](https://aka.ms/vscode-mssql-docs): Get started or go deep with our official docs
+- [Explore GitHub Copilot integration](https://aka.ms/vscode-mssql-copilot-docs): Learn how to use GitHub Copilot to write, explain, and refactor your database schema
+- [Check out roadmap](https://aka.ms/vscode-mssql-roadmap): See what's coming next, including upcoming features and improvements
+
 ## General Availability Features
 
 - **Connect to your databases**: Seamlessly manage your database connections
@@ -56,6 +68,9 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 - **GitHub Copilot Agent Mode (`Preview`)**
   - Use chat in Agent mode to connect, disconnect, or switch databases
   - List servers and view available connections
+  - List all databases, tables, views, functions, and schemas in a connected server
+  - Run SQL queries directly from chat
+  - Get connection details for the current session
   - Show database schema contextually
   - Access all available Agent tools from the Agent Tools panel
 - **Local SQL Server Containers (`Preview`)**
@@ -70,6 +85,7 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
   - Add or modify tables, columns, primary keys, and foreign key relationships without writing T-SQL
   - Preview schema changes instantly as read-only T-SQL in the built-in code pane
   - Navigate large schemas easily with search, mini-map, zoom, and auto-layout
+  - Filter by table name or relationship to focus on specific areas of your schema
   - Export diagrams to share with your team or include in documentation
   - Push updates to your database using the built-in deployment
 - **Schema Compare (`Preview`)**: Effortless schema synchronization and management
@@ -80,16 +96,13 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 
 <img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
 
-## Get Started and Learn More
+
+## Resources
 
 - [Get started with the MSSQL extension](https://aka.ms/mssql-getting-started): Step-by-step tutorial to connect and query your first database
 - [SQL Developer tutorial](https://aka.ms/sqldev): Build full-stack apps using SQL Server with C#, Java, Node.js, Python, and more
 - [Local development with Azure SQL](https://learn.microsoft.com/azure/azure-sql/database/local-dev-experience-overview): Learn how to develop locally with Azure SQL Database
 - [Dev Containers for Azure SQL](https://aka.ms/azuresql-devcontainers-docs): Set up repeatable dev environments using Dev Containers
-- [MSSQL extension documentation](https://aka.ms/vscode-mssql-docs): In-depth guides and reference documentation
-- [GitHub Copilot with MSSQL](https://aka.ms/vscode-mssql-copilot-docs): Use Copilot to write, explain, and refactor T-SQL
-- [Blog: New MSSQL extension UI](https://aka.ms/vscode-mssql-blog): Learn about the enhanced user experience in VS Code
-- [Roadmap](https://aka.ms/vscode-mssql-roadmap): See what's coming next
 - [Join the Discussion](https://aka.ms/vscode-mssql-discussions): Ask questions, suggest features, and engage with the community
 
 ## Using the MSSQL Extension
@@ -133,7 +146,7 @@ The following Visual Studio Code settings are available for the mssql extension.
   "mssql.openQueryResultsInTabByDefault": false,
   "mssql.logDebugInfo": false,
   "mssql.messagesDefaultOpen": true,
-  "mssql.applyLocalization": false
+  "mssql.applyLocalization": false,
 }
 
 // IntelliSense
@@ -188,6 +201,12 @@ The following Visual Studio Code settings are available for the mssql extension.
     "event.saveAsCSV": "",
     "event.saveAsExcel": ""
   }
+}
+
+// Status bar
+{
+  "mssql.statusBar.connectionInfoMaxLength": -1,
+  "mssql.enableConnectionColor": true,
 }
 ```
 
