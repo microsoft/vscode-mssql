@@ -7,6 +7,7 @@ import { promises as fs } from "fs";
 import * as vscode from "vscode";
 import type { PagedAsyncIterableIterator } from "@azure/core-paging";
 import { IConnectionInfo } from "vscode-mssql";
+import { execFile } from "child_process";
 
 export async function exists(path: string, uri?: vscode.Uri): Promise<boolean> {
     if (uri) {
@@ -92,4 +93,17 @@ export async function listAllIterator<T>(iterator: PagedAsyncIterableIterator<T>
     }
 
     return resources;
+}
+
+/**
+ * Helper function to execute a command in the shell and return the output.
+ * This version uses execFile for safer argument handling.
+ */
+export async function execFileCommand(command: string, args: string[]): Promise<string> {
+    return new Promise((resolve, reject) => {
+        execFile(command, args, (error, stdout) => {
+            if (error) return reject(error);
+            resolve(stdout.trim());
+        });
+    });
 }

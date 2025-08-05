@@ -30,7 +30,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import * as path from "path";
 import { FormItemOptions, FormItemValidationState } from "../sharedInterfaces/form";
-import { getErrorMessage } from "../utils/utils";
+import { execFileCommand, getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
@@ -251,6 +251,19 @@ async function execCommand(command: string): Promise<string> {
             resolve(stdout.trim());
         });
     });
+}
+
+// New function to check logs securely
+async function checkLogsForRecovery(
+    name: string,
+    platform: string,
+    timestamp: string,
+): Promise<boolean> {
+    const { command, args } = COMMANDS.CHECK_LOGS(name, platform, timestamp);
+    const logs = await execFileCommand(command, args);
+    const lines = logs.split("\n");
+    const readyLine = lines.find((line) => line.includes(COMMANDS.CHECK_CONTAINER_READY));
+    return !!readyLine;
 }
 
 /**
@@ -605,15 +618,12 @@ export async function checkIfContainerIsReadyForConnections(
     return new Promise((resolve) => {
         const interval = setInterval(async () => {
             try {
-                const logs = await execCommand(
-                    COMMANDS.CHECK_LOGS(containerName, platform(), startTimestamp),
+                const isReady = await checkLogsForRecovery(
+                    containerName,
+                    platform(),
+                    startTimestamp,
                 );
-                const lines = logs.split("\n");
-                const readyLine = lines.find((line) =>
-                    line.includes(COMMANDS.CHECK_CONTAINER_READY),
-                );
-
-                if (readyLine) {
+                if (isReady) {
                     clearInterval(interval);
                     dockerLogger.appendLine(`${containerName} is ready for connections!`);
                     sendActionEvent(
@@ -629,9 +639,11 @@ export async function checkIfContainerIsReadyForConnections(
             } catch {
                 // Ignore and retry
             }
-
             if (Date.now() - start > timeoutMs) {
                 clearInterval(interval);
+                dockerLogger.appendLine(
+                    `Timeout waiting for container ${containerName} to be ready.`,
+                );
                 return resolve({
                     success: false,
                     error: ContainerDeployment.containerFailedToStartWithinTimeout,
