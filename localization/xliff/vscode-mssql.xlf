@@ -128,6 +128,9 @@
     <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
       <source xml:lang="en">Alter</source>
     </trans-unit>
+    <trans-unit id="++CODE++e515533bdd44199b2cd9f3d19b4875c8a941662eaffd8f5b0871ed65fbf231c6">
+      <source xml:lang="en">Always Clear Cache</source>
+    </trans-unit>
     <trans-unit id="++CODE++1888bd4ce917e9c8cecde43608d69624f56668f86f1bbe4331494db33fb52578">
       <source xml:lang="en">Always show in new tab</source>
     </trans-unit>
@@ -200,14 +203,6 @@
     </trans-unit>
     <trans-unit id="++CODE++53c90adec54ba3992244fa9a6edbef327f573af7d2c99f2a110ba57949283b38">
       <source xml:lang="en">Authentication Type</source>
-    </trans-unit>
-    <trans-unit id="++CODE++9a1bed14bd9674de782c072cb0e866910c7df51326e29f8a0bea807d4791a7e6">
-      <source xml:lang="en">Authentication error for account &apos;{0}&apos; (tenant &apos;{1}&apos;). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</source>
-      <note>{0} is the account display name
-{1} is the tenant id</note>
-    </trans-unit>
-    <trans-unit id="++CODE++b1b511843263fa8435aafed7abebc29efd242c576fd5d386e04e349e7288e092">
-      <source xml:lang="en">Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.</source>
     </trans-unit>
     <trans-unit id="++CODE++439a99b0935fb17d372edb14b699ddd05330257d8c40b464365c1129bdf94d6a">
       <source xml:lang="en">Authentication failed due to a nonce mismatch, please close Azure Data Studio and try again.</source>
@@ -461,8 +456,8 @@
     <trans-unit id="++CODE++8046678782bb5feaf7131b03db70b9f5f66007fcc8b0c670c186db149edeb041">
       <source xml:lang="en">Clear Sort</source>
     </trans-unit>
-    <trans-unit id="++CODE++bb7638a0d8b3b374d81381caaf50ea1e5639135dd6ec1df7bc2dae0f344b72ec">
-      <source xml:lang="en">Clear cache and refresh token</source>
+    <trans-unit id="++CODE++0b761fbd0d4a6a68ecccf3b39faf91bcb22270ce9029a410885c1aa75fef7fc4">
+      <source xml:lang="en">Clear Token Cache</source>
     </trans-unit>
     <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
       <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
@@ -1599,6 +1594,14 @@
     </trans-unit>
     <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
       <source xml:lang="en">Move to Root</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3900132d83164b2e89f07fa2a579d46c505894b2de80a35ea9cc6797098f9c8e">
+      <source xml:lang="en">Multiple authentication tokens detected for account &apos;{0}&apos; (tenant &apos;{1}&apos;). This is usually caused by using VS Code with different user accounts. To resolve this issue, we recommend clearing your token cache.</source>
+      <note>{0} is the account display name
+{1} is the tenant id</note>
+    </trans-unit>
+    <trans-unit id="++CODE++482848768fd77f0e42d8a071bbaea50b177dd8a9b2c7e9ae1d65e62d1566afeb">
+      <source xml:lang="en">Multiple authentication tokens detected for your account. This is usually caused by using VS Code with different user accounts. To resolve this issue, we recommend clearing your token cache.</source>
     </trans-unit>
     <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
       <source xml:lang="en">NULL</source>
@@ -2898,6 +2901,9 @@
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.autoSizeColumns">
       <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
+    </trans-unit>
+    <trans-unit id="mssql.azureAutoClearTokenCache.description">
+      <source xml:lang="en">Automatically clear the Azure token cache when multiple matching tokens are detected, without prompting the user</source>
     </trans-unit>
     <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
       <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>

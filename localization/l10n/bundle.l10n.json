@@ -1182,15 +1182,16 @@
       "{0} is the connection name"
     ]
   },
-  "Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.": "Authentication error for account. Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
-  "Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts./{0} is the account display name{1} is the tenant id": {
-    "message": "Authentication error for account '{0}' (tenant '{1}'). Resolving this requires clearing your token cache, which will sign you out of all connected accounts.",
+  "Multiple authentication tokens detected for your account. This is usually caused by using VS Code with different user accounts. To resolve this issue, we recommend clearing your token cache.": "Multiple authentication tokens detected for your account. This is usually caused by using VS Code with different user accounts. To resolve this issue, we recommend clearing your token cache.",
+  "Multiple authentication tokens detected for account '{0}' (tenant '{1}'). This is usually caused by using VS Code with different user accounts. To resolve this issue, we recommend clearing your token cache./{0} is the account display name{1} is the tenant id": {
+    "message": "Multiple authentication tokens detected for account '{0}' (tenant '{1}'). This is usually caused by using VS Code with different user accounts. To resolve this issue, we recommend clearing your token cache.",
     "comment": [
       "{0} is the account display name",
       "{1} is the tenant id"
     ]
   },
-  "Clear cache and refresh token": "Clear cache and refresh token",
+  "Clear Token Cache": "Clear Token Cache",
+  "Always Clear Cache": "Always Clear Cache",
   "Add Firewall Rule to {0}/{0} is the server name": {
     "message": "Add Firewall Rule to {0}",
     "comment": [
