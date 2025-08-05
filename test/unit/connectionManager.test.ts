@@ -169,6 +169,7 @@ suite("ConnectionManager Tests", () => {
                     savePassword: true,
                     user: testUser,
                     password: testPassword,
+                    defaultDatabase: false,
                 } as IConnectionProfile,
             );
         });
@@ -253,6 +254,7 @@ suite("ConnectionManager Tests", () => {
                     database: testDatabase,
                     authenticationType: "Integrated",
                     connectionString: "",
+                    defaultDatabase: false,
                 } as IConnectionProfile,
             );
         });
