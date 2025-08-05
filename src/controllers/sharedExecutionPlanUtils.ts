@@ -36,7 +36,10 @@ export async function saveExecutionPlan(
 
     if (saveUri) {
         // Write the content to the new file
-        void vscode.workspace.fs.writeFile(saveUri, Buffer.from(payload.sqlPlanContent));
+        void vscode.workspace.fs.writeFile(
+            saveUri,
+            new TextEncoder().encode(payload.sqlPlanContent),
+        );
         sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.SavePlan);
     }
 

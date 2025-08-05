@@ -204,7 +204,7 @@ export let msgSavePassword = l10n.t(
     "Save Password? If 'No', password will be required each time you connect",
 );
 export let profileNamePrompt = l10n.t("Profile Name");
-export let profileNamePlaceholder = l10n.t(
+export let profileNameTooltip = l10n.t(
     "[Optional] Enter a display name for this connection profile",
 );
 export let msgCannotOpenContent = l10n.t("Error occurred opening content in editor.");
@@ -698,9 +698,13 @@ export class FirewallRule {
 }
 
 export class Azure {
-    public static azureSignInFailedOrWasCancelled = l10n.t(
-        "Azure sign-in failed or was cancelled.",
-    );
+    public static errorSigningIntoAzure(arg0: string): string {
+        return l10n.t({
+            message: "Error signing into Azure: {0}",
+            args: [arg0],
+            comment: ["{0} is the error message"],
+        });
+    }
 
     public static errorLoadingAzureAccountInfoForTenantId = (tenantId: string) => {
         return l10n.t({
@@ -850,10 +854,13 @@ export class ContainerDeployment {
     public static startDockerEngineBody = l10n.t(
         "Checking if the Docker Engine is configured correctly on your machine.",
     );
-    public static creatingContainerHeader = l10n.t("Creating Container");
-    public static creatingContainerBody = l10n.t(
-        "Creating and starting your SQL Server Docker container",
+    public static pullImageHeader = l10n.t("Pulling SQL Server Image");
+    public static pullImageBody = l10n.t(
+        "Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.",
     );
+
+    public static creatingContainerHeader = l10n.t("Creating Container");
+    public static creatingContainerBody = l10n.t("Creating and starting your SQL Server container");
     public static settingUpContainerHeader = l10n.t("Setting up container");
     public static settingUpContainerBody = l10n.t("Readying container for connections.");
     public static connectingToContainerHeader = l10n.t("Connecting to Container");
@@ -863,6 +870,9 @@ export class ContainerDeployment {
     public static passwordLengthError = l10n.t("Please make your password 8-128 characters long.");
     public static passwordComplexityError = l10n.t(
         "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
+    );
+    public static pullSqlServerContainerImageError = l10n.t(
+        "Failed to pull SQL Server image. Please check your network connection and try again.",
     );
     public static unsupportedDockerPlatformError = (platform: string) =>
         l10n.t({
@@ -877,7 +887,7 @@ export class ContainerDeployment {
             comment: ["{0} is the architecture name of the machine"],
         });
     public static rosettaError = l10n.t(
-        "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
+        'Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop > Settings > General.',
     );
     public static windowsContainersError = l10n.t(
         "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
@@ -896,7 +906,9 @@ export class ContainerDeployment {
     );
     public static installDocker = l10n.t("Install Docker");
     public static msgCreateLocalSqlContainer = l10n.t("Create Local SQL Container");
+    public static startingDockerLoadingLabel = l10n.t("Starting Docker...");
     public static startingContainerLoadingLabel = l10n.t("Starting Container...");
+    public static readyingContainerLoadingLabel = l10n.t("Readying container for connections...");
     public static stoppingContainerLoadingLabel = l10n.t("Stopping Container...");
     public static deletingContainerLoadingLabel = l10n.t("Deleting Container...");
     public static deleteContainerConfirmation = (containerName: string) => {
@@ -908,6 +920,7 @@ export class ContainerDeployment {
         });
     };
     public static configureLinuxContainers = l10n.t("Configure Linux containers");
+    public static configureRosetta = l10n.t("Configure Rosetta in Docker Desktop");
     public static switchToLinuxContainersConfirmation = l10n.t(
         "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
     );
@@ -920,6 +933,11 @@ export class ContainerDeployment {
     public static containerDoesNotExistError = l10n.t(
         "Container does not exist. Would you like to remove the connection?",
     );
+    public static passwordPlaceholder = l10n.t("Enter password");
+    public static containerNamePlaceholder = l10n.t("Enter container name");
+    public static portPlaceholder = l10n.t("Enter port");
+    public static hostnamePlaceholder = l10n.t("Enter hostname");
+    public static profileNamePlaceholder = l10n.t("Enter profile name");
 }
 
 export class UserSurvey {
@@ -974,7 +992,7 @@ export class TableDesigner {
 }
 
 export class SchemaCompare {
-    public static Title = l10n.t("Schema Compare (Preview)");
+    public static Title = l10n.t("Schema Compare");
     public static Open = l10n.t("Open");
     public static Save = l10n.t("Save");
     public static defaultUserName = l10n.t("default");
@@ -1068,13 +1086,6 @@ export class SchemaDesigner {
     public static SaveAs = l10n.t("Save As");
     public static Save = l10n.t("Save");
     public static SchemaDesigner = l10n.t("Schema Designer");
-    public static tabTitle(databaseName: string) {
-        return l10n.t({
-            message: "{0} (Preview)",
-            args: [databaseName],
-            comment: ["{0} is the database name"],
-        });
-    }
     public static OpeningPublishScript = l10n.t("Opening Publish Script. This may take a while...");
     public static GeneratingReport = l10n.t("Generating Report. This may take a while...");
     public static PublishScriptFailed = (errorMessage: string) =>
@@ -1121,8 +1132,21 @@ export class Connection {
             comment: ["{0} is the connection id", "{1} is the error message"],
         });
     };
+    public static noAccountSelected = l10n.t("No account selected");
+    public static currentAccount = (accountDisplayName: string) => {
+        return l10n.t({
+            message: "{0} (Current Account)",
+            args: [accountDisplayName],
+            comment: ["{0} is the account display name"],
+        });
+    };
+    public static signInToAzure = l10n.t("Sign in to a new account");
+    public static SelectAccountForKeyVault = l10n.t(
+        "Select Azure account with Key Vault access for column decryption",
+    );
+    public static NoTenantSelected = l10n.t("No tenant selected");
+    public static SelectTenant = l10n.t("Select a tenant");
 }
-
 export class MssqlChatAgent {
     public static noModelFound = l10n.t("No model found.");
     public static noToolsToProcess = l10n.t("No tools to process.");
@@ -1382,10 +1406,126 @@ export class MssqlChatAgent {
             comment: ["{0} is the database name"],
         });
     };
+    public static ListTablesToolConfirmationTitle = l10n.t("List Tables");
+    public static ListTablesToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List tables for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListTablesToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing tables for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListSchemasToolConfirmationTitle = l10n.t("List Schemas");
+    public static ListSchemasToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List schemas for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListSchemasToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing schemas for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListViewsToolConfirmationTitle = l10n.t("List Views");
+    public static ListViewsToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List views for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListViewsToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing views for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListFunctionsToolConfirmationTitle = l10n.t("List Functions");
+    public static ListFunctionsToolConfirmationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "List functions for connection '{0}'?",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static ListFunctionsToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Listing functions for connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
+    public static RunQueryToolConfirmationTitle = l10n.t("Run Query");
+    public static RunQueryToolConfirmationMessage = (connectionId: string, query: string) => {
+        return l10n.t({
+            message: "Run query on connection '{0}'?\n\nQuery: {1}",
+            args: [connectionId, query],
+            comment: ["{0} is the connection ID", "{1} is the SQL query"],
+        });
+    };
+    public static RunQueryToolInvocationMessage = (connectionId: string) => {
+        return l10n.t({
+            message: "Running query on connection '{0}'",
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    };
 }
 
 export class QueryEditor {
     public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
+}
+
+export class ConnectionSharing {
+    public static connectionSharingRequestNotification(extensionName: string) {
+        return l10n.t({
+            message:
+                "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    }
+    public static Approve = l10n.t("Approve");
+    public static Deny = l10n.t("Deny");
+    public static GrantAccess = l10n.t("✅ Grant Access");
+    public static GrantAccessCurrent = l10n.t("✅ Grant Access (Current)");
+    public static DenyAccess = l10n.t("❌ Deny Access");
+    public static DenyAccessCurrent = l10n.t("❌ Deny Access (Current)");
+    public static AllowThisExtensionToAccessYourConnections = l10n.t(
+        "Allow this extension to access your connections",
+    );
+    public static BlockThisExtensionFromAccessingYourConnections = l10n.t(
+        "Block this extension from accessing your connections",
+    );
+    public static SelectAnExtensionToManage = l10n.t(
+        "Select an extension to manage connection sharing permissions",
+    );
+    public static SelectNewPermission = (extensionName: string) => {
+        return l10n.t({
+            message: "Select new permission for extension: '{0}'",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    };
+    public static ClearAllPermissions = l10n.t(
+        "Clear permissions for all extensions to access your connections",
+    );
+    public static Clear = l10n.t("Clear");
+    public static Cancel = l10n.t("Cancel");
+    public static AllPermissionsCleared = l10n.t(
+        "All permissions for extensions to access your connections have been cleared.",
+    );
 }
 
 export class ConnectionGroup {

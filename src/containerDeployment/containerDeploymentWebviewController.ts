@@ -20,11 +20,11 @@ import {
     ContainerDeployment,
     msgSavePassword,
     passwordPrompt,
-    profileNamePlaceholder,
+    profileNameTooltip,
 } from "../constants/locConstants";
 import { IConnectionGroup, IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import {
     createConnectionGroup,
@@ -96,10 +96,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
     private registerRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            (this.state.formState[
-                payload.event.propertyName
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ] as any) = payload.event.value;
+            (state.formState as any)[payload.event.propertyName] = payload.event.value;
+            this.updateState(state);
 
             const newState = await this.validateDockerConnectionProfile(
                 state,
@@ -113,6 +111,16 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             const currentStepNumber = payload.dockerStep;
             const currentStep = state.dockerSteps[currentStepNumber];
             if (currentStep.loadState !== ApiStatus.NotStarted) return state;
+
+            if (currentStepNumber === cd.DockerStepOrder.dockerInstallation) {
+                // If the current step is the first step (docker installation),
+                // send telemetry for starting
+                sendActionEvent(
+                    TelemetryViews.ContainerDeployment,
+                    TelemetryActions.StartContainerDeployment,
+                );
+            }
+
             // Update the current docker step's status to loading
             this.updateState({
                 ...state,
@@ -130,6 +138,15 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
                 if (!connectionResult) {
                     currentStep.errorMessage = `${connectErrorTooltip} ${state.formState.profileName}`;
+                } else {
+                    // If the last step is successful, send telemetry for the workflow being finished
+                    sendActionEvent(
+                        TelemetryViews.ContainerDeployment,
+                        TelemetryActions.FinishContainerDeployment,
+                        {
+                            containerVersion: state.formState.version,
+                        },
+                    );
                 }
             } else {
                 const args = currentStep.argNames.map((argName) => state.formState[argName]);
@@ -147,6 +164,20 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             currentStep.loadState = stepSuccessful ? ApiStatus.Loaded : ApiStatus.Error;
             if (stepSuccessful) {
                 state.currentDockerStep += 1; // Move to the next step
+            } else {
+                // If the step failed, log the error and send telemetry
+                // Error telemetry includes the step number and error message
+                sendErrorEvent(
+                    TelemetryViews.ContainerDeployment,
+                    TelemetryActions.RunDockerStep,
+                    new Error(currentStep.errorMessage),
+                    true, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        dockerStep: cd.DockerStepOrder[currentStepNumber],
+                    },
+                );
             }
             state.dockerSteps[currentStepNumber] = currentStep;
 
@@ -156,9 +187,14 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             // Reset the current step to NotStarted
             const currentStepNumber = state.currentDockerStep;
             state.dockerSteps[currentStepNumber].loadState = ApiStatus.NotStarted;
+            sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.RetryDockerStep, {
+                dockerStep: cd.DockerStepOrder[currentStepNumber],
+            });
             return state;
         });
         this.registerReducer("checkDockerProfile", async (state, _payload) => {
+            state.formValidationLoadState = ApiStatus.Loading;
+            this.updateState(state);
             state = await this.validateDockerConnectionProfile(state, state.formState);
             if (!state.formState.containerName) {
                 state.formState.containerName = await dockerUtils.validateContainerName(
@@ -171,6 +207,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             }
 
             state.isDockerProfileValid = state.formErrors.length === 0;
+            state.formValidationLoadState = ApiStatus.NotStarted;
+            this.updateState(state);
             return state;
         });
 
@@ -210,6 +248,17 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("dispose", async (state, _payload) => {
+            sendActionEvent(
+                TelemetryViews.ContainerDeployment,
+                TelemetryActions.CloseContainerDeployment,
+                {
+                    // Include the current step, its status, and its potential error in the telemetry
+                    currentStep: cd.DockerStepOrder[state.currentDockerStep],
+                    currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
+                    currentStepErrorMessage:
+                        state.dockerSteps[state.currentDockerStep]?.errorMessage,
+                },
+            );
             this.panel.dispose();
             this.dispose();
             return state;
@@ -309,10 +358,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             trustServerCertificate: true,
         };
 
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.CreateSQLContainer, {
-            version: dockerProfile.version,
-        });
-
         try {
             const profile = await this.mainController.connectionManager.connectionUI.saveProfile(
                 connection as IConnectionProfile,
@@ -362,6 +407,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: passwordPrompt,
                 required: true,
                 tooltip: ContainerDeployment.sqlServerPasswordTooltip,
+                placeholder: ContainerDeployment.passwordPlaceholder,
                 componentWidth: "500px",
                 validate(_state, value) {
                     const result = dockerUtils.validateSqlServerPassword(value.toString());
@@ -384,7 +430,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 type: FormItemType.Input,
                 propertyName: "profileName",
                 label: ConnectionDialog.profileName,
-                tooltip: profileNamePlaceholder,
+                tooltip: profileNameTooltip,
+                placeholder: ContainerDeployment.profileNamePlaceholder,
             }),
 
             groupId: createFormItem(
@@ -397,6 +444,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.containerName,
                 isAdvancedOption: true,
                 tooltip: ContainerDeployment.containerNameTooltip,
+                placeholder: ContainerDeployment.containerNamePlaceholder,
             }),
 
             port: createFormItem({
@@ -405,6 +453,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.port,
                 isAdvancedOption: true,
                 tooltip: ContainerDeployment.portTooltip,
+                placeholder: ContainerDeployment.portPlaceholder,
             }),
 
             hostname: createFormItem({
@@ -413,6 +462,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 label: ContainerDeployment.hostname,
                 isAdvancedOption: true,
                 tooltip: ContainerDeployment.hostnameTooltip,
+                placeholder: ContainerDeployment.hostnamePlaceholder,
             }),
 
             acceptEula: createFormItem({

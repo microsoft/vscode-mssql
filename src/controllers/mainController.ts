@@ -18,7 +18,6 @@ import {
     CompletionExtLoadRequest,
     RebuildIntelliSenseNotification,
 } from "../models/contracts/languageService";
-import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import * as Utils from "../models/utils";
 import { AccountSignInTreeNode } from "../objectExplorer/nodes/accountSignInTreeNode";
@@ -58,7 +57,7 @@ import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
 import { SchemaDesignerService } from "../services/schemaDesignerService";
-import store, { SubKeys } from "../queryResult/singletonStore";
+import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
@@ -67,6 +66,7 @@ import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
 import { CreateSessionResult } from "../objectExplorer/objectExplorerService";
 import { SqlCodeLensProvider } from "../queryResult/sqlCodeLensProvider";
+import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import { ShowSchemaTool } from "../copilot/tools/showSchemaTool";
 import { ConnectTool } from "../copilot/tools/connectTool";
 import { ListServersTool } from "../copilot/tools/listServersTool";
@@ -74,6 +74,11 @@ import { DisconnectTool } from "../copilot/tools/disconnectTool";
 import { GetConnectionDetailsTool } from "../copilot/tools/getConnectionDetailsTool";
 import { ChangeDatabaseTool } from "../copilot/tools/changeDatabaseTool";
 import { ListDatabasesTool } from "../copilot/tools/listDatabasesTool";
+import { ListTablesTool } from "../copilot/tools/listTablesTool";
+import { ListSchemasTool } from "../copilot/tools/listSchemasTool";
+import { ListViewsTool } from "../copilot/tools/listViewsTool";
+import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
+import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
 import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
@@ -84,6 +89,7 @@ import {
 } from "../containerDeployment/dockerUtils";
 import { StateChangeNotification } from "../sharedInterfaces/webview";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
+import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 
 /**
  * The main controller class that initializes the extension
@@ -123,6 +129,7 @@ export default class MainController implements vscode.Disposable {
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
+    public connectionSharingService: ConnectionSharingService;
 
     /**
      * The main controller constructor
@@ -191,10 +198,6 @@ export default class MainController implements vscode.Disposable {
 
     public get useLegacyConnectionExperience(): boolean {
         return this.configuration.get(Constants.configUseLegacyConnectionExperience);
-    }
-
-    public get useLegacyQueryResultExperience(): boolean {
-        return this.configuration.get(Constants.configUseLegacyQueryResultExperience);
     }
 
     /**
@@ -533,6 +536,14 @@ export default class MainController implements vscode.Disposable {
 
             this.schemaDesignerService = new SchemaDesignerService(SqlToolsServerClient.instance);
 
+            this.connectionSharingService = new ConnectionSharingService(
+                this._context,
+                this._connectionMgr.client,
+                this._connectionMgr,
+                this._vscodeWrapper,
+                this._scriptingService,
+            );
+
             const providerInstance = new this.ExecutionPlanCustomEditorProvider(
                 this._context,
                 this._vscodeWrapper,
@@ -587,18 +598,24 @@ export default class MainController implements vscode.Disposable {
     private registerLanguageModelTools(): void {
         // Register mssql_connect tool
         this._context.subscriptions.push(
-            vscode.lm.registerTool("mssql_connect", new ConnectTool(this.connectionManager)),
+            vscode.lm.registerTool(
+                Constants.copilotConnectToolName,
+                new ConnectTool(this.connectionManager),
+            ),
         );
 
         // Register mssql_disconnect tool
         this._context.subscriptions.push(
-            vscode.lm.registerTool("mssql_disconnect", new DisconnectTool(this.connectionManager)),
+            vscode.lm.registerTool(
+                Constants.copilotDisconnectToolName,
+                new DisconnectTool(this.connectionManager),
+            ),
         );
 
         // Register mssql_list_servers tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_list_servers",
+                Constants.copilotListServersToolName,
                 new ListServersTool(this.connectionManager),
             ),
         );
@@ -606,7 +623,7 @@ export default class MainController implements vscode.Disposable {
         // Register mssql_list_databases tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_list_databases",
+                Constants.copilotListDatabasesToolName,
                 new ListDatabasesTool(this.connectionManager),
             ),
         );
@@ -614,7 +631,7 @@ export default class MainController implements vscode.Disposable {
         // Register mssql_get_connection_details tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_get_connection_details",
+                Constants.copilotGetConnectionDetailsToolName,
                 new GetConnectionDetailsTool(this.connectionManager),
             ),
         );
@@ -622,14 +639,14 @@ export default class MainController implements vscode.Disposable {
         // Register mssql_change_database tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_change_database",
+                Constants.copilotChangeDatabaseToolName,
                 new ChangeDatabaseTool(this.connectionManager),
             ),
         );
         // Register mssql_show_schema tool
         this._context.subscriptions.push(
             vscode.lm.registerTool(
-                "mssql_show_schema",
+                Constants.copilotShowSchemaToolName,
                 new ShowSchemaTool(
                     this.connectionManager,
                     async (connectionUri: string, database: string) => {
@@ -646,6 +663,46 @@ export default class MainController implements vscode.Disposable {
                         designer.revealToForeground();
                     },
                 ),
+            ),
+        );
+
+        // Register mssql_list_tables tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListTablesToolName,
+                new ListTablesTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_list_schemas tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListSchemasToolName,
+                new ListSchemasTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_list_views tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListViewsToolName,
+                new ListViewsTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_list_functions tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotListFunctionsToolName,
+                new ListFunctionsTool(this.connectionManager, SqlToolsServerClient.instance),
+            ),
+        );
+
+        // Register mssql_run_query tool
+        this._context.subscriptions.push(
+            vscode.lm.registerTool(
+                Constants.copilotRunQueryToolName,
+                new RunQueryTool(this.connectionManager, SqlToolsServerClient.instance),
             ),
         );
     }
@@ -676,7 +733,11 @@ export default class MainController implements vscode.Disposable {
                 }
             }
 
-            const selectStatement = await this._scriptingService.script(node, nodeUri, operation);
+            const selectStatement = await this._scriptingService.scriptTreeNode(
+                node,
+                nodeUri,
+                operation,
+            );
             const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
             let uri = editor.document.uri.toString(true);
             let scriptingObject = this._scriptingService.getObjectFromNode(node);
@@ -825,7 +886,6 @@ export default class MainController implements vscode.Disposable {
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
-            this._context,
             this._statusview,
             this._vscodeWrapper,
         );
@@ -858,7 +918,6 @@ export default class MainController implements vscode.Disposable {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
             useLegacyConnections: this.useLegacyConnectionExperience.toString(),
-            useLegacyQueryResults: this.useLegacyQueryResultExperience.toString(),
         });
 
         await this._connectionMgr.initialized;
@@ -1796,7 +1855,7 @@ export default class MainController implements vscode.Disposable {
     public onDeployContainer(): void {
         sendActionEvent(
             TelemetryViews.ContainerDeployment,
-            TelemetryActions.StartContainerDeployment,
+            TelemetryActions.OpenContainerDeployment,
         );
 
         const reactPanel = new ContainerDeploymentWebviewController(
@@ -1985,9 +2044,8 @@ export default class MainController implements vscode.Disposable {
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
                 return;
             }
-            // Delete query result filters for the current uri when we run a new query
-            store.delete(uri, SubKeys.Filter);
-            store.delete(uri, SubKeys.ColumnWidth);
+            // Delete stored filters and dimension states for result grid when a new query is executed
+            store.deleteMainKey(uri);
 
             await self._outputContentProvider.runQuery(
                 self._statusview,
@@ -2459,9 +2517,8 @@ export default class MainController implements vscode.Disposable {
             diagnostics.delete(doc.uri);
         }
 
-        // Delete query result fiters for the closed uri
-        store.delete(closedDocumentUri, SubKeys.Filter);
-        store.delete(closedDocumentUri, SubKeys.ColumnWidth);
+        // Delete filters and dimension states for the closed document
+        store.deleteMainKey(closedDocumentUri);
     }
 
     private async updateUri(oldUri: string, newUri: string) {
@@ -2598,7 +2655,6 @@ export default class MainController implements vscode.Disposable {
             Constants.configEnableExperimentalFeatures,
             Constants.configEnableRichExperiences,
             Constants.configUseLegacyConnectionExperience,
-            Constants.configUseLegacyQueryResultExperience,
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {
@@ -2785,26 +2841,13 @@ export default class MainController implements vscode.Disposable {
 
     private async isContainerReadyForCommands(node: TreeNodeInfo): Promise<boolean> {
         const containerName = node.connectionProfile?.containerName;
-        const prepResult = await prepareForDockerContainerCommand(containerName);
-        if (!prepResult.success) {
-            if (
-                prepResult.error ===
-                LocalizedConstants.ContainerDeployment.containerDoesNotExistError
-            ) {
-                node.loadingLabel = LocalizedConstants.Common.error;
-                const confirmation = await vscode.window.showInformationMessage(
-                    prepResult.error,
-                    { modal: true },
-                    LocalizedConstants.RemoveProfileLabel,
-                );
-                if (confirmation === LocalizedConstants.RemoveProfileLabel) {
-                    await this._objectExplorerProvider.removeNode(node as ConnectionNode, false);
-                }
-            } else {
-                vscode.window.showErrorMessage(prepResult.error);
-            }
-        }
-        return prepResult.success;
+        return (
+            await prepareForDockerContainerCommand(
+                containerName,
+                node as ConnectionNode,
+                this._objectExplorerProvider.objectExplorerService,
+            )
+        ).success;
     }
 
     public removeAadAccount(prompter: IPrompter): void {

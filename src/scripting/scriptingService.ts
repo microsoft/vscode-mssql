@@ -8,13 +8,13 @@ import ConnectionManager from "../controllers/connectionManager";
 import {
     ScriptingRequest,
     IScriptingParams,
-    ScriptOperation,
-    IScriptingObject,
     IScriptOptions,
     ScriptingProgressNotification,
+    ScriptOperation,
 } from "../models/contracts/scripting/scriptingRequest";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import * as vscode from "vscode";
+import { IScriptingObject, IServerInfo } from "vscode-mssql";
 
 export class ScriptingService {
     private _client: SqlToolsServiceClient;
@@ -99,12 +99,11 @@ export class ScriptingService {
      * Helper to create scripting params
      */
     public createScriptingParams(
-        node: TreeNodeInfo,
+        serverInfo: IServerInfo,
+        scriptingObject: IScriptingObject,
         uri: string,
         operation: ScriptOperation,
     ): IScriptingParams {
-        const scriptingObject = this.getObjectFromNode(node);
-        let serverInfo = this._connectionManager.getServerInfo(node.connectionProfile);
         let scriptCreateDropOption: string;
         switch (operation) {
             case ScriptOperation.Select:
@@ -153,12 +152,26 @@ export class ScriptingService {
         return scriptingParams;
     }
 
-    public async script(
+    public createScriptingParamsFromNode(
+        node: TreeNodeInfo,
+        uri: string,
+        operation: ScriptOperation,
+    ): IScriptingParams {
+        const serverInfo = this._connectionManager.getServerInfo(node.connectionProfile);
+        const scriptingObject = this.getObjectFromNode(node);
+        return this.createScriptingParams(serverInfo, scriptingObject, uri, operation);
+    }
+
+    public async scriptTreeNode(
         node: TreeNodeInfo,
         uri: string,
         operation: ScriptOperation,
     ): Promise<string> {
-        let scriptingParams = this.createScriptingParams(node, uri, operation);
+        const scriptingParams = this.createScriptingParamsFromNode(node, uri, operation);
+        return this.script(scriptingParams);
+    }
+
+    public async script(scriptingParams: IScriptingParams): Promise<string> {
         const result = await this._client.sendRequest(ScriptingRequest.type, scriptingParams);
         return result.script;
     }

@@ -59,6 +59,9 @@ export const ContainerSetupStepsPage: React.FC = () => {
                         {locConstants.containerDeployment.gettingContainerReadyForConnection}
                     </div>
                     <StepCard
+                        step={containerDeploymentState.dockerSteps[DockerStepOrder.pullImage]}
+                    />
+                    <StepCard
                         step={containerDeploymentState.dockerSteps[DockerStepOrder.startContainer]}
                     />
                     <StepCard
@@ -69,22 +72,26 @@ export const ContainerSetupStepsPage: React.FC = () => {
                             containerDeploymentState.dockerSteps[DockerStepOrder.connectToContainer]
                         }
                     />
-                    <div className={classes.buttonDiv}>
-                        {stepsErrored && (
+                    {(stepsErrored || stepsLoaded) && (
+                        <div className={classes.buttonDiv}>
+                            {stepsErrored && (
+                                <Button
+                                    className={classes.button}
+                                    onClick={handleRetry}
+                                    appearance="primary">
+                                    {locConstants.common.retry}
+                                </Button>
+                            )}
                             <Button
                                 className={classes.button}
-                                onClick={handleRetry}
-                                appearance="primary">
-                                {locConstants.common.retry}
+                                onClick={() => state.dispose()}
+                                appearance={stepsLoaded ? "primary" : "secondary"}>
+                                {stepsLoaded
+                                    ? locConstants.common.finish
+                                    : locConstants.common.cancel}
                             </Button>
-                        )}
-                        <Button
-                            className={classes.button}
-                            onClick={() => state.dispose()}
-                            appearance={stepsLoaded ? "primary" : "secondary"}>
-                            {locConstants.common.finish}
-                        </Button>
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

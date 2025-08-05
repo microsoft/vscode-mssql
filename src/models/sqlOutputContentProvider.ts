@@ -12,13 +12,13 @@ import ResultsSerializer from "../models/resultsSerializer";
 import StatusView from "../views/statusView";
 import VscodeWrapper from "./../controllers/vscodeWrapper";
 import { ISelectionData, ISlickRange } from "./interfaces";
-import { WebviewPanelController } from "../controllers/webviewController";
-import { IServerProxy, Deferred } from "../protocol";
+import { Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import * as qr from "../sharedInterfaces/queryResult";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -42,16 +42,12 @@ class ResultsConfig implements Interfaces.IResultsConfig {
 }
 
 export class SqlOutputContentProvider {
-    // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
-    private _panels = new Map<string, WebviewPanelController>();
     private _queryResultWebviewController: QueryResultWebviewController;
     private _executionPlanOptions: ExecutionPlanOptions = {};
     private _lastSendMessageTime: number;
 
-    // CONSTRUCTOR /////////////////////////////////////////////////////////
     constructor(
-        private context: vscode.ExtensionContext,
         private _statusView: StatusView,
         private _vscodeWrapper: VscodeWrapper,
     ) {
@@ -130,7 +126,7 @@ export class SqlOutputContentProvider {
 
     public sendToClipboard(
         uri: string,
-        data: Array<any>,
+        data: qr.DbCellValue[][],
         batchId: number,
         resultId: number,
         selection: ISlickRange[],
@@ -162,7 +158,7 @@ export class SqlOutputContentProvider {
     }
 
     public async runQuery(
-        statusView: any,
+        statusView: StatusView,
         uri: string,
         selection: ISelectionData,
         title: string,
@@ -176,12 +172,6 @@ export class SqlOutputContentProvider {
             title,
             async (queryRunner: QueryRunner) => {
                 if (queryRunner) {
-                    if (this.useLegacyQueryResults) {
-                        // if the panel isn't active and exists
-                        if (this._panels.get(uri).isActive === false) {
-                            this._panels.get(uri).revealToForeground(uri);
-                        }
-                    }
                     await queryRunner.runQuery(selection, executionPlanOptions, promise);
                 }
             },
@@ -190,7 +180,7 @@ export class SqlOutputContentProvider {
     }
 
     public async runCurrentStatement(
-        statusView: any,
+        statusView: StatusView,
         uri: string,
         selection: ISelectionData,
         title: string,
@@ -200,9 +190,9 @@ export class SqlOutputContentProvider {
             statusView ? statusView : this._statusView,
             uri,
             title,
-            (queryRunner) => {
+            async (queryRunner) => {
                 if (queryRunner) {
-                    queryRunner.runStatement(selection.startLine, selection.startColumn);
+                    await queryRunner.runStatement(selection.startLine, selection.startColumn);
                 }
             },
         );
@@ -214,19 +204,11 @@ export class SqlOutputContentProvider {
             .get(Constants.configOpenQueryResultsInTabByDefault);
     }
 
-    private get useLegacyQueryResults(): boolean {
-        return (
-            this._vscodeWrapper
-                .getConfiguration()
-                .get(Constants.configUseLegacyQueryResultExperience) || false
-        );
-    }
-
     private async runQueryCallback(
         statusView: StatusView,
         uri: string,
         title: string,
-        queryCallback: any,
+        queryCallback: (queryRunner: QueryRunner) => Promise<void>,
         executionPlanOptions?: ExecutionPlanOptions,
     ): Promise<void> {
         let queryRunner = await this.createQueryRunner(
@@ -234,101 +216,20 @@ export class SqlOutputContentProvider {
             uri,
             title,
         );
-        if (this.useLegacyQueryResults) {
-            if (this._panels.has(uri)) {
-                let panelController = this._panels.get(uri);
-                if (panelController.isDisposed) {
-                    this._panels.delete(uri);
-                    await this.createWebviewController(uri, title, queryRunner);
-                } else {
-                    queryCallback(queryRunner);
-                    return;
-                }
-            } else {
-                await this.createWebviewController(uri, title, queryRunner);
-            }
+        if (executionPlanOptions) {
+            this._executionPlanOptions = executionPlanOptions;
         } else {
-            if (executionPlanOptions) {
-                this._executionPlanOptions = executionPlanOptions;
-            } else {
-                this._executionPlanOptions = {};
-            }
-            this._queryResultWebviewController.addQueryResultState(
-                uri,
-                title,
-                this.getIsExecutionPlan(),
-                this._executionPlanOptions?.includeActualExecutionPlanXml ?? false,
-            );
+            this._executionPlanOptions = {};
         }
-        if (queryRunner) {
-            queryCallback(queryRunner);
-        }
-    }
-
-    private async createWebviewController(
-        uri: string,
-        title: string,
-        queryRunner: QueryRunner,
-    ): Promise<void> {
-        const proxy: IServerProxy = {
-            getRows: (batchId: number, resultId: number, rowStart: number, numberOfRows: number) =>
-                this.rowRequestHandler(uri, batchId, resultId, rowStart, numberOfRows),
-            copyResults: (
-                batchId: number,
-                resultsId: number,
-                selection: ISlickRange[],
-                includeHeaders?: boolean,
-            ) => this.copyRequestHandler(uri, batchId, resultsId, selection, includeHeaders),
-            getConfig: () => this.configRequestHandler(uri),
-            getLocalizedTexts: () => Promise.resolve(LocalizedConstants),
-            openLink: (content: string, columnName: string, linkType: string) =>
-                this.openLinkRequestHandler(content, columnName, linkType),
-            saveResults: (
-                batchId: number,
-                resultId: number,
-                format: string,
-                selection: ISlickRange[],
-            ) => this.saveResultsRequestHandler(uri, batchId, resultId, format, selection),
-            setEditorSelection: (selection: ISelectionData) =>
-                this.editorSelectionRequestHandler(uri, selection),
-            showError: (message: string) => this.showErrorRequestHandler(message),
-            showWarning: (message: string) => this.showWarningRequestHandler(message),
-            sendReadyEvent: async () => await this.sendReadyEvent(uri),
-            dispose: () => this._panels.delete(uri),
-            getNewColumnWidth: async (current: number): Promise<number | undefined> => {
-                const val = await vscode.window.showInputBox({
-                    prompt: LocalizedConstants.newColumnWidthPrompt,
-                    value: current.toString(),
-                    validateInput: async (value: string) => {
-                        if (!Number(value)) {
-                            return LocalizedConstants.columnWidthInvalidNumberError;
-                        } else if (parseInt(value, 10) <= 0) {
-                            return LocalizedConstants.columnWidthMustBePositiveError;
-                        }
-                        return undefined;
-                    },
-                });
-                return val === undefined ? undefined : parseInt(val, 10);
-            },
-            sendActionEvent: (
-                view: TelemetryViews,
-                action: TelemetryActions,
-                properties?: { [key: string]: string },
-                measurement?: { [key: string]: number },
-            ) => {
-                sendActionEvent(view, action, properties, measurement);
-            },
-        };
-        const controller = new WebviewPanelController(
-            this._vscodeWrapper,
+        this._queryResultWebviewController.addQueryResultState(
             uri,
             title,
-            proxy,
-            this.context.extensionPath,
-            this._statusView,
+            this.getIsExecutionPlan(),
+            this._executionPlanOptions?.includeActualExecutionPlanXml ?? false,
         );
-        this._panels.set(uri, controller);
-        await controller.init();
+        if (queryRunner) {
+            void queryCallback(queryRunner);
+        }
     }
 
     public createQueryRunner(statusView: StatusView, uri: string, title: string): QueryRunner {
@@ -353,47 +254,31 @@ export class SqlOutputContentProvider {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
-            queryRunner.eventEmitter.on("start", async (panelUri) => {
-                if (this.useLegacyQueryResults) {
-                    this._panels.get(queryRunner.uri).proxy.sendEvent("start", panelUri);
-                    sendActionEvent(TelemetryViews.ResultsGrid, TelemetryActions.OpenQueryResult);
-                } else {
-                    this._lastSendMessageTime = Date.now();
-                    this._queryResultWebviewController.addQueryResultState(
-                        queryRunner.uri,
-                        title,
-                        this.getIsExecutionPlan(),
-                        this._executionPlanOptions?.includeActualExecutionPlanXml ?? false,
-                    );
-                    this._queryResultWebviewController.getQueryResultState(
-                        queryRunner.uri,
-                    ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-                    if (this.isOpenQueryResultsInTabByDefaultEnabled) {
-                        await this._queryResultWebviewController.createPanelController(
-                            queryRunner.uri,
-                        );
-                    }
-                    this._queryResultWebviewController.updatePanelState(queryRunner.uri);
-                    if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
-                        await this._queryResultWebviewController.revealToForeground();
-                    }
-                    sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
-                        defaultLocation: this.isOpenQueryResultsInTabByDefaultEnabled
-                            ? "tab"
-                            : "pane",
-                    });
+            queryRunner.eventEmitter.on("start", async (_panelUri) => {
+                this._lastSendMessageTime = Date.now();
+                this._queryResultWebviewController.addQueryResultState(
+                    queryRunner.uri,
+                    title,
+                    this.getIsExecutionPlan(),
+                    this._executionPlanOptions?.includeActualExecutionPlanXml ?? false,
+                );
+                this._queryResultWebviewController.getQueryResultState(
+                    queryRunner.uri,
+                ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+                if (this.isOpenQueryResultsInTabByDefaultEnabled) {
+                    await this._queryResultWebviewController.createPanelController(queryRunner.uri);
                 }
+                this._queryResultWebviewController.updatePanelState(queryRunner.uri);
+                if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
+                    await this._queryResultWebviewController.revealToForeground();
+                }
+                sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
+                    defaultLocation: this.isOpenQueryResultsInTabByDefaultEnabled ? "tab" : "pane",
+                });
             });
             queryRunner.eventEmitter.on("resultSet", async (resultSet: ResultSetSummary) => {
-                if (this.useLegacyQueryResults) {
-                    this._panels.get(queryRunner.uri).proxy.sendEvent("resultSet", resultSet);
-                } else {
-                    this._queryResultWebviewController.addResultSetSummary(
-                        queryRunner.uri,
-                        resultSet,
-                    );
-                    this._queryResultWebviewController.updatePanelState(queryRunner.uri);
-                }
+                this._queryResultWebviewController.addResultSetSummary(queryRunner.uri, resultSet);
+                this._queryResultWebviewController.updatePanelState(queryRunner.uri);
             });
             queryRunner.eventEmitter.on("batchStart", async (batch) => {
                 let time = new Date().toLocaleTimeString();
@@ -415,12 +300,27 @@ export class SqlOutputContentProvider {
                         uri: queryRunner.uri,
                     },
                 };
-                if (this.useLegacyQueryResults) {
-                    this._panels.get(queryRunner.uri).proxy.sendEvent("message", message);
-                } else {
-                    this._queryResultWebviewController
-                        .getQueryResultState(queryRunner.uri)
-                        .messages.push(message);
+
+                this._queryResultWebviewController
+                    .getQueryResultState(queryRunner.uri)
+                    .messages.push(message);
+                this._queryResultWebviewController.getQueryResultState(
+                    queryRunner.uri,
+                ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+                this._queryResultWebviewController.state =
+                    this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                this._queryResultWebviewController.updatePanelState(queryRunner.uri);
+                if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
+                    await this._queryResultWebviewController.revealToForeground();
+                }
+            });
+            queryRunner.eventEmitter.on("message", async (message) => {
+                this._queryResultWebviewController
+                    .getQueryResultState(queryRunner.uri)
+                    .messages.push(message);
+
+                // Set state for messages at fixed intervals to avoid spamming the webview
+                if (this._lastSendMessageTime < Date.now() - MESSAGE_INTERVAL_IN_MS) {
                     this._queryResultWebviewController.getQueryResultState(
                         queryRunner.uri,
                     ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
@@ -430,29 +330,7 @@ export class SqlOutputContentProvider {
                     if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
                         await this._queryResultWebviewController.revealToForeground();
                     }
-                }
-            });
-            queryRunner.eventEmitter.on("message", async (message) => {
-                if (this.useLegacyQueryResults) {
-                    this._panels.get(queryRunner.uri).proxy.sendEvent("message", message);
-                } else {
-                    this._queryResultWebviewController
-                        .getQueryResultState(queryRunner.uri)
-                        .messages.push(message);
-
-                    // Set state for messages at fixed intervals to avoid spamming the webview
-                    if (this._lastSendMessageTime < Date.now() - MESSAGE_INTERVAL_IN_MS) {
-                        this._queryResultWebviewController.getQueryResultState(
-                            queryRunner.uri,
-                        ).tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-                        this._queryResultWebviewController.state =
-                            this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
-                        this._queryResultWebviewController.updatePanelState(queryRunner.uri);
-                        if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
-                            await this._queryResultWebviewController.revealToForeground();
-                        }
-                        this._lastSendMessageTime = Date.now();
-                    }
+                    this._lastSendMessageTime = Date.now();
                 }
             });
             queryRunner.eventEmitter.on(
@@ -466,41 +344,36 @@ export class SqlOutputContentProvider {
                             hasError,
                         );
                     }
-                    if (this.useLegacyQueryResults) {
-                        this._panels
-                            .get(queryRunner.uri)
-                            .proxy.sendEvent("complete", totalMilliseconds);
-                    } else {
-                        this._queryResultWebviewController
-                            .getQueryResultState(queryRunner.uri)
-                            .messages.push({
-                                message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
-                                isError: false, // Elapsed time messages are never displayed as errors
-                            });
-                        // if there is an error, show the error message and set the tab to the messages tab
-                        let tabState: QueryResultPaneTabs;
-                        if (hasError) {
-                            tabState = QueryResultPaneTabs.Messages;
-                        } else {
-                            tabState =
-                                Object.keys(
-                                    this._queryResultWebviewController.getQueryResultState(
-                                        queryRunner.uri,
-                                    ).resultSetSummaries,
-                                ).length > 0
-                                    ? QueryResultPaneTabs.Results
-                                    : QueryResultPaneTabs.Messages;
-                        }
 
-                        this._queryResultWebviewController.getQueryResultState(
-                            queryRunner.uri,
-                        ).tabStates.resultPaneTab = tabState;
-                        this._queryResultWebviewController.state =
-                            this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
-                        this._queryResultWebviewController.updatePanelState(queryRunner.uri);
-                        if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
-                            await this._queryResultWebviewController.revealToForeground();
-                        }
+                    this._queryResultWebviewController
+                        .getQueryResultState(queryRunner.uri)
+                        .messages.push({
+                            message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
+                            isError: false, // Elapsed time messages are never displayed as errors
+                        });
+                    // if there is an error, show the error message and set the tab to the messages tab
+                    let tabState: QueryResultPaneTabs;
+                    if (hasError) {
+                        tabState = QueryResultPaneTabs.Messages;
+                    } else {
+                        tabState =
+                            Object.keys(
+                                this._queryResultWebviewController.getQueryResultState(
+                                    queryRunner.uri,
+                                ).resultSetSummaries,
+                            ).length > 0
+                                ? QueryResultPaneTabs.Results
+                                : QueryResultPaneTabs.Messages;
+                    }
+
+                    this._queryResultWebviewController.getQueryResultState(
+                        queryRunner.uri,
+                    ).tabStates.resultPaneTab = tabState;
+                    this._queryResultWebviewController.state =
+                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    this._queryResultWebviewController.updatePanelState(queryRunner.uri);
+                    if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
+                        await this._queryResultWebviewController.revealToForeground();
                     }
                 },
             );
@@ -533,7 +406,7 @@ export class SqlOutputContentProvider {
 
         // Cancel the query
         queryRunner.cancel().then(
-            (success) => undefined,
+            (_success) => undefined,
             (error) => {
                 // On error, show error message
                 self._vscodeWrapper.showErrorMessage(
@@ -568,7 +441,9 @@ export class SqlOutputContentProvider {
 
     public updateQueryRunnerUri(oldUri: string, newUri: string): void {
         let queryRunner = this.getQueryRunner(oldUri);
-        queryRunner.updateQueryRunnerUri(oldUri, newUri);
+        if (queryRunner) {
+            queryRunner.updateQueryRunnerUri(oldUri, newUri);
+        }
     }
 
     /**
@@ -589,28 +464,6 @@ export class SqlOutputContentProvider {
                 value.timeout = this.setRunnerDeletionTimeout(key);
             }
         }
-    }
-
-    /**
-     * Ready event sent by the angular app
-     * @param uri
-     */
-    private async sendReadyEvent(uri: string): Promise<boolean> {
-        const panelController = this._panels.get(uri);
-        const queryRunner = this.getQueryRunner(uri);
-        // in case of a tab switch
-        // and if it has rendered before
-        if (
-            panelController.isActive !== undefined &&
-            queryRunner.hasCompleted &&
-            panelController.rendered
-        ) {
-            return queryRunner.refreshQueryTab(uri);
-        } else {
-            // first ready event
-            panelController.rendered = true;
-        }
-        return false;
     }
 
     private setRunnerDeletionTimeout(uri: string): NodeJS.Timer {
@@ -641,14 +494,14 @@ export class SqlOutputContentProvider {
         if (linkType === "xml") {
             try {
                 content = pd.xml(content);
-            } catch (e) {
+            } catch {
                 // If Xml fails to parse, fall back on original Xml content
             }
         } else if (linkType === "json") {
             let jsonContent: string = undefined;
             try {
                 jsonContent = JSON.parse(content);
-            } catch (e) {
+            } catch {
                 // If Json fails to parse, fall back on original Json content
             }
             if (jsonContent) {
@@ -673,12 +526,12 @@ export class SqlOutputContentProvider {
                                 }
                             });
                     },
-                    (error: any) => {
+                    (error) => {
                         self._vscodeWrapper.showErrorMessage(error);
                     },
                 );
             },
-            (error: any) => {
+            (error) => {
                 self._vscodeWrapper.showErrorMessage(error);
             },
         );

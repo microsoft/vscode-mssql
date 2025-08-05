@@ -36,18 +36,21 @@ import {
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity, sendErrorEvent } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { deepClone } from "../models/utils";
 import { isNullOrUndefined } from "util";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { cmdAddObjectExplorer } from "../constants/constants";
+import { getErrorMessage } from "../utils/utils";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
     SchemaCompareReducers
 > {
+    private static readonly SQL_DATABASE_PROJECTS_EXTENSION_ID =
+        "ms-mssql.sql-database-projects-vscode";
     private operationId: string;
 
     constructor(
@@ -89,6 +92,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 schemaCompareOpenScmpResult: undefined,
                 saveScmpResultStatus: undefined,
                 cancelResultStatus: undefined,
+                waitingForNewConnection: false,
+                pendingConnectionEndpointType: null,
             },
             {
                 title: title,
@@ -109,6 +114,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         );
 
         this.operationId = generateOperationId();
+        this.logger.info(
+            `SchemaCompareWebViewController created with operation ID: ${this.operationId}`,
+        );
 
         if (node && !this.isTreeNodeInfoType(node)) {
             node = this.getFullSqlProjectsPathFromNode(node);
@@ -118,9 +126,33 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerRpcHandlers();
 
         this.registerDisposable(
-            this.connectionMgr.onConnectionsChanged(() => {
+            this.connectionMgr.onConnectionsChanged(async () => {
                 const activeServers = this.getActiveServersList();
-                this.state.activeServers = activeServers;
+
+                // Check if we're waiting for a new connection and auto-select it
+                if (
+                    this.state.waitingForNewConnection &&
+                    this.state.pendingConnectionEndpointType
+                ) {
+                    const newConnections = this.findNewConnections(
+                        this.state.activeServers,
+                        activeServers,
+                    );
+                    if (newConnections.length > 0) {
+                        // Update active servers first so the UI has the latest list
+                        this.state.activeServers = activeServers;
+
+                        // Auto-select the first new connection
+                        const newConnectionUri = newConnections[0];
+                        await this.autoSelectNewConnection(
+                            newConnectionUri,
+                            this.state.pendingConnectionEndpointType,
+                        );
+                    }
+                } else {
+                    // Update active servers if we're not waiting for a new connection
+                    this.state.activeServers = activeServers;
+                }
 
                 this.updateState();
             }),
@@ -140,10 +172,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         sourceContext: any,
         comparisonResult: mssql.SchemaCompareResult = undefined,
     ): Promise<void> {
+        this.logger.info(
+            `Starting schema comparison with sourceContext type: ${sourceContext ? typeof sourceContext : "undefined"}`,
+        );
         let source: mssql.SchemaCompareEndpointInfo;
 
         const node = sourceContext as TreeNodeInfo;
         if (node.connectionProfile) {
+            this.logger.verbose(
+                `Using connection profile as source: ${node.connectionProfile.server}`,
+            );
             source = await this.getEndpointInfoFromConnectionProfile(
                 node.connectionProfile,
                 sourceContext,
@@ -153,9 +191,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             (sourceContext as string) &&
             (sourceContext as string).endsWith(".dacpac")
         ) {
+            this.logger.verbose(`Using dacpac as source: ${sourceContext}`);
             source = this.getEndpointInfoFromDacpac(sourceContext as string);
         } else if (sourceContext) {
+            this.logger.verbose(`Using project as source: ${sourceContext}`);
             source = await this.getEndpointInfoFromProject(sourceContext as string);
+        } else {
+            this.logger.verbose("No source context provided");
         }
 
         await this.launch(source, undefined, false, comparisonResult);
@@ -174,6 +216,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         runComparison: boolean = false,
         comparisonResult: mssql.SchemaCompareResult | undefined,
     ): Promise<void> {
+        this.logger.info(
+            `Launching schema comparison with runComparison=${runComparison}, has source=${!!source}, has target=${!!target}, has comparisonResult=${!!comparisonResult}`,
+        );
+
         if (runComparison && comparisonResult) {
             throw new Error(
                 "Cannot both pass a comparison result and request a new comparison be run.",
@@ -252,31 +298,63 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     }
 
     private async getProjectScriptFiles(projectFilePath: string): Promise<string[]> {
+        this.logger.verbose(`Getting project script files for: ${projectFilePath}`);
         let scriptFiles: string[] = [];
 
-        const databaseProjectsExtension = vscode.extensions.getExtension(
-            "ms-mssql.sql-database-projects-vscode",
-        );
-        if (databaseProjectsExtension) {
-            scriptFiles = await (
-                await databaseProjectsExtension.activate()
-            ).getProjectScriptFiles(projectFilePath);
+        try {
+            const databaseProjectsExtension = vscode.extensions.getExtension(
+                SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
+            );
+            if (databaseProjectsExtension) {
+                this.logger.verbose(`SQL Database Projects extension found, activating...`);
+                scriptFiles = await (
+                    await databaseProjectsExtension.activate()
+                ).getProjectScriptFiles(projectFilePath);
+                this.logger.verbose(`Retrieved ${scriptFiles.length} script files from project`);
+            } else {
+                this.logger.warn(
+                    `SQL Database Projects extension not found, cannot get project scripts`,
+                );
+            }
+        } catch (error) {
+            this.logger.error(`Failed to get project script files: ${getErrorMessage(error)}`);
+            sendErrorEvent(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.GetDatabaseProjectScriptFiles,
+                error,
+            );
         }
 
         return scriptFiles;
     }
 
     private async getDatabaseSchemaProvider(projectFilePath: string): Promise<string> {
+        this.logger.verbose(`Getting database schema provider for project: ${projectFilePath}`);
         let provider = "";
 
-        const databaseProjectsExtension = vscode.extensions.getExtension(
-            "ms-mssql.sql-database-projects-vscode",
-        );
+        try {
+            const databaseProjectsExtension = vscode.extensions.getExtension(
+                SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
+            );
 
-        if (databaseProjectsExtension) {
-            provider = await (
-                await databaseProjectsExtension.activate()
-            ).getProjectDatabaseSchemaProvider(projectFilePath);
+            if (databaseProjectsExtension) {
+                this.logger.verbose(`SQL Database Projects extension found, activating...`);
+                provider = await (
+                    await databaseProjectsExtension.activate()
+                ).getProjectDatabaseSchemaProvider(projectFilePath);
+                this.logger.verbose(`Retrieved database schema provider: ${provider || "empty"}`);
+            } else {
+                this.logger.warn(
+                    `SQL Database Projects extension not found, cannot get database schema provider`,
+                );
+            }
+        } catch (error) {
+            this.logger.error(`Failed to get database schema provider: ${getErrorMessage(error)}`);
+            sendErrorEvent(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.GetDatabaseProjectSchemaProvider,
+                error,
+            );
         }
 
         return provider;
@@ -296,16 +374,23 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
     private registerRpcHandlers(): void {
         this.registerReducer("isSqlProjectExtensionInstalled", async (state) => {
+            this.logger.verbose(`Checking if SQL Database Projects extension is installed`);
+
             const extension = vscode.extensions.getExtension(
-                "ms-mssql.sql-database-projects-vscode",
+                SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
             );
 
             if (extension) {
                 if (!extension.isActive) {
+                    this.logger.verbose(
+                        `SQL Database Projects extension found but not activated, activating...`,
+                    );
                     await extension.activate();
                 }
+                this.logger.info(`SQL Database Projects extension is installed and activated`);
                 state.isSqlProjectExtensionInstalled = true;
             } else {
+                this.logger.info(`SQL Database Projects extension is not installed`);
                 state.isSqlProjectExtensionInstalled = false;
             }
 
@@ -315,7 +400,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("listActiveServers", (state) => {
+            this.logger.verbose(`Listing active SQL servers`);
             const activeServers = this.getActiveServersList();
+
+            const serverCount = Object.keys(activeServers).length;
+            this.logger.info(`Found ${serverCount} active SQL server connection(s)`);
 
             state.activeServers = activeServers;
             this.updateState(state);
@@ -324,11 +413,20 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("listDatabasesForActiveServer", async (state, payload) => {
+            this.logger.info(`Listing databases for server connection: ${payload.connectionUri}`);
+
             let databases: string[] = [];
             try {
                 databases = await this.connectionMgr.listDatabases(payload.connectionUri);
+                this.logger.info(`Found ${databases.length} database(s) on server`);
             } catch (error) {
+                this.logger.error(`Error listing databases: ${getErrorMessage(error)}`);
                 console.error("Error listing databases:", error);
+                sendErrorEvent(
+                    TelemetryViews.SchemaCompare,
+                    TelemetryActions.ListingDatabasesForActiveServer,
+                    error,
+                );
             }
 
             state.databases = databases;
@@ -337,26 +435,42 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer("openAddNewConnectionDialog", (state) => {
+        this.registerReducer("openAddNewConnectionDialog", (state, payload) => {
+            this.logger.info(`Opening new connection dialog for ${payload.endpointType} endpoint`);
+
+            state.waitingForNewConnection = true;
+            state.pendingConnectionEndpointType = payload.endpointType;
+
+            this.logger.verbose(`Executing command: ${cmdAddObjectExplorer}`);
             vscode.commands.executeCommand(cmdAddObjectExplorer);
 
             return state;
         });
 
         this.registerReducer("selectFile", async (state, payload) => {
+            this.logger.info(
+                `Selecting ${payload.fileType} file for ${payload.endpointType} endpoint`,
+            );
+
             let endpointFilePath = "";
             if (payload.endpoint) {
                 endpointFilePath =
                     payload.endpoint.packageFilePath || payload.endpoint.projectFilePath;
+                this.logger.verbose(
+                    `Using existing file path as starting point: ${endpointFilePath}`,
+                );
             }
 
             const filters = {
                 Files: [payload.fileType],
             };
 
+            this.logger.verbose(`Opening file dialog with filters: ${JSON.stringify(filters)}`);
             const filePath = await showOpenDialogForDacpacOrSqlProj(endpointFilePath, filters);
 
             if (filePath) {
+                this.logger.info(`Selected file: ${filePath}`);
+
                 const updatedEndpointInfo =
                     payload.fileType === "dacpac"
                         ? this.getEndpointInfoFromDacpac(filePath)
@@ -366,22 +480,31 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
                 if (payload.fileType === "sqlproj") {
                     if (payload.endpointType === "target") {
+                        this.logger.verbose(
+                            `Setting extract target to schemaObjectType for target project`,
+                        );
                         state.auxiliaryEndpointInfo.extractTarget =
                             mssql.ExtractTarget.schemaObjectType;
                     }
                 }
 
                 this.updateState(state);
+            } else {
+                this.logger.info(`File selection canceled by user`);
             }
 
             return state;
         });
 
         this.registerReducer("confirmSelectedSchema", async (state, payload) => {
+            this.logger.info(`Confirming selected schema for ${payload.endpointType} endpoint`);
+
             if (payload.endpointType === "source") {
+                this.logger.info(`Setting source endpoint info from auxiliary endpoint info`);
                 state.sourceEndpointInfo = state.auxiliaryEndpointInfo;
             } else {
                 if (state.auxiliaryEndpointInfo) {
+                    this.logger.info(`Setting target endpoint info from auxiliary endpoint info`);
                     state.targetEndpointInfo = state.auxiliaryEndpointInfo;
                 }
 
@@ -389,12 +512,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     state.targetEndpointInfo?.endpointType ===
                     mssql.SchemaCompareEndpointType.Project
                 ) {
+                    this.logger.info(`Setting target extract target to ${payload.folderStructure}`);
                     state.targetEndpointInfo.extractTarget = this.mapExtractTargetEnum(
                         payload.folderStructure,
                     );
                 }
             }
 
+            this.logger.verbose(`Clearing auxiliary endpoint info`);
             state.auxiliaryEndpointInfo = undefined;
             this.updateState(state);
 
@@ -402,13 +527,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("confirmSelectedDatabase", (state, payload) => {
+            this.logger.info(
+                `Confirming selected database for ${payload.endpointType} endpoint: ${payload.databaseName}`,
+            );
+
             const connection = this.connectionMgr.activeConnections[payload.serverConnectionUri];
+            this.logger.verbose(`Using connection: ${payload.serverConnectionUri}`);
 
             const connectionProfile = connection.credentials as IConnectionProfile;
 
             let user = connectionProfile.user;
             if (!user) {
                 user = locConstants.SchemaCompare.defaultUserName;
+                this.logger.verbose(`Using default user name: ${user}`);
             }
 
             const endpointInfo = {
@@ -427,8 +558,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             };
 
             if (payload.endpointType === "source") {
+                this.logger.info(`Setting as source endpoint`);
                 state.sourceEndpointInfo = endpointInfo;
             } else {
+                this.logger.info(`Setting as target endpoint`);
                 state.targetEndpointInfo = endpointInfo;
             }
 
@@ -438,7 +571,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("setIntermediarySchemaOptions", async (state) => {
+            this.logger.verbose(`Setting intermediary schema options`);
             state.intermediaryOptionsResult = deepClone(state.defaultDeploymentOptionsResult);
+            this.logger.info(`Cloned deployment options for editing`);
 
             this.updateState(state);
 
@@ -446,6 +581,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("intermediaryIncludeObjectTypesOptionsChanged", (state, payload) => {
+            this.logger.verbose(`Updating object type inclusion option: ${payload.key}`);
+
             const deploymentOptions = state.intermediaryOptionsResult.defaultDeploymentOptions;
             const excludeObjectTypeOptions = deploymentOptions.excludeObjectTypes.value;
 
@@ -455,8 +592,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             const isFound = optionIndex !== -1;
             if (isFound) {
+                this.logger.info(`Removing object type from exclusion list: ${payload.key}`);
                 excludeObjectTypeOptions.splice(optionIndex, 1);
             } else {
+                this.logger.info(`Adding object type to exclusion list: ${payload.key}`);
                 excludeObjectTypeOptions.push(payload.key);
             }
 
@@ -465,10 +604,49 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("intermediaryIncludeObjectTypesBulkChanged", (state, payload) => {
+            this.logger.verbose(
+                `Bulk updating object type inclusion options: ${payload.keys.join(", ")}`,
+            );
+
+            const deploymentOptions = state.intermediaryOptionsResult.defaultDeploymentOptions;
+            const excludeObjectTypeOptions = deploymentOptions.excludeObjectTypes.value;
+
+            payload.keys.forEach((key) => {
+                const optionIndex = excludeObjectTypeOptions.findIndex(
+                    (o) => o.toLowerCase() === key.toLowerCase(),
+                );
+                const isFound = optionIndex !== -1;
+
+                if (payload.checked) {
+                    // If we want to check (include) the option, remove it from exclude list
+                    if (isFound) {
+                        excludeObjectTypeOptions.splice(optionIndex, 1);
+                    }
+                } else {
+                    // If we want to uncheck (exclude) the option, add it to exclude list
+                    if (!isFound) {
+                        excludeObjectTypeOptions.push(key);
+                    }
+                }
+            });
+
+            this.logger.info(
+                `Bulk changed ${payload.keys.length} object types to ${payload.checked ? "included" : "excluded"}`,
+            );
+
+            this.updateState(state);
+
+            return state;
+        });
+
         this.registerReducer("confirmSchemaOptions", async (state, payload) => {
+            this.logger.info(`Confirming schema comparison options`);
+
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions = deepClone(
                 state.intermediaryOptionsResult.defaultDeploymentOptions,
             );
+            this.logger.verbose(`Applied intermediary options to default deployment options`);
             state.intermediaryOptionsResult = undefined;
 
             this.updateState(state);
@@ -483,8 +661,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             };
 
             sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.OptionsChanged);
+            this.logger.verbose(`Sent telemetry event for options changed`);
 
             if (payload.optionsChanged) {
+                this.logger.info(`Options were changed, prompting user to run comparison again`);
                 vscode.window
                     .showInformationMessage(
                         locConstants.SchemaCompare.optionsChangedMessage,
@@ -494,6 +674,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     )
                     .then(async (result) => {
                         if (result.title === locConstants.SchemaCompare.Yes) {
+                            this.logger.info(`User chose to run comparison with new options`);
                             const payload = {
                                 sourceEndpointInfo: state.sourceEndpointInfo,
                                 targetEndpointInfo: state.targetEndpointInfo,
@@ -506,29 +687,66 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                                 TelemetryViews.SchemaCompare,
                                 TelemetryActions.OptionsChanged,
                             );
+                        } else {
+                            this.logger.info(`User chose not to run comparison with new options`);
                         }
                     });
+            } else {
+                this.logger.info(`No options were changed`);
             }
 
             return state;
         });
 
         this.registerReducer("intermediaryGeneralOptionsChanged", (state, payload) => {
+            this.logger.verbose(`Changing general option: ${payload.key}`);
+
             const generalOptionsDictionary =
                 state.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary;
-            generalOptionsDictionary[payload.key].value =
-                !generalOptionsDictionary[payload.key].value;
+            const oldValue = generalOptionsDictionary[payload.key].value;
+            generalOptionsDictionary[payload.key].value = !oldValue;
+
+            this.logger.info(`Changed option ${payload.key} from ${oldValue} to ${!oldValue}`);
+
+            this.updateState(state);
+            return state;
+        });
+
+        this.registerReducer("intermediaryGeneralOptionsBulkChanged", (state, payload) => {
+            this.logger.verbose(`Bulk changing general options: ${payload.keys.join(", ")}`);
+
+            const generalOptionsDictionary =
+                state.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary;
+
+            payload.keys.forEach((key) => {
+                if (generalOptionsDictionary[key]) {
+                    generalOptionsDictionary[key].value = payload.checked;
+                }
+            });
+
+            this.logger.info(`Bulk changed ${payload.keys.length} options to ${payload.checked}`);
 
             this.updateState(state);
             return state;
         });
 
         this.registerReducer("switchEndpoints", async (state, payload) => {
+            this.logger.info(`Switching source and target endpoints`);
+
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Switch,
                 this.operationId,
             );
+
+            const sourceType = getSchemaCompareEndpointTypeString(
+                payload.newSourceEndpointInfo.endpointType,
+            );
+            const targetType = getSchemaCompareEndpointTypeString(
+                payload.newTargetEndpointInfo.endpointType,
+            );
+            this.logger.verbose(`New source endpoint type: ${sourceType}`);
+            this.logger.verbose(`New target endpoint type: ${targetType}`);
 
             state.sourceEndpointInfo = payload.newSourceEndpointInfo;
             state.targetEndpointInfo = payload.newTargetEndpointInfo;
@@ -536,6 +754,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             this.updateState(state);
 
+            this.logger.info(`Successfully switched endpoints`);
             endActivity.end(ActivityStatus.Succeeded, {
                 operationId: this.operationId,
             });
@@ -548,6 +767,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("generateScript", async (state, payload) => {
+            this.logger.info(
+                `Generating script for schema changes with operation ID: ${this.operationId}`,
+            );
+
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GenerateScript,
@@ -558,6 +781,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            this.logger.verbose(`Starting script generation`);
             const result = await generateScript(
                 this.operationId,
                 TaskExecutionMode.script,
@@ -566,14 +790,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
 
             if (!result || !result.success) {
+                this.logger.error(
+                    `Failed to generate script: ${result?.errorMessage || "Unknown error"}`,
+                );
                 endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: result.errorMessage,
+                    errorMessage: result?.errorMessage,
                     operationId: this.operationId,
                 });
 
                 vscode.window.showErrorMessage(
-                    locConstants.SchemaCompare.generateScriptErrorMessage(result.errorMessage),
+                    locConstants.SchemaCompare.generateScriptErrorMessage(result?.errorMessage),
                 );
+            } else {
+                this.logger.info(`Successfully generated script`);
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
@@ -586,6 +815,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("publishChanges", async (state, payload) => {
+            this.logger.info(`Publishing changes requested with operation ID: ${this.operationId}`);
+            this.logger.verbose(
+                `Target endpoint type: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)}`,
+            );
+
             const yes = locConstants.SchemaCompare.Yes;
             const result = await vscode.window.showWarningMessage(
                 locConstants.SchemaCompare.areYouSureYouWantToUpdateTheTarget,
@@ -594,9 +828,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
 
             if (result !== yes) {
+                this.logger.info(`User canceled publishing changes`);
                 return state;
             }
 
+            this.logger.info(
+                `Starting publish operation to ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)}`,
+            );
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Publish,
@@ -612,38 +850,45 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             let publishResult: mssql.ResultStatus | undefined = undefined;
 
-            switch (state.targetEndpointInfo.endpointType) {
-                case mssql.SchemaCompareEndpointType.Database:
-                    publishResult = await publishDatabaseChanges(
-                        this.operationId,
-                        TaskExecutionMode.execute,
-                        payload,
-                        this.schemaCompareService,
-                    );
-                    break;
+            try {
+                switch (state.targetEndpointInfo.endpointType) {
+                    case mssql.SchemaCompareEndpointType.Database:
+                        this.logger.info(
+                            `Publishing changes to database ${state.targetEndpointInfo.databaseName}`,
+                        );
+                        publishResult = await publishDatabaseChanges(
+                            this.operationId,
+                            TaskExecutionMode.execute,
+                            payload,
+                            this.schemaCompareService,
+                        );
+                        break;
 
-                case mssql.SchemaCompareEndpointType.Project:
-                    publishResult = await publishProjectChanges(
-                        this.operationId,
-                        {
-                            targetProjectPath: state.targetEndpointInfo.projectFilePath,
-                            targetFolderStructure: state.targetEndpointInfo.extractTarget,
-                            taskExecutionMode: TaskExecutionMode.execute,
-                        },
-                        this.schemaCompareService,
-                    );
-                    break;
+                    case mssql.SchemaCompareEndpointType.Project:
+                        this.logger.info(
+                            `Publishing changes to project ${state.targetEndpointInfo.projectFilePath}`,
+                        );
+                        publishResult = await publishProjectChanges(
+                            this.operationId,
+                            {
+                                targetProjectPath: state.targetEndpointInfo.projectFilePath,
+                                targetFolderStructure: state.targetEndpointInfo.extractTarget,
+                                taskExecutionMode: TaskExecutionMode.execute,
+                            },
+                            this.schemaCompareService,
+                        );
+                        break;
 
-                case mssql.SchemaCompareEndpointType.Dacpac: // Dacpac is an invalid publish target
-                default:
-                    throw new Error(
-                        `Unsupported SchemaCompareEndpointType: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)}`,
-                    );
-            }
-
-            if (!publishResult || !publishResult.success || publishResult.errorMessage) {
+                    case mssql.SchemaCompareEndpointType.Dacpac: // Dacpac is an invalid publish target
+                    default:
+                        const errorMsg = `Unsupported SchemaCompareEndpointType: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)}`;
+                        this.logger.error(errorMsg);
+                        throw new Error(errorMsg);
+                }
+            } catch (error) {
+                this.logger.error(`Exception during publish operation: ${getErrorMessage(error)}`);
                 endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: publishResult.errorMessage,
+                    errorMessage: getErrorMessage(error),
                     operationId: this.operationId,
                     targetType: getSchemaCompareEndpointTypeString(
                         state.targetEndpointInfo.endpointType,
@@ -651,7 +896,28 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 });
 
                 vscode.window.showErrorMessage(
-                    locConstants.SchemaCompare.schemaCompareApplyFailed(publishResult.errorMessage),
+                    locConstants.SchemaCompare.schemaCompareApplyFailed(getErrorMessage(error)),
+                );
+
+                return state;
+            }
+
+            if (!publishResult || !publishResult.success || publishResult.errorMessage) {
+                this.logger.error(
+                    `Publish operation failed: ${publishResult?.errorMessage || "Unknown error"}`,
+                );
+                endActivity.endFailed(undefined, false, undefined, undefined, {
+                    errorMessage: publishResult?.errorMessage,
+                    operationId: this.operationId,
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
+                });
+
+                vscode.window.showErrorMessage(
+                    locConstants.SchemaCompare.schemaCompareApplyFailed(
+                        publishResult?.errorMessage,
+                    ),
                 );
 
                 return state;
@@ -669,40 +935,88 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("publishDatabaseChanges", async (state, payload) => {
-            const result = await publishDatabaseChanges(
-                this.operationId,
-                TaskExecutionMode.execute,
-                payload,
-                this.schemaCompareService,
-            );
+            this.logger.info(`Publishing database changes with operation ID: ${this.operationId}`);
 
-            state.publishDatabaseChangesResultStatus = result;
+            try {
+                const result = await publishDatabaseChanges(
+                    this.operationId,
+                    TaskExecutionMode.execute,
+                    payload,
+                    this.schemaCompareService,
+                );
+
+                if (result.success) {
+                    this.logger.info(`Successfully published database changes`);
+                } else {
+                    this.logger.error(
+                        `Failed to publish database changes: ${result.errorMessage || "Unknown error"}`,
+                    );
+                }
+
+                state.publishDatabaseChangesResultStatus = result;
+            } catch (error) {
+                this.logger.error(`Exception during database publish: ${getErrorMessage(error)}`);
+            }
+
             return state;
         });
 
         this.registerReducer("publishProjectChanges", async (state, payload) => {
-            const result = await publishProjectChanges(
-                this.operationId,
-                payload,
-                this.schemaCompareService,
-            );
+            this.logger.info(`Publishing project changes with operation ID: ${this.operationId}`);
+            this.logger.verbose(`Target project path: ${payload.targetProjectPath}`);
 
-            state.schemaComparePublishProjectResult = result;
+            try {
+                const result = await publishProjectChanges(
+                    this.operationId,
+                    payload,
+                    this.schemaCompareService,
+                );
+
+                if (result.success) {
+                    this.logger.info(`Successfully published project changes`);
+                } else {
+                    this.logger.error(
+                        `Failed to publish project changes: ${result.errorMessage || "Unknown error"}`,
+                    );
+                }
+
+                state.schemaComparePublishProjectResult = result;
+            } catch (error) {
+                this.logger.error(`Exception during project publish: ${getErrorMessage(error)}`);
+            }
+
             return state;
         });
 
         this.registerReducer("resetOptions", async (state) => {
-            const result = await getDefaultOptions(this.schemaCompareService);
+            this.logger.info(`Resetting schema compare options to defaults`);
 
-            state.intermediaryOptionsResult = deepClone(result);
-            this.updateState(state);
+            try {
+                const result = await getDefaultOptions(this.schemaCompareService);
+                this.logger.verbose(`Retrieved default options from schema compare service`);
 
-            sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ResetOptions);
+                state.intermediaryOptionsResult = deepClone(result);
+                this.logger.info(`Reset options to defaults`);
+                this.updateState(state);
+
+                sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ResetOptions);
+            } catch (error) {
+                this.logger.error(`Failed to reset options: ${getErrorMessage(error)}`);
+            }
 
             return state;
         });
 
         this.registerReducer("includeExcludeNode", async (state, payload) => {
+            const diffEntry = payload.diffEntry;
+            const diffEntryName = this.formatEntryName(
+                diffEntry.sourceValue ? diffEntry.sourceValue : diffEntry.targetValue,
+            );
+
+            this.logger.info(
+                `${payload.includeRequest ? "Including" : "Excluding"} node: ${diffEntryName} (ID: ${payload.id})`,
+            );
+
             const result = await includeExcludeNode(
                 this.operationId,
                 TaskExecutionMode.execute,
@@ -711,12 +1025,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
 
             if (result.success) {
+                this.logger.info(
+                    `Successfully ${payload.includeRequest ? "included" : "excluded"} node with ${result.affectedDependencies.length} affected dependencies`,
+                );
                 state.schemaCompareIncludeExcludeResult = result;
 
                 if (state.schemaCompareResult) {
                     state.schemaCompareResult.differences[payload.id].included =
                         payload.includeRequest;
 
+                    this.logger.verbose(`Updating affected dependencies in the UI state`);
                     result.affectedDependencies.forEach((difference) => {
                         const index = state.schemaCompareResult.differences.findIndex(
                             (d) =>
@@ -727,16 +1045,24 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         );
 
                         if (index !== -1) {
+                            this.logger.verbose(
+                                `Updated dependency at index ${index} to included=${payload.includeRequest}`,
+                            );
                             state.schemaCompareResult.differences[index].included =
                                 payload.includeRequest;
+                        } else {
+                            this.logger.warn(`Could not find dependency in schema compare results`);
                         }
                     });
                 }
 
                 this.updateState(state);
             } else {
+                this.logger.warn(
+                    `Failed to ${payload.includeRequest ? "include" : "exclude"} node: ${result.errorMessage || "Unknown error"}`,
+                );
+
                 if (result.blockingDependencies) {
-                    const diffEntry = payload.diffEntry;
                     const diffEntryName = this.formatEntryName(
                         diffEntry.sourceValue ? diffEntry.sourceValue : diffEntry.targetValue,
                     );
@@ -750,6 +1076,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                             );
                         })
                         .filter((name) => name !== "");
+
+                    this.logger.warn(
+                        `Operation blocked by dependencies: ${blockingDependencyNames.join(", ")}`,
+                    );
 
                     let message: string = "";
                     if (blockingDependencyNames.length > 0) {
@@ -778,33 +1108,54 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("includeExcludeAllNodes", async (state, payload) => {
+            this.logger.info(`${payload.includeRequest ? "Including" : "Excluding"} all nodes`);
+
             state.isIncludeExcludeAllOperationInProgress = true;
             this.updateState(state);
 
-            const result = await includeExcludeAllNodes(
-                this.operationId,
-                TaskExecutionMode.execute,
-                payload,
-                this.schemaCompareService,
-            );
+            try {
+                const result = await includeExcludeAllNodes(
+                    this.operationId,
+                    TaskExecutionMode.execute,
+                    payload,
+                    this.schemaCompareService,
+                );
 
-            this.state.isIncludeExcludeAllOperationInProgress = false;
+                this.state.isIncludeExcludeAllOperationInProgress = false;
 
-            if (result.success) {
-                state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
+                if (result.success) {
+                    const count = result.allIncludedOrExcludedDifferences.length;
+                    this.logger.info(
+                        `Successfully ${payload.includeRequest ? "included" : "excluded"} all nodes (${count} differences)`,
+                    );
+                    state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
+                } else {
+                    this.logger.error(
+                        `Failed to ${payload.includeRequest ? "include" : "exclude"} all nodes: ${result.errorMessage || "Unknown error"}`,
+                    );
+                }
+            } catch (error) {
+                this.logger.error(
+                    `Exception during ${payload.includeRequest ? "include" : "exclude"} all operation: ${getErrorMessage(error)}`,
+                );
+                this.state.isIncludeExcludeAllOperationInProgress = false;
             }
 
             this.updateState(state);
-
             return state;
         });
 
         this.registerReducer("openScmp", async (state) => {
+            this.logger.info(`Opening schema comparison (.scmp) file`);
+
             const selectedFilePath = await showOpenDialogForScmp();
 
             if (!selectedFilePath) {
+                this.logger.info(`File selection canceled by user`);
                 return state;
             }
+
+            this.logger.info(`Selected file: ${selectedFilePath}`);
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -817,19 +1168,25 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            this.logger.verbose(`Opening schema comparison from file`);
             const result = await openScmp(selectedFilePath, this.schemaCompareService);
 
             if (!result || !result.success) {
+                this.logger.error(
+                    `Failed to open schema comparison file: ${result?.errorMessage || "Unknown error"}`,
+                );
                 endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: result.errorMessage,
+                    errorMessage: result?.errorMessage,
                     operationId: this.operationId,
                 });
 
                 vscode.window.showErrorMessage(
-                    locConstants.SchemaCompare.openScmpErrorMessage(result.errorMessage),
+                    locConstants.SchemaCompare.openScmpErrorMessage(result?.errorMessage),
                 );
                 return state;
             }
+
+            this.logger.info(`Successfully opened schema comparison file`);
 
             // construct source endpoint info
             state.sourceEndpointInfo = await this.constructEndpointInfo(
@@ -845,10 +1202,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions =
                 result.deploymentOptions;
+
+            // Update intermediaryOptionsResult to ensure UI reflects loaded options
+            state.intermediaryOptionsResult = deepClone(state.defaultDeploymentOptionsResult);
+
             state.scmpSourceExcludes = result.excludedSourceElements;
             state.scmpTargetExcludes = result.excludedTargetElements;
             state.sourceTargetSwitched =
                 result.originalTargetName !== state.targetEndpointInfo.databaseName;
+            // Reset the schema comparison result similarly to what happens in Azure Data Studio.
+            state.schemaCompareResult = undefined;
 
             endActivity.end(ActivityStatus.Succeeded, {
                 operationId: this.operationId,
@@ -862,17 +1225,26 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("saveScmp", async (state) => {
+            this.logger.info(`Saving schema comparison (.scmp) file`);
+
             const saveFilePath = await showSaveDialogForScmp();
 
             if (!saveFilePath) {
+                this.logger.info(`Save file operation canceled by user`);
                 return state;
             }
+
+            this.logger.info(`Saving schema comparison to: ${saveFilePath}`);
 
             const sourceExcludes: mssql.SchemaCompareObjectId[] = this.convertExcludesToObjectIds(
                 state.originalSourceExcludes,
             );
             const targetExcludes: mssql.SchemaCompareObjectId[] = this.convertExcludesToObjectIds(
                 state.originalTargetExcludes,
+            );
+
+            this.logger.verbose(
+                `Prepared ${sourceExcludes.length} source excludes and ${targetExcludes.length} target excludes`,
             );
 
             const startTime = Date.now();
@@ -886,6 +1258,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            this.logger.verbose(`Calling saveScmp service`);
             const result = await saveScmp(
                 state.sourceEndpointInfo,
                 state.targetEndpointInfo,
@@ -898,14 +1271,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
 
             if (!result || !result.success) {
+                this.logger.error(
+                    `Failed to save schema comparison file: ${result?.errorMessage || "Unknown error"}`,
+                );
                 endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: result.errorMessage,
+                    errorMessage: result?.errorMessage,
                     operationId: this.operationId,
                 });
 
                 vscode.window.showErrorMessage(
-                    locConstants.SchemaCompare.saveScmpErrorMessage(result.errorMessage),
+                    locConstants.SchemaCompare.saveScmpErrorMessage(result?.errorMessage),
                 );
+            } else {
+                this.logger.info(`Successfully saved schema comparison file`);
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
@@ -920,6 +1298,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("cancel", async (state) => {
+            this.logger.info(`Cancelling schema comparison operation with ID: ${this.operationId}`);
+
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Cancel,
@@ -929,26 +1309,34 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 },
             );
 
-            const result = await cancel(this.operationId, this.schemaCompareService);
+            try {
+                const result = await cancel(this.operationId, this.schemaCompareService);
 
-            if (!result || !result.success) {
-                endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: result.errorMessage,
-                    operationId: this.operationId,
-                });
+                if (!result || !result.success) {
+                    this.logger.error(
+                        `Failed to cancel operation: ${result?.errorMessage || "Unknown error"}`,
+                    );
+                    endActivity.endFailed(undefined, false, undefined, undefined, {
+                        errorMessage: result?.errorMessage,
+                        operationId: this.operationId,
+                    });
 
-                vscode.window.showErrorMessage(
-                    locConstants.SchemaCompare.cancelErrorMessage(result.errorMessage),
-                );
+                    vscode.window.showErrorMessage(
+                        locConstants.SchemaCompare.cancelErrorMessage(result?.errorMessage),
+                    );
 
-                return state;
+                    return state;
+                }
+
+                this.logger.info(`Successfully cancelled schema comparison operation`);
+                endActivity.end(ActivityStatus.Succeeded);
+
+                state.isComparisonInProgress = false;
+                state.cancelResultStatus = result;
+                this.updateState(state);
+            } catch (error) {
+                this.logger.error(`Exception during cancel operation: ${getErrorMessage(error)}`);
             }
-
-            endActivity.end(ActivityStatus.Succeeded);
-
-            state.isComparisonInProgress = false;
-            state.cancelResultStatus = result;
-            this.updateState(state);
 
             return state;
         });
@@ -974,6 +1362,99 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             case "Schema/Object Type":
             default:
                 return mssql.ExtractTarget.schemaObjectType;
+        }
+    }
+
+    private findNewConnections(
+        oldActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
+        newActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
+    ): string[] {
+        const newConnections: string[] = [];
+
+        for (const connectionUri in newActiveServers) {
+            if (!(connectionUri in oldActiveServers)) {
+                newConnections.push(connectionUri);
+            }
+        }
+
+        return newConnections;
+    }
+
+    private async autoSelectNewConnection(
+        connectionUri: string,
+        endpointType: "source" | "target",
+    ): Promise<void> {
+        this.logger.info(
+            `Auto-selecting new connection for ${endpointType} endpoint: ${connectionUri}`,
+        );
+
+        try {
+            // Get the list of databases for the new connection
+            this.logger.verbose(`Retrieving databases for connection: ${connectionUri}`);
+            const databases = await this.connectionMgr.listDatabases(connectionUri);
+            this.logger.verbose(`Found ${databases.length} databases on server`);
+
+            // If there are databases, select the first one
+            if (databases.length > 0) {
+                const databaseName = databases[0];
+                this.logger.info(`Auto-selecting database: ${databaseName}`);
+
+                // Create the endpoint info for the new connection
+                const connection = this.connectionMgr.activeConnections[connectionUri];
+                const connectionProfile = connection?.credentials as IConnectionProfile;
+
+                if (connectionProfile) {
+                    this.logger.verbose(
+                        `Creating endpoint info from connection profile: ${connectionProfile.server}`,
+                    );
+                    let user = connectionProfile.user;
+                    if (!user) {
+                        user = locConstants.SchemaCompare.defaultUserName;
+                        this.logger.verbose(`Using default user name: ${user}`);
+                    }
+
+                    const endpointInfo = {
+                        endpointType: mssql.SchemaCompareEndpointType.Database,
+                        serverDisplayName: `${connectionProfile.server} (${user})`,
+                        serverName: connectionProfile.server,
+                        databaseName: databaseName,
+                        ownerUri: connectionUri,
+                        packageFilePath: "",
+                        connectionDetails: undefined,
+                        connectionName: connectionProfile.profileName
+                            ? connectionProfile.profileName
+                            : "",
+                        projectFilePath: "",
+                        targetScripts: [],
+                        dataSchemaProvider: "",
+                        extractTarget: mssql.ExtractTarget.schemaObjectType,
+                    };
+
+                    if (endpointType === "source") {
+                        this.logger.info(`Setting connection as source endpoint`);
+                        this.state.sourceEndpointInfo = endpointInfo;
+                    } else {
+                        this.logger.info(`Setting connection as target endpoint`);
+                        this.state.targetEndpointInfo = endpointInfo;
+                    }
+
+                    // Update the databases list for the UI
+                    this.state.databases = databases;
+                } else {
+                    this.logger.warn(
+                        `No connection profile found for connection URI: ${connectionUri}`,
+                    );
+                }
+            } else {
+                this.logger.warn(`No databases found for connection: ${connectionUri}`);
+            }
+        } catch (error) {
+            this.logger.error(`Error auto-selecting new connection: ${getErrorMessage(error)}`);
+        } finally {
+            // Reset the waiting state
+            this.logger.verbose(`Resetting waiting state`);
+            this.state.waitingForNewConnection = false;
+            this.state.pendingConnectionEndpointType = null;
         }
     }
 
@@ -1004,6 +1485,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         },
         state: SchemaCompareWebViewState,
     ) {
+        this.logger.info(`Starting schema comparison with operation ID: ${this.operationId}`);
+        this.logger.verbose(
+            `Source endpoint type: ${getSchemaCompareEndpointTypeString(payload.sourceEndpointInfo.endpointType)}`,
+        );
+        this.logger.verbose(
+            `Target endpoint type: ${getSchemaCompareEndpointTypeString(payload.targetEndpointInfo.endpointType)}`,
+        );
+
         state.isComparisonInProgress = true;
         this.updateState(state);
 
@@ -1017,16 +1506,23 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         );
 
         if (payload.sourceEndpointInfo.endpointType === mssql.SchemaCompareEndpointType.Project) {
+            this.logger.logDebug(
+                `Getting project script files for source: ${payload.sourceEndpointInfo.projectFilePath}`,
+            );
             payload.sourceEndpointInfo.targetScripts = await this.getProjectScriptFiles(
                 payload.sourceEndpointInfo.projectFilePath,
             );
         }
         if (payload.targetEndpointInfo.endpointType === mssql.SchemaCompareEndpointType.Project) {
+            this.logger.logDebug(
+                `Getting project script files for target: ${payload.targetEndpointInfo.projectFilePath}`,
+            );
             payload.targetEndpointInfo.targetScripts = await this.getProjectScriptFiles(
                 payload.targetEndpointInfo.projectFilePath,
             );
         }
 
+        this.logger.info(`Executing schema comparison with operation ID: ${this.operationId}`);
         const result = await compare(
             this.operationId,
             TaskExecutionMode.execute,
@@ -1037,21 +1533,28 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         state.isComparisonInProgress = false;
 
         if (!result || !result.success) {
+            this.logger.error(
+                `Schema comparison failed: ${result?.errorMessage || "Unknown error"}`,
+            );
             endActivity.endFailed(undefined, false, undefined, undefined, {
-                errorMessage: result.errorMessage,
+                errorMessage: result?.errorMessage,
                 operationId: this.operationId,
             });
 
             vscode.window.showErrorMessage(
-                locConstants.SchemaCompare.compareErrorMessage(result.errorMessage),
+                locConstants.SchemaCompare.compareErrorMessage(result?.errorMessage),
             );
 
             return state;
         }
 
+        this.logger.info(
+            `Schema comparison completed successfully with ${result.differences?.length || 0} differences found`,
+        );
         endActivity.end(ActivityStatus.Succeeded);
 
         const finalDifferences = this.getAllObjectTypeDifferences(result);
+        this.logger.verbose(`Filtered to ${finalDifferences.length} object type differences`);
         result.differences = finalDifferences;
         state.schemaCompareResult = result;
         state.endpointsSwitched = false;
@@ -1152,23 +1655,35 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     }
 
     private getAllObjectTypeDifferences(result: mssql.SchemaCompareResult): DiffEntry[] {
-        // let data = [];
+        this.logger.verbose(`Filtering differences from schema comparison result`);
+
         let finalDifferences: DiffEntry[] = [];
         let differences = result.differences;
-        if (differences) {
-            differences.forEach((difference) => {
-                if (difference.differenceType === mssql.SchemaDifferenceType.Object) {
-                    if (
-                        (difference.sourceValue !== null && difference.sourceValue.length > 0) ||
-                        (difference.targetValue !== null && difference.targetValue.length > 0)
-                    ) {
-                        // lewissanchez todo: need to check if difference is excluded before adding to final differences list
-                        finalDifferences.push(difference);
-                    }
-                }
-            });
+
+        if (!differences) {
+            this.logger.warn(`No differences found in schema comparison result`);
+            return finalDifferences;
         }
 
+        this.logger.verbose(`Processing ${differences.length} total differences`);
+
+        differences.forEach((difference) => {
+            if (difference.differenceType === mssql.SchemaDifferenceType.Object) {
+                if (
+                    (difference.sourceValue !== null && difference.sourceValue.length > 0) ||
+                    (difference.targetValue !== null && difference.targetValue.length > 0)
+                ) {
+                    finalDifferences.push(difference);
+                    this.logger.logDebug(
+                        `Including difference: ${difference.name} with update action ${difference.updateAction}`,
+                    );
+                }
+            }
+        });
+
+        this.logger.info(
+            `Found ${finalDifferences.length} object type differences out of ${differences.length} total differences`,
+        );
         return finalDifferences;
     }
 

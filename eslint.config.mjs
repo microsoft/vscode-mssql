@@ -3,7 +3,6 @@
 import tseslint from "typescript-eslint";
 import notice from "eslint-plugin-notice";
 import jsdoc from "eslint-plugin-jsdoc";
-import deprecationPlugin from "eslint-plugin-deprecation";
 import { fixupPluginRules } from "@eslint/compat";
 import reactRecommended from "eslint-plugin-react/configs/recommended.js";
 import react from "eslint-plugin-react";
@@ -26,7 +25,6 @@ export default [
         files: ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts"],
         ignores: [
             ...(includeIgnoreFile(gitignorePath).ignores || []),
-            "src/views/**/*",
             "src/prompts/**/*.ts", // Ignore prompts files as they are copied from other repos
             "**/out/**/*",
         ],
@@ -46,8 +44,6 @@ export default [
             notice,
             jsdoc,
             ["@typescript-eslint"]: tseslint.plugin,
-            // @ts-ignore
-            ["deprecation"]: fixupPluginRules(deprecationPlugin),
             react,
             ...eslintPluginPrettierRecommended.plugins,
             "@stylistic": stylistic,
@@ -125,7 +121,7 @@ export default [
                     argsIgnorePattern: "^_",
                 },
             ],
-            "deprecation/deprecation": "warn",
+            "@typescript-eslint/no-deprecated": "warn",
             "@typescript-eslint/no-floating-promises": [
                 "error",
                 {

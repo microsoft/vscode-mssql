@@ -295,7 +295,7 @@ suite("Execution Plan Utilities", () => {
     });
 
     test("showXml: should call showXml and return the state", async () => {
-        const openDocumentStub = sinon.stub(vscode.workspace, "openTextDocument");
+        const openDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
 
         const mockPayload = { sqlPlanContent: executionPlanContents };
 

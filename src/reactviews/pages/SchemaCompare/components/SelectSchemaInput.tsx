@@ -37,6 +37,7 @@ const useStyles = makeStyles({
 
 interface Props extends InputProps {
     label: string;
+    buttonAriaLabel: string;
     disableBrowseButton: boolean;
     selectFile: () => void;
 }
@@ -55,7 +56,8 @@ const SelectSchemaInput = (props: Props) => {
                     size="small"
                     className={classes.buttonLeftSmallMargin}
                     disabled={props.disableBrowseButton}
-                    onClick={props.selectFile}>
+                    onClick={props.selectFile}
+                    aria-label={props.buttonAriaLabel}>
                     ...
                 </Button>
             </div>

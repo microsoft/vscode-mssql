@@ -32,6 +32,7 @@ export function ExportDiagramButton() {
 
         // Ensure all nodes are visible before exporting
         context.setRenderOnlyVisibleTables(false);
+        context.setIsExporting(true);
         await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for the nodes to be rendered
 
         const nodesBounds = getNodesBounds(getNodes().filter((node) => !node.hidden));
@@ -113,6 +114,7 @@ export function ExportDiagramButton() {
                 break;
         }
         context.setRenderOnlyVisibleTables(true); // Reset to default state after export
+        context.setIsExporting(false);
     }
     return (
         <Menu>
