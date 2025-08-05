@@ -82,11 +82,23 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         key: key,
                     });
                 },
+                intermediaryGeneralOptionsBulkChanged(keys: string[], checked: boolean): void {
+                    webViewState?.extensionRpc.action("intermediaryGeneralOptionsBulkChanged", {
+                        keys: keys,
+                        checked: checked,
+                    });
+                },
                 intermediaryIncludeObjectTypesOptionsChanged(key: string): void {
                     webViewState?.extensionRpc.action(
                         "intermediaryIncludeObjectTypesOptionsChanged",
                         { key: key },
                     );
+                },
+                intermediaryIncludeObjectTypesBulkChanged(keys: string[], checked: boolean): void {
+                    webViewState?.extensionRpc.action("intermediaryIncludeObjectTypesBulkChanged", {
+                        keys: keys,
+                        checked: checked,
+                    });
                 },
                 confirmSchemaOptions: function (optionsChanged: boolean): void {
                     webViewState?.extensionRpc.action("confirmSchemaOptions", {
