@@ -310,6 +310,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 scriptFiles = await (
                     await databaseProjectsExtension.activate()
                 ).getProjectScriptFiles(projectFilePath);
+
                 this.logger.verbose(`Retrieved ${scriptFiles.length} script files from project`);
             } else {
                 this.logger.warn(
@@ -321,7 +322,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             sendErrorEvent(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GetDatabaseProjectScriptFiles,
-                error,
+                new Error(`Failed to get project script files: ${getErrorMessage(error)}`),
+                true,
+                undefined,
+                undefined,
+                {
+                    operationId: this.operationId,
+                },
             );
         }
 
@@ -353,7 +360,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             sendErrorEvent(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GetDatabaseProjectSchemaProvider,
-                error,
+                new Error(`Failed to get database schema provider: ${getErrorMessage(error)}`),
+                true,
+                undefined,
+                undefined,
+                {
+                    operationId: this.operationId,
+                },
             );
         }
 
@@ -425,7 +438,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 sendErrorEvent(
                     TelemetryViews.SchemaCompare,
                     TelemetryActions.ListingDatabasesForActiveServer,
-                    error,
+                    new Error(`Failed to list databases for active server: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        operationId: this.operationId,
+                    },
                 );
             }
 
@@ -660,7 +679,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 isCloseAffordance: true,
             };
 
-            sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.OptionsChanged);
+            sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.OptionsChanged, {
+                operationId: this.operationId,
+            });
             this.logger.verbose(`Sent telemetry event for options changed`);
 
             if (payload.optionsChanged) {
@@ -686,6 +707,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                             sendActionEvent(
                                 TelemetryViews.SchemaCompare,
                                 TelemetryActions.OptionsChanged,
+                                {
+                                    operationId: this.operationId,
+                                },
                             );
                         } else {
                             this.logger.info(`User chose not to run comparison with new options`);
@@ -999,7 +1023,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.info(`Reset options to defaults`);
                 this.updateState(state);
 
-                sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ResetOptions);
+                sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ResetOptions, {
+                    operationId: this.operationId,
+                });
             } catch (error) {
                 this.logger.error(`Failed to reset options: ${getErrorMessage(error)}`);
             }
