@@ -11,7 +11,7 @@ import { Logger, LogLevel } from "../../src/models/logger";
 import { PlatformInformation } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
-import { IConfig } from "../../src/languageservice/interfaces";
+import { IConfigUtils } from "../../src/languageservice/interfaces";
 import ExtConfig from "../../src/configurations/extConfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
@@ -22,7 +22,7 @@ interface IFixture {
 }
 
 suite("Service Client tests", () => {
-    let testConfig: TypeMoq.IMock<IConfig>;
+    let testConfig: TypeMoq.IMock<IConfigUtils>;
     let testServiceProvider: TypeMoq.IMock<ServerProvider>;
     let logger = new Logger((text) => console.log(text), LogLevel.Verbose, false);
     let testStatusView: TypeMoq.IMock<StatusView>;
