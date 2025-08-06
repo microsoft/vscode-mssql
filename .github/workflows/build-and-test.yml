@@ -148,6 +148,7 @@ jobs:
         run: |
           cd pr
           DISPLAY=:10 yarn test
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
 
       - name: PR Unit Test Report
         uses: dorny/test-reporter@v2
@@ -210,6 +211,7 @@ jobs:
           cd pr
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
@@ -379,14 +381,39 @@ jobs:
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/${{ github.repository }}/issues/comments/${{ steps.loc-comment.outputs.comment-id }}
 
-      - name: Fail if vsix size is increased by 5% or size is above 25mb
-        if: ${{ env.vsix_percentage_change > 5 || env.pr_vsix_size > 25000000 }}
-        run: exit 1
+      - name: Fail pipeline if any checks failed
+        if: |
+          steps.unit-tests-pr.outputs.exit_code != '0' ||
+          steps.smoke-tests-pr.outputs.exit_code != '0' ||
+          env.vsix_percentage_change > 5 ||
+          env.pr_vsix_size > 25000000 ||
+          env.webview_bundle_percentage_change > 5 ||
+          env.loc_update_required == 'true'
+        run: |
+          echo "Pipeline failed due to the following issues:"
 
-      - name: Fail if bundle size is increased by 5%
-        if: ${{ env.webview_bundle_percentage_change > 5 }}
-        run: exit 1
+          if [ "${{ steps.unit-tests-pr.outputs.exit_code }}" != "0" ]; then
+            echo "  ❌ Unit tests failed with exit code ${{ steps.unit-tests-pr.outputs.exit_code }}"
+          fi
 
-      - name: Fail if there are changes required in english xlf files
-        if: ${{ env.loc_update_required == 'true' }}
-        run: exit 1
+          if [ "${{ steps.smoke-tests-pr.outputs.exit_code }}" != "0" ]; then
+            echo "  ❌ Smoke tests failed with exit code ${{ steps.smoke-tests-pr.outputs.exit_code }}"
+          fi
+
+          if [ $(echo "${{ env.vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
+            echo "  ❌ VSIX size increased by more than 5% (${{ env.vsix_percentage_change }}%)"
+          fi
+
+          if [ "${{ env.pr_vsix_size }}" -gt 25000000 ]; then
+            echo "  ❌ VSIX size is above 25MB (${{ env.pr_vsix_size }} bytes)"
+          fi
+
+          if [ $(echo "${{ env.webview_bundle_percentage_change }} > 5" | bc -l) -eq 1 ]; then
+            echo "  ❌ Webview bundle size increased by more than 5% (${{ env.webview_bundle_percentage_change }}%)"
+          fi
+
+          if [ "${{ env.loc_update_required }}" == "true" ]; then
+            echo "  ❌ Updates to localized strings are required"
+          fi
+
+          exit 1
