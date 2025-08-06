@@ -5,7 +5,7 @@
 
 import * as os from "os";
 import * as path from "path";
-const findRemoveSync = require("find-remove");
+import findRemoveSync from "find-remove";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from "./interfaces";
