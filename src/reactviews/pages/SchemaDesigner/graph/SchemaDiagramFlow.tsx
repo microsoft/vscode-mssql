@@ -132,6 +132,16 @@ export const SchemaDesignerFlow = () => {
             schema,
         );
 
+        // Create the foreign key data
+        const foreignKeyData = foreignKeyUtils.createForeignKeyFromConnection(
+            sourceNode,
+            targetNode,
+            sourceColumn.name,
+            targetColumn.name,
+            uuidv4(),
+            namingUtils.getNextForeignKeyName(existingForeignKeys, schema.tables),
+        );
+
         // Create the edge data from foreign key
         const newEdge: Edge<SchemaDesigner.ForeignKey> = {
             id: `${sourceNode.id}-${targetNode.id}-${sourceColumn.name}-${targetColumn.name}`,
@@ -142,14 +152,7 @@ export const SchemaDesignerFlow = () => {
             markerEnd: {
                 type: MarkerType.ArrowClosed,
             },
-            data: foreignKeyUtils.createForeignKeyFromConnection(
-                sourceNode,
-                targetNode,
-                sourceColumn.name,
-                targetColumn.name,
-                uuidv4(),
-                namingUtils.getNextForeignKeyName(existingForeignKeys, schema.tables),
-            ),
+            data: foreignKeyData,
             type: sourceNode.id === targetNode.id ? ConnectionLineType.SmoothStep : undefined, // Use SmoothStep for self-references
         };
 
