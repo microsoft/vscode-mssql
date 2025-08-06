@@ -16,7 +16,7 @@ export function getDatabaseName(): string {
 }
 
 export function getAuthenticationType(): string {
-    console.log(`Checking env.AUTHENTICATION_TYPE: '${process.env.AUTHENTICATION_TYPE}'`);
+    console.log(`===: Checking env.AUTHENTICATION_TYPE: '${process.env.AUTHENTICATION_TYPE}'`);
 
     return process.env.AUTHENTICATION_TYPE ?? "Integrated";
 }
@@ -26,7 +26,7 @@ export function getUserName(): string {
 }
 
 export function getPassword(): string {
-    console.log(`Checking env.PASSWORD: '${process.env.PASSWORD}'`);
+    console.log(`===: Checking env.PASSWORD: '${process.env.PASSWORD}'`);
     return process.env.PASSWORD ?? "";
 }
 

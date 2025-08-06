@@ -15,6 +15,8 @@ export async function addDatabaseConnection(
     savePassword: string,
     profileName: string,
 ): Promise<void> {
+    console.log(`===: Adding connection with authType: ${authType}`);
+
     // Navigate to Sql Server Tab
     const sqlServerTabContainer = vsCodePage.locator('[role="tab"][aria-label^="SQL Server"]');
     const isSelected = await sqlServerTabContainer.getAttribute("aria-selected");
