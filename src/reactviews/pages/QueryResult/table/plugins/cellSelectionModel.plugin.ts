@@ -48,14 +48,6 @@ export class CellSelectionModel<T extends Slick.SlickData>
     private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>;
     private isMac: boolean | undefined;
 
-    /**
-     * Since header do not have double click event, we need to track the last header click time and column
-     * to determine if the next click is a double click.
-     */
-    private _lastHeaderClickTime: number = 0;
-    private _lastHeaderClickColumn: Slick.Column<T> | null = null;
-    private readonly _doubleClickDelayThreshold = 500; // 500ms
-
     public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
     constructor(
@@ -206,59 +198,32 @@ export class CellSelectionModel<T extends Slick.SlickData>
             const columnCount = this.grid.getColumns().length;
             const currentActiveCell = this.grid.getActiveCell();
             let newActiveCell: Slick.Cell | undefined = undefined;
+            if (this.options.hasRowSelector && columnIndex === 0) {
+                // When the row selector's header is clicked, all cells should be selected
+                this.setSelectedRanges([new Slick.Range(0, 1, rowCount - 1, columnCount - 1)]);
+                // The first data cell in the view should be selected.
+                newActiveCell = {
+                    row: this.grid.getViewport()?.top ?? 0,
+                    cell: 1,
+                };
+            } else if (this.grid.canCellBeSelected(0, columnIndex)) {
+                // When SHIFT is pressed, all the columns between active cell's column and target column should be selected
+                const newlySelectedRange =
+                    e.shiftKey && currentActiveCell
+                        ? new Slick.Range(0, currentActiveCell.cell, rowCount - 1, columnIndex)
+                        : new Slick.Range(0, columnIndex, rowCount - 1, columnIndex);
 
-            // Check for double-click on header
-            const now = Date.now();
-            const isDoubleClick =
-                now - this._lastHeaderClickTime < this._doubleClickDelayThreshold &&
-                this._lastHeaderClickColumn === args.column;
-
-            this._lastHeaderClickTime = now;
-            this._lastHeaderClickColumn = args.column;
-
-            if (isDoubleClick) {
-                if (this.options.hasRowSelector && columnIndex === 0) {
-                    this.setSelectedRanges([new Slick.Range(0, 1, rowCount - 1, columnCount - 1)]);
-                    newActiveCell = {
-                        row: this.grid.getViewport()?.top ?? 0,
-                        cell: 1,
-                    };
-                } else if (this.grid.canCellBeSelected(0, columnIndex)) {
-                    const columnRange = new Slick.Range(0, columnIndex, rowCount - 1, columnIndex);
-                    this.setSelectedRanges([columnRange]);
-                    newActiveCell = {
-                        row: this.grid.getViewport()?.top ?? 0,
-                        cell: columnIndex,
-                    };
-                }
-            } else {
-                if (this.options.hasRowSelector && columnIndex === 0) {
-                    // When the row selector's header is clicked, all cells should be selected
-                    this.setSelectedRanges([new Slick.Range(0, 1, rowCount - 1, columnCount - 1)]);
-                    // The first data cell in the view should be selected.
-                    newActiveCell = {
-                        row: this.grid.getViewport()?.top ?? 0,
-                        cell: 1,
-                    };
-                } else if (this.grid.canCellBeSelected(0, columnIndex)) {
-                    // When SHIFT is pressed, all the columns between active cell's column and target column should be selected
-                    const newlySelectedRange =
-                        e.shiftKey && currentActiveCell
-                            ? new Slick.Range(0, currentActiveCell.cell, rowCount - 1, columnIndex)
-                            : new Slick.Range(0, columnIndex, rowCount - 1, columnIndex);
-
-                    // When CTRL is pressed, we need to merge the new selection with existing selections
-                    const rangesToBeMerged: Slick.Range[] = this.isMultiSelection(e)
-                        ? this.getSelectedRanges()
-                        : [];
-                    const result = this.insertIntoSelections(rangesToBeMerged, newlySelectedRange);
-                    this.setSelectedRanges(result);
-                    // The first data cell of the target column in the view should be selected.
-                    newActiveCell = {
-                        row: this.grid.getViewport()?.top ?? 0,
-                        cell: columnIndex,
-                    };
-                }
+                // When CTRL is pressed, we need to merge the new selection with existing selections
+                const rangesToBeMerged: Slick.Range[] = this.isMultiSelection(e)
+                    ? this.getSelectedRanges()
+                    : [];
+                const result = this.insertIntoSelections(rangesToBeMerged, newlySelectedRange);
+                this.setSelectedRanges(result);
+                // The first data cell of the target column in the view should be selected.
+                newActiveCell = {
+                    row: this.grid.getViewport()?.top ?? 0,
+                    cell: columnIndex,
+                };
             }
 
             if (newActiveCell) {
@@ -268,19 +233,14 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private handleCellDoubleClick(e: MouseEvent, args: Slick.OnClickEventArgs<T>) {
-        const isRowSelectorClicked: boolean | undefined =
-            this.options.hasRowSelector && args.cell === 0;
-
-        if (isRowSelectorClicked) {
-            const columns = this.grid.getColumns();
-            const rowRange = new Slick.Range(args.row, 1, args.row, columns.length - 1);
-            this.setSelectedRanges([rowRange]);
-            const newActiveCell = {
-                row: args.row,
-                cell: 1,
-            };
-            this.grid.setActiveCell(newActiveCell.row, newActiveCell.cell);
-        }
+        const columns = this.grid.getColumns();
+        const rowRange = new Slick.Range(args.row, 1, args.row, columns.length - 1);
+        this.setSelectedRanges([rowRange]);
+        const newActiveCell = {
+            row: args.row,
+            cell: 1,
+        };
+        this.grid.setActiveCell(newActiveCell.row, newActiveCell.cell);
     }
 
     /**

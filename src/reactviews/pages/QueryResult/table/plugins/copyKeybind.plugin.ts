@@ -91,7 +91,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
         let selection = tryCombineSelectionsForResults(selectedRanges);
 
         if (!selection || selection.length === 0) {
-            const data = grid.getData() as any;
+            const data = grid.getData() as T[];
             const totalRows = data.length;
             const totalColumns = grid.getColumns().length;
             selection = [

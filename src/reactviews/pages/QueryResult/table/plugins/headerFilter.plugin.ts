@@ -81,7 +81,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 (e: Event, args: Slick.OnBeforeHeaderCellDestroyEventArgs<T>) =>
                     this.handleBeforeHeaderCellDestroy(e, args),
             )
-            .subscribe(this.grid.onBeforeDestroy, () => this.destroy());
+            .subscribe(this.grid.onBeforeDestroy, () => this.destroy())
+            .subscribe(
+                this.grid.onHeaderContextMenu,
+                (e: Event, args: Slick.OnHeaderContextMenuEventArgs<T>) =>
+                    this.headerContextMenuHandler(e),
+            );
         // .subscribe(this.grid.onClick, (e: DOMEvent) => this.handleBodyMouseDown(e as MouseEvent))
         // .subscribe(this.grid.onColumnsResized, () => this.columnsResized());
 
@@ -93,6 +98,11 @@ export class HeaderFilter<T extends Slick.SlickData> {
         this.handler.unsubscribeAll();
         this._eventManager.clearEventListeners();
         this._list.dispose();
+    }
+
+    private async headerContextMenuHandler(e: Event): Promise<void> {
+        // Prevent the default vscode context menu from showing on right-clicking the header
+        e.preventDefault();
     }
 
     private handleHeaderCellRendered(_e: Event, args: Slick.OnHeaderCellRenderedEventArgs<T>) {
