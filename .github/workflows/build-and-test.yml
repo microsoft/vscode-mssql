@@ -195,30 +195,25 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mssql-tools
           /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "$PASSWORD" -Q "SELECT @@VERSION"
+
+          echo "VS_CODE_VERSION=stable" >> $GITHUB_ENV
+          echo "SERVER_NAME=localhost" >> $GITHUB_ENV
+          echo "AUTHENTICATION_TYPE=SQL Login" >> $GITHUB_ENV
+          echo "USER_NAME=sa" >> $GITHUB_ENV
+          echo "PASSWORD=${{ env.PASSWORD }}" >> $GITHUB_ENV
+          echo "SAVE_PASSWORD=No" >> $GITHUB_ENV
+          echo "PROFILE_NAME=test-server" >> $GITHUB_ENV
         working-directory: ./pr
 
       - name: Run smoke tests for PR branch
         run: |
-          echo "VS_CODE_VERSION=stable" >> $GITHUB_ENV
-          VS_CODE_VERSION=stable
-
-          echo "SERVER_NAME=localhost" >> $GITHUB_ENV
-          SERVER_NAME=localhost
-
-          echo "AUTHENTICATION_TYPE=SQL Login" >> $GITHUB_ENV
-          AUTHENTICATION_TYPE="SQL Login"
-
-          echo "USER_NAME=sa" >> $GITHUB_ENV
-          USER_NAME=sa
-
-          echo "PASSWORD=${{ env.PASSWORD }}" >> $GITHUB_ENV
-          PASSWORD=${{ env.PASSWORD }}
-
-          echo "SAVE_PASSWORD=No" >> $GITHUB_ENV
-          SAVE_PASSWORD=No
-
-          echo "PROFILE_NAME=test-server" >> $GITHUB_ENV
-          PROFILE_NAME=test-server
+          echo "VS_CODE_VERSION: $VS_CODE_VERSION"
+          echo "SERVER_NAME: $SERVER_NAME"
+          echo "AUTHENTICATION_TYPE: $AUTHENTICATION_TYPE"
+          echo "USER_NAME: $USER_NAME"
+          echo "PASSWORD: $PASSWORD"
+          echo "SAVE_PASSWORD: $SAVE_PASSWORD"
+          echo "PROFILE_NAME: $PROFILE_NAME"
 
           cd pr
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
