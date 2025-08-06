@@ -98,8 +98,8 @@ jobs:
 
       - name: Calculate webview bundle sizes
         run: |
-          main_file=$(du -sk ./main/dir/views | cut -f1)
-          pr_file=$(du -sk ./pr/dir/views | cut -f1)
+          main_file=$(du -sk ./main/dist/views | cut -f1)
+          pr_file=$(du -sk ./pr/dist/views | cut -f1)
           echo "Main branch bundle size: $main_file KB"
           echo "PR branch bundle size: $pr_file KB"
           size_diff=$((pr_file - main_file))
@@ -165,7 +165,7 @@ jobs:
           cd main
           DISPLAY=:10 yarn test
 
-      - name: Build mappings for React Webviews
+      - name: Build mappings for Webviews
         continue-on-error: true
         run: |
           cd ./pr
@@ -328,14 +328,6 @@ jobs:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           edit-mode: replace
 
-      - name: Fail if vsix size is increased by 5% or size is above 25mb
-        if: ${{ env.vsix_percentage_change > 5 || env.pr_vsix_size > 25000000 }}
-        run: exit 1
-
-      - name: Fail if bundle size is increased by 5%
-        if: ${{ env.webview_bundle_percentage_change > 5 }}
-        run: exit 1
-
       - name: Generate xliff files in PR branch
         run: |
           cd pr
@@ -386,6 +378,14 @@ jobs:
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/${{ github.repository }}/issues/comments/${{ steps.loc-comment.outputs.comment-id }}
+
+      - name: Fail if vsix size is increased by 5% or size is above 25mb
+        if: ${{ env.vsix_percentage_change > 5 || env.pr_vsix_size > 25000000 }}
+        run: exit 1
+
+      - name: Fail if bundle size is increased by 5%
+        if: ${{ env.webview_bundle_percentage_change > 5 }}
+        run: exit 1
 
       - name: Fail if there are changes required in english xlf files
         if: ${{ env.loc_update_required == 'true' }}
