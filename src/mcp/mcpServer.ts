@@ -11,6 +11,130 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import type MainController from "../controllers/mainController";
 
+// Track the current active connection ID at module scope for sharing between MCP and HTTP APIs
+let currentActiveConnectionId: string | undefined = undefined;
+
+// Helper function to create null values for API responses (to satisfy linter)
+function createNullResult(): string | null {
+    return undefined as unknown as null;
+}
+
+// Define types for query results
+interface QueryResultColumn {
+    columnName: string;
+}
+
+interface QueryResultWithRows {
+    rows: unknown[][];
+    columns?: QueryResultColumn[];
+}
+
+interface QueryResultWithRowsAffected {
+    rowsAffected: number;
+}
+
+interface QueryResultWithRecordsets {
+    recordset?: Record<string, unknown>[];
+    recordsets?: Record<string, unknown>[][];
+}
+
+/**
+ * Formats query results according to SqlDataAccess.ExecuteQueryAsync() logic
+ * Mimics the C# SqlDataReader formatting to ensure consistent behavior
+ * @param result The raw query result from connection sharing service
+ * @returns Formatted result string matching C# implementation
+ */
+function formatQueryResult(result: unknown): string {
+    if (!result) {
+        return "";
+    }
+
+    const resultBuilder: string[] = [];
+
+    // Handle the case where result has rows (SELECT queries)
+    if (
+        typeof result === "object" &&
+        result &&
+        "rows" in result &&
+        Array.isArray((result as QueryResultWithRows).rows)
+    ) {
+        const queryResult = result as QueryResultWithRows;
+        const rows = queryResult.rows;
+        const columns = queryResult.columns || [];
+
+        // Process each row
+        for (const row of rows) {
+            // Process each column in the row
+            for (let i = 0; i < columns.length; i++) {
+                const column = columns[i];
+                const fieldName = column.columnName || `Column${i}`;
+
+                // Skip JSON_ prefixed field names (system-added for JSON results)
+                if (!fieldName.startsWith("JSON_")) {
+                    resultBuilder.push(`${fieldName}: `);
+                }
+
+                // Get the value and convert to string
+                const value = Array.isArray(row) ? row[i] : undefined;
+                const valueString = value !== undefined ? String(value) : "";
+                resultBuilder.push(valueString);
+            }
+        }
+
+        // Add empty line at the end if we had data
+        if (rows.length > 0) {
+            resultBuilder.push("");
+        }
+    }
+    // Handle the case where result is a simple message or rowsAffected
+    else if (typeof result === "object" && result && "rowsAffected" in result) {
+        const queryResult = result as QueryResultWithRowsAffected;
+        // For INSERT/UPDATE/DELETE queries, just return the rows affected info
+        resultBuilder.push(`Rows affected: ${queryResult.rowsAffected}`);
+        resultBuilder.push("");
+    }
+    // Handle direct string results (like JSON from stored procedures)
+    else if (typeof result === "string") {
+        resultBuilder.push(result);
+        resultBuilder.push("");
+    }
+    // Handle object results that might contain JSON data
+    else if (typeof result === "object" && result) {
+        const resultObj = result as QueryResultWithRecordsets;
+        // If it looks like a direct result object, try to extract meaningful data
+        if (resultObj.recordset || resultObj.recordsets) {
+            // Handle recordset format from node-mssql
+            const recordsets = resultObj.recordsets || [resultObj.recordset];
+
+            for (const recordset of recordsets) {
+                if (Array.isArray(recordset)) {
+                    for (const record of recordset) {
+                        // Process each field in the record
+                        for (const [fieldName, value] of Object.entries(record)) {
+                            // Skip JSON_ prefixed field names
+                            if (!fieldName.startsWith("JSON_")) {
+                                resultBuilder.push(`${fieldName}: `);
+                            }
+
+                            const valueString = value !== undefined ? String(value) : "";
+                            resultBuilder.push(valueString);
+                        }
+                    }
+
+                    // Add empty line between result sets
+                    resultBuilder.push("");
+                }
+            }
+        } else {
+            // Fallback: convert to JSON string for complex objects
+            resultBuilder.push(JSON.stringify(result));
+            resultBuilder.push("");
+        }
+    }
+
+    return resultBuilder.join("\n");
+}
+
 /**
  * Initializes and starts the MCP (Model Context Protocol) server
  * @param mainController The MainController instance to access services
@@ -123,6 +247,8 @@ export function initializeMcpServer(mainController?: MainController): express.Ap
             endpoints: {
                 mcp: "/mcp",
                 health: "/health",
+                getCurrentConnectionId: "/getCurrentConnectionId",
+                executeQuery: "/executeQuery",
             },
         });
     });
@@ -131,6 +257,70 @@ export function initializeMcpServer(mainController?: MainController): express.Ap
     app.get("/health", (req, res) => {
         res.json({ status: "healthy", timestamp: new Date().toISOString() });
     });
+
+    // Add VS Code extension web server APIs
+    if (mainController) {
+        // GET /getCurrentConnectionId - Returns the current active connection ID
+        app.get("/getCurrentConnectionId", (req, res) => {
+            try {
+                if (!currentActiveConnectionId) {
+                    res.status(404).send("No active connection");
+                    return;
+                }
+
+                res.status(200).type("text/plain").send(currentActiveConnectionId);
+            } catch (error) {
+                console.error("Error getting current connection ID:", error);
+                res.status(500).send("Internal server error");
+            }
+        });
+
+        // POST /executeQuery - Execute a SQL query against a connected database
+        app.post("/executeQuery", async (req, res) => {
+            try {
+                const { connectionId, query } = req.body;
+
+                // Validate request body
+                if (!connectionId || !query) {
+                    res.status(400).json({
+                        result: createNullResult(),
+                        errorMessage: "Both connectionId and query are required",
+                    });
+                    return;
+                }
+
+                // Check if connection exists
+                const connInfo = mainController.connectionManager.getConnectionInfo(connectionId);
+                if (!connInfo) {
+                    res.status(404).json({
+                        result: createNullResult(),
+                        errorMessage: `Invalid connection ID: ${connectionId}`,
+                    });
+                    return;
+                }
+
+                // Execute the query using connection sharing service
+                const result = await mainController.connectionSharingService.executeSimpleQuery(
+                    connectionId,
+                    query,
+                );
+
+                // Format result according to SqlDataAccess.ExecuteQueryAsync() logic
+                const formattedResult = formatQueryResult(result);
+
+                res.status(200).json({
+                    result: formattedResult,
+                    errorMessage: createNullResult(),
+                });
+            } catch (error) {
+                console.error("Error executing query:", error);
+                res.status(400).json({
+                    result: createNullResult(),
+                    errorMessage: error instanceof Error ? error.message : String(error),
+                });
+            }
+        });
+    }
 
     return app;
 }
@@ -299,16 +489,118 @@ function createMcpServer(mainController?: MainController): McpServer {
                         database: targetDatabase,
                     });
 
+                    if (success) {
+                        // Disconnect previous connection if exists
+                        if (currentActiveConnectionId) {
+                            try {
+                                await mainController.connectionManager.disconnect(
+                                    currentActiveConnectionId,
+                                );
+                            } catch (error) {
+                                // Log but don't fail if previous connection disconnect fails
+                                console.warn(`Failed to disconnect previous connection: ${error}`);
+                            }
+                        }
+                        // Set as current active connection
+                        currentActiveConnectionId = connectionId;
+                    }
+
                     return {
                         content: [
                             {
                                 type: "text",
                                 text: JSON.stringify({
                                     success,
-                                    connectionId,
+                                    connectionId: success ? connectionId : undefined,
                                     message: success
                                         ? "Successfully connected to database"
                                         : "Connection failed",
+                                }),
+                            },
+                        ],
+                    };
+                } catch (error) {
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: JSON.stringify({
+                                    success: false,
+                                    message: error instanceof Error ? error.message : String(error),
+                                }),
+                            },
+                        ],
+                    };
+                }
+            },
+        );
+
+        // Register mssql_disconnect tool
+        server.registerTool(
+            "mssql_disconnect",
+            {
+                title: "Disconnect from SQL Server",
+                description: "Disconnect from the currently active SQL Server connection",
+                inputSchema: {
+                    connectionId: z
+                        .string()
+                        .optional()
+                        .describe(
+                            "Optional connection ID to disconnect. If not provided, disconnects the current active connection",
+                        ),
+                },
+            },
+            async ({ connectionId }) => {
+                try {
+                    const targetConnectionId = connectionId || currentActiveConnectionId;
+
+                    if (!targetConnectionId) {
+                        return {
+                            content: [
+                                {
+                                    type: "text",
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: "No active connection to disconnect",
+                                    }),
+                                },
+                            ],
+                        };
+                    }
+
+                    // Check if connection exists
+                    const connInfo =
+                        mainController.connectionManager.getConnectionInfo(targetConnectionId);
+                    if (!connInfo) {
+                        return {
+                            content: [
+                                {
+                                    type: "text",
+                                    text: JSON.stringify({
+                                        success: false,
+                                        message: `No active connection found for connection ID '${targetConnectionId}'`,
+                                    }),
+                                },
+                            ],
+                        };
+                    }
+
+                    // Disconnect from the database
+                    await mainController.connectionManager.disconnect(targetConnectionId);
+
+                    // Clear active connection if it was the current one
+                    if (targetConnectionId === currentActiveConnectionId) {
+                        currentActiveConnectionId = undefined;
+                    }
+
+                    return {
+                        content: [
+                            {
+                                type: "text",
+                                text: JSON.stringify({
+                                    success: true,
+                                    message: "Successfully disconnected from database",
+                                    disconnectedConnectionId: targetConnectionId,
                                 }),
                             },
                         ],
@@ -591,11 +883,13 @@ export function startMcpServer(
         app.listen(port, () => {
             console.log(`MCP server started on port ${port}`);
             console.log(`Available endpoints:`);
-            console.log(`  - GET  /       - Server info`);
-            console.log(`  - GET  /health - Health check`);
-            console.log(`  - POST /mcp    - MCP client-to-server communication`);
-            console.log(`  - GET  /mcp    - MCP server-to-client notifications (SSE)`);
-            console.log(`  - DELETE /mcp  - MCP session termination`);
+            console.log(`  - GET    /                     - Server info`);
+            console.log(`  - GET    /health               - Health check`);
+            console.log(`  - GET    /getCurrentConnectionId - Get current active connection ID`);
+            console.log(`  - POST   /executeQuery         - Execute SQL query`);
+            console.log(`  - POST   /mcp                  - MCP client-to-server communication`);
+            console.log(`  - GET    /mcp                  - MCP server-to-client notifications`);
+            console.log(`  - DELETE /mcp                  - MCP session termination`);
             resolve();
         });
     });
