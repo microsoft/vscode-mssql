@@ -982,10 +982,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     startTime: startTime.toString(),
                     operationId: this.operationId,
                     sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo.endpointType,
+                        state.sourceEndpointInfo?.endpointType,
                     ),
                     targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo.endpointType,
+                        state.targetEndpointInfo?.endpointType,
                     ),
                 },
             );
@@ -1788,10 +1788,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     startTime: startTime.toString(),
                     operationId: this.operationId,
                     sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo.endpointType,
+                        state.sourceEndpointInfo?.endpointType,
                     ),
                     targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo.endpointType,
+                        state.targetEndpointInfo?.endpointType,
                     ),
                 },
             );
@@ -1858,10 +1858,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     startTime: startTime.toString(),
                     operationId: this.operationId,
                     sourceType: getSchemaCompareEndpointTypeString(
-                        state.sourceEndpointInfo.endpointType,
+                        state.sourceEndpointInfo?.endpointType,
                     ),
                     targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo.endpointType,
+                        state.targetEndpointInfo?.endpointType,
                     ),
                 },
             );
