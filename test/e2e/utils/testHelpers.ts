@@ -28,31 +28,41 @@ export async function addDatabaseConnection(
     await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
     await addConnectionButton.click();
 
-    await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${serverName}`);
-    await vsCodePage.keyboard.press("Enter");
+    await new Promise((resolve) => setTimeout(resolve, 3 * 1000));
+
+    const iframe = await getWebviewByTitle(vsCodePage, "Connection Dialog");
+
+    let input = iframe.locator("#Server-name");
+    await input.waitFor({ state: "visible", timeout: 300 * 1000 });
+
+    await input.fill(serverName);
 
     if (databaseName) {
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${databaseName}`);
+        input = iframe.locator("#Database-name");
+        await input.fill(databaseName);
     }
-    await vsCodePage.keyboard.press("Enter");
 
-    await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${authType}`);
-    await vsCodePage.keyboard.press("Enter");
+    // await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${authType}`);
+    // await vsCodePage.keyboard.press("Enter");
 
     if (authType === "SQL Login") {
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${userName}`);
-        await vsCodePage.keyboard.press("Enter");
+        input = iframe.locator("#User-name");
+        await input.fill(userName);
 
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${password}`);
-        await vsCodePage.keyboard.press("Enter");
+        input = iframe.locator("#Password");
+        await input.fill(password);
 
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${savePassword}`);
-        await vsCodePage.keyboard.press("Enter");
+        // await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${savePassword}`);
+        // await vsCodePage.keyboard.press("Enter");
     }
 
     if (profileName) {
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${profileName}`);
+        input = iframe.locator("#Profile-Name");
+        await input.fill(profileName);
     }
+
+    // TODO: always check "Enable Trust Server Certificate"
+
     await vsCodePage.keyboard.press("Enter");
 
     await new Promise((resolve) => setTimeout(resolve, 1 * 1000));

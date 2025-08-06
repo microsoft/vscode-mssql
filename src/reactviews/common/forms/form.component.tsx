@@ -39,6 +39,7 @@ export const FormInput = <
     target,
     type,
     placeholder,
+    label,
     props,
 }: {
     context: TContext;
@@ -46,6 +47,7 @@ export const FormInput = <
     target: keyof TForm;
     type: "input" | "password" | "textarea";
     placeholder: string;
+    label: string;
     props?: any;
 }) => {
     const [formInputValue, setFormInputValue] = useState(value);
@@ -83,6 +85,7 @@ export const FormInput = <
                     onBlur={handleBlur}
                     size="small"
                     placeholder={placeholder}
+                    id={label.replaceAll(" ", "-")}
                     {...props}
                 />
             )}
@@ -111,6 +114,7 @@ export const FormInput = <
                                     : locConstants.common.showPassword
                             }></Button>
                     }
+                    id={label.replaceAll(" ", "-")}
                     {...props}
                 />
             )}
@@ -190,6 +194,7 @@ export const FormField = <
                         />
                     )
                 }
+                aria-label={component.label}
                 {...props}
                 style={{ color: tokens.colorNeutralForeground1 }}>
                 {generateFormComponent<TForm, TState, TFormItemSpec, TContext>(
@@ -239,6 +244,7 @@ export function generateFormComponent<
                     target={component.propertyName}
                     type="input"
                     placeholder={component.placeholder ?? ""}
+                    label={component.label}
                     props={props}
                 />
             );
@@ -250,6 +256,7 @@ export function generateFormComponent<
                     target={component.propertyName}
                     type="textarea"
                     placeholder={component.placeholder ?? ""}
+                    label={component.label}
                     props={props}
                 />
             );
@@ -261,6 +268,7 @@ export function generateFormComponent<
                     target={component.propertyName}
                     placeholder={component.placeholder ?? ""}
                     type="password"
+                    label={component.label}
                     props={props}
                 />
             );
