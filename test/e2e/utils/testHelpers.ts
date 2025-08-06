@@ -73,13 +73,16 @@ export async function addDatabaseConnection(
 
 /**
  * Opens a new query editor for the specified profile.
- * @param profileName Profile name to use for the connection.  Only provide if test is not expected to automatically select the relevant profile.
- * @param password Only provide password if it is not saved with the profile.
+ * @param selections Optional parameters for opening the query editor
  */
 export async function openNewQueryEditor(
     vsCodePage: Page,
-    profileName?: string,
-    password?: string,
+    selections?: {
+        /** Profile name to use for the connection.  Only provide if test is not expected to automatically select the relevant profile. */
+        profileName?: string;
+        /** Only provide password if it is not saved with the profile. */
+        password?: string;
+    },
 ): Promise<void> {
     // run "New Query" command
     await vsCodePage.keyboard.press("Control+P");
@@ -88,19 +91,19 @@ export async function openNewQueryEditor(
     await waitForCommandPaletteToBeVisible(vsCodePage);
     await vsCodePage.keyboard.press("Enter");
 
-    if (profileName) {
+    if (selections?.profileName) {
         // Enter profile name if necessary. Should only be provided if the test is not expected to automatically select the relevant profile.
         await waitForCommandPaletteToBeVisible(vsCodePage);
-        await vsCodePage.keyboard.type(profileName);
+        await vsCodePage.keyboard.type(selections.profileName);
         await waitForCommandPaletteToBeVisible(vsCodePage);
         await vsCodePage.keyboard.press("Enter");
+    }
 
-        // Enter password if necessary. Should only be provided as parameter if not saved with the profile.
-        if (password) {
-            await waitForCommandPaletteToBeVisible(vsCodePage);
-            await vsCodePage.keyboard.type(password);
-            await vsCodePage.keyboard.press("Enter");
-        }
+    // Enter password if necessary. Should only be provided as parameter if not saved with the profile.
+    if (selections?.password) {
+        await waitForCommandPaletteToBeVisible(vsCodePage);
+        await vsCodePage.keyboard.type(selections.password);
+        await vsCodePage.keyboard.press("Enter");
     }
 
     await new Promise((resolve) => setTimeout(resolve, 1 * 1000));

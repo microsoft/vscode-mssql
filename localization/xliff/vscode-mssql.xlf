@@ -2878,9 +2878,6 @@
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
-    <trans-unit id="mssql.addObjectExplorerLegacy">
-      <source xml:lang="en">Add Connection (Legacy)</source>
-    </trans-unit>
     <trans-unit id="mssql.connectionGroups.create">
       <source xml:lang="en">Add Connection Group</source>
     </trans-unit>

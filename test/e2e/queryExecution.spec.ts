@@ -60,7 +60,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     });
 
     test("Create table, insert data, and execute query", async () => {
-        await openNewQueryEditor(vsCodePage);
+        await openNewQueryEditor(vsCodePage, { password });
 
         const createTestDB = "CREATE DATABASE TestDB;";
         await enterTextIntoQueryEditor(vsCodePage, createTestDB);
@@ -68,11 +68,13 @@ test.describe("MSSQL Extension - Query Execution", async () => {
 
         await openNewQueryEditor(vsCodePage);
 
+        const tableName = `TestTable${Date.now()}`;
+
         const sqlScript = `
 USE TestDB;
-CREATE TABLE TestTable (ID INT PRIMARY KEY, Name VARCHAR(50), Age INT);
-INSERT INTO TestTable (ID, Name, Age) VALUES (1, 'Doe', 30);
-SELECT Name FROM TestTable;`;
+CREATE TABLE ${tableName} (ID INT PRIMARY KEY, Name VARCHAR(50), Age INT);
+INSERT INTO ${tableName} (ID, Name, Age) VALUES (1, 'Doe', 30);
+SELECT Name FROM ${tableName};`;
 
         await enterTextIntoQueryEditor(vsCodePage, sqlScript);
         await executeQuery(vsCodePage);

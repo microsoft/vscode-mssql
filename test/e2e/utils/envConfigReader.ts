@@ -28,7 +28,7 @@ export function getPassword(): string {
 }
 
 export function getSavePassword(): boolean {
-    return process.env.SAVE_PASSWORD.toUpperCase() === "YES";
+    return process.env.SAVE_PASSWORD?.toUpperCase() === "YES";
 }
 
 export function getProfileName(): string {

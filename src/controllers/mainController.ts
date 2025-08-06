@@ -1074,12 +1074,6 @@ export default class MainController implements vscode.Disposable {
             connDialog.revealToForeground();
         });
 
-        // redirect the "Legacy" command to the core command; that handler will differentiate
-        this.registerCommandWithArgs(Constants.cmdAddObjectExplorerLegacy);
-        this._event.on(Constants.cmdAddObjectExplorerLegacy, (args) => {
-            vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, args);
-        });
-
         // Object Explorer New Query
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
