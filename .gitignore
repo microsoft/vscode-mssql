@@ -31,3 +31,4 @@ webviews-metafile.json
 .eslintcache
 .nyc_output
 samples/connection-sharing-sample/dist
+/test/resources/launchDir
