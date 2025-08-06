@@ -232,6 +232,8 @@ export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
+export const configSchemaDesignerEnableExpandCollapseButtons =
+    "mssql.schemaDesigner.enableExpandCollapseButtons";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
