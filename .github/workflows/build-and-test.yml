@@ -150,7 +150,7 @@ jobs:
           DISPLAY=:10 yarn test
 
       - name: PR Unit Test Report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
           name: 'Unit Test Report'
@@ -213,14 +213,13 @@ jobs:
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
-        if: failure()
         with:
           name: smoke-test-failure-screenshots
           path: ./pr/test-results/**/
           retention-days: 7
 
       - name: Smoke Test Report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
             name: 'Smoke Test Report'
