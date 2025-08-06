@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as prettier from "prettier";
 
 export class JsonFormattingEditProvider implements vscode.DocumentFormattingEditProvider {
     async provideDocumentFormattingEdits(
@@ -15,8 +14,18 @@ export class JsonFormattingEditProvider implements vscode.DocumentFormattingEdit
             document.positionAt(document.getText().length),
         );
 
-        const formatted = await prettier.format(document.getText(), { parser: "json" });
+        const formatted = await formatJson(document.getText());
 
         return [vscode.TextEdit.replace(fullRange, formatted)];
+    }
+}
+
+async function formatJson(json: string): Promise<string> {
+    try {
+        const parsed = JSON.parse(json);
+        return JSON.stringify(parsed, null, 4);
+    } catch (error) {
+        console.error("Error formatting JSON:", error);
+        return json;
     }
 }

@@ -29,7 +29,7 @@ import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { locConstants as loc } from "../../../common/locConstants";
 import {
     SchemaCompareEndpointType,
-    SharedExtractTarget,
+    ExtractTarget,
 } from "../../../../sharedInterfaces/schemaCompare";
 
 const useStyles = makeStyles({
@@ -79,15 +79,15 @@ function extractTargetTypeToString(extractTarget: number | undefined): string {
     }
 
     switch (extractTarget) {
-        case SharedExtractTarget.file:
+        case ExtractTarget.file:
             return "File";
-        case SharedExtractTarget.flat:
+        case ExtractTarget.flat:
             return "Flat";
-        case SharedExtractTarget.objectType:
+        case ExtractTarget.objectType:
             return "Object Type";
-        case SharedExtractTarget.schema:
+        case ExtractTarget.schema:
             return "Schema";
-        case SharedExtractTarget.schemaObjectType:
+        case ExtractTarget.schemaObjectType:
         default:
             return "Schema/Object Type";
     }
@@ -119,9 +119,7 @@ const SchemaSelectorDrawer = (props: Props) => {
     );
     const [databaseName, setDatabaseName] = useState(currentEndpoint?.databaseName || "");
     const [folderStructure, setFolderStructure] = useState(
-        extractTargetTypeToString(
-            currentEndpoint?.extractTarget || SharedExtractTarget.schemaObjectType,
-        ),
+        extractTargetTypeToString(currentEndpoint?.extractTarget || ExtractTarget.schemaObjectType),
     );
 
     const fileId = useId("file");
