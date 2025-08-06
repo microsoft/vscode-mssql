@@ -98,8 +98,8 @@ jobs:
 
       - name: Calculate webview bundle sizes
         run: |
-          main_file=$(du -sk ./main/out/src/reactviews/assets | cut -f1)
-          pr_file=$(du -sk ./pr/out/src/reactviews/assets | cut -f1)
+          main_file=$(du -sk ./main/dir/views | cut -f1)
+          pr_file=$(du -sk ./pr/dir/views | cut -f1)
           echo "Main branch bundle size: $main_file KB"
           echo "PR branch bundle size: $pr_file KB"
           size_diff=$((pr_file - main_file))
