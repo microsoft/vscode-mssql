@@ -207,17 +207,77 @@ export class CellSelectionModel<T extends Slick.SlickData>
                     cell: 1,
                 };
             } else if (this.grid.canCellBeSelected(0, columnIndex)) {
-                // When SHIFT is pressed, all the columns between active cell's column and target column should be selected
-                const newlySelectedRange =
-                    e.shiftKey && currentActiveCell
-                        ? new Slick.Range(0, currentActiveCell.cell, rowCount - 1, columnIndex)
-                        : new Slick.Range(0, columnIndex, rowCount - 1, columnIndex);
+                let newSelectedRange: Slick.Range | undefined;
+                let rangesToBeMerged: Slick.Range[] = [];
+                if (e.shiftKey) {
+                    /**
+                     * If the user clicks on a column header while holding down the SHIFT key,
+                     * we take the current active cell and select all columns from the active cell to the target column.
+                     */
+                    newSelectedRange = new Slick.Range(
+                        0,
+                        currentActiveCell ? currentActiveCell.cell : columnIndex,
+                        rowCount - 1,
+                        columnIndex,
+                    );
+                } else if (this.isMultiSelection(e)) {
+                    /**
+                     * If the user clicks on a column header while holding down CTRL key, we select/deselect the entire column.
+                     */
+                    const currentlySelectedRange = this.getSelectedRanges();
+                    let isCurrentColumnAlreadySelected = false;
 
-                // When CTRL is pressed, we need to merge the new selection with existing selections
-                const rangesToBeMerged: Slick.Range[] = this.isMultiSelection(e)
-                    ? this.getSelectedRanges()
-                    : [];
-                const result = this.insertIntoSelections(rangesToBeMerged, newlySelectedRange);
+                    for (const range of currentlySelectedRange) {
+                        if (
+                            range.fromCell <= columnIndex &&
+                            range.toCell >= columnIndex &&
+                            range.fromRow === 0 &&
+                            range.toRow === rowCount - 1
+                        ) {
+                            isCurrentColumnAlreadySelected = true;
+                            // If there are selections that are to the left of the current column, we need to create new range.
+
+                            if (range.fromCell < columnIndex) {
+                                rangesToBeMerged.push(
+                                    new Slick.Range(
+                                        range.fromRow,
+                                        range.fromCell,
+                                        range.toRow,
+                                        columnIndex - 1,
+                                    ),
+                                );
+                            }
+                            if (range.toCell > columnIndex) {
+                                rangesToBeMerged.push(
+                                    new Slick.Range(
+                                        range.fromRow,
+                                        columnIndex + 1,
+                                        range.toRow,
+                                        range.toCell,
+                                    ),
+                                );
+                            }
+                        } else {
+                            rangesToBeMerged.push(range);
+                        }
+                    }
+                    newSelectedRange =
+                        isCurrentColumnAlreadySelected === false
+                            ? new Slick.Range(0, columnIndex, rowCount - 1, columnIndex)
+                            : undefined;
+                } else {
+                    /**
+                     * If the user clicks on a column header without holding down the SHIFT or CTRL key,
+                     * we clear the previous selections and select the entire column.
+                     */
+                    newSelectedRange = new Slick.Range(0, columnIndex, rowCount - 1, columnIndex);
+                }
+                let result: Slick.Range[] = [];
+                if (newSelectedRange) {
+                    result = this.insertIntoSelections(rangesToBeMerged, newSelectedRange!);
+                } else {
+                    result = rangesToBeMerged;
+                }
                 this.setSelectedRanges(result);
                 // The first data cell of the target column in the view should be selected.
                 newActiveCell = {

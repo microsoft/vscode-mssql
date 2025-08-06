@@ -82,10 +82,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     this.handleBeforeHeaderCellDestroy(e, args),
             )
             .subscribe(this.grid.onBeforeDestroy, () => this.destroy())
-            .subscribe(
-                this.grid.onHeaderContextMenu,
-                (e: Event, args: Slick.OnHeaderContextMenuEventArgs<T>) =>
-                    this.headerContextMenuHandler(e),
+            .subscribe(this.grid.onHeaderContextMenu, (e: Event) =>
+                this.headerContextMenuHandler(e),
             );
         // .subscribe(this.grid.onClick, (e: DOMEvent) => this.handleBodyMouseDown(e as MouseEvent))
         // .subscribe(this.grid.onColumnsResized, () => this.columnsResized());
