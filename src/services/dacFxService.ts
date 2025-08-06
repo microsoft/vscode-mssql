@@ -6,6 +6,7 @@
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import * as dacFxContracts from "../models/contracts/dacFx/dacFxContracts";
 import * as mssql from "vscode-mssql";
+import { ExtractTarget, TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
 export class DacFxService implements mssql.IDacFxService {
     constructor(private _client: SqlToolsServiceClient) {}
@@ -14,7 +15,7 @@ export class DacFxService implements mssql.IDacFxService {
         databaseName: string,
         packageFilePath: string,
         ownerUri: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ): Thenable<mssql.DacFxResult> {
         const params: mssql.ExportParams = {
             databaseName: databaseName,
@@ -29,7 +30,7 @@ export class DacFxService implements mssql.IDacFxService {
         packageFilePath: string,
         databaseName: string,
         ownerUri: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ): Thenable<mssql.DacFxResult> {
         const params: mssql.ImportParams = {
             packageFilePath: packageFilePath,
@@ -46,7 +47,7 @@ export class DacFxService implements mssql.IDacFxService {
         applicationName: string,
         applicationVersion: string,
         ownerUri: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ): Thenable<mssql.DacFxResult> {
         const params: mssql.ExtractParams = {
             databaseName: databaseName,
@@ -54,7 +55,7 @@ export class DacFxService implements mssql.IDacFxService {
             applicationName: applicationName,
             applicationVersion: applicationVersion,
             ownerUri: ownerUri,
-            extractTarget: mssql.ExtractTarget.dacpac,
+            extractTarget: ExtractTarget.dacpac,
             taskExecutionMode: taskExecutionMode,
         };
         return this._client.sendRequest(dacFxContracts.ExtractRequest.type, params);
@@ -66,8 +67,8 @@ export class DacFxService implements mssql.IDacFxService {
         applicationName: string,
         applicationVersion: string,
         ownerUri: string,
-        extractTarget: mssql.ExtractTarget,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        extractTarget: ExtractTarget,
+        taskExecutionMode: TaskExecutionMode,
         includePermissions?: boolean,
     ): Thenable<mssql.DacFxResult> {
         const params: mssql.ExtractParams = {
@@ -88,7 +89,7 @@ export class DacFxService implements mssql.IDacFxService {
         targetDatabaseName: string,
         upgradeExisting: boolean,
         ownerUri: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
         sqlCommandVariableValues?: Map<string, string>,
         deploymentOptions?: mssql.DeploymentOptions,
     ): Thenable<mssql.DacFxResult> {
@@ -110,7 +111,7 @@ export class DacFxService implements mssql.IDacFxService {
         packageFilePath: string,
         targetDatabaseName: string,
         ownerUri: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
         sqlCommandVariableValues?: Map<string, string>,
         deploymentOptions?: mssql.DeploymentOptions,
     ): Thenable<mssql.DacFxResult> {
@@ -131,7 +132,7 @@ export class DacFxService implements mssql.IDacFxService {
         packageFilePath: string,
         targetDatabaseName: string,
         ownerUri: string,
-        taskExecutionMode: mssql.TaskExecutionMode,
+        taskExecutionMode: TaskExecutionMode,
     ): Thenable<mssql.GenerateDeployPlanResult> {
         const params: mssql.GenerateDeployPlanParams = {
             packageFilePath: packageFilePath,

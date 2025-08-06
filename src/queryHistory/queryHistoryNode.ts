@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as path from "path";
 import * as os from "os";
 import * as LocalizedConstants from "../constants/locConstants";
+import { IconUtils } from "../utils/iconUtils";
 
 /**
  * Empty Node shown when no queries are available
@@ -24,10 +24,7 @@ export class EmptyHistoryNode extends vscode.TreeItem {
  * Query history node
  */
 export class QueryHistoryNode extends vscode.TreeItem {
-    private static readonly contextValue = "queryHistoryNode";
-    private readonly iconsPath: string = path.join(__dirname, "icons");
-    private readonly successIcon: string = path.join(this.iconsPath, "status_success.svg");
-    private readonly failureIcon: string = path.join(this.iconsPath, "status_error.svg");
+    private static readonly _contextValue = "queryHistoryNode";
     private _ownerUri: string;
     private _timeStamp: Date;
     private _isSuccess: boolean;
@@ -49,12 +46,19 @@ export class QueryHistoryNode extends vscode.TreeItem {
         this._timeStamp = timeStamp;
         this._isSuccess = isSuccess;
         this._connectionLabel = connectionLabel;
-        this.iconPath = this._isSuccess ? this.successIcon : this.failureIcon;
         const queryStatusLabel = this._isSuccess
             ? LocalizedConstants.querySuccess
             : LocalizedConstants.queryFailed;
         this.tooltip = `${tooltip}${os.EOL}${os.EOL}${queryStatusLabel}`;
-        this.contextValue = QueryHistoryNode.contextValue;
+        this.contextValue = QueryHistoryNode._contextValue;
+        this.initializeIcons();
+    }
+
+    private initializeIcons(): void {
+        this.iconPath = IconUtils.getIcon(
+            "queryHistory",
+            this._isSuccess ? "status_success.svg" : "status_error.svg",
+        );
     }
 
     /** Getters */

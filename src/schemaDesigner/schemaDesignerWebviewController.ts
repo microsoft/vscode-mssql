@@ -14,6 +14,13 @@ import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
+
+function isExpandCollapseButtonsEnabled(): boolean {
+    return vscode.workspace
+        .getConfiguration()
+        .get<boolean>(configSchemaDesignerEnableExpandCollapseButtons) as boolean;
+}
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
@@ -40,9 +47,11 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             vscodeWrapper,
             "schemaDesigner",
             "schemaDesigner",
-            {},
             {
-                title: LocConstants.SchemaDesigner.tabTitle(databaseName),
+                enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
+            },
+            {
+                title: databaseName,
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
@@ -63,6 +72,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         this._key = `${this.connectionString}-${this.databaseName}`;
 
         this.setupRequestHandlers();
+        this.setupConfigurationListener();
     }
 
     private setupRequestHandlers() {
@@ -103,9 +113,20 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.onRequest(SchemaDesigner.GetDefinitionRequest.type, async (payload) => {
+            const definitionActivity = startActivity(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.GetDefinition,
+                undefined,
+                {
+                    tableCount: payload.updatedSchema.tables.length.toString(),
+                },
+            );
             const script = await this.schemaDesignerService.getDefinition({
                 updatedSchema: payload.updatedSchema,
                 sessionId: this._sessionId,
+            });
+            definitionActivity.end(ActivityStatus.Succeeded, undefined, {
+                tableCount: payload.updatedSchema.tables.length,
             });
             this.updateCacheItem(payload.updatedSchema, true);
             return script;
@@ -296,6 +317,19 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             // Close the schema designer panel
             this.panel.dispose();
         });
+    }
+
+    private setupConfigurationListener() {
+        const configChangeDisposable = vscode.workspace.onDidChangeConfiguration((e) => {
+            if (e.affectsConfiguration(configSchemaDesignerEnableExpandCollapseButtons)) {
+                const newValue = isExpandCollapseButtonsEnabled();
+
+                this.updateState({
+                    enableExpandCollapseButtons: newValue,
+                });
+            }
+        });
+        this.registerDisposable(configChangeDisposable);
     }
 
     private updateCacheItem(

@@ -9,6 +9,7 @@ import * as path from "path";
 import * as mssql from "vscode-mssql";
 
 import * as schemaCompareUtils from "../../src/schemaCompare/schemaCompareUtils";
+import { ExtractTarget, TaskExecutionMode } from "../../src/sharedInterfaces/schemaCompare";
 
 suite("Schema Compare Utils Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -39,8 +40,8 @@ suite("Schema Compare Utils Tests", () => {
         const operationId = "test-operation-id";
         const projectFilePath = path.join("path", "to", "project.sqlproj");
         const projectDirectoryPath = path.dirname(projectFilePath);
-        const extractTarget = mssql.ExtractTarget.schemaObjectType;
-        const taskExecutionMode = mssql.TaskExecutionMode.execute;
+        const extractTarget = ExtractTarget.schemaObjectType;
+        const taskExecutionMode = TaskExecutionMode.execute;
 
         const payload = {
             targetProjectPath: projectFilePath,

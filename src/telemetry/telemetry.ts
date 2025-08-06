@@ -19,8 +19,9 @@ import AdsTelemetryReporter, {
 
 import { IConnectionProfile } from "../models/interfaces";
 import { v4 as uuidv4 } from "uuid";
+import { extensionId } from "../constants/constants";
 
-const packageJson = vscode.extensions.getExtension(vscodeMssql.extension.name).packageJSON;
+const packageJson = vscode.extensions.getExtension(extensionId).packageJSON;
 
 let packageInfo = {
     name: "vscode-mssql", // Differentiate this from the mssql extension in ADS

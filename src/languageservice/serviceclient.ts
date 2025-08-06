@@ -29,7 +29,7 @@ import { PlatformInformation } from "../models/platform";
 import { ServerInitializationResult, ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
-import { IConfig } from "../languageservice/interfaces";
+import { IConfigUtils } from "../languageservice/interfaces";
 import { exists } from "../utils/utils";
 import { env } from "process";
 import {
@@ -152,7 +152,7 @@ export default class SqlToolsServiceClient {
     }
 
     constructor(
-        private _config: IConfig,
+        private _config: IConfigUtils,
         private _server: ServerProvider,
         private _logger: Logger,
         private _statusView: StatusView,

@@ -11,8 +11,12 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import {
+    ExtractTarget,
+    SchemaCompareEndpointType,
     SchemaCompareReducers,
     SchemaCompareWebViewState,
+    SchemaDifferenceType,
+    TaskExecutionMode,
 } from "../sharedInterfaces/schemaCompare";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -35,7 +39,7 @@ import {
     includeExcludeAllNodes,
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { TaskExecutionMode, DiffEntry } from "vscode-mssql";
+import { DiffEntry } from "vscode-mssql";
 import { sendActionEvent, startActivity, sendErrorEvent } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { deepClone } from "../models/utils";
@@ -246,7 +250,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         }
 
         const source = {
-            endpointType: mssql.SchemaCompareEndpointType.Database,
+            endpointType: SchemaCompareEndpointType.Database,
             serverDisplayName: `${connectionProfile.server} (${user})`,
             serverName: connectionProfile.server,
             databaseName: ObjectExplorerUtils.getDatabaseName(sourceContext),
@@ -257,7 +261,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             projectFilePath: "",
             targetScripts: [],
             dataSchemaProvider: "",
-            extractTarget: mssql.ExtractTarget.schemaObjectType,
+            extractTarget: ExtractTarget.schemaObjectType,
         };
 
         return source;
@@ -265,7 +269,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
     private getEndpointInfoFromDacpac(sourceDacpac: string): mssql.SchemaCompareEndpointInfo {
         const source = {
-            endpointType: mssql.SchemaCompareEndpointType.Dacpac,
+            endpointType: SchemaCompareEndpointType.Dacpac,
             serverDisplayName: "",
             serverName: "",
             databaseName: "",
@@ -275,7 +279,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             projectFilePath: "",
             targetScripts: [],
             dataSchemaProvider: "",
-            extractTarget: mssql.ExtractTarget.schemaObjectType,
+            extractTarget: ExtractTarget.schemaObjectType,
         };
 
         return source;
@@ -285,9 +289,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         projectFilePath: string,
     ): Promise<mssql.SchemaCompareEndpointInfo> {
         const source = {
-            endpointType: mssql.SchemaCompareEndpointType.Project,
+            endpointType: SchemaCompareEndpointType.Project,
             projectFilePath: projectFilePath,
-            extractTarget: mssql.ExtractTarget.schemaObjectType,
+            extractTarget: ExtractTarget.schemaObjectType,
             targetScripts: await this.getProjectScriptFiles(projectFilePath),
             dataSchemaProvider: await this.getDatabaseSchemaProvider(projectFilePath),
             serverDisplayName: "",
@@ -595,8 +599,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         this.logger.verbose(
                             `Setting extract target to schemaObjectType for target project - OperationId: ${this.operationId}`,
                         );
-                        state.auxiliaryEndpointInfo.extractTarget =
-                            mssql.ExtractTarget.schemaObjectType;
+                        state.auxiliaryEndpointInfo.extractTarget = ExtractTarget.schemaObjectType;
                     }
                 }
 
@@ -628,10 +631,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     state.targetEndpointInfo = state.auxiliaryEndpointInfo;
                 }
 
-                if (
-                    state.targetEndpointInfo?.endpointType ===
-                    mssql.SchemaCompareEndpointType.Project
-                ) {
+                if (state.targetEndpointInfo?.endpointType === SchemaCompareEndpointType.Project) {
                     this.logger.info(
                         `Setting target extract target to ${payload.folderStructure} - OperationId: ${this.operationId}`,
                     );
@@ -671,7 +671,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
 
             const endpointInfo = {
-                endpointType: mssql.SchemaCompareEndpointType.Database,
+                endpointType: SchemaCompareEndpointType.Database,
                 serverDisplayName: `${connectionProfile.server} (${user})`,
                 serverName: connectionProfile.server,
                 databaseName: payload.databaseName,
@@ -682,7 +682,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 projectFilePath: "",
                 targetScripts: [],
                 dataSchemaProvider: "",
-                extractTarget: mssql.ExtractTarget.schemaObjectType,
+                extractTarget: ExtractTarget.schemaObjectType,
             };
 
             if (payload.endpointType === "source") {
@@ -1090,7 +1090,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             try {
                 switch (state.targetEndpointInfo.endpointType) {
-                    case mssql.SchemaCompareEndpointType.Database:
+                    case SchemaCompareEndpointType.Database:
                         this.logger.info(
                             `Publishing changes to database ${state.targetEndpointInfo.databaseName} - OperationId: ${this.operationId}`,
                         );
@@ -1116,7 +1116,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         });
                         break;
 
-                    case mssql.SchemaCompareEndpointType.Project:
+                    case SchemaCompareEndpointType.Project:
                         this.logger.info(
                             `Publishing changes to project ${state.targetEndpointInfo.projectFilePath} - OperationId: ${this.operationId}`,
                         );
@@ -1144,7 +1144,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         });
                         break;
 
-                    case mssql.SchemaCompareEndpointType.Dacpac: // Dacpac is an invalid publish target
+                    case SchemaCompareEndpointType.Dacpac: // Dacpac is an invalid publish target
                     default:
                         const errorMsg = `Unsupported SchemaCompareEndpointType: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)}`;
                         this.logger.error(`${errorMsg} - OperationId: ${this.operationId}`);
@@ -1934,19 +1934,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         return nameParts.join(".");
     }
 
-    private mapExtractTargetEnum(folderStructure: string): mssql.ExtractTarget {
+    private mapExtractTargetEnum(folderStructure: string): ExtractTarget {
         switch (folderStructure) {
             case "File":
-                return mssql.ExtractTarget.file;
+                return ExtractTarget.file;
             case "Flat":
-                return mssql.ExtractTarget.flat;
+                return ExtractTarget.flat;
             case "Object Type":
-                return mssql.ExtractTarget.objectType;
+                return ExtractTarget.objectType;
             case "Schema":
-                return mssql.ExtractTarget.schema;
+                return ExtractTarget.schema;
             case "Schema/Object Type":
             default:
-                return mssql.ExtractTarget.schemaObjectType;
+                return ExtractTarget.schemaObjectType;
         }
     }
 
@@ -2007,7 +2007,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     }
 
                     const endpointInfo = {
-                        endpointType: mssql.SchemaCompareEndpointType.Database,
+                        endpointType: SchemaCompareEndpointType.Database,
                         serverDisplayName: `${connectionProfile.server} (${user})`,
                         serverName: connectionProfile.server,
                         databaseName: databaseName,
@@ -2020,7 +2020,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         projectFilePath: "",
                         targetScripts: [],
                         dataSchemaProvider: "",
-                        extractTarget: mssql.ExtractTarget.schemaObjectType,
+                        extractTarget: ExtractTarget.schemaObjectType,
                     };
 
                     if (endpointType === "source") {
@@ -2114,7 +2114,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             },
         );
 
-        if (payload.sourceEndpointInfo.endpointType === mssql.SchemaCompareEndpointType.Project) {
+        if (payload.sourceEndpointInfo.endpointType === SchemaCompareEndpointType.Project) {
             this.logger.logDebug(
                 `Getting project script files for source: ${payload.sourceEndpointInfo.projectFilePath} - OperationId: ${this.operationId}`,
             );
@@ -2122,7 +2122,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 payload.sourceEndpointInfo.projectFilePath,
             );
         }
-        if (payload.targetEndpointInfo.endpointType === mssql.SchemaCompareEndpointType.Project) {
+        if (payload.targetEndpointInfo.endpointType === SchemaCompareEndpointType.Project) {
             this.logger.logDebug(
                 `Getting project script files for target: ${payload.targetEndpointInfo.projectFilePath} - OperationId: ${this.operationId}`,
             );
@@ -2189,7 +2189,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     ): Promise<mssql.SchemaCompareEndpointInfo> {
         let ownerUri;
         let endpointInfo;
-        if (endpoint && endpoint.endpointType === mssql.SchemaCompareEndpointType.Database) {
+        if (endpoint && endpoint.endpointType === SchemaCompareEndpointType.Database) {
             const connInfo = endpoint.connectionDetails.options as mssql.IConnectionInfo;
 
             ownerUri = this.connectionMgr.getUriForScmpConnection(connInfo);
@@ -2211,7 +2211,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             if (isConnected && ownerUri && connectionProfile) {
                 endpointInfo = {
-                    endpointType: mssql.SchemaCompareEndpointType.Database,
+                    endpointType: SchemaCompareEndpointType.Database,
                     serverDisplayName: `${connInfo.server} (${connectionProfile.user || locConstants.SchemaCompare.defaultUserName})`,
                     serverName: connInfo.server,
                     databaseName: connInfo.database,
@@ -2224,11 +2224,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     projectFilePath: "",
                     targetScripts: [],
                     dataSchemaProvider: "",
-                    extractTarget: mssql.ExtractTarget.schemaObjectType,
+                    extractTarget: ExtractTarget.schemaObjectType,
                 };
             } else {
                 endpointInfo = {
-                    endpointType: mssql.SchemaCompareEndpointType.Database,
+                    endpointType: SchemaCompareEndpointType.Database,
                     serverDisplayName: "",
                     serverName: "",
                     databaseName: "",
@@ -2239,10 +2239,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     projectFilePath: "",
                     targetScripts: [],
                     dataSchemaProvider: "",
-                    extractTarget: mssql.ExtractTarget.schemaObjectType,
+                    extractTarget: ExtractTarget.schemaObjectType,
                 };
             }
-        } else if (endpoint.endpointType === mssql.SchemaCompareEndpointType.Project) {
+        } else if (endpoint.endpointType === SchemaCompareEndpointType.Project) {
             endpointInfo = {
                 endpointType: endpoint.endpointType,
                 packageFilePath: "",
@@ -2259,9 +2259,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         } else {
             endpointInfo = {
                 endpointType:
-                    endpoint.endpointType === mssql.SchemaCompareEndpointType.Database
-                        ? mssql.SchemaCompareEndpointType.Database
-                        : mssql.SchemaCompareEndpointType.Dacpac,
+                    endpoint.endpointType === SchemaCompareEndpointType.Database
+                        ? SchemaCompareEndpointType.Database
+                        : SchemaCompareEndpointType.Dacpac,
                 serverDisplayName: "",
                 serverName: "",
                 databaseName: "",
@@ -2294,7 +2294,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         );
 
         differences.forEach((difference) => {
-            if (difference.differenceType === mssql.SchemaDifferenceType.Object) {
+            if (difference.differenceType === SchemaDifferenceType.Object) {
                 if (
                     (difference.sourceValue !== null && difference.sourceValue.length > 0) ||
                     (difference.targetValue !== null && difference.targetValue.length > 0)
