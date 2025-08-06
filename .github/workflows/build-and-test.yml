@@ -200,7 +200,6 @@ jobs:
           echo "SERVER_NAME=localhost" >> $GITHUB_ENV
           echo "AUTHENTICATION_TYPE=SQL Login" >> $GITHUB_ENV
           echo "USER_NAME=sa" >> $GITHUB_ENV
-          echo "PASSWORD=${{ env.PASSWORD }}" >> $GITHUB_ENV
           echo "SAVE_PASSWORD=No" >> $GITHUB_ENV
           echo "PROFILE_NAME=test-server" >> $GITHUB_ENV
         working-directory: ./pr
