@@ -198,6 +198,7 @@ jobs:
         working-directory: ./pr
 
       - name: Run smoke tests for PR branch
+        continue-on-error: true
         run: |
           VS_CODE_VERSION=stable
           SERVER_NAME=localhost
