@@ -85,7 +85,7 @@ export const FormInput = <
                     onBlur={handleBlur}
                     size="small"
                     placeholder={placeholder}
-                    id={label.replaceAll(" ", "-")}
+                    id={formatLabelForId(label)}
                     {...props}
                 />
             )}
@@ -114,7 +114,7 @@ export const FormInput = <
                                     : locConstants.common.showPassword
                             }></Button>
                     }
-                    id={label.replaceAll(" ", "-")}
+                    id={formatLabelForId(label)}
                     {...props}
                 />
             )}
@@ -293,6 +293,7 @@ export function generateFormComponent<
                             value: data.optionValue as string,
                         });
                     }}
+                    id={formatLabelForId(component.label)}
                     {...props}>
                     {component.options?.map((option, idx) => {
                         return (
@@ -356,10 +357,15 @@ export function generateFormComponent<
                             value: data.checked,
                         })
                     }
+                    id={formatLabelForId(component.label)}
                     {...props}
                 />
             );
     }
+}
+
+function formatLabelForId(label: string): string {
+    return label.replaceAll(" ", "-").replaceAll(".", "-").replaceAll("/", "-");
 }
 
 export const useFormStyles = makeStyles({

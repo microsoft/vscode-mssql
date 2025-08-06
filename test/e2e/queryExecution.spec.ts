@@ -31,14 +31,12 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     let authType: string;
     let userName: string;
     let password: string;
-    let savePassword: string;
+    let savePassword: boolean;
     let profileName: string;
 
     test.beforeAll(async () => {
         // Launch with new UI off
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension({
-            useNewUI: false,
-        });
+        const { electronApp, page } = await launchVsCodeWithMssqlExtension();
         vsCodeApp = electronApp;
         vsCodePage = page;
 
@@ -62,13 +60,13 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     });
 
     test("Create table, insert data, and execute query", async () => {
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage);
 
         const createTestDB = "CREATE DATABASE TestDB;";
         await enterTextIntoQueryEditor(vsCodePage, createTestDB);
         await executeQuery(vsCodePage);
 
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage);
 
         const sqlScript = `
 USE TestDB;
@@ -88,7 +86,7 @@ SELECT Name FROM TestTable;`;
     });
 
     test.afterAll(async () => {
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage);
         const dropTestDatabaseScript = `
 USE master
 ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE

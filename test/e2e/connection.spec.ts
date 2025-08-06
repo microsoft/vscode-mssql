@@ -24,9 +24,7 @@ test.describe("MSSQL Extension - Database Connection", async () => {
 
     test.beforeAll(async () => {
         // Launch with new UI off
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension({
-            useNewUI: false,
-        });
+        const { electronApp, page } = await launchVsCodeWithMssqlExtension();
         vsCodeApp = electronApp;
         vsCodePage = page;
     });
@@ -50,10 +48,13 @@ test.describe("MSSQL Extension - Database Connection", async () => {
             profileName,
         );
 
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage); // connection should be automatically selected because there's only one connection
         await disconnect(vsCodePage);
 
-        const disconnectedStatus = await vsCodePage.getByText("Connect to MSSQL");
+        const disconnectedStatus = vsCodePage
+            .locator(".statusbar-item-label")
+            .filter({ hasText: "Connect to MSSQL" });
+
         await expect(disconnectedStatus).toBeVisible({ timeout: 10 * 1000 });
     });
 

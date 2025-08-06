@@ -12,7 +12,7 @@ export async function addDatabaseConnection(
     authType: string,
     userName: string,
     password: string,
-    savePassword: string,
+    savePassword: boolean,
     profileName: string,
 ): Promise<void> {
     // Navigate to Sql Server Tab
@@ -42,9 +42,6 @@ export async function addDatabaseConnection(
         await input.fill(databaseName);
     }
 
-    // await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${authType}`);
-    // await vsCodePage.keyboard.press("Enter");
-
     if (authType === "SQL Login") {
         input = iframe.locator("#User-name");
         await input.fill(userName);
@@ -52,8 +49,12 @@ export async function addDatabaseConnection(
         input = iframe.locator("#Password");
         await input.fill(password);
 
-        // await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${savePassword}`);
-        // await vsCodePage.keyboard.press("Enter");
+        if (savePassword) {
+            input = iframe.locator("#Save-Password");
+            await input.click();
+        }
+    } else {
+        throw new Error(`Unsupported authentication type for E2E tests: ${authType}`);
     }
 
     if (profileName) {
@@ -61,40 +62,46 @@ export async function addDatabaseConnection(
         await input.fill(profileName);
     }
 
-    // TODO: always check "Enable Trust Server Certificate"
+    const trustServerCertificateCheckbox = iframe.locator("#Trust-server-certificate");
+    await trustServerCertificateCheckbox.click();
 
     await vsCodePage.keyboard.press("Enter");
 
-    await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
-
-    const enableTrustServerCertificateButton = await vsCodePage.getByText(
-        "Enable Trust Server Certificate",
-    );
-    const isEnableTrustButtonVisible = await enableTrustServerCertificateButton.isVisible({
-        timeout: 3 * 1000,
-    });
-    if (isEnableTrustButtonVisible) {
-        await enableTrustServerCertificateButton.click();
-    }
+    await expect(iframe.locator("#Server-name")).not.toBeVisible({ timeout: 30 * 1000 }); // wait for the connection dialog to close
+    await new Promise((resolve) => setTimeout(resolve, 3 * 1000)); // wait for connection to be established
 }
 
+/**
+ * Opens a new query editor for the specified profile.
+ * @param profileName Profile name to use for the connection.  Only provide if test is not expected to automatically select the relevant profile.
+ * @param password Only provide password if it is not saved with the profile.
+ */
 export async function openNewQueryEditor(
     vsCodePage: Page,
-    profileName: string,
-    password: string,
+    profileName?: string,
+    password?: string,
 ): Promise<void> {
+    // run "New Query" command
     await vsCodePage.keyboard.press("Control+P");
     await waitForCommandPaletteToBeVisible(vsCodePage);
     await vsCodePage.keyboard.type(">MS SQL: New Query");
     await waitForCommandPaletteToBeVisible(vsCodePage);
     await vsCodePage.keyboard.press("Enter");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(profileName);
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.press("Enter");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(password);
-    await vsCodePage.keyboard.press("Enter");
+
+    if (profileName) {
+        // Enter profile name if necessary. Should only be provided if the test is not expected to automatically select the relevant profile.
+        await waitForCommandPaletteToBeVisible(vsCodePage);
+        await vsCodePage.keyboard.type(profileName);
+        await waitForCommandPaletteToBeVisible(vsCodePage);
+        await vsCodePage.keyboard.press("Enter");
+
+        // Enter password if necessary. Should only be provided as parameter if not saved with the profile.
+        if (password) {
+            await waitForCommandPaletteToBeVisible(vsCodePage);
+            await vsCodePage.keyboard.type(password);
+            await vsCodePage.keyboard.press("Enter");
+        }
+    }
 
     await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
     await vsCodePage.keyboard.press("Escape");

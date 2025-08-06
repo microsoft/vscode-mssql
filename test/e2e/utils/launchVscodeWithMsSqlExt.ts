@@ -16,7 +16,6 @@ import { getVsCodeVersionName } from "./envConfigReader";
 import * as os from "os";
 
 export type mssqlExtensionLaunchConfig = {
-    useNewUI?: boolean;
     useVsix?: boolean;
 };
 
@@ -37,9 +36,7 @@ export async function launchVsCodeWithMssqlExtension(
     const devExtensionPath = path.resolve(__dirname, "../../../");
 
     const tmpRoot = path.join(os.tmpdir(), `vscode-mssql-test-${Date.now()}`);
-    const userDataDir = !options.useNewUI
-        ? `${path.join(process.cwd(), "test", "resources", "launchDir")}`
-        : path.join(tmpRoot, "user-data");
+    const userDataDir = path.join(tmpRoot, "user-data");
     const extensionsDir = path.join(tmpRoot, "extensions");
 
     fs.mkdirSync(userDataDir, { recursive: true });
