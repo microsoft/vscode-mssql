@@ -201,10 +201,6 @@ export default class MainController implements vscode.Disposable {
         return this.configuration.get(Constants.configUseLegacyConnectionExperience);
     }
 
-    public get useLegacyQueryResultExperience(): boolean {
-        return this.configuration.get(Constants.configUseLegacyQueryResultExperience);
-    }
-
     /**
      * Initializes the extension
      */
@@ -894,7 +890,6 @@ export default class MainController implements vscode.Disposable {
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
-            this._context,
             this._statusview,
             this._vscodeWrapper,
         );
@@ -927,7 +922,6 @@ export default class MainController implements vscode.Disposable {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
             useLegacyConnections: this.useLegacyConnectionExperience.toString(),
-            useLegacyQueryResults: this.useLegacyQueryResultExperience.toString(),
         });
 
         await this._connectionMgr.initialized;
@@ -2665,7 +2659,6 @@ export default class MainController implements vscode.Disposable {
             Constants.configEnableExperimentalFeatures,
             Constants.configEnableRichExperiences,
             Constants.configUseLegacyConnectionExperience,
-            Constants.configUseLegacyQueryResultExperience,
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {
@@ -2852,26 +2845,13 @@ export default class MainController implements vscode.Disposable {
 
     private async isContainerReadyForCommands(node: TreeNodeInfo): Promise<boolean> {
         const containerName = node.connectionProfile?.containerName;
-        const prepResult = await prepareForDockerContainerCommand(containerName);
-        if (!prepResult.success) {
-            if (
-                prepResult.error ===
-                LocalizedConstants.ContainerDeployment.containerDoesNotExistError
-            ) {
-                node.loadingLabel = LocalizedConstants.Common.error;
-                const confirmation = await vscode.window.showInformationMessage(
-                    prepResult.error,
-                    { modal: true },
-                    LocalizedConstants.RemoveProfileLabel,
-                );
-                if (confirmation === LocalizedConstants.RemoveProfileLabel) {
-                    await this._objectExplorerProvider.removeNode(node as ConnectionNode, false);
-                }
-            } else {
-                vscode.window.showErrorMessage(prepResult.error);
-            }
-        }
-        return prepResult.success;
+        return (
+            await prepareForDockerContainerCommand(
+                containerName,
+                node as ConnectionNode,
+                this._objectExplorerProvider.objectExplorerService,
+            )
+        ).success;
     }
 
     public removeAadAccount(prompter: IPrompter): void {

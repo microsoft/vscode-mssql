@@ -33,6 +33,8 @@ export class ContainerDeploymentWebviewState
     isValidPortNumber: boolean = false;
     /** Used to check whether docker container creation can proceed */
     isDockerProfileValid: boolean = false;
+    /** Used to track the form validation state */
+    formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track the current step in the Docker deployment process */
     currentDockerStep: DockerStepOrder = DockerStepOrder.dockerInstallation;
     constructor(params?: Partial<ContainerDeploymentWebviewState>) {
@@ -190,7 +192,8 @@ export enum DockerStepOrder {
     dockerInstallation = 0,
     startDockerDesktop = 1,
     checkDockerEngine = 2,
-    startContainer = 3,
-    checkContainer = 4,
-    connectToContainer = 5,
+    pullImage = 3,
+    startContainer = 4,
+    checkContainer = 5,
+    connectToContainer = 6,
 }

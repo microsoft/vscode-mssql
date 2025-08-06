@@ -95,6 +95,7 @@ export enum TelemetryActions {
     StopContainer = "StopContainer",
     DeleteContainer = "DeleteContainer",
     RestartContainer = "RestartContainer",
+    PullImage = "PullImage",
     RunDockerStep = "RunDockerStep",
     RetryDockerStep = "RetryDockerStep",
     StartContainerDeployment = "StartContainerDeployment",
@@ -123,6 +124,7 @@ export enum TelemetryActions {
     ExportToImage = "ExportToImage",
     GetReport = "getReport",
     PublishSession = "PublishSession",
+    GetDefinition = "GetDefinition",
 }
 
 /**

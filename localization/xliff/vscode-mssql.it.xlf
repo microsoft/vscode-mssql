@@ -105,6 +105,10 @@
         <note>{0} is the server name</note>
         <target state="translated">Aggiungi regola del firewall a {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
+        <source xml:lang="en">Add Server Connection</source>
+        <target state="new">Add Server Connection</target>
+      </trans-unit>
       <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
         <source xml:lang="en">Add Table</source>
         <target state="translated">Aggiungi tabella</target>
@@ -712,6 +716,10 @@
         <source xml:lang="en">Configure Linux containers</source>
         <target state="translated">Configura contenitori Linux</target>
       </trans-unit>
+      <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
+        <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
+        <target state="new">Configure Rosetta in Docker Desktop</target>
+      </trans-unit>
       <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
         <source xml:lang="en">Configure and customize SQL Server containers</source>
         <target state="translated">Configurare e personalizzare i contenitori di SQL Server</target>
@@ -962,9 +970,9 @@
         <source xml:lang="en">Creating Container</source>
         <target state="translated">Creazione del contenitore</target>
       </trans-unit>
-      <trans-unit id="++CODE++09af7062beeeeb3b9e2346b91902b8e45ea936c57462ca09e997e7280b8f71dc">
-        <source xml:lang="en">Creating and starting your SQL Server Docker container</source>
-        <target state="translated">Creazione e avvio del contenitore Docker di SQL Server</target>
+      <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
+        <source xml:lang="en">Creating and starting your SQL Server container</source>
+        <target state="translated">Creazione e avvio del contenitore di SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1202,7 +1210,7 @@
       </trans-unit>
       <trans-unit id="++CODE++524763fd6773ea93d76fa32d9e5974e1667748b114b90fba93f6a4948b0e5c20">
         <source xml:lang="en">Enter container name</source>
-        <target state="new">Enter container name</target>
+        <target state="translated">Immetti il nome contenitore</target>
       </trans-unit>
       <trans-unit id="++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423">
         <source xml:lang="en">Enter description (optional)</source>
@@ -1210,7 +1218,7 @@
       </trans-unit>
       <trans-unit id="++CODE++caaac8aa0d0641aea8406e7f1011aaeab33423fdd4ee9b3354ee88cc1487b0bf">
         <source xml:lang="en">Enter hostname</source>
-        <target state="new">Enter hostname</target>
+        <target state="translated">Immetti il nome host</target>
       </trans-unit>
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
@@ -1218,15 +1226,15 @@
       </trans-unit>
       <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
         <source xml:lang="en">Enter password</source>
-        <target state="new">Enter password</target>
+        <target state="translated">Immetti la password</target>
       </trans-unit>
       <trans-unit id="++CODE++6aa7783e2e2dbd69be673f5f534fa04a7d36683475767069e8030c958e318d47">
         <source xml:lang="en">Enter port</source>
-        <target state="new">Enter port</target>
+        <target state="translated">Immetti la porta</target>
       </trans-unit>
       <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
         <source xml:lang="en">Enter profile name</source>
-        <target state="new">Enter profile name</target>
+        <target state="translated">Immetti il nome profilo</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
@@ -1434,6 +1442,10 @@ Errore:
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
         <target state="translated">Non è stato possibile aprire il file scmp: '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
+        <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
+        <target state="translated">Pull dell'immagine di SQL Server non riuscito. Controllare la connessione di rete e riprovare.</target>
       </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -1723,6 +1735,10 @@ Errore:
       <trans-unit id="++CODE++e6918522718725ba7a74b087c48f889648bbfc7627b1d4ab826ac2cc1b30aa31">
         <source xml:lang="en">Include Object Types</source>
         <target state="translated">Includi tipi di oggetto</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
+        <source xml:lang="en">Include all object types</source>
+        <target state="new">Include all object types</target>
       </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
@@ -2399,10 +2415,6 @@ Errore:
         <source xml:lang="en">Please choose a unique name for the profile</source>
         <target state="translated">Scegliere un nome univoco per il profilo</target>
       </trans-unit>
-      <trans-unit id="++CODE++2048d236cea5afafe8b7e125d9b86eb44250c4ac6f382bc412dca8e4188292fa">
-        <source xml:lang="en">Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.</source>
-        <target state="translated">Verificare che la virtualizzazione Rosetta sia abilitata. È possibile eseguire questa operazione all'interno delle impostazioni di Docker Desktop.</target>
-      </trans-unit>
       <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
         <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
         <target state="translated">Assicurarsi che la porta sia un numero e scegliere una porta che non sia in uso</target>
@@ -2509,6 +2521,14 @@ Errore:
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">Pubblicazione delle modifiche</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
+        <source xml:lang="en">Pulling SQL Server Image</source>
+        <target state="translated">Pull dell'immagine di SQL Server</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
+        <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
+        <target state="translated">Pull dell'immagine del contenitore di SQL Server in corso... Questa operazione potrebbe richiedere alcuni minuti a seconda della connessione Internet.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
         <target state="translated">Piano di query</target>
@@ -2538,6 +2558,10 @@ Errore:
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
         <target state="translated">Preparazione del contenitore per le connessioni.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
+        <source xml:lang="en">Readying container for connections...</source>
+        <target state="translated">Preparazione del contenitore per le connessioni in corso...</target>
       </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
@@ -2617,6 +2641,10 @@ Errore:
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
         <target state="translated">Ordine alfabetico inverso</target>
+      </trans-unit>
+      <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
+        <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
+        <target state="new">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</target>
       </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
@@ -2748,9 +2776,9 @@ Query: {1}</target>
         <source xml:lang="en">Schema</source>
         <target state="translated">Schema</target>
       </trans-unit>
-      <trans-unit id="++CODE++becc525b09db5d2c09fe7aa2203290938cd5cb1438f065f216e73957338265e2">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">Confronto schemi (anteprima)</target>
+      <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
+        <source xml:lang="en">Schema Compare</source>
+        <target state="new">Schema Compare</target>
       </trans-unit>
       <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
         <source xml:lang="en">Schema Compare Options</source>
@@ -2825,9 +2853,17 @@ Query: {1}</target>
         <source xml:lang="en">Select Source</source>
         <target state="translated">Seleziona origine</target>
       </trans-unit>
+      <trans-unit id="++CODE++5807729000cb38665e918bf3d7ac25f319624d3024eb2760aba5f15f7eb53559">
+        <source xml:lang="en">Select Source Schema</source>
+        <target state="new">Select Source Schema</target>
+      </trans-unit>
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
         <target state="translated">Seleziona destinazione</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
+        <source xml:lang="en">Select Target Schema</source>
+        <target state="new">Select Target Schema</target>
       </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
@@ -2850,6 +2886,10 @@ Query: {1}</target>
       <trans-unit id="++CODE++1fc9a387654d410febd202b81bddbe62d38368260b69b9f73ee6630164536bdf">
         <source xml:lang="en">Select all</source>
         <target state="translated">Seleziona tutto</target>
+      </trans-unit>
+      <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
+        <source xml:lang="en">Select all options</source>
+        <target state="new">Select all options</target>
       </trans-unit>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
@@ -3068,6 +3108,10 @@ Query: {1}</target>
       <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
         <source xml:lang="en">Starting Container...</source>
         <target state="translated">Avvio del contenitore...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
+        <source xml:lang="en">Starting Docker...</source>
+        <target state="translated">Avvio di Docker in corso...</target>
       </trans-unit>
       <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
         <source xml:lang="en">Starting {0}...</source>
@@ -3610,11 +3654,6 @@ Query: {1}</target>
         <note>{0} is the account display name</note>
         <target state="translated">{0} (Account corrente)</target>
       </trans-unit>
-      <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
-        <source xml:lang="en">{0} (Preview)</source>
-        <note>{0} is the database name</note>
-        <target state="translated">{0} (anteprima)</target>
-      </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (filtro applicato)</target>
@@ -4009,6 +4048,10 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
         <target state="translated">Abilita l'opzione SET XACT_ABORT ON</target>
       </trans-unit>
+      <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
+        <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
+        <target state="new">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
         <source xml:lang="en">Enable modern features in MSSQL</source>
         <target state="translated">Abilita funzionalità moderne in MSSQL</target>
@@ -4074,10 +4117,6 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
       <trans-unit id="mssql.userFeedback">
         <source xml:lang="en">Give Feedback</source>
         <target state="translated">Inviare feedback</target>
-      </trans-unit>
-      <trans-unit id="mssql.hasConnections">
-        <source xml:lang="en">Indicates whether the user has defined any connection profiles in 'User Settings'.</source>
-        <target state="translated">Indica se l'utente ha definito profili di connessione in 'Impostazioni utente'.</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot (Preview)</source>
@@ -4230,12 +4269,12 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <target state="translated">Esegui una query SQL</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">confronto schemi (anteprima)</target>
+        <source xml:lang="en">Schema Compare</source>
+        <target state="new">Schema Compare</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
-        <source xml:lang="en">Schema Designer (Preview)</source>
-        <target state="translated">Designer schema (anteprima)</target>
+        <source xml:lang="en">Schema Designer</source>
+        <target state="new">Schema Designer</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -4426,10 +4465,6 @@ Visualizza il piano stimato senza eseguire la query oppure visualizza il piano d
       <trans-unit id="mssql.useLegacyConnectionExperience.description">
         <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
         <target state="translated">Utilizzare l'esperienza di connessione legacy invece dell'esperienza moderna.</target>
-      </trans-unit>
-      <trans-unit id="mssql.useLegacyQueryResultExperience.description">
-        <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
-        <target state="translated">Utilizzare l'esperienza dei risultati della legacy invece dell'esperienza moderna.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

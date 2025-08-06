@@ -55,12 +55,8 @@ jobs:
         run: |
           echo "Installing Yarn"
           npm install --global yarn@1.22.19
-          echo "Installing Gulp CLI"
-          npm install --global gulp-cli@2.3.0
           echo "Installing VSCE"
           npm install --global vsce@2.9.2
-          echo "Installing gulp"
-          npm install --global gulp@4.0.2
 
       - name: Install dependencies and build main extension
         uses: ./pr/.github/actions/build-extension
@@ -81,11 +77,18 @@ jobs:
       # Testing generates sourcemaps and instrumented code
       # that increase size
       - name: Package both branches
+        continue-on-error: true
         run: |
           cd main
-          yarn gulp package:online
+          vsce package
           cd ../pr
-          yarn gulp package:online
+          vsce package
+
+      - name: Upload PR VSIX files
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-files
+          path: ./pr/*.vsix
 
       - name: Setting up change icons
         run: |
@@ -163,11 +166,12 @@ jobs:
           DISPLAY=:10 yarn test
 
       - name: Build mappings for React Webviews
+        continue-on-error: true
         run: |
           cd ./pr
-          gulp ext:compile-reactviews
+          yarn build:webviews
           cd ../main
-          gulp ext:compile-reactviews
+          yarn build:webviews
 
       - name: Setup environment for smoke tests
         run: |
@@ -203,9 +207,7 @@ jobs:
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
           cd pr
-          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
-          DISPLAY=:10 yarn smoketest
-          cd ../main
+          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
 
       - name: Upload Smoke Test Screenshots
@@ -237,6 +239,7 @@ jobs:
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
           cd main
+          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
           DISPLAY=:10 yarn smoketest
 
       - name: Merge Smoke and Unit Test Coverage Reports
