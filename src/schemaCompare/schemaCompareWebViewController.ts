@@ -631,10 +631,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     state.targetEndpointInfo = state.auxiliaryEndpointInfo;
                 }
 
-                if (
-                    state.targetEndpointInfo?.endpointType ===
-                    mssql.SchemaCompareEndpointType.Project
-                ) {
+                if (state.targetEndpointInfo?.endpointType === SchemaCompareEndpointType.Project) {
                     this.logger.info(
                         `Setting target extract target to ${payload.folderStructure} - OperationId: ${this.operationId}`,
                     );
