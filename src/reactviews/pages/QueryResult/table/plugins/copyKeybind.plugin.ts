@@ -13,7 +13,7 @@ import {
     DbCellValue,
 } from "../../../../../sharedInterfaces/queryResult";
 import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
-import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
+import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } from "../utils";
 import { Keys } from "../../../../common/keys";
 import { IDisposableDataProvider } from "../dataProvider";
 import { GetPlatformRequest } from "../../../../../sharedInterfaces/webview";
@@ -90,18 +90,9 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
         let selectedRanges = grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
 
+        // If no selection exists, create a selection for the entire grid
         if (!selection || selection.length === 0) {
-            const data = grid.getData() as T[];
-            const totalRows = data.length;
-            const totalColumns = grid.getColumns().length;
-            selection = [
-                {
-                    fromRow: 0,
-                    toRow: totalRows - 1,
-                    fromCell: 0,
-                    toCell: totalColumns - 2, // Subtract 2 to account for row number column and 0-based indexing
-                },
-            ];
+            selection = selectEntireGrid(grid);
         }
 
         if (this.dataProvider.isDataInMemory) {

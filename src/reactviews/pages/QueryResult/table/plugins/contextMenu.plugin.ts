@@ -18,7 +18,7 @@ import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { QueryResultContextProps } from "../../queryResultStateProvider";
 import { IDisposableDataProvider } from "../dataProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
-import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
+import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } from "../utils";
 import "./contextMenu.css";
 
 export class ContextMenu<T extends Slick.SlickData> {
@@ -100,17 +100,7 @@ export class ContextMenu<T extends Slick.SlickData> {
 
         // If no selection exists, create a selection for the entire grid
         if (!selection || selection.length === 0) {
-            const data = this.grid.getData() as HybridDataProvider<T>;
-            const totalRows = data.length;
-            const totalColumns = this.grid.getColumns().length;
-            selection = [
-                {
-                    fromRow: 0,
-                    toRow: totalRows - 1,
-                    fromCell: 0,
-                    toCell: totalColumns - 2, // Subtract 2 to account for row number column and 0-based indexing
-                },
-            ];
+            selection = selectEntireGrid(this.grid);
         }
 
         switch (action) {
