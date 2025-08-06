@@ -84,7 +84,7 @@ export class FileEncryptionHelper {
         if (!this._keyBuffer || !this._ivBuffer) {
             await this.init();
         }
-        const cipherIv = crypto.createCipheriv(this._algorithm, this._keyBuffer!, this._ivBuffer!);
+        const cipherIv = crypto.createCipheriv(this._algorithm, this._keyBuffer, this._ivBuffer);
         let cipherText = `${cipherIv.update(content, "utf8", this._binaryEncoding)}${cipherIv.final(this._binaryEncoding)}`;
         return cipherText;
     };
@@ -97,8 +97,8 @@ export class FileEncryptionHelper {
             let plaintext = content;
             const decipherIv = crypto.createDecipheriv(
                 this._algorithm,
-                this._keyBuffer!,
-                this._ivBuffer!,
+                this._keyBuffer,
+                this._ivBuffer,
             );
             return `${decipherIv.update(plaintext, this._binaryEncoding, "utf8")}${decipherIv.final("utf8")}`;
         } catch (ex) {
