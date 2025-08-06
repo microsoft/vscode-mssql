@@ -1427,7 +1427,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 TelemetryActions.IncludeExcludeNode,
                 generateOperationId(),
                 {
-                    startTime: Date.now().toString(),
+                    startTime: startTime.toString(),
                     operationId: this.operationId,
                     requestType: payload.includeRequest ? "Include" : "Exclude",
                     diffEntryType: payload.diffEntry.name,
