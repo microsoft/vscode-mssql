@@ -16,6 +16,8 @@ export function getDatabaseName(): string {
 }
 
 export function getAuthenticationType(): string {
+    console.log(`Checking env.AUTHENTICATION_TYPE: '${process.env.AUTHENTICATION_TYPE}'`);
+
     return process.env.AUTHENTICATION_TYPE ?? "Integrated";
 }
 
