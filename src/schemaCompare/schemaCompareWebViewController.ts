@@ -921,7 +921,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Switch,
-                this.operationId,
+                generateOperationId(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -1043,7 +1043,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Publish,
-                this.operationId,
+                generateOperationId(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -1069,7 +1069,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 );
 
                 endActivity.end(ActivityStatus.Canceled, {
-                    startTime: startTime.toString(),
+                    elapsedTime: (Date.now() - startTime).toString(),
                     operationId: this.operationId,
                     sourceType: getSchemaCompareEndpointTypeString(
                         state.sourceEndpointInfo.endpointType,
@@ -1108,7 +1108,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         );
 
                         endActivity.end(ActivityStatus.Succeeded, {
-                            endTime: Date.now().toString(),
+                            elapsedTime: (Date.now() - startTime).toString(),
                             operationId: this.operationId,
                             targetType: getSchemaCompareEndpointTypeString(
                                 state.targetEndpointInfo.endpointType,
@@ -1136,7 +1136,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         );
 
                         endActivity.end(ActivityStatus.Succeeded, {
-                            endTime: Date.now().toString(),
+                            elapsedTime: (Date.now() - startTime).toString(),
                             operationId: this.operationId,
                             targetType: getSchemaCompareEndpointTypeString(
                                 state.targetEndpointInfo.endpointType,
@@ -1150,7 +1150,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         this.logger.error(`${errorMsg} - OperationId: ${this.operationId}`);
 
                         endActivity.endFailed(new Error(errorMsg), true, undefined, undefined, {
+                            elapsedTime: (Date.now() - startTime).toString(),
                             operationId: this.operationId,
+                            publishType: "Invalid",
                             targetType: getSchemaCompareEndpointTypeString(
                                 state.targetEndpointInfo.endpointType,
                             ),
@@ -1168,6 +1170,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     undefined,
                     undefined,
                     {
+                        elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
                         targetType: getSchemaCompareEndpointTypeString(
                             state.targetEndpointInfo.endpointType,
@@ -1424,7 +1427,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 TelemetryActions.IncludeExcludeNode,
                 generateOperationId(),
                 {
-                    elapsedTime: (Date.now() - startTime).toString(),
+                    startTime: Date.now().toString(),
                     operationId: this.operationId,
                     requestType: payload.includeRequest ? "Include" : "Exclude",
                     diffEntryType: payload.diffEntry.name,
@@ -2098,7 +2101,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         const endActivity = startActivity(
             TelemetryViews.SchemaCompare,
             TelemetryActions.Compare,
-            this.operationId,
+            generateOperationId(),
             {
                 startTime: startTime.toString(),
                 operationId: this.operationId,
