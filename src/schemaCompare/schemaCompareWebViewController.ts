@@ -411,6 +411,15 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `Checking if SQL Database Projects extension is installed - OperationId: ${this.operationId}`,
             );
 
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.SqlProjectInstalledVerification,
+                generateOperationId(),
+                {
+                    operationId: this.operationId,
+                },
+            );
+
             const extension = vscode.extensions.getExtension(
                 SchemaCompareWebViewController.SQL_DATABASE_PROJECTS_EXTENSION_ID,
             );
@@ -421,7 +430,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         `SQL Database Projects extension found but not activated, activating... - OperationId: ${this.operationId}`,
                     );
                     await extension.activate();
+
+                    endActivity.update({
+                        message: "SQL Database Projects extension activated",
+                    });
                 }
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    operationId: this.operationId,
+                    isSqlProjectExtensionInstalled: "true",
+                });
+
                 this.logger.info(
                     `SQL Database Projects extension is installed and activated - OperationId: ${this.operationId}`,
                 );
@@ -430,6 +449,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.info(
                     `SQL Database Projects extension is not installed - OperationId: ${this.operationId}`,
                 );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    operationId: this.operationId,
+                    isSqlProjectExtensionInstalled: "false",
+                });
+
                 state.isSqlProjectExtensionInstalled = false;
             }
 
@@ -446,6 +471,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.info(
                 `Found ${serverCount} active SQL server connection(s) - OperationId: ${this.operationId}`,
             );
+            sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ListingActiveServers, {
+                operationId: this.operationId,
+                serverCount: serverCount.toString(),
+            });
 
             state.activeServers = activeServers;
             this.updateState(state);
@@ -458,20 +487,33 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `Listing databases for server connection: ${payload.connectionUri} - OperationId: ${this.operationId}`,
             );
 
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.ListingDatabasesForActiveServer,
+                generateOperationId(),
+                {
+                    operationId: this.operationId,
+                },
+            );
+
             let databases: string[] = [];
             try {
                 databases = await this.connectionMgr.listDatabases(payload.connectionUri);
                 this.logger.info(
                     `Found ${databases.length} database(s) on server - OperationId: ${this.operationId}`,
                 );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    operationId: this.operationId,
+                    databaseCount: databases.length.toString(),
+                });
             } catch (error) {
                 this.logger.error(
                     `Error listing databases: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
                 console.error("Error listing databases:", error);
-                sendErrorEvent(
-                    TelemetryViews.SchemaCompare,
-                    TelemetryActions.ListingDatabasesForActiveServer,
+
+                endActivity.endFailed(
                     new Error(
                         `Failed to list databases for active server: ${getErrorMessage(error)}`,
                     ),
@@ -495,12 +537,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `Opening new connection dialog for ${payload.endpointType} endpoint - OperationId: ${this.operationId}`,
             );
 
+            sendActionEvent(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.AddNewConnectionDialogOpened,
+                {
+                    operationId: this.operationId,
+                },
+            );
+
             state.waitingForNewConnection = true;
             state.pendingConnectionEndpointType = payload.endpointType;
 
             this.logger.verbose(
                 `Executing command: ${cmdAddObjectExplorer} - OperationId: ${this.operationId}`,
             );
+
             vscode.commands.executeCommand(cmdAddObjectExplorer);
 
             return state;
@@ -751,9 +802,15 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 isCloseAffordance: true,
             };
 
-            sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.OptionsChanged, {
-                operationId: this.operationId,
-            });
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.OptionsChanged,
+                generateOperationId(),
+                {
+                    operationId: this.operationId,
+                },
+            );
+
             this.logger.verbose(
                 `Sent telemetry event for options changed - OperationId: ${this.operationId}`,
             );
@@ -774,6 +831,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                             this.logger.info(
                                 `User chose to run comparison with new options - OperationId: ${this.operationId}`,
                             );
+
+                            endActivity.update({
+                                operationId: this.operationId,
+                                message: "User chose to run comparison with new options",
+                            });
+
                             const payload = {
                                 sourceEndpointInfo: state.sourceEndpointInfo,
                                 targetEndpointInfo: state.targetEndpointInfo,
@@ -782,21 +845,28 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                             };
                             await this.schemaCompare(payload, state);
 
-                            sendActionEvent(
-                                TelemetryViews.SchemaCompare,
-                                TelemetryActions.OptionsChanged,
-                                {
-                                    operationId: this.operationId,
-                                },
-                            );
+                            endActivity.end(ActivityStatus.Succeeded, {
+                                operationId: this.operationId,
+                                message: "Comparison run with new options",
+                            });
                         } else {
                             this.logger.info(
                                 `User chose not to run comparison with new options - OperationId: ${this.operationId}`,
                             );
+
+                            endActivity.end(ActivityStatus.Succeeded, {
+                                operationId: this.operationId,
+                                message: "User chose not to run comparison",
+                            });
                         }
                     });
             } else {
                 this.logger.info(`No options were changed - OperationId: ${this.operationId}`);
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    operationId: this.operationId,
+                    message: "No options were changed",
+                });
             }
 
             return state;
@@ -847,10 +917,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `Switching source and target endpoints - OperationId: ${this.operationId}`,
             );
 
+            const startTime = Date.now();
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Switch,
                 this.operationId,
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    oldSourceType: getSchemaCompareEndpointTypeString(
+                        payload.newSourceEndpointInfo.endpointType,
+                    ),
+                    oldTargetType: getSchemaCompareEndpointTypeString(
+                        payload.newTargetEndpointInfo.endpointType,
+                    ),
+                },
             );
 
             const sourceType = getSchemaCompareEndpointTypeString(
@@ -874,7 +955,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             this.logger.info(`Successfully switched endpoints - OperationId: ${this.operationId}`);
             endActivity.end(ActivityStatus.Succeeded, {
+                elapsedTime: (Date.now() - startTime).toString(),
                 operationId: this.operationId,
+                newSourceType: sourceType,
+                newTargetType: targetType,
             });
 
             return state;
@@ -889,13 +973,20 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `Generating script for schema changes with operation ID: ${this.operationId}`,
             );
 
+            const startTime = Date.now();
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.GenerateScript,
-                this.operationId,
+                generateOperationId(),
                 {
-                    startTime: Date.now().toString(),
+                    startTime: startTime.toString(),
                     operationId: this.operationId,
+                    sourceType: getSchemaCompareEndpointTypeString(
+                        state.sourceEndpointInfo.endpointType,
+                    ),
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
                 },
             );
 
@@ -911,10 +1002,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.error(
                     `Failed to generate script: ${result?.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
                 );
-                endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: result?.errorMessage,
-                    operationId: this.operationId,
-                });
+                endActivity.endFailed(
+                    new Error(
+                        `Failed to generate script: ${result?.errorMessage || "Unknown error"}`,
+                    ),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
 
                 vscode.window.showErrorMessage(
                     locConstants.SchemaCompare.generateScriptErrorMessage(result?.errorMessage),
@@ -926,7 +1025,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
 
             endActivity.end(ActivityStatus.Succeeded, {
-                endTime: Date.now().toString(),
+                elapsedTime: (Date.now() - startTime).toString(),
                 operationId: this.operationId,
             });
 
@@ -940,6 +1039,23 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `Target endpoint type: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
             );
 
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.Publish,
+                this.operationId,
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    sourceType: getSchemaCompareEndpointTypeString(
+                        state.sourceEndpointInfo.endpointType,
+                    ),
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
+                },
+            );
+
             const yes = locConstants.SchemaCompare.Yes;
             const result = await vscode.window.showWarningMessage(
                 locConstants.SchemaCompare.areYouSureYouWantToUpdateTheTarget,
@@ -951,23 +1067,23 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.info(
                     `User canceled publishing changes - OperationId: ${this.operationId}`,
                 );
+
+                endActivity.end(ActivityStatus.Canceled, {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    sourceType: getSchemaCompareEndpointTypeString(
+                        state.sourceEndpointInfo.endpointType,
+                    ),
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
+                });
+
                 return state;
             }
 
             this.logger.info(
                 `Starting publish operation to ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
-            );
-            const endActivity = startActivity(
-                TelemetryViews.SchemaCompare,
-                TelemetryActions.Publish,
-                this.operationId,
-                {
-                    startTime: Date.now().toString(),
-                    operationId: this.operationId,
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo.endpointType,
-                    ),
-                },
             );
 
             let publishResult: mssql.ResultStatus | undefined = undefined;
@@ -978,18 +1094,37 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         this.logger.info(
                             `Publishing changes to database ${state.targetEndpointInfo.databaseName} - OperationId: ${this.operationId}`,
                         );
+
+                        endActivity.update({
+                            publishType: "Database",
+                            OperationId: this.operationId,
+                        });
+
                         publishResult = await publishDatabaseChanges(
                             this.operationId,
                             TaskExecutionMode.execute,
                             payload,
                             this.schemaCompareService,
                         );
+
+                        endActivity.end(ActivityStatus.Succeeded, {
+                            endTime: Date.now().toString(),
+                            operationId: this.operationId,
+                            targetType: getSchemaCompareEndpointTypeString(
+                                state.targetEndpointInfo.endpointType,
+                            ),
+                        });
                         break;
 
                     case mssql.SchemaCompareEndpointType.Project:
                         this.logger.info(
                             `Publishing changes to project ${state.targetEndpointInfo.projectFilePath} - OperationId: ${this.operationId}`,
                         );
+                        endActivity.update({
+                            publishType: "Project",
+                            OperationId: this.operationId,
+                        });
+
                         publishResult = await publishProjectChanges(
                             this.operationId,
                             {
@@ -999,25 +1134,46 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                             },
                             this.schemaCompareService,
                         );
+
+                        endActivity.end(ActivityStatus.Succeeded, {
+                            endTime: Date.now().toString(),
+                            operationId: this.operationId,
+                            targetType: getSchemaCompareEndpointTypeString(
+                                state.targetEndpointInfo.endpointType,
+                            ),
+                        });
                         break;
 
                     case mssql.SchemaCompareEndpointType.Dacpac: // Dacpac is an invalid publish target
                     default:
                         const errorMsg = `Unsupported SchemaCompareEndpointType: ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)}`;
                         this.logger.error(`${errorMsg} - OperationId: ${this.operationId}`);
+
+                        endActivity.endFailed(new Error(errorMsg), true, undefined, undefined, {
+                            operationId: this.operationId,
+                            targetType: getSchemaCompareEndpointTypeString(
+                                state.targetEndpointInfo.endpointType,
+                            ),
+                        });
+
                         throw new Error(errorMsg);
                 }
             } catch (error) {
                 this.logger.error(
                     `Exception during publish operation: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
-                endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: getErrorMessage(error),
-                    operationId: this.operationId,
-                    targetType: getSchemaCompareEndpointTypeString(
-                        state.targetEndpointInfo.endpointType,
-                    ),
-                });
+                endActivity.endFailed(
+                    new Error(`Exception during publish operation: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        operationId: this.operationId,
+                        targetType: getSchemaCompareEndpointTypeString(
+                            state.targetEndpointInfo.endpointType,
+                        ),
+                    },
+                );
 
                 vscode.window.showErrorMessage(
                     locConstants.SchemaCompare.schemaCompareApplyFailed(getErrorMessage(error)),
@@ -1061,6 +1217,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer("publishDatabaseChanges", async (state, payload) => {
             this.logger.info(`Publishing database changes with operation ID: ${this.operationId}`);
 
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.PublishDatabaseChanges,
+                generateOperationId(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
+
             try {
                 const result = await publishDatabaseChanges(
                     this.operationId,
@@ -1073,9 +1240,25 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     this.logger.info(
                         `Successfully published database changes - OperationId: ${this.operationId}`,
                     );
+
+                    endActivity.end(ActivityStatus.Succeeded, {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    });
                 } else {
                     this.logger.error(
                         `Failed to publish database changes: ${result.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
+                    );
+
+                    endActivity.endFailed(
+                        new Error(`Failed to publish database changes: ${result.errorMessage}`),
+                        true,
+                        undefined,
+                        undefined,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
                     );
                 }
 
@@ -1083,6 +1266,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             } catch (error) {
                 this.logger.error(
                     `Exception during database publish: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(
+                        `An exception occurred during database publish: ${getErrorMessage(error)}`,
+                    ),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 );
             }
 
@@ -1093,6 +1289,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.info(`Publishing project changes with operation ID: ${this.operationId}`);
             this.logger.verbose(
                 `Target project path: ${payload.targetProjectPath} - OperationId: ${this.operationId}`,
+            );
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.PublishProjectChanges,
+                generateOperationId(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
             );
 
             try {
@@ -1106,9 +1313,25 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     this.logger.info(
                         `Successfully published project changes - OperationId: ${this.operationId}`,
                     );
+
+                    endActivity.end(ActivityStatus.Succeeded, {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    });
                 } else {
                     this.logger.error(
                         `Failed to publish project changes: ${result.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
+                    );
+
+                    endActivity.endFailed(
+                        new Error(`Failed to publish project changes: ${result.errorMessage}`),
+                        true,
+                        undefined,
+                        undefined,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
                     );
                 }
 
@@ -1116,6 +1339,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             } catch (error) {
                 this.logger.error(
                     `Exception during project publish: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(
+                        `An exception occurred during project publish: ${getErrorMessage(error)}`,
+                    ),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 );
             }
 
@@ -1127,22 +1363,45 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `Resetting schema compare options to defaults - OperationId: ${this.operationId}`,
             );
 
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.ResetOptions,
+                generateOperationId(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
+
             try {
                 const result = await getDefaultOptions(this.schemaCompareService);
                 this.logger.verbose(
                     `Retrieved default options from schema compare service - OperationId: ${this.operationId}`,
                 );
 
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
+
                 state.intermediaryOptionsResult = deepClone(result);
                 this.logger.info(`Reset options to defaults - OperationId: ${this.operationId}`);
                 this.updateState(state);
-
-                sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ResetOptions, {
-                    operationId: this.operationId,
-                });
             } catch (error) {
                 this.logger.error(
                     `Failed to reset options: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(`Failed to reset options: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 );
             }
 
@@ -1159,6 +1418,22 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 `${payload.includeRequest ? "Including" : "Excluding"} node: ${diffEntryName} (ID: ${payload.id}) - OperationId: ${this.operationId}`,
             );
 
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.IncludeExcludeNode,
+                generateOperationId(),
+                {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    requestType: payload.includeRequest ? "Include" : "Exclude",
+                    diffEntryType: payload.diffEntry.name,
+                    diffActionType: this.getSchemaUpdateActionString(
+                        payload.diffEntry.updateAction,
+                    ),
+                },
+            );
+
             const result = await includeExcludeNode(
                 this.operationId,
                 TaskExecutionMode.execute,
@@ -1170,6 +1445,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.info(
                     `Successfully ${payload.includeRequest ? "included" : "excluded"} node with ${result.affectedDependencies.length} affected dependencies - OperationId: ${this.operationId}`,
                 );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
+
                 state.schemaCompareIncludeExcludeResult = result;
 
                 if (state.schemaCompareResult) {
@@ -1227,6 +1508,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         `Operation blocked by dependencies: ${blockingDependencyNames.join(", ")} - OperationId: ${this.operationId}`,
                     );
 
+                    endActivity.endFailed(
+                        new Error("Operation was blocked by dependencies"),
+                        true,
+                        undefined,
+                        undefined,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                            diffEntryType: payload.diffEntry.name,
+                            diffActionType: this.getSchemaUpdateActionString(
+                                payload.diffEntry.updateAction,
+                            ),
+                        },
+                    );
+
                     let message: string = "";
                     if (blockingDependencyNames.length > 0) {
                         message = payload.includeRequest
@@ -1247,6 +1543,23 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     vscode.window.showWarningMessage(message);
                 } else {
                     vscode.window.showWarningMessage(result.errorMessage);
+
+                    endActivity.endFailed(
+                        new Error(
+                            `Failed to ${payload.includeRequest ? "include" : "exclude"} node: ${result.errorMessage || "Unknown error"}`,
+                        ),
+                        true,
+                        undefined,
+                        undefined,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                            diffEntryType: payload.diffEntry.name,
+                            diffActionType: this.getSchemaUpdateActionString(
+                                payload.diffEntry.updateAction,
+                            ),
+                        },
+                    );
                 }
             }
 
@@ -1260,6 +1573,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             state.isIncludeExcludeAllOperationInProgress = true;
             this.updateState(state);
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.SchemaCompare,
+                TelemetryActions.IncludeExcludeAllNodes,
+                generateOperationId(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    requestType: payload.includeRequest ? "Include all" : "Exclude all",
+                },
+            );
 
             try {
                 const result = await includeExcludeAllNodes(
@@ -1277,15 +1602,45 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         `Successfully ${payload.includeRequest ? "included" : "excluded"} all nodes (${count} differences) - OperationId: ${this.operationId}`,
                     );
                     state.schemaCompareResult.differences = result.allIncludedOrExcludedDifferences;
+
+                    endActivity.end(ActivityStatus.Succeeded, {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    });
                 } else {
                     this.logger.error(
                         `Failed to ${payload.includeRequest ? "include" : "exclude"} all nodes: ${result.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
+                    );
+
+                    endActivity.endFailed(
+                        new Error(
+                            `Failed to ${payload.includeRequest ? "include" : "exclude"} all nodes: ${result.errorMessage || "Unknown error"}`,
+                        ),
+                        true,
+                        undefined,
+                        undefined,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
                     );
                 }
             } catch (error) {
                 this.logger.error(
                     `Exception during ${payload.includeRequest ? "include" : "exclude"} all operation: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
+
+                endActivity.endFailed(
+                    new Error(getErrorMessage(error)),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
                 this.state.isIncludeExcludeAllOperationInProgress = false;
             }
 
@@ -1315,7 +1670,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.OpenScmp,
-                this.operationId,
+                generateOperationId(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
@@ -1331,10 +1686,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.error(
                     `Failed to open schema comparison file: ${result?.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
                 );
-                endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: result?.errorMessage,
-                    operationId: this.operationId,
-                });
+                endActivity.endFailed(
+                    new Error(result?.errorMessage || "Unknown error"),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        errorMessage: result?.errorMessage,
+                        operationId: this.operationId,
+                    },
+                );
 
                 vscode.window.showErrorMessage(
                     locConstants.SchemaCompare.openScmpErrorMessage(result?.errorMessage),
@@ -1374,6 +1736,12 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             endActivity.end(ActivityStatus.Succeeded, {
                 operationId: this.operationId,
                 elapsedTime: (Date.now() - startTime).toString(),
+                sourceType: getSchemaCompareEndpointTypeString(
+                    state.sourceEndpointInfo.endpointType,
+                ),
+                targetType: getSchemaCompareEndpointTypeString(
+                    state.targetEndpointInfo.endpointType,
+                ),
             });
 
             state.schemaCompareOpenScmpResult = result;
@@ -1415,10 +1783,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.SaveScmp,
-                this.operationId,
+                generateOperationId(),
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
+                    sourceType: getSchemaCompareEndpointTypeString(
+                        state.sourceEndpointInfo.endpointType,
+                    ),
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
                 },
             );
 
@@ -1438,10 +1812,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.error(
                     `Failed to save schema comparison file: ${result?.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
                 );
-                endActivity.endFailed(undefined, false, undefined, undefined, {
-                    errorMessage: result?.errorMessage,
-                    operationId: this.operationId,
-                });
+                endActivity.endFailed(
+                    new Error(
+                        `Failed to save schema comparison file: ${result?.errorMessage || "Unknown error"}`,
+                    ),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        errorMessage: result?.errorMessage,
+                        operationId: this.operationId,
+                    },
+                );
 
                 vscode.window.showErrorMessage(
                     locConstants.SchemaCompare.saveScmpErrorMessage(result?.errorMessage),
@@ -1466,12 +1849,20 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.registerReducer("cancel", async (state) => {
             this.logger.info(`Cancelling schema comparison operation with ID: ${this.operationId}`);
 
+            const startTime = Date.now();
             const endActivity = startActivity(
                 TelemetryViews.SchemaCompare,
                 TelemetryActions.Cancel,
-                this.operationId,
+                generateOperationId(),
                 {
-                    startTime: Date.now().toString(),
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    sourceType: getSchemaCompareEndpointTypeString(
+                        state.sourceEndpointInfo.endpointType,
+                    ),
+                    targetType: getSchemaCompareEndpointTypeString(
+                        state.targetEndpointInfo.endpointType,
+                    ),
                 },
             );
 
@@ -1482,10 +1873,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     this.logger.error(
                         `Failed to cancel operation: ${result?.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
                     );
-                    endActivity.endFailed(undefined, false, undefined, undefined, {
-                        errorMessage: result?.errorMessage,
-                        operationId: this.operationId,
-                    });
+                    endActivity.endFailed(
+                        new Error(`Failed to cancel: ${result?.errorMessage || "unknown error"}`),
+                        true,
+                        undefined,
+                        undefined,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                            errorMessage: result?.errorMessage,
+                        },
+                    );
 
                     vscode.window.showErrorMessage(
                         locConstants.SchemaCompare.cancelErrorMessage(result?.errorMessage),
@@ -1497,7 +1895,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.info(
                     `Successfully cancelled schema comparison operation - OperationId: ${this.operationId}`,
                 );
-                endActivity.end(ActivityStatus.Succeeded);
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
 
                 state.isComparisonInProgress = false;
                 state.cancelResultStatus = result;
@@ -1505,6 +1906,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             } catch (error) {
                 this.logger.error(
                     `Exception during cancel operation: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(getErrorMessage(error)),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
                 );
             }
 
@@ -1682,12 +2094,20 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         state.isComparisonInProgress = true;
         this.updateState(state);
 
+        const startTime = Date.now();
         const endActivity = startActivity(
             TelemetryViews.SchemaCompare,
             TelemetryActions.Compare,
             this.operationId,
             {
-                startTime: Date.now().toString(),
+                startTime: startTime.toString(),
+                operationId: this.operationId,
+                sourceType: getSchemaCompareEndpointTypeString(
+                    payload.sourceEndpointInfo.endpointType,
+                ),
+                targetType: getSchemaCompareEndpointTypeString(
+                    payload.targetEndpointInfo.endpointType,
+                ),
             },
         );
 
@@ -1722,10 +2142,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.error(
                 `Schema comparison failed: ${result?.errorMessage || "Unknown error"} - OperationId: ${this.operationId}`,
             );
-            endActivity.endFailed(undefined, false, undefined, undefined, {
-                errorMessage: result?.errorMessage,
-                operationId: this.operationId,
-            });
+            endActivity.endFailed(
+                new Error(`Schema comparison failed: ${result?.errorMessage || "Unknown error"}`),
+                true,
+                undefined,
+                undefined,
+                {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
+            );
 
             vscode.window.showErrorMessage(
                 locConstants.SchemaCompare.compareErrorMessage(result?.errorMessage),
@@ -1737,7 +2163,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         this.logger.info(
             `Schema comparison completed successfully with ${result.differences?.length || 0} differences found - OperationId: ${this.operationId}`,
         );
-        endActivity.end(ActivityStatus.Succeeded);
+        endActivity.end(ActivityStatus.Succeeded, {
+            elapsedTime: (Date.now() - startTime).toString(),
+            operationId: this.operationId,
+        });
 
         const finalDifferences = this.getAllObjectTypeDifferences(result);
         this.logger.verbose(
@@ -1896,5 +2325,23 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         return result;
+    }
+
+    /**
+     * Converts a SchemaUpdateAction enum value to its string representation
+     * @param updateAction The SchemaUpdateAction enum value
+     * @returns The string name of the enum value
+     */
+    private getSchemaUpdateActionString(updateAction: mssql.SchemaUpdateAction): string {
+        switch (updateAction) {
+            case mssql.SchemaUpdateAction.Delete:
+                return "Delete";
+            case mssql.SchemaUpdateAction.Change:
+                return "Change";
+            case mssql.SchemaUpdateAction.Add:
+                return "Add";
+            default:
+                return "";
+        }
     }
 }
