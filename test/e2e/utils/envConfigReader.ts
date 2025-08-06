@@ -26,6 +26,7 @@ export function getUserName(): string {
 }
 
 export function getPassword(): string {
+    console.log(`Checking env.PASSWORD: '${process.env.PASSWORD}'`);
     return process.env.PASSWORD ?? "";
 }
 
