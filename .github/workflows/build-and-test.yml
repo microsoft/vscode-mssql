@@ -220,7 +220,7 @@ jobs:
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
-        if: failure()
+        if: success() || failure()
         with:
           name: smoke-test-failure-screenshots
           path: ./pr/test-results/**/
