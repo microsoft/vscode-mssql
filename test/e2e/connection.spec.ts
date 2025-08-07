@@ -29,7 +29,7 @@ test.describe("MSSQL Extension - Database Connection", async () => {
         vsCodePage = page;
     });
 
-    test("Connect to local SQL Database, and disconnect", async (_context, testInfo) => {
+    test("Connect to local SQL Database, and disconnect", async ({}, testInfo) => {
         const serverName = getServerName();
         const databaseName = getDatabaseName();
         const authType = getAuthenticationType();
