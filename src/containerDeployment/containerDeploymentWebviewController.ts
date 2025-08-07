@@ -112,15 +112,6 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             const currentStep = state.dockerSteps[currentStepNumber];
             if (currentStep.loadState !== ApiStatus.NotStarted) return state;
 
-            if (currentStepNumber === cd.DockerStepOrder.dockerInstallation) {
-                // If the current step is the first step (docker installation),
-                // send telemetry for starting
-                sendActionEvent(
-                    TelemetryViews.ContainerDeployment,
-                    TelemetryActions.StartContainerDeployment,
-                );
-            }
-
             // Update the current docker step's status to loading
             this.updateState({
                 ...state,
@@ -132,21 +123,13 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
             let dockerResult: cd.DockerCommandParams;
             let stepSuccessful = false;
+            const stepStartTime = Date.now();
             if (currentStepNumber === cd.DockerStepOrder.connectToContainer) {
                 const connectionResult = await this.addContainerConnection(state.formState);
                 stepSuccessful = connectionResult;
 
                 if (!connectionResult) {
                     currentStep.errorMessage = `${connectErrorTooltip} ${state.formState.profileName}`;
-                } else {
-                    // If the last step is successful, send telemetry for the workflow being finished
-                    sendActionEvent(
-                        TelemetryViews.ContainerDeployment,
-                        TelemetryActions.FinishContainerDeployment,
-                        {
-                            containerVersion: state.formState.version,
-                        },
-                    );
                 }
             } else {
                 const args = currentStep.argNames.map((argName) => state.formState[argName]);
@@ -159,14 +142,28 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 }
             }
 
-            // If the step was successful, update the step's load state to Loaded
-            // else, update it to Error and set the error message
-            currentStep.loadState = stepSuccessful ? ApiStatus.Loaded : ApiStatus.Error;
+            const telemetryProperties: Record<string, string> = {
+                dockerStep: cd.DockerStepOrder[currentStepNumber],
+                containerVersion: state.formState.version,
+            };
+            const telemetryMeasures: Record<string, number> = {
+                timeToCompleteStepInMs: Date.now() - stepStartTime,
+            };
+            // If the step was successful, update the step's load state to Loaded, send telemetry,
+            // and increment the current step number to move to the next step
             if (stepSuccessful) {
+                currentStep.loadState = ApiStatus.Loaded;
+                sendActionEvent(
+                    TelemetryViews.ContainerDeployment,
+                    TelemetryActions.RunDockerStep,
+                    telemetryProperties,
+                    telemetryMeasures,
+                );
                 state.currentDockerStep += 1; // Move to the next step
             } else {
-                // If the step failed, log the error and send telemetry
+                // If the step failed, update step's load state to Error and set the error message
                 // Error telemetry includes the step number and error message
+                currentStep.loadState = ApiStatus.Error;
                 sendErrorEvent(
                     TelemetryViews.ContainerDeployment,
                     TelemetryActions.RunDockerStep,
@@ -174,9 +171,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                     true, // includeErrorMessage
                     undefined, // errorCode
                     undefined, // errorType
-                    {
-                        dockerStep: cd.DockerStepOrder[currentStepNumber],
-                    },
+                    telemetryProperties,
+                    telemetryMeasures,
                 );
             }
             state.dockerSteps[currentStepNumber] = currentStep;
@@ -196,6 +192,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             state.formValidationLoadState = ApiStatus.Loading;
             this.updateState(state);
             state = await this.validateDockerConnectionProfile(state, state.formState);
+            const hasAdvancedOptions =
+                state.formState.containerName || state.formState.port || state.formState.hostname;
             if (!state.formState.containerName) {
                 state.formState.containerName = await dockerUtils.validateContainerName(
                     state.formState.containerName,
@@ -209,6 +207,16 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             state.isDockerProfileValid = state.formErrors.length === 0;
             state.formValidationLoadState = ApiStatus.NotStarted;
             this.updateState(state);
+
+            if (state.isDockerProfileValid) {
+                sendActionEvent(
+                    TelemetryViews.ContainerDeployment,
+                    TelemetryActions.SubmitContainerForm,
+                    {
+                        hasAdvancedOptions: hasAdvancedOptions ? "true" : "false",
+                    },
+                );
+            }
             return state;
         });
 

@@ -151,8 +151,8 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 },
                 publishProjectChanges: function (
                     targetProjectPath: string,
-                    targetFolderStructure: mssql.ExtractTarget,
-                    taskExecutionMode: mssql.TaskExecutionMode,
+                    targetFolderStructure: sc.ExtractTarget,
+                    taskExecutionMode: sc.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action("publishProjectChanges", {
                         targetProjectPath: targetProjectPath,

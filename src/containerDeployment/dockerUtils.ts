@@ -386,9 +386,6 @@ export async function getDockerPath(executable: string): Promise<string> {
 export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
     try {
         await execCommand(COMMANDS.PULL_IMAGE(version.substring(0, yearStringLength)));
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.PullImage, {
-            containerVersion: version,
-        });
         return { success: true };
     } catch (e) {
         return {
@@ -419,25 +416,11 @@ export async function startSqlServerDockerContainer(
     try {
         await execCommand(command);
         dockerLogger.append(`SQL Server container ${containerName} started on port ${port}.`);
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.CreateSQLContainer, {
-            containerVersion: version,
-        });
         return {
             success: true,
             port,
         };
     } catch (e) {
-        sendErrorEvent(
-            TelemetryViews.ContainerDeployment,
-            TelemetryActions.CreateSQLContainer,
-            e,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-            {
-                containerVersion: version,
-            },
-        );
         return {
             success: false,
             error: ContainerDeployment.startSqlServerContainerError,
@@ -470,6 +453,9 @@ export async function startDocker(
 ): Promise<DockerCommandParams> {
     try {
         await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartDocker, {
+            dockerStartedThroughExtension: "false",
+        });
         return { success: true };
     } catch {} // If this command fails, docker is not running, so we proceed to start it.
     if (node && objectExplorerService) {
@@ -509,6 +495,13 @@ export async function startDocker(
                     await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
                     clearInterval(checkDocker);
                     dockerLogger.appendLine("Docker started successfully.");
+                    sendActionEvent(
+                        TelemetryViews.ContainerDeployment,
+                        TelemetryActions.StartDocker,
+                        {
+                            dockerStartedThroughExtension: "true",
+                        },
+                    );
                     resolve({ success: true });
                 } catch (e) {
                     if (++attempts >= maxAttempts) {
@@ -616,14 +609,6 @@ export async function checkIfContainerIsReadyForConnections(
                 if (readyLine) {
                     clearInterval(interval);
                     dockerLogger.appendLine(`${containerName} is ready for connections!`);
-                    sendActionEvent(
-                        TelemetryViews.ContainerDeployment,
-                        TelemetryActions.StartContainer,
-                        {}, // additional properties
-                        {
-                            timeToStartInMs: Date.now() - start,
-                        }, // additional measures
-                    );
                     return resolve({ success: true });
                 }
             } catch {
