@@ -69,8 +69,6 @@ export default class QueryRunner {
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
     private static _runningQueries = [];
-    private _cancelCleanupPrefix: String;
-    private _disposeCleanupPrefix: String;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -98,8 +96,6 @@ export default class QueryRunner {
         this._isExecuting = false;
         this._totalElapsedMilliseconds = 0;
         this._hasCompleted = false;
-        this._cancelCleanupPrefix = vscode.l10n.t("Cancel failed: ");
-        this._disposeCleanupPrefix = vscode.l10n.t("Failed disposing query: ");
     }
 
     // PROPERTIES //////////////////////////////////////////////////////////
@@ -164,7 +160,10 @@ export default class QueryRunner {
                 cancelParams,
             );
         } catch (error) {
-            this._handleCancelDisposeCleanup(this._cancelCleanupPrefix, error);
+            this._handleCancelDisposeCleanup(
+                LocalizedConstants.QueryEditor.queryCancelFailed(error),
+                error,
+            );
             return;
         }
         this._handleCancelDisposeCleanup();
@@ -511,7 +510,10 @@ export default class QueryRunner {
         try {
             await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
         } catch (error) {
-            this._handleCancelDisposeCleanup(this._disposeCleanupPrefix, error);
+            this._handleCancelDisposeCleanup(
+                LocalizedConstants.QueryEditor.queryDisposeFailed(error),
+                error,
+            );
             return;
         }
         this._handleCancelDisposeCleanup();
@@ -521,7 +523,7 @@ export default class QueryRunner {
      * Handles cleanup and state reset after a cancel attempt, for both error and success scenarios.
      * @param error Optional error object if cancel failed.
      */
-    private _handleCancelDisposeCleanup(errorPrefix?: String, error?: Error): void {
+    private _handleCancelDisposeCleanup(errorMsg?: String, error?: Error): void {
         this._isExecuting = false;
         this._hasCompleted = true;
         this.removeRunningQuery();
@@ -541,8 +543,8 @@ export default class QueryRunner {
             true,
         );
         this._statusView.executedQuery(this._ownerUri);
-        if (error) {
-            this._vscodeWrapper.showErrorMessage(`${errorPrefix ?? ""}${getErrorMessage(error)}`);
+        if (errorMsg) {
+            this._vscodeWrapper.showErrorMessage(getErrorMessage(errorMsg));
         }
     }
 
