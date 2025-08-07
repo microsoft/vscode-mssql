@@ -692,6 +692,8 @@
   "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
   "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
+  "Cancel failed: ": "Cancel failed: ",
+  "Failed disposing query: ": "Failed disposing query: ",
   "Remind Me Later": "Remind Me Later",
   "Don't Show Again": "Don't Show Again",
   "Learn More": "Learn More",
