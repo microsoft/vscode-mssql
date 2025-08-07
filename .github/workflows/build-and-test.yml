@@ -150,16 +150,28 @@ jobs:
           DISPLAY=:10 yarn test
           echo "exit_code=$?" >> "$GITHUB_OUTPUT"
 
-      - name: PR Unit Test Report
-        uses: dorny/test-reporter@v2
-        if: success() || failure()
+
+      - name: Publish Unit Test Report
+        uses: ctrf-io/github-test-reporter@v1
         with:
-          name: 'Unit Test Report'
-          path: ./test-reports/**/*.xml
-          reporter: jest-junit
-          working-directory: ./pr
-          badge-title: 'unit-tests'
-          fail-on-error: false
+          report-path: './test-reports/**/*.xml'
+          artifact-name: 'ctrf-report-unit'
+          integrations-config: |
+            {
+              "junit-to-ctrf": {
+                "enabled": true,
+                "action": "convert",
+                "options": {
+                  "output": "./ctrf-reports/ctrf-report-unit.json",
+                  "toolname": "junit-to-ctrf",
+                  "useSuiteName": false,
+                  "env": {
+                    "appName": "vscode-mssql (unit tests)"
+                  }
+                }
+              }
+            }
+        if: always()
 
       - name: Run unit tests for main branch # for calculating coverage comparison
         continue-on-error: true
@@ -231,6 +243,28 @@ jobs:
             badge-title: 'smoke-tests'
             working-directory: ./pr
             fail-on-error: false
+
+      - name: Publish Smoke Test Report
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: './test-reports/**/smoke-results.xml'
+          artifact-name: 'ctrf-report-smoke'
+          integrations-config: |
+            {
+              "junit-to-ctrf": {
+                "enabled": true,
+                "action": "convert",
+                "options": {
+                  "output": "./ctrf-reports/ctrf-report-smoke.json",
+                  "toolname": "junit-to-ctrf",
+                  "useSuiteName": false,
+                  "env": {
+                    "appName": "vscode-mssql (smoke tests)"
+                  }
+                }
+              }
+            }
+        if: always()
 
       - name: Run smoke tests for main branch # for calculating coverage comparison
         continue-on-error: true
