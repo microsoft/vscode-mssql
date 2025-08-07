@@ -412,6 +412,7 @@ export class LocConstants {
                     args: [index],
                     comment: ["{0} is the index of the result set"],
                 }),
+            loadingTextView: l10n.t("Loading text view..."),
         };
     }
 

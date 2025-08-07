@@ -182,7 +182,7 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
     }, [uri, resultSetSummaries, webViewState]);
 
     if (loading) {
-        return <div className={classes.noResults}>Loading text view...</div>;
+        return <div className={classes.noResults}>{locConstants.queryResult.loadingTextView}</div>;
     }
 
     return (
