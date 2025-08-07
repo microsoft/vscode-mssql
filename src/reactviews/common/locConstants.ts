@@ -212,6 +212,7 @@ export class LocConstants {
             parameters: l10n.t("Parameters"),
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
+            browseFabric: l10n.t("Browse Fabric"),
             loadFromConnectionString: l10n.t("Load from Connection String"),
             savedConnections: l10n.t("Saved Connections"),
             recentConnections: l10n.t("Recent Connections"),
@@ -261,6 +262,9 @@ export class LocConstants {
             searchSettings: l10n.t("Search settings..."),
             signIntoAzureToBrowse: l10n.t(
                 "You must be signed into Azure in order to browse SQL databases.",
+            ),
+            signIntoFabricToBrowse: l10n.t(
+                "You must be signed into Fabric in order to browse SQL databases.",
             ),
         };
     }

@@ -49,6 +49,7 @@ export class ConnectionDialogWebviewState
     public readyToConnect: boolean = false;
     public formError: string = "";
     public dialog: IDialogProps | undefined;
+    public fabricServers: FabricSqlServerInfo[] = [];
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
@@ -104,6 +105,15 @@ export interface AzureSqlServerInfo {
     uri: string;
 }
 
+export interface FabricSqlServerInfo {
+    server: string;
+    databases: string[];
+    workspace: {
+        name: string;
+        id: string;
+    };
+}
+
 export interface ConnectionComponentsInfo {
     mainOptions: (keyof IConnectionDialogProfile)[];
     groupedAdvancedOptions: ConnectionComponentGroup[];
@@ -128,6 +138,7 @@ export interface ConnectionDialogFormItemSpec
 export enum ConnectionInputMode {
     Parameters = "parameters",
     AzureBrowse = "azureBrowse",
+    FabricBrowse = "fabricBrowse",
 }
 
 // A Connection Profile contains all the properties of connection credentials, with additional

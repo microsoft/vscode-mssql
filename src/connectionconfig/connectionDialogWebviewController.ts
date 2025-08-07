@@ -245,14 +245,30 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.formError = "";
             this.updateState();
 
-            if (
-                state.selectedInputMode === ConnectionInputMode.AzureBrowse &&
-                (state.loadingAzureSubscriptionsStatus === ApiStatus.NotStarted ||
-                    state.loadingAzureSubscriptionsStatus === ApiStatus.Error) &&
-                (state.loadingAzureServersStatus === ApiStatus.NotStarted ||
-                    state.loadingAzureServersStatus === ApiStatus.Error)
-            ) {
-                await this.loadAllAzureServers(state);
+            if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
+                // Start loading Azure servers if it isn't already complete or in progress
+                if (
+                    (state.loadingAzureSubscriptionsStatus === ApiStatus.NotStarted ||
+                        state.loadingAzureSubscriptionsStatus === ApiStatus.Error) &&
+                    (state.loadingAzureServersStatus === ApiStatus.NotStarted ||
+                        state.loadingAzureServersStatus === ApiStatus.Error)
+                ) {
+                    await this.loadAllAzureServers(state);
+                }
+            } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
+                // TODO: Placeholder for populating info from Fabric
+                state.fabricServers = [
+                    {
+                        server: "fabric-server-1",
+                        databases: ["db1", "db2"],
+                        workspace: { name: "workspace1", id: "workspace-id-1" },
+                    },
+                    {
+                        server: "fabric-server-2",
+                        databases: ["db3", "db4"],
+                        workspace: { name: "workspace2", id: "workspace-id-2" },
+                    },
+                ];
             }
 
             return state;
