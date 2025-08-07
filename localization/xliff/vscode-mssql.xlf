@@ -3002,7 +3002,7 @@
       <source xml:lang="en">Disconnect</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
-      <source xml:lang="en">Display results in a formatted text format, similar to SSMS text mode</source>
+      <source xml:lang="en">Display results in a formatted text format.</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
       <source xml:lang="en">Display results in a tabular grid format (default)</source>
