@@ -5,7 +5,7 @@
 
 import { ElectronApplication, Page } from "@playwright/test";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotOnError";
+import { screenshot, screenshotOnFailure } from "./utils/screenshotOnError";
 import {
     getServerName,
     getDatabaseName,
@@ -29,7 +29,7 @@ test.describe("MSSQL Extension - Database Connection", async () => {
         vsCodePage = page;
     });
 
-    test("Connect to local SQL Database, and disconnect", async () => {
+    test("Connect to local SQL Database, and disconnect", async (_context, testInfo) => {
         const serverName = getServerName();
         const databaseName = getDatabaseName();
         const authType = getAuthenticationType();
@@ -37,6 +37,9 @@ test.describe("MSSQL Extension - Database Connection", async () => {
         const password = getPassword();
         const savePassword = getSavePassword();
         const profileName = getProfileName();
+
+        await screenshot(vsCodePage, testInfo, "before-connection");
+
         await addDatabaseConnection(
             vsCodePage,
             serverName,
