@@ -87,6 +87,11 @@ export class CellSelectionModel<T extends Slick.SlickData>
             (e: Slick.DOMEvent, args: Slick.OnHeaderClickEventArgs<T>) =>
                 this.handleHeaderClick(e as MouseEvent, args),
         );
+        this._handler.subscribe(
+            this.grid.onDblClick,
+            (e: Slick.DOMEvent, args: Slick.OnClickEventArgs<T>) =>
+                this.handleCellDoubleClick(e as MouseEvent, args),
+        );
         this.grid.registerPlugin(this.selector);
         this._handler.subscribe(
             this.selector.onCellRangeSelected,
@@ -202,17 +207,77 @@ export class CellSelectionModel<T extends Slick.SlickData>
                     cell: 1,
                 };
             } else if (this.grid.canCellBeSelected(0, columnIndex)) {
-                // When SHIFT is pressed, all the columns between active cell's column and target column should be selected
-                const newlySelectedRange =
-                    e.shiftKey && currentActiveCell
-                        ? new Slick.Range(0, currentActiveCell.cell, rowCount - 1, columnIndex)
-                        : new Slick.Range(0, columnIndex, rowCount - 1, columnIndex);
+                let newSelectedRange: Slick.Range | undefined;
+                let rangesToBeMerged: Slick.Range[] = [];
+                if (e.shiftKey) {
+                    /**
+                     * If the user clicks on a column header while holding down the SHIFT key,
+                     * we take the current active cell and select all columns from the active cell to the target column.
+                     */
+                    newSelectedRange = new Slick.Range(
+                        0,
+                        currentActiveCell ? currentActiveCell.cell : columnIndex,
+                        rowCount - 1,
+                        columnIndex,
+                    );
+                } else if (this.isMultiSelection(e)) {
+                    /**
+                     * If the user clicks on a column header while holding down CTRL key, we select/deselect the entire column.
+                     */
+                    const currentlySelectedRange = this.getSelectedRanges();
+                    let isCurrentColumnAlreadySelected = false;
 
-                // When CTRL is pressed, we need to merge the new selection with existing selections
-                const rangesToBeMerged: Slick.Range[] = this.isMultiSelection(e)
-                    ? this.getSelectedRanges()
-                    : [];
-                const result = this.insertIntoSelections(rangesToBeMerged, newlySelectedRange);
+                    for (const range of currentlySelectedRange) {
+                        if (
+                            range.fromCell <= columnIndex &&
+                            range.toCell >= columnIndex &&
+                            range.fromRow === 0 &&
+                            range.toRow === rowCount - 1
+                        ) {
+                            isCurrentColumnAlreadySelected = true;
+                            // If there are selections that are to the left of the current column, we need to create new range.
+
+                            if (range.fromCell < columnIndex) {
+                                rangesToBeMerged.push(
+                                    new Slick.Range(
+                                        range.fromRow,
+                                        range.fromCell,
+                                        range.toRow,
+                                        columnIndex - 1,
+                                    ),
+                                );
+                            }
+                            if (range.toCell > columnIndex) {
+                                rangesToBeMerged.push(
+                                    new Slick.Range(
+                                        range.fromRow,
+                                        columnIndex + 1,
+                                        range.toRow,
+                                        range.toCell,
+                                    ),
+                                );
+                            }
+                        } else {
+                            rangesToBeMerged.push(range);
+                        }
+                    }
+                    newSelectedRange =
+                        isCurrentColumnAlreadySelected === false
+                            ? new Slick.Range(0, columnIndex, rowCount - 1, columnIndex)
+                            : undefined;
+                } else {
+                    /**
+                     * If the user clicks on a column header without holding down the SHIFT or CTRL key,
+                     * we clear the previous selections and select the entire column.
+                     */
+                    newSelectedRange = new Slick.Range(0, columnIndex, rowCount - 1, columnIndex);
+                }
+                let result: Slick.Range[] = [];
+                if (newSelectedRange) {
+                    result = this.insertIntoSelections(rangesToBeMerged, newSelectedRange!);
+                } else {
+                    result = rangesToBeMerged;
+                }
                 this.setSelectedRanges(result);
                 // The first data cell of the target column in the view should be selected.
                 newActiveCell = {
@@ -225,6 +290,17 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 this.grid.setActiveCell(newActiveCell.row, newActiveCell.cell);
             }
         }
+    }
+
+    private handleCellDoubleClick(_e: MouseEvent, args: Slick.OnClickEventArgs<T>) {
+        const columns = this.grid.getColumns();
+        const rowRange = new Slick.Range(args.row, 1, args.row, columns.length - 1);
+        this.setSelectedRanges([rowRange]);
+        const newActiveCell = {
+            row: args.row,
+            cell: 1,
+        };
+        this.grid.setActiveCell(newActiveCell.row, newActiveCell.cell);
     }
 
     /**
@@ -352,28 +428,156 @@ export class CellSelectionModel<T extends Slick.SlickData>
         const columns = this.grid.getColumns();
         const isRowSelectorClicked: boolean | undefined =
             this.options.hasRowSelector && args.cell === 0;
+        const selectedRanges = this.getSelectedRanges();
 
-        let newlySelectedRange: Slick.Range;
-        // The selection is a range when there is an active cell and the SHIFT key is pressed.
-        if (activeCell !== undefined && e.shiftKey) {
-            // When the row selector cell is clicked, the new selection is all rows from current active row to target row.
-            // Otherwise, the new selection is the cells in the rectangle between current active cell and target cell.
-            newlySelectedRange = isRowSelectorClicked
-                ? new Slick.Range(activeCell.row, columns.length - 1, args.row, 1)
-                : new Slick.Range(activeCell.row, activeCell.cell, args.row, args.cell);
+        let newlySelectedRange: Slick.Range | undefined;
+        let rangesToBeMerged: Slick.Range[] = [];
+
+        if (isRowSelectorClicked) {
+            if (e.shiftKey) {
+                rangesToBeMerged = [];
+                if (activeCell) {
+                    newlySelectedRange = new Slick.Range(
+                        activeCell.row,
+                        1,
+                        args.row,
+                        columns.length - 1,
+                    );
+                } else {
+                    newlySelectedRange = new Slick.Range(args.row, 1, args.row, columns.length - 1);
+                }
+            } else if (this.isMultiSelection(e)) {
+                let isCurrentRowAlreadySelected = selectedRanges.some(
+                    (range) => range.fromRow <= args.row && range.toRow >= args.row,
+                );
+                if (isCurrentRowAlreadySelected) {
+                    for (const range of selectedRanges) {
+                        if (range.fromRow <= args.row && range.toRow >= args.row) {
+                            // If the row is already selected, we need to remove it from the selection.
+                            // Push the ranges that are above and below the current row
+                            if (range.fromRow < args.row) {
+                                rangesToBeMerged.push(
+                                    new Slick.Range(
+                                        range.fromRow,
+                                        range.fromCell,
+                                        args.row - 1,
+                                        range.toCell,
+                                    ),
+                                );
+                            }
+                            if (range.toRow > args.row) {
+                                rangesToBeMerged.push(
+                                    new Slick.Range(
+                                        args.row + 1,
+                                        range.fromCell,
+                                        range.toRow,
+                                        range.toCell,
+                                    ),
+                                );
+                            }
+                        } else {
+                            rangesToBeMerged.push(range);
+                        }
+                    }
+                } else {
+                    newlySelectedRange = new Slick.Range(args.row, 1, args.row, columns.length - 1);
+                    rangesToBeMerged = selectedRanges;
+                }
+            } else {
+                rangesToBeMerged = [];
+                newlySelectedRange = new Slick.Range(args.row, 1, args.row, columns.length - 1);
+            }
         } else {
-            // If the row selector cell is clicked, the new selection is all the cells in the target row.
-            // Otherwise, the new selection is the target cell
-            newlySelectedRange = isRowSelectorClicked
-                ? new Slick.Range(args.row, 1, args.row, columns.length - 1)
-                : new Slick.Range(args.row, args.cell, args.row, args.cell);
+            if (e.shiftKey) {
+                rangesToBeMerged = [];
+                if (activeCell) {
+                    newlySelectedRange = new Slick.Range(
+                        activeCell.row,
+                        activeCell.cell,
+                        args.row,
+                        args.cell,
+                    );
+                } else {
+                    newlySelectedRange = new Slick.Range(args.row, args.cell, args.row, args.cell);
+                }
+            } else if (this.isMultiSelection(e)) {
+                const isCurrentCellAlreadySelected = selectedRanges.some(
+                    (range) =>
+                        range.fromRow <= args.row &&
+                        range.toRow >= args.row &&
+                        range.fromCell <= args.cell &&
+                        range.toCell >= args.cell,
+                );
+                if (isCurrentCellAlreadySelected) {
+                    for (const range of selectedRanges) {
+                        if (
+                            range.fromRow <= args.row &&
+                            range.toRow >= args.row &&
+                            range.fromCell <= args.cell &&
+                            range.toCell >= args.cell
+                        ) {
+                            // If the cell is already selected, we need to remove it from the selection.
+                            // Push the sub ranges that are above, below, left and right of the current cell
+                            if (range.fromRow < args.row) {
+                                rangesToBeMerged.push(
+                                    new Slick.Range(
+                                        range.fromRow,
+                                        range.fromCell,
+                                        args.row - 1,
+                                        range.toCell,
+                                    ),
+                                );
+                            }
+                            if (range.toRow > args.row) {
+                                rangesToBeMerged.push(
+                                    new Slick.Range(
+                                        args.row + 1,
+                                        range.fromCell,
+                                        range.toRow,
+                                        range.toCell,
+                                    ),
+                                );
+                            }
+                            if (range.fromCell < args.cell) {
+                                rangesToBeMerged.push(
+                                    new Slick.Range(
+                                        args.row,
+                                        range.fromCell,
+                                        args.row,
+                                        args.cell - 1,
+                                    ),
+                                );
+                            }
+                            if (range.toCell > args.cell) {
+                                rangesToBeMerged.push(
+                                    new Slick.Range(
+                                        args.row,
+                                        args.cell + 1,
+                                        args.row,
+                                        range.toCell,
+                                    ),
+                                );
+                            }
+                        } else {
+                            rangesToBeMerged.push(range);
+                        }
+                    }
+                } else {
+                    newlySelectedRange = new Slick.Range(args.row, args.cell, args.row, args.cell);
+                    rangesToBeMerged = selectedRanges;
+                }
+            } else {
+                rangesToBeMerged = [];
+                newlySelectedRange = new Slick.Range(args.row, args.cell, args.row, args.cell);
+            }
         }
 
-        // When the CTRL key is pressed, we need to merge the new selection with the existing selections.
-        const rangesToBeMerged: Slick.Range[] = this.isMultiSelection(e)
-            ? this.getSelectedRanges()
-            : [];
-        const result = this.insertIntoSelections(rangesToBeMerged, newlySelectedRange);
+        let result: Slick.Range[] = [];
+        if (newlySelectedRange) {
+            result = this.insertIntoSelections(rangesToBeMerged, newlySelectedRange!);
+        } else {
+            result = rangesToBeMerged;
+        }
         this.setSelectedRanges(result);
 
         // Find out the new active cell
