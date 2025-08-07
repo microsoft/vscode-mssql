@@ -148,7 +148,7 @@ jobs:
         run: |
           cd pr
           DISPLAY=:10 yarn test
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
 
       - name: PR Unit Test Report
         uses: dorny/test-reporter@v2
@@ -212,7 +212,7 @@ jobs:
           cd pr
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
@@ -376,7 +376,7 @@ jobs:
           edit-mode: replace
 
       - name: Delete comment
-        if: github.event_name == 'pull_request' && ${{ env.loc_update_required == 'false' }} && steps.loc-comment.outputs.comment-id != ''
+        if: ${{ github.event_name == 'pull_request' && env.loc_update_required == 'false' && steps.loc-comment.outputs.comment-id != '' }}
         run: |
           curl -X DELETE \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
