@@ -14,7 +14,7 @@ import {
 import { useContext, useEffect, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { DockerStep } from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import { DockerStep } from "../../../sharedInterfaces/containerDeployment";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({

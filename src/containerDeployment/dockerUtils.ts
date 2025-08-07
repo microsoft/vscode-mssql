@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
 import { arch, platform } from "os";
-import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeploymentInterfaces";
+import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeployment";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     defaultContainerName,
