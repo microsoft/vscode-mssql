@@ -18,7 +18,7 @@ import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { QueryResultContextProps } from "../../queryResultStateProvider";
 import { IDisposableDataProvider } from "../dataProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
-import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
+import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } from "../utils";
 import "./contextMenu.css";
 
 export class ContextMenu<T extends Slick.SlickData> {
@@ -97,6 +97,12 @@ export class ContextMenu<T extends Slick.SlickData> {
     private async handleMenuAction(action: string): Promise<void> {
         let selectedRanges = this.grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
+
+        // If no selection exists, create a selection for the entire grid
+        if (!selection || selection.length === 0) {
+            selection = selectEntireGrid(this.grid);
+        }
+
         switch (action) {
             case "select-all":
                 this.queryResultContext.log("Select All action triggered");

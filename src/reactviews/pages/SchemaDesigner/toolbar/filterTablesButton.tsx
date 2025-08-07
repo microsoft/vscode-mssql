@@ -94,6 +94,10 @@ export function FilterTablesButton() {
                     ...node,
                     hidden: false,
                     style: { ...node.style, opacity: 1 },
+                    data: {
+                        ...node.data,
+                        dimmed: false,
+                    },
                 });
             });
             edges.forEach((edge) => {

@@ -103,6 +103,8 @@ export async function launchVsCodeWithMssqlExtension(
 
     const page = await electronApp.firstWindow({ timeout: 10_000 });
 
+    await page.setViewportSize({ width: 1920, height: 1080 });
+
     // Activate MSSQL tab if not already selected
     const sqlTab = page.locator('[role="tab"][aria-label^="SQL Server"]');
     if ((await sqlTab.getAttribute("aria-selected")) !== "true") {
