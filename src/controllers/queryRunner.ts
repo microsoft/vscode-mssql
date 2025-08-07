@@ -160,41 +160,10 @@ export default class QueryRunner {
                 cancelParams,
             );
         } catch (error) {
-            // Ensure state is reset on error
-            this._isExecuting = false;
-            this._hasCompleted = true;
-            this.removeRunningQuery();
-            // Removed call to unregisterRunner (does not exist)
-            const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
-            if (promise) {
-                promise.reject(error);
-                this._uriToQueryPromiseMap.delete(this._ownerUri);
-            }
-            this.eventEmitter.emit(
-                "complete",
-                Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
-                true,
-            );
-            this._statusView.executedQuery(this._ownerUri);
-            this._vscodeWrapper.showErrorMessage("Cancel failed: " + getErrorMessage(error));
+            this._handleCancelDisposeCleanup("Cancel failed: ", error);
             return;
         }
-        // Always reset state after cancel
-        this._isExecuting = false;
-        this._hasCompleted = true;
-        this.removeRunningQuery();
-        // Removed call to unregisterRunner (does not exist)
-        const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
-        if (promise) {
-            promise.resolve();
-            this._uriToQueryPromiseMap.delete(this._ownerUri);
-        }
-        this.eventEmitter.emit(
-            "complete",
-            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
-            true,
-        );
-        this._statusView.executedQuery(this._ownerUri);
+        this._handleCancelDisposeCleanup();
         return queryCancelResult;
     }
 
@@ -538,34 +507,28 @@ export default class QueryRunner {
         try {
             await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
         } catch (error) {
-            // Ensure state is reset on error
-            this._isExecuting = false;
-            this._hasCompleted = true;
-            this.removeRunningQuery();
-            // Removed call to unregisterRunner (does not exist)
-            const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
-            if (promise) {
-                promise.reject(error);
-                this._uriToQueryPromiseMap.delete(this._ownerUri);
-            }
-            this.eventEmitter.emit(
-                "complete",
-                Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
-                true,
-            );
-            this._statusView.executedQuery(this._ownerUri);
-            this._vscodeWrapper.showErrorMessage("Failed disposing query: " + error.message);
-            void Promise.reject(error);
+            this._handleCancelDisposeCleanup("Failed disposing query: ", error);
             return;
         }
-        // Always reset state after dispose
+        this._handleCancelDisposeCleanup();
+    }
+
+    /**
+     * Handles cleanup and state reset after a cancel attempt, for both error and success scenarios.
+     * @param error Optional error object if cancel failed.
+     */
+    private _handleCancelDisposeCleanup(errorPrefix?: String, error?: Error): void {
         this._isExecuting = false;
         this._hasCompleted = true;
         this.removeRunningQuery();
         // Removed call to unregisterRunner (does not exist)
         const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
         if (promise) {
-            promise.resolve();
+            if (error) {
+                promise.reject(error);
+            } else {
+                promise.resolve();
+            }
             this._uriToQueryPromiseMap.delete(this._ownerUri);
         }
         this.eventEmitter.emit(
@@ -574,6 +537,9 @@ export default class QueryRunner {
             true,
         );
         this._statusView.executedQuery(this._ownerUri);
+        if (error) {
+            this._vscodeWrapper.showErrorMessage(`${errorPrefix ?? ""}${getErrorMessage(error)}`);
+        }
     }
 
     private getColumnHeaders(batchId: number, resultId: number, range: ISlickRange): string[] {
