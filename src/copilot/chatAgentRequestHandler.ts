@@ -34,10 +34,6 @@ export interface ISqlChatResult extends vscode.ChatResult {
     };
 }
 
-const MODEL_SELECTOR: vscode.LanguageModelChatSelector = {
-    vendor: "copilot",
-    family: "gpt-4o",
-};
 const DISCONNECTED_LABEL_PREFIX = "> ⚠️";
 const CONNECTED_LABEL_PREFIX = "> 🟢";
 const SERVER_DATABASE_LABEL_PREFIX = "> ➖";
@@ -256,7 +252,7 @@ export const createSqlAgentRequestHandler = (
         }
 
         const prompt = request.prompt.trim();
-        const [model] = await vscode.lm.selectChatModels(MODEL_SELECTOR);
+        const model = request.model;
 
         try {
             if (!model) {
