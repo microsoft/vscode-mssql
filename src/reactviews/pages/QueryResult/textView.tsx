@@ -171,6 +171,7 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                 }
             } catch (error) {
                 content = locConstants.queryResult.errorGeneratingTextView;
+                context?.log(`Error generating text view: ${error}`, "error");
                 console.error("Error generating text view:", error);
             }
 
