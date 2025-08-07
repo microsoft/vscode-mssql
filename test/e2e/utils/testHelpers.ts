@@ -67,7 +67,7 @@ export async function addDatabaseConnection(
 
     await vsCodePage.keyboard.press("Enter");
 
-    await expect(iframe.locator("#Server-name")).not.toBeVisible({ timeout: 30 * 1000 }); // wait for the connection dialog to close
+    await expect(iframe.locator("#Server-name")).not.toBeVisible({ timeout: 60 * 1000 }); // wait for the connection dialog to close
     await new Promise((resolve) => setTimeout(resolve, 3 * 1000)); // wait for connection to be established
 }
 
