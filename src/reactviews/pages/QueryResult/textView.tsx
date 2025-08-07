@@ -8,7 +8,7 @@ import { makeStyles } from "@fluentui/react-components";
 import { Editor } from "@monaco-editor/react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { resolveVscodeThemeType } from "../../common/utils";
+import { getEOL, resolveVscodeThemeType } from "../../common/utils";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
@@ -69,8 +69,8 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
 
                         // Add result set header only if there are multiple result sets
                         if (totalResultSets > 1) {
-                            content += `${locConstants.queryResult.resultSet(resultSetNumber)}\n`;
-                            content += "=".repeat(40) + "\n\n";
+                            content += `${locConstants.queryResult.resultSet(resultSetNumber)}${getEOL()}`;
+                            content += "=".repeat(40) + `${getEOL()}${getEOL()}`;
                         }
 
                         // Get column information
@@ -141,27 +141,27 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                         const headerLine = columnNames
                             .map((name, index) => name.padEnd(columnWidths[index]))
                             .join("  ");
-                        content += headerLine + "\n";
+                        content += `${headerLine}${getEOL()}`;
 
                         // Add separator line
                         const separatorLine = columnWidths
                             .map((width) => "-".repeat(width))
                             .join("  ");
-                        content += separatorLine + "\n";
+                        content += `${separatorLine}${getEOL()}`;
 
                         // Add the formatted data rows
                         for (const formattedRow of formattedRows) {
-                            content += formattedRow + "\n";
+                            content += `${formattedRow}${getEOL()}`;
                         }
 
                         // Add row count information
                         if (resultSetSummary.rowCount > 0) {
-                            content += `(${locConstants.queryResult.rowsAffected(resultSetSummary.rowCount)})\n`;
+                            content += `(${locConstants.queryResult.rowsAffected(resultSetSummary.rowCount)})${getEOL()}`;
                         } else {
-                            content += `(${locConstants.queryResult.rowsAffected(0)})\n`;
+                            content += `(${locConstants.queryResult.rowsAffected(0)})${getEOL()}`;
                         }
 
-                        content += "\n";
+                        content += `${getEOL()}`;
                         resultSetNumber++; // Increment for next result set
                     }
                 }
