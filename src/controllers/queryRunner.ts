@@ -41,6 +41,7 @@ import { ISlickRange, ISelectionData, IResultMessage } from "../models/interface
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "./../models/utils";
+import { getErrorMessage } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -175,7 +176,7 @@ export default class QueryRunner {
                 true,
             );
             this._statusView.executedQuery(this._ownerUri);
-            this._vscodeWrapper.showErrorMessage("Cancel failed: " + error.message);
+            this._vscodeWrapper.showErrorMessage("Cancel failed: " + getErrorMessage(error));
             return;
         }
         // Always reset state after cancel
