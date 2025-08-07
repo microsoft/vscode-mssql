@@ -6,10 +6,10 @@
 import * as vscode from "vscode";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { NotificationType, RequestType } from "vscode-languageclient";
-import { TaskExecutionMode } from "vscode-mssql";
 import { Deferred } from "../protocol";
 import * as localizedConstants from "../constants/locConstants";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
+import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
 export enum TaskStatus {
     NotStarted = 0,

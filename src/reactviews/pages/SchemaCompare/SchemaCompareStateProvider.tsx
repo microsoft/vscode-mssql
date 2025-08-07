@@ -82,11 +82,23 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                         key: key,
                     });
                 },
+                intermediaryGeneralOptionsBulkChanged(keys: string[], checked: boolean): void {
+                    webViewState?.extensionRpc.action("intermediaryGeneralOptionsBulkChanged", {
+                        keys: keys,
+                        checked: checked,
+                    });
+                },
                 intermediaryIncludeObjectTypesOptionsChanged(key: string): void {
                     webViewState?.extensionRpc.action(
                         "intermediaryIncludeObjectTypesOptionsChanged",
                         { key: key },
                     );
+                },
+                intermediaryIncludeObjectTypesBulkChanged(keys: string[], checked: boolean): void {
+                    webViewState?.extensionRpc.action("intermediaryIncludeObjectTypesBulkChanged", {
+                        keys: keys,
+                        checked: checked,
+                    });
                 },
                 confirmSchemaOptions: function (optionsChanged: boolean): void {
                     webViewState?.extensionRpc.action("confirmSchemaOptions", {
@@ -139,8 +151,8 @@ const SchemaCompareStateProvider: React.FC<SchemaCompareStateProviderProps> = ({
                 },
                 publishProjectChanges: function (
                     targetProjectPath: string,
-                    targetFolderStructure: mssql.ExtractTarget,
-                    taskExecutionMode: mssql.TaskExecutionMode,
+                    targetFolderStructure: sc.ExtractTarget,
+                    taskExecutionMode: sc.TaskExecutionMode,
                 ): void {
                     webViewState?.extensionRpc.action("publishProjectChanges", {
                         targetProjectPath: targetProjectPath,

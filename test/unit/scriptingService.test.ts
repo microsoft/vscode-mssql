@@ -16,6 +16,7 @@ import {
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { ScriptingService } from "../../src/scripting/scriptingService";
 import { TestExtensionContext } from "./stubs";
+import { initializeIconUtils } from "./utils";
 
 suite("Scripting Service Tests", () => {
     let scriptingService: ScriptingService;
@@ -23,6 +24,7 @@ suite("Scripting Service Tests", () => {
     let client: TypeMoq.IMock<SqlToolsServiceClient>;
 
     setup(() => {
+        initializeIconUtils();
         connectionManager = TypeMoq.Mock.ofType(
             ConnectionManager,
             TypeMoq.MockBehavior.Loose,

@@ -84,6 +84,12 @@ jobs:
           cd ../pr
           vsce package
 
+      - name: Upload PR VSIX files
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-files
+          path: ./pr/*.vsix
+
       - name: Setting up change icons
         run: |
           echo "better_change_icon=🟢" >> $GITHUB_ENV
@@ -201,7 +207,7 @@ jobs:
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
           cd pr
-          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
+          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
 
       - name: Upload Smoke Test Screenshots

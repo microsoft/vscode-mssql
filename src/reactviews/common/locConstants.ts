@@ -644,6 +644,9 @@ export class LocConstants {
             intro: l10n.t(
                 "To compare two schemas, first select a source schema and target schema, then press compare.",
             ),
+            selectSourceSchema: l10n.t("Select Source Schema"),
+            selectTargetSchema: l10n.t("Select Target Schema"),
+            addServerConnection: l10n.t("Add Server Connection"),
             noDifferences: l10n.t("No schema differences were found."),
             initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
             server: l10n.t("Server"),
@@ -662,6 +665,8 @@ export class LocConstants {
             searchOptions: l10n.t("Search options..."),
             generalOptions: l10n.t("General Options"),
             includeObjectTypes: l10n.t("Include Object Types"),
+            selectAllOptions: l10n.t("Select all options"),
+            includeAllObjectTypes: l10n.t("Include all object types"),
             optionDescription: l10n.t("Option Description"),
             reset: l10n.t("Reset"),
             stop: l10n.t("Stop"),

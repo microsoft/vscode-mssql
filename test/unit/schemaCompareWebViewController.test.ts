@@ -12,7 +12,12 @@ import * as mssql from "vscode-mssql";
 import { SchemaCompareWebViewController } from "../../src/schemaCompare/schemaCompareWebViewController";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
-import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
+import {
+    ExtractTarget,
+    SchemaCompareWebViewState,
+    SchemaDifferenceType,
+    TaskExecutionMode,
+} from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IConnectionProfile } from "../../src/models/interfaces";
@@ -411,12 +416,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             compareStub.firstCall.args,
-            [
-                operationId,
-                mssql.TaskExecutionMode.execute,
-                payload,
-                mockSchemaCompareService.object,
-            ],
+            [operationId, TaskExecutionMode.execute, payload, mockSchemaCompareService.object],
             "compare should be called with correct arguments",
         );
 
@@ -455,7 +455,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             generateScriptStub.firstCall.args,
-            [operationId, mssql.TaskExecutionMode.script, payload, mockSchemaCompareService.object],
+            [operationId, TaskExecutionMode.script, payload, mockSchemaCompareService.object],
             "generateScript should be called with correct arguments",
         );
 
@@ -495,12 +495,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishDatabaseChangesStub.firstCall.args,
-            [
-                operationId,
-                mssql.TaskExecutionMode.execute,
-                payload,
-                mockSchemaCompareService.object,
-            ],
+            [operationId, TaskExecutionMode.execute, payload, mockSchemaCompareService.object],
             "publishDatabaseChanges should be called with correct arguments",
         );
 
@@ -528,8 +523,8 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const payload = {
             targetProjectPath: "/TestSqlProject/TestProject/TestProject.sqlproj",
-            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode: mssql.TaskExecutionMode.execute,
+            targetFolderStructure: ExtractTarget.schemaObjectType,
+            taskExecutionMode: TaskExecutionMode.execute,
         };
 
         const actualResult = await controller["_reducerHandlers"].get("publishProjectChanges")(
@@ -602,7 +597,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             id: 0,
             diffEntry: {
                 updateAction: mssql.SchemaUpdateAction.Change,
-                differenceType: mssql.SchemaDifferenceType.Object,
+                differenceType: SchemaDifferenceType.Object,
                 name: "Address",
                 sourceValue: [],
                 targetValue: [],
@@ -624,12 +619,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [
-                operationId,
-                mssql.TaskExecutionMode.execute,
-                payload,
-                mockSchemaCompareService.object,
-            ],
+            [operationId, TaskExecutionMode.execute, payload, mockSchemaCompareService.object],
             "includeExcludeNode should be called with correct arguments",
         );
 
@@ -736,7 +726,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             [
                 databaseSourceEndpointInfo,
                 undefined,
-                mssql.TaskExecutionMode.execute,
+                TaskExecutionMode.execute,
                 deploymentOptions,
                 savePath,
                 [],
@@ -1043,5 +1033,599 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         includeExcludeAllStub.restore();
+    });
+
+    test("intermediaryIncludeObjectTypesBulkChanged reducer - when checking object types - adds them to exclusion list", async () => {
+        // Setup initial state with some object types in the exclusion list
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                excludeObjectTypes: {
+                    value: ["ServerTriggers", "Routes"],
+                    description: "",
+                    displayName: "",
+                },
+            },
+        };
+
+        const payload = {
+            keys: ["Aggregates", "ApplicationRoles"],
+            checked: false, // false means we want to exclude (uncheck) these types
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryIncludeObjectTypesBulkChanged",
+        )(initialState, payload);
+
+        // Verify that the object types were added to the exclusion list
+        const excludeObjectTypes =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
+                .value;
+        assert.ok(
+            excludeObjectTypes.includes("Aggregates"),
+            "Aggregates should be added to exclusion list",
+        );
+        assert.ok(
+            excludeObjectTypes.includes("ApplicationRoles"),
+            "ApplicationRoles should be added to exclusion list",
+        );
+        assert.ok(
+            excludeObjectTypes.includes("ServerTriggers"),
+            "Existing ServerTriggers should remain in exclusion list",
+        );
+        assert.ok(
+            excludeObjectTypes.includes("Routes"),
+            "Existing Routes should remain in exclusion list",
+        );
+    });
+
+    test("intermediaryIncludeObjectTypesBulkChanged reducer - when unchecking object types - removes them from exclusion list", async () => {
+        // Setup initial state with object types in the exclusion list
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                excludeObjectTypes: {
+                    value: ["ServerTriggers", "Routes", "Aggregates", "ApplicationRoles"],
+                    description: "",
+                    displayName: "",
+                },
+            },
+        };
+
+        const payload = {
+            keys: ["Aggregates", "ApplicationRoles"],
+            checked: true, // true means we want to include (check) these types
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryIncludeObjectTypesBulkChanged",
+        )(initialState, payload);
+
+        // Verify that the object types were removed from the exclusion list
+        const excludeObjectTypes =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
+                .value;
+        assert.ok(
+            !excludeObjectTypes.includes("Aggregates"),
+            "Aggregates should be removed from exclusion list",
+        );
+        assert.ok(
+            !excludeObjectTypes.includes("ApplicationRoles"),
+            "ApplicationRoles should be removed from exclusion list",
+        );
+        assert.ok(
+            excludeObjectTypes.includes("ServerTriggers"),
+            "Existing ServerTriggers should remain in exclusion list",
+        );
+        assert.ok(
+            excludeObjectTypes.includes("Routes"),
+            "Existing Routes should remain in exclusion list",
+        );
+    });
+
+    test("intermediaryIncludeObjectTypesBulkChanged reducer - when checking already included types - no duplicates added", async () => {
+        // Setup initial state with minimal exclusion list
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                excludeObjectTypes: {
+                    value: ["ServerTriggers"],
+                    description: "",
+                    displayName: "",
+                },
+            },
+        };
+
+        const payload = {
+            keys: ["Aggregates", "ApplicationRoles"],
+            checked: true, // true means include these types (remove from exclusion)
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryIncludeObjectTypesBulkChanged",
+        )(initialState, payload);
+
+        // Verify no changes since they weren't excluded in the first place
+        const excludeObjectTypes =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
+                .value;
+        assert.strictEqual(
+            excludeObjectTypes.length,
+            1,
+            "Should only have 1 item in exclusion list",
+        );
+        assert.ok(
+            excludeObjectTypes.includes("ServerTriggers"),
+            "ServerTriggers should remain in exclusion list",
+        );
+        assert.ok(
+            !excludeObjectTypes.includes("Aggregates"),
+            "Aggregates should not be in exclusion list",
+        );
+        assert.ok(
+            !excludeObjectTypes.includes("ApplicationRoles"),
+            "ApplicationRoles should not be in exclusion list",
+        );
+    });
+
+    test("intermediaryIncludeObjectTypesBulkChanged reducer - when unchecking already excluded types - no duplicates added", async () => {
+        // Setup initial state with object types already in exclusion list
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                excludeObjectTypes: {
+                    value: ["ServerTriggers", "Routes", "Aggregates"],
+                    description: "",
+                    displayName: "",
+                },
+            },
+        };
+
+        const payload = {
+            keys: ["Aggregates", "ApplicationRoles"],
+            checked: false, // false means exclude these types
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryIncludeObjectTypesBulkChanged",
+        )(initialState, payload);
+
+        // Verify that Aggregates is not duplicated and ApplicationRoles is added
+        const excludeObjectTypes =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
+                .value;
+        const aggregatesCount = excludeObjectTypes.filter((type) => type === "Aggregates").length;
+        assert.strictEqual(
+            aggregatesCount,
+            1,
+            "Aggregates should appear only once in exclusion list",
+        );
+        assert.ok(
+            excludeObjectTypes.includes("ApplicationRoles"),
+            "ApplicationRoles should be added to exclusion list",
+        );
+        assert.ok(
+            excludeObjectTypes.includes("ServerTriggers"),
+            "ServerTriggers should remain in exclusion list",
+        );
+        assert.ok(excludeObjectTypes.includes("Routes"), "Routes should remain in exclusion list");
+    });
+
+    test("intermediaryIncludeObjectTypesBulkChanged reducer - case insensitive comparison works correctly", async () => {
+        // Setup initial state with mixed case object types in exclusion list
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                excludeObjectTypes: {
+                    value: ["serverTriggers", "ROUTES"],
+                    description: "",
+                    displayName: "",
+                },
+            },
+        };
+
+        const payload = {
+            keys: ["ServerTriggers", "Routes"],
+            checked: true, // true means include these types (remove from exclusion)
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryIncludeObjectTypesBulkChanged",
+        )(initialState, payload);
+
+        // Verify that case-insensitive matching worked
+        const excludeObjectTypes =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
+                .value;
+        assert.strictEqual(
+            excludeObjectTypes.length,
+            0,
+            "All object types should be removed from exclusion list",
+        );
+    });
+
+    test("intermediaryIncludeObjectTypesBulkChanged reducer - with empty keys array - no changes made", async () => {
+        // Setup initial state
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                excludeObjectTypes: {
+                    value: ["ServerTriggers", "Routes"],
+                    description: "",
+                    displayName: "",
+                },
+            },
+        };
+
+        const payload = {
+            keys: [],
+            checked: false,
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryIncludeObjectTypesBulkChanged",
+        )(initialState, payload);
+
+        // Verify no changes were made
+        const excludeObjectTypes =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
+                .value;
+        assert.deepStrictEqual(
+            excludeObjectTypes,
+            ["ServerTriggers", "Routes"],
+            "Exclusion list should remain unchanged",
+        );
+    });
+
+    test("intermediaryGeneralOptionsBulkChanged reducer - when setting options to true - updates all specified options", async () => {
+        // Setup initial state with some general options set to false
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                booleanOptionsDictionary: {
+                    allowDropBlockingAssemblies: {
+                        value: false,
+                        description: "Description for allowDropBlockingAssemblies",
+                        displayName: "Allow drop blocking assemblies",
+                    },
+                    allowExternalLanguagePaths: {
+                        value: false,
+                        description: "Description for allowExternalLanguagePaths",
+                        displayName: "Use file paths for external language",
+                    },
+                    allowExternalLibraryPaths: {
+                        value: true, // This one is already true
+                        description: "Description for allowExternalLibraryPaths",
+                        displayName: "Use file paths for external libraries",
+                    },
+                },
+            },
+        };
+
+        const payload = {
+            keys: ["allowDropBlockingAssemblies", "allowExternalLanguagePaths"],
+            checked: true,
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryGeneralOptionsBulkChanged",
+        )(initialState, payload);
+
+        // Verify that the specified options were set to true
+        const booleanOptions =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions
+                .booleanOptionsDictionary;
+        assert.strictEqual(
+            booleanOptions.allowDropBlockingAssemblies.value,
+            true,
+            "allowDropBlockingAssemblies should be set to true",
+        );
+        assert.strictEqual(
+            booleanOptions.allowExternalLanguagePaths.value,
+            true,
+            "allowExternalLanguagePaths should be set to true",
+        );
+        assert.strictEqual(
+            booleanOptions.allowExternalLibraryPaths.value,
+            true,
+            "allowExternalLibraryPaths should remain unchanged (was already true)",
+        );
+    });
+
+    test("intermediaryGeneralOptionsBulkChanged reducer - when setting options to false - updates all specified options", async () => {
+        // Setup initial state with some general options set to true
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                booleanOptionsDictionary: {
+                    allowDropBlockingAssemblies: {
+                        value: true,
+                        description: "Description for allowDropBlockingAssemblies",
+                        displayName: "Allow drop blocking assemblies",
+                    },
+                    allowExternalLanguagePaths: {
+                        value: true,
+                        description: "Description for allowExternalLanguagePaths",
+                        displayName: "Use file paths for external language",
+                    },
+                    allowExternalLibraryPaths: {
+                        value: false, // This one is already false
+                        description: "Description for allowExternalLibraryPaths",
+                        displayName: "Use file paths for external libraries",
+                    },
+                },
+            },
+        };
+
+        const payload = {
+            keys: ["allowDropBlockingAssemblies", "allowExternalLanguagePaths"],
+            checked: false,
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryGeneralOptionsBulkChanged",
+        )(initialState, payload);
+
+        // Verify that the specified options were set to false
+        const booleanOptions =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions
+                .booleanOptionsDictionary;
+        assert.strictEqual(
+            booleanOptions.allowDropBlockingAssemblies.value,
+            false,
+            "allowDropBlockingAssemblies should be set to false",
+        );
+        assert.strictEqual(
+            booleanOptions.allowExternalLanguagePaths.value,
+            false,
+            "allowExternalLanguagePaths should be set to false",
+        );
+        assert.strictEqual(
+            booleanOptions.allowExternalLibraryPaths.value,
+            false,
+            "allowExternalLibraryPaths should remain unchanged (was already false)",
+        );
+    });
+
+    test("intermediaryGeneralOptionsBulkChanged reducer - when key does not exist - ignores non-existent options", async () => {
+        // Setup initial state with some general options
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                booleanOptionsDictionary: {
+                    allowDropBlockingAssemblies: {
+                        value: false,
+                        description: "Description for allowDropBlockingAssemblies",
+                        displayName: "Allow drop blocking assemblies",
+                    },
+                    allowExternalLanguagePaths: {
+                        value: true,
+                        description: "Description for allowExternalLanguagePaths",
+                        displayName: "Use file paths for external language",
+                    },
+                },
+            },
+        };
+
+        const payload = {
+            keys: ["allowDropBlockingAssemblies", "nonExistentOption", "anotherNonExistentOption"],
+            checked: true,
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryGeneralOptionsBulkChanged",
+        )(initialState, payload);
+
+        // Verify that existing options were changed and non-existent options were ignored
+        const booleanOptions =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions
+                .booleanOptionsDictionary;
+        assert.strictEqual(
+            booleanOptions.allowDropBlockingAssemblies.value,
+            true,
+            "allowDropBlockingAssemblies should be set to true",
+        );
+        assert.strictEqual(
+            booleanOptions.allowExternalLanguagePaths.value,
+            true,
+            "allowExternalLanguagePaths should remain unchanged",
+        );
+        assert.strictEqual(
+            Object.keys(booleanOptions).length,
+            2,
+            "No new options should be created",
+        );
+        assert.ok(
+            !booleanOptions.hasOwnProperty("nonExistentOption"),
+            "nonExistentOption should not be created",
+        );
+        assert.ok(
+            !booleanOptions.hasOwnProperty("anotherNonExistentOption"),
+            "anotherNonExistentOption should not be created",
+        );
+    });
+
+    test("intermediaryGeneralOptionsBulkChanged reducer - with empty keys array - no changes made", async () => {
+        // Setup initial state
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                booleanOptionsDictionary: {
+                    allowDropBlockingAssemblies: {
+                        value: false,
+                        description: "Description for allowDropBlockingAssemblies",
+                        displayName: "Allow drop blocking assemblies",
+                    },
+                    allowExternalLanguagePaths: {
+                        value: true,
+                        description: "Description for allowExternalLanguagePaths",
+                        displayName: "Use file paths for external language",
+                    },
+                },
+            },
+        };
+
+        const payload = {
+            keys: [],
+            checked: true,
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryGeneralOptionsBulkChanged",
+        )(initialState, payload);
+
+        // Verify no changes were made
+        const booleanOptions =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions
+                .booleanOptionsDictionary;
+        assert.strictEqual(
+            booleanOptions.allowDropBlockingAssemblies.value,
+            false,
+            "allowDropBlockingAssemblies should remain unchanged",
+        );
+        assert.strictEqual(
+            booleanOptions.allowExternalLanguagePaths.value,
+            true,
+            "allowExternalLanguagePaths should remain unchanged",
+        );
+    });
+
+    test("intermediaryGeneralOptionsBulkChanged reducer - with mixed option states - updates all specified options uniformly", async () => {
+        // Setup initial state with mixed boolean values
+        const initialState = { ...mockInitialState };
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                booleanOptionsDictionary: {
+                    allowDropBlockingAssemblies: {
+                        value: true,
+                        description: "Description for allowDropBlockingAssemblies",
+                        displayName: "Allow drop blocking assemblies",
+                    },
+                    allowExternalLanguagePaths: {
+                        value: false,
+                        description: "Description for allowExternalLanguagePaths",
+                        displayName: "Use file paths for external language",
+                    },
+                    allowExternalLibraryPaths: {
+                        value: true,
+                        description: "Description for allowExternalLibraryPaths",
+                        displayName: "Use file paths for external libraries",
+                    },
+                },
+            },
+        };
+
+        const payload = {
+            keys: [
+                "allowDropBlockingAssemblies",
+                "allowExternalLanguagePaths",
+                "allowExternalLibraryPaths",
+            ],
+            checked: false,
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryGeneralOptionsBulkChanged",
+        )(initialState, payload);
+
+        // Verify all specified options are set to the same value regardless of their initial state
+        const booleanOptions =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions
+                .booleanOptionsDictionary;
+        assert.strictEqual(
+            booleanOptions.allowDropBlockingAssemblies.value,
+            false,
+            "allowDropBlockingAssemblies should be set to false",
+        );
+        assert.strictEqual(
+            booleanOptions.allowExternalLanguagePaths.value,
+            false,
+            "allowExternalLanguagePaths should be set to false",
+        );
+        assert.strictEqual(
+            booleanOptions.allowExternalLibraryPaths.value,
+            false,
+            "allowExternalLibraryPaths should be set to false",
+        );
+    });
+
+    test("intermediaryGeneralOptionsBulkChanged reducer - preserves option metadata - only changes value property", async () => {
+        // Setup initial state
+        const initialState = { ...mockInitialState };
+        const originalDescription = "Original description for allowDropBlockingAssemblies";
+        const originalDisplayName = "Original display name";
+
+        initialState.intermediaryOptionsResult = {
+            success: true,
+            errorMessage: "",
+            defaultDeploymentOptions: {
+                ...deploymentOptions,
+                booleanOptionsDictionary: {
+                    allowDropBlockingAssemblies: {
+                        value: false,
+                        description: originalDescription,
+                        displayName: originalDisplayName,
+                    },
+                },
+            },
+        };
+
+        const payload = {
+            keys: ["allowDropBlockingAssemblies"],
+            checked: true,
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "intermediaryGeneralOptionsBulkChanged",
+        )(initialState, payload);
+
+        // Verify that only the value changed, not the metadata
+        const option =
+            actualResult.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary
+                .allowDropBlockingAssemblies;
+        assert.strictEqual(option.value, true, "Value should be updated to true");
+        assert.strictEqual(
+            option.description,
+            originalDescription,
+            "Description should remain unchanged",
+        );
+        assert.strictEqual(
+            option.displayName,
+            originalDisplayName,
+            "Display name should remain unchanged",
+        );
     });
 });
