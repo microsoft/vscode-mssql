@@ -332,7 +332,7 @@ export const QueryResultPane = () => {
                 {viewMode === qr.QueryResultViewMode.Text && (
                     <TextView
                         uri={state?.uri}
-                        resultSetSummaries={state?.resultSetSummaries}
+                        resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
                         fontSettings={state?.fontSettings}
                     />
                 )}

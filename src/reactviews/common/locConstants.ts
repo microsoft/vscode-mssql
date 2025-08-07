@@ -406,7 +406,7 @@ export class LocConstants {
                         });
                 }
             },
-            resultSet: (index: number) =>
+            resultSet: (index: string) =>
                 l10n.t({
                     message: "Result Set {0}",
                     args: [index],
