@@ -10,6 +10,7 @@ import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mc
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import type MainController from "../controllers/mainController";
+import { SimpleExecuteResult } from "vscode-mssql";
 
 // Track the current active connection ID at module scope for sharing between MCP and HTTP APIs
 let currentActiveConnectionId: string | undefined = undefined;
@@ -20,22 +21,8 @@ function createNullResult(): string | null {
 }
 
 // Define types for query results
-interface QueryResultColumn {
-    columnName: string;
-}
-
-interface QueryResultWithRows {
-    rows: unknown[][];
-    columns?: QueryResultColumn[];
-}
-
 interface QueryResultWithRowsAffected {
     rowsAffected: number;
-}
-
-interface QueryResultWithRecordsets {
-    recordset?: Record<string, unknown>[];
-    recordsets?: Record<string, unknown>[][];
 }
 
 /**
@@ -51,16 +38,17 @@ function formatQueryResult(result: unknown): string {
 
     const resultBuilder: string[] = [];
 
-    // Handle the case where result has rows (SELECT queries)
+    // Handle the case where result is a SimpleExecuteResult (SELECT queries)
     if (
         typeof result === "object" &&
         result &&
         "rows" in result &&
-        Array.isArray((result as QueryResultWithRows).rows)
+        "columnInfo" in result &&
+        Array.isArray((result as SimpleExecuteResult).rows)
     ) {
-        const queryResult = result as QueryResultWithRows;
+        const queryResult = result as SimpleExecuteResult;
         const rows = queryResult.rows;
-        const columns = queryResult.columns || [];
+        const columns = queryResult.columnInfo || [];
 
         // Process each row
         for (const row of rows) {
@@ -75,9 +63,11 @@ function formatQueryResult(result: unknown): string {
                 }
 
                 // Get the value and convert to string
-                const value = Array.isArray(row) ? row[i] : undefined;
+                const cellValue = Array.isArray(row) ? row[i] : undefined;
+                const value = cellValue?.displayValue;
                 const valueString = value !== undefined ? String(value) : "";
                 resultBuilder.push(valueString);
+                resultBuilder.push("\n");
             }
         }
 
@@ -98,41 +88,14 @@ function formatQueryResult(result: unknown): string {
         resultBuilder.push(result);
         resultBuilder.push("");
     }
-    // Handle object results that might contain JSON data
+    // Handle other object results
     else if (typeof result === "object" && result) {
-        const resultObj = result as QueryResultWithRecordsets;
-        // If it looks like a direct result object, try to extract meaningful data
-        if (resultObj.recordset || resultObj.recordsets) {
-            // Handle recordset format from node-mssql
-            const recordsets = resultObj.recordsets || [resultObj.recordset];
-
-            for (const recordset of recordsets) {
-                if (Array.isArray(recordset)) {
-                    for (const record of recordset) {
-                        // Process each field in the record
-                        for (const [fieldName, value] of Object.entries(record)) {
-                            // Skip JSON_ prefixed field names
-                            if (!fieldName.startsWith("JSON_")) {
-                                resultBuilder.push(`${fieldName}: `);
-                            }
-
-                            const valueString = value !== undefined ? String(value) : "";
-                            resultBuilder.push(valueString);
-                        }
-                    }
-
-                    // Add empty line between result sets
-                    resultBuilder.push("");
-                }
-            }
-        } else {
-            // Fallback: convert to JSON string for complex objects
-            resultBuilder.push(JSON.stringify(result));
-            resultBuilder.push("");
-        }
+        // Fallback: convert to JSON string for complex objects
+        resultBuilder.push(JSON.stringify(result));
+        resultBuilder.push("");
     }
 
-    return resultBuilder.join("\n");
+    return resultBuilder.join("");
 }
 
 /**

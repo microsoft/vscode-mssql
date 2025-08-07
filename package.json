@@ -179,12 +179,7 @@
         "vscode-jsonrpc": "^8.2.1",
         "vscode-languageclient": "5.2.1",
         "vscode-nls": "^2.0.2",
-        "yallist": "^5.0.0",
         "zod": "3.25.76",
-        "zone.js": "^0.6.26"
-    },
-    "resolutions": {
-        "gulp-typescript/source-map": "0.7.4",
         "yallist": "^5.0.0"
     },
     "capabilities": {
