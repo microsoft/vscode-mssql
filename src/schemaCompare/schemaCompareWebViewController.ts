@@ -16,6 +16,7 @@ import {
     SchemaCompareReducers,
     SchemaCompareWebViewState,
     SchemaDifferenceType,
+    SchemaUpdateAction,
     TaskExecutionMode,
 } from "../sharedInterfaces/schemaCompare";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
@@ -2335,13 +2336,13 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
      * @param updateAction The SchemaUpdateAction enum value
      * @returns The string name of the enum value
      */
-    private getSchemaUpdateActionString(updateAction: mssql.SchemaUpdateAction): string {
+    private getSchemaUpdateActionString(updateAction: SchemaUpdateAction): string {
         switch (updateAction) {
-            case mssql.SchemaUpdateAction.Delete:
+            case SchemaUpdateAction.Delete:
                 return "Delete";
-            case mssql.SchemaUpdateAction.Change:
+            case SchemaUpdateAction.Change:
                 return "Change";
-            case mssql.SchemaUpdateAction.Add:
+            case SchemaUpdateAction.Add:
                 return "Add";
             default:
                 return "";
