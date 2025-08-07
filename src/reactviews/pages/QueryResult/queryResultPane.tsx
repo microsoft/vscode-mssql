@@ -259,7 +259,7 @@ export const QueryResultPane = () => {
         gridIndex: number,
         totalGridCount: number,
     ) => {
-        const divId = `result-parent-${batchId}-${resultId}`;
+        const divId = `grid-parent-${batchId}-${resultId}`;
         const gridId = `resultGrid-${batchId}-${resultId}`;
         const viewMode = getCurrentViewMode();
 
@@ -382,10 +382,10 @@ export const QueryResultPane = () => {
 
     const showOtherGrids = (
         gridRefs: React.MutableRefObject<ResultGridHandle[]>,
-        gridIndexToShow: number,
+        gridIndexToKeep: number,
     ) => {
         gridRefs.current.forEach((grid, index) => {
-            if (grid && index !== gridIndexToShow) {
+            if (grid && index !== gridIndexToKeep) {
                 grid.showGrid();
             }
         });
