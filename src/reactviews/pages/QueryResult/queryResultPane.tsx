@@ -66,6 +66,13 @@ const useStyles = makeStyles({
         display: "flex",
         fontWeight: "normal",
     },
+    textViewContainer: {
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        fontWeight: "normal",
+    },
     queryResultPaneOpenButton: {
         position: "absolute",
         top: "0px",
@@ -328,32 +335,25 @@ export const QueryResultPane = () => {
                     />
                 )}
 
-                {/* Render Text View */}
-                {viewMode === qr.QueryResultViewMode.Text && (
-                    <TextView
+                {viewMode === qr.QueryResultViewMode.Grid && (
+                    <CommandBar
                         uri={state?.uri}
                         resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
-                        fontSettings={state?.fontSettings}
+                        viewMode={viewMode}
+                        maximizeResults={() => {
+                            if (viewMode === qr.QueryResultViewMode.Grid) {
+                                maximizeResults(gridRefs.current[gridCount]);
+                                hideOtherGrids(gridRefs, gridCount);
+                            }
+                        }}
+                        restoreResults={() => {
+                            if (viewMode === qr.QueryResultViewMode.Grid) {
+                                showOtherGrids(gridRefs, gridCount);
+                                restoreResults(gridRefs.current);
+                            }
+                        }}
                     />
                 )}
-
-                <CommandBar
-                    uri={state?.uri}
-                    resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
-                    viewMode={viewMode}
-                    maximizeResults={() => {
-                        if (viewMode === qr.QueryResultViewMode.Grid) {
-                            maximizeResults(gridRefs.current[gridCount]);
-                            hideOtherGrids(gridRefs, gridCount);
-                        }
-                    }}
-                    restoreResults={() => {
-                        if (viewMode === qr.QueryResultViewMode.Grid) {
-                            showOtherGrids(gridRefs, gridCount);
-                            restoreResults(gridRefs.current);
-                        }
-                    }}
-                />
             </div>
         );
     };
@@ -399,6 +399,33 @@ export const QueryResultPane = () => {
     };
 
     const renderResultPanel = () => {
+        const viewMode = getCurrentViewMode();
+
+        // For text view, render a single TextView with all result sets and one CommandBar
+        if (viewMode === qr.QueryResultViewMode.Text) {
+            return (
+                <div className={classes.textViewContainer}>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "flex-end",
+                            padding: "5px",
+                            borderBottom: "1px solid var(--vscode-panel-border)",
+                            backgroundColor: "var(--vscode-panel-background)",
+                        }}>
+                        <CommandBar uri={state?.uri} viewMode={viewMode} />
+                    </div>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                        <TextView
+                            uri={state?.uri}
+                            resultSetSummaries={state?.resultSetSummaries}
+                            fontSettings={state?.fontSettings}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
         const results = [];
         let count = 0;
         for (const batchIdStr in state?.resultSetSummaries ?? {}) {
