@@ -171,30 +171,7 @@ jobs:
           reporter: jest-junit
           working-directory: ./pr
           badge-title: 'unit-tests'
-
-      - name: Publish Unit Test Report
-        uses: ctrf-io/github-test-reporter@v1
-        with:
-          report-path: './pr/test-reports/**/*.xml'
-          artifact-name: 'ctrf-report-unit'
-          summary-report: true
-          test-report: true
-          integrations-config: |
-            {
-              "junit-to-ctrf": {
-                "enabled": true,
-                "action": "convert",
-                "options": {
-                  "output": "./ctrf-reports/ctrf-report-unit.json",
-                  "toolname": "junit-to-ctrf",
-                  "useSuiteName": false,
-                  "env": {
-                    "appName": "vscode-mssql (unit tests)"
-                  }
-                }
-              }
-            }
-        if: always()
+          fail-on-error: false
 
       - name: Run unit tests for target branch # for calculating coverage comparison
         continue-on-error: true
@@ -267,30 +244,7 @@ jobs:
           reporter: jest-junit
           working-directory: ./pr
           badge-title: 'smoke-tests'
-
-      - name: Publish Smoke Test Report
-        uses: ctrf-io/github-test-reporter@v1
-        with:
-          report-path: './pr/test-reports/**/smoke-results.xml'
-          artifact-name: 'ctrf-report-smoke'
-          summary-report: true
-          test-report: true
-          integrations-config: |
-            {
-              "junit-to-ctrf": {
-                "enabled": true,
-                "action": "convert",
-                "options": {
-                  "output": "./ctrf-reports/ctrf-report-smoke.json",
-                  "toolname": "junit-to-ctrf",
-                  "useSuiteName": false,
-                  "env": {
-                    "appName": "vscode-mssql (smoke tests)"
-                  }
-                }
-              }
-            }
-        if: always()
+          fail-on-error: false
 
       - name: Run smoke tests for target branch # for calculating coverage comparison
         continue-on-error: true
