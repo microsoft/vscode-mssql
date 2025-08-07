@@ -381,6 +381,12 @@
       "{0} is the number of rows affected"
     ]
   },
+  "Result Set {0}/{0} is the index of the result set": {
+    "message": "Result Set {0}",
+    "comment": [
+      "{0} is the index of the result set"
+    ]
+  },
   "Add new column": "Add new column",
   "Table": "Table",
   "Save": "Save",

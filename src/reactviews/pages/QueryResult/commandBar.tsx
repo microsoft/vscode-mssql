@@ -14,7 +14,7 @@ import { QueryResultSaveAsTrigger } from "../../../sharedInterfaces/queryResult"
 import {
     ArrowMaximize16Filled,
     ArrowMinimize16Filled,
-    TextColumnThreeRegular,
+    DocumentTextRegular,
     TableRegular,
 } from "@fluentui/react-icons";
 
@@ -99,7 +99,7 @@ const CommandBar = (props: CommandBarProps) => {
                     onClick={toggleViewMode}
                     icon={
                         props.viewMode === qr.QueryResultViewMode.Grid ? (
-                            <TextColumnThreeRegular />
+                            <DocumentTextRegular />
                         ) : (
                             <TableRegular />
                         )
