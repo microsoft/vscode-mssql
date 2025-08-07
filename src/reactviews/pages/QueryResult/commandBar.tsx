@@ -14,8 +14,8 @@ import { QueryResultSaveAsTrigger } from "../../../sharedInterfaces/queryResult"
 import {
     ArrowMaximize16Filled,
     ArrowMinimize16Filled,
-    Grid16Regular,
-    Document16Regular,
+    TextColumnThreeRegular,
+    TableRegular,
 } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
@@ -99,9 +99,9 @@ const CommandBar = (props: CommandBarProps) => {
                     onClick={toggleViewMode}
                     icon={
                         props.viewMode === qr.QueryResultViewMode.Grid ? (
-                            <Document16Regular />
+                            <TextColumnThreeRegular />
                         ) : (
-                            <Grid16Regular />
+                            <TableRegular />
                         )
                     }
                     title={
@@ -112,7 +112,7 @@ const CommandBar = (props: CommandBarProps) => {
                 />
             </Tooltip>
 
-            {hasMultipleResults() && (
+            {hasMultipleResults() && props.viewMode === qr.QueryResultViewMode.Grid && (
                 <Tooltip content={locConstants.queryResult.maximize} relationship="label">
                     <Button
                         appearance="subtle"

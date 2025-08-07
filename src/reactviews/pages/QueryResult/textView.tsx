@@ -69,7 +69,7 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
 
                         // Add result set header only if there are multiple result sets
                         if (totalResultSets > 1) {
-                            content += `Result Set ${resultSetNumber}\n`;
+                            content += `${locConstants.queryResult.resultSet(resultSetNumber)}\n`;
                             content += "=".repeat(40) + "\n\n";
                         }
 
