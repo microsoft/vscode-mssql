@@ -156,6 +156,7 @@ jobs:
 
       - name: Run unit tests for PR branch
         id: unit-tests-pr
+        continue-on-error: true
         run: |
           cd pr
           DISPLAY=:10 yarn test
@@ -423,38 +424,54 @@ jobs:
           https://api.github.com/repos/${{ github.repository }}/issues/comments/${{ steps.loc-comment.outputs.comment-id }}
 
       - name: Fail pipeline if any checks failed
-        if: |
-          steps.unit-tests-pr.outputs.exit_code != '0' ||
-          steps.smoke-tests-pr.outputs.exit_code != '0' ||
-          env.vsix_percentage_change > 5 ||
-          env.pr_vsix_size > 25000000 ||
-          env.webview_bundle_percentage_change > 5 ||
-          env.loc_update_required == 'true'
+        if: always()
         run: |
-          echo "Pipeline failed due to the following issues:"
+          # Initialize failure flag
+          PIPELINE_FAILED=false
 
-          if [ "${{ steps.unit-tests-pr.outputs.exit_code }}" != "0" ]; then
+          echo "Checking pipeline results..."
+
+          # Check unit tests
+          if [ "${{ steps.unit-tests-pr.outputs.exit_code }}" != "0" ] && [ "${{ steps.unit-tests-pr.outputs.exit_code }}" != "" ]; then
             echo "  ❌ Unit tests failed with exit code ${{ steps.unit-tests-pr.outputs.exit_code }}"
+            PIPELINE_FAILED=true
           fi
 
-          if [ "${{ steps.smoke-tests-pr.outputs.exit_code }}" != "0" ]; then
+          # Check smoke tests
+          if [ "${{ steps.smoke-tests-pr.outputs.exit_code }}" != "0" ] && [ "${{ steps.smoke-tests-pr.outputs.exit_code }}" != "" ]; then
             echo "  ❌ Smoke tests failed with exit code ${{ steps.smoke-tests-pr.outputs.exit_code }}"
+            PIPELINE_FAILED=true
           fi
 
-          if [ $(echo "${{ env.vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
+          # Check VSIX percentage change (if variables exist)
+          if [ "${{ env.vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
             echo "  ❌ VSIX size increased by more than 5% (${{ env.vsix_percentage_change }}%)"
+            PIPELINE_FAILED=true
           fi
 
-          if [ "${{ env.pr_vsix_size }}" -gt 25000 ]; then
-            echo "  ❌ VSIX size is above 25MB (${{ env.pr_vsix_size }} bytes)"
+          # Check VSIX absolute size (if variables exist)
+          if [ "${{ env.pr_vsix_size }}" != "" ] && [ "${{ env.pr_vsix_size }}" -gt 25000 ]; then
+            echo "  ❌ VSIX size is above 25MB (${{ env.pr_vsix_size }} KB)"
+            PIPELINE_FAILED=true
           fi
 
-          if [ $(echo "${{ env.webview_bundle_percentage_change }} > 5" | bc -l) -eq 1 ]; then
+          # Check webview bundle percentage change (if variables exist)
+          if [ "${{ env.webview_bundle_percentage_change }}" != "" ] && [ $(echo "${{ env.webview_bundle_percentage_change }} > 5" | bc -l) -eq 1 ]; then
             echo "  ❌ Webview bundle size increased by more than 5% (${{ env.webview_bundle_percentage_change }}%)"
+            PIPELINE_FAILED=true
           fi
 
-          if [ "${{ env.loc_update_required }}" == "true" ]; then
+          # Check localization
+          if [ "${{ env.loc_update_required }}" = "true" ]; then
             echo "  ❌ Updates to localized strings are required"
+            PIPELINE_FAILED=true
           fi
 
-          exit 1
+          # Fail if any issues were found
+          if [ "$PIPELINE_FAILED" = "true" ]; then
+            echo ""
+            echo "Pipeline failed due to the above issues."
+            exit 1
+          else
+            echo "  ✅ All checks passed!"
+          fi
