@@ -28,14 +28,6 @@ test.describe("MSSQL Extension - Activity Bar", async () => {
         expect(count).toEqual(1);
     });
 
-    test("Fake failing test to ensure screenshot on failure works", async () => {
-        await vsCodePage.click(mssqlActivityBarButton);
-        // This test is intentionally failing to trigger the screenshot on failure logic
-        await expect(vsCodePage.locator("text=This test will fail")).toBeVisible();
-        // Uncomment the next line to see the test fail and trigger the screenshot
-        // expect(false).toBeTruthy();
-    });
-
     test.afterEach(async ({}, testInfo) => {
         await screenshotOnFailure(vsCodePage, testInfo);
     });
