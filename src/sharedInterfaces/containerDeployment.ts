@@ -66,16 +66,6 @@ export interface ContainerDeploymentFormItemSpec
     isAdvancedOption: boolean;
 }
 
-export interface ContainerDeploymentFormItemSpec
-    extends FormItemSpec<
-        DockerConnectionProfile,
-        ContainerDeploymentWebviewState,
-        ContainerDeploymentFormItemSpec
-    > {
-    componentWidth: string;
-    isAdvancedOption: boolean;
-}
-
 export interface ContainerDeploymentContextProps
     extends FormContextProps<
         DockerConnectionProfile,

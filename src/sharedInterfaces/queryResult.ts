@@ -9,7 +9,7 @@ import {
     ExecutionPlanReducers,
     ExecutionPlanState,
     ExecutionPlanWebviewState,
-} from "./executionPlanInterfaces";
+} from "./executionPlan";
 
 export interface ISlickRange {
     fromCell: number;
