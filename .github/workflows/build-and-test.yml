@@ -452,8 +452,8 @@ jobs:
           echo "Checking pipeline results..."
 
           # Check unit tests
-          if [ "${{ steps.unit_tests_pr_exit_code }}" != "0" ] && [ "${{ steps.unit_tests_pr_exit_code }}" != "" ]; then
-            echo "  ❌ Unit tests failed with exit code ${{ steps.unit_tests_pr_exit_code }}"
+          if [ "${{ env.unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.unit_tests_pr_exit_code }}" != "" ]; then
+            echo "  ❌ Unit tests failed with exit code ${{ env.unit_tests_pr_exit_code }}"
             PIPELINE_FAILED=true
           fi
 
