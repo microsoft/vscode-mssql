@@ -34,7 +34,6 @@ suite("Chat Agent Request Handler Tests", () => {
     let mockLanguageModelChatResponse: TypeMoq.IMock<vscode.LanguageModelChatResponse>;
     let mockActivityObject: TypeMoq.IMock<ActivityObject>;
     let generateGuidStub: sinon.SinonStub;
-    let selectChatModelsStub: sinon.SinonStub;
     let startActivityStub: sinon.SinonStub;
     let sendActionEventStub: sinon.SinonStub;
     let openTextDocumentStub: sinon.SinonStub;
@@ -75,18 +74,6 @@ suite("Chat Agent Request Handler Tests", () => {
 
         // Create a mock LanguageModelChat
         mockLmChat = TypeMoq.Mock.ofType<vscode.LanguageModelChat>();
-
-        // Stub the vscode.lm.selectChatModels function
-        // First, ensure the lm object exists
-        if (!vscode.lm) {
-            // Create the object if it doesn't exist for testing
-            (vscode as any).lm = { selectChatModels: () => Promise.resolve([]) };
-        }
-
-        // Now stub the function
-        selectChatModelsStub = sinon
-            .stub(vscode.lm, "selectChatModels")
-            .resolves([mockLmChat.object]);
 
         // Mock CopilotService
         mockCopilotService = TypeMoq.Mock.ofType<CopilotService>();
@@ -138,6 +125,7 @@ suite("Chat Agent Request Handler Tests", () => {
         mockChatRequest = TypeMoq.Mock.ofType<vscode.ChatRequest>();
         mockChatRequest.setup((x) => x.prompt).returns(() => samplePrompt);
         mockChatRequest.setup((x) => x.references).returns(() => []);
+        mockChatRequest.setup((x) => x.model).returns(() => mockLmChat.object);
 
         // Mock Chat Context
         mockChatContext = TypeMoq.Mock.ofType<vscode.ChatContext>();
@@ -187,10 +175,6 @@ suite("Chat Agent Request Handler Tests", () => {
         // Restore all stubbed functions
         generateGuidStub.restore();
 
-        if (selectChatModelsStub) {
-            selectChatModelsStub.restore();
-        }
-
         if (startActivityStub) {
             startActivityStub.restore();
         }
@@ -219,8 +203,11 @@ suite("Chat Agent Request Handler Tests", () => {
     });
 
     test("Returns early with a default response when no models are found", async () => {
-        // Setup stub to return empty array for this specific test
-        selectChatModelsStub.resolves([]);
+        // Create a fresh mock request for this test to avoid conflicts
+        const testMockChatRequest = TypeMoq.Mock.ofType<vscode.ChatRequest>();
+        testMockChatRequest.setup((x) => x.prompt).returns(() => samplePrompt);
+        testMockChatRequest.setup((x) => x.references).returns(() => []);
+        testMockChatRequest.setup((x) => x.model).returns(() => undefined);
 
         const handler = createSqlAgentRequestHandler(
             mockCopilotService.object,
@@ -230,7 +217,7 @@ suite("Chat Agent Request Handler Tests", () => {
         );
 
         const result = await handler(
-            mockChatRequest.object,
+            testMockChatRequest.object,
             mockChatContext.object,
             mockChatStream.object,
             mockToken.object,
