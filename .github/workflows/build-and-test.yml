@@ -159,8 +159,18 @@ jobs:
         run: |
           cd pr
           DISPLAY=:10 yarn test
-          echo "unit_tests_pr_exit_code=$?" >> $GITHUB_ENV
+          UNIT_EXIT_CODE=$?
+          echo "unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
+      - name: PR Unit Test Report
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: 'Unit Test Report'
+          path: ./test-reports/**/*.xml
+          reporter: jest-junit
+          working-directory: ./pr
+          badge-title: 'unit-tests'
 
       - name: Publish Unit Test Report
         uses: ctrf-io/github-test-reporter@v1
@@ -237,7 +247,8 @@ jobs:
           cd pr
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
-          echo "smoke_tests_pr_exit_code=$?" >> $GITHUB_ENV
+          SMOKE_EXIT_CODE=$?
+          echo "smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
@@ -245,6 +256,17 @@ jobs:
           name: smoke-test-failure-screenshots
           path: ./pr/test-results/**/
           retention-days: 7
+
+
+      - name: PR Smoke Test Report
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: 'Smoke Test Report'
+          path: ./test-reports/**/smoke-results.xml
+          reporter: jest-junit
+          working-directory: ./pr
+          badge-title: 'smoke-tests'
 
       - name: Publish Smoke Test Report
         uses: ctrf-io/github-test-reporter@v1
@@ -270,7 +292,7 @@ jobs:
             }
         if: always()
 
-      - name: Run smoke tests for targ branch # for calculating coverage comparison
+      - name: Run smoke tests for target branch # for calculating coverage comparison
         continue-on-error: true
         run: |
           VS_CODE_VERSION=stable
