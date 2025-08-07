@@ -107,7 +107,7 @@
       </trans-unit>
       <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
         <source xml:lang="en">Add Server Connection</source>
-        <target state="new">Add Server Connection</target>
+        <target state="translated">Adicionar Conexão de Servidor</target>
       </trans-unit>
       <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
         <source xml:lang="en">Add Table</source>
@@ -718,7 +718,7 @@
       </trans-unit>
       <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
         <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
-        <target state="new">Configure Rosetta in Docker Desktop</target>
+        <target state="translated">Configurar o Rosetta no Docker Desktop</target>
       </trans-unit>
       <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
         <source xml:lang="en">Configure and customize SQL Server containers</source>
@@ -1738,7 +1738,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
         <source xml:lang="en">Include all object types</source>
-        <target state="new">Include all object types</target>
+        <target state="translated">Incluir todos os tipos de objeto</target>
       </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
@@ -2644,7 +2644,7 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
         <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
-        <target state="new">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</target>
+        <target state="translated">O Rosetta é necessário para executar imagens de contêiner do SQL Server no Apple Silicon. Habilite "Usar o Rosetta para emulação x86_64/amd64 no Apple Silicon" em Docker Desktop &gt; Configurações &gt; Geral.</target>
       </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
@@ -2778,7 +2778,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
         <source xml:lang="en">Schema Compare</source>
-        <target state="new">Schema Compare</target>
+        <target state="translated">Comparação de Esquemas</target>
       </trans-unit>
       <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
         <source xml:lang="en">Schema Compare Options</source>
@@ -2855,7 +2855,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++5807729000cb38665e918bf3d7ac25f319624d3024eb2760aba5f15f7eb53559">
         <source xml:lang="en">Select Source Schema</source>
-        <target state="new">Select Source Schema</target>
+        <target state="translated">Selecionar Esquema de Origem</target>
       </trans-unit>
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
@@ -2863,7 +2863,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
         <source xml:lang="en">Select Target Schema</source>
-        <target state="new">Select Target Schema</target>
+        <target state="translated">Selecionar Esquema de Destino</target>
       </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
@@ -2889,7 +2889,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
         <source xml:lang="en">Select all options</source>
-        <target state="new">Select all options</target>
+        <target state="translated">Selecionar todas as opções</target>
       </trans-unit>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
@@ -4270,11 +4270,11 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
-        <target state="new">Schema Compare</target>
+        <target state="translated">Comparação de Esquemas</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
         <source xml:lang="en">Schema Designer</source>
-        <target state="new">Schema Designer</target>
+        <target state="translated">Designer de Esquema</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
