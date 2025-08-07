@@ -5,7 +5,7 @@
 
 import { ElectronApplication, Page } from "@playwright/test";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotOnError";
+import { screenshot, screenshotOnFailure } from "./utils/screenshotUtils";
 import {
     getServerName,
     getDatabaseName,
@@ -31,7 +31,7 @@ test.describe("MSSQL Extension - Database Connection", async () => {
         vsCodePage = page;
     });
 
-    test("Connect to local SQL Database, and disconnect", async () => {
+    test("Connect to local SQL Database, and disconnect", async ({}, testInfo) => {
         const serverName = getServerName();
         const databaseName = getDatabaseName();
         const authType = getAuthenticationType();
@@ -50,8 +50,13 @@ test.describe("MSSQL Extension - Database Connection", async () => {
             profileName,
         );
 
+        await screenshot(vsCodePage, testInfo, "connected");
+
         await openNewQueryEditor(vsCodePage, profileName, password);
+        await screenshot(vsCodePage, testInfo, "new query editor opened");
+
         await disconnect(vsCodePage);
+        await screenshot(vsCodePage, testInfo, "disconnected");
 
         const disconnectedStatus = await vsCodePage.getByText("Connect to MSSQL");
         await expect(disconnectedStatus).toBeVisible({ timeout: 10 * 1000 });
