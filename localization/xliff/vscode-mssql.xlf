@@ -13,6 +13,16 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
+    <trans-unit id="++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6">
+      <source xml:lang="en">(0 rows affected)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
+      <source xml:lang="en">(1 row affected)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
+      <source xml:lang="en">({0} rows affected)</source>
+      <note>{0} is the number of rows affected</note>
+    </trans-unit>
     <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
       <source xml:lang="en">+ Add Azure Account</source>
     </trans-unit>
@@ -970,6 +980,9 @@
       <note>{0} is the rule info in format &apos;name (startIp - endIp)&apos;
 {1} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++60cc09ec4655851867d21c226d2f49026746cd374b1822a2b46264601219b206">
+      <source xml:lang="en">Error generating text view. Please try switching back to grid view.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8f53a6df59ae589cf0996134e10ad383f8914500648095194f2d16cc2427954b">
       <source xml:lang="en">Error loading Azure account information for tenant ID &apos;{0}&apos;</source>
       <note>{0} is the tenant ID</note>
@@ -1680,6 +1693,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
       <source xml:lang="en">No results</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
+      <source xml:lang="en">No results to display</source>
     </trans-unit>
     <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
       <source xml:lang="en">No schema differences were found.</source>

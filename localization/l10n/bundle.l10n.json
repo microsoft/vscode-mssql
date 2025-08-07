@@ -371,6 +371,16 @@
   "Text View": "Text View",
   "Switch to Grid View": "Switch to Grid View",
   "Switch to Text View": "Switch to Text View",
+  "No results to display": "No results to display",
+  "Error generating text view. Please try switching back to grid view.": "Error generating text view. Please try switching back to grid view.",
+  "(0 rows affected)": "(0 rows affected)",
+  "(1 row affected)": "(1 row affected)",
+  "({0} rows affected)/{0} is the number of rows affected": {
+    "message": "({0} rows affected)",
+    "comment": [
+      "{0} is the number of rows affected"
+    ]
+  },
   "Add new column": "Add new column",
   "Table": "Table",
   "Save": "Save",
