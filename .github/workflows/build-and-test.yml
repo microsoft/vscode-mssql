@@ -157,6 +157,7 @@ jobs:
       - name: Run unit tests for PR branch
         continue-on-error: true
         run: |
+          set +e  # Don't exit on errors
           cd pr
           DISPLAY=:10 yarn test
           UNIT_EXIT_CODE=$?
@@ -214,6 +215,7 @@ jobs:
       - name: Run smoke tests for PR branch
         continue-on-error: true
         run: |
+          set +e  # Don't exit on errors
           VS_CODE_VERSION=stable
           SERVER_NAME=localhost
           AUTHENTICATION_TYPE="SQL Login"
