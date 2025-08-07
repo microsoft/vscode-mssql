@@ -7,14 +7,19 @@ import type { Page, TestInfo } from "@playwright/test";
 
 export async function screenshotOnFailure(page: Page, testInfo: TestInfo): Promise<void> {
     if (testInfo.status !== testInfo.expectedStatus) {
-        const formattedTestTitle = testInfo.title.replace(/ /g, "-");
-        const screenshotPath = testInfo.outputPath(`${formattedTestTitle}-failure.png`);
-        testInfo.attachments.push({
-            name: `${formattedTestTitle}-failure.png`,
-            path: screenshotPath,
-            contentType: "image/png",
-        });
-
-        await page.screenshot({ path: screenshotPath, timeout: 5000 });
+        await screenshot(page, testInfo, "failure");
     }
+}
+
+export async function screenshot(page: Page, testInfo: TestInfo, suffix: string): Promise<void> {
+    const formattedTestTitle = testInfo.title.replace(/ /g, "-");
+    const fileName = `${formattedTestTitle}-${suffix}-${Date.now()}.png`;
+    const screenshotPath = testInfo.outputPath(fileName);
+    testInfo.attachments.push({
+        name: fileName,
+        path: screenshotPath,
+        contentType: "image/png",
+    });
+
+    await page.screenshot({ path: screenshotPath, timeout: 5000 });
 }

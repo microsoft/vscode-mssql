@@ -12,7 +12,7 @@ export async function addDatabaseConnection(
     authType: string,
     userName: string,
     password: string,
-    savePassword: string,
+    savePassword: boolean,
     profileName: string,
 ): Promise<void> {
     // Navigate to Sql Server Tab
@@ -28,63 +28,83 @@ export async function addDatabaseConnection(
     await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
     await addConnectionButton.click();
 
-    await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${serverName}`);
-    await vsCodePage.keyboard.press("Enter");
+    await new Promise((resolve) => setTimeout(resolve, 3 * 1000));
+
+    const iframe = await getWebviewByTitle(vsCodePage, "Connection Dialog");
+
+    let input = iframe.locator("#Server-name");
+    await input.waitFor({ state: "visible", timeout: 300 * 1000 });
+
+    await input.fill(serverName);
 
     if (databaseName) {
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${databaseName}`);
+        input = iframe.locator("#Database-name");
+        await input.fill(databaseName);
     }
-    await vsCodePage.keyboard.press("Enter");
-
-    await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${authType}`);
-    await vsCodePage.keyboard.press("Enter");
 
     if (authType === "SQL Login") {
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${userName}`);
-        await vsCodePage.keyboard.press("Enter");
+        input = iframe.locator("#User-name");
+        await input.fill(userName);
 
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${password}`);
-        await vsCodePage.keyboard.press("Enter");
+        input = iframe.locator("#Password");
+        await input.fill(password);
 
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${savePassword}`);
-        await vsCodePage.keyboard.press("Enter");
+        if (savePassword) {
+            input = iframe.locator("#Save-Password");
+            await input.click();
+        }
+    } else {
+        throw new Error(`Unsupported authentication type for E2E tests: ${authType}`);
     }
 
     if (profileName) {
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${profileName}`);
+        input = iframe.locator("#Profile-Name");
+        await input.fill(profileName);
     }
+
+    const trustServerCertificateCheckbox = iframe.locator("#Trust-server-certificate");
+    await trustServerCertificateCheckbox.click();
+
     await vsCodePage.keyboard.press("Enter");
 
-    await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
-
-    const enableTrustServerCertificateButton = await vsCodePage.getByText(
-        "Enable Trust Server Certificate",
-    );
-    const isEnableTrustButtonVisible = await enableTrustServerCertificateButton.isVisible({
-        timeout: 3 * 1000,
-    });
-    if (isEnableTrustButtonVisible) {
-        await enableTrustServerCertificateButton.click();
-    }
+    await expect(iframe.locator("#Server-name")).not.toBeVisible({ timeout: 60 * 1000 }); // wait for the connection dialog to close
+    await new Promise((resolve) => setTimeout(resolve, 3 * 1000)); // wait for connection to be established
 }
 
+/**
+ * Opens a new query editor for the specified profile.
+ * @param selections Optional parameters for opening the query editor
+ */
 export async function openNewQueryEditor(
     vsCodePage: Page,
-    profileName: string,
-    password: string,
+    selections?: {
+        /** Profile name to use for the connection.  Only provide if test is not expected to automatically select the relevant profile. */
+        profileName?: string;
+        /** Only provide password if it is not saved with the profile. */
+        password?: string;
+    },
 ): Promise<void> {
+    // run "New Query" command
     await vsCodePage.keyboard.press("Control+P");
     await waitForCommandPaletteToBeVisible(vsCodePage);
     await vsCodePage.keyboard.type(">MS SQL: New Query");
     await waitForCommandPaletteToBeVisible(vsCodePage);
     await vsCodePage.keyboard.press("Enter");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(profileName);
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.press("Enter");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(password);
-    await vsCodePage.keyboard.press("Enter");
+
+    if (selections?.profileName) {
+        // Enter profile name if necessary. Should only be provided if the test is not expected to automatically select the relevant profile.
+        await waitForCommandPaletteToBeVisible(vsCodePage);
+        await vsCodePage.keyboard.type(selections.profileName);
+        await waitForCommandPaletteToBeVisible(vsCodePage);
+        await vsCodePage.keyboard.press("Enter");
+    }
+
+    // Enter password if necessary. Should only be provided as parameter if not saved with the profile.
+    if (selections?.password) {
+        await waitForCommandPaletteToBeVisible(vsCodePage);
+        await vsCodePage.keyboard.type(selections.password);
+        await vsCodePage.keyboard.press("Enter");
+    }
 
     await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
     await vsCodePage.keyboard.press("Escape");

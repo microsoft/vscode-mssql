@@ -31,14 +31,12 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     let authType: string;
     let userName: string;
     let password: string;
-    let savePassword: string;
+    let savePassword: boolean;
     let profileName: string;
 
     test.beforeAll(async () => {
         // Launch with new UI off
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension({
-            useNewUI: false,
-        });
+        const { electronApp, page } = await launchVsCodeWithMssqlExtension();
         vsCodeApp = electronApp;
         vsCodePage = page;
 
@@ -62,19 +60,21 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     });
 
     test("Create table, insert data, and execute query", async () => {
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage, { password });
 
         const createTestDB = "CREATE DATABASE TestDB;";
         await enterTextIntoQueryEditor(vsCodePage, createTestDB);
         await executeQuery(vsCodePage);
 
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage);
+
+        const tableName = `TestTable${Date.now()}`;
 
         const sqlScript = `
 USE TestDB;
-CREATE TABLE TestTable (ID INT PRIMARY KEY, Name VARCHAR(50), Age INT);
-INSERT INTO TestTable (ID, Name, Age) VALUES (1, 'Doe', 30);
-SELECT Name FROM TestTable;`;
+CREATE TABLE ${tableName} (ID INT PRIMARY KEY, Name VARCHAR(50), Age INT);
+INSERT INTO ${tableName} (ID, Name, Age) VALUES (1, 'Doe', 30);
+SELECT Name FROM ${tableName};`;
 
         await enterTextIntoQueryEditor(vsCodePage, sqlScript);
         await executeQuery(vsCodePage);
@@ -88,7 +88,7 @@ SELECT Name FROM TestTable;`;
     });
 
     test.afterAll(async () => {
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage);
         const dropTestDatabaseScript = `
 USE master
 ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE

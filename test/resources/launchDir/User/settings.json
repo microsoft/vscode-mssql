@@ -3,5 +3,29 @@
     "mssql.enableRichExperiences": false,
     "mssql.useLegacyQueryResultExperience": true,
     "mssql.useLegacyConnectionExperience": true,
-    "mssql.autoDisableNonTSqlLanguageService": false
+    "mssql.autoDisableNonTSqlLanguageService": false,
+    "mssql.connectionGroups": [
+        {
+            "name": "ROOT",
+            "id": "67FA683B-FF83-430E-AB02-7D1652D66F0F"
+        }
+    ],
+    "mssql.connections": [
+        {
+            "authenticationType": "SqlLogin",
+            "connectTimeout": 30,
+            "applicationName": "vscode-mssql",
+            "applicationIntent": "ReadWrite",
+            "server": "localhost",
+            "user": "sa",
+            "password": "",
+            "savePassword": true,
+            "profileName": "test-server",
+            "trustServerCertificate": true,
+            "groupId": "67FA683B-FF83-430E-AB02-7D1652D66F0F",
+            "id": "D86C09F5-E348-4607-9CFD-07F1D3E03320",
+            "profileSource": 0,
+            "containerName": "SQL2022-20241017162539"
+        }
+    ]
 }

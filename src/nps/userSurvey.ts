@@ -187,9 +187,6 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
             modernFeaturesEnabled: vscode.workspace
                 .getConfiguration()
                 .get(constants.configEnableRichExperiences),
-            useLegacyConnectionExperience: vscode.workspace
-                .getConfiguration()
-                .get(constants.configUseLegacyConnectionExperience),
             ...stringAnswers,
         },
         numericalAnswers,

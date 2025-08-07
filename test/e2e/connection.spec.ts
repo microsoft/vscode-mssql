@@ -5,7 +5,7 @@
 
 import { ElectronApplication, Page } from "@playwright/test";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotOnError";
+import { screenshot, screenshotOnFailure } from "./utils/screenshotOnError";
 import {
     getServerName,
     getDatabaseName,
@@ -24,14 +24,12 @@ test.describe("MSSQL Extension - Database Connection", async () => {
 
     test.beforeAll(async () => {
         // Launch with new UI off
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension({
-            useNewUI: false,
-        });
+        const { electronApp, page } = await launchVsCodeWithMssqlExtension();
         vsCodeApp = electronApp;
         vsCodePage = page;
     });
 
-    test("Connect to local SQL Database, and disconnect", async () => {
+    test("Connect to local SQL Database, and disconnect", async ({}, testInfo) => {
         const serverName = getServerName();
         const databaseName = getDatabaseName();
         const authType = getAuthenticationType();
@@ -39,6 +37,9 @@ test.describe("MSSQL Extension - Database Connection", async () => {
         const password = getPassword();
         const savePassword = getSavePassword();
         const profileName = getProfileName();
+
+        await screenshot(vsCodePage, testInfo, "before-connection");
+
         await addDatabaseConnection(
             vsCodePage,
             serverName,
@@ -50,10 +51,13 @@ test.describe("MSSQL Extension - Database Connection", async () => {
             profileName,
         );
 
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage); // connection should be automatically selected because there's only one connection
         await disconnect(vsCodePage);
 
-        const disconnectedStatus = await vsCodePage.getByText("Connect to MSSQL");
+        const disconnectedStatus = vsCodePage
+            .locator(".statusbar-item-label")
+            .filter({ hasText: "Connect to MSSQL" });
+
         await expect(disconnectedStatus).toBeVisible({ timeout: 10 * 1000 });
     });
 
