@@ -58,6 +58,7 @@ import {
 import { generateUUID } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { initializeIconUtils } from "./utils";
 
 suite("OE Service Tests", () => {
     suite("rootNodeConnections", () => {
@@ -69,6 +70,7 @@ suite("OE Service Tests", () => {
         let sandbox: sinon.SinonSandbox;
 
         setup(() => {
+            initializeIconUtils();
             sandbox = sinon.createSandbox();
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);

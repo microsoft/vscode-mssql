@@ -12,7 +12,12 @@ import * as mssql from "vscode-mssql";
 import { SchemaCompareWebViewController } from "../../src/schemaCompare/schemaCompareWebViewController";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
-import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
+import {
+    ExtractTarget,
+    SchemaCompareWebViewState,
+    SchemaDifferenceType,
+    TaskExecutionMode,
+} from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IConnectionProfile } from "../../src/models/interfaces";
@@ -411,12 +416,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             compareStub.firstCall.args,
-            [
-                operationId,
-                mssql.TaskExecutionMode.execute,
-                payload,
-                mockSchemaCompareService.object,
-            ],
+            [operationId, TaskExecutionMode.execute, payload, mockSchemaCompareService.object],
             "compare should be called with correct arguments",
         );
 
@@ -455,7 +455,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             generateScriptStub.firstCall.args,
-            [operationId, mssql.TaskExecutionMode.script, payload, mockSchemaCompareService.object],
+            [operationId, TaskExecutionMode.script, payload, mockSchemaCompareService.object],
             "generateScript should be called with correct arguments",
         );
 
@@ -495,12 +495,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishDatabaseChangesStub.firstCall.args,
-            [
-                operationId,
-                mssql.TaskExecutionMode.execute,
-                payload,
-                mockSchemaCompareService.object,
-            ],
+            [operationId, TaskExecutionMode.execute, payload, mockSchemaCompareService.object],
             "publishDatabaseChanges should be called with correct arguments",
         );
 
@@ -528,8 +523,8 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const payload = {
             targetProjectPath: "/TestSqlProject/TestProject/TestProject.sqlproj",
-            targetFolderStructure: mssql.ExtractTarget.schemaObjectType,
-            taskExecutionMode: mssql.TaskExecutionMode.execute,
+            targetFolderStructure: ExtractTarget.schemaObjectType,
+            taskExecutionMode: TaskExecutionMode.execute,
         };
 
         const actualResult = await controller["_reducerHandlers"].get("publishProjectChanges")(
@@ -602,7 +597,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             id: 0,
             diffEntry: {
                 updateAction: mssql.SchemaUpdateAction.Change,
-                differenceType: mssql.SchemaDifferenceType.Object,
+                differenceType: SchemaDifferenceType.Object,
                 name: "Address",
                 sourceValue: [],
                 targetValue: [],
@@ -624,12 +619,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [
-                operationId,
-                mssql.TaskExecutionMode.execute,
-                payload,
-                mockSchemaCompareService.object,
-            ],
+            [operationId, TaskExecutionMode.execute, payload, mockSchemaCompareService.object],
             "includeExcludeNode should be called with correct arguments",
         );
 
@@ -736,7 +726,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             [
                 databaseSourceEndpointInfo,
                 undefined,
-                mssql.TaskExecutionMode.execute,
+                TaskExecutionMode.execute,
                 deploymentOptions,
                 savePath,
                 [],

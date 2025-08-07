@@ -59,8 +59,11 @@ export const dockerLogger = Logger.create(
 );
 
 const dockerInstallErrorLink = "https://docs.docker.com/engine/install/";
-const windowsContainersErrorLink =
+// Exported for testing purposes
+export const windowsContainersErrorLink =
     "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
+export const rosettaErrorLink =
+    "https://docs.docker.com/desktop/settings-and-maintenance/settings/#general";
 
 /**
  * Commands used to interact with Docker.
@@ -134,11 +137,8 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.startDockerEngineHeader,
             bodyText: ContainerDeployment.startDockerEngineBody,
-            errorLink:
-                platform() === Platform.Windows && arch() === x64
-                    ? windowsContainersErrorLink
-                    : undefined,
-            errorLinkText: ContainerDeployment.configureLinuxContainers,
+            errorLink: getEngineErrorLink(),
+            errorLinkText: getEngineErrorLinkText(),
             stepAction: checkEngine,
         },
         {
@@ -170,6 +170,32 @@ export function initializeDockerSteps(): DockerStep[] {
             stepAction: undefined,
         },
     ];
+}
+
+/**
+ * Gets the link to the Docker engine error documentation based on the platform and architecture.
+ * @returns The link to the Docker engine error documentation based on the platform and architecture.
+ */
+export function getEngineErrorLink() {
+    if (platform() === Platform.Windows && arch() === x64) {
+        return windowsContainersErrorLink;
+    } else if (platform() === Platform.Mac && arch() !== x64) {
+        return rosettaErrorLink;
+    }
+    return undefined;
+}
+
+/**
+ * Gets the text to the Docker engine error documentation based on the platform and architecture.
+ * @returns The text to the Docker engine error documentation based on the platform and architecture.
+ */
+export function getEngineErrorLinkText() {
+    if (platform() === Platform.Windows && arch() === x64) {
+        return ContainerDeployment.configureLinuxContainers;
+    } else if (platform() === Platform.Mac && arch() !== x64) {
+        return ContainerDeployment.configureRosetta;
+    }
+    return undefined;
 }
 
 /**
@@ -360,9 +386,6 @@ export async function getDockerPath(executable: string): Promise<string> {
 export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
     try {
         await execCommand(COMMANDS.PULL_IMAGE(version.substring(0, yearStringLength)));
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.PullImage, {
-            containerVersion: version,
-        });
         return { success: true };
     } catch (e) {
         return {
@@ -393,25 +416,11 @@ export async function startSqlServerDockerContainer(
     try {
         await execCommand(command);
         dockerLogger.append(`SQL Server container ${containerName} started on port ${port}.`);
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.CreateSQLContainer, {
-            containerVersion: version,
-        });
         return {
             success: true,
             port,
         };
     } catch (e) {
-        sendErrorEvent(
-            TelemetryViews.ContainerDeployment,
-            TelemetryActions.CreateSQLContainer,
-            e,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-            {
-                containerVersion: version,
-            },
-        );
         return {
             success: false,
             error: ContainerDeployment.startSqlServerContainerError,
@@ -444,6 +453,9 @@ export async function startDocker(
 ): Promise<DockerCommandParams> {
     try {
         await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartDocker, {
+            dockerStartedThroughExtension: "false",
+        });
         return { success: true };
     } catch {} // If this command fails, docker is not running, so we proceed to start it.
     if (node && objectExplorerService) {
@@ -483,6 +495,13 @@ export async function startDocker(
                     await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
                     clearInterval(checkDocker);
                     dockerLogger.appendLine("Docker started successfully.");
+                    sendActionEvent(
+                        TelemetryViews.ContainerDeployment,
+                        TelemetryActions.StartDocker,
+                        {
+                            dockerStartedThroughExtension: "true",
+                        },
+                    );
                     resolve({ success: true });
                 } catch (e) {
                     if (++attempts >= maxAttempts) {
@@ -590,14 +609,6 @@ export async function checkIfContainerIsReadyForConnections(
                 if (readyLine) {
                     clearInterval(interval);
                     dockerLogger.appendLine(`${containerName} is ready for connections!`);
-                    sendActionEvent(
-                        TelemetryViews.ContainerDeployment,
-                        TelemetryActions.StartContainer,
-                        {}, // additional properties
-                        {
-                            timeToStartInMs: Date.now() - start,
-                        }, // additional measures
-                    );
                     return resolve({ success: true });
                 }
             } catch {

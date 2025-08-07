@@ -43,7 +43,7 @@
     "mssql.copilot.explainQuery": "Explain Query (Preview)",
     "mssql.copilot.analyzeQueryPerformance": "Analyze Query Performance (Preview)",
     "mssql.copilot.rewriteQuery": "Rewrite Query (Preview)",
-    "mssql.schemaCompare": "Schema Compare (Preview)",
+    "mssql.schemaCompare": "Schema Compare",
     "mssql.toggleSqlCmd": "Toggle SQLCMD Mode",
     "mssql.copyObjectName": "Copy Object Name",
     "mssql.addAadAccount": "Add Microsoft Entra Account",
@@ -188,7 +188,7 @@
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",
     "mssql.userFeedback": "Give Feedback",
     "mssql.selectedAzureSubscriptions": "Selected Azure subscriptions for browsing and managing servers and databases",
-    "mssql.schemaDesigner": "Schema Designer (Preview)",
+    "mssql.schemaDesigner": "Schema Designer",
     "mssql.deployLocalDockerContainer": "Create local SQL Container",
     "mssql.stopContainer": "Stop Container",
     "mssql.deleteContainer": "Delete Container",
@@ -220,5 +220,6 @@
     "mssql.walkthroughs.nextSteps.objectExplorerFilters.altText": "Object Explorer filters",
     "mssql.connectionSharing.editConnectionSharingPermissions": "Edit Connection Sharing Permissions",
     "mssql.connectionSharing.clearAllConnectionSharingPermissions": "Clear All Connection Sharing Permissions",
-    "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit."
+    "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.",
+    "mssql.schemaDesigner.enableExpandCollapseButtons": "Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns"
 }

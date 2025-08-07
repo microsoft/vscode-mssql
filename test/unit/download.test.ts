@@ -6,7 +6,7 @@
 import * as assert from "assert";
 import * as TypeMoq from "typemoq";
 import {
-    IConfig,
+    IConfigUtils,
     IStatusView,
     IHttpClient,
     IDecompressProvider,
@@ -14,7 +14,7 @@ import {
 import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
 import HttpClient from "../../src/languageservice/httpClient";
 import DecompressProvider from "../../src/languageservice/decompressProvider";
-import Config from "../../src/configurations/config";
+import ConfigUtils from "../../src/configurations/configUtils";
 import { Runtime } from "../../src/models/platform";
 import * as path from "path";
 import { ILogger } from "../../src/models/interfaces";
@@ -29,14 +29,14 @@ interface IFixture {
 }
 
 suite("ServiceDownloadProvider Tests", () => {
-    let config: TypeMoq.IMock<IConfig>;
+    let config: TypeMoq.IMock<IConfigUtils>;
     let testStatusView: TypeMoq.IMock<IStatusView>;
     let testHttpClient: TypeMoq.IMock<IHttpClient>;
     let testDecompressProvider: TypeMoq.IMock<IDecompressProvider>;
     let testLogger: TypeMoq.IMock<ILogger>;
 
     setup(() => {
-        config = TypeMoq.Mock.ofType(Config, TypeMoq.MockBehavior.Strict);
+        config = TypeMoq.Mock.ofType(ConfigUtils, TypeMoq.MockBehavior.Strict);
         testStatusView = TypeMoq.Mock.ofType<IStatusView>();
         testHttpClient = TypeMoq.Mock.ofType(HttpClient, TypeMoq.MockBehavior.Strict);
         testDecompressProvider = TypeMoq.Mock.ofType(DecompressProvider);
@@ -78,9 +78,10 @@ suite("ServiceDownloadProvider Tests", () => {
     });
 
     test("getInstallDirectory should add the platform to the path given the path with the platform template key", async () => {
-        let expectedPathFromConfig = __dirname + "/{#version#}/{#platform#}";
+        let rootPath = path.resolve(__dirname);
+        let expectedPathFromConfig = path.join(rootPath, "{#version#}", "{#platform#}");
         let expectedVersionFromConfig = "0.0.4";
-        let expected = __dirname + "/0.0.4/OSX";
+        let expected = path.join(rootPath, "0.0.4", "OSX");
         config.setup((x) => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
         config.setup((x) => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
         let downloadProvider = new ServiceDownloadProvider(
@@ -91,24 +92,7 @@ suite("ServiceDownloadProvider Tests", () => {
             testDecompressProvider.object,
         );
         let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
-        assert.equal(expected, actual);
-    });
-
-    test("getInstallDirectory should add the platform to the path given the path with the platform template key", async () => {
-        let expectedPathFromConfig = "../service/{#version#}/{#platform#}";
-        let expectedVersionFromConfig = "0.0.4";
-        let expected = path.join(__dirname, "../../../service/0.0.4/OSX");
-        config.setup((x) => x.getSqlToolsInstallDirectory()).returns(() => expectedPathFromConfig);
-        config.setup((x) => x.getSqlToolsPackageVersion()).returns(() => expectedVersionFromConfig);
-        let downloadProvider = new ServiceDownloadProvider(
-            config.object,
-            undefined,
-            testStatusView.object,
-            testHttpClient.object,
-            testDecompressProvider.object,
-        );
-        let actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
-        assert.equal(expected, actual);
+        assert.equal(actual, expected);
     });
 
     test("getDownloadFileName should return the expected file name given a runtime", (done) => {

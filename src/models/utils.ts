@@ -5,7 +5,7 @@
 
 import * as os from "os";
 import * as path from "path";
-import * as findRemoveSync from "find-remove";
+import findRemoveSync from "find-remove";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from "./interfaces";
@@ -498,10 +498,11 @@ export function getConfigLogRetentionSeconds(): number {
     }
 }
 
-export function removeOldLogFiles(logPath: string, prefix: string): JSON {
+export function removeOldLogFiles(logPath: string, prefix: string): Record<string, any> | number {
     return findRemoveSync(logPath, {
         age: { seconds: getConfigLogRetentionSeconds() },
         limit: getConfigLogFilesRemovalLimit(),
+        prefix: prefix,
     });
 }
 
