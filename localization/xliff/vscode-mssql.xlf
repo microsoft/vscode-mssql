@@ -291,6 +291,9 @@
     <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
       <source xml:lang="en">Browse Azure</source>
     </trans-unit>
+    <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
+      <source xml:lang="en">Browse Fabric</source>
+    </trans-unit>
     <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
       <source xml:lang="en">CSV</source>
     </trans-unit>
@@ -2737,6 +2740,9 @@
     </trans-unit>
     <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
       <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bb5b6644dc612a69a27fc4eb9b11f3e54901055b75fe7fb9bb754f28693a574f">
+      <source xml:lang="en">You must be signed into Fabric in order to browse SQL databases.</source>
     </trans-unit>
     <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
       <source xml:lang="en">You must review and accept the terms to proceed</source>
