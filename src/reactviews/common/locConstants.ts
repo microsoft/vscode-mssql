@@ -388,6 +388,24 @@ export class LocConstants {
             textView: l10n.t("Text View"),
             toggleToGridView: l10n.t("Switch to Grid View"),
             toggleToTextView: l10n.t("Switch to Text View"),
+            noResultsToDisplay: l10n.t("No results to display"),
+            errorGeneratingTextView: l10n.t(
+                "Error generating text view. Please try switching back to grid view.",
+            ),
+            rowsAffected: (rowCount: number) => {
+                switch (rowCount) {
+                    case 0:
+                        return l10n.t("(0 rows affected)");
+                    case 1:
+                        return l10n.t("(1 row affected)");
+                    default:
+                        return l10n.t({
+                            message: "({0} rows affected)",
+                            args: [rowCount],
+                            comment: ["{0} is the number of rows affected"],
+                        });
+                }
+            },
         };
     }
 

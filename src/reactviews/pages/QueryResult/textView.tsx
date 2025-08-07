@@ -11,6 +11,7 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { resolveVscodeThemeType } from "../../common/utils";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     textViewContainer: {
@@ -155,9 +156,9 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
 
                         // Add row count information
                         if (resultSetSummary.rowCount > 0) {
-                            content += `(${resultSetSummary.rowCount} row${resultSetSummary.rowCount === 1 ? "" : "s"} affected)\n`;
+                            content += `(${locConstants.queryResult.rowsAffected(resultSetSummary.rowCount)})\n`;
                         } else {
-                            content += "(0 rows affected)\n";
+                            content += `(${locConstants.queryResult.rowsAffected(0)})\n`;
                         }
 
                         content += "\n";
@@ -166,11 +167,11 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                 }
 
                 if (content.trim() === "") {
-                    content = "No results to display.";
+                    content = locConstants.queryResult.noResultsToDisplay;
                 }
             } catch (error) {
+                content = locConstants.queryResult.errorGeneratingTextView;
                 console.error("Error generating text view:", error);
-                content = "Error generating text view. Please try switching back to grid view.";
             }
 
             setTextContent(content);
@@ -213,7 +214,9 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                     }}
                 />
             ) : (
-                <div className={classes.noResults}>No results to display in text format.</div>
+                <div className={classes.noResults}>
+                    {locConstants.queryResult.noResultsToDisplay}
+                </div>
             )}
         </div>
     );
