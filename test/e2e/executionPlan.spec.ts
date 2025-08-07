@@ -6,7 +6,7 @@
 import { ElectronApplication, FrameLocator, Locator, Page } from "@playwright/test";
 import { test, expect } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotUtilsX";
+import { screenshotOnFailure } from "./utils/screenshotUtils";
 import { getWebviewByTitle, waitForCommandPaletteToBeVisible } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
 import path from "path";
