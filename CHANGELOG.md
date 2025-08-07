@@ -4,7 +4,7 @@
 * Release date: August 7, 2025
 * Release status: GA
 ### What’s new in 1.34.1
-* Fix bug in GitHub Copilot Ask Mode related to explicit ChatGPT 4o model selection
+* Fix bug in GitHub Copilot Ask Mode related to explicit GPT-4o model selection
 
 ## Version 1.34.0
 * Release date: July 23, 2025
