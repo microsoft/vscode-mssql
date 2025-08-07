@@ -405,22 +405,13 @@ export const QueryResultPane = () => {
         if (viewMode === qr.QueryResultViewMode.Text) {
             return (
                 <div className={classes.textViewContainer}>
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            padding: "5px",
-                            borderBottom: "1px solid var(--vscode-panel-border)",
-                            backgroundColor: "var(--vscode-panel-background)",
-                        }}>
-                        <CommandBar uri={state?.uri} viewMode={viewMode} />
-                    </div>
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "row" }}>
                         <TextView
                             uri={state?.uri}
                             resultSetSummaries={state?.resultSetSummaries}
                             fontSettings={state?.fontSettings}
                         />
+                        <CommandBar uri={state?.uri} viewMode={viewMode} />
                     </div>
                 </div>
             );
