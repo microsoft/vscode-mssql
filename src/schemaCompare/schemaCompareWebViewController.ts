@@ -317,7 +317,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 this.logger.verbose(`Retrieved ${scriptFiles.length} script files from project`);
             } else {
                 this.logger.warn(
-                    `SQL Database Projects extension not found, cannot get project scripts`,
+                    `SQL Database Projects extension not found, cannot get project scripts - test`,
                 );
             }
         } catch (error) {
