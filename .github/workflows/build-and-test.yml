@@ -155,12 +155,11 @@ jobs:
           fi
 
       - name: Run unit tests for PR branch
-        id: unit-tests-pr
         continue-on-error: true
         run: |
           cd pr
           DISPLAY=:10 yarn test
-          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          echo "unit_tests_pr_exit_code=$?" >> $GITHUB_ENV
 
 
       - name: Publish Unit Test Report
@@ -226,7 +225,6 @@ jobs:
         working-directory: ./pr
 
       - name: Run smoke tests for PR branch
-        id: smoke-tests-pr
         continue-on-error: true
         run: |
           VS_CODE_VERSION=stable
@@ -239,7 +237,7 @@ jobs:
           cd pr
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
-          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          echo "smoke_tests_pr_exit_code=$?" >> $GITHUB_ENV
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
@@ -432,14 +430,14 @@ jobs:
           echo "Checking pipeline results..."
 
           # Check unit tests
-          if [ "${{ steps.unit-tests-pr.outputs.exit_code }}" != "0" ] && [ "${{ steps.unit-tests-pr.outputs.exit_code }}" != "" ]; then
-            echo "  ❌ Unit tests failed with exit code ${{ steps.unit-tests-pr.outputs.exit_code }}"
+          if [ "${{ steps.unit_tests_pr_exit_code }}" != "0" ] && [ "${{ steps.unit_tests_pr_exit_code }}" != "" ]; then
+            echo "  ❌ Unit tests failed with exit code ${{ steps.unit_tests_pr_exit_code }}"
             PIPELINE_FAILED=true
           fi
 
           # Check smoke tests
-          if [ "${{ steps.smoke-tests-pr.outputs.exit_code }}" != "0" ] && [ "${{ steps.smoke-tests-pr.outputs.exit_code }}" != "" ]; then
-            echo "  ❌ Smoke tests failed with exit code ${{ steps.smoke-tests-pr.outputs.exit_code }}"
+          if [ "${{ env.smoke_tests_pr_exit_code }}" != "0" ] && [ "${{ env.smoke_tests_pr_exit_code }}" != "" ]; then
+            echo "  ❌ Smoke tests failed with exit code ${{ env.smoke_tests_pr_exit_code }}"
             PIPELINE_FAILED=true
           fi
 
