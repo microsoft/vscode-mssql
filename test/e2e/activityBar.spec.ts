@@ -5,7 +5,7 @@
 
 import { ElectronApplication, Page } from "@playwright/test";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotOnError";
+import { screenshotOnFailure } from "./utils/screenshotUtilsX";
 import { mssqlActivityBarButton } from "./utils/commonSelectors";
 import { test, expect } from "./baseFixtures";
 

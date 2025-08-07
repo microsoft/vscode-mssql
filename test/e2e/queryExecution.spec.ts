@@ -5,7 +5,7 @@
 
 import { ElectronApplication, Page } from "@playwright/test";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotOnError";
+import { screenshotOnFailure } from "./utils/screenshotUtils";
 import {
     addDatabaseConnection,
     enterTextIntoQueryEditor,
@@ -31,7 +31,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     let authType: string;
     let userName: string;
     let password: string;
-    let savePassword: string;
+    let savePassword: boolean;
     let profileName: string;
 
     test.beforeAll(async () => {

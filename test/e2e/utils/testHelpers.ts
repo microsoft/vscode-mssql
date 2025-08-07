@@ -12,7 +12,7 @@ export async function addDatabaseConnection(
     authType: string,
     userName: string,
     password: string,
-    savePassword: string,
+    savePassword: boolean,
     profileName: string,
 ): Promise<void> {
     // Navigate to Sql Server Tab
@@ -46,7 +46,10 @@ export async function addDatabaseConnection(
         await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${password}`);
         await vsCodePage.keyboard.press("Enter");
 
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${savePassword}`);
+        await vsCodePage.fill(
+            'input[aria-controls="quickInput_list"]',
+            `${savePassword ? "Yes" : "No"}`,
+        );
         await vsCodePage.keyboard.press("Enter");
     }
 
