@@ -1195,10 +1195,10 @@
                 },
                 "mssql.defaultQueryResultsViewMode": {
                     "type": "string",
-                    "default": "grid",
+                    "default": "Grid",
                     "enum": [
-                        "grid",
-                        "text"
+                        "Grid",
+                        "Text"
                     ],
                     "enumDescriptions": [
                         "%mssql.defaultQueryResultsViewMode.grid.description%",

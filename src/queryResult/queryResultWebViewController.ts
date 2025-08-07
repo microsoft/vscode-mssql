@@ -307,7 +307,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             .getConfiguration(Constants.extensionName)
             .get("defaultQueryResultsViewMode") as string;
 
-        return configValue === "text" ? qr.QueryResultViewMode.Text : qr.QueryResultViewMode.Grid;
+        return qr.QueryResultViewMode[configValue] ?? qr.QueryResultViewMode.Grid;
     }
 
     public setQueryResultState(uri: string, state: qr.QueryResultWebviewState) {
