@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as ep from "../sharedInterfaces/executionPlanInterfaces";
+import * as ep from "../sharedInterfaces/executionPlan";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";

@@ -3,31 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as cd from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import * as lc from "../../../sharedInterfaces/localContainers";
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { createContext } from "react";
-import { ContainerDeploymentContextProps } from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import { LocalContainersContextProps } from "../../../sharedInterfaces/localContainers";
 import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
 
-const ContainerDeploymentContext = createContext<ContainerDeploymentContextProps | undefined>(
-    undefined,
-);
+const LocalContainersContext = createContext<LocalContainersContextProps | undefined>(undefined);
 
-interface ContainerDeploymentProviderProps {
+interface LocalContainersProviderProps {
     children: React.ReactNode;
 }
 
-const ContainerDeploymentStateProvider: React.FC<ContainerDeploymentProviderProps> = ({
-    children,
-}) => {
+const LocalContainersStateProvider: React.FC<LocalContainersProviderProps> = ({ children }) => {
     const webviewState = useVscodeWebview<
-        cd.ContainerDeploymentWebviewState,
-        cd.ContainerDeploymentReducers
+        lc.LocalContainersWebviewState,
+        lc.LocalContainersReducers
     >();
     return (
-        <ContainerDeploymentContext.Provider
+        <LocalContainersContext.Provider
             value={{
                 state: webviewState?.state,
                 themeKind: webviewState?.themeKind,
@@ -63,8 +59,11 @@ const ContainerDeploymentStateProvider: React.FC<ContainerDeploymentProviderProp
                 },
             }}>
             {children}
-        </ContainerDeploymentContext.Provider>
+        </LocalContainersContext.Provider>
     );
 };
 
-export { ContainerDeploymentContext, ContainerDeploymentStateProvider };
+export {
+    LocalContainersContext as LocalContainersContext,
+    LocalContainersStateProvider as LocalContainersStateProvider,
+};

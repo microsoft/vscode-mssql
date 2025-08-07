@@ -9,7 +9,7 @@ import {
     ExecutionPlanGraphInfo,
     ExecutionPlanReducers,
     ExecutionPlanWebviewState,
-} from "../sharedInterfaces/executionPlanInterfaces";
+} from "../sharedInterfaces/executionPlan";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import * as vscode from "vscode";
