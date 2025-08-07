@@ -84,6 +84,21 @@ const CommandBar = (props: CommandBarProps) => {
         return Object.keys(context.state.resultSetSummaries).length > 0 && checkMultipleResults();
     };
 
+    if (props.viewMode === qr.QueryResultViewMode.Text) {
+        return (
+            <div className={classes.commandBar}>
+                <Tooltip content={locConstants.queryResult.toggleToGridView} relationship="label">
+                    <Button
+                        appearance="subtle"
+                        onClick={toggleViewMode}
+                        icon={<TableRegular />}
+                        title={locConstants.queryResult.toggleToGridView}
+                    />
+                </Tooltip>
+            </div>
+        );
+    }
+
     return (
         <div className={classes.commandBar}>
             {/* View Mode Toggle */}

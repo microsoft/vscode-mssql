@@ -20,6 +20,12 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
     },
+    editorContainer: {
+        width: "100%",
+        height: "100%",
+        flex: 1,
+        minHeight: "400px",
+    },
     noResults: {
         fontStyle: "italic",
         color: "var(--vscode-descriptionForeground)",
@@ -31,7 +37,7 @@ const useStyles = makeStyles({
 
 export interface TextViewProps {
     uri?: string;
-    resultSetSummaries: Record<number, Record<number, qr.ResultSetSummary>>;
+    resultSetSummaries?: { [batchId: number]: { [resultId: number]: qr.ResultSetSummary } };
     fontSettings: qr.FontSettings;
 }
 
@@ -44,43 +50,48 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
 
     useEffect(() => {
         const generateTextView = async () => {
-            if (!uri || !resultSetSummaries) {
+            if (!uri || !resultSetSummaries || Object.keys(resultSetSummaries).length === 0) {
                 setLoading(false);
                 return;
             }
 
             setLoading(true);
             let content = "";
-            let resultSetNumber = 1; // Sequential numbering for result sets
 
             try {
-                // Count total result sets for proper numbering
-                let totalResultSets = 0;
-                for (const batchIdStr in resultSetSummaries) {
-                    totalResultSets += Object.keys(resultSetSummaries[parseInt(batchIdStr)]).length;
-                }
-
+                // Process all result sets
                 for (const batchIdStr in resultSetSummaries) {
                     const batchId = parseInt(batchIdStr);
+                    const batch = resultSetSummaries[batchId];
 
-                    for (const resultIdStr in resultSetSummaries[batchId]) {
+                    if (!batch) continue;
+
+                    for (const resultIdStr in batch) {
                         const resultId = parseInt(resultIdStr);
-                        const resultSetSummary = resultSetSummaries[batchId][resultId];
+                        const resultSetSummary = batch[resultId];
 
-                        // Add result set header only if there are multiple result sets
-                        if (totalResultSets > 1) {
-                            content += `${locConstants.queryResult.resultSet(resultSetNumber)}${getEOL()}`;
-                            content += "=".repeat(40) + `${getEOL()}${getEOL()}`;
+                        // Skip if resultSetSummary is not valid or doesn't have column info
+                        if (
+                            !resultSetSummary ||
+                            !resultSetSummary.columnInfo ||
+                            !Array.isArray(resultSetSummary.columnInfo)
+                        ) {
+                            continue;
                         }
 
                         // Get column information
                         const columnInfo = resultSetSummary.columnInfo;
-                        const columnNames = columnInfo.map((col) => col.columnName);
+                        const columnNames = columnInfo.map((col) => col?.columnName || "");
 
                         // Initialize column widths with column name lengths
                         const columnWidths = columnNames.map((name) => name.length);
 
                         let formattedRows: string[] = [];
+
+                        const resultIdentifier = `${batchId}-${resultId}`;
+
+                        content += `${locConstants.queryResult.resultSet(resultIdentifier)}${getEOL()}`;
+                        content += "=".repeat(40) + `${getEOL()}${getEOL()}`;
 
                         // Get all rows for this result set first to calculate proper column widths
                         if (resultSetSummary.rowCount > 0) {
@@ -162,7 +173,6 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                         }
 
                         content += `${getEOL()}`;
-                        resultSetNumber++; // Increment for next result set
                     }
                 }
 
@@ -188,31 +198,35 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
     return (
         <div className={classes.textViewContainer}>
             {textContent ? (
-                <Editor
-                    height="100%"
-                    language="plaintext"
-                    theme={resolveVscodeThemeType(context?.themeKind || ColorThemeKind.Light)}
-                    value={textContent}
-                    options={{
-                        readOnly: true,
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false,
-                        wordWrap: "off",
-                        fontFamily: fontSettings.fontFamily || "var(--vscode-editor-font-family)",
-                        fontSize: fontSettings.fontSize || 12,
-                        lineNumbers: "off",
-                        glyphMargin: false,
-                        folding: false,
-                        lineDecorationsWidth: 0,
-                        lineNumbersMinChars: 0,
-                        renderLineHighlight: "none",
-                        scrollbar: {
-                            vertical: "auto",
-                            horizontal: "auto",
-                        },
-                        automaticLayout: true,
-                    }}
-                />
+                <div className={classes.editorContainer}>
+                    <Editor
+                        width="100%"
+                        height="100%"
+                        language="plaintext"
+                        theme={resolveVscodeThemeType(context?.themeKind || ColorThemeKind.Light)}
+                        value={textContent}
+                        options={{
+                            readOnly: true,
+                            minimap: { enabled: false },
+                            scrollBeyondLastLine: false,
+                            wordWrap: "off",
+                            fontFamily:
+                                fontSettings.fontFamily || "var(--vscode-editor-font-family)",
+                            fontSize: fontSettings.fontSize || 12,
+                            lineNumbers: "off",
+                            glyphMargin: false,
+                            folding: false,
+                            lineDecorationsWidth: 0,
+                            lineNumbersMinChars: 0,
+                            renderLineHighlight: "none",
+                            scrollbar: {
+                                vertical: "auto",
+                                horizontal: "auto",
+                            },
+                            automaticLayout: true,
+                        }}
+                    />
+                </div>
             ) : (
                 <div className={classes.noResults}>
                     {locConstants.queryResult.noResultsToDisplay}
