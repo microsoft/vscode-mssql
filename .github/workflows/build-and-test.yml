@@ -167,6 +167,7 @@ jobs:
         with:
           report-path: './pr/test-reports/**/*.xml'
           artifact-name: 'ctrf-report-unit'
+          test-report: true
           integrations-config: |
             {
               "junit-to-ctrf": {
@@ -250,6 +251,7 @@ jobs:
         with:
           report-path: './pr/test-reports/**/smoke-results.xml'
           artifact-name: 'ctrf-report-smoke'
+          test-report: true
           integrations-config: |
             {
               "junit-to-ctrf": {
