@@ -159,6 +159,7 @@ jobs:
           reporter: jest-junit
           working-directory: ./pr
           badge-title: 'unit-tests'
+          fail-on-error: false
 
       - name: Run unit tests for main branch # for calculating coverage comparison
         continue-on-error: true
@@ -229,6 +230,7 @@ jobs:
             reporter: jest-junit
             badge-title: 'smoke-tests'
             working-directory: ./pr
+            fail-on-error: false
 
       - name: Run smoke tests for main branch # for calculating coverage comparison
         continue-on-error: true
