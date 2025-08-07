@@ -253,7 +253,12 @@ export const QueryResultPane = () => {
         return state?.tabStates?.resultViewMode ?? qr.QueryResultViewMode.Grid;
     };
 
-    const renderResultSet = (batchId: number, resultId: number, gridCount: number) => {
+    const renderResultSet = (
+        batchId: number,
+        resultId: number,
+        gridIndex: number,
+        totalGridCount: number,
+    ) => {
         const divId = `result-parent-${batchId}-${resultId}`;
         const gridId = `resultGrid-${batchId}-${resultId}`;
         const viewMode = getCurrentViewMode();
@@ -267,7 +272,7 @@ export const QueryResultPane = () => {
                     height:
                         resultPaneParentRef.current && ribbonRef.current
                             ? `${calculateGridHeight(
-                                  gridCount,
+                                  totalGridCount,
                                   getAvailableHeight(
                                       resultPaneParentRef.current!,
                                       ribbonRef.current!,
@@ -325,7 +330,7 @@ export const QueryResultPane = () => {
                                 return dataWithSchema;
                             });
                         }}
-                        ref={(gridRef) => (gridRefs.current[gridCount] = gridRef!)}
+                        ref={(gridRef) => (gridRefs.current[gridIndex] = gridRef!)}
                         resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
                         gridParentRef={gridParentRef}
                         uri={state?.uri}
@@ -341,15 +346,21 @@ export const QueryResultPane = () => {
                         resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
                         viewMode={viewMode}
                         maximizeResults={() => {
-                            if (viewMode === qr.QueryResultViewMode.Grid) {
-                                maximizeResults(gridRefs.current[gridCount]);
-                                hideOtherGrids(gridRefs, gridCount);
+                            if (
+                                viewMode === qr.QueryResultViewMode.Grid &&
+                                gridRefs.current[gridIndex]
+                            ) {
+                                maximizeResults(gridRefs.current[gridIndex]);
+                                hideOtherGrids(gridRefs, gridIndex);
                             }
                         }}
                         restoreResults={() => {
-                            if (viewMode === qr.QueryResultViewMode.Grid) {
-                                showOtherGrids(gridRefs, gridCount);
-                                restoreResults(gridRefs.current);
+                            if (
+                                viewMode === qr.QueryResultViewMode.Grid &&
+                                gridRefs.current.length > 0
+                            ) {
+                                showOtherGrids(gridRefs, gridIndex);
+                                restoreResults(gridRefs.current, gridIndex);
                             }
                         }}
                     />
@@ -360,10 +371,10 @@ export const QueryResultPane = () => {
 
     const hideOtherGrids = (
         gridRefs: React.MutableRefObject<ResultGridHandle[]>,
-        gridCount: number,
+        gridIndexToKeep: number,
     ) => {
-        gridRefs.current.forEach((grid) => {
-            if (grid !== gridRefs.current[gridCount]) {
+        gridRefs.current.forEach((grid, index) => {
+            if (grid && index !== gridIndexToKeep) {
                 grid.hideGrid();
             }
         });
@@ -371,10 +382,10 @@ export const QueryResultPane = () => {
 
     const showOtherGrids = (
         gridRefs: React.MutableRefObject<ResultGridHandle[]>,
-        gridCount: number,
+        gridIndexToShow: number,
     ) => {
-        gridRefs.current.forEach((grid) => {
-            if (grid !== gridRefs.current[gridCount]) {
+        gridRefs.current.forEach((grid, index) => {
+            if (grid && index !== gridIndexToShow) {
                 grid.showGrid();
             }
         });
@@ -387,7 +398,7 @@ export const QueryResultPane = () => {
         gridRef.resizeGrid(width, height);
     };
 
-    const restoreResults = (gridRefs: ResultGridHandle[]) => {
+    const restoreResults = (gridRefs: ResultGridHandle[], scrollToGridIndex?: number) => {
         gridRefs.forEach((gridRef) => {
             const height = calculateGridHeight(
                 gridRefs.length,
@@ -396,6 +407,32 @@ export const QueryResultPane = () => {
             const width = resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
             gridRef.resizeGrid(width, height);
         });
+
+        // Scroll to the specified grid after restoration
+        if (scrollToGridIndex !== undefined && state?.resultSetSummaries) {
+            setTimeout(() => {
+                let currentIndex = 0;
+                for (const batchIdStr in state.resultSetSummaries) {
+                    const batchId = parseInt(batchIdStr);
+                    for (const resultIdStr in state.resultSetSummaries[batchId]) {
+                        const resultId = parseInt(resultIdStr);
+                        if (currentIndex === scrollToGridIndex) {
+                            const gridElement = document.getElementById(
+                                `grid-parent-${batchId}-${resultId}`,
+                            );
+                            if (gridElement) {
+                                gridElement.scrollIntoView({
+                                    behavior: "instant",
+                                    block: "start",
+                                });
+                            }
+                            return;
+                        }
+                        currentIndex++;
+                    }
+                }
+            }, 100); // Small delay to ensure grids are restored first
+        }
     };
 
     const renderResultPanel = () => {
@@ -417,6 +454,13 @@ export const QueryResultPane = () => {
             );
         }
 
+        // Calculate total grid count
+        let totalGridCount = 0;
+        for (const batchIdStr in state?.resultSetSummaries ?? {}) {
+            const batchId = parseInt(batchIdStr);
+            totalGridCount += Object.keys(state?.resultSetSummaries[batchId] ?? {}).length;
+        }
+
         const results = [];
         let count = 0;
         for (const batchIdStr in state?.resultSetSummaries ?? {}) {
@@ -425,7 +469,7 @@ export const QueryResultPane = () => {
                 const resultId = parseInt(resultIdStr);
                 results.push(
                     <React.Fragment key={`result-${batchId}-${resultId}`}>
-                        {renderResultSet(batchId, resultId, count)}
+                        {renderResultSet(batchId, resultId, count, totalGridCount)}
                     </React.Fragment>,
                 );
                 count++;
