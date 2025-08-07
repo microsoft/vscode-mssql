@@ -195,17 +195,25 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mssql-tools
           /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "$PASSWORD" -Q "SELECT @@VERSION"
+
+          echo "VS_CODE_VERSION=stable" >> $GITHUB_ENV
+          echo "SERVER_NAME=localhost" >> $GITHUB_ENV
+          echo "AUTHENTICATION_TYPE=SQL Login" >> $GITHUB_ENV
+          echo "USER_NAME=sa" >> $GITHUB_ENV
+          echo "SAVE_PASSWORD=No" >> $GITHUB_ENV
+          echo "PROFILE_NAME=test-server" >> $GITHUB_ENV
         working-directory: ./pr
 
       - name: Run smoke tests for PR branch
         run: |
-          VS_CODE_VERSION=stable
-          SERVER_NAME=localhost
-          AUTHENTICATION_TYPE="SQL Login"
-          USER_NAME=sa
-          PASSWORD=${{ env.PASSWORD }}
-          SAVE_PASSWORD=No
-          PROFILE_NAME=test-server
+          echo "VS_CODE_VERSION: $VS_CODE_VERSION"
+          echo "SERVER_NAME: $SERVER_NAME"
+          echo "AUTHENTICATION_TYPE: $AUTHENTICATION_TYPE"
+          echo "USER_NAME: $USER_NAME"
+          echo "PASSWORD: $PASSWORD"
+          echo "SAVE_PASSWORD: $SAVE_PASSWORD"
+          echo "PROFILE_NAME: $PROFILE_NAME"
+
           cd pr
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
@@ -231,13 +239,14 @@ jobs:
       - name: Run smoke tests for main branch # for calculating coverage comparison
         continue-on-error: true
         run: |
-          VS_CODE_VERSION=stable
-          SERVER_NAME=localhost
-          AUTHENTICATION_TYPE="SQL Login"
-          USER_NAME=sa
-          PASSWORD=${{ env.PASSWORD }}
-          SAVE_PASSWORD=No
-          PROFILE_NAME=test-server
+          echo "VS_CODE_VERSION: $VS_CODE_VERSION"
+          echo "SERVER_NAME: $SERVER_NAME"
+          echo "AUTHENTICATION_TYPE: $AUTHENTICATION_TYPE"
+          echo "USER_NAME: $USER_NAME"
+          echo "PASSWORD: $PASSWORD"
+          echo "SAVE_PASSWORD: $SAVE_PASSWORD"
+          echo "PROFILE_NAME: $PROFILE_NAME"
+
           cd main
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
           DISPLAY=:10 yarn smoketest
