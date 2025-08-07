@@ -356,7 +356,9 @@ export namespace SchemaDesigner {
         onSchemaReady(listener: (model: SchemaDesignerSession) => void): void;
     }
 
-    export interface SchemaDesignerWebviewState {}
+    export interface SchemaDesignerWebviewState {
+        enableExpandCollapseButtons?: boolean;
+    }
 
     export interface ExportFileOptions {
         format: string;

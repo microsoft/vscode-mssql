@@ -10,7 +10,7 @@ const del = require('del');
 const logger = require('./terminal-logger');
 
 const args = process.argv.slice(2);
-const isOnline = args.includes('--online');
+let isOnline = args.includes('--online');
 const isOffline = args.includes('--offline');
 
 // Platform configurations for offline packaging
@@ -53,7 +53,7 @@ async function cleanServiceInstallFolder() {
   logger.step('Cleaning service install folder...');
 
   try {
-    const install = require('../out/src/languageservice/serviceInstallerUtil');
+    const install = require('../dist/serviceInstallerUtil');
     const serviceInstallFolder = install.getServiceInstallDirectoryRoot();
 
     logger.debug(`Deleting: ${serviceInstallFolder}`);

@@ -2317,6 +2317,7 @@ export default class MainController implements vscode.Disposable {
             TelemetryActions.NewQuery,
             {
                 nodeType: source,
+                isContainer: connectionCreds?.containerName ? "true" : "false",
             },
             undefined, // additionalMeasurements
             connectionProfile as IConnectionProfile,
@@ -2337,7 +2338,9 @@ export default class MainController implements vscode.Disposable {
         sendActionEvent(
             TelemetryViews.CommandPalette,
             TelemetryActions.NewQuery,
-            undefined,
+            {
+                isContainer: credentials?.containerName ? "true" : "false",
+            },
             undefined,
             credentials as IConnectionProfile,
             this._connectionMgr.getServerInfo(credentials),
