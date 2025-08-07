@@ -34,7 +34,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     let savePassword: boolean;
     let profileName: string;
 
-    test.beforeAll(async ({}, testInfo) => {
+    test.beforeAll(async ({}, _testInfo) => {
         // Launch with new UI off
         const { electronApp, page } = await launchVsCodeWithMssqlExtension({
             useNewUI: false,

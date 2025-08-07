@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
 import { arch, platform } from "os";
-import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeploymentInterfaces";
+import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeployment";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     defaultContainerName,
@@ -94,17 +94,17 @@ export const COMMANDS = {
         version: string,
         hostname: string,
     ) =>
-        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
+        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${sanitizeContainerInput(hostname)}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
     CHECK_CONTAINER_RUNNING: (name: string) =>
-        `docker ps --filter "name=${sanitizeContainerName(name)}" --filter "status=running" --format "{{.Names}}"`,
+        `docker ps --filter "name=${sanitizeContainerInput(name)}" --filter "status=running" --format "{{.Names}}"`,
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
-    START_CONTAINER: (name: string) => `docker start "${sanitizeContainerName(name)}"`,
+    START_CONTAINER: (name: string) => `docker start "${sanitizeContainerInput(name)}"`,
     CHECK_LOGS: (name: string, platform: string, timestamp: string) =>
-        `docker logs --since ${timestamp} "${sanitizeContainerName(name)}" | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
+        `docker logs --since ${timestamp} "${sanitizeContainerInput(name)}" | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
     CHECK_CONTAINER_READY: `Recovery is complete`,
-    STOP_CONTAINER: (name: string) => `docker stop "${sanitizeContainerName(name)}"`,
+    STOP_CONTAINER: (name: string) => `docker stop "${sanitizeContainerInput(name)}"`,
     DELETE_CONTAINER: (name: string) => {
-        const safeName = sanitizeContainerName(name);
+        const safeName = sanitizeContainerInput(name);
         return `docker stop "${safeName}" && docker rm "${safeName}"`;
     },
     INSPECT_CONTAINER: (id: string) => `docker inspect ${id}`,
@@ -233,9 +233,9 @@ export function validateSqlServerPassword(password: string): string {
 }
 
 /**
- * Sanitizes a container name by removing any characters that aren't alphanumeric, underscore, dot, or hyphen.
+ * Sanitizes container input by removing any characters that aren't alphanumeric, underscore, dot, or hyphen.
  */
-export function sanitizeContainerName(name: string): string {
+export function sanitizeContainerInput(name: string): string {
     return name.replace(/[^a-zA-Z0-9_.-]/g, "");
 }
 

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as ep from "../../../sharedInterfaces/executionPlanInterfaces";
+import * as ep from "../../../sharedInterfaces/executionPlan";
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { ReactNode, createContext } from "react";
