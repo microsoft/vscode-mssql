@@ -57,7 +57,12 @@ const useStyles = makeStyles({
     },
     workspaceExplorerCollapsed: {
         width: "32px",
-        ...shorthands.overflow("hidden"),
+        ...shorthands.overflow("visible"),
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
+        alignItems: "center",
+        paddingTop: "8px",
     },
     workspaceGrid: {
         flexGrow: 1,
@@ -248,23 +253,39 @@ export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
         <div className={styles.container}>
             <div
                 className={`${styles.workspaceExplorer} ${isExplorerCollapsed ? styles.workspaceExplorerCollapsed : ""}`}>
-                <div className={styles.collapseButton}>
+                {isExplorerCollapsed ? (
+                    // When collapsed, render just the expand button prominently
                     <Button
                         appearance="subtle"
                         size="small"
-                        icon={
-                            isExplorerCollapsed ? (
-                                <ChevronDoubleRightFilled className={styles.collapseButtonIcon} />
-                            ) : (
-                                <ChevronDoubleLeftFilled className={styles.collapseButtonIcon} />
-                            )
-                        }
+                        icon={<ChevronDoubleRightFilled className={styles.collapseButtonIcon} />}
                         onClick={toggleExplorer}
-                        title={isExplorerCollapsed ? "Expand" : "Collapse"}
+                        title="Expand"
+                        style={{
+                            width: "24px",
+                            height: "24px",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            margin: "0 auto",
+                        }}
                     />
-                </div>
-                {!isExplorerCollapsed && (
+                ) : (
+                    // When expanded, render the collapse button and the workspace list
                     <>
+                        <div className={styles.collapseButton}>
+                            <Button
+                                appearance="subtle"
+                                size="small"
+                                icon={
+                                    <ChevronDoubleLeftFilled
+                                        className={styles.collapseButtonIcon}
+                                    />
+                                }
+                                onClick={toggleExplorer}
+                                title="Collapse"
+                            />
+                        </div>
                         <div className={styles.workspaceTitle}>Workspaces</div>
                         <WorkspacesList
                             workspaces={uniqueWorkspaces}
