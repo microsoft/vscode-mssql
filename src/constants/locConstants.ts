@@ -1485,6 +1485,20 @@ export class MssqlChatAgent {
 
 export class QueryEditor {
     public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
+    public static queryCancelFailed(errorMessage: string) {
+        return l10n.t({
+            message: "Cancel failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
+    public static queryDisposeFailed(errorMessage: string) {
+        return l10n.t({
+            message: "Failed disposing query: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
 }
 
 export class ConnectionSharing {

@@ -1206,6 +1206,53 @@ suite("Query Runner tests", () => {
                 TypeMoq.Times.once(),
             );
         });
+
+        test("Copies selection as CSV with headers", async () => {
+            setupMockConfig();
+            let configResult: { [key: string]: any } = {};
+            configResult[Constants.configSaveAsCsv] = {
+                delimiter: ",",
+                textIdentifier: '"',
+                lineSeperator: "\n",
+            };
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object,
+            );
+            queryRunner.uri = testuri;
+            queryRunner.handleQueryComplete(result);
+
+            await queryRunner.copyResultsAsCsv(testRange, 0, 0, true);
+            testVscodeWrapper.verify<void>(
+                (x) => x.clipboardWriteText(TypeMoq.It.isAnyString()),
+                TypeMoq.Times.once(),
+            );
+        });
+
+        test("Copies selection as JSON with headers", async () => {
+            setupMockConfig();
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object,
+            );
+            queryRunner.uri = testuri;
+            queryRunner.handleQueryComplete(result);
+
+            await queryRunner.copyResultsAsJson(testRange, 0, 0, true);
+            testVscodeWrapper.verify<void>(
+                (x) => x.clipboardWriteText(TypeMoq.It.isAnyString()),
+                TypeMoq.Times.once(),
+            );
+        });
     });
 });
 

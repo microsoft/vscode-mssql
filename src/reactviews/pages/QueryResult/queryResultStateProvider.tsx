@@ -32,6 +32,11 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                         tabId: tabId,
                     });
                 },
+                setResultViewMode: function (viewMode: qr.QueryResultViewMode): void {
+                    webViewState?.extensionRpc.action("setResultViewMode", {
+                        viewMode: viewMode,
+                    });
+                },
                 getExecutionPlan: function (uri: string): void {
                     webViewState?.extensionRpc.action("getExecutionPlan", {
                         uri: uri,
