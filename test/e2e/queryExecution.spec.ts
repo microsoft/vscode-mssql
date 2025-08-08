@@ -31,10 +31,10 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     let authType: string;
     let userName: string;
     let password: string;
-    let savePassword: string;
+    let savePassword: boolean;
     let profileName: string;
 
-    test.beforeAll(async () => {
+    test.beforeAll(async ({}, _testInfo) => {
         // Launch with new UI off
         const { electronApp, page } = await launchVsCodeWithMssqlExtension({
             useNewUI: false,
@@ -60,6 +60,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
             profileName,
         );
     });
+
     test.beforeEach(async ({}, testInfo) => {
         await screenshot(vsCodePage, testInfo, "BeforeEach");
     });
