@@ -57,6 +57,7 @@
     "mssql.maxRecentConnections": "The maximum number of recently used connections to store in the connection list.",
     "mssql.connections": "Connection profiles defined in 'User Settings' are shown under 'MS SQL: Connect' command in the command palette.",
     "mssql.connectionGroups": "Connection groups",
+    "mssql.connectionGroupsExpandedByDefault.description": "If true, connection groups in the SQL Server Connections view will be expanded by default. If false, all groups will be collapsed by default.",
     "mssql.connection.server": "[Required] Specify the server name to connect to. Use 'hostname instance' or '<server>.database.windows.net' for Azure SQL Database.",
     "mssql.connection.database": "[Optional] Specify the database name to connect to. If database is not specified, the default user database setting is used, typically 'master'.",
     "mssql.connection.user": "[Optional] Specify the user name for SQL Server authentication. If user name is not specified, when you connect, you will be asked again.",

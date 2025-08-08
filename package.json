@@ -1902,6 +1902,12 @@
                     "minimum": 1,
                     "description": "%mssql.objectExplorer.expandTimeout%"
                 },
+                "mssql.connectionGroupsExpandedByDefault": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.connectionGroupsExpandedByDefault.description%",
+                    "scope": "window"
+                },
                 "mssql.statusBar.connectionInfoMaxLength": {
                     "type": "number",
                     "default": -1,
