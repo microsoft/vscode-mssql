@@ -3182,6 +3182,9 @@
     <trans-unit id="mssql.userFeedback">
       <source xml:lang="en">Give Feedback</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionGroupsExpandedByDefault.description">
+      <source xml:lang="en">If true, connection groups in the SQL Server Connections view will be expanded by default. If false, all groups will be collapsed by default.</source>
+    </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot (Preview)</source>
     </trans-unit>
