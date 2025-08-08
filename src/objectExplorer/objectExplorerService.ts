@@ -415,7 +415,7 @@ export class ObjectExplorerService {
         // Read user setting for default expansion state
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         const expandGroupsByDefault = config.get<boolean>(
-            "connectionGroupsExpandedByDefault",
+            Constants.connectionGroupsExpandedByDefault,
             true,
         );
         const defaultCollapsibleState = expandGroupsByDefault

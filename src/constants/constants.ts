@@ -237,6 +237,7 @@ export const configSchemaDesignerEnableExpandCollapseButtons =
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 
+export const connectionGroupsExpandedByDefault = "connectionGroupsExpandedByDefault";
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
 export const serviceInstalling = "Installing";
