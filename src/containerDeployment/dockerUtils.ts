@@ -86,6 +86,7 @@ export const COMMANDS = {
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
     GET_CONTAINERS_BY_NAME: `docker ps -a --format "{{.Names}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
+    /*
     PULL_IMAGE: (version: string) => `docker pull mcr.microsoft.com/mssql/server:${version}-latest`,
     START_SQL_SERVER: (
         name: string,
@@ -95,6 +96,16 @@ export const COMMANDS = {
         hostname: string,
     ) =>
         `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
+    */
+    PULL_IMAGE: (versionTag: string) => `docker pull mcr.microsoft.com/mssql/server:${versionTag}`,
+    START_SQL_SERVER: (
+        name: string,
+        password: string,
+        port: number,
+        versionTag: string,
+        hostname: string,
+    ) =>
+        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${versionTag}`,
     CHECK_CONTAINER_RUNNING: (name: string) =>
         `docker ps --filter "name=${sanitizeContainerName(name)}" --filter "status=running" --format "{{.Names}}"`,
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
@@ -381,11 +392,24 @@ export async function getDockerPath(executable: string): Promise<string> {
 }
 
 /**
+ * Temp fix for the SQL Server 2025 version issue on Linux and Mac.
+ * Returns the last working version of SQL Server 2025 for Linux and Mac.
+ */
+export function getWorking2025Version(version: string): string {
+    let versionYear = version.substring(0, yearStringLength);
+    // Hard Coded until this issue is fixed for mac and linux: https://github.com/microsoft/mssql-docker/issues/940#issue
+    if (platform() !== Platform.Windows && versionYear === "2025") {
+        return "2025-CTP2.0-ubuntu-22.04"; // Last working version of SQL Server 2025 for Linux+Mac
+    }
+    return versionYear;
+}
+
+/**
  * Pulls the SQL Server container image for the specified version.
  */
 export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
     try {
-        await execCommand(COMMANDS.PULL_IMAGE(version.substring(0, yearStringLength)));
+        await execCommand(COMMANDS.PULL_IMAGE(getWorking2025Version(version)));
         return { success: true };
     } catch (e) {
         return {
@@ -410,7 +434,7 @@ export async function startSqlServerDockerContainer(
         containerName,
         password,
         port,
-        version.substring(0, yearStringLength),
+        getWorking2025Version(version),
         hostname,
     );
     try {
