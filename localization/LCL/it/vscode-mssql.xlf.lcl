@@ -9589,6 +9589,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.schemaDesigner.enableExpandCollapseButtons" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Abilitare i pulsanti espandi/comprimi nei nodi della tabella di Finestra di progettazione schema quando le tabelle contengono più di 10 colonne]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.scriptAlter" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Script as Alter]]></Val>
