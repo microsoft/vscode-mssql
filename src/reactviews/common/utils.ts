@@ -95,3 +95,20 @@ export enum MouseButton {
     Middle = 1,
     RightClick = 2,
 }
+
+/**
+ * Get the end of line character(s) based on the user's OS.
+ */
+export function getEOL(): string {
+    var linebreaks = {
+        Windows: "\r\n",
+        Mac: "\n",
+        Linux: "\n",
+    };
+    for (const key in linebreaks) {
+        if (navigator.userAgent.indexOf(key) != -1) {
+            return linebreaks[key as keyof typeof linebreaks];
+        }
+    }
+    return "\n";
+}

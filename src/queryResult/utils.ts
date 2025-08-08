@@ -317,6 +317,17 @@ export function registerCommonRequestHandlers(
         state.tabStates.resultPaneTab = payload.tabId;
         return state;
     });
+    webviewController.registerReducer("setResultViewMode", async (state, payload) => {
+        if (!state.tabStates) {
+            state.tabStates = {
+                resultPaneTab: qr.QueryResultPaneTabs.Results,
+                resultViewMode: payload.viewMode,
+            };
+        } else {
+            state.tabStates.resultViewMode = payload.viewMode;
+        }
+        return state;
+    });
     webviewController.registerReducer("getExecutionPlan", async (state, payload) => {
         // because this is an overridden call, this makes sure it is being
         // called properly
