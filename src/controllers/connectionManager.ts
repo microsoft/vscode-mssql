@@ -1297,7 +1297,6 @@ export default class ConnectionManager {
                 // Try to get saved password first
                 password = await this.connectionStore.lookupPassword(connectionCreds);
 
-                // If no saved password, prompt for it
                 if (!password) {
                     password = await this.connectionUI.promptForPassword();
                     if (!password) {

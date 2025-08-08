@@ -86,6 +86,12 @@ export class ConnectionStore {
         return CredentialsQuickPickItemType[CredentialsQuickPickItemType.Mru];
     }
 
+    public static get shouldSavePasswordUntilRestart(): boolean {
+        return vscode.workspace
+            .getConfiguration()
+            .get<boolean>(Constants.configSavePasswordsUntilRestart);
+    }
+
     public static formatCredentialIdForCred(
         creds: IConnectionInfo,
         itemType?: CredentialsQuickPickItemType,
@@ -257,7 +263,7 @@ export class ConnectionStore {
         let savedCredential: Contracts.Credential;
 
         // First, try to get password from session storage for non-saved passwords
-        if (!profile.savePassword) {
+        if (!profile.savePassword && ConnectionStore.shouldSavePasswordUntilRestart) {
             const sessionKey = this.getSessionPasswordKey(connectionCredentials);
             const sessionPassword = this._sessionPasswords.get(sessionKey);
             if (sessionPassword) {

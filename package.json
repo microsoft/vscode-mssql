@@ -1902,6 +1902,11 @@
                     "type": "number",
                     "default": -1,
                     "description": "%mssql.statusBar.connectionInfoMaxLength.description%"
+                },
+                "mssql.connectionManagement.rememberPasswordsUntilRestart": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.connectionManagement.rememberPasswordsUntilRestart%"
                 }
             }
         },

@@ -777,32 +777,10 @@ export class ObjectExplorerService {
             }
         }
 
-        if (ConnectionCredentials.isPasswordBasedCredential(connectionProfile)) {
-            // show password prompt if SQL Login and password isn't saved
-            let password = connectionProfile.password;
-            if (Utils.isEmpty(password)) {
-                // Try to get saved password first (this now includes session passwords and migration)
-                password =
-                    await this._connectionManager.connectionStore.lookupPassword(connectionProfile);
-
-                // If no saved password, prompt for it
-                if (!password) {
-                    password = await this._connectionManager.connectionUI.promptForPassword();
-                    if (!password) {
-                        return undefined;
-                    }
-
-                    // Set password but don't save yet - wait for successful connection
-                    connectionProfile.password = password;
-                } else {
-                    connectionProfile.password = password;
-                }
-
-                if (connectionProfile.authenticationType !== Constants.azureMfa) {
-                    connectionProfile.azureAccountToken = undefined;
-                }
-            }
-            return connectionProfile;
+        const passwordHandled =
+            await this._connectionManager.handlePasswordBasedCredentials(connectionProfile);
+        if (!passwordHandled) {
+            return undefined;
         }
 
         if (

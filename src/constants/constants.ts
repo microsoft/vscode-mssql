@@ -235,6 +235,8 @@ export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoM
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
 export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
+export const configSavePasswordsUntilRestart =
+    "mssql.connectionManagement.rememberPasswordsUntilRestart";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
