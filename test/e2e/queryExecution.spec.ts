@@ -5,7 +5,7 @@
 
 import { ElectronApplication, Page } from "@playwright/test";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotOnError";
+import { screenshot, screenshotOnFailure } from "./utils/screenshotUtils";
 import {
     addDatabaseConnection,
     enterTextIntoQueryEditor,
@@ -60,14 +60,21 @@ test.describe("MSSQL Extension - Query Execution", async () => {
             profileName,
         );
     });
+    test.beforeEach(async ({}, testInfo) => {
+        await screenshot(vsCodePage, testInfo, "BeforeEach");
+    });
 
-    test("Create table, insert data, and execute query", async () => {
+    test("Create table, insert data, and execute query", async ({}, testInfo) => {
         await openNewQueryEditor(vsCodePage, profileName, password);
+        await screenshot(vsCodePage, testInfo, "NewEditorOpened");
 
         const createTestDB = "CREATE DATABASE TestDB;";
         await enterTextIntoQueryEditor(vsCodePage, createTestDB);
+        await screenshot(vsCodePage, testInfo, "CreateDbTyped");
         await executeQuery(vsCodePage);
+        await screenshot(vsCodePage, testInfo, "CreateDbExecuted");
 
+        await screenshot(vsCodePage, testInfo, "NewEditorOpened2");
         await openNewQueryEditor(vsCodePage, profileName, password);
 
         const sqlScript = `
@@ -77,7 +84,9 @@ INSERT INTO TestTable (ID, Name, Age) VALUES (1, 'Doe', 30);
 SELECT Name FROM TestTable;`;
 
         await enterTextIntoQueryEditor(vsCodePage, sqlScript);
+        await screenshot(vsCodePage, testInfo, "CreateTableTyped");
         await executeQuery(vsCodePage);
+        await screenshot(vsCodePage, testInfo, "CreateTableExecuted");
 
         const nameQueryResult = await vsCodePage.getByText("Doe");
         await expect(nameQueryResult).toBeVisible({ timeout: 10000 });

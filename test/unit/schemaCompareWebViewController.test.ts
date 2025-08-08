@@ -16,6 +16,7 @@ import {
     ExtractTarget,
     SchemaCompareWebViewState,
     SchemaDifferenceType,
+    SchemaUpdateAction,
     TaskExecutionMode,
 } from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
@@ -596,7 +597,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         const payload = {
             id: 0,
             diffEntry: {
-                updateAction: mssql.SchemaUpdateAction.Change,
+                updateAction: SchemaUpdateAction.Change,
                 differenceType: SchemaDifferenceType.Object,
                 name: "Address",
                 sourceValue: [],

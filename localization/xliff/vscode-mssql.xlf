@@ -292,6 +292,10 @@
     <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
       <source xml:lang="en">Cancel</source>
     </trans-unit>
+    <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
+      <source xml:lang="en">Cancel failed: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
       <source xml:lang="en">Cancel schema compare failed: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the cancel operation</note>
@@ -1060,6 +1064,10 @@
     </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2332577de7a1ae1c1fdad89cd3a54570fcafcfcf1e149fda9dc0c42d4f88fbdb">
+      <source xml:lang="en">Failed disposing query: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
       <source xml:lang="en">Failed to apply changes: &apos;{0}&apos;</source>

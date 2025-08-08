@@ -18,7 +18,7 @@ import {
     ContainerDeploymentFormItemSpec,
     ContainerDeploymentWebviewState,
     DockerStepOrder,
-} from "../../src/sharedInterfaces/containerDeploymentInterfaces";
+} from "../../src/sharedInterfaces/containerDeployment";
 import { AddLocalContainerConnectionTreeNode } from "../../src/containerDeployment/addLocalContainerConnectionTreeNode";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { stubTelemetry } from "./utils";
