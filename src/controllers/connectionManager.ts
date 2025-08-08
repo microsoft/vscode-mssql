@@ -613,26 +613,9 @@ export default class ConnectionManager {
                 }
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
 
-                // Save password on successful connection based on savePassword preference
-                const profile = connection.credentials as IConnectionProfile;
-                if (connection.credentials.password) {
-                    if (profile.savePassword) {
-                        // Save to credential store for connections with savePassword = true
-                        await self._connectionStore
-                            .saveProfilePasswordIfNeeded(profile)
-                            .catch((error) => {
-                                self._logger?.error(
-                                    `Failed to save profile password on success: ${error}`,
-                                );
-                            });
-                    } else {
-                        // Store in session for connections with savePassword = false
-                        self._connectionStore.storeSessionPassword(
-                            connection.credentials,
-                            connection.credentials.password,
-                        );
-                    }
-                }
+                await this.handlePasswordStorageOnConnect(
+                    connection.credentials as IConnectionProfile,
+                );
 
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
@@ -1315,6 +1298,22 @@ export default class ConnectionManager {
             }
         }
         return true;
+    }
+
+    public async handlePasswordStorageOnConnect(profile: IConnectionProfile): Promise<void> {
+        // Save password on successful connection based on savePassword preference
+        if (profile.password) {
+            if (profile.savePassword) {
+                try {
+                    await this._connectionStore.saveProfilePasswordIfNeeded(profile);
+                } catch (error) {
+                    this._logger?.error(`Failed to save profile password on success: ${error}`);
+                }
+            } else {
+                // Store in session for connections with savePassword = false
+                this._connectionStore.storeSessionPassword(profile, profile.password);
+            }
+        }
     }
 
     /**

@@ -134,7 +134,7 @@ export class ConnectionStore {
     /**
      * Creates a formatted credential usable for uniquely identifying a SQL Connection.
      * This string can be decoded but is not optimized for this.
-     * @static
+     * @deprecated
      * @param server name of the server - required
      * @param database name of the database - optional
      * @param user name of the user - optional
@@ -322,8 +322,10 @@ export class ConnectionStore {
      * @param password Password to store
      */
     public storeSessionPassword(connectionCredentials: IConnectionInfo, password: string): void {
-        const sessionKey = this.getSessionPasswordKey(connectionCredentials);
-        this._sessionPasswords.set(sessionKey, password);
+        if (ConnectionStore.shouldSavePasswordUntilRestart) {
+            const sessionKey = this.getSessionPasswordKey(connectionCredentials);
+            this._sessionPasswords.set(sessionKey, password);
+        }
     }
 
     /**

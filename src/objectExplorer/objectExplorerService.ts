@@ -868,25 +868,7 @@ export class ObjectExplorerService {
             this.addConnectionNode(connectionNode);
         }
 
-        // Save password on successful connection based on savePassword preference
-        if (connectionProfile.password) {
-            if (connectionProfile.savePassword) {
-                // Save to credential store for connections with savePassword = true
-                await this._connectionManager.connectionStore
-                    .saveProfilePasswordIfNeeded(connectionProfile)
-                    .catch((error) => {
-                        this._logger.error(
-                            `Failed to save profile password on success in OE: ${error}`,
-                        );
-                    });
-            } else {
-                // Store in session for connections with savePassword = false
-                this._connectionManager.connectionStore.storeSessionPassword(
-                    connectionProfile,
-                    connectionProfile.password,
-                );
-            }
-        }
+        await this._connectionManager.handlePasswordStorageOnConnect(connectionProfile);
 
         // remove the sign in node once the session is created
         if (this._treeNodeToChildrenMap.has(connectionNode)) {
