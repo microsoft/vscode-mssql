@@ -42,46 +42,62 @@ type ServerItem = {
 const useStyles = makeStyles({
     container: {
         display: "flex",
-        height: "100%",
+        height: "400px", // Fixed height that will fit well in the dialog
         width: "100%",
         ...shorthands.gap("10px"),
+        overflow: "hidden", // Prevent container from causing scrollbars
+        marginTop: "10px",
     },
     workspaceExplorer: {
         display: "flex",
         flexDirection: "column",
-        width: "200px",
+        width: "160px", // Slightly narrower for better proportions
+        minWidth: "160px", // Ensure it doesn't shrink below this width
         height: "100%",
         borderRight: "1px solid var(--vscode-panel-border)",
-        ...shorthands.padding("8px"),
+        ...shorthands.padding("4px"),
         transition: "width 0.2s ease-in-out",
+        overflow: "auto", // Allow scrolling within the workspace list if needed
+        backgroundColor: "var(--vscode-sideBar-background)",
     },
     workspaceExplorerCollapsed: {
-        width: "32px",
+        width: "28px",
+        minWidth: "28px",
         ...shorthands.overflow("visible"),
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
         alignItems: "center",
-        paddingTop: "8px",
+        paddingTop: "4px",
+        borderRight: "1px solid var(--vscode-panel-border)",
+        backgroundColor: "var(--vscode-sideBar-background)",
     },
     workspaceGrid: {
         flexGrow: 1,
-        overflowX: "auto",
+        overflow: "hidden", // Changed to hidden to control overflow properly
         ...shorthands.padding("8px"),
+        height: "100%", // Fill the available height
+        display: "flex",
+        flexDirection: "column",
     },
     workspaceTitle: {
-        fontSize: "16px",
+        fontSize: "14px",
         fontWeight: "600",
-        marginBottom: "10px",
+        marginBottom: "8px",
+        paddingLeft: "8px",
+        paddingTop: "4px",
     },
     workspaceItem: {
-        ...shorthands.padding("6px", "8px"),
+        ...shorthands.padding("4px", "8px"),
         cursor: "pointer",
-        borderRadius: "4px",
-        marginBottom: "2px",
+        borderRadius: "2px",
+        marginBottom: "1px",
         whiteSpace: "nowrap",
         overflow: "hidden",
         textOverflow: "ellipsis",
+        fontSize: "13px",
+        height: "24px",
+        lineHeight: "24px",
         "&:hover": {
             backgroundColor: "var(--vscode-list-hoverBackground)",
         },
@@ -104,10 +120,44 @@ const useStyles = makeStyles({
     },
     tableContainer: {
         width: "100%",
-        overflowX: "auto",
+        height: "100%", // Fill the available height
+        display: "flex",
+        flexDirection: "column",
+        border: "1px solid var(--vscode-panel-border)",
+        borderRadius: "4px",
+        backgroundColor: "var(--vscode-editor-background)",
+        "& tr:not(:last-child)": {
+            borderBottom: "1px solid var(--vscode-panel-border)",
+        },
+        "& td, & th": {
+            borderRight: "1px solid var(--vscode-panel-border)",
+            height: "22px !important",
+            maxHeight: "22px !important",
+        },
+        "& td:last-child, & th:last-child": {
+            borderRight: "none",
+        },
+        "& tr": {
+            height: "22px !important",
+            maxHeight: "22px !important",
+        },
     },
     headerRow: {
         backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
+        height: "22px",
+        minHeight: "22px",
+        maxHeight: "22px",
+    },
+    tableRow: {
+        height: "22px",
+        minHeight: "22px",
+        maxHeight: "22px",
+        "&:hover": {
+            backgroundColor: "var(--vscode-list-hoverBackground)",
+        },
+        "&:nth-child(odd)": {
+            backgroundColor: "rgba(0, 0, 0, 0.1)",
+        },
     },
 });
 
@@ -141,7 +191,7 @@ const WorkspacesList = ({
 
 export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
     const styles = useStyles();
-    const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
+    const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false); // Ensure it's expanded by default
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
 
     // Extract unique workspaces from the server info - memoize to prevent unnecessary recalculations
@@ -252,7 +302,11 @@ export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
     return (
         <div className={styles.container}>
             <div
-                className={`${styles.workspaceExplorer} ${isExplorerCollapsed ? styles.workspaceExplorerCollapsed : ""}`}>
+                className={
+                    isExplorerCollapsed
+                        ? styles.workspaceExplorerCollapsed
+                        : styles.workspaceExplorer
+                }>
                 {isExplorerCollapsed ? (
                     // When collapsed, render just the expand button prominently
                     <Button
@@ -299,44 +353,87 @@ export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
             <div className={styles.workspaceGrid}>
                 <div className={styles.tableContainer}>
                     {fabricServerInfo.length === 0 ? (
-                        <div style={{ padding: "16px", textAlign: "center" }}>
+                        <div
+                            style={{
+                                padding: "16px",
+                                textAlign: "center",
+                                color: "var(--vscode-descriptionForeground)",
+                                height: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}>
                             No SQL servers found. Please sign in to view available servers.
                         </div>
                     ) : items.length === 0 ? (
-                        <div style={{ padding: "16px", textAlign: "center" }}>
+                        <div
+                            style={{
+                                padding: "16px",
+                                textAlign: "center",
+                                color: "var(--vscode-descriptionForeground)",
+                                height: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}>
                             No databases found in the selected workspace.
                         </div>
                     ) : (
-                        <Table {...columnSizing_unstable.getTableProps()} ref={tableRef}>
-                            <TableHeader className={styles.headerRow}>
-                                <TableRow>
-                                    {columns.map((column) => (
-                                        <TableHeaderCell
-                                            key={column.columnId}
-                                            {...columnSizing_unstable.getTableHeaderCellProps(
-                                                column.columnId,
-                                            )}>
-                                            {column.renderHeaderCell()}
-                                        </TableHeaderCell>
-                                    ))}
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {rows.map((row, i) => (
-                                    <TableRow key={i}>
+                        <div style={{ overflow: "auto", height: "100%" }}>
+                            <Table
+                                {...columnSizing_unstable.getTableProps()}
+                                ref={tableRef}
+                                size="small"
+                                style={{
+                                    flexGrow: 0,
+                                    height: "auto",
+                                    borderSpacing: "0",
+                                    borderCollapse: "collapse",
+                                    tableLayout: "fixed",
+                                }}>
+                                <TableHeader className={styles.headerRow}>
+                                    <TableRow>
                                         {columns.map((column) => (
-                                            <TableCell
+                                            <TableHeaderCell
                                                 key={column.columnId}
-                                                {...columnSizing_unstable.getTableCellProps(
+                                                {...columnSizing_unstable.getTableHeaderCellProps(
                                                     column.columnId,
-                                                )}>
-                                                {column.renderCell(row.item)}
-                                            </TableCell>
+                                                )}
+                                                style={{
+                                                    height: "22px",
+                                                    padding: "0 8px",
+                                                    fontSize: "12px",
+                                                }}>
+                                                {column.renderHeaderCell()}
+                                            </TableHeaderCell>
                                         ))}
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {rows.map((row, i) => (
+                                        <TableRow key={i} className={styles.tableRow}>
+                                            {columns.map((column) => (
+                                                <TableCell
+                                                    key={column.columnId}
+                                                    {...columnSizing_unstable.getTableCellProps(
+                                                        column.columnId,
+                                                    )}
+                                                    style={{
+                                                        height: "22px",
+                                                        maxHeight: "22px",
+                                                        padding: "0 8px",
+                                                        fontSize: "12px",
+                                                        lineHeight: "22px",
+                                                        verticalAlign: "middle",
+                                                    }}>
+                                                    {column.renderCell(row.item)}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
                     )}
                 </div>
             </div>
