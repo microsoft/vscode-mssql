@@ -43,6 +43,26 @@ suite("getConnectionDisplayName", () => {
         );
     });
 
+    test("Should include default database tag when default database is true", () => {
+        const connection: IConnectionInfo = {
+            server: "testServer",
+            authenticationType: Constants.sqlAuthentication,
+            user: "testUser",
+            defaultDatabase: true,
+        } as IConnectionInfo;
+
+        let result = ConnectionInfo.getConnectionDisplayName(connection);
+        expect(result).to.equal(
+            `testServer, ${LocalizedConstants.defaultDatabaseLabel} (testUser)`,
+        );
+
+        connection.database = "";
+        result = ConnectionInfo.getConnectionDisplayName(connection);
+        expect(result).to.equal(
+            `testServer, ${LocalizedConstants.defaultDatabaseLabel} (testUser)`,
+        );
+    });
+
     test("Should include email for Azure MFA Authentication", () => {
         const connection: IConnectionInfo = {
             server: "testServer",

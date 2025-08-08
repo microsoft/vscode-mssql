@@ -53,6 +53,7 @@ export class ConnectionCredentials implements IConnectionInfo {
     public typeSystemVersion: string | undefined;
     public connectionString: string | undefined;
     public containerName: string | undefined;
+    public defaultDatabase: boolean | undefined;
 
     /**
      * Create a connection details contract from connection credentials.
@@ -162,6 +163,7 @@ export class ConnectionCredentials implements IConnectionInfo {
             tenantId: options["tenantId"],
             expiresOn: options["expiresOn"],
             containerName: options["containerName"],
+            defaultDatabase: options["defaultDatabase"] || false,
         };
 
         return connInfo;

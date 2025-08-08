@@ -416,6 +416,11 @@ declare module "vscode-mssql" {
          * connection is not hosted by a container
          */
         containerName: string | undefined;
+
+        /**
+         * True if the connections doesn't use a database name, false if it does.
+         */
+        defaultDatabase: boolean | undefined;
     }
 
     /**

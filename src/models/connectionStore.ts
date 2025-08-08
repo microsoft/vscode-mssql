@@ -274,6 +274,8 @@ export class ConnectionStore {
     ): Promise<IConnectionProfile> {
         await this._connectionConfig.populateMissingConnectionIds(profile);
 
+        // if the database is not set, means the connections is using the default database
+        profile.defaultDatabase = !profile.database;
         // Add the profile to the saved list, taking care to clear out the password field if necessary
         let savedProfile: IConnectionProfile;
         if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
