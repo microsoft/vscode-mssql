@@ -1624,12 +1624,6 @@
                     "default": false,
                     "scope": "window"
                 },
-                "mssql.applyLocalization": {
-                    "type": "boolean",
-                    "description": "%mssql.applyLocalization%",
-                    "default": false,
-                    "scope": "window"
-                },
                 "mssql.intelliSense.enableIntelliSense": {
                     "type": "boolean",
                     "default": true,
