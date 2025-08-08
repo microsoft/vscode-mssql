@@ -33,6 +33,11 @@ import { Deferred } from "../protocol";
  * @class ConnectionStore
  */
 export class ConnectionStore {
+    /**
+     * Map to store password for connections where savePassword is false for the session.
+     * For connections with savePassword = true, the password will be saved to the credential
+     * store.
+     */
     private _sessionPasswords: Map<string, string> = new Map();
     constructor(
         private _context: vscode.ExtensionContext,
@@ -329,15 +334,6 @@ export class ConnectionStore {
     }
 
     /**
-     * Clear session password for a connection
-     * @param connectionCredentials Connection credentials
-     */
-    public clearSessionPassword(connectionCredentials: IConnectionInfo): void {
-        const sessionKey = this.getSessionPasswordKey(connectionCredentials);
-        this._sessionPasswords.delete(sessionKey);
-    }
-
-    /**
      * Generate a session key for password storage
      * @param connectionCredentials Connection credentials
      * @returns Session storage key
@@ -612,36 +608,7 @@ export class ConnectionStore {
 
             // Now remove password from credential store. Currently do not care about status unless an error occurred
             if (profile.savePassword === true && !keepCredentialStore) {
-                let credentialId: string;
-
-                // Use profile ID if available
-                if (profile.id) {
-                    credentialId = ConnectionStore.formatCredentialIdFromProfileId(profile.id);
-                } else {
-                    credentialId = ConnectionStore.formatCredentialId(
-                        profile.server,
-                        profile.database,
-                        profile.user,
-                        ConnectionStore.CRED_PROFILE_USER,
-                    );
-                }
-
-                this._credentialStore.deleteCredential(credentialId).then(undefined, (rejected) => {
-                    throw new Error(rejected);
-                });
-
-                // Also try to delete legacy format if using profile ID
-                if (profile.id) {
-                    const legacyCredentialId = ConnectionStore.formatCredentialId(
-                        profile.server,
-                        profile.database,
-                        profile.user,
-                        ConnectionStore.CRED_PROFILE_USER,
-                    );
-                    this._credentialStore.deleteCredential(legacyCredentialId).catch(() => {
-                        // Ignore errors for legacy cleanup
-                    });
-                }
+                await this.deleteCredential(profile);
             }
 
             return profileFound;
