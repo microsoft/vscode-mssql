@@ -8,7 +8,7 @@ import { makeStyles } from "@fluentui/react-components";
 import { Editor } from "@monaco-editor/react";
 import { QueryResultContext } from "./queryResultStateProvider";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { getEOL, resolveVscodeThemeType } from "../../common/utils";
+import { resolveVscodeThemeType } from "../../common/utils";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
@@ -47,6 +47,7 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
     const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
     const [textContent, setTextContent] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
+    const EOL = webViewState.EOL;
 
     useEffect(() => {
         const generateTextView = async () => {
@@ -90,8 +91,8 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
 
                         const resultIdentifier = `${batchId}-${resultId}`;
 
-                        content += `${locConstants.queryResult.resultSet(resultIdentifier)}${getEOL()}`;
-                        content += "=".repeat(40) + `${getEOL()}${getEOL()}`;
+                        content += `${locConstants.queryResult.resultSet(resultIdentifier)}${EOL}`;
+                        content += "=".repeat(40) + `${EOL}${EOL}`;
 
                         // Get all rows for this result set first to calculate proper column widths
                         if (resultSetSummary.rowCount > 0) {
@@ -152,27 +153,27 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                         const headerLine = columnNames
                             .map((name, index) => name.padEnd(columnWidths[index]))
                             .join("  ");
-                        content += `${headerLine}${getEOL()}`;
+                        content += `${headerLine}${EOL}`;
 
                         // Add separator line
                         const separatorLine = columnWidths
                             .map((width) => "-".repeat(width))
                             .join("  ");
-                        content += `${separatorLine}${getEOL()}`;
+                        content += `${separatorLine}${EOL}`;
 
                         // Add the formatted data rows
                         for (const formattedRow of formattedRows) {
-                            content += `${formattedRow}${getEOL()}`;
+                            content += `${formattedRow}${EOL}`;
                         }
 
                         // Add row count information
                         if (resultSetSummary.rowCount > 0) {
-                            content += `(${locConstants.queryResult.rowsAffected(resultSetSummary.rowCount)})${getEOL()}`;
+                            content += `(${locConstants.queryResult.rowsAffected(resultSetSummary.rowCount)})${EOL}`;
                         } else {
-                            content += `(${locConstants.queryResult.rowsAffected(0)})${getEOL()}`;
+                            content += `(${locConstants.queryResult.rowsAffected(0)})${EOL}`;
                         }
 
-                        content += `${getEOL()}`;
+                        content += `${EOL}`;
                     }
                 }
 

@@ -15,12 +15,14 @@ import { webviewTheme } from "./theme";
 import {
     ColorThemeChangeNotification,
     ColorThemeKind,
+    GetEOLRequest,
     GetLocalizationRequest,
     GetStateRequest,
     GetThemeRequest,
     LoadStatsNotification,
     StateChangeNotification,
 } from "../../sharedInterfaces/webview";
+import { getEOL } from "./utils";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -49,6 +51,10 @@ export interface VscodeWebviewContext<State, Reducers> {
      * This is used to force a re-render of the component when the localization file content is received.
      */
     localization: boolean;
+    /**
+     * OS specific end of line character.
+     */
+    EOL: string;
 }
 
 const vscodeApiInstance = acquireVsCodeApi<unknown>();
@@ -72,6 +78,7 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
     const [theme, setTheme] = useState(ColorThemeKind.Light);
     const [state, setState] = useState<State>();
     const [localization, setLocalization] = useState<boolean>(false);
+    const [EOL, setEOL] = useState<string>(getEOL());
 
     useEffect(() => {
         async function getTheme() {
@@ -107,10 +114,16 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
             setLocalization(true);
         }
 
+        async function getEOL() {
+            const eol = await extensionRpc.sendRequest(GetEOLRequest.type);
+            setEOL(eol);
+        }
+
         void getTheme();
         void getState();
         void loadStats();
         void getLocalization();
+        void getEOL();
     }, []);
 
     extensionRpc.onNotification(ColorThemeChangeNotification.type, (params) => {
@@ -133,6 +146,7 @@ export function VscodeWebviewProvider<State, Reducers>({ children }: VscodeWebvi
                 state: state,
                 themeKind: theme,
                 localization: localization,
+                EOL: EOL,
             }}>
             <FluentProvider
                 style={{
