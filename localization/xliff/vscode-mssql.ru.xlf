@@ -4572,10 +4572,6 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
         <target state="translated">[Необязательно] Параметры конфигурации для копирования результатов из представления результатов</target>
       </trans-unit>
-      <trans-unit id="mssql.applyLocalization">
-        <source xml:lang="en">[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)</source>
-        <target state="translated">[Необязательно] Параметры конфигурации для перехода на языковой стандарт, указанных в параметрах VSCode. (Чтобы эти параметры вступили в силу, необходимо перезапустить VSCode.)</target>
-      </trans-unit>
       <trans-unit id="mssql.splitPaneSelection">
         <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
         <target state="translated">[Необязательно] Параметры конфигурации, определяющие, для какого столбца должны открываться новые области результатов</target>
