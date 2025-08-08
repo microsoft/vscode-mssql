@@ -1052,6 +1052,125 @@ export default class ConnectionManager {
     }
 
     /**
+     * Gets the default connection from configuration if available
+     */
+    public async getDefaultConnectionFromConfig(
+        fileUri: string,
+    ): Promise<IConnectionInfo | undefined> {
+        // Get configuration from the workspace
+        const config = this.vscodeWrapper.getConfiguration(
+            Constants.extensionConfigSectionName,
+            fileUri,
+        );
+        const defaultConnectionName = config.get<string>(Constants.configDefaultConnectionName);
+
+        // Debug logging
+        this.vscodeWrapper.logToOutputChannel(
+            LocalizedConstants.msgCheckingDefaultConnection(fileUri),
+        );
+        this.vscodeWrapper.logToOutputChannel(
+            LocalizedConstants.msgDefaultConnectionNameFromConfig(defaultConnectionName),
+        );
+
+        if (!defaultConnectionName) {
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgNoDefaultConnectionNameConfigured,
+            );
+            return undefined;
+        }
+
+        // Get saved connections to find the one with the matching name
+        const connectionProfileList = await this._connectionStore.getPickListItems();
+        this.vscodeWrapper.logToOutputChannel(
+            LocalizedConstants.msgFoundSavedConnections(connectionProfileList.length),
+        );
+
+        const matchingConnection = connectionProfileList.find((profile) => {
+            const connectionProfile = profile.connectionCreds as IConnectionProfile;
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgCheckingProfile(connectionProfile.profileName, profile.label),
+            );
+            return (
+                connectionProfile.profileName === defaultConnectionName ||
+                profile.label === defaultConnectionName
+            );
+        });
+
+        if (matchingConnection) {
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgFoundMatchingConnection(matchingConnection.label),
+            );
+        } else {
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgNoMatchingConnectionFound(defaultConnectionName),
+            );
+        }
+
+        return matchingConnection?.connectionCreds;
+    }
+
+    /**
+     * Attempts to connect using the default connection configuration if available
+     */
+    public async connectWithDefaultConnection(fileUri: string): Promise<boolean> {
+        this.vscodeWrapper.logToOutputChannel(
+            LocalizedConstants.msgSearchingForDefaultConnection(fileUri),
+        );
+
+        const defaultConnection = await this.getDefaultConnectionFromConfig(fileUri);
+        if (!defaultConnection) {
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgNoDefaultConnectionAvailable,
+            );
+            return false;
+        }
+
+        this.vscodeWrapper.logToOutputChannel(
+            LocalizedConstants.msgAttemptingToConnectWithDefaultConnection,
+        );
+
+        try {
+            // close any active connection first
+            await this.disconnect(fileUri);
+
+            // attempt to connect with the default connection
+            const result = await this.connect(fileUri, defaultConnection);
+
+            if (result) {
+                this.vscodeWrapper.logToOutputChannel(
+                    LocalizedConstants.msgConnectedToDefaultConnection(
+                        defaultConnection.server || "connection string",
+                    ),
+                );
+                return true;
+            }
+
+            this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgConnectionAttemptFailed);
+
+            // Show toaster notification for connection failure
+            const connectionInfo = this.getConnectionInfo(fileUri);
+            const errorMessage =
+                connectionInfo?.errorMessage || LocalizedConstants.msgUnknownErrorOccurred;
+            this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.msgDefaultConnectionFailed(errorMessage),
+            );
+
+            return false;
+        } catch (error) {
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgFailedToConnectWithDefaultConnection(error.message),
+            );
+
+            // Show toaster notification for exception
+            this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.msgDefaultConnectionFailed(error.message),
+            );
+
+            return false;
+        }
+    }
+
+    /**
      * Helper to show all connections and perform connect logic.
      */
     public async showConnectionsAndConnect(fileUri: string): Promise<IConnectionInfo> {
