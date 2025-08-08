@@ -145,7 +145,8 @@ The following Visual Studio Code settings are available for the mssql extension.
   "mssql.enableRichExperiences": true,
   "mssql.openQueryResultsInTabByDefault": false,
   "mssql.logDebugInfo": false,
-  "mssql.messagesDefaultOpen": true
+  "mssql.messagesDefaultOpen": true,
+  "mssql.applyLocalization": false,
 }
 
 // IntelliSense
