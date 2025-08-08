@@ -6,7 +6,15 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, Link, makeStyles, Spinner, Textarea } from "@fluentui/react-components";
+import {
+    Button,
+    Link,
+    List,
+    ListItem,
+    makeStyles,
+    Spinner,
+    Textarea,
+} from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
@@ -21,6 +29,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { removeDuplicates } from "../../common/utils";
 import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
+import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
 
 const useStyles = makeStyles({
     icon: {
@@ -116,11 +125,8 @@ export const FabricBrowsePage = () => {
             )}
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
-                    <Textarea
-                        value={JSON.stringify(context.state.fabricServers, undefined, 2)}
-                        disabled
-                        style={{ width: "100%", height: "200px" }}
-                    />
+                    <FabricWorkspaceViewer fabricServerInfo={context.state.fabricServers} />
+
                     {selectedServer && (
                         <>
                             <FormField<

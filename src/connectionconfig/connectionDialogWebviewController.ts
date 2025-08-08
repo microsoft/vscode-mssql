@@ -268,6 +268,26 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         databases: ["db3", "db4"],
                         workspace: { name: "workspace2", id: "workspace-id-2" },
                     },
+                    {
+                        server: "fabric-server-3",
+                        databases: ["db5", "db6"],
+                        workspace: { name: "workspace3", id: "workspace-id-3" },
+                    },
+                    {
+                        server: "fabric-server-4",
+                        databases: ["db7", "db8"],
+                        workspace: { name: "workspace4", id: "workspace-id-4" },
+                    },
+                    {
+                        server: "fabric-server-5",
+                        databases: ["db9", "db10"],
+                        workspace: { name: "workspace5", id: "workspace-id-5" },
+                    },
+                    {
+                        server: "fabric-server-6",
+                        databases: ["db11", "db12"],
+                        workspace: { name: "workspace6", id: "workspace-id-6" },
+                    },
                 ];
             }
 
