@@ -413,7 +413,7 @@ export class ObjectExplorerService {
         const newConnectionNodes = new Map<string, ConnectionNode>();
 
         // Read user setting for default expansion state
-        const config = this._vscodeWrapper.getConfiguration("mssql");
+        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         const expandGroupsByDefault = config.get<boolean>(
             "connectionGroupsExpandedByDefault",
             true,
