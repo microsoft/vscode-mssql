@@ -1277,7 +1277,6 @@ export default class ConnectionManager {
             let password = connectionCreds.password;
 
             if (Utils.isEmpty(password)) {
-                // Try to get saved password first
                 password = await this.connectionStore.lookupPassword(connectionCreds);
 
                 if (!password) {
@@ -1285,8 +1284,6 @@ export default class ConnectionManager {
                     if (!password) {
                         return false;
                     }
-
-                    // Set password but don't save yet - wait for successful connection
                     connectionCreds.password = password;
                 } else {
                     connectionCreds.password = password;

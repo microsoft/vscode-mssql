@@ -338,13 +338,6 @@ export class ConnectionStore {
     }
 
     /**
-     * Clear all session passwords (called on extension restart)
-     */
-    public clearAllSessionPasswords(): void {
-        this._sessionPasswords.clear();
-    }
-
-    /**
      * Generate a session key for password storage
      * @param connectionCredentials Connection credentials
      * @returns Session storage key

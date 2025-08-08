@@ -185,10 +185,6 @@ export default class MainController implements vscode.Disposable {
     public async deactivate(): Promise<void> {
         Utils.logDebug("de-activated.");
         await this.onDisconnect();
-
-        // Clear session passwords on deactivation
-        this.connectionManager.connectionStore.clearAllSessionPasswords();
-
         this._statusview.dispose();
     }
 
