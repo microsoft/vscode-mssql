@@ -22,11 +22,15 @@ export class ConnectionGroupNode extends TreeNodeInfo {
     public children: TreeNodeInfo[];
     private _connectionGroup: IConnectionGroup;
 
-    constructor(connectionGroup: IConnectionGroup) {
+    constructor(
+        connectionGroup: IConnectionGroup,
+        collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState
+            .Expanded,
+    ) {
         super(
             connectionGroup.name,
             createConnectionGroupContextValue(),
-            vscode.TreeItemCollapsibleState.Expanded,
+            collapsibleState,
             connectionGroup.id,
             undefined,
             CONNECTION_GROUP_NODE_TYPE,
