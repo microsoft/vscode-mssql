@@ -8,6 +8,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as ConnInfo from "./connectionInfo";
 import * as Utils from "../models/utils";
+import * as Contracts from "./contracts";
 import ValidationException from "../utils/validationException";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import {
@@ -32,6 +33,7 @@ import { Deferred } from "../protocol";
  * @class ConnectionStore
  */
 export class ConnectionStore {
+    private _sessionPasswords: Map<string, string> = new Map();
     constructor(
         private _context: vscode.ExtensionContext,
         private _credentialStore: ICredentialStore,
@@ -95,12 +97,32 @@ export class ConnectionStore {
         if (itemType) {
             itemTypeString = CredentialsQuickPickItemType[itemType];
         }
+
+        // Use profile ID as key if available for saved profiles
+        const profile = creds as IConnectionProfile;
+        if (profile.id && itemType === CredentialsQuickPickItemType.Profile) {
+            return ConnectionStore.formatCredentialIdFromProfileId(profile.id, itemTypeString);
+        }
+
         return ConnectionStore.formatCredentialId(
             creds.server,
             creds.database,
             creds.user,
             itemTypeString,
         );
+    }
+
+    /**
+     * Creates a credential ID using profile ID instead of connection details
+     * @param profileId The connection profile ID
+     * @param itemType The item type string
+     * @returns formatted credential ID
+     */
+    public static formatCredentialIdFromProfileId(
+        profileId: string,
+        itemType: string = ConnectionStore.CRED_PROFILE_USER,
+    ): string {
+        return `${ConnectionStore.CRED_PREFIX}${ConnectionStore.CRED_SEPARATOR}profile_id:${profileId}${ConnectionStore.CRED_SEPARATOR}${ConnectionStore.CRED_ITEMTYPE_PREFIX}${itemType}`;
     }
 
     /**
@@ -222,26 +244,105 @@ export class ConnectionStore {
     }
 
     /**
-     * Lookup credential store
+     * Lookup credential store with migration support
      * @param connectionCredentials Connection credentials of profile for password lookup
+     * @param isConnectionString Whether this is a connection string lookup
      */
     public async lookupPassword(
         connectionCredentials: IConnectionInfo,
         isConnectionString: boolean = false,
     ): Promise<string> {
-        const credentialId = ConnectionStore.formatCredentialId(
-            connectionCredentials.server,
-            connectionCredentials.database,
-            connectionCredentials.user,
-            ConnectionStore.CRED_PROFILE_USER,
-            isConnectionString,
-        );
-        const savedCredential = await this._credentialStore.readCredential(credentialId);
-        if (savedCredential && savedCredential.password) {
-            return savedCredential.password;
-        } else {
-            return undefined;
+        const profile = connectionCredentials as IConnectionProfile;
+        let credentialId: string;
+        let savedCredential: Contracts.Credential;
+
+        // First, try to get password from session storage for non-saved passwords
+        if (!profile.savePassword) {
+            const sessionKey = this.getSessionPasswordKey(connectionCredentials);
+            const sessionPassword = this._sessionPasswords.get(sessionKey);
+            if (sessionPassword) {
+                return sessionPassword;
+            }
         }
+
+        // For saved profiles, use profile ID if available
+        if (profile.id && profile.savePassword) {
+            credentialId = ConnectionStore.formatCredentialIdFromProfileId(profile.id);
+            savedCredential = await this._credentialStore.readCredential(credentialId);
+
+            if (savedCredential && savedCredential.password) {
+                return savedCredential.password;
+            }
+
+            // Migration: Try legacy format and migrate if found
+            const legacyCredentialId = ConnectionStore.formatCredentialId(
+                connectionCredentials.server,
+                connectionCredentials.database,
+                connectionCredentials.user,
+                ConnectionStore.CRED_PROFILE_USER,
+                isConnectionString,
+            );
+            const legacyCredential = await this._credentialStore.readCredential(legacyCredentialId);
+
+            if (legacyCredential && legacyCredential.password) {
+                // Migrate to new format
+                await this._credentialStore.saveCredential(credentialId, legacyCredential.password);
+                // Clean up old credential
+                await this._credentialStore.deleteCredential(legacyCredentialId);
+                return legacyCredential.password;
+            }
+        } else {
+            // Fallback to legacy format for non-profile connections
+            credentialId = ConnectionStore.formatCredentialId(
+                connectionCredentials.server,
+                connectionCredentials.database,
+                connectionCredentials.user,
+                ConnectionStore.CRED_PROFILE_USER,
+                isConnectionString,
+            );
+            savedCredential = await this._credentialStore.readCredential(credentialId);
+
+            if (savedCredential && savedCredential.password) {
+                return savedCredential.password;
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Store password in session storage for connections that don't save passwords
+     * @param connectionCredentials Connection credentials
+     * @param password Password to store
+     */
+    public storeSessionPassword(connectionCredentials: IConnectionInfo, password: string): void {
+        const sessionKey = this.getSessionPasswordKey(connectionCredentials);
+        this._sessionPasswords.set(sessionKey, password);
+    }
+
+    /**
+     * Clear session password for a connection
+     * @param connectionCredentials Connection credentials
+     */
+    public clearSessionPassword(connectionCredentials: IConnectionInfo): void {
+        const sessionKey = this.getSessionPasswordKey(connectionCredentials);
+        this._sessionPasswords.delete(sessionKey);
+    }
+
+    /**
+     * Clear all session passwords (called on extension restart)
+     */
+    public clearAllSessionPasswords(): void {
+        this._sessionPasswords.clear();
+    }
+
+    /**
+     * Generate a session key for password storage
+     * @param connectionCredentials Connection credentials
+     * @returns Session storage key
+     */
+    private getSessionPasswordKey(connectionCredentials: IConnectionInfo): string {
+        return `session:${connectionCredentials.server}:${connectionCredentials.database || ""}:${connectionCredentials.user || ""}`;
     }
 
     /**
@@ -456,13 +557,26 @@ export class ConnectionStore {
                     type === CredentialsQuickPickItemType.Mru
                         ? ConnectionStore.CRED_MRU_USER
                         : ConnectionStore.CRED_PROFILE_USER;
-                let credentialId = ConnectionStore.formatCredentialId(
-                    conn.server,
-                    conn.database,
-                    conn.user,
-                    credType,
-                    isConnectionString,
-                );
+
+                let credentialId: string;
+                const profile = conn as IConnectionProfile;
+
+                // Use profile ID for saved profiles when available
+                if (profile.id && type === CredentialsQuickPickItemType.Profile) {
+                    credentialId = ConnectionStore.formatCredentialIdFromProfileId(
+                        profile.id,
+                        credType,
+                    );
+                } else {
+                    credentialId = ConnectionStore.formatCredentialId(
+                        conn.server,
+                        conn.database,
+                        conn.user,
+                        credType,
+                        isConnectionString,
+                    );
+                }
+
                 await self._credentialStore
                     .saveCredential(credentialId, password)
                     .then((result) => {
@@ -497,15 +611,36 @@ export class ConnectionStore {
 
             // Now remove password from credential store. Currently do not care about status unless an error occurred
             if (profile.savePassword === true && !keepCredentialStore) {
-                let credentialId = ConnectionStore.formatCredentialId(
-                    profile.server,
-                    profile.database,
-                    profile.user,
-                    ConnectionStore.CRED_PROFILE_USER,
-                );
+                let credentialId: string;
+
+                // Use profile ID if available
+                if (profile.id) {
+                    credentialId = ConnectionStore.formatCredentialIdFromProfileId(profile.id);
+                } else {
+                    credentialId = ConnectionStore.formatCredentialId(
+                        profile.server,
+                        profile.database,
+                        profile.user,
+                        ConnectionStore.CRED_PROFILE_USER,
+                    );
+                }
+
                 this._credentialStore.deleteCredential(credentialId).then(undefined, (rejected) => {
                     throw new Error(rejected);
                 });
+
+                // Also try to delete legacy format if using profile ID
+                if (profile.id) {
+                    const legacyCredentialId = ConnectionStore.formatCredentialId(
+                        profile.server,
+                        profile.database,
+                        profile.user,
+                        ConnectionStore.CRED_PROFILE_USER,
+                    );
+                    this._credentialStore.deleteCredential(legacyCredentialId).catch(() => {
+                        // Ignore errors for legacy cleanup
+                    });
+                }
             }
 
             return profileFound;
@@ -527,16 +662,39 @@ export class ConnectionStore {
 
     /**
      * Deletes the password for a connection from the credential store
-     * @param connectionCredential
+     * @param profile Connection profile
      */
     public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
-        let credentialId = ConnectionStore.formatCredentialId(
-            profile.server,
-            profile.database,
-            profile.user,
-            ConnectionStore.CRED_PROFILE_USER,
-        );
-        return await this._credentialStore.deleteCredential(credentialId);
+        let credentialId: string;
+
+        // Use profile ID if available
+        if (profile.id) {
+            credentialId = ConnectionStore.formatCredentialIdFromProfileId(profile.id);
+        } else {
+            credentialId = ConnectionStore.formatCredentialId(
+                profile.server,
+                profile.database,
+                profile.user,
+                ConnectionStore.CRED_PROFILE_USER,
+            );
+        }
+
+        const result = await this._credentialStore.deleteCredential(credentialId);
+
+        // Also try to delete legacy format if using profile ID
+        if (profile.id) {
+            const legacyCredentialId = ConnectionStore.formatCredentialId(
+                profile.server,
+                profile.database,
+                profile.user,
+                ConnectionStore.CRED_PROFILE_USER,
+            );
+            await this._credentialStore.deleteCredential(legacyCredentialId).catch(() => {
+                // Ignore errors for legacy cleanup
+            });
+        }
+
+        return result;
     }
 
     /**

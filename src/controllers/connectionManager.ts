@@ -612,6 +612,28 @@ export default class ConnectionManager {
                     mruConnection.database = result.connectionSummary.databaseName;
                 }
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
+
+                // Save password on successful connection based on savePassword preference
+                const profile = connection.credentials as IConnectionProfile;
+                if (connection.credentials.password) {
+                    if (profile.savePassword) {
+                        // Save to credential store for connections with savePassword = true
+                        await self._connectionStore
+                            .saveProfilePasswordIfNeeded(profile)
+                            .catch((error) => {
+                                self._logger?.error(
+                                    `Failed to save profile password on success: ${error}`,
+                                );
+                            });
+                    } else {
+                        // Store in session for connections with savePassword = false
+                        self._connectionStore.storeSessionPassword(
+                            connection.credentials,
+                            connection.credentials.password,
+                        );
+                    }
+                }
+
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
                     promise.resolve(true);
@@ -1270,22 +1292,27 @@ export default class ConnectionManager {
         if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
             // show password prompt if SQL Login and password isn't saved
             let password = connectionCreds.password;
-            if (Utils.isEmpty(password)) {
-                if ((connectionCreds as IConnectionProfile).savePassword) {
-                    password = await this.connectionStore.lookupPassword(connectionCreds);
-                }
 
+            if (Utils.isEmpty(password)) {
+                // Try to get saved password first
+                password = await this.connectionStore.lookupPassword(connectionCreds);
+
+                // If no saved password, prompt for it
                 if (!password) {
                     password = await this.connectionUI.promptForPassword();
                     if (!password) {
                         return false;
                     }
+
+                    // Set password but don't save yet - wait for successful connection
+                    connectionCreds.password = password;
+                } else {
+                    connectionCreds.password = password;
                 }
 
                 if (connectionCreds.authenticationType !== Constants.azureMfa) {
                     connectionCreds.azureAccountToken = undefined;
                 }
-                connectionCreds.password = password;
             }
         }
         return true;

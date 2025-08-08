@@ -781,24 +781,26 @@ export class ObjectExplorerService {
             // show password prompt if SQL Login and password isn't saved
             let password = connectionProfile.password;
             if (Utils.isEmpty(password)) {
-                if (connectionProfile.savePassword) {
-                    password =
-                        await this._connectionManager.connectionStore.lookupPassword(
-                            connectionProfile,
-                        );
-                }
+                // Try to get saved password first (this now includes session passwords and migration)
+                password =
+                    await this._connectionManager.connectionStore.lookupPassword(connectionProfile);
 
+                // If no saved password, prompt for it
                 if (!password) {
                     password = await this._connectionManager.connectionUI.promptForPassword();
                     if (!password) {
                         return undefined;
                     }
+
+                    // Set password but don't save yet - wait for successful connection
+                    connectionProfile.password = password;
+                } else {
+                    connectionProfile.password = password;
                 }
 
                 if (connectionProfile.authenticationType !== Constants.azureMfa) {
                     connectionProfile.azureAccountToken = undefined;
                 }
-                connectionProfile.password = password;
             }
             return connectionProfile;
         }
@@ -887,6 +889,27 @@ export class ObjectExplorerService {
         if (isNewConnection) {
             this.addConnectionNode(connectionNode);
         }
+
+        // Save password on successful connection based on savePassword preference
+        if (connectionProfile.password) {
+            if (connectionProfile.savePassword) {
+                // Save to credential store for connections with savePassword = true
+                await this._connectionManager.connectionStore
+                    .saveProfilePasswordIfNeeded(connectionProfile)
+                    .catch((error) => {
+                        this._logger.error(
+                            `Failed to save profile password on success in OE: ${error}`,
+                        );
+                    });
+            } else {
+                // Store in session for connections with savePassword = false
+                this._connectionManager.connectionStore.storeSessionPassword(
+                    connectionProfile,
+                    connectionProfile.password,
+                );
+            }
+        }
+
         // remove the sign in node once the session is created
         if (this._treeNodeToChildrenMap.has(connectionNode)) {
             this._treeNodeToChildrenMap.delete(connectionNode);
