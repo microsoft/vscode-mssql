@@ -1275,42 +1275,31 @@ export default class ConnectionManager {
         if (ConnectionCredentials.isPasswordBasedCredential(connectionCreds)) {
             // show password prompt if SQL Login and password isn't saved
             let password = connectionCreds.password;
-
             if (Utils.isEmpty(password)) {
                 password = await this.connectionStore.lookupPassword(connectionCreds);
-
                 if (!password) {
                     password = await this.connectionUI.promptForPassword();
                     if (!password) {
                         return false;
                     }
-                    connectionCreds.password = password;
-                } else {
-                    connectionCreds.password = password;
                 }
 
                 if (connectionCreds.authenticationType !== Constants.azureMfa) {
                     connectionCreds.azureAccountToken = undefined;
                 }
+                connectionCreds.password = password;
             }
         }
         return true;
     }
 
+    /**
+     * Saves password for the connection profile on successful connection.
+     * NOTE: To be only called when the connection is successful.
+     * @param profile Profile to save password for
+     */
     public async handlePasswordStorageOnConnect(profile: IConnectionProfile): Promise<void> {
-        // Save password on successful connection based on savePassword preference
-        if (profile.password) {
-            if (profile.savePassword) {
-                try {
-                    await this._connectionStore.saveProfilePasswordIfNeeded(profile);
-                } catch (error) {
-                    this._logger?.error(`Failed to save profile password on success: ${error}`);
-                }
-            } else {
-                // Store in session for connections with savePassword = false
-                this._connectionStore.storeSessionPassword(profile, profile.password);
-            }
-        }
+        await this.connectionStore.saveProfilePasswordIfNeeded(profile);
     }
 
     /**

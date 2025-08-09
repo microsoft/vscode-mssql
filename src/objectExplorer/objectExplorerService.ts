@@ -777,9 +777,9 @@ export class ObjectExplorerService {
             }
         }
 
-        const passwordHandled =
+        const isPasswordHandled =
             await this._connectionManager.handlePasswordBasedCredentials(connectionProfile);
-        if (!passwordHandled) {
+        if (!isPasswordHandled) {
             return undefined;
         }
 
