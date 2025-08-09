@@ -380,6 +380,12 @@
                     "group": "navigation"
                 },
                 {
+                    "command": "mssql.searchObjects",
+                    "when": "view == objectExplorer",
+                    "title": "%mssql.searchObjects%",
+                    "group": "navigation"
+                },
+                {
                     "command": "mssql.startQueryHistoryCapture",
                     "when": "view == queryHistory && config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture",
                     "title": "%mssql.startQueryHistoryCapture%",
@@ -462,6 +468,11 @@
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@2"
+                },
+                {
+                    "command": "mssql.searchObjects",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
                     "command": "mssql.scriptSelect",
@@ -900,6 +911,12 @@
                 "command": "mssql.disconnectObjectExplorerNode",
                 "title": "%mssql.disconnect%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.searchObjects",
+                "title": "%mssql.searchObjects%",
+                "category": "MS SQL",
+                "icon": "$(search)"
             },
             {
                 "command": "mssql.scriptSelect",
