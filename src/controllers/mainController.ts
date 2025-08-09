@@ -48,6 +48,7 @@ import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
+import { DatabaseObjectSearchService } from "../services/databaseObjectSearchService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
@@ -1025,6 +1026,133 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Handles the search objects command
+     * @param node Optional connection node to search within
+     */
+    public async onSearchObjects(node?: ConnectionNode): Promise<void> {
+        try {
+            // Get the connection URI and database name
+            let connectionUri: string;
+            let databaseName: string | undefined;
+
+            if (node && node.connectionProfile) {
+                // Called from Object Explorer context menu
+                connectionUri = ObjectExplorerUtils.getNodeUri(node);
+                databaseName = node.connectionProfile.database;
+                // Ensure we have an active connection for this URI
+                if (!this.connectionManager.isConnected(connectionUri)) {
+                    let connectionCreds = node.connectionProfile;
+                    const nodeDatabaseName = ObjectExplorerUtils.getDatabaseName(node);
+                    if (nodeDatabaseName !== connectionCreds.database) {
+                        connectionCreds.database = nodeDatabaseName;
+                        databaseName = nodeDatabaseName;
+                    }
+                    if (!this.connectionManager.isConnecting(connectionUri)) {
+                        const promise = new Deferred<boolean>();
+                        await this.connectionManager.connect(
+                            connectionUri,
+                            connectionCreds,
+                            promise,
+                        );
+                        await promise;
+                    }
+                }
+            } else {
+                // Called from command palette - use active connection
+                const activeUri = this._vscodeWrapper.activeTextEditorUri;
+                if (!activeUri) {
+                    void vscode.window.showErrorMessage(
+                        LocalizedConstants.searchObjectsNoConnection,
+                    );
+                    return;
+                }
+                const connection = this._connectionMgr.getConnectionInfo(activeUri);
+                if (!connection) {
+                    void vscode.window.showErrorMessage(
+                        LocalizedConstants.searchObjectsNoConnection,
+                    );
+                    return;
+                }
+                connectionUri = activeUri;
+                databaseName = connection.credentials.database;
+            }
+
+            // Validate the connection URI before proceeding
+            if (!connectionUri || connectionUri.trim() === "") {
+                void vscode.window.showErrorMessage(
+                    "Invalid connection URI. Please ensure you have an active database connection.",
+                );
+                return;
+            }
+
+            // Prompt user for search term
+            const searchTerm = await vscode.window.showInputBox({
+                prompt: LocalizedConstants.searchObjectsPrompt,
+                placeHolder: LocalizedConstants.searchObjectsPlaceholder,
+                ignoreFocusOut: true,
+            });
+
+            if (!searchTerm) {
+                return; // User cancelled
+            }
+
+            // Create search service instance and perform search
+            const searchService = new DatabaseObjectSearchService(this._connectionMgr.client);
+            const searchResult = await searchService.searchObjects(
+                connectionUri,
+                searchTerm,
+                databaseName,
+            );
+
+            if (!searchResult.success) {
+                void vscode.window.showErrorMessage(
+                    `${LocalizedConstants.searchObjectsError}: ${searchResult.error}`,
+                );
+                return;
+            }
+
+            if (searchResult.objects.length === 0) {
+                void vscode.window.showInformationMessage(
+                    LocalizedConstants.searchObjectsNoResults.replace("{0}", searchTerm),
+                );
+                return;
+            }
+
+            // Show results in quick pick
+            const quickPickItems = searchResult.objects.map((result) => ({
+                label: result.name,
+                description: result.type,
+                detail: result.schema ? `${result.schema}.${result.name}` : result.name,
+                object: result,
+            }));
+
+            const selectedItem = await vscode.window.showQuickPick(quickPickItems, {
+                placeHolder: LocalizedConstants.searchObjectsSelectPrompt.replace(
+                    "{0}",
+                    searchResult.objects.length.toString(),
+                ),
+                ignoreFocusOut: true,
+                matchOnDescription: true,
+                matchOnDetail: true,
+            });
+
+            if (selectedItem) {
+                // Generate and open script for the selected object
+                const script = searchService.generateScript(selectedItem.object);
+                const doc = await vscode.workspace.openTextDocument({
+                    content: script,
+                    language: "sql",
+                });
+                await vscode.window.showTextDocument(doc);
+            }
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `${LocalizedConstants.searchObjectsError}: ${error.message || error}`,
+            );
+        }
+    }
+
+    /**
      * Initializes the Object Explorer commands
      * @param objectExplorerProvider provider settable for testing purposes
      */
@@ -1184,6 +1312,16 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdDisconnectObjectExplorerNode,
                 async (node: ConnectionNode) => {
                     await this._objectExplorerProvider.disconnectNode(node);
+                },
+            ),
+        );
+
+        // Search Objects in Database
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdSearchObjects,
+                async (node?: ConnectionNode) => {
+                    await this.onSearchObjects(node);
                 },
             ),
         );
