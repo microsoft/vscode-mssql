@@ -4572,10 +4572,6 @@ Puoi anche fare clic sul pulsante 'Apri in nuova scheda' per visualizzare i risu
         <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
         <target state="translated">[Facoltativo] Opzioni di configurazione per copiare i risultati dalla Visualizzazione risultati</target>
       </trans-unit>
-      <trans-unit id="mssql.applyLocalization">
-        <source xml:lang="en">[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)</source>
-        <target state="translated">[Facoltativo] Opzioni di configurazione per la localizzazione delle impostazioni locali configurate di VSCode (è necessario riavviare VSCode per rendere effettive le impostazioni)</target>
-      </trans-unit>
       <trans-unit id="mssql.splitPaneSelection">
         <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
         <target state="translated">[Facoltativo] Opzioni di configurazione per determinare la colonna in cui aprire i nuovi riquadri dei risultati</target>

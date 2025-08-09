@@ -4572,10 +4572,6 @@ Vous pouvez également cliquer sur le bouton « Ouvrir dans un nouvel onglet �
         <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
         <target state="translated">[Facultatif] Options de configuration pour copier les résultats à partir de la vue Résultats</target>
       </trans-unit>
-      <trans-unit id="mssql.applyLocalization">
-        <source xml:lang="en">[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)</source>
-        <target state="translated">[Facultatif] Options de configuration pour effectuer la localisation dans les paramètres régionaux configurés dans VSCode (vous devez redémarrer VSCode pour appliquer les paramètres)</target>
-      </trans-unit>
       <trans-unit id="mssql.splitPaneSelection">
         <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
         <target state="translated">[Facultatif] Options de configuration pour définir la colonne dans laquelle les nouveaux volets de résultats doivent s’ouvrir</target>

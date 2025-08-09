@@ -4572,10 +4572,6 @@ Sie können auch auf die Schaltfläche „In neuer Registerkarte öffnen“ klic
         <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
         <target state="translated">[Optional] Konfigurationsoptionen für das Kopieren von Ergebnissen aus der Ergebnisansicht.</target>
       </trans-unit>
-      <trans-unit id="mssql.applyLocalization">
-        <source xml:lang="en">[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)</source>
-        <target state="translated">[Optional] Konfigurationsoptionen für die Lokalisierung in das von VS Code konfigurierte Gebietsschema (VS Code muss neu gestartet werden, damit diese Einstellungen wirksam werden).</target>
-      </trans-unit>
       <trans-unit id="mssql.splitPaneSelection">
         <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
         <target state="translated">[Optional] Konfigurationsoptionen zur Festlegung, in welcher Spalte neue Ergebnisansichten geöffnet werden.</target>
