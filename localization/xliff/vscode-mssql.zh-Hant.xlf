@@ -18,6 +18,19 @@
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="translated">&lt;default&gt;</target>
       </trans-unit>
+      <trans-unit id="++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6">
+        <source xml:lang="en">(0 rows affected)</source>
+        <target state="new">(0 rows affected)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
+        <source xml:lang="en">(1 row affected)</source>
+        <target state="new">(1 row affected)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
+        <source xml:lang="en">({0} rows affected)</source>
+        <note>{0} is the number of rows affected</note>
+        <target state="new">({0} rows affected)</target>
+      </trans-unit>
       <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
         <source xml:lang="en">+ Add Azure Account</source>
         <target state="translated">+ 新增 Azure 帳戶</target>
@@ -1273,6 +1286,10 @@
 {1} is the error message</note>
         <target state="translated">建立防火牆規則 {0} 時發生錯誤。 請檢查您的 Azure 帳戶設定，然後再試一次。 錯誤： {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++60cc09ec4655851867d21c226d2f49026746cd374b1822a2b46264601219b206">
+        <source xml:lang="en">Error generating text view. Please try switching back to grid view.</source>
+        <target state="new">Error generating text view. Please try switching back to grid view.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8f53a6df59ae589cf0996134e10ad383f8914500648095194f2d16cc2427954b">
         <source xml:lang="en">Error loading Azure account information for tenant ID '{0}'</source>
         <note>{0} is the tenant ID</note>
@@ -1681,6 +1698,10 @@ Error:
         <source xml:lang="en">Greater Than or Equals</source>
         <target state="translated">大於或等於</target>
       </trans-unit>
+      <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
+        <source xml:lang="en">Grid View</source>
+        <target state="new">Grid View</target>
+      </trans-unit>
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
         <target state="translated">說明</target>
@@ -1987,6 +2008,10 @@ Error:
         <source xml:lang="en">Loading execution plan...</source>
         <target state="translated">正在載入執行計畫...</target>
       </trans-unit>
+      <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
+        <source xml:lang="en">Loading text view...</source>
+        <target state="new">Loading text view...</target>
+      </trans-unit>
       <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
         <source xml:lang="en">Loading...</source>
         <target state="translated">正在載入...</target>
@@ -2206,6 +2231,10 @@ Error:
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
         <target state="translated">沒有任何結果</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
+        <source xml:lang="en">No results to display</source>
+        <target state="new">No results to display</target>
       </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
@@ -2639,6 +2668,11 @@ Error:
       <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
         <source xml:lang="en">Restore panel size</source>
         <target state="translated">還原面板大小</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
+        <source xml:lang="en">Result Set {0}</source>
+        <note>{0} is the index of the result set</note>
+        <target state="new">Result Set {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
@@ -3192,9 +3226,17 @@ Query: {1}</source>
         <source xml:lang="en">Switch Source and Target</source>
         <target state="translated">切換來源和目標</target>
       </trans-unit>
+      <trans-unit id="++CODE++a8e5ca29d45327e2790dbaef626ac6f467741af4efddd4d0aede688f4612677e">
+        <source xml:lang="en">Switch to Grid View</source>
+        <target state="new">Switch to Grid View</target>
+      </trans-unit>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
         <target state="translated">切換到 MSAL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe49fbfd86c4792c2bd6cf8b59085cc2d787fa377a2af3ebdcbd88104e556d8c">
+        <source xml:lang="en">Switch to Text View</source>
+        <target state="new">Switch to Text View</target>
       </trans-unit>
       <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
         <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
@@ -3261,6 +3303,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++90c8505baad739c0925471e0d594ba9d83f84d3a96dbdfa16a47ae7a3ad95d91">
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">正在測試連線設定檔...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
+        <source xml:lang="en">Text View</source>
+        <target state="new">Text View</target>
       </trans-unit>
       <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
         <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
@@ -3910,6 +3956,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Create local SQL Container</source>
         <target state="translated">建立本機 SQL 容器</target>
       </trans-unit>
+      <trans-unit id="mssql.defaultQueryResultsViewMode.description">
+        <source xml:lang="en">Default view mode for query results display.</source>
+        <target state="new">Default view mode for query results display.</target>
+      </trans-unit>
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
         <target state="translated">刪除</target>
@@ -3933,6 +3983,14 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.disconnect">
         <source xml:lang="en">Disconnect</source>
         <target state="translated">中斷連線</target>
+      </trans-unit>
+      <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
+        <source xml:lang="en">Display results in a formatted text format.</source>
+        <target state="new">Display results in a formatted text format.</target>
+      </trans-unit>
+      <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
+        <source xml:lang="en">Display results in a tabular grid format (default)</source>
+        <target state="new">Display results in a tabular grid format (default)</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -4060,7 +4118,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
         <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
-        <target state="new">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</target>
+        <target state="translated">當資料表有超過 10 個欄位時，在結構描述設計供具的資料表節點中啟用展開/折疊按鈕</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
         <source xml:lang="en">Enable modern features in MSSQL</source>

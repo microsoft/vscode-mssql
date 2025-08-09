@@ -31,6 +31,7 @@ export enum QueryResultSaveAsTrigger {
 
 export interface QueryResultReactProvider extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
     setResultTab: (tabId: QueryResultPaneTabs) => void;
+    setResultViewMode: (viewMode: QueryResultViewMode) => void;
     /**
      * Gets the execution plan graph from the provider for a result set
      * @param uri the uri of the query result state this request is associated with
@@ -51,6 +52,11 @@ export enum QueryResultPaneTabs {
     ExecutionPlan = "executionPlan",
 }
 
+export enum QueryResultViewMode {
+    Grid = "grid",
+    Text = "text",
+}
+
 export enum QueryResultWebviewLocation {
     Panel = "panel", // VSCode panel area (Terminal, Debug Console, etc.), it's not related to the webview panel.
     Document = "document", // VSCode document area (editor area)
@@ -58,6 +64,7 @@ export enum QueryResultWebviewLocation {
 
 export interface QueryResultTabStates {
     resultPaneTab: QueryResultPaneTabs;
+    resultViewMode?: QueryResultViewMode;
 }
 
 export interface FontSettings {
@@ -83,6 +90,9 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
 export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
     setResultTab: {
         tabId: QueryResultPaneTabs;
+    };
+    setResultViewMode: {
+        viewMode: QueryResultViewMode;
     };
     /**
      * Gets the execution plan graph from the provider for given uri

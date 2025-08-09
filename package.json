@@ -1193,6 +1193,20 @@
                     "description": "%mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description%",
                     "scope": "application"
                 },
+                "mssql.defaultQueryResultsViewMode": {
+                    "type": "string",
+                    "default": "Grid",
+                    "enum": [
+                        "Grid",
+                        "Text"
+                    ],
+                    "enumDescriptions": [
+                        "%mssql.defaultQueryResultsViewMode.grid.description%",
+                        "%mssql.defaultQueryResultsViewMode.text.description%"
+                    ],
+                    "description": "%mssql.defaultQueryResultsViewMode.description%",
+                    "scope": "application"
+                },
                 "mssql.selectedAzureSubscriptions": {
                     "type": "array",
                     "description": "%mssql.selectedAzureSubscriptions%",
@@ -1621,12 +1635,6 @@
                 "mssql.format.placeSelectStatementReferencesOnNewLine": {
                     "type": "boolean",
                     "description": "%mssql.format.placeSelectStatementReferencesOnNewLine%",
-                    "default": false,
-                    "scope": "window"
-                },
-                "mssql.applyLocalization": {
-                    "type": "boolean",
-                    "description": "%mssql.applyLocalization%",
                     "default": false,
                     "scope": "window"
                 },
