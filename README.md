@@ -164,10 +164,10 @@ The following Visual Studio Code settings are available for the mssql extension.
   "mssql.copyIncludeHeaders": false,
   "mssql.copyRemoveNewLine": true,
   "mssql.saveAsCsv.includeHeaders": true,
-  "mssql.saveAsCsv.delimiter": ",",
+  "mssql.saveAsCsv.delimiter": ",",    // Options: ",", "\t", ";", "|"
   "mssql.saveAsCsv.lineSeparator": null,
   "mssql.saveAsCsv.textIdentifier": "\"",
-  "mssql.saveAsCsv.encoding": "utf-8",
+  "mssql.saveAsCsv.encoding": "utf-8", // Options: "utf-8", "utf-16le", "utf-16be", "ascii", "latin1", "iso-8859-1"
   "mssql.splitPaneSelection": "next",
   "mssql.persistQueryResultTabs": false
 }
