@@ -102,9 +102,9 @@ suite("MainController Tests", function () {
     });
 
     // Renamed file event test
-    test("onDidCloseTextDocument should call renamedDoc function when rename occurs", (done) => {
+    test("onDidCloseTextDocument should call renamedDoc function when rename occurs", async (done) => {
         // A renamed doc constitutes an openDoc event directly followed by a closeDoc event
-        mainController.onDidOpenTextDocument(newDocument);
+        await mainController.onDidOpenTextDocument(newDocument);
         void mainController.onDidCloseTextDocument(document);
 
         // Verify renameDoc function was called
@@ -122,10 +122,10 @@ suite("MainController Tests", function () {
     });
 
     // Closed document event called to test rename and untitled save file event timeouts
-    test("onDidCloseTextDocument should propogate to the connectionManager even if a special event occured before it", (done) => {
+    test("onDidCloseTextDocument should propogate to the connectionManager even if a special event occured before it", async (done) => {
         // Call both special cases
-        mainController.onDidSaveTextDocument(newDocument);
-        mainController.onDidOpenTextDocument(newDocument);
+        await mainController.onDidSaveTextDocument(newDocument);
+        await mainController.onDidOpenTextDocument(newDocument);
 
         // Cause event time out (above 10 ms should work)
         setTimeout(() => {
@@ -155,9 +155,9 @@ suite("MainController Tests", function () {
     });
 
     // Open document event test
-    test("onDidOpenTextDocument should propogate the function to the connectionManager", (done) => {
+    test("onDidOpenTextDocument should propogate the function to the connectionManager", async (done) => {
         // Call onDidOpenTextDocument to test it side effects
-        mainController.onDidOpenTextDocument(document);
+        await mainController.onDidOpenTextDocument(document);
         try {
             connectionManager.verify(
                 (x) => x.onDidOpenTextDocument(TypeMoq.It.isAny()),
@@ -190,7 +190,7 @@ suite("MainController Tests", function () {
         }
     });
 
-    test("TextDocument Events should handle non-initialized connection manager", (done) => {
+    test("TextDocument Events should handle non-initialized connection manager", async (done) => {
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         let controller: MainController = new MainController(
             TestExtensionContext.object,
@@ -199,7 +199,7 @@ suite("MainController Tests", function () {
         );
 
         // None of the TextDocument events should throw exceptions, they should cleanly exit instead.
-        controller.onDidOpenTextDocument(document);
+        await controller.onDidOpenTextDocument(document);
         controller.onDidSaveTextDocument(document);
         void controller.onDidCloseTextDocument(document);
         done();
@@ -341,7 +341,7 @@ suite("MainController Tests", function () {
         );
 
         // verify that the connection manager transfers the connection from SQL file to SQL file
-        controller.onDidOpenTextDocument(script2);
+        await controller.onDidOpenTextDocument(script2);
 
         expect(
             controller["_previousActiveDocument"],
@@ -356,7 +356,7 @@ suite("MainController Tests", function () {
         setupConnectionManagerMocks(connectionManager);
 
         // verify that the connection manager does not transfer the connection from SQL file to non-SQL file
-        controller.onDidOpenTextDocument(textFile);
+        await controller.onDidOpenTextDocument(textFile);
 
         expect(
             controller["_previousActiveDocument"],
@@ -369,7 +369,7 @@ suite("MainController Tests", function () {
         );
 
         // verify that the connection manager does not transfer the connection from SQL file to non-SQL file
-        controller.onDidOpenTextDocument(script1);
+        await controller.onDidOpenTextDocument(script1);
 
         expect(
             controller["_previousActiveDocument"],
