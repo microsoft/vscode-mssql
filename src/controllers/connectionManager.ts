@@ -847,7 +847,7 @@ export default class ConnectionManager {
             try {
                 // if the connection was originally for an empty database, the database should be empty when being saved to match the original connection
                 if (saveAsDefaultDatabase) {
-                    connectionToSave.database = undefined;
+                    connectionToSave = { ...connectionToSave, database: undefined };
                 }
                 await this._connectionStore.addRecentlyUsed(connectionToSave);
                 connection.connectHandler(true);
