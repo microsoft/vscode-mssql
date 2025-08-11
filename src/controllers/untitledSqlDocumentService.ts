@@ -9,42 +9,78 @@ import VscodeWrapper from "./vscodeWrapper";
 /**
  * Service for creating untitled documents for SQL query
  */
-export default class UntitledSqlDocumentService {
-    public openedUris: Set<string> = new Set();
+export default class UntitledSqlDocumentService implements vscode.Disposable {
+    public trackedUris: Set<string> = new Set();
+    private _pendingOperations: Map<string, Promise<vscode.TextEditor>> = new Map();
+    private _documentCloseDisposable: vscode.Disposable | undefined;
 
-    public isOpening = false;
+    constructor(private vscodeWrapper: VscodeWrapper) {
+        this.setupDocumentCloseListener();
+    }
 
-    constructor(private vscodeWrapper: VscodeWrapper) {}
-
-    public isUriOpenedFromService(uri: string): Promise<boolean> {
-        return new Promise((resolve) => {
-            const checkUri = () => {
-                if (!this.isOpening && this.openedUris.has(uri)) {
-                    resolve(true);
-                } else {
-                    setTimeout(checkUri, 100);
-                }
-            };
-            checkUri();
+    /**
+     * Set up listener for document close events to automatically untrack URIs
+     */
+    private setupDocumentCloseListener(): void {
+        this._documentCloseDisposable = vscode.workspace.onDidCloseTextDocument((document) => {
+            const uri = document.uri.toString();
+            if (this.trackedUris.has(uri)) {
+                this.trackedUris.delete(uri);
+            }
         });
+    }
+
+    dispose() {
+        if (this._documentCloseDisposable) {
+            this._documentCloseDisposable.dispose();
+        }
+    }
+
+    /**
+     * Wait for all pending operations to complete
+     */
+    public async waitForAllOperations(): Promise<vscode.TextEditor[]> {
+        const pendingPromises = Array.from(this._pendingOperations.values());
+        return Promise.all(pendingPromises);
     }
 
     /**
      * Creates new untitled document for SQL query and opens in new editor tab
      * with optional content
      */
-    public async newQuery(content?: string): Promise<vscode.TextEditor> {
-        this.isOpening = true;
-        // Open an untitled document. So the  file doesn't have to exist in disk
-        let doc = await this.vscodeWrapper.openMsSqlTextDocument(content);
-        // Show the new untitled document in the editor's first tab and change the focus to it.
+    public async newQuery(content?: string, trackUri: boolean = true): Promise<vscode.TextEditor> {
+        // Create a unique key for this operation to handle potential duplicates
+        const operationKey = `${Date.now()}-${Math.random()}`;
+
+        try {
+            const operationPromise = this.createDocument(content, trackUri);
+            this._pendingOperations.set(operationKey, operationPromise);
+
+            const editor = await operationPromise;
+            return editor;
+        } finally {
+            // Clean up the pending operation
+            this._pendingOperations.delete(operationKey);
+        }
+    }
+
+    private async createDocument(content?: string, trackUri?: boolean): Promise<vscode.TextEditor> {
+        const doc = await this.vscodeWrapper.openMsSqlTextDocument(content);
+
         const editor = await this.vscodeWrapper.showTextDocument(doc, {
             viewColumn: vscode.ViewColumn.One,
             preserveFocus: false,
             preview: false,
         });
-        this.openedUris.add(editor.document.uri.toString());
-        this.isOpening = false;
+
+        if (trackUri) {
+            this.trackedUris.add(editor.document.uri.toString());
+        }
+
         return editor;
+    }
+
+    public isUriTrackedByService(uri: string): boolean {
+        return this.trackedUris.has(uri);
     }
 }
