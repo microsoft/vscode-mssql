@@ -19,6 +19,8 @@ import {
     useTableColumnSizing_unstable,
     TableColumnSizingOptions,
     Text,
+    List,
+    ListItem,
 } from "@fluentui/react-components";
 import { FabricSqlServerInfo } from "../../../../sharedInterfaces/connectionDialog";
 import { useState, useEffect, useMemo } from "react";
@@ -187,11 +189,25 @@ const WorkspacesList = ({
     }
 
     return (
-        <div role="listbox" aria-label="Workspaces">
+        <List role="listbox" aria-label="Workspaces">
             {workspaces.map((workspace) => (
-                <div
+                <ListItem
                     key={workspace.id}
-                    className={`${styles.workspaceItem} ${selectedWorkspace?.id === workspace.id ? styles.workspaceItemSelected : ""}`}
+                    className={
+                        selectedWorkspace?.id === workspace.id ? styles.workspaceItemSelected : ""
+                    }
+                    style={{
+                        padding: "4px 8px",
+                        cursor: "pointer",
+                        borderRadius: "2px",
+                        marginBottom: "1px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        fontSize: "13px",
+                        height: "24px",
+                        lineHeight: "24px",
+                    }}
                     onClick={() => onWorkspaceSelect(workspace)}
                     onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
@@ -203,10 +219,10 @@ const WorkspacesList = ({
                     role="option"
                     aria-selected={selectedWorkspace?.id === workspace.id}
                     title={workspace.name}>
-                    {workspace.name}
-                </div>
+                    <Text>{workspace.name}</Text>
+                </ListItem>
             ))}
-        </div>
+        </List>
     );
 };
 
