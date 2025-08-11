@@ -12,9 +12,9 @@ import {
     Dismiss20Regular,
 } from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
+import { LocalContainersContext } from "./localContainersStateProvider";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { DockerStep } from "../../../sharedInterfaces/containerDeployment";
+import { DockerStep } from "../../../sharedInterfaces/localContainers";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -61,7 +61,7 @@ interface StepCardProps {
 
 export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     const classes = useStyles();
-    const state = useContext(ContainerDeploymentContext);
+    const state = useContext(LocalContainersContext);
     const [expanded, setExpanded] = useState(true);
     // This state is used to track if the step has just errored, and expand then
     const [isNewlyErrored, setIsNewlyErrored] = useState(false);
@@ -133,8 +133,8 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
                         {step.fullErrorText && (
                             <a onClick={() => setShowFullErrorText(!showFullErrorText)}>
                                 {showFullErrorText
-                                    ? locConstants.containerDeployment.hideFullErrorMessage
-                                    : locConstants.containerDeployment.showFullErrorMessage}
+                                    ? locConstants.localContainers.hideFullErrorMessage
+                                    : locConstants.localContainers.showFullErrorMessage}
                             </a>
                         )}
                     </div>

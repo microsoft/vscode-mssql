@@ -763,7 +763,7 @@ export class QueryResult {
         });
 }
 
-export class ContainerDeployment {
+export class LocalContainers {
     public static createLocalSqlContainer = l10n.t("Create Local SQL Container");
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
+import { LocalContainersContext } from "./localContainersStateProvider";
 import { makeStyles } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
@@ -39,14 +39,14 @@ interface HeaderProps {
     paddingLeft?: string;
 }
 
-export const ContainerDeploymentHeader: React.FC<HeaderProps> = ({ headerText, paddingLeft }) => {
+export const LocalContainersHeader: React.FC<HeaderProps> = ({ headerText, paddingLeft }) => {
     const classes = useStyles();
-    const state = useContext(ContainerDeploymentContext);
-    const containerDeploymentState = state?.state;
+    const state = useContext(LocalContainersContext);
+    const localContainersState = state?.state;
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state || !containerDeploymentState) {
+    if (!state || !localContainersState) {
         return undefined;
     }
 

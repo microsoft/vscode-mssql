@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ContainerDeploymentContextProps } from "../../../sharedInterfaces/containerDeployment";
+import { LocalContainersContextProps } from "../../../sharedInterfaces/localContainers";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 /**
@@ -12,7 +12,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
  * @param lastStep The index of the last step to check against.
  */
 export async function runDockerStep(
-    state: ContainerDeploymentContextProps,
+    state: LocalContainersContextProps,
     lastStep: number,
 ): Promise<void> {
     const currentStep = state.state.currentDockerStep;
@@ -29,10 +29,7 @@ export async function runDockerStep(
  * @param lastStep The index of the last step to check.
  * @return {boolean} True if the last step is loaded, false otherwise.
  */
-export function isLastStepLoaded(
-    state: ContainerDeploymentContextProps,
-    lastStep: number,
-): boolean {
+export function isLastStepLoaded(state: LocalContainersContextProps, lastStep: number): boolean {
     return state.state.dockerSteps[lastStep].loadState === ApiStatus.Loaded;
 }
 
@@ -41,7 +38,7 @@ export function isLastStepLoaded(
  * @param state The context containing the state of the Docker deployment.
  * @return {boolean} True if the current step has errored, false otherwise.
  */
-export function checkStepErrored(state: ContainerDeploymentContextProps): boolean {
+export function checkStepErrored(state: LocalContainersContextProps): boolean {
     // Safe check to ensure currentDockerStep is within bounds; if not, we've finished all steps
     if (state.state.currentDockerStep === state.state.dockerSteps.length) return false;
     // Check if the current Docker step has errored

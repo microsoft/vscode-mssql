@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
+import { LocalContainersContext } from "./localContainersStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { GetStartedPage } from "./getStartedPage";
+import { LocalContainersInfoPage } from "./localContainersInfoPage";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -34,28 +34,28 @@ const useStyles = makeStyles({
     },
 });
 
-export const ContainerDeploymentStartPage = () => {
+export const LocalContainersStartPage = () => {
     const classes = useStyles();
-    const state = useContext(ContainerDeploymentContext);
-    const containerDeploymentState = state?.state;
+    const state = useContext(LocalContainersContext);
+    const localContainersState = state?.state;
     const renderMainContent = () => {
-        switch (containerDeploymentState?.loadState) {
+        switch (localContainersState?.loadState) {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
                         <Spinner
-                            label={locConstants.containerDeployment.loadingDeploymentPage}
+                            label={locConstants.localContainers.loadingDeploymentPage}
                             labelPosition="below"
                         />
                     </div>
                 );
             case ApiStatus.Loaded:
-                return <GetStartedPage />;
+                return <LocalContainersInfoPage />;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{containerDeploymentState?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{localContainersState?.errorMessage ?? ""}</Text>
                     </div>
                 );
         }
