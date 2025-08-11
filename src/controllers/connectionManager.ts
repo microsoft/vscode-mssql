@@ -580,6 +580,8 @@ export default class ConnectionManager {
 
             let mruConnection: IConnectionInfo = <any>{};
 
+            const saveDefaultDatabase = !connection?.credentials?.database; // connection used empty database for the original connection
+
             if (Utils.isNotEmpty(result.connectionId)) {
                 // Use the original connection information to save the MRU connection.
                 // for connections that a database is not provided, the database information will be updated
@@ -643,7 +645,7 @@ export default class ConnectionManager {
                 await self.handleConnectionErrors(fileUri, connection, result);
             }
 
-            await self.tryAddMruConnection(connection, mruConnection);
+            await self.tryAddMruConnection(connection, mruConnection, saveDefaultDatabase);
         };
     }
 
@@ -838,10 +840,15 @@ export default class ConnectionManager {
     private async tryAddMruConnection(
         connection: ConnectionInfo,
         newConnection: IConnectionInfo,
+        saveAsDefaultDatabase: boolean = false,
     ): Promise<void> {
         if (newConnection) {
             let connectionToSave: IConnectionInfo = Object.assign({}, newConnection);
             try {
+                // if the connection was originally for an empty database, the database should be empty when being saved to match the original connection
+                if (saveAsDefaultDatabase) {
+                    connectionToSave.database = undefined;
+                }
                 await this._connectionStore.addRecentlyUsed(connectionToSave);
                 connection.connectHandler(true);
             } catch (err) {
