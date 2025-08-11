@@ -2305,6 +2305,9 @@
     <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
       <source xml:lang="en">Sign in</source>
     </trans-unit>
+    <trans-unit id="++CODE++3c461018c1eaf1741187b24f4c51bdf967008f81c6c0a33f2268c8c6635016f6">
+      <source xml:lang="en">Sign in to Microsoft Fabric.</source>
+    </trans-unit>
     <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
       <source xml:lang="en">Sign in to a new account</source>
     </trans-unit>
