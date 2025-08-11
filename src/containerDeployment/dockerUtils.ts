@@ -392,14 +392,14 @@ export async function getDockerPath(executable: string): Promise<string> {
 }
 
 /**
- * Temp fix for the SQL Server 2025 version issue on Linux and Mac.
- * Returns the last working version of SQL Server 2025 for Linux and Mac.
+ * Temp fix for the SQL Server 2025 version issue on Mac.
+ * Returns the last working version of SQL Server 2025 for Mac.
  */
 export function getWorking2025Version(version: string): string {
     let versionYear = version.substring(0, yearStringLength);
-    // Hard Coded until this issue is fixed for mac and linux: https://github.com/microsoft/mssql-docker/issues/940#issue
-    if (platform() !== Platform.Windows && versionYear === "2025") {
-        return "2025-CTP2.0-ubuntu-22.04"; // Last working version of SQL Server 2025 for Linux+Mac
+    // Hard Coded until this issue is fixed for mac: https://github.com/microsoft/mssql-docker/issues/940#issue
+    if (platform() === Platform.Mac && arch() !== x64 && versionYear === "2025") {
+        return "2025-CTP2.0-ubuntu-22.04"; // Last working version of SQL Server 2025 for Mac
     }
     return versionYear;
 }
