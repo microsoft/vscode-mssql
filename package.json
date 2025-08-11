@@ -660,10 +660,6 @@
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/"
                 },
                 {
-                    "command": "mssql.toggleSqlCmd",
-                    "when": "editorFocus && editorLangId == 'sql'"
-                },
-                {
                     "command": "mssql.startQueryHistoryCapture",
                     "when": "config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture"
                 },
