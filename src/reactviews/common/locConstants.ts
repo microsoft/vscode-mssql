@@ -818,7 +818,7 @@ export class LocConstants {
         };
     }
 
-    public get containerDeployment() {
+    public get localContainers() {
         return {
             loadingDeploymentPage: l10n.t("Loading deployment page..."),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),

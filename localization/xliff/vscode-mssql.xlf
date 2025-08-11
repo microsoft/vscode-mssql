@@ -3464,9 +3464,6 @@
     <trans-unit id="mssql.copyIncludeHeaders">
       <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
     </trans-unit>
-    <trans-unit id="mssql.applyLocalization">
-      <source xml:lang="en">[Optional] Configuration options for localizing into VSCode&apos;s configured locale (must restart VSCode for settings to take effect)</source>
-    </trans-unit>
     <trans-unit id="mssql.splitPaneSelection">
       <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
     </trans-unit>

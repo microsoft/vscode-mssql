@@ -210,7 +210,6 @@ export const sqlToolsServiceExecutableFilesConfigKey = "executableFiles";
 export const sqlToolsServiceVersionConfigKey = "version";
 export const sqlToolsServiceDownloadUrlConfigKey = "downloadUrl";
 export const extConfigResultFontFamily = "resultsFontFamily";
-export const configApplyLocalization = "applyLocalization";
 export const configPersistQueryResultTabs = "persistQueryResultTabs";
 export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";

@@ -47,7 +47,7 @@ import {
     SessionCreatedParameters,
 } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
-import * as DockerUtils from "../../src/containerDeployment/dockerUtils";
+import * as DockerUtils from "../../src/deployment/dockerUtils";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import providerSettings from "../../src/azure/providerSettings";

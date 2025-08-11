@@ -4,18 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
+import { LocalContainersContext } from "./localContainersStateProvider";
 import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
-import { ContainerSetupStepsPage } from "./containerSetupStepsPage";
+import { LocalContainersSetupStepsPage } from "./localContainerSetupStepsPage";
 import {
-    ContainerDeploymentContextProps,
-    ContainerDeploymentFormItemSpec,
-    ContainerDeploymentWebviewState,
+    LocalContainersContextProps,
+    LocalContainersFormItemSpec,
+    LocalContainersWebviewState,
     DockerConnectionProfile,
-} from "../../../sharedInterfaces/containerDeployment";
+} from "../../../sharedInterfaces/localContainers";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
-import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
+import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../common/locConstants";
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 import {
@@ -59,9 +59,9 @@ const useStyles = makeStyles({
     },
 });
 
-export const ContainerInputForm: React.FC = () => {
+export const LocalContainersInputForm: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(ContainerDeploymentContext);
+    const state = useContext(LocalContainersContext);
     const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
 
@@ -96,9 +96,9 @@ export const ContainerInputForm: React.FC = () => {
                     }>
                     <FormField<
                         DockerConnectionProfile,
-                        ContainerDeploymentWebviewState,
-                        ContainerDeploymentFormItemSpec,
-                        ContainerDeploymentContextProps
+                        LocalContainersWebviewState,
+                        LocalContainersFormItemSpec,
+                        LocalContainersContextProps
                     >
                         context={state}
                         component={component}
@@ -116,11 +116,11 @@ export const ContainerInputForm: React.FC = () => {
     }, [state]);
 
     return showNext ? (
-        <ContainerSetupStepsPage />
+        <LocalContainersSetupStepsPage />
     ) : (
         <div>
-            <ContainerDeploymentHeader
-                headerText={locConstants.containerDeployment.sqlServerContainerHeader}
+            <LocalContainersHeader
+                headerText={locConstants.localContainers.sqlServerContainerHeader}
                 paddingLeft="20px"
             />
             <div className={classes.outerDiv}>
@@ -135,13 +135,13 @@ export const ContainerInputForm: React.FC = () => {
                     {renderFormFields(false)}
                     <FormField<
                         DockerConnectionProfile,
-                        ContainerDeploymentWebviewState,
-                        ContainerDeploymentFormItemSpec,
-                        ContainerDeploymentContextProps
+                        LocalContainersWebviewState,
+                        LocalContainersFormItemSpec,
+                        LocalContainersContextProps
                     >
                         context={state}
                         component={
-                            state.state.formComponents["groupId"] as ContainerDeploymentFormItemSpec
+                            state.state.formComponents["groupId"] as LocalContainersFormItemSpec
                         }
                         idx={0}
                         componentProps={{
@@ -170,7 +170,7 @@ export const ContainerInputForm: React.FC = () => {
                             appearance="subtle"
                             onClick={() => setShowAdvanced(!showAdvancedOptions)}
                         />
-                        {locConstants.containerDeployment.advancedOptions}
+                        {locConstants.localContainers.advancedOptions}
                     </div>
 
                     {showAdvancedOptions && (
@@ -188,9 +188,9 @@ export const ContainerInputForm: React.FC = () => {
                         }}>
                         <FormField<
                             DockerConnectionProfile,
-                            ContainerDeploymentWebviewState,
-                            ContainerDeploymentFormItemSpec,
-                            ContainerDeploymentContextProps
+                            LocalContainersWebviewState,
+                            LocalContainersFormItemSpec,
+                            LocalContainersContextProps
                         >
                             key={eulaComponent.propertyName}
                             context={state}
@@ -206,7 +206,7 @@ export const ContainerInputForm: React.FC = () => {
                             disabled>
                             <div className={classes.buttonContent}>
                                 <Spinner size="extra-tiny" />
-                                {locConstants.containerDeployment.createContainer}
+                                {locConstants.localContainers.createContainer}
                             </div>
                         </Button>
                     ) : (
@@ -215,7 +215,7 @@ export const ContainerInputForm: React.FC = () => {
                             type="submit"
                             onClick={() => handleSubmit()}
                             appearance="primary">
-                            {locConstants.containerDeployment.createContainer}
+                            {locConstants.localContainers.createContainer}
                         </Button>
                     )}
                 </div>

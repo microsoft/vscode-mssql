@@ -8,12 +8,12 @@ import { FormContextProps, FormEvent, FormItemSpec, FormState } from "./form";
 import { IConnectionDialogProfile, IDialogProps } from "./connectionDialog";
 import { ConnectionGroupSpec } from "./connectionGroup";
 
-export class ContainerDeploymentWebviewState
+export class LocalContainersWebviewState
     implements
         FormState<
             DockerConnectionProfile,
-            ContainerDeploymentWebviewState,
-            ContainerDeploymentFormItemSpec
+            LocalContainersWebviewState,
+            LocalContainersFormItemSpec
         >
 {
     loadState: ApiStatus = ApiStatus.Loading;
@@ -21,9 +21,8 @@ export class ContainerDeploymentWebviewState
     public dockerSteps: DockerStep[] = [];
     // @ts-ignore
     formState: DockerConnectionProfile = undefined;
-    formComponents: Partial<
-        Record<keyof DockerConnectionProfile, ContainerDeploymentFormItemSpec>
-    > = {};
+    formComponents: Partial<Record<keyof DockerConnectionProfile, LocalContainersFormItemSpec>> =
+        {};
     formErrors: string[] = [];
     platform: string = "";
     dialog: IDialogProps | undefined;
@@ -37,12 +36,12 @@ export class ContainerDeploymentWebviewState
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track the current step in the Docker deployment process */
     currentDockerStep: DockerStepOrder = DockerStepOrder.dockerInstallation;
-    constructor(params?: Partial<ContainerDeploymentWebviewState>) {
+    constructor(params?: Partial<LocalContainersWebviewState>) {
         for (const key in params) {
             if (key in this) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- safe due to key in this check being a Partial of the class
-                (this as any)[key as keyof ContainerDeploymentWebviewState] =
-                    params[key as keyof ContainerDeploymentWebviewState]!;
+                (this as any)[key as keyof LocalContainersWebviewState] =
+                    params[key as keyof LocalContainersWebviewState]!;
             }
         }
     }
@@ -56,21 +55,21 @@ export interface DockerConnectionProfile extends IConnectionDialogProfile {
     acceptEula: boolean;
 }
 
-export interface ContainerDeploymentFormItemSpec
+export interface LocalContainersFormItemSpec
     extends FormItemSpec<
         DockerConnectionProfile,
-        ContainerDeploymentWebviewState,
-        ContainerDeploymentFormItemSpec
+        LocalContainersWebviewState,
+        LocalContainersFormItemSpec
     > {
     componentWidth: string;
     isAdvancedOption: boolean;
 }
 
-export interface ContainerDeploymentContextProps
+export interface LocalContainersContextProps
     extends FormContextProps<
         DockerConnectionProfile,
-        ContainerDeploymentWebviewState,
-        ContainerDeploymentFormItemSpec
+        LocalContainersWebviewState,
+        LocalContainersFormItemSpec
     > {
     /**
      * Checks the selected Docker profile's availability and configuration.
@@ -104,7 +103,7 @@ export interface ContainerDeploymentContextProps
     dispose(): void;
 }
 
-export interface ContainerDeploymentReducers {
+export interface LocalContainersReducers {
     /**
      * Reducer for completing the current Docker step.
      */

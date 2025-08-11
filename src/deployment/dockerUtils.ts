@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
 import { arch, platform } from "os";
-import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeployment";
+import { DockerCommandParams, DockerStep } from "../sharedInterfaces/localContainers";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     defaultContainerName,
@@ -20,7 +20,7 @@ import {
     x64,
 } from "../constants/constants";
 import {
-    ContainerDeployment,
+    LocalContainers,
     msgYes,
     ObjectExplorer,
     Common,
@@ -47,11 +47,11 @@ const yearStringLength = 4;
 
 export const invalidContainerNameValidationResult: FormItemValidationState = {
     isValid: false,
-    validationMessage: ContainerDeployment.pleaseChooseUniqueContainerName,
+    validationMessage: LocalContainers.pleaseChooseUniqueContainerName,
 };
 export const invalidPortNumberValidationResult: FormItemValidationState = {
     isValid: false,
-    validationMessage: ContainerDeployment.pleaseChooseUnusedPort,
+    validationMessage: LocalContainers.pleaseChooseUnusedPort,
 };
 
 export const dockerLogger = Logger.create(
@@ -119,24 +119,24 @@ export function initializeDockerSteps(): DockerStep[] {
         {
             loadState: ApiStatus.NotStarted,
             argNames: [],
-            headerText: ContainerDeployment.dockerInstallHeader,
-            bodyText: ContainerDeployment.dockerInstallBody,
+            headerText: LocalContainers.dockerInstallHeader,
+            bodyText: LocalContainers.dockerInstallBody,
             errorLink: dockerInstallErrorLink,
-            errorLinkText: ContainerDeployment.installDocker,
+            errorLinkText: LocalContainers.installDocker,
             stepAction: checkDockerInstallation,
         },
         {
             loadState: ApiStatus.NotStarted,
             argNames: [],
-            headerText: ContainerDeployment.startDockerHeader,
-            bodyText: ContainerDeployment.startDockerBody,
+            headerText: LocalContainers.startDockerHeader,
+            bodyText: LocalContainers.startDockerBody,
             stepAction: startDocker,
         },
         {
             loadState: ApiStatus.NotStarted,
             argNames: [],
-            headerText: ContainerDeployment.startDockerEngineHeader,
-            bodyText: ContainerDeployment.startDockerEngineBody,
+            headerText: LocalContainers.startDockerEngineHeader,
+            bodyText: LocalContainers.startDockerEngineBody,
             errorLink: getEngineErrorLink(),
             errorLinkText: getEngineErrorLinkText(),
             stepAction: checkEngine,
@@ -144,29 +144,29 @@ export function initializeDockerSteps(): DockerStep[] {
         {
             loadState: ApiStatus.NotStarted,
             argNames: ["version"],
-            headerText: ContainerDeployment.pullImageHeader,
-            bodyText: ContainerDeployment.pullImageBody,
+            headerText: LocalContainers.pullImageHeader,
+            bodyText: LocalContainers.pullImageBody,
             stepAction: pullSqlServerContainerImage,
         },
         {
             loadState: ApiStatus.NotStarted,
             argNames: ["containerName", "password", "version", "hostname", "port"],
-            headerText: ContainerDeployment.creatingContainerHeader,
-            bodyText: ContainerDeployment.creatingContainerBody,
+            headerText: LocalContainers.creatingContainerHeader,
+            bodyText: LocalContainers.creatingContainerBody,
             stepAction: startSqlServerDockerContainer,
         },
         {
             loadState: ApiStatus.NotStarted,
             argNames: ["containerName"],
-            headerText: ContainerDeployment.settingUpContainerHeader,
-            bodyText: ContainerDeployment.settingUpContainerBody,
+            headerText: LocalContainers.settingUpContainerHeader,
+            bodyText: LocalContainers.settingUpContainerBody,
             stepAction: checkIfContainerIsReadyForConnections,
         },
         {
             loadState: ApiStatus.NotStarted,
             argNames: [],
-            headerText: ContainerDeployment.connectingToContainerHeader,
-            bodyText: ContainerDeployment.connectingToContainerBody,
+            headerText: LocalContainers.connectingToContainerHeader,
+            bodyText: LocalContainers.connectingToContainerBody,
             stepAction: undefined,
         },
     ];
@@ -191,9 +191,9 @@ export function getEngineErrorLink() {
  */
 export function getEngineErrorLinkText() {
     if (platform() === Platform.Windows && arch() === x64) {
-        return ContainerDeployment.configureLinuxContainers;
+        return LocalContainers.configureLinuxContainers;
     } else if (platform() === Platform.Mac && arch() !== x64) {
-        return ContainerDeployment.configureRosetta;
+        return LocalContainers.configureRosetta;
     }
     return undefined;
 }
@@ -212,7 +212,7 @@ export function sanitizeErrorText(errorText: string): string {
  */
 export function validateSqlServerPassword(password: string): string {
     if (password.length < 8 || password.length > 128) {
-        return ContainerDeployment.passwordLengthError;
+        return LocalContainers.passwordLengthError;
     }
 
     const hasUpperCase = /[A-Z]/.test(password);
@@ -226,7 +226,7 @@ export function validateSqlServerPassword(password: string): string {
     ).length;
 
     if (categoryCount < 3) {
-        return ContainerDeployment.passwordComplexityError;
+        return LocalContainers.passwordComplexityError;
     }
 
     return "";
@@ -263,7 +263,7 @@ export async function checkDockerInstallation(): Promise<DockerCommandParams> {
     } catch (e) {
         return {
             success: false,
-            error: ContainerDeployment.dockerInstallError,
+            error: LocalContainers.dockerInstallError,
             fullErrorText: getErrorMessage(e),
         };
     }
@@ -281,14 +281,14 @@ export async function checkEngine(): Promise<DockerCommandParams> {
     if (platform() !== Platform.Mac && arch() !== x64) {
         return {
             success: false,
-            error: ContainerDeployment.unsupportedDockerArchitectureError(arch()),
+            error: LocalContainers.unsupportedDockerArchitectureError(arch()),
         };
     }
     const engineCommand = COMMANDS.CHECK_ENGINE[platform()];
     if (engineCommand === undefined) {
         return {
             success: false,
-            error: ContainerDeployment.unsupportedDockerPlatformError(platform()),
+            error: LocalContainers.unsupportedDockerPlatformError(platform()),
         };
     }
 
@@ -300,14 +300,14 @@ export async function checkEngine(): Promise<DockerCommandParams> {
         const stdout = await execCommand(engineCommand);
         if (platform() === Platform.Windows && stdout.trim() !== `'${Platform.Linux}'`) {
             const confirmation = await vscode.window.showInformationMessage(
-                ContainerDeployment.switchToLinuxContainersConfirmation,
+                LocalContainers.switchToLinuxContainersConfirmation,
                 { modal: true },
                 msgYes,
             );
             if (confirmation === msgYes) {
                 await execCommand(COMMANDS.SWITCH_ENGINE(dockerCliPath));
             } else {
-                throw new Error(ContainerDeployment.switchToLinuxContainersCanceled);
+                throw new Error(LocalContainers.switchToLinuxContainersCanceled);
             }
         }
         return { success: true };
@@ -316,10 +316,10 @@ export async function checkEngine(): Promise<DockerCommandParams> {
             success: false,
             error:
                 platform() === Platform.Linux
-                    ? ContainerDeployment.linuxDockerPermissionsError
+                    ? LocalContainers.linuxDockerPermissionsError
                     : platform() === Platform.Mac
-                      ? ContainerDeployment.rosettaError
-                      : ContainerDeployment.windowsContainersError,
+                      ? LocalContainers.rosettaError
+                      : LocalContainers.windowsContainersError,
             fullErrorText: getErrorMessage(e),
         };
     }
@@ -390,7 +390,7 @@ export async function pullSqlServerContainerImage(version: string): Promise<Dock
     } catch (e) {
         return {
             success: false,
-            error: ContainerDeployment.pullSqlServerContainerImageError,
+            error: LocalContainers.pullSqlServerContainerImageError,
             fullErrorText: getErrorMessage(e),
         };
     }
@@ -423,7 +423,7 @@ export async function startSqlServerDockerContainer(
     } catch (e) {
         return {
             success: false,
-            error: ContainerDeployment.startSqlServerContainerError,
+            error: LocalContainers.startSqlServerContainerError,
             port: undefined,
             fullErrorText: getErrorMessage(e),
         };
@@ -453,13 +453,13 @@ export async function startDocker(
 ): Promise<DockerCommandParams> {
     try {
         await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartDocker, {
+        sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
             dockerStartedThroughExtension: "false",
         });
         return { success: true };
     } catch {} // If this command fails, docker is not running, so we proceed to start it.
     if (node && objectExplorerService) {
-        node.loadingLabel = ContainerDeployment.startingDockerLoadingLabel;
+        node.loadingLabel = LocalContainers.startingDockerLoadingLabel;
         await objectExplorerService.setLoadingUiForNode(node);
     }
     let dockerDesktopPath = "";
@@ -468,7 +468,7 @@ export async function startDocker(
         if (!dockerDesktopPath) {
             return {
                 success: false,
-                error: ContainerDeployment.dockerDesktopPathError,
+                error: LocalContainers.dockerDesktopPathError,
             };
         }
     }
@@ -477,7 +477,7 @@ export async function startDocker(
     if (!startCommand) {
         return {
             success: false,
-            error: ContainerDeployment.unsupportedDockerPlatformError(platform()),
+            error: LocalContainers.unsupportedDockerPlatformError(platform()),
         };
     }
 
@@ -495,20 +495,16 @@ export async function startDocker(
                     await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
                     clearInterval(checkDocker);
                     dockerLogger.appendLine("Docker started successfully.");
-                    sendActionEvent(
-                        TelemetryViews.ContainerDeployment,
-                        TelemetryActions.StartDocker,
-                        {
-                            dockerStartedThroughExtension: "true",
-                        },
-                    );
+                    sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
+                        dockerStartedThroughExtension: "true",
+                    });
                     resolve({ success: true });
                 } catch (e) {
                     if (++attempts >= maxAttempts) {
                         clearInterval(checkDocker);
                         resolve({
                             success: false,
-                            error: ContainerDeployment.dockerFailedToStartWithinTimeout,
+                            error: LocalContainers.dockerFailedToStartWithinTimeout,
                             fullErrorText: getErrorMessage(e),
                         });
                     }
@@ -518,7 +514,7 @@ export async function startDocker(
     } catch (e) {
         return {
             success: false,
-            error: ContainerDeployment.dockerFailedToStartWithinTimeout,
+            error: LocalContainers.dockerFailedToStartWithinTimeout,
             fullErrorText: getErrorMessage(e),
         };
     }
@@ -540,7 +536,7 @@ export async function restartContainer(
     );
     if (!dockerPreparedResult.success) {
         sendErrorEvent(
-            TelemetryViews.ContainerDeployment,
+            TelemetryViews.LocalContainers,
             TelemetryActions.RestartContainer,
             new Error(dockerPreparedResult.error),
             false, // includeErrorMessage
@@ -552,13 +548,13 @@ export async function restartContainer(
     const isContainerRunning = await isDockerContainerRunning(containerName);
 
     if (isContainerRunning) return true; // Container is already running
-    containerNode.loadingLabel = ContainerDeployment.startingContainerLoadingLabel;
+    containerNode.loadingLabel = LocalContainers.startingContainerLoadingLabel;
     await objectExplorerService.setLoadingUiForNode(containerNode);
     dockerLogger.appendLine(`Restarting container: ${containerName}`);
     await execCommand(COMMANDS.START_CONTAINER(containerName));
 
     dockerLogger.appendLine(`Container ${containerName} restarted successfully.`);
-    containerNode.loadingLabel = ContainerDeployment.readyingContainerLoadingLabel;
+    containerNode.loadingLabel = LocalContainers.readyingContainerLoadingLabel;
     await objectExplorerService.setLoadingUiForNode(containerNode);
 
     const containerReadyResult = await checkIfContainerIsReadyForConnections(containerName);
@@ -568,7 +564,7 @@ export async function restartContainer(
 
     if (!containerReadyResult.success) {
         sendErrorEvent(
-            TelemetryViews.ContainerDeployment,
+            TelemetryViews.LocalContainers,
             TelemetryActions.RestartContainer,
             new Error(containerReadyResult.error),
             false, // includeErrorMessage
@@ -577,7 +573,7 @@ export async function restartContainer(
         );
         return false;
     }
-    sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.RestartContainer);
+    sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RestartContainer);
     return true;
 }
 
@@ -619,7 +615,7 @@ export async function checkIfContainerIsReadyForConnections(
                 clearInterval(interval);
                 return resolve({
                     success: false,
-                    error: ContainerDeployment.containerFailedToStartWithinTimeout,
+                    error: LocalContainers.containerFailedToStartWithinTimeout,
                 });
             }
         }, intervalMs);
@@ -632,11 +628,11 @@ export async function checkIfContainerIsReadyForConnections(
 export async function deleteContainer(containerName: string): Promise<boolean> {
     try {
         await execCommand(COMMANDS.DELETE_CONTAINER(containerName));
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.DeleteContainer);
+        sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer);
         return true;
     } catch (e) {
         sendErrorEvent(
-            TelemetryViews.ContainerDeployment,
+            TelemetryViews.LocalContainers,
             TelemetryActions.DeleteContainer,
             e,
             false, // includeErrorMessage
@@ -653,11 +649,11 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
 export async function stopContainer(containerName: string): Promise<boolean> {
     try {
         await execCommand(COMMANDS.STOP_CONTAINER(containerName));
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StopContainer);
+        sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer);
         return true;
     } catch (e) {
         sendErrorEvent(
-            TelemetryViews.ContainerDeployment,
+            TelemetryViews.LocalContainers,
             TelemetryActions.StopContainer,
             e,
             false, // includeErrorMessage
@@ -787,7 +783,7 @@ export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]
 
         const versionOptions = uniqueYears
             .map((year) => ({
-                displayName: ContainerDeployment.sqlServerVersionImage(year),
+                displayName: LocalContainers.sqlServerVersionImage(year),
                 value: year,
             }))
             .reverse();
@@ -824,7 +820,7 @@ export async function prepareForDockerContainerCommand(
         containerNode.loadingLabel = Common.error;
         await objectExplorerService.setLoadingUiForNode(containerNode);
         const confirmation = await vscode.window.showInformationMessage(
-            ContainerDeployment.containerDoesNotExistError,
+            LocalContainers.containerDoesNotExistError,
             { modal: true },
             RemoveProfileLabel,
         );
@@ -833,7 +829,7 @@ export async function prepareForDockerContainerCommand(
         }
         return {
             success: false,
-            error: ContainerDeployment.containerDoesNotExistError,
+            error: LocalContainers.containerDoesNotExistError,
         };
     }
     return {
