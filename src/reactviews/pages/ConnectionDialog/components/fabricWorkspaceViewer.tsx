@@ -18,6 +18,7 @@ import {
     useTableFeatures,
     useTableColumnSizing_unstable,
     TableColumnSizingOptions,
+    Text,
 } from "@fluentui/react-components";
 import { FabricSqlServerInfo } from "../../../../sharedInterfaces/connectionDialog";
 import { useState, useEffect, useMemo } from "react";
@@ -81,7 +82,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
     },
     workspaceTitle: {
-        fontSize: "14px",
+        fontSize: "13px",
         fontWeight: "600",
         marginBottom: "8px",
         paddingLeft: "8px",
@@ -110,10 +111,17 @@ const useStyles = makeStyles({
         },
     },
     collapseButton: {
-        minWidth: "24px",
+        width: "calc(100% - 5px)", // Take up full width minus 5px
         height: "24px",
-        alignSelf: "flex-end",
         marginBottom: "8px",
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingLeft: "5px", // Padding on the left side
+        // paddingRight: "px", // Padding on the right side
+
+        // marginRight: "15px", // Add right margin to move away from border
     },
     collapseButtonIcon: {
         fontSize: "12px",
@@ -393,6 +401,7 @@ export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
                     // When expanded, render the collapse button and the workspace list
                     <>
                         <div className={styles.collapseButton}>
+                            <Text style={{ fontWeight: "600" }}>EXPLORER</Text>
                             <Button
                                 appearance="subtle"
                                 size="small"
@@ -410,6 +419,12 @@ export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
                                 }}
                                 aria-label="Collapse workspace explorer"
                                 title="Collapse"
+                                style={{
+                                    minWidth: "24px",
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    padding: "0 4px",
+                                }}
                             />
                         </div>
                         <div className={styles.workspaceTitle}>Workspaces</div>
