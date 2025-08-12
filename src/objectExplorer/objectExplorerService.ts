@@ -53,16 +53,13 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import {
-    checkIfConnectionIsDockerContainer,
-    restartContainer,
-} from "../containerDeployment/dockerUtils";
+import { checkIfConnectionIsDockerContainer, restartContainer } from "../deployment/dockerUtils";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
-import { AddLocalContainerConnectionTreeNode } from "../containerDeployment/addLocalContainerConnectionTreeNode";
+import { AddLocalContainerConnectionTreeNode } from "../deployment/addLocalContainerConnectionTreeNode";
 import { getErrorMessage } from "../utils/utils";
 
 export interface CreateSessionResult {
@@ -740,10 +737,7 @@ export class ObjectExplorerService {
 
         // Local container, ensure it is started
         if (connectionProfile.containerName) {
-            sendActionEvent(
-                TelemetryViews.ContainerDeployment,
-                TelemetryActions.ConnectToContainer,
-            );
+            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.ConnectToContainer);
             try {
                 const containerNode = this.getConnectionNodeFromProfile(connectionProfile);
                 // start docker and docker container

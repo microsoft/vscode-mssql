@@ -6,29 +6,29 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import { ContainerDeploymentWebviewController } from "../../src/containerDeployment/containerDeploymentWebviewController";
+import { LocalContainersWebviewController } from "../../src/deployment/localContainersWebviewController";
 import * as TypeMoq from "typemoq";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { FormItemType } from "../../src/sharedInterfaces/form";
-import * as dockerUtils from "../../src/containerDeployment/dockerUtils";
+import * as dockerUtils from "../../src/deployment/dockerUtils";
 import {
-    ContainerDeploymentFormItemSpec,
-    ContainerDeploymentWebviewState,
+    LocalContainersFormItemSpec,
+    LocalContainersWebviewState,
     DockerStepOrder,
-} from "../../src/sharedInterfaces/containerDeployment";
-import { AddLocalContainerConnectionTreeNode } from "../../src/containerDeployment/addLocalContainerConnectionTreeNode";
+} from "../../src/sharedInterfaces/localContainers";
+import { AddLocalContainerConnectionTreeNode } from "../../src/deployment/addLocalContainerConnectionTreeNode";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { stubTelemetry } from "./utils";
 import * as ConnectionGroupWebviewController from "../../src/controllers/connectionGroupWebviewController";
 
-suite("ContainerDeploymentWebviewController", () => {
+suite("LocalContainersWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let mainController: MainController;
-    let controller: ContainerDeploymentWebviewController;
+    let controller: LocalContainersWebviewController;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
     let validateSqlServerContainerNameStub: sinon.SinonStub;
@@ -81,7 +81,7 @@ suite("ContainerDeploymentWebviewController", () => {
             vscodeWrapper.object,
         );
 
-        controller = new ContainerDeploymentWebviewController(
+        controller = new LocalContainersWebviewController(
             mockContext,
             vscodeWrapper.object,
             mainController,
@@ -136,9 +136,9 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.strictEqual(password.componentWidth, "500px");
 
         // Validate a password (example: valid and invalid case)
-        let result = password.validate({} as ContainerDeploymentWebviewState, "goodPassword123");
+        let result = password.validate({} as LocalContainersWebviewState, "goodPassword123");
         assert.strictEqual(result.isValid, true);
-        result = password.validate({} as ContainerDeploymentWebviewState, "badPassword");
+        result = password.validate({} as LocalContainersWebviewState, "badPassword");
         assert.strictEqual(result.isValid, false);
 
         const savePassword = formComponents.savePassword;
@@ -165,10 +165,10 @@ suite("ContainerDeploymentWebviewController", () => {
         assert.strictEqual(hostname.isAdvancedOption, true);
 
         const acceptEula = formComponents.acceptEula;
-        result = acceptEula.validate({} as ContainerDeploymentWebviewState, true);
+        result = acceptEula.validate({} as LocalContainersWebviewState, true);
         assert.strictEqual(result.isValid, true);
 
-        result = acceptEula.validate({} as ContainerDeploymentWebviewState, false);
+        result = acceptEula.validate({} as LocalContainersWebviewState, false);
         assert.strictEqual(result.isValid, false);
     });
 
@@ -194,12 +194,12 @@ suite("ContainerDeploymentWebviewController", () => {
                 propertyName: "containerName",
                 validate: undefined,
                 validation: undefined,
-            } as ContainerDeploymentFormItemSpec,
+            } as LocalContainersFormItemSpec,
             port: {
                 propertyName: "port",
                 validate: undefined,
                 validation: undefined,
-            } as ContainerDeploymentFormItemSpec,
+            } as LocalContainersFormItemSpec,
             profileName: {
                 propertyName: "profileName",
                 validate: (_: any, val: string) => {
@@ -207,11 +207,11 @@ suite("ContainerDeploymentWebviewController", () => {
                     return { isValid, validationMessage: isValid ? "" : "Invalid profile name" };
                 },
                 validation: undefined,
-            } as ContainerDeploymentFormItemSpec,
+            } as LocalContainersFormItemSpec,
         };
 
         // Mock state input
-        const state: ContainerDeploymentWebviewState = {
+        const state: LocalContainersWebviewState = {
             ...controllerState,
             formErrors: [],
             isValidContainerName: true,

@@ -6,13 +6,13 @@
 import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
-import { ContainerDeploymentStateProvider } from "./containerDeploymentStateProvider";
-import { ContainerDeploymentStartPage } from "./containerDeploymentStartPage";
+import { LocalContainersStateProvider } from "./localContainersStateProvider";
+import { LocalContainersStartPage } from "./localContainersStartPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider>
-        <ContainerDeploymentStateProvider>
-            <ContainerDeploymentStartPage />
-        </ContainerDeploymentStateProvider>
+        <LocalContainersStateProvider>
+            <LocalContainersStartPage />
+        </LocalContainersStateProvider>
     </VscodeWebviewProvider>,
 );

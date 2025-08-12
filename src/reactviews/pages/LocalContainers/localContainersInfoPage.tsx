@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
+import { LocalContainersContext } from "./localContainersStateProvider";
 import { Button, makeStyles } from "@fluentui/react-components";
-import { PrereqCheckPage } from "./prereqCheckPage";
-import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
+import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
+import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -68,24 +68,24 @@ const useStyles = makeStyles({
     },
 });
 
-export const GetStartedPage: React.FC = () => {
+export const LocalContainersInfoPage: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(ContainerDeploymentContext);
+    const state = useContext(LocalContainersContext);
     const [showNext, setShowNext] = useState(false);
-    const containerDeploymentState = state?.state;
+    const localContainersState = state?.state;
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state || !containerDeploymentState) {
+    if (!state || !localContainersState) {
         return undefined;
     }
 
     return showNext ? (
-        <PrereqCheckPage />
+        <LocalContainersPrereqPage />
     ) : (
         <div>
-            <ContainerDeploymentHeader
-                headerText={locConstants.containerDeployment.sqlServerContainerHeader}
+            <LocalContainersHeader
+                headerText={locConstants.localContainers.sqlServerContainerHeader}
             />
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
@@ -93,22 +93,20 @@ export const GetStartedPage: React.FC = () => {
                         <img
                             className={classes.icon}
                             src={instantSetup()}
-                            alt={locConstants.containerDeployment.instantContainerSetup}
+                            alt={locConstants.localContainers.instantContainerSetup}
                         />
                         <div className={classes.textDiv}>
                             <div className={classes.titleDiv}>
-                                {locConstants.containerDeployment.instantContainerSetup}
+                                {locConstants.localContainers.instantContainerSetup}
                             </div>
-                            <div>
-                                {locConstants.containerDeployment.instantContainerDescription}
-                            </div>
+                            <div>{locConstants.localContainers.instantContainerDescription}</div>
                         </div>
                     </div>
                     <div className={classes.itemDiv}>
                         <img
                             className={classes.icon}
                             src={chooseVersion()}
-                            alt={locConstants.containerDeployment.chooseTheRightVersion}
+                            alt={locConstants.localContainers.chooseTheRightVersion}
                             style={{
                                 width: "60px",
                                 height: "60px",
@@ -118,10 +116,10 @@ export const GetStartedPage: React.FC = () => {
                         />
                         <div className={classes.textDiv}>
                             <div className={classes.titleDiv}>
-                                {locConstants.containerDeployment.chooseTheRightVersion}
+                                {locConstants.localContainers.chooseTheRightVersion}
                             </div>
                             <div>
-                                {locConstants.containerDeployment.chooseTheRightVersionDescription}
+                                {locConstants.localContainers.chooseTheRightVersionDescription}
                             </div>
                             <a
                                 href={
@@ -130,7 +128,7 @@ export const GetStartedPage: React.FC = () => {
                                 target="_blank"
                                 className={classes.link}
                                 rel="noopener noreferrer">
-                                {locConstants.containerDeployment.learnMoreAboutSqlServer2025}
+                                {locConstants.localContainers.learnMoreAboutSqlServer2025}
                             </a>
                             <a
                                 href={
@@ -140,7 +138,7 @@ export const GetStartedPage: React.FC = () => {
                                 rel="noopener noreferrer"
                                 className={classes.link}
                                 style={{ marginTop: "0px" }}>
-                                {locConstants.containerDeployment.sqlServerEditionsComparison}
+                                {locConstants.localContainers.sqlServerEditionsComparison}
                             </a>
                             <a
                                 href={
@@ -150,7 +148,7 @@ export const GetStartedPage: React.FC = () => {
                                 rel="noopener noreferrer"
                                 className={classes.link}
                                 style={{ marginTop: "0px" }}>
-                                {locConstants.containerDeployment.configureAndCustomizeSqlServer}
+                                {locConstants.localContainers.configureAndCustomizeSqlServer}
                             </a>
                         </div>
                     </div>
@@ -160,7 +158,7 @@ export const GetStartedPage: React.FC = () => {
                             setShowNext(true);
                         }}
                         appearance={"primary"}>
-                        {locConstants.containerDeployment.getStarted}
+                        {locConstants.localContainers.getStarted}
                     </Button>
                 </div>
             </div>

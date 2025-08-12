@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as cd from "../sharedInterfaces/containerDeployment";
+import * as lc from "../sharedInterfaces/localContainers";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { platform } from "os";
@@ -17,7 +17,7 @@ import {
     Common,
     connectErrorTooltip,
     ConnectionDialog,
-    ContainerDeployment,
+    LocalContainers,
     msgSavePassword,
     passwordPrompt,
     profileNameTooltip,
@@ -31,13 +31,13 @@ import {
     getDefaultConnectionGroupDialogProps,
 } from "../controllers/connectionGroupWebviewController";
 
-export class ContainerDeploymentWebviewController extends FormWebviewController<
-    cd.DockerConnectionProfile,
-    cd.ContainerDeploymentWebviewState,
-    cd.ContainerDeploymentFormItemSpec,
-    cd.ContainerDeploymentReducers
+export class LocalContainersWebviewController extends FormWebviewController<
+    lc.DockerConnectionProfile,
+    lc.LocalContainersWebviewState,
+    lc.LocalContainersFormItemSpec,
+    lc.LocalContainersReducers
 > {
-    requiredInputs: cd.ContainerDeploymentFormItemSpec[];
+    requiredInputs: lc.LocalContainersFormItemSpec[];
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
@@ -47,11 +47,11 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         super(
             context,
             vscodeWrapper,
-            "containerDeployment",
-            "containerDeployment",
-            new cd.ContainerDeploymentWebviewState(),
+            "localContainers",
+            "localContainers",
+            new lc.LocalContainersWebviewState(),
             {
-                title: ContainerDeployment.createLocalSqlContainer,
+                title: LocalContainers.createLocalSqlContainer,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -87,7 +87,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             hostname: "",
             acceptEula: false,
             groupId: groupOptions[0].value,
-        } as cd.DockerConnectionProfile;
+        } as lc.DockerConnectionProfile;
         this.state.dockerSteps = dockerUtils.initializeDockerSteps();
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
@@ -121,10 +121,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 },
             });
 
-            let dockerResult: cd.DockerCommandParams;
+            let dockerResult: lc.DockerCommandParams;
             let stepSuccessful = false;
             const stepStartTime = Date.now();
-            if (currentStepNumber === cd.DockerStepOrder.connectToContainer) {
+            if (currentStepNumber === lc.DockerStepOrder.connectToContainer) {
                 const connectionResult = await this.addContainerConnection(state.formState);
                 stepSuccessful = connectionResult;
 
@@ -143,7 +143,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             }
 
             const telemetryProperties: Record<string, string> = {
-                dockerStep: cd.DockerStepOrder[currentStepNumber],
+                dockerStep: lc.DockerStepOrder[currentStepNumber],
                 containerVersion: state.formState.version,
             };
             const telemetryMeasures: Record<string, number> = {
@@ -154,7 +154,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             if (stepSuccessful) {
                 currentStep.loadState = ApiStatus.Loaded;
                 sendActionEvent(
-                    TelemetryViews.ContainerDeployment,
+                    TelemetryViews.LocalContainers,
                     TelemetryActions.RunDockerStep,
                     telemetryProperties,
                     telemetryMeasures,
@@ -165,7 +165,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 // Error telemetry includes the step number and error message
                 currentStep.loadState = ApiStatus.Error;
                 sendErrorEvent(
-                    TelemetryViews.ContainerDeployment,
+                    TelemetryViews.LocalContainers,
                     TelemetryActions.RunDockerStep,
                     new Error(currentStep.errorMessage),
                     true, // includeErrorMessage
@@ -183,8 +183,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             // Reset the current step to NotStarted
             const currentStepNumber = state.currentDockerStep;
             state.dockerSteps[currentStepNumber].loadState = ApiStatus.NotStarted;
-            sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.RetryDockerStep, {
-                dockerStep: cd.DockerStepOrder[currentStepNumber],
+            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RetryDockerStep, {
+                dockerStep: lc.DockerStepOrder[currentStepNumber],
             });
             return state;
         });
@@ -210,7 +210,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
 
             if (state.isDockerProfileValid) {
                 sendActionEvent(
-                    TelemetryViews.ContainerDeployment,
+                    TelemetryViews.LocalContainers,
                     TelemetryActions.SubmitContainerForm,
                     {
                         hasAdvancedOptions: hasAdvancedOptions ? "true" : "false",
@@ -248,7 +248,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
             if (payload.shouldOpen) {
                 state = getDefaultConnectionGroupDialogProps(
                     state,
-                ) as cd.ContainerDeploymentWebviewState;
+                ) as lc.LocalContainersWebviewState;
             } else {
                 state.dialog = undefined;
             }
@@ -256,17 +256,12 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("dispose", async (state, _payload) => {
-            sendActionEvent(
-                TelemetryViews.ContainerDeployment,
-                TelemetryActions.CloseContainerDeployment,
-                {
-                    // Include the current step, its status, and its potential error in the telemetry
-                    currentStep: cd.DockerStepOrder[state.currentDockerStep],
-                    currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
-                    currentStepErrorMessage:
-                        state.dockerSteps[state.currentDockerStep]?.errorMessage,
-                },
-            );
+            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.CloseLocalContainers, {
+                // Include the current step, its status, and its potential error in the telemetry
+                currentStep: lc.DockerStepOrder[state.currentDockerStep],
+                currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
+                currentStepErrorMessage: state.dockerSteps[state.currentDockerStep]?.errorMessage,
+            });
             this.panel.dispose();
             this.dispose();
             return state;
@@ -276,9 +271,9 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     async updateItemVisibility() {}
 
     protected getActiveFormComponents(
-        state: cd.ContainerDeploymentWebviewState,
-    ): (keyof cd.DockerConnectionProfile)[] {
-        return Object.keys(state.formComponents) as (keyof cd.DockerConnectionProfile)[];
+        state: lc.LocalContainersWebviewState,
+    ): (keyof lc.DockerConnectionProfile)[] {
+        return Object.keys(state.formComponents) as (keyof lc.DockerConnectionProfile)[];
     }
 
     private async validatePort(port: string): Promise<boolean> {
@@ -295,10 +290,10 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     }
 
     private async validateDockerConnectionProfile(
-        state: cd.ContainerDeploymentWebviewState,
-        dockerConnectionProfile: cd.DockerConnectionProfile,
-        propertyName?: keyof cd.DockerConnectionProfile,
-    ): Promise<cd.ContainerDeploymentWebviewState> {
+        state: lc.LocalContainersWebviewState,
+        dockerConnectionProfile: lc.DockerConnectionProfile,
+        propertyName?: keyof lc.DockerConnectionProfile,
+    ): Promise<lc.LocalContainersWebviewState> {
         const erroredInputs: string[] = [];
         const components = propertyName
             ? [this.state.formComponents[propertyName]]
@@ -353,7 +348,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     }
 
     private async addContainerConnection(
-        dockerProfile: cd.DockerConnectionProfile,
+        dockerProfile: lc.DockerConnectionProfile,
     ): Promise<boolean> {
         let connection: unknown = {
             ...dockerProfile,
@@ -385,27 +380,27 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     ): Record<
         string,
         FormItemSpec<
-            cd.DockerConnectionProfile,
-            cd.ContainerDeploymentWebviewState,
-            cd.ContainerDeploymentFormItemSpec
+            lc.DockerConnectionProfile,
+            lc.LocalContainersWebviewState,
+            lc.LocalContainersFormItemSpec
         >
     > {
         const createFormItem = (
-            spec: Partial<cd.ContainerDeploymentFormItemSpec>,
-        ): cd.ContainerDeploymentFormItemSpec =>
+            spec: Partial<lc.LocalContainersFormItemSpec>,
+        ): lc.LocalContainersFormItemSpec =>
             ({
                 required: false,
                 isAdvancedOption: false,
                 ...spec,
-            }) as cd.ContainerDeploymentFormItemSpec;
+            }) as lc.LocalContainersFormItemSpec;
 
         return {
             version: createFormItem({
                 type: FormItemType.Dropdown,
                 propertyName: "version",
-                label: ContainerDeployment.selectImage,
+                label: LocalContainers.selectImage,
                 required: true,
-                tooltip: ContainerDeployment.selectImageTooltip,
+                tooltip: LocalContainers.selectImageTooltip,
                 options: versions,
             }),
 
@@ -414,8 +409,8 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 propertyName: "password",
                 label: passwordPrompt,
                 required: true,
-                tooltip: ContainerDeployment.sqlServerPasswordTooltip,
-                placeholder: ContainerDeployment.passwordPlaceholder,
+                tooltip: LocalContainers.sqlServerPasswordTooltip,
+                placeholder: LocalContainers.passwordPlaceholder,
                 componentWidth: "500px",
                 validate(_state, value) {
                     const result = dockerUtils.validateSqlServerPassword(value.toString());
@@ -439,38 +434,38 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                 propertyName: "profileName",
                 label: ConnectionDialog.profileName,
                 tooltip: profileNameTooltip,
-                placeholder: ContainerDeployment.profileNamePlaceholder,
+                placeholder: LocalContainers.profileNamePlaceholder,
             }),
 
             groupId: createFormItem(
-                getGroupIdFormItem(groupOptions) as cd.ContainerDeploymentFormItemSpec,
+                getGroupIdFormItem(groupOptions) as lc.LocalContainersFormItemSpec,
             ),
 
             containerName: createFormItem({
                 type: FormItemType.Input,
                 propertyName: "containerName",
-                label: ContainerDeployment.containerName,
+                label: LocalContainers.containerName,
                 isAdvancedOption: true,
-                tooltip: ContainerDeployment.containerNameTooltip,
-                placeholder: ContainerDeployment.containerNamePlaceholder,
+                tooltip: LocalContainers.containerNameTooltip,
+                placeholder: LocalContainers.containerNamePlaceholder,
             }),
 
             port: createFormItem({
                 type: FormItemType.Input,
                 propertyName: "port",
-                label: ContainerDeployment.port,
+                label: LocalContainers.port,
                 isAdvancedOption: true,
-                tooltip: ContainerDeployment.portTooltip,
-                placeholder: ContainerDeployment.portPlaceholder,
+                tooltip: LocalContainers.portTooltip,
+                placeholder: LocalContainers.portPlaceholder,
             }),
 
             hostname: createFormItem({
                 type: FormItemType.Input,
                 propertyName: "hostname",
-                label: ContainerDeployment.hostname,
+                label: LocalContainers.hostname,
                 isAdvancedOption: true,
-                tooltip: ContainerDeployment.hostnameTooltip,
-                placeholder: ContainerDeployment.hostnamePlaceholder,
+                tooltip: LocalContainers.hostnameTooltip,
+                placeholder: LocalContainers.hostnamePlaceholder,
             }),
 
             acceptEula: createFormItem({
@@ -482,18 +477,18 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                             href="https://go.microsoft.com/fwlink/?LinkId=746388"
                             target="_blank"
                         >
-                            ${ContainerDeployment.termsAndConditions}
+                            ${LocalContainers.termsAndConditions}
                         </a>
                     </span>`,
                 required: true,
-                tooltip: ContainerDeployment.acceptSqlServerEulaTooltip,
+                tooltip: LocalContainers.acceptSqlServerEulaTooltip,
                 componentWidth: "600px",
                 validate(_, value) {
                     return value
                         ? { isValid: true, validationMessage: "" }
                         : {
                               isValid: false,
-                              validationMessage: ContainerDeployment.acceptSqlServerEula,
+                              validationMessage: LocalContainers.acceptSqlServerEula,
                           };
                 },
             }),
