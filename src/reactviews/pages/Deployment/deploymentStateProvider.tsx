@@ -3,30 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as lc from "../../../sharedInterfaces/localContainers";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { createContext } from "react";
-import { LocalContainersContextProps } from "../../../sharedInterfaces/localContainers";
+import {
+    DeploymentContextProps,
+    DeploymentReducers,
+    DeploymentType,
+    DeploymentWebviewState,
+} from "../../../sharedInterfaces/deployment";
 import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
 
-const LocalContainersContext = createContext<LocalContainersContextProps | undefined>(undefined);
+const DeploymentContext = createContext<DeploymentContextProps | undefined>(undefined);
 
-interface LocalContainersProviderProps {
+interface DeploymentProviderProps {
     children: React.ReactNode;
 }
 
-const LocalContainersStateProvider: React.FC<LocalContainersProviderProps> = ({ children }) => {
-    const webviewState = useVscodeWebview<
-        lc.LocalContainersWebviewState,
-        lc.LocalContainersReducers
-    >();
+const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }) => {
+    const webviewState = useVscodeWebview<DeploymentWebviewState, DeploymentReducers>();
     return (
-        <LocalContainersContext.Provider
+        <DeploymentContext.Provider
             value={{
                 state: webviewState?.state,
                 themeKind: webviewState?.themeKind,
                 ...getCoreRPCs(webviewState),
+                initializeDeploymentSpecifics: function (deploymentType: DeploymentType): void {
+                    webviewState?.extensionRpc.action("initializeDeploymentSpecifics", {
+                        deploymentType: deploymentType,
+                    });
+                },
                 formAction: function (event): void {
                     webviewState?.extensionRpc.action("formAction", {
                         event: event,
@@ -58,8 +64,8 @@ const LocalContainersStateProvider: React.FC<LocalContainersProviderProps> = ({ 
                 },
             }}>
             {children}
-        </LocalContainersContext.Provider>
+        </DeploymentContext.Provider>
     );
 };
 
-export { LocalContainersContext, LocalContainersStateProvider };
+export { DeploymentContext, DeploymentStateProvider };

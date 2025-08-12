@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { LocalContainersContext } from "./localContainersStateProvider";
 import { StepCard } from "./stepCard";
 import { Button } from "@fluentui/react-components";
 import {
@@ -16,11 +15,12 @@ import { DockerStepOrder } from "../../../sharedInterfaces/localContainers";
 import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 export const LocalContainersSetupStepsPage: React.FC = () => {
     const classes = stepPageStyles();
-    const state = useContext(LocalContainersContext);
-    const localContainersState = state?.state;
+    const state = useContext(DeploymentContext);
+    const localContainersState = state?.state.deploymentTypeState;
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const [stepsErrored, setStepsErrored] = useState(false);
     const lastStep = DockerStepOrder.connectToContainer;

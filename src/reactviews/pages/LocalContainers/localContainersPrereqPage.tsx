@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { LocalContainersContext } from "./localContainersStateProvider";
 import { StepCard } from "./stepCard";
 import { Button } from "@fluentui/react-components";
 import { LocalContainersInputForm } from "./localContainersInputForm";
@@ -17,16 +16,16 @@ import { DockerStepOrder } from "../../../sharedInterfaces/localContainers";
 import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 export const LocalContainersPrereqPage: React.FC = () => {
     const classes = stepPageStyles();
-    const state = useContext(LocalContainersContext);
+    const state = useContext(DeploymentContext);
+    const localContainersState = state?.state.deploymentTypeState;
     const [showNext, setShowNext] = useState(false);
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const [stepsErrored, setStepsErrored] = useState(false);
     const lastStep = DockerStepOrder.checkDockerEngine;
-
-    const localContainersState = state?.state;
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null

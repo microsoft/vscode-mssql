@@ -4,9 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ApiStatus } from "./webview";
-import { FormContextProps, FormEvent, FormItemSpec, FormState } from "./form";
+import { FormContextProps, FormItemSpec, FormState } from "./form";
 import { IConnectionDialogProfile, IDialogProps } from "./connectionDialog";
-import { ConnectionGroupSpec } from "./connectionGroup";
 
 export class LocalContainersWebviewState
     implements
@@ -85,22 +84,6 @@ export interface LocalContainersContextProps
      * Resets the states of the current Docker step to NotStarted.
      */
     resetDockerStepState(): void;
-
-    /**
-     * Creates a connection group based on the provided spec.
-     */
-    createConnectionGroup(connectionGroupSpec: ConnectionGroupSpec): void;
-
-    /**
-     * Sets the visibility of the connection group dialog based on the provided state.
-     * @param shouldOpen - A boolean indicating whether the dialog should be open or closed.
-     */
-    setConnectionGroupDialogState(shouldOpen: boolean): void;
-
-    /**
-     * Cleans up and disposes of resources used by the deployment context.
-     */
-    dispose(): void;
 }
 
 export interface LocalContainersReducers {
@@ -119,30 +102,6 @@ export interface LocalContainersReducers {
      * Reducer for Docker profile validation.
      */
     checkDockerProfile: {};
-
-    /**
-     * Handles form-related actions and state updates.
-     */
-    formAction: {
-        event: FormEvent<DockerConnectionProfile>;
-    };
-
-    /**
-     * Handles the action of creating a connection group.
-     */
-    createConnectionGroup: {
-        connectionGroupSpec: ConnectionGroupSpec;
-    };
-
-    /**
-     * Handles the action of opening/closing the connection group dialog.
-     */
-    setConnectionGroupDialogState: { shouldOpen: boolean };
-
-    /**
-     * Reducer for cleanup and disposal logic.
-     */
-    dispose: {};
 }
 
 /**

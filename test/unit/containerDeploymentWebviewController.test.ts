@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/*
 import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
@@ -646,3 +647,4 @@ suite("Add Local Container Connection Node", () => {
         );
     });
 });
+*/

@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import { LocalContainersContext } from "./localContainersStateProvider";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
 import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../common/locConstants";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -70,9 +70,9 @@ const useStyles = makeStyles({
 
 export const LocalContainersInfoPage: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(LocalContainersContext);
+    const state = useContext(DeploymentContext);
+    const localContainersState = state?.state.deploymentTypeState;
     const [showNext, setShowNext] = useState(false);
-    const localContainersState = state?.state;
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null

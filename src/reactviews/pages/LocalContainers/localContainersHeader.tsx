@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext } from "react";
-import { LocalContainersContext } from "./localContainersStateProvider";
 import { makeStyles } from "@fluentui/react-components";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -41,8 +41,8 @@ interface HeaderProps {
 
 export const LocalContainersHeader: React.FC<HeaderProps> = ({ headerText, paddingLeft }) => {
     const classes = useStyles();
-    const state = useContext(LocalContainersContext);
-    const localContainersState = state?.state;
+    const state = useContext(DeploymentContext);
+    const localContainersState = state?.state.deploymentTypeState;
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null

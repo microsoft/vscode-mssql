@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { LocalContainersContext } from "./localContainersStateProvider";
 import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
 import { LocalContainersSetupStepsPage } from "./localContainersSetupStepsPage";
@@ -24,6 +23,7 @@ import {
 } from "../../../sharedInterfaces/connectionGroup";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -61,13 +61,13 @@ const useStyles = makeStyles({
 
 export const LocalContainersInputForm: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(LocalContainersContext);
+    const state = useContext(DeploymentContext);
     const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
 
     if (!state) return undefined;
 
-    const { formComponents } = state.state;
+    const { formComponents } = state?.state.deploymentTypeState;
     const eulaComponent = Object.values(formComponents).find(
         (component) => component.propertyName === "acceptEula",
     )!;

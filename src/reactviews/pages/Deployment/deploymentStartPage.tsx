@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext } from "react";
+import { DeploymentContext } from "./deploymentStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { LocalContainersInfoPage } from "./localContainersInfoPage";
 import { locConstants } from "../../common/locConstants";
-import { DeploymentContext } from "../Deployment/deploymentStateProvider";
+import { ChooseDeploymentTypePage } from "./chooseDeploymentTypePage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -34,12 +34,12 @@ const useStyles = makeStyles({
     },
 });
 
-export const LocalContainersStartPage = () => {
+export const DeploymentStartPage = () => {
     const classes = useStyles();
     const state = useContext(DeploymentContext);
-    const localContainersState = state?.state.deploymentTypeState;
+    const deploymentState = state?.state;
     const renderMainContent = () => {
-        switch (localContainersState?.loadState) {
+        switch (deploymentState?.loadState) {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
@@ -50,12 +50,12 @@ export const LocalContainersStartPage = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                return <LocalContainersInfoPage />;
+                return <ChooseDeploymentTypePage />;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{localContainersState?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{deploymentState?.errorMessage ?? ""}</Text>
                     </div>
                 );
         }

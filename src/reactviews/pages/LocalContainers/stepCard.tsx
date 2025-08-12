@@ -12,10 +12,10 @@ import {
     Dismiss20Regular,
 } from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
-import { LocalContainersContext } from "./localContainersStateProvider";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { DockerStep } from "../../../sharedInterfaces/localContainers";
 import { locConstants } from "../../common/locConstants";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -61,7 +61,8 @@ interface StepCardProps {
 
 export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     const classes = useStyles();
-    const state = useContext(LocalContainersContext);
+    const state = useContext(DeploymentContext);
+    const localContainersState = state?.state.deploymentTypeState;
     const [expanded, setExpanded] = useState(true);
     // This state is used to track if the step has just errored, and expand then
     const [isNewlyErrored, setIsNewlyErrored] = useState(false);
@@ -78,7 +79,7 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
             setExpanded(true);
             setIsNewlyErrored(true);
         }
-    }, [state.state]);
+    }, [localContainersState]);
 
     const getStatusIcon = () => {
         if (step.loadState === ApiStatus.NotStarted) {

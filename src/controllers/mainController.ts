@@ -81,7 +81,7 @@ import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
-import { LocalContainersWebviewController } from "../deployment/localContainersWebviewController";
+import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
 import {
     deleteContainer,
     prepareForDockerContainerCommand,
@@ -1855,7 +1855,7 @@ export default class MainController implements vscode.Disposable {
     public onDeployContainer(): void {
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.OpenLocalContainers);
 
-        const reactPanel = new LocalContainersWebviewController(
+        const reactPanel = new DeploymentWebviewController(
             this._context,
             this._vscodeWrapper,
             this,
