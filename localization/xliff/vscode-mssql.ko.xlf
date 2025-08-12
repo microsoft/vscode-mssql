@@ -400,7 +400,7 @@
       <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
         <source xml:lang="en">Cancel failed: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Cancel failed: {0}</target>
+        <target state="translated">취소에 실패했습니다: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
         <source xml:lang="en">Cancel schema compare failed: '{0}'</source>
@@ -1415,7 +1415,7 @@ Error:
       <trans-unit id="++CODE++2332577de7a1ae1c1fdad89cd3a54570fcafcfcf1e149fda9dc0c42d4f88fbdb">
         <source xml:lang="en">Failed disposing query: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed disposing query: {0}</target>
+        <target state="translated">쿼리 처리를 실패했습니다: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
@@ -4467,6 +4467,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
         <target state="translated">테이블 디자이너</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
+        <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
+        <target state="new">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>
