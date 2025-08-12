@@ -247,7 +247,7 @@ suite("MainController Tests", function () {
             .returns(() => Promise.reject(new Error("boom")));
 
         // No need to "returns" here; but if you do, return a real value, not It.isAny()
-        connectionManager.setup((x) => x.onNewConnection()).returns(() => Promise.resolve());
+        connectionManager.setup((x) => x.onNewConnection()).returns(() => Promise.resolve() as any);
 
         // Act + assert reject
         await assert.rejects(() => mainController.onNewQuery(undefined, undefined), /boom/);
