@@ -24,7 +24,11 @@ import {
 } from "@fluentui/react-components";
 import { FabricSqlServerInfo } from "../../../../sharedInterfaces/connectionDialog";
 import { useState, useEffect, useMemo } from "react";
-import { ChevronDoubleLeftFilled, ChevronDoubleRightFilled } from "@fluentui/react-icons";
+import {
+    ChevronDoubleLeftFilled,
+    ChevronDoubleRightFilled,
+    DocumentDatabaseRegular,
+} from "@fluentui/react-icons";
 
 interface Props {
     fabricServerInfo: FabricSqlServerInfo[];
@@ -197,7 +201,7 @@ const WorkspacesList = ({
                         selectedWorkspace?.id === workspace.id ? styles.workspaceItemSelected : ""
                     }
                     style={{
-                        padding: "4px 8px",
+                        padding: "4px 8px 4px 24px", // Added left padding for indentation
                         cursor: "pointer",
                         borderRadius: "2px",
                         marginBottom: "1px",
@@ -207,6 +211,7 @@ const WorkspacesList = ({
                         fontSize: "13px",
                         height: "24px",
                         lineHeight: "24px",
+                        position: "relative", // For icon positioning
                     }}
                     onClick={() => onWorkspaceSelect(workspace)}
                     onKeyDown={(e) => {
@@ -219,7 +224,20 @@ const WorkspacesList = ({
                     role="option"
                     aria-selected={selectedWorkspace?.id === workspace.id}
                     title={workspace.name}>
-                    <Text>{workspace.name}</Text>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                        <DocumentDatabaseRegular
+                            style={{
+                                fontSize: "14px",
+                                marginRight: "8px",
+                                opacity: 0.7,
+                                color:
+                                    selectedWorkspace?.id === workspace.id
+                                        ? "var(--vscode-list-activeSelectionForeground)"
+                                        : "var(--vscode-foreground)",
+                            }}
+                        />
+                        <Text>{workspace.name}</Text>
+                    </div>
                 </ListItem>
             ))}
         </List>
