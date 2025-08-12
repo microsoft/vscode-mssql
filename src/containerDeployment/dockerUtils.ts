@@ -86,17 +86,6 @@ export const COMMANDS = {
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
     GET_CONTAINERS_BY_NAME: `docker ps -a --format "{{.Names}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
-    /*
-    PULL_IMAGE: (version: string) => `docker pull mcr.microsoft.com/mssql/server:${version}-latest`,
-    START_SQL_SERVER: (
-        name: string,
-        password: string,
-        port: number,
-        version: string,
-        hostname: string,
-    ) =>
-        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${sanitizeContainerInput(hostname)}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
-    */
     PULL_IMAGE: (versionTag: string) => `docker pull mcr.microsoft.com/mssql/server:${versionTag}`,
     START_SQL_SERVER: (
         name: string,
@@ -395,7 +384,7 @@ export async function getDockerPath(executable: string): Promise<string> {
  * Temp fix for the SQL Server 2025 version issue on Mac.
  * Returns the last working version of SQL Server 2025 for Mac.
  */
-export function getWorking2025Version(version: string): string {
+export function constructVersionTag(version: string): string {
     let versionYear = version.substring(0, yearStringLength);
     // Hard Coded until this issue is fixed for mac: https://github.com/microsoft/mssql-docker/issues/940#issue
     if (platform() === Platform.Mac && arch() !== x64 && versionYear === "2025") {
@@ -409,7 +398,7 @@ export function getWorking2025Version(version: string): string {
  */
 export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
     try {
-        await execCommand(COMMANDS.PULL_IMAGE(getWorking2025Version(version)));
+        await execCommand(COMMANDS.PULL_IMAGE(constructVersionTag(version)));
         return { success: true };
     } catch (e) {
         return {
@@ -434,7 +423,7 @@ export async function startSqlServerDockerContainer(
         containerName,
         password,
         port,
-        getWorking2025Version(version),
+        constructVersionTag(version),
         hostname,
     );
     try {
