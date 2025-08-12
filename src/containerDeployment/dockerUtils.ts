@@ -401,7 +401,7 @@ export function getWorking2025Version(version: string): string {
     if (platform() === Platform.Mac && arch() !== x64 && versionYear === "2025") {
         return "2025-CTP2.0-ubuntu-22.04"; // Last working version of SQL Server 2025 for Mac
     }
-    return versionYear;
+    return `${versionYear}-latest`;
 }
 
 /**
