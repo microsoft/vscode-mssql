@@ -2154,6 +2154,34 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
         }
 
+        const booleanOptionsAsStrings: { [key: string]: string } = {};
+
+        const generalOptionsDictionary =
+            state.defaultDeploymentOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary;
+
+        for (const key in generalOptionsDictionary) {
+            if (generalOptionsDictionary.hasOwnProperty(key)) {
+                booleanOptionsAsStrings[key] = generalOptionsDictionary[key].value.toString();
+            }
+        }
+
+        endActivity.update({ message: "General Options", ...booleanOptionsAsStrings });
+
+        // exclude object types
+        const objectTypesDictionaryCopy = deepClone(
+            state.defaultDeploymentOptionsResult.defaultDeploymentOptions.objectTypesDictionary,
+        );
+        // iterate over state.defaultDeploymentOptionsResult.defaultDeploymentOptions.excludeObjectTypes and remove all the object types that are listed in excludeObjectTypes from ObjectTypesDictionaryCopy
+        const excludeObjectTypes =
+            state.defaultDeploymentOptionsResult.defaultDeploymentOptions.excludeObjectTypes.value;
+        excludeObjectTypes.forEach((type) => {
+            if (objectTypesDictionaryCopy[type]) {
+                delete objectTypesDictionaryCopy[type];
+            }
+        });
+
+        endActivity.update({ message: "Included Object Types", ...objectTypesDictionaryCopy });
+
         this.logger.info(`Executing schema comparison with operation ID: ${this.operationId}`);
         const result = await compare(
             this.operationId,
