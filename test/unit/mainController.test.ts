@@ -67,6 +67,8 @@ suite("MainController Tests", function () {
 
     teardown(() => {
         sandbox.restore();
+        docUriCallback = "";
+        newDocUriCallback = "";
     });
 
     // Standard closed document event test
