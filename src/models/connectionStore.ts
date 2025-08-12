@@ -25,6 +25,8 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
 import { Deferred } from "../protocol";
+import { sendActionEvent } from "../telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -145,7 +147,7 @@ export class ConnectionStore {
     /**
      * Creates a formatted credential usable for uniquely identifying a SQL Connection.
      * This string can be decoded but is not optimized for this.
-     * @deprecated
+     * @deprecated Use formatCredentialIdForCred instead.
      * @param server name of the server - required
      * @param database name of the database - optional
      * @param user name of the user - optional
@@ -261,7 +263,7 @@ export class ConnectionStore {
     }
 
     /**
-     * Lookup credential store with migration support
+     * Lookup password in credential store.
      * @param connectionCredentials Connection credentials of profile for password lookup
      * @param isConnectionString Whether this is a connection string lookup
      */
@@ -272,7 +274,7 @@ export class ConnectionStore {
         const profile = connectionCredentials as IConnectionProfile;
         let savedCredential: Contracts.Credential;
 
-        // Generate credential ID using profile information (new format)
+        // Generate credential ID using profile's id (new format)
         const credentialId = ConnectionStore.formatCredentialIdForCred(
             profile,
             CredentialsQuickPickItemType.Profile,
@@ -286,13 +288,17 @@ export class ConnectionStore {
             }
         }
 
-        // Read from credential store with new format id
+        // We try to read from the credential store with the new format id
         savedCredential = await this._credentialStore.readCredential(credentialId);
         if (savedCredential && savedCredential.password) {
+            sendActionEvent(TelemetryViews.Connection, TelemetryActions.LookupPassword, {
+                isNewFormat: true.toString(),
+                passwordFound: true.toString(),
+            });
             return savedCredential.password;
         }
 
-        // Fallback to legacy format and see if credential exists
+        // If no password was found, fallback to legacy format and see if credential exists
         const legacyCredentialId = ConnectionStore.formatCredentialId(
             connectionCredentials.server,
             connectionCredentials.database,
@@ -300,11 +306,23 @@ export class ConnectionStore {
             ConnectionStore.CRED_PROFILE_USER,
             isConnectionString,
         );
+
+        // We try to read from the credential store with the legacy format id
         const legacyCredential = await this._credentialStore.readCredential(legacyCredentialId);
         if (legacyCredential && legacyCredential.password) {
+            sendActionEvent(TelemetryViews.Connection, TelemetryActions.LookupPassword, {
+                isNewFormat: false.toString(),
+                passwordFound: true.toString(),
+            });
             return legacyCredential.password;
         }
 
+        // Send telemetry event if password was not found for connections with savePassword enabled
+        if (profile?.savePassword) {
+            sendActionEvent(TelemetryViews.Connection, TelemetryActions.LookupPassword, {
+                passwordFound: false.toString(),
+            });
+        }
         return undefined;
     }
 
