@@ -1083,6 +1083,28 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 return state;
             }
 
+            if (state.schemaCompareResult && state.schemaCompareResult.differences) {
+                // action preferences
+                const includedDiffs = state.schemaCompareResult.differences.filter(
+                    (diff) => diff.included,
+                );
+                const actionCounts = {
+                    [SchemaUpdateAction.Delete]: 0,
+                    [SchemaUpdateAction.Add]: 0,
+                    [SchemaUpdateAction.Change]: 0,
+                };
+
+                includedDiffs.forEach((diff) => {
+                    actionCounts[diff.updateAction]++;
+                });
+
+                endActivity.update({
+                    numDiffsDeleted: `${actionCounts[SchemaUpdateAction.Delete]}`,
+                    numDiffsAdded: `${actionCounts[SchemaUpdateAction.Add]}`,
+                    numDiffsChanged: `${actionCounts[SchemaUpdateAction.Change]}`,
+                });
+            }
+
             this.logger.info(
                 `Starting publish operation to ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
             );
