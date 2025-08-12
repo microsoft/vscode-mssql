@@ -44,7 +44,10 @@ export function checkStepErrored(state: DeploymentContextProps): boolean {
     const localContainersState = state.state.deploymentTypeState;
 
     // Safe check to ensure currentDockerStep is within bounds; if not, we've finished all steps
-    if (localContainersState.currentDockerStep === localContainersState.dockerSteps.length)
+    if (
+        localContainersState.currentDockerStep ===
+        Object.keys(localContainersState.dockerSteps).length
+    )
         return false;
     // Check if the current Docker step has errored
     const currentDockerStep =

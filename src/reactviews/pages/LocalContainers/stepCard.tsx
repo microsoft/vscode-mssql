@@ -79,7 +79,7 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
             setExpanded(true);
             setIsNewlyErrored(true);
         }
-    }, [localContainersState]);
+    }, [state.state]);
 
     const getStatusIcon = () => {
         if (step.loadState === ApiStatus.NotStarted) {

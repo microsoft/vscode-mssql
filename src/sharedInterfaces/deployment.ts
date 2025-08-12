@@ -13,7 +13,6 @@ import {
 import { ApiStatus } from "./webview";
 import { ConnectionGroupSpec } from "./connectionGroup";
 import { IDialogProps } from "./connectionDialog";
-import MainController from "../controllers/mainController";
 
 export class DeploymentWebviewState
     implements FormState<DeploymentFormState, DeploymentWebviewState, DeploymentFormItemSpec>
@@ -28,7 +27,6 @@ export class DeploymentWebviewState
     formState: DeploymentFormState = undefined;
     formComponents: Partial<Record<keyof DeploymentFormState, DeploymentFormItemSpec>> = {};
     formErrors: string[] = [];
-    mainController: MainController;
     connectionGroupOptions: FormItemOptions[];
 }
 
@@ -105,6 +103,12 @@ export enum DeploymentType {
     DevContainer = 3,
 }
 
+export interface DeploymentFormItemSpec
+    extends FormItemSpec<DeploymentFormState, DeploymentWebviewState, DeploymentFormItemSpec> {
+    componentWidth: string;
+    isAdvancedOption: boolean;
+}
+
 export type DeploymentTypeState = LocalContainersWebviewState;
 
 export type DeploymentContextProps = DeploymentCommonContextProps & LocalContainersContextProps;
@@ -112,9 +116,3 @@ export type DeploymentContextProps = DeploymentCommonContextProps & LocalContain
 export type DeploymentReducers = DeploymentCommonReducers & LocalContainersReducers;
 
 export type DeploymentFormState = LocalContainersFormState;
-
-export type DeploymentFormItemSpec = FormItemSpec<
-    DeploymentFormState,
-    DeploymentWebviewState,
-    DeploymentFormItemSpec
->;

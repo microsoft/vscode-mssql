@@ -64,10 +64,12 @@ export const LocalContainersInputForm: React.FC = () => {
     const state = useContext(DeploymentContext);
     const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
+    const deploymentState = state?.state;
+    const localContainersState = deploymentState?.deploymentTypeState;
 
-    if (!state) return undefined;
+    if (!state || !localContainersState) return undefined;
 
-    const { formComponents } = state?.state.deploymentTypeState;
+    const { formComponents } = localContainersState;
     const eulaComponent = Object.values(formComponents).find(
         (component) => component.propertyName === "acceptEula",
     )!;
@@ -112,8 +114,8 @@ export const LocalContainersInputForm: React.FC = () => {
     };
 
     useEffect(() => {
-        setShowNext(state.state.isDockerProfileValid);
-    }, [state]);
+        setShowNext(localContainersState.isDockerProfileValid);
+    }, [localContainersState]);
 
     return showNext ? (
         <LocalContainersSetupStepsPage />
@@ -125,9 +127,11 @@ export const LocalContainersInputForm: React.FC = () => {
             />
             <div className={classes.outerDiv}>
                 <div className={classes.formDiv}>
-                    {state.state.dialog?.type === "createConnectionGroup" && (
+                    {deploymentState.dialog?.type === "createConnectionGroup" && (
                         <ConnectionGroupDialog
-                            state={(state.state.dialog as CreateConnectionGroupDialogProps).props}
+                            state={
+                                (deploymentState.dialog as CreateConnectionGroupDialogProps).props
+                            }
                             saveConnectionGroup={state.createConnectionGroup}
                             closeDialog={() => state.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
@@ -141,7 +145,9 @@ export const LocalContainersInputForm: React.FC = () => {
                     >
                         context={state}
                         component={
-                            state.state.formComponents["groupId"] as LocalContainersFormItemSpec
+                            localContainersState.formComponents[
+                                "groupId"
+                            ] as LocalContainersFormItemSpec
                         }
                         idx={0}
                         componentProps={{
@@ -198,7 +204,7 @@ export const LocalContainersInputForm: React.FC = () => {
                             idx={0}
                         />
                     </div>
-                    {state.state?.formValidationLoadState === ApiStatus.Loading ? (
+                    {localContainersState.formValidationLoadState === ApiStatus.Loading ? (
                         <Button
                             className={classes.button}
                             type="submit"

@@ -33,15 +33,15 @@ export const LocalContainersSetupStepsPage: React.FC = () => {
 
     useEffect(() => {
         void runDockerStep(state, lastStep);
-    }, [localContainersState]);
+    }, [state.state]);
 
     useEffect(() => {
         setStepsLoaded(isLastStepLoaded(state, lastStep));
-    }, [localContainersState]);
+    }, [state.state]);
 
     useEffect(() => {
         setStepsErrored(checkStepErrored(state));
-    }, [localContainersState]);
+    }, [state.state]);
 
     const handleRetry = async () => {
         // reset step states

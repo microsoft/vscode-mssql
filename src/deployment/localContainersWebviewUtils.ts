@@ -50,7 +50,10 @@ export async function initializeLocalContainersState(
     return state;
 }
 
-export function registerLocalContainersReducers(deploymentController: DeploymentWebviewController) {
+export function registerLocalContainersReducers(
+    deploymentController: DeploymentWebviewController,
+    mainController: MainController,
+) {
     deploymentController.registerReducer("completeDockerStep", async (state, payload) => {
         const currentStepNumber = payload.dockerStep;
         const currentStep = state.deploymentTypeState.dockerSteps[currentStepNumber];
@@ -76,7 +79,7 @@ export function registerLocalContainersReducers(deploymentController: Deployment
         if (currentStepNumber === lc.DockerStepOrder.connectToContainer) {
             const connectionResult = await addContainerConnection(
                 newDeploymentTypeState.formState,
-                state.mainController,
+                mainController,
             );
             stepSuccessful = connectionResult;
 

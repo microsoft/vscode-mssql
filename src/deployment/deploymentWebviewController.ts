@@ -76,6 +76,8 @@ export class DeploymentWebviewController extends FormWebviewController<
                 );
             }
             state.deploymentTypeState = newDeploymentTypeState;
+            state.formState = newDeploymentTypeState.formState;
+            state.formComponents = newDeploymentTypeState.formComponents as any;
             state.isDeploymentTypeInitialized = true;
             this.updateState(state);
             return state;
@@ -85,7 +87,6 @@ export class DeploymentWebviewController extends FormWebviewController<
             if (state.formState) {
                 (state.formState as any)[payload.event.propertyName] = payload.event.value;
             }
-            this.updateState(state);
 
             let newDeploymentTypeState: DeploymentTypeState = state.deploymentTypeState;
             if (state.deploymentType === DeploymentType.LocalContainers) {
@@ -143,7 +144,7 @@ export class DeploymentWebviewController extends FormWebviewController<
             return state;
         });
 
-        localContainers.registerLocalContainersReducers(this);
+        localContainers.registerLocalContainersReducers(this, this.mainController);
     }
 
     async updateItemVisibility() {}
