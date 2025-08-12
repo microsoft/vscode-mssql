@@ -29,6 +29,11 @@ import { Logger } from "../models/logger";
  */
 const MAX_PORT_NUMBER = 65535;
 
+/**
+ * The length of the year string in the version number
+ */
+const yearStringLength = 4;
+
 export const invalidContainerNameValidationResult: FormItemValidationState = {
     isValid: false,
     validationMessage: ContainerDeployment.pleaseChooseUniqueContainerName,
@@ -65,10 +70,10 @@ export const COMMANDS = {
         name: string,
         password: string,
         port: number,
-        version: number,
+        versionTag: string,
         hostname: string,
     ) =>
-        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
+        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${versionTag}`,
     CHECK_CONTAINER_RUNNING: (name: string) =>
         `docker ps --filter "name=${sanitizeContainerName(name)}" --filter "status=running" --format "{{.Names}}"`,
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
@@ -324,6 +329,19 @@ export async function getDockerPath(executable: string): Promise<string> {
 }
 
 /**
+ * Temp fix for the SQL Server 2025 version issue on Mac.
+ * Returns the last working version of SQL Server 2025 for Mac.
+ */
+export function constructVersionTag(version: string): string {
+    let versionYear = version.substring(0, yearStringLength);
+    // Hard Coded until this issue is fixed for mac: https://github.com/microsoft/mssql-docker/issues/940#issue
+    if (platform() === Platform.Mac && arch() !== x64 && versionYear === "2025") {
+        return "2025-CTP2.0-ubuntu-22.04"; // Last working version of SQL Server 2025 for Mac
+    }
+    return `${versionYear}-latest`;
+}
+
+/**
  * Starts a SQL Server Docker container with the specified parameters.
  */
 export async function startSqlServerDockerContainer(
@@ -337,7 +355,7 @@ export async function startSqlServerDockerContainer(
         containerName,
         password,
         port,
-        Number(version),
+        constructVersionTag(version),
         hostname,
     );
     try {
