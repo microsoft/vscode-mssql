@@ -2561,7 +2561,7 @@ export default class MainController implements vscode.Disposable {
         this._connectionMgr.onDidOpenTextDocument(doc);
 
         await this.untitledSqlDocumentService.waitForOngoingCreates();
-        const skipCopyConnection = await this._untitledSqlDocumentService.shouldSkipCopyConnection(
+        const skipCopyConnection = this._untitledSqlDocumentService.shouldSkipCopyConnection(
             doc.uri.toString(true),
         );
 
