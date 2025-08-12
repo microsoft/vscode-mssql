@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import VscodeWrapper from "./vscodeWrapper";
-import { resolve } from "path";
 
 /**
  * Service for creating untitled documents for SQL query
