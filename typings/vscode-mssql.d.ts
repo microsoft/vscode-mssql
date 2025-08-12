@@ -1336,6 +1336,8 @@ declare module "vscode-mssql" {
         children: DiffEntry[];
         sourceScript: string;
         targetScript: string;
+        sourceObjectType: string;
+        targetObjectType: string;
         included: boolean;
         position?: number;
     }

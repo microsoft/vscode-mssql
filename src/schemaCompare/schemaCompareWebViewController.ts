@@ -2186,6 +2186,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             return state;
         }
 
+        const diffTypeFrequencies = this.countTargetObjectTypeFrequencies(result.differences);
+        const stringifiedFrequencies: { [key: string]: string } = {};
+
+        // Convert numeric values to strings
+        for (const key in diffTypeFrequencies) {
+            if (diffTypeFrequencies.hasOwnProperty(key)) {
+                stringifiedFrequencies[key] = diffTypeFrequencies[key].toString();
+            }
+        }
+        endActivity.update(stringifiedFrequencies);
+
         this.logger.info(
             `Schema comparison completed successfully with ${result.differences?.length || 0} differences found - OperationId: ${this.operationId}`,
         );
@@ -2369,5 +2380,46 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             default:
                 return "";
         }
+    }
+
+    /**
+     * Counts the frequency of each targetObjectType in a schema comparison result.
+     *
+     * @param differences The differences array from the schema compare result
+     * @returns An object mapping each object type to its frequency count
+     */
+    private countTargetObjectTypeFrequencies(differences: DiffEntry[]): { [key: string]: number } {
+        // Create a dictionary to track frequency counts
+        const frequencyCounts: { [key: string]: number } = {};
+
+        // Process each difference entry
+        differences.forEach((difference) => {
+            // Extract the relevant object type (prefer targetObjectType if available, otherwise use name)
+            const objectType = this.extractObjectTypeFromSourceType(
+                difference.sourceObjectType || difference.targetObjectType,
+            );
+
+            // Use a standardized form of the object type for counting
+            const typeKey = objectType || "Unknown";
+
+            // Increment the count for this type
+            frequencyCounts[typeKey] = (frequencyCounts[typeKey] || 0) + 1;
+        });
+
+        return frequencyCounts;
+    }
+
+    /**
+     * Extracts the object type name from a fully qualified source object type
+     * For example: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable" -> "SqlTable"
+     */
+    private extractObjectTypeFromSourceType(diffType: string): string {
+        if (!diffType) {
+            return undefined;
+        }
+
+        // Extract the last part of the fully qualified type name
+        const parts = diffType.split(".");
+        return parts[parts.length - 1] || diffType;
     }
 }
