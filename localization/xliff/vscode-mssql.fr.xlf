@@ -4468,6 +4468,10 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
         <source xml:lang="en">Table Designer</source>
         <target state="translated">Concepteur de tables</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
+        <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
+        <target state="new">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</target>
+      </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>
         <target state="translated">Couleur du groupe de connexion.</target>

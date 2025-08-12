@@ -4468,6 +4468,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Table Designer</source>
         <target state="translated">資料表設計工具</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
+        <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
+        <target state="new">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</target>
+      </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>
         <target state="translated">連線群組的色彩。</target>
