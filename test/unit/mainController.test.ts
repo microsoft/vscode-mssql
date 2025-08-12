@@ -320,6 +320,13 @@ suite("MainController Tests", function () {
             document: script1,
         } as unknown as vscode.TextEditor;
 
+        untitledSqlDocumentService
+            .setup((x) => x.waitForOngoingCreates())
+            .returns(() => Promise.resolve() as any);
+        untitledSqlDocumentService
+            .setup((x) => x.shouldSkipCopyConnection(TypeMoq.It.isAnyString()))
+            .returns(() => false);
+
         const controller: MainController = new MainController(
             TestExtensionContext.object,
             connectionManager.object,
@@ -355,7 +362,7 @@ suite("MainController Tests", function () {
         );
 
         // verify that the connection manager transfers the connection from SQL file to SQL file
-        void controller.onDidOpenTextDocument(script2);
+        await controller.onDidOpenTextDocument(script2);
 
         expect(
             controller["_previousActiveDocument"],
@@ -375,7 +382,7 @@ suite("MainController Tests", function () {
         setupConnectionManagerMocks(connectionManager);
 
         // verify that the connection manager does not transfer the connection from SQL file to non-SQL file
-        void controller.onDidOpenTextDocument(textFile);
+        await controller.onDidOpenTextDocument(textFile);
 
         expect(
             controller["_previousActiveDocument"],
@@ -388,7 +395,7 @@ suite("MainController Tests", function () {
         );
 
         // verify that the connection manager does not transfer the connection from SQL file to non-SQL file
-        void controller.onDidOpenTextDocument(script1);
+        await controller.onDidOpenTextDocument(script1);
 
         expect(
             controller["_previousActiveDocument"],
