@@ -27,7 +27,7 @@ import { useState, useEffect, useMemo } from "react";
 import {
     ChevronDoubleLeftFilled,
     ChevronDoubleRightFilled,
-    DocumentDatabaseRegular,
+    PeopleTeamRegular,
 } from "@fluentui/react-icons";
 
 interface Props {
@@ -225,15 +225,9 @@ const WorkspacesList = ({
                     aria-selected={selectedWorkspace?.id === workspace.id}
                     title={workspace.name}>
                     <div style={{ display: "flex", alignItems: "center" }}>
-                        <DocumentDatabaseRegular
+                        <PeopleTeamRegular
                             style={{
-                                fontSize: "14px",
                                 marginRight: "8px",
-                                opacity: 0.7,
-                                color:
-                                    selectedWorkspace?.id === workspace.id
-                                        ? "var(--vscode-list-activeSelectionForeground)"
-                                        : "var(--vscode-foreground)",
                             }}
                         />
                         <Text>{workspace.name}</Text>
