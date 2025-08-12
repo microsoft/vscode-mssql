@@ -2363,7 +2363,7 @@ export default class MainController implements vscode.Disposable {
         const currentDocUri = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.document.uri.toString(true)
             : undefined;
-        const newEditor = await this._untitledSqlDocumentService.newQuery(content, false);
+        const newEditor = await this._untitledSqlDocumentService.newQuery(content, true);
         const newDocUri = newEditor.document.uri.toString(true);
 
         // Case 1: User right-clicked on an OE node and selected "New Query"
@@ -2560,14 +2560,15 @@ export default class MainController implements vscode.Disposable {
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
-        await this.untitledSqlDocumentService.waitForAllOperations();
-        const isOpenedFromUntitledService =
-            await this._untitledSqlDocumentService.isUriTrackedByService(doc.uri.toString(true));
+        await this.untitledSqlDocumentService.waitForOngoingCreates();
+        const skipCopyConnection = await this._untitledSqlDocumentService.shouldSkipCopyConnection(
+            doc.uri.toString(true),
+        );
 
         if (
             this._previousActiveDocument &&
             doc.languageId === Constants.languageId &&
-            !isOpenedFromUntitledService
+            !skipCopyConnection
         ) {
             void this._connectionMgr.copyConnectionToFile(
                 this._previousActiveDocument.uri.toString(true),

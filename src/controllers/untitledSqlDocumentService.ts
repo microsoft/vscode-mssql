@@ -5,13 +5,14 @@
 
 import * as vscode from "vscode";
 import VscodeWrapper from "./vscodeWrapper";
+import { resolve } from "path";
 
 /**
  * Service for creating untitled documents for SQL query
  */
 export default class UntitledSqlDocumentService implements vscode.Disposable {
-    public trackedUris: Set<string> = new Set();
-    private _pendingOperations: Map<string, Promise<vscode.TextEditor>> = new Map();
+    public skipCopyConnectionUris: Set<string> = new Set();
+    private _ongoingCreates: Map<string, Promise<vscode.TextEditor>> = new Map();
     private _documentCloseDisposable: vscode.Disposable | undefined;
 
     constructor(private vscodeWrapper: VscodeWrapper) {
@@ -24,8 +25,8 @@ export default class UntitledSqlDocumentService implements vscode.Disposable {
     private setupDocumentCloseListener(): void {
         this._documentCloseDisposable = vscode.workspace.onDidCloseTextDocument((document) => {
             const uri = document.uri.toString();
-            if (this.trackedUris.has(uri)) {
-                this.trackedUris.delete(uri);
+            if (this.skipCopyConnectionUris.has(uri)) {
+                this.skipCopyConnectionUris.delete(uri);
             }
         });
     }
@@ -37,10 +38,10 @@ export default class UntitledSqlDocumentService implements vscode.Disposable {
     }
 
     /**
-     * Wait for all pending operations to complete
+     * Wait for all ongoing create operations to complete
      */
-    public async waitForAllOperations(): Promise<vscode.TextEditor[]> {
-        const pendingPromises = Array.from(this._pendingOperations.values());
+    public async waitForOngoingCreates(): Promise<vscode.TextEditor[]> {
+        const pendingPromises = Array.from(this._ongoingCreates.values());
         return Promise.all(pendingPromises);
     }
 
@@ -48,23 +49,30 @@ export default class UntitledSqlDocumentService implements vscode.Disposable {
      * Creates new untitled document for SQL query and opens in new editor tab
      * with optional content
      */
-    public async newQuery(content?: string, trackUri: boolean = true): Promise<vscode.TextEditor> {
+    public async newQuery(
+        content?: string,
+        shouldCopyLastActiveConnection: boolean = false,
+    ): Promise<vscode.TextEditor> {
         // Create a unique key for this operation to handle potential duplicates
         const operationKey = `${Date.now()}-${Math.random()}`;
-
         try {
-            const operationPromise = this.createDocument(content, trackUri);
-            this._pendingOperations.set(operationKey, operationPromise);
+            const newQueryPromise = new Promise<vscode.TextEditor>(async (resolve) => {
+                const editor = await this.createDocument(content, shouldCopyLastActiveConnection);
+                resolve(editor);
+            });
+            this._ongoingCreates.set(operationKey, newQueryPromise);
 
-            const editor = await operationPromise;
-            return editor;
+            return await newQueryPromise;
         } finally {
             // Clean up the pending operation
-            this._pendingOperations.delete(operationKey);
+            this._ongoingCreates.delete(operationKey);
         }
     }
 
-    private async createDocument(content?: string, trackUri?: boolean): Promise<vscode.TextEditor> {
+    private async createDocument(
+        content?: string,
+        shouldCopyLastActiveConnection?: boolean,
+    ): Promise<vscode.TextEditor> {
         const doc = await this.vscodeWrapper.openMsSqlTextDocument(content);
 
         const editor = await this.vscodeWrapper.showTextDocument(doc, {
@@ -73,14 +81,14 @@ export default class UntitledSqlDocumentService implements vscode.Disposable {
             preview: false,
         });
 
-        if (trackUri) {
-            this.trackedUris.add(editor.document.uri.toString());
+        if (!shouldCopyLastActiveConnection) {
+            this.skipCopyConnectionUris.add(editor.document.uri.toString());
         }
 
         return editor;
     }
 
-    public isUriTrackedByService(uri: string): boolean {
-        return this.trackedUris.has(uri);
+    public shouldSkipCopyConnection(uri: string): boolean {
+        return this.skipCopyConnectionUris.has(uri);
     }
 }

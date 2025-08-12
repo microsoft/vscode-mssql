@@ -115,10 +115,10 @@ suite("MainController Tests", function () {
         mainController["_previousActiveDocument"] = document;
         // Use the existing untitledSqlDocumentService mock instead of creating a new one
         untitledSqlDocumentService
-            .setup((x) => x.waitForAllOperations())
+            .setup((x) => x.waitForOngoingCreates())
             .returns(() => Promise.resolve(undefined));
         untitledSqlDocumentService
-            .setup((x) => x.isUriTrackedByService(TypeMoq.It.isAny()))
+            .setup((x) => x.shouldSkipCopyConnection(TypeMoq.It.isAny()))
             .returns(() => false);
 
         // Reset the callback variables before the test
@@ -146,8 +146,8 @@ suite("MainController Tests", function () {
         const untitleDocumentServiceStub = sandbox.createStubInstance(UntitledSqlDocumentService);
         mainController.untitledSqlDocumentService = untitleDocumentServiceStub;
 
-        untitleDocumentServiceStub.waitForAllOperations.resolves(undefined);
-        untitleDocumentServiceStub.isUriTrackedByService.returns(false);
+        untitleDocumentServiceStub.waitForOngoingCreates.resolves(undefined);
+        untitleDocumentServiceStub.shouldSkipCopyConnection.returns(false);
 
         // Call both special cases
         await mainController.onDidSaveTextDocument(newDocument);
@@ -182,8 +182,8 @@ suite("MainController Tests", function () {
 
         mainController.untitledSqlDocumentService = untitleDocumentServiceStub;
 
-        untitleDocumentServiceStub.waitForAllOperations.resolves(undefined);
-        untitleDocumentServiceStub.isUriTrackedByService.returns(false);
+        untitleDocumentServiceStub.waitForOngoingCreates.resolves(undefined);
+        untitleDocumentServiceStub.shouldSkipCopyConnection.returns(false);
 
         // Call onDidOpenTextDocument to test it side effects
         await mainController.onDidOpenTextDocument(document);
@@ -201,8 +201,8 @@ suite("MainController Tests", function () {
 
         mainController.untitledSqlDocumentService = untitleDocumentServiceStub;
 
-        untitleDocumentServiceStub.waitForAllOperations.resolves(undefined);
-        untitleDocumentServiceStub.isUriTrackedByService.returns(false);
+        untitleDocumentServiceStub.waitForOngoingCreates.resolves(undefined);
+        untitleDocumentServiceStub.shouldSkipCopyConnection.returns(false);
 
         // Call onDidOpenTextDocument to test it side effects
         mainController.onDidSaveTextDocument(newDocument);
@@ -223,8 +223,8 @@ suite("MainController Tests", function () {
 
         mainController.untitledSqlDocumentService = untitleDocumentServiceStub;
 
-        untitleDocumentServiceStub.waitForAllOperations.resolves(undefined);
-        untitleDocumentServiceStub.isUriTrackedByService.returns(false);
+        untitleDocumentServiceStub.waitForOngoingCreates.resolves(undefined);
+        untitleDocumentServiceStub.shouldSkipCopyConnection.returns(false);
 
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         let controller: MainController = new MainController(
