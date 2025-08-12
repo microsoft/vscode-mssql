@@ -612,6 +612,11 @@ export default class ConnectionManager {
                     mruConnection.database = result.connectionSummary.databaseName;
                 }
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
+
+                await this.handlePasswordStorageOnConnect(
+                    connection.credentials as IConnectionProfile,
+                );
+
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
                     promise.resolve(true);
@@ -1271,10 +1276,7 @@ export default class ConnectionManager {
             // show password prompt if SQL Login and password isn't saved
             let password = connectionCreds.password;
             if (Utils.isEmpty(password)) {
-                if ((connectionCreds as IConnectionProfile).savePassword) {
-                    password = await this.connectionStore.lookupPassword(connectionCreds);
-                }
-
+                password = await this.connectionStore.lookupPassword(connectionCreds);
                 if (!password) {
                     password = await this.connectionUI.promptForPassword();
                     if (!password) {
@@ -1289,6 +1291,15 @@ export default class ConnectionManager {
             }
         }
         return true;
+    }
+
+    /**
+     * Saves password for the connection profile on successful connection.
+     * NOTE: To be only called when the connection is successful.
+     * @param profile Profile to save password for
+     */
+    public async handlePasswordStorageOnConnect(profile: IConnectionProfile): Promise<void> {
+        await this.connectionStore.saveProfilePasswordIfNeeded(profile);
     }
 
     /**
