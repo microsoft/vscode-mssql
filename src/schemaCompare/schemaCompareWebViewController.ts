@@ -1084,7 +1084,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
 
             if (state.schemaCompareResult && state.schemaCompareResult.differences) {
-                // action preferences
                 const includedDiffs = state.schemaCompareResult.differences.filter(
                     (diff) => diff.included,
                 );
@@ -2174,7 +2173,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             generalOptionsConfig: JSON.stringify(booleanOptionsAsStrings),
         });
 
-        // exclude object types
         const objectTypesDictionary =
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions.objectTypesDictionary;
         const includedObjectTypesTelemetryDictionary: { [key: string]: string } = {};
