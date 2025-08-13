@@ -3454,14 +3454,14 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.connectionGroupsCollapsedOnStartupDescription">
+      <source xml:lang="en">When enabled, all connection groups in the Object Explorer will collapse on startup instead of showing them expanded.</source>
+    </trans-unit>
     <trans-unit id="mssql.statusBar.enableConnectionColor">
       <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder&apos;s color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
-    </trans-unit>
-    <trans-unit id="mssql.objectExplorer.connectionGroupsCollapsedOnStartupDescription">
-      <source xml:lang="en">When enableld, collapse all connection groups in Object Explorer on startup instead of showing them expanded.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
       <source xml:lang="en">Write a SQL query, and run it against your database.&#10;You can also click the &apos;Open in New Tab&apos; button to view your query results in their own tab, and optionally set that as the default behavior.</source>
