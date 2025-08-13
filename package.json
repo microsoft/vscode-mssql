@@ -1928,7 +1928,7 @@
                 },
                 "mssql.objectExplorer.connectionGroupsCollapsedOnStartup": {
                     "type": "boolean",
-                    "description": "Connection Groups Collapsed on Startup",
+                    "description": "%mssql.objectExplorer.connectionGroupsCollapsedOnStartupDescription%",
                     "default": false,
                     "scope": "window"
                 },
