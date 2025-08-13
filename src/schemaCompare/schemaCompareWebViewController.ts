@@ -2174,7 +2174,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             generalOptionsConfig: JSON.stringify(booleanOptionsAsStrings),
         });
 
-        // exclude object types
         const objectTypesDictionary =
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions.objectTypesDictionary;
         const includedObjectTypesTelemetryDictionary: { [key: string]: string } = {};
