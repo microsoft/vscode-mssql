@@ -2165,22 +2165,39 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
         }
 
-        endActivity.update({ message: "General Options", ...booleanOptionsAsStrings });
+        endActivity.update({ optionType: "General Options", ...booleanOptionsAsStrings });
 
         // exclude object types
-        const objectTypesDictionaryCopy = deepClone(
-            state.defaultDeploymentOptionsResult.defaultDeploymentOptions.objectTypesDictionary,
-        );
+        const objectTypesDictionary =
+            state.defaultDeploymentOptionsResult.defaultDeploymentOptions.objectTypesDictionary;
+        const includedObjectTypesTelemetryDictionary: { [key: string]: string } = {};
+
+        // iterate through all the keys and mark them as true
+        for (const key in objectTypesDictionary) {
+            if (objectTypesDictionary.hasOwnProperty(key)) {
+                includedObjectTypesTelemetryDictionary[key] = "Included";
+            }
+        }
         // iterate over state.defaultDeploymentOptionsResult.defaultDeploymentOptions.excludeObjectTypes and remove all the object types that are listed in excludeObjectTypes from ObjectTypesDictionaryCopy
         const excludeObjectTypes =
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions.excludeObjectTypes.value;
+
+        // iterate through the excludeObjectTypes and set matching keys in objectTypesDictionaryCopy to false
         excludeObjectTypes.forEach((type) => {
-            if (objectTypesDictionaryCopy[type]) {
-                delete objectTypesDictionaryCopy[type];
+            // Find the matching key in a case-insensitive way
+            const matchingKey = Object.keys(objectTypesDictionary).find(
+                (key) => key.toLowerCase() === type.toLowerCase(),
+            );
+
+            if (matchingKey) {
+                includedObjectTypesTelemetryDictionary[matchingKey] = "Excluded";
             }
         });
 
-        endActivity.update({ message: "Included Object Types", ...objectTypesDictionaryCopy });
+        endActivity.update({
+            optionType: "Include Object Types",
+            ...includedObjectTypesTelemetryDictionary,
+        });
 
         this.logger.info(`Executing schema comparison with operation ID: ${this.operationId}`);
         const result = await compare(
