@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DeploymentContextProps } from "../../../sharedInterfaces/deployment";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { DeploymentContextProps } from "../../../../sharedInterfaces/deployment";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 /**
  * Runs a Docker step if the current step is less than or equal to the last step.

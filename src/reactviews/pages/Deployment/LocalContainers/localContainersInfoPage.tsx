@@ -7,8 +7,8 @@ import { useContext, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
 import { LocalContainersHeader } from "./localContainersHeader";
-import { locConstants } from "../../common/locConstants";
-import { DeploymentContext } from "../Deployment/deploymentStateProvider";
+import { locConstants } from "../../../common/locConstants";
+import { DeploymentContext } from "../deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -167,9 +167,9 @@ export const LocalContainersInfoPage: React.FC = () => {
 };
 
 export const instantSetup = () => {
-    return require(`../../media/instantSetup.svg`);
+    return require(`../../../media/instantSetup.svg`);
 };
 
 export const chooseVersion = () => {
-    return require(`../../media/chooseVersion.svg`);
+    return require(`../../../media/chooseVersion.svg`);
 };

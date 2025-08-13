@@ -7,7 +7,7 @@ import { useContext, useEffect, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { DeploymentContext } from "./deploymentStateProvider";
-import { LocalContainersStartPage } from "../LocalContainers/localContainersStartPage";
+import { LocalContainersStartPage } from "./LocalContainers/localContainersStartPage";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";
 
 const useStyles = makeStyles({
@@ -80,9 +80,9 @@ export const ChooseDeploymentTypePage: React.FC = () => {
         return undefined;
     }
 
-    const handleChoice = async () => {
+    const handleChoice = async (choice: DeploymentType) => {
         // reset step states
-        await state.initializeDeploymentSpecifics(DeploymentType.LocalContainers);
+        await state.initializeDeploymentSpecifics(choice);
         setShowNext(true);
     };
 
@@ -92,8 +92,17 @@ export const ChooseDeploymentTypePage: React.FC = () => {
         <LocalContainersStartPage />
     ) : (
         <div>
-            <Button className={classes.button} onClick={handleChoice} appearance={"primary"}>
-                {locConstants.localContainers.getStarted}
+            <Button
+                className={classes.button}
+                onClick={() => handleChoice(DeploymentType.LocalContainers)}
+                appearance={"primary"}>
+                Local Containers
+            </Button>
+            <Button
+                className={classes.button}
+                onClick={() => handleChoice(DeploymentType.FabricProvisioning)}
+                appearance={"primary"}>
+                Fabric Provisioning
             </Button>
         </div>
     );

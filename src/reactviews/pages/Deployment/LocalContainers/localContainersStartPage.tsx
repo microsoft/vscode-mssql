@@ -6,10 +6,10 @@
 import { useContext } from "react";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { LocalContainersInfoPage } from "./localContainersInfoPage";
-import { locConstants } from "../../common/locConstants";
-import { DeploymentContext } from "../Deployment/deploymentStateProvider";
+import { locConstants } from "../../../common/locConstants";
+import { DeploymentContext } from "../deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
