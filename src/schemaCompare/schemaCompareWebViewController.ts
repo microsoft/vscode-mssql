@@ -1098,11 +1098,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     actionCounts[diff.updateAction]++;
                 });
 
+                const updateActionBreakdown = {
+                    numDiffsDeleted: actionCounts[SchemaUpdateAction.Delete],
+                    numDiffsAdded: actionCounts[SchemaUpdateAction.Add],
+                    numDiffsChanged: actionCounts[SchemaUpdateAction.Change],
+                };
                 endActivity.update({
                     operationId: this.operationId,
-                    numDiffsDeleted: `${actionCounts[SchemaUpdateAction.Delete]}`,
-                    numDiffsAdded: `${actionCounts[SchemaUpdateAction.Add]}`,
-                    numDiffsChanged: `${actionCounts[SchemaUpdateAction.Change]}`,
+                    updateActionSummary: JSON.stringify(updateActionBreakdown),
                 });
             }
 
@@ -2168,8 +2171,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         endActivity.update({
             operationId: this.operationId,
-            optionType: "General Options",
-            ...booleanOptionsAsStrings,
+            generalOptionsConfig: JSON.stringify(booleanOptionsAsStrings),
         });
 
         // exclude object types
@@ -2201,8 +2203,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         endActivity.update({
             operationId: this.operationId,
-            optionType: "Include Object Types",
-            ...includedObjectTypesTelemetryDictionary,
+            includeObjectTypesConfig: JSON.stringify(includedObjectTypesTelemetryDictionary),
         });
 
         this.logger.info(`Executing schema comparison with operation ID: ${this.operationId}`);
@@ -2238,15 +2239,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         }
 
         const diffTypeFrequencies = this.countTargetObjectTypeFrequencies(result.differences);
-        const stringifiedFrequencies: { [key: string]: string } = {};
+        const stringifiedFrequencies: { [key: string]: number } = {};
 
         // Convert numeric values to strings
         for (const key in diffTypeFrequencies) {
             if (diffTypeFrequencies.hasOwnProperty(key)) {
-                stringifiedFrequencies[key] = diffTypeFrequencies[key].toString();
+                stringifiedFrequencies[key] = diffTypeFrequencies[key];
             }
         }
-        endActivity.update({ operationId: this.operationId, ...stringifiedFrequencies });
+        endActivity.update({
+            operationId: this.operationId,
+            compareObjectTypeSummary: JSON.stringify(stringifiedFrequencies),
+        });
 
         this.logger.info(
             `Schema comparison completed successfully with ${result.differences?.length || 0} differences found - OperationId: ${this.operationId}`,
