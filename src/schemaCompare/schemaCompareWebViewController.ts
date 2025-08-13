@@ -2179,19 +2179,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions.objectTypesDictionary;
         const includedObjectTypesTelemetryDictionary: { [key: string]: string } = {};
 
-        // iterate through all the keys and mark them as true
         for (const key in objectTypesDictionary) {
             if (objectTypesDictionary.hasOwnProperty(key)) {
                 includedObjectTypesTelemetryDictionary[key] = "Included";
             }
         }
-        // iterate over state.defaultDeploymentOptionsResult.defaultDeploymentOptions.excludeObjectTypes and remove all the object types that are listed in excludeObjectTypes from ObjectTypesDictionaryCopy
+
         const excludeObjectTypes =
             state.defaultDeploymentOptionsResult.defaultDeploymentOptions.excludeObjectTypes.value;
 
-        // iterate through the excludeObjectTypes and set matching keys in objectTypesDictionaryCopy to false
         excludeObjectTypes.forEach((type) => {
-            // Find the matching key in a case-insensitive way
             const matchingKey = Object.keys(objectTypesDictionary).find(
                 (key) => key.toLowerCase() === type.toLowerCase(),
             );
@@ -2241,7 +2238,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         const diffTypeFrequencies = this.countTargetObjectTypeFrequencies(result.differences);
         const stringifiedFrequencies: { [key: string]: number } = {};
 
-        // Convert numeric values to strings
         for (const key in diffTypeFrequencies) {
             if (diffTypeFrequencies.hasOwnProperty(key)) {
                 stringifiedFrequencies[key] = diffTypeFrequencies[key];
@@ -2444,12 +2440,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
      * @returns An object mapping each object type to its frequency count
      */
     private countTargetObjectTypeFrequencies(differences: DiffEntry[]): { [key: string]: number } {
-        // Create a dictionary to track frequency counts
         const frequencyCounts: { [key: string]: number } = {};
 
-        // Process each difference entry
         differences.forEach((difference) => {
-            // Extract the relevant object type (prefer targetObjectType if available, otherwise use name)
             const objectType = this.extractObjectTypeFromSourceType(
                 difference.sourceObjectType || difference.targetObjectType,
             );
@@ -2457,7 +2450,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             // Use a standardized form of the object type for counting
             const typeKey = objectType || "Unknown";
 
-            // Increment the count for this type
             frequencyCounts[typeKey] = (frequencyCounts[typeKey] || 0) + 1;
         });
 
