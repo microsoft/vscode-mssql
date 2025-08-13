@@ -49,7 +49,7 @@ export class ConnectionDialogWebviewState
     public readyToConnect: boolean = false;
     public formError: string = "";
     public dialog: IDialogProps | undefined;
-    public fabricServers: FabricSqlServerInfo[] = [];
+    public fabricServers: FabricSqlDbInfo[] = [];
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
@@ -105,13 +105,22 @@ export interface AzureSqlServerInfo {
     uri: string;
 }
 
-export interface FabricSqlServerInfo {
+export interface FabricSqlDbInfo {
     server: string;
-    databases: string[];
-    workspace: {
-        name: string;
-        id: string;
-    };
+    database: string;
+    workspace: IWorkspace;
+    tags: string[];
+}
+
+/**
+ * IWorkspace Fabric workspace as seen in api responses
+ */
+export interface IWorkspace {
+    id: string;
+    capacityId?: string; // supplied when getting a single workspace, but only sometimes when getting all workspaces (perhaps newer workspaces?)
+    type: string;
+    displayName: string;
+    description: string;
 }
 
 export interface ConnectionComponentsInfo {

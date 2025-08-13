@@ -76,6 +76,7 @@ import {
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { FabricHelper } from "../fabric/fabricHelper";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -256,19 +257,24 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     await this.loadAllAzureServers(state);
                 }
             } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
-                // TODO: Placeholder for populating info from Fabric
-                state.fabricServers = [
-                    {
-                        server: "fabric-server-1",
-                        databases: ["db1", "db2"],
-                        workspace: { name: "workspace1", id: "workspace-id-1" },
-                    },
-                    {
-                        server: "fabric-server-2",
-                        databases: ["db3", "db4"],
-                        workspace: { name: "workspace2", id: "workspace-id-2" },
-                    },
-                ];
+                try {
+                    const workspaces = await FabricHelper.getFabricWorkspaces();
+
+                    if (workspaces.length > 0) {
+                        let workspaceId = "";
+                        const benjinWsId = "c0c03b8c-d137-4ab2-b222-c83daff16d09";
+
+                        if (workspaces.find((w) => w.id === benjinWsId)) {
+                            workspaceId = benjinWsId;
+                        } else {
+                            workspaceId = workspaces[0].id;
+                        }
+
+                        state.fabricServers = await FabricHelper.getFabricDatabases(workspaceId);
+                    }
+                } catch (err) {
+                    state.formError = getErrorMessage(err);
+                }
             }
 
             return state;
