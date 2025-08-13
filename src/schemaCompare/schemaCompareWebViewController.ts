@@ -1099,6 +1099,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 });
 
                 endActivity.update({
+                    operationId: this.operationId,
                     numDiffsDeleted: `${actionCounts[SchemaUpdateAction.Delete]}`,
                     numDiffsAdded: `${actionCounts[SchemaUpdateAction.Add]}`,
                     numDiffsChanged: `${actionCounts[SchemaUpdateAction.Change]}`,
@@ -2165,7 +2166,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             }
         }
 
-        endActivity.update({ optionType: "General Options", ...booleanOptionsAsStrings });
+        endActivity.update({
+            operationId: this.operationId,
+            optionType: "General Options",
+            ...booleanOptionsAsStrings,
+        });
 
         // exclude object types
         const objectTypesDictionary =
@@ -2195,6 +2200,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         });
 
         endActivity.update({
+            operationId: this.operationId,
             optionType: "Include Object Types",
             ...includedObjectTypesTelemetryDictionary,
         });
@@ -2240,7 +2246,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 stringifiedFrequencies[key] = diffTypeFrequencies[key].toString();
             }
         }
-        endActivity.update(stringifiedFrequencies);
+        endActivity.update({ operationId: this.operationId, ...stringifiedFrequencies });
 
         this.logger.info(
             `Schema comparison completed successfully with ${result.differences?.length || 0} differences found - OperationId: ${this.operationId}`,
