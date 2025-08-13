@@ -90,6 +90,7 @@ import {
 import { StateChangeNotification } from "../sharedInterfaces/webview";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { FabricProvisioningWebviewController } from "../deployment/fabricProvisioningWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -233,6 +234,10 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdDeployLocalDockerContainer);
             this._event.on(Constants.cmdDeployLocalDockerContainer, () => {
                 this.onDeployContainer();
+            });
+            this.registerCommand(Constants.cmdProvisionFabricDb);
+            this._event.on(Constants.cmdProvisionFabricDb, () => {
+                this.onProvisionFabricDb();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -1856,6 +1861,15 @@ export default class MainController implements vscode.Disposable {
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.OpenLocalContainers);
 
         const reactPanel = new DeploymentWebviewController(
+            this._context,
+            this._vscodeWrapper,
+            this,
+        );
+        reactPanel.revealToForeground();
+    }
+
+    public onProvisionFabricDb(): void {
+        const reactPanel = new FabricProvisioningWebviewController(
             this._context,
             this._vscodeWrapper,
             this,

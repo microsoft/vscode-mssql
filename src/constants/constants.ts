@@ -104,6 +104,7 @@ export const cmdEditConnection = "mssql.editConnection";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
 export const cmdDesignSchema = "mssql.schemaDesigner";
 export const cmdDeployLocalDockerContainer = "mssql.deployLocalDockerContainer";
+export const cmdProvisionFabricDb = "mssql.provisionFabricDb";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";

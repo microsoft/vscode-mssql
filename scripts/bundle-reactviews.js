@@ -20,6 +20,7 @@ const config = {
     'connectionDialog': 'src/reactviews/pages/ConnectionDialog/index.tsx',
     'connectionGroup': 'src/reactviews/pages/ConnectionGroup/index.tsx',
     'deployment': 'src/reactviews/pages/Deployment/index.tsx',
+    'fabricProvisioning': 'src/reactviews/pages/FabricProvisioning/index.tsx',
     'executionPlan': 'src/reactviews/pages/ExecutionPlan/index.tsx',
     'tableDesigner': 'src/reactviews/pages/TableDesigner/index.tsx',
     'objectExplorerFilter': 'src/reactviews/pages/ObjectExplorerFilter/index.tsx',

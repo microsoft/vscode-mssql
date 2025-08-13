@@ -1103,6 +1103,16 @@
                 }
             },
             {
+                "command": "mssql.provisionFabricDb",
+                "title": "%mssql.provisionFabricDb%",
+                "when": "mssql.enableRichExperiences",
+                "category": "MS SQL",
+                "icon": {
+                    "dark": "media/newContainer_dark.svg",
+                    "light": "media/newContainer_light.svg"
+                }
+            },
+            {
                 "command": "mssql.stopContainer",
                 "title": "%mssql.stopContainer%",
                 "when": "mssql.enableRichExperiences",
