@@ -414,9 +414,9 @@ export class ObjectExplorerService {
 
         // Add all group nodes from settings first
         // Read the user setting for collapsed/expanded state
-        const config = vscode.workspace.getConfiguration("mssql");
+        const config = vscode.workspace.getConfiguration(Constants.extensionName);
         const collapseGroups = config.get<boolean>(
-            "objectExplorer.connectionGroupsCollapsedOnStartup",
+            Constants.cmdObjectExplorerCollapseOrExpandByDefault,
             false,
         );
 
