@@ -32,6 +32,9 @@ const useStyles = makeStyles({
         padding: "10px",
         fontFamily: "var(--vscode-editor-font-family)",
         fontSize: "var(--vscode-editor-font-size)",
+        width: "100%",
+        height: "100%",
+        flex: 1,
     },
 });
 
@@ -103,7 +106,7 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                                     batchId: batchId,
                                     resultId: resultId,
                                     rowStart: 0,
-                                    numberOfRows: Math.min(resultSetSummary.rowCount, 1000), // Limit to first 1000 rows for performance
+                                    numberOfRows: resultSetSummary.rowCount,
                                 },
                             );
 
