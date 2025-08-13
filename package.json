@@ -1926,6 +1926,12 @@
                     "description": "%mssql.objectExplorer.groupBySchema%",
                     "default": false
                 },
+                "mssql.objectExplorer.connectionGroupsCollapsedOnStartup": {
+                    "type": "boolean",
+                    "description": "Connection Groups Collapsed on Startup",
+                    "default": false,
+                    "scope": "window"
+                },
                 "mssql.objectExplorer.expandTimeout": {
                     "type": "number",
                     "default": 45,
