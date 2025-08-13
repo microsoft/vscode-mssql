@@ -412,16 +412,6 @@ export class ObjectExplorerService {
         const newConnectionGroupNodes = new Map<string, ConnectionGroupNode>();
         const newConnectionNodes = new Map<string, ConnectionNode>();
 
-        // Read user setting for default expansion state
-        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-        const expandGroupsByDefault = config.get<boolean>(
-            Constants.connectionGroupsExpandedByDefault,
-            true,
-        );
-        const defaultCollapsibleState = expandGroupsByDefault
-            ? vscode.TreeItemCollapsibleState.Expanded
-            : vscode.TreeItemCollapsibleState.Collapsed;
-
         // Add all group nodes from settings first
         // Read the user setting for collapsed/expanded state
         const config = vscode.workspace.getConfiguration("mssql");
