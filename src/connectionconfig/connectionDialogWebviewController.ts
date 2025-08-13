@@ -1170,17 +1170,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 if (firstOption) {
                     this.state.connectionProfile.accountId = firstOption.value;
                 }
-                tenants = await getTenants(
-                    this._mainController.azureAccountService,
-                    this.state.connectionProfile.accountId,
-                    this.logger,
-                );
-                if (tenantComponent) {
-                    tenantComponent.options = tenants;
-                    if (tenants && tenants.length > 0) {
-                        this.state.connectionProfile.tenantId = tenants[0].value;
+                if (this.state.connectionProfile.accountId) {
+                    tenants = await getTenants(
+                        this._mainController.azureAccountService,
+                        this.state.connectionProfile.accountId,
+                        this.logger,
+                    );
+                    if (tenantComponent) {
+                        tenantComponent.options = tenants;
+                        if (tenants && tenants.length > 0) {
+                            this.state.connectionProfile.tenantId = tenants[0].value;
+                        }
                     }
                 }
+
                 accountComponent.actionButtons = await this.getAzureActionButtons();
                 break;
         }

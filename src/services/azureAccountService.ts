@@ -20,7 +20,16 @@ export class AzureAccountService implements IAzureAccountService {
     }
 
     public async getAccounts(): Promise<IAccount[]> {
-        return await this._accountStore.getAccounts();
+        return this._accountStore.getAccounts();
+    }
+
+    /**
+     * Retrieves an Azure account by its key.
+     * @param key The key of the account to retrieve.  Use `IAccount.key.id` if available.
+     * @returns The Azure account, or undefined if not found.
+     */
+    public async getAccount(key: string): Promise<IAccount> {
+        return this._accountStore.getAccount(key);
     }
 
     public async getAccountSecurityToken(

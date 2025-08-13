@@ -17,8 +17,14 @@ export class AccountStore {
     public getAccounts(): IAccount[] {
         let configValues =
             this._context.globalState.get<IAccount[]>(Constants.configAzureAccount) ?? [];
+
+        // TODO: remove; mocking incomplete account info for debugging
+        if (configValues.length > 0) {
+            configValues[0].displayInfo = undefined;
+        }
+
         this._logger.verbose(
-            `Retreived ${configValues?.length} Azure accounts from account store.`,
+            `Retrieved ${configValues?.length} Azure accounts from account store.`,
         );
         return configValues;
     }
