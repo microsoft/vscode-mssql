@@ -48,7 +48,9 @@ export class AccountStore {
      * Gets a specific Entra account from the global state cache
      * @param key Account key to look up by.  Recommended to be `IAccount.key.id`
      */
-    public getAccount(key: string): IAccount | undefined {
+    public async getAccount(key: string): Promise<IAccount | undefined> {
+        await this.initialized;
+
         let account: IAccount | undefined;
         let configValues = this._context.globalState.get<IAccount[]>(Constants.configAzureAccount);
         if (!configValues) {
@@ -95,7 +97,7 @@ export class AccountStore {
             return false;
         }
 
-        if (!account.key?.id || !account.displayInfo?.displayName) {
+        if (!this.isValidAccount(account)) {
             this._logger.error(
                 `Attemped to add incomplete Entra account: ${JSON.stringify(account)}`,
             );
@@ -109,8 +111,6 @@ export class AccountStore {
         // remove account if already present in store
         if (configValues.length > 0) {
             configValues = configValues.filter((val) => val.key.id !== account.key.id);
-        } else {
-            configValues = [];
         }
 
         configValues.unshift(account);
@@ -132,7 +132,7 @@ export class AccountStore {
 
         accounts = accounts.filter((val) => {
             try {
-                if (val.key?.id && val.displayInfo?.displayName) {
+                if (this.isValidAccount(val)) {
                     return true;
                 } else {
                     numRemoved++;
@@ -167,5 +167,9 @@ export class AccountStore {
         let configValues = [];
         await this._context.globalState.update(Constants.configAzureAccount, configValues);
         this._logger.info("Cleared all saved Entra accounts");
+    }
+
+    private isValidAccount(account: IAccount): boolean {
+        return account.key?.id !== undefined && account.displayInfo?.displayName !== undefined;
     }
 }

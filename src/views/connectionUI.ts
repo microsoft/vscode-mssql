@@ -621,7 +621,7 @@ export class ConnectionUI {
             // TODO: Access account which firewall error needs to be added from:
             // Try to match accountId to an account in account storage
             if (profile.accountId) {
-                let account = this._accountStore.getAccount(profile.accountId);
+                let account = await this._accountStore.getAccount(profile.accountId);
                 this.connectionManager.accountService.setAccount(account);
                 // take that account from account storage and refresh tokens and create firewall rule
             } else {
@@ -638,7 +638,7 @@ export class ConnectionUI {
                             providerSettings.resources.azureManagementResource,
                         );
                 }
-                let account = this._accountStore.getAccount(profile.accountId);
+                let account = await this._accountStore.getAccount(profile.accountId);
                 this.connectionManager.accountService.setAccount(account!);
             }
 

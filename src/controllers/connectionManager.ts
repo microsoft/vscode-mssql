@@ -1218,7 +1218,7 @@ export default class ConnectionManager {
         let profile: ConnectionProfile;
 
         if (connectionInfo.accountId) {
-            account = this.accountStore.getAccount(connectionInfo.accountId);
+            account = await this.accountStore.getAccount(connectionInfo.accountId);
             profile = new ConnectionProfile(connectionInfo);
         } else {
             throw new Error(LocalizedConstants.cannotConnect);
