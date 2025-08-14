@@ -498,87 +498,82 @@ export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
                             No databases found in the selected workspace.
                         </div>
                     ) : (
-                        <div
-                            style={{ overflow: "auto", height: "100%" }}
-                            role="none"
-                            tabIndex={-1}
-                            className="table-container">
-                            <Table
-                                {...columnSizing_unstable.getTableProps()}
-                                ref={tableRef}
-                                size="small"
-                                aria-label="Database list"
-                                aria-rowcount={rows.length}
-                                tabIndex={0}
-                                role="grid"
-                                onKeyDown={handleTableKeyDown}
-                                style={{
-                                    flexGrow: 0,
-                                    height: "auto",
-                                    borderSpacing: "0",
-                                    borderCollapse: "collapse",
-                                    tableLayout: "fixed",
-                                }}>
-                                <TableHeader className={styles.headerRow}>
-                                    <TableRow role="row">
+                        <Table
+                            {...columnSizing_unstable.getTableProps()}
+                            ref={tableRef}
+                            size="small"
+                            aria-label="Database list"
+                            aria-rowcount={rows.length}
+                            tabIndex={0}
+                            role="grid"
+                            onKeyDown={handleTableKeyDown}
+                            style={{
+                                flexGrow: 0,
+                                height: "auto",
+                                borderSpacing: "0",
+                                borderCollapse: "collapse",
+                                tableLayout: "fixed",
+                                marginTop: "-8px",
+                            }}>
+                            <TableHeader className={styles.headerRow}>
+                                <TableRow role="row">
+                                    {columns.map((column) => (
+                                        <TableHeaderCell
+                                            key={column.columnId}
+                                            {...columnSizing_unstable.getTableHeaderCellProps(
+                                                column.columnId,
+                                            )}
+                                            style={{
+                                                height: "22px",
+                                                padding: "0 8px",
+                                                fontSize: "12px",
+                                            }}
+                                            scope="col"
+                                            role="columnheader">
+                                            {column.renderHeaderCell()}
+                                        </TableHeaderCell>
+                                    ))}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {rows.map((row, i) => (
+                                    <TableRow
+                                        key={i}
+                                        className={styles.tableRow}
+                                        role="row"
+                                        aria-rowindex={i + 1}
+                                        aria-selected={focusedRowIndex === i}
+                                        onClick={() => setFocusedRowIndex(i)}
+                                        style={{
+                                            ...(focusedRowIndex === i && {
+                                                backgroundColor:
+                                                    "var(--vscode-list-activeSelectionBackground)",
+                                                color: "var(--vscode-list-activeSelectionForeground)",
+                                            }),
+                                            cursor: "pointer",
+                                        }}>
                                         {columns.map((column) => (
-                                            <TableHeaderCell
+                                            <TableCell
                                                 key={column.columnId}
-                                                {...columnSizing_unstable.getTableHeaderCellProps(
+                                                {...columnSizing_unstable.getTableCellProps(
                                                     column.columnId,
                                                 )}
+                                                role="gridcell"
                                                 style={{
                                                     height: "22px",
+                                                    maxHeight: "22px",
                                                     padding: "0 8px",
                                                     fontSize: "12px",
-                                                }}
-                                                scope="col"
-                                                role="columnheader">
-                                                {column.renderHeaderCell()}
-                                            </TableHeaderCell>
+                                                    lineHeight: "22px",
+                                                    verticalAlign: "middle",
+                                                }}>
+                                                {column.renderCell(row.item)}
+                                            </TableCell>
                                         ))}
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {rows.map((row, i) => (
-                                        <TableRow
-                                            key={i}
-                                            className={styles.tableRow}
-                                            role="row"
-                                            aria-rowindex={i + 1}
-                                            aria-selected={focusedRowIndex === i}
-                                            onClick={() => setFocusedRowIndex(i)}
-                                            style={{
-                                                ...(focusedRowIndex === i && {
-                                                    backgroundColor:
-                                                        "var(--vscode-list-activeSelectionBackground)",
-                                                    color: "var(--vscode-list-activeSelectionForeground)",
-                                                }),
-                                                cursor: "pointer",
-                                            }}>
-                                            {columns.map((column) => (
-                                                <TableCell
-                                                    key={column.columnId}
-                                                    {...columnSizing_unstable.getTableCellProps(
-                                                        column.columnId,
-                                                    )}
-                                                    role="gridcell"
-                                                    style={{
-                                                        height: "22px",
-                                                        maxHeight: "22px",
-                                                        padding: "0 8px",
-                                                        fontSize: "12px",
-                                                        lineHeight: "22px",
-                                                        verticalAlign: "middle",
-                                                    }}>
-                                                    {column.renderCell(row.item)}
-                                                </TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                ))}
+                            </TableBody>
+                        </Table>
                     )}
                 </div>
             </div>
