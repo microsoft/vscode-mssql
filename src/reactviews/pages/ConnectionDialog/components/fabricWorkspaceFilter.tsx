@@ -18,12 +18,20 @@ import { FilterRegular, Search20Regular } from "@fluentui/react-icons";
 
 const FabricWorkspaceFilter = () => {
     return (
-        <>
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                marginRight: "6px",
+            }}>
             <Input
+                style={{ marginRight: "20px" }}
                 placeholder="Filter by keyword"
                 contentAfter={<Search20Regular aria-label="Filter by keyword" />}
             />
-            <Label>Filter</Label>
+            <Label style={{ marginRight: "5px" }}>Filter</Label>
             <Menu>
                 <MenuTrigger>
                     <Tooltip content="Filter by type" relationship="label">
@@ -41,7 +49,7 @@ const FabricWorkspaceFilter = () => {
                     </MenuList>
                 </MenuPopover>
             </Menu>
-        </>
+        </div>
     );
 };
 
