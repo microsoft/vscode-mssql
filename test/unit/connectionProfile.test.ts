@@ -17,7 +17,6 @@ import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { AuthenticationTypes, IConnectionProfile } from "../../src/models/interfaces";
-import { Logger } from "../../src/models/logger";
 import { INameValueChoice, IPrompter, IQuestion } from "../../src/prompts/question";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { TestPrompter } from "./stubs";
@@ -74,7 +73,7 @@ suite("Connection Profile tests", () => {
     let mockAzureController: AzureController;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let mockPrompter: TypeMoq.IMock<IPrompter>;
-    let mockLogger: TypeMoq.IMock<Logger>;
+    let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let globalstate: TypeMoq.IMock<
         vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
     >;
@@ -85,14 +84,14 @@ suite("Connection Profile tests", () => {
         >();
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockPrompter = TypeMoq.Mock.ofType<IPrompter>();
-        mockLogger = TypeMoq.Mock.ofType<Logger>();
+        mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
         mockContext.setup((c) => c.globalState).returns(() => globalstate.object);
         mockAzureController = new MsalAzureController(
             mockContext.object,
             mockPrompter.object,
             undefined,
         );
-        mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
+        mockAccountStore = new AccountStore(mockContext.object, mockVscodeWrapper.object);
     });
 
     test("CreateProfile should ask questions in correct order", async () => {
