@@ -20,7 +20,7 @@ export class AzureAccountService implements IAzureAccountService {
     }
 
     public async getAccounts(): Promise<IAccount[]> {
-        return this._accountStore.getAccounts();
+        return await this._accountStore.getAccounts();
     }
 
     /**

@@ -343,6 +343,7 @@ export async function getTenants(
 
     if (!accountId) {
         logger.error("getTenants(): undefined accountId passed.");
+        return [];
     }
 
     try {

@@ -799,7 +799,7 @@ export class ConnectionUI {
             );
         }
 
-        let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(
+        let azureAccountChoices: INameValueChoice[] = await ConnectionProfile.getAccountChoices(
             this._accountStore,
         );
         let tenantChoices: INameValueChoice[] = [];
