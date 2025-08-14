@@ -8,6 +8,7 @@ import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
 import {
     Button,
+    Label,
     Link,
     List,
     ListItem,
@@ -30,6 +31,7 @@ import { removeDuplicates } from "../../common/utils";
 import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
+import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
 
 const useStyles = makeStyles({
     icon: {
@@ -125,6 +127,8 @@ export const FabricBrowsePage = () => {
             )}
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
+                    <Label>Workspaces</Label>
+                    <FabricWorkspaceFilter />
                     <FabricWorkspaceViewer fabricServerInfo={context.state.fabricServers} />
 
                     {selectedServer && (
