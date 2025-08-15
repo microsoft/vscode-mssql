@@ -148,34 +148,6 @@ const useStyles = makeStyles({
     collapseButtonIcon: {
         fontSize: "12px",
     },
-    tableContainer: {
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        border: "1px solid var(--vscode-panel-border)",
-        borderRadius: "4px",
-        backgroundColor: "var(--vscode-editor-background)",
-        "& tr:not(:last-child)": {
-            borderBottom: "1px solid var(--vscode-panel-border)",
-        },
-        "& td, & th": {
-            borderRight: "1px solid var(--vscode-panel-border)",
-            height: "22px !important",
-            maxHeight: "22px !important",
-        },
-        "& td:last-child, & th:last-child": {
-            borderRight: "none",
-        },
-        "& tr": {
-            height: "22px !important",
-            maxHeight: "22px !important",
-        },
-        "& table:focus": {
-            outline: "2px solid var(--vscode-focusBorder)",
-            outlineOffset: "1px",
-        },
-    },
     headerRow: {
         backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
         height: "22px",
@@ -514,116 +486,114 @@ export const FabricWorkspaceViewer = ({
             </div>
 
             <div className={styles.workspaceGrid}>
-                <div className={styles.tableContainer}>
-                    {fabricServerInfo.length === 0 ? (
-                        <div
-                            style={{
-                                padding: "16px",
-                                textAlign: "center",
-                                color: "var(--vscode-descriptionForeground)",
-                                height: "100%",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                            role="alert"
-                            aria-live="polite">
-                            No SQL servers found. Please sign in to view available servers.
-                        </div>
-                    ) : items.length === 0 ? (
-                        <div
-                            style={{
-                                padding: "16px",
-                                textAlign: "center",
-                                color: "var(--vscode-descriptionForeground)",
-                                height: "100%",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                            role="alert"
-                            aria-live="polite">
-                            No databases found in the selected workspace.
-                        </div>
-                    ) : (
-                        <Table
-                            {...columnSizing_unstable.getTableProps()}
-                            ref={tableRef}
-                            size="small"
-                            aria-label="Database list"
-                            aria-rowcount={rows.length}
-                            tabIndex={0}
-                            role="grid"
-                            onKeyDown={handleTableKeyDown}
-                            style={{
-                                flexGrow: 0,
-                                height: "auto",
-                                borderSpacing: "0",
-                                borderCollapse: "collapse",
-                                tableLayout: "fixed",
-                                marginTop: "-8px",
-                            }}>
-                            <TableHeader className={styles.headerRow}>
-                                <TableRow role="row">
+                {fabricServerInfo.length === 0 ? (
+                    <div
+                        style={{
+                            padding: "16px",
+                            textAlign: "center",
+                            color: "var(--vscode-descriptionForeground)",
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                        role="alert"
+                        aria-live="polite">
+                        No SQL servers found. Please sign in to view available servers.
+                    </div>
+                ) : items.length === 0 ? (
+                    <div
+                        style={{
+                            padding: "16px",
+                            textAlign: "center",
+                            color: "var(--vscode-descriptionForeground)",
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                        role="alert"
+                        aria-live="polite">
+                        No databases found in the selected workspace.
+                    </div>
+                ) : (
+                    <Table
+                        {...columnSizing_unstable.getTableProps()}
+                        ref={tableRef}
+                        size="small"
+                        aria-label="Database list"
+                        aria-rowcount={rows.length}
+                        tabIndex={0}
+                        role="grid"
+                        onKeyDown={handleTableKeyDown}
+                        style={{
+                            flexGrow: 0,
+                            height: "auto",
+                            borderSpacing: "0",
+                            borderCollapse: "collapse",
+                            tableLayout: "fixed",
+                            marginTop: "-8px",
+                        }}>
+                        <TableHeader className={styles.headerRow}>
+                            <TableRow role="row">
+                                {columns.map((column) => (
+                                    <TableHeaderCell
+                                        key={column.columnId}
+                                        {...columnSizing_unstable.getTableHeaderCellProps(
+                                            column.columnId,
+                                        )}
+                                        style={{
+                                            height: "22px",
+                                            padding: "0 8px",
+                                            fontSize: "12px",
+                                        }}
+                                        scope="col"
+                                        role="columnheader">
+                                        {column.renderHeaderCell()}
+                                    </TableHeaderCell>
+                                ))}
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {rows.map((row, i) => (
+                                <TableRow
+                                    key={i}
+                                    className={styles.tableRow}
+                                    role="row"
+                                    aria-rowindex={i + 1}
+                                    aria-selected={focusedRowIndex === i}
+                                    onClick={() => setFocusedRowIndex(i)}
+                                    style={{
+                                        ...(focusedRowIndex === i && {
+                                            backgroundColor:
+                                                "var(--vscode-list-activeSelectionBackground)",
+                                            color: "var(--vscode-list-activeSelectionForeground)",
+                                        }),
+                                        cursor: "pointer",
+                                    }}>
                                     {columns.map((column) => (
-                                        <TableHeaderCell
+                                        <TableCell
                                             key={column.columnId}
-                                            {...columnSizing_unstable.getTableHeaderCellProps(
+                                            {...columnSizing_unstable.getTableCellProps(
                                                 column.columnId,
                                             )}
+                                            role="gridcell"
                                             style={{
                                                 height: "22px",
+                                                maxHeight: "22px",
                                                 padding: "0 8px",
                                                 fontSize: "12px",
-                                            }}
-                                            scope="col"
-                                            role="columnheader">
-                                            {column.renderHeaderCell()}
-                                        </TableHeaderCell>
+                                                lineHeight: "22px",
+                                                verticalAlign: "middle",
+                                            }}>
+                                            {column.renderCell(row.item)}
+                                        </TableCell>
                                     ))}
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {rows.map((row, i) => (
-                                    <TableRow
-                                        key={i}
-                                        className={styles.tableRow}
-                                        role="row"
-                                        aria-rowindex={i + 1}
-                                        aria-selected={focusedRowIndex === i}
-                                        onClick={() => setFocusedRowIndex(i)}
-                                        style={{
-                                            ...(focusedRowIndex === i && {
-                                                backgroundColor:
-                                                    "var(--vscode-list-activeSelectionBackground)",
-                                                color: "var(--vscode-list-activeSelectionForeground)",
-                                            }),
-                                            cursor: "pointer",
-                                        }}>
-                                        {columns.map((column) => (
-                                            <TableCell
-                                                key={column.columnId}
-                                                {...columnSizing_unstable.getTableCellProps(
-                                                    column.columnId,
-                                                )}
-                                                role="gridcell"
-                                                style={{
-                                                    height: "22px",
-                                                    maxHeight: "22px",
-                                                    padding: "0 8px",
-                                                    fontSize: "12px",
-                                                    lineHeight: "22px",
-                                                    verticalAlign: "middle",
-                                                }}>
-                                                {column.renderCell(row.item)}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    )}
-                </div>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
             </div>
         </div>
     );
