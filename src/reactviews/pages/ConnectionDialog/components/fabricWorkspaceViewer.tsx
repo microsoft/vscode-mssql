@@ -30,6 +30,7 @@ import {
     ChevronDoubleRightFilled,
     PeopleTeamRegular,
 } from "@fluentui/react-icons";
+import { locConstants as Loc } from "../../../common/locConstants";
 
 // Icon imports for database types
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
@@ -174,13 +175,12 @@ const WorkspacesList = ({
 }: WorkspacesListProps) => {
     const styles = useStyles();
 
-    // Don't render if there are no workspaces
     if (!workspaces || workspaces.length === 0) {
-        return <Label>No workspaces available</Label>;
+        return <Label>{Loc.connectionDialog.noWorkspacesAvailable}</Label>;
     }
 
     return (
-        <List role="listbox" aria-label="Workspaces">
+        <List role="listbox" aria-label={Loc.connectionDialog.workspaces}>
             {workspaces.map((workspace) => (
                 <ListItem
                     key={workspace.id}
@@ -268,7 +268,7 @@ export const FabricWorkspaceViewer = ({
                     server.databases.forEach((db) => {
                         result.push({
                             name: db,
-                            type: "SQL Database",
+                            type: `${Loc.connectionDialog.sqlDatabase}`,
                             location: server.workspace.name,
                         });
                     });
@@ -278,7 +278,7 @@ export const FabricWorkspaceViewer = ({
                     server.sqlAnalyticsEndpoints.forEach((endpoint) => {
                         result.push({
                             name: endpoint,
-                            type: "SQL Analytics Endpoint",
+                            type: `${Loc.connectionDialog.sqlAnalyticsEndpoint}`,
                             location: server.workspace.name,
                         });
                     });
@@ -309,7 +309,7 @@ export const FabricWorkspaceViewer = ({
         (): TableColumnDefinition<ServerItem>[] => [
             createTableColumn({
                 columnId: "name",
-                renderHeaderCell: () => "Name",
+                renderHeaderCell: () => `${Loc.connectionDialog.nameColumnHeader}`,
                 renderCell: (item) => (
                     <div style={{ display: "flex", alignItems: "center" }}>
                         <img
@@ -330,12 +330,12 @@ export const FabricWorkspaceViewer = ({
             }),
             createTableColumn({
                 columnId: "type",
-                renderHeaderCell: () => "Type",
+                renderHeaderCell: () => `${Loc.connectionDialog.typeColumnHeader}`,
                 renderCell: (item) => item.type,
             }),
             createTableColumn({
                 columnId: "location",
-                renderHeaderCell: () => "Location (Workspace)",
+                renderHeaderCell: () => `${Loc.connectionDialog.locationColumnHeader}`,
                 renderCell: (item) => item.location,
             }),
         ],
@@ -435,8 +435,8 @@ export const FabricWorkspaceViewer = ({
                                 e.preventDefault();
                             }
                         }}
-                        aria-label="Expand workspace explorer"
-                        title="Expand"
+                        aria-label={Loc.connectionDialog.expandWorkspaceExplorer}
+                        title={Loc.connectionDialog.expand}
                         style={{
                             width: "24px",
                             height: "24px",
@@ -449,7 +449,9 @@ export const FabricWorkspaceViewer = ({
                 ) : (
                     <>
                         <div className={styles.collapseButton}>
-                            <Text style={{ fontWeight: "600" }}>EXPLORER</Text>
+                            <Text style={{ fontWeight: "600" }}>
+                                {Loc.connectionDialog.explorer}
+                            </Text>
                             <Button
                                 appearance="subtle"
                                 size="small"
@@ -465,8 +467,8 @@ export const FabricWorkspaceViewer = ({
                                         e.preventDefault();
                                     }
                                 }}
-                                aria-label="Collapse workspace explorer"
-                                title="Collapse"
+                                aria-label={Loc.connectionDialog.collapseWorkspaceExplorer}
+                                title={Loc.connectionDialog.collapse}
                                 style={{
                                     minWidth: "24px",
                                     display: "flex",
@@ -475,7 +477,9 @@ export const FabricWorkspaceViewer = ({
                                 }}
                             />
                         </div>
-                        <div className={styles.workspaceTitle}>Workspaces</div>
+                        <div className={styles.workspaceTitle}>
+                            {Loc.connectionDialog.workspaces}
+                        </div>
                         <WorkspacesList
                             workspaces={uniqueWorkspaces}
                             onWorkspaceSelect={handleWorkspaceSelect}
@@ -499,7 +503,7 @@ export const FabricWorkspaceViewer = ({
                         }}
                         role="alert"
                         aria-live="polite">
-                        No SQL servers found. Please sign in to view available servers.
+                        {Loc.connectionDialog.noSqlServersFound}
                     </div>
                 ) : items.length === 0 ? (
                     <div
@@ -514,14 +518,14 @@ export const FabricWorkspaceViewer = ({
                         }}
                         role="alert"
                         aria-live="polite">
-                        No databases found in the selected workspace.
+                        {Loc.connectionDialog.noDatabasesFound}
                     </div>
                 ) : (
                     <Table
                         {...columnSizing_unstable.getTableProps()}
                         ref={tableRef}
                         size="small"
-                        aria-label="Database list"
+                        aria-label={Loc.connectionDialog.databaseList}
                         aria-rowcount={rows.length}
                         tabIndex={0}
                         role="grid"

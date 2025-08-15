@@ -22,6 +22,7 @@ import { Search20Regular } from "@fluentui/react-icons";
 import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
 import { themeType } from "../../../common/utils";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
+import { locConstants as Loc } from "../../../common/locConstants";
 
 interface Props {
     onSearchInputChanged: (_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => void;
@@ -62,20 +63,20 @@ const FabricWorkspaceFilter = ({
             }}>
             <Input
                 style={{ marginRight: "20px" }}
-                placeholder="Filter by keyword"
-                contentAfter={<Search20Regular aria-label="Filter by keyword" />}
+                placeholder={Loc.connectionDialog.filterByKeyword}
+                contentAfter={<Search20Regular aria-label={Loc.connectionDialog.filterByKeyword} />}
                 onChange={onSearchInputChanged}
                 value={searchValue}
             />
-            <Label style={{ marginRight: "5px" }}>Filter</Label>
+            <Label style={{ marginRight: "5px" }}>{Loc.connectionDialog.filter}</Label>
             <Menu>
                 <MenuTrigger>
-                    <Tooltip content="Filter by type" relationship="label">
+                    <Tooltip content={Loc.connectionDialog.filterByType} relationship="label">
                         <MenuButton
                             icon={
                                 <img
                                     src={filterIcon(theme)}
-                                    alt="Filter"
+                                    alt={Loc.connectionDialog.filter}
                                     style={{ width: "20px", height: "20px" }}
                                 />
                             }
@@ -86,14 +87,16 @@ const FabricWorkspaceFilter = ({
                     <MenuList
                         checkedValues={{ sqlType: selectedTypeFilters }}
                         onCheckedValueChange={onFilterOptionChanged}>
-                        <MenuItemRadio name="sqlType" value="Show All">
-                            Show All
+                        <MenuItemRadio name="sqlType" value={Loc.connectionDialog.showAll}>
+                            {Loc.connectionDialog.showAll}
                         </MenuItemRadio>
-                        <MenuItemRadio name="sqlType" value="SQL Analytics Endpoint">
-                            SQL Analytics Endpoint
+                        <MenuItemRadio
+                            name="sqlType"
+                            value={Loc.connectionDialog.sqlAnalyticsEndpoint}>
+                            {Loc.connectionDialog.sqlAnalyticsEndpoint}
                         </MenuItemRadio>
-                        <MenuItemRadio name="sqlType" value="SQL Database">
-                            SQL Database
+                        <MenuItemRadio name="sqlType" value={Loc.connectionDialog.sqlDatabase}>
+                            {Loc.connectionDialog.sqlDatabase}
                         </MenuItemRadio>
                     </MenuList>
                 </MenuPopover>

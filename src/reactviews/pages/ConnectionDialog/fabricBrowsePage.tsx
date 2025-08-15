@@ -146,7 +146,7 @@ export const FabricBrowsePage = () => {
             )}
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
-                    <Label>Workspaces</Label>
+                    <Label>{Loc.connectionDialog.workspaces}</Label>
                     <div
                         style={{
                             paddingLeft: "6px",
