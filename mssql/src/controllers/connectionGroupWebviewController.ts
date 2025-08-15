@@ -77,44 +77,58 @@ export class ConnectionGroupWebviewController extends ReactWebviewPanelControlle
             return state;
         });
 
-        this.registerReducer("saveConnectionGroup", async (state, payload) => {
-            try {
-                if (this.connectionGroupToEdit) {
-                    this.logger.verbose("Updating existing connection group", payload);
-                    await this.connectionConfig.updateGroup({
-                        ...this.connectionGroupToEdit,
-                        name: payload.name,
-                        description: payload.description,
-                        color: payload.color,
-                    });
-                } else {
-                    this.logger.verbose("Creating new connection group", payload);
-                    await this.connectionConfig.addGroup(createConnectionGroupFromSpec(payload));
+        this.registerReducer(
+            "saveConnectionGroup",
+            async (state, payload: ConnectionGroupSpec & { scope: "user" | "workspace" }) => {
+                try {
+                    if (this.connectionGroupToEdit) {
+                        this.logger.verbose("Updating existing connection group", payload);
+                        // Only update name, description, color; parentId and scope are not editable for existing groups
+                        await this.connectionConfig.updateGroup({
+                            ...this.connectionGroupToEdit,
+                            name: payload.name,
+                            description: payload.description,
+                            color: payload.color,
+                        });
+                    } else {
+                        this.logger.verbose("Creating new connection group", payload);
+                        // Set parentId based on scope
+                        let parentId: string | undefined;
+                        if (payload.scope === "workspace") {
+                            parentId = this.connectionConfig.getWorkspaceConnectionsGroupId();
+                        } else {
+                            parentId = this.connectionConfig.getUserConnectionsGroupId();
+                        }
+                        const groupSpec = { ...payload, parentId };
+                        await this.connectionConfig.addGroup(
+                            createConnectionGroupFromSpec(groupSpec),
+                        );
+                    }
+
+                    sendActionEvent(
+                        TelemetryViews.ConnectionGroup,
+                        TelemetryActions.SaveConnectionGroup,
+                        { newOrEdit: this.connectionGroupToEdit ? "edit" : "new" },
+                    );
+
+                    this.dialogResult.resolve(true);
+                    await this.panel.dispose();
+                } catch (err) {
+                    state.message = getErrorMessage(err);
+                    sendErrorEvent(
+                        TelemetryViews.ConnectionGroup,
+                        TelemetryActions.SaveConnectionGroup,
+                        err,
+                        true, // includeErrorMessage
+                        undefined, // errorCode
+                        undefined, // errorType
+                        { newOrEdit: this.connectionGroupToEdit ? "edit" : "new" },
+                    );
                 }
 
-                sendActionEvent(
-                    TelemetryViews.ConnectionGroup,
-                    TelemetryActions.SaveConnectionGroup,
-                    { newOrEdit: this.connectionGroupToEdit ? "edit" : "new" },
-                );
-
-                this.dialogResult.resolve(true);
-                await this.panel.dispose();
-            } catch (err) {
-                state.message = getErrorMessage(err);
-                sendErrorEvent(
-                    TelemetryViews.ConnectionGroup,
-                    TelemetryActions.SaveConnectionGroup,
-                    err,
-                    true, // includeErrorMessage
-                    undefined, // errorCode
-                    undefined, // errorType
-                    { newOrEdit: this.connectionGroupToEdit ? "edit" : "new" },
-                );
-            }
-
-            return state;
-        });
+                return state;
+            },
+        );
     }
 }
 
@@ -124,6 +138,8 @@ export function createConnectionGroupFromSpec(spec: ConnectionGroupState): IConn
         description: spec.description,
         color: spec.color,
         id: Utils.generateGuid(),
+        parentId:
+            "parentId" in spec && spec.parentId !== undefined ? String(spec.parentId) : undefined,
     };
 }
 

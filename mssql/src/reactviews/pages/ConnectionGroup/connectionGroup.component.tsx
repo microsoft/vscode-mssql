@@ -99,6 +99,7 @@ export const ConnectionGroupDialog = ({
     const [color, setColor] = useState(intialHsvColor);
     const [pickerColor, setPickerColor] = useState(intialHsvColor);
     const [popoverOpen, setPopoverOpen] = useState(false);
+    const [scope, setScope] = useState(state.scope || "user");
 
     const handleChange: ColorPickerProps["onColorChange"] = (_, data) => {
         setColor({ ...data.color, a: 1 });
@@ -117,6 +118,7 @@ export const ConnectionGroupDialog = ({
                 color:
                     new TinyColor(color).toHexString(false /* allow3Char */).toUpperCase() ||
                     undefined,
+                scope,
             });
         }
     }
@@ -146,6 +148,17 @@ export const ConnectionGroupDialog = ({
                                     <br />
                                 </>
                             )}{" "}
+                            <Field className={formStyles.formComponentDiv} label={"Scope"} required>
+                                <select
+                                    value={scope}
+                                    onChange={(e) =>
+                                        setScope(e.target.value as "user" | "workspace")
+                                    }
+                                    style={{ width: "100%", padding: "8px", fontSize: "16px" }}>
+                                    <option value="user">User Connections</option>
+                                    <option value="workspace">Workspace Connections</option>
+                                </select>
+                            </Field>
                             <Field
                                 className={formStyles.formComponentDiv}
                                 label={Loc.connectionGroups.name}
@@ -158,7 +171,7 @@ export const ConnectionGroupDialog = ({
                                     required
                                     placeholder={Loc.connectionGroups.enterConnectionGroupName}
                                 />
-                            </Field>{" "}
+                            </Field>
                             <Field
                                 className={formStyles.formComponentDiv}
                                 label={Loc.connectionGroups.description}>

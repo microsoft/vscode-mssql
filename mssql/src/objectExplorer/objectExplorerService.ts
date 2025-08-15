@@ -82,7 +82,6 @@ export class ObjectExplorerService {
         const result = [];
 
         const rootId = this._connectionManager.connectionStore.rootGroupId;
-
         if (!this._connectionGroupNodes.has(rootId)) {
             this._logger.verbose(
                 "Root server group is not defined. Cannot get root nodes for Object Explorer.",
@@ -90,13 +89,12 @@ export class ObjectExplorerService {
             return [];
         }
 
-        // Only show 'User Connections' and 'Workspace Connections' as children of ROOT
+        // Always show both User Connections and Workspace Connections as children of ROOT
         const rootChildren = this._connectionGroupNodes.get(rootId)?.children || [];
-        for (const child of rootChildren) {
-            if (child.label === "User Connections" || child.label === "Workspace Connections") {
-                result.push(child);
-            }
-        }
+        let userGroup = rootChildren.find((child) => child.label === "User Connections");
+        let workspaceGroup = rootChildren.find((child) => child.label === "Workspace Connections");
+        if (userGroup) result.push(userGroup);
+        if (workspaceGroup) result.push(workspaceGroup);
 
         return result;
     }
@@ -372,16 +370,22 @@ export class ObjectExplorerService {
         );
 
         const rootId = this._connectionManager.connectionStore.rootGroupId;
-        const serverGroups =
-            await this._connectionManager.connectionStore.readAllConnectionGroups();
+        // Read user and workspace groups separately
+        const userGroups =
+            this._connectionManager.connectionStore.connectionConfig.getGroupsFromSettings();
+        // Import ConfigurationTarget from the correct module
+        // Use VscodeWrapper.ConfigurationTarget.Workspace
+        const { ConfigurationTarget } = require("../controllers/vscodeWrapper");
+        const workspaceGroups =
+            this._connectionManager.connectionStore.connectionConfig.getGroupsFromSettings(
+                ConfigurationTarget.Workspace,
+            );
+        // Merge root, user, and workspace groups
+        const allGroups = [...userGroups, ...workspaceGroups];
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
 
         // if there are no saved connections, show the add connection node
-        if (
-            savedConnections.length === 0 &&
-            serverGroups.length === 1 &&
-            serverGroups[0].id === rootId
-        ) {
+        if (savedConnections.length === 0 && allGroups.length === 1 && allGroups[0].id === rootId) {
             this._logger.verbose(
                 "No saved connections or groups found. Showing add connection node.",
             );
@@ -394,45 +398,27 @@ export class ObjectExplorerService {
         const newConnectionGroupNodes = new Map<string, ConnectionGroupNode>();
         const newConnectionNodes = new Map<string, ConnectionNode>();
 
-        // Add all group nodes from settings first
-        // Read the user setting for collapsed/expanded state
-        const config = vscode.workspace.getConfiguration(Constants.extensionName);
-        const collapseGroups = config.get<boolean>(
-            Constants.cmdObjectExplorerCollapseOrExpandByDefault,
-            false,
-        );
-
-        for (const group of serverGroups) {
-            // Pass the desired collapsible state to the ConnectionGroupNode constructor
-            const initialState = collapseGroups
-                ? vscode.TreeItemCollapsibleState.Collapsed
-                : vscode.TreeItemCollapsibleState.Expanded;
-            const groupNode = new ConnectionGroupNode(group, initialState);
-
+        // Add all group nodes from merged settings
+        for (const group of allGroups) {
+            const groupNode = new ConnectionGroupNode(group);
             if (this._connectionGroupNodes.has(group.id)) {
                 groupNode.id = this._connectionGroupNodes.get(group.id).id;
             }
-
             newConnectionGroupNodes.set(group.id, groupNode);
         }
 
         // Populate group hierarchy - add each group as a child to its parent
-        for (const group of serverGroups) {
+        for (const group of allGroups) {
             // Skip the root group as it has no parent
             if (group.id === rootId) {
                 continue;
             }
-
             if (group.parentId && newConnectionGroupNodes.has(group.parentId)) {
                 const parentNode = newConnectionGroupNodes.get(group.parentId);
                 const childNode = newConnectionGroupNodes.get(group.id);
-
                 if (parentNode && childNode) {
                     parentNode.addChild(childNode);
-
                     if (parentNode.id !== rootId) {
-                        // set the parent node for the child group unless the parent is the root group
-                        // parent property is used to
                         childNode.parentNode = parentNode;
                     }
                 } else {
@@ -451,9 +437,7 @@ export class ObjectExplorerService {
         for (const connection of savedConnections) {
             if (connection.groupId && newConnectionGroupNodes.has(connection.groupId)) {
                 const groupNode = newConnectionGroupNodes.get(connection.groupId);
-
                 let connectionNode: ConnectionNode;
-
                 if (this._connectionNodes.has(connection.id)) {
                     connectionNode = this._connectionNodes.get(connection.id);
                     connectionNode.updateConnectionProfile(connection);
@@ -464,9 +448,7 @@ export class ObjectExplorerService {
                         groupNode.id === rootId ? undefined : groupNode,
                     );
                 }
-
                 connectionNode.parentNode = groupNode.id === rootId ? undefined : groupNode;
-
                 newConnectionNodes.set(connection.id, connectionNode);
                 groupNode.addChild(connectionNode);
             } else {
@@ -480,7 +462,6 @@ export class ObjectExplorerService {
         this._connectionNodes = newConnectionNodes;
 
         const result = [...this._rootTreeNodeArray];
-
         getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
             nodeCount: result.length,
         });
