@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent } from "react";
+import { ChangeEvent, useContext } from "react";
 import {
     Input,
     InputOnChangeData,
@@ -18,7 +18,10 @@ import {
     MenuTrigger,
     Tooltip,
 } from "@fluentui/react-components";
-import { FilterRegular, Search20Regular } from "@fluentui/react-icons";
+import { Search20Regular } from "@fluentui/react-icons";
+import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
+import { themeType } from "../../../common/utils";
+import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 
 interface Props {
     onSearchInputChanged: (_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => void;
@@ -30,12 +33,24 @@ interface Props {
     selectedTypeFilters?: string[];
 }
 
+export const filterIcon = (colorTheme: ColorThemeKind) => {
+    const theme = themeType(colorTheme);
+    const filterIcon =
+        theme === "dark"
+            ? require("../../../media/filter_inverse.svg")
+            : require("../../../media/filter.svg");
+    return filterIcon;
+};
+
 const FabricWorkspaceFilter = ({
     onSearchInputChanged,
     onFilterOptionChanged,
     searchValue = "",
     selectedTypeFilters = [],
 }: Props) => {
+    const context = useContext(ConnectionDialogContext);
+    const theme = context!.themeKind;
+
     return (
         <div
             style={{
@@ -56,7 +71,15 @@ const FabricWorkspaceFilter = ({
             <Menu>
                 <MenuTrigger>
                     <Tooltip content="Filter by type" relationship="label">
-                        <MenuButton icon={<FilterRegular />} />
+                        <MenuButton
+                            icon={
+                                <img
+                                    src={filterIcon(theme)}
+                                    alt="Filter"
+                                    style={{ width: "20px", height: "20px" }}
+                                />
+                            }
+                        />
                     </Tooltip>
                 </MenuTrigger>
                 <MenuPopover>
