@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import { shallowEqualObjects } from "shallow-equal";
 
@@ -76,6 +77,7 @@ import {
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { multiple_matching_tokens_error } from "../azure/constants";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -781,7 +783,19 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     return await this.handleConnectionErrorCodes(result, state);
                 }
             } catch (error) {
-                this.state.formError = getErrorMessage(error);
+                let errorMessage = getErrorMessage(error);
+
+                if (errorMessage.includes(multiple_matching_tokens_error)) {
+                    // Add help information in event of a multiple_matching_tokens error
+                    errorMessage =
+                        Loc.multipleMatchingTokensError() +
+                        os.EOL +
+                        Loc.toClearTokenCacheRunCommand +
+                        os.EOL +
+                        errorMessage;
+                }
+
+                this.state.formError = errorMessage;
                 this.state.connectionStatus = ApiStatus.Error;
 
                 sendErrorEvent(

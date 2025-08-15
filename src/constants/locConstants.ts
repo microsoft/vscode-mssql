@@ -684,6 +684,10 @@ export class ConnectionDialog {
         });
     }
     public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+
+    public static toClearTokenCacheRunCommand = l10n.t(
+        "To clear the token cache, run `MS SQL: Clear Microsoft Entra account token cache`.",
+    );
 }
 
 export class FirewallRule {

@@ -2612,6 +2612,9 @@
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
     </trans-unit>
+    <trans-unit id="++CODE++5af2fc48ce45f0cd4d713a366df8e8b4faa6c7e9ae86d483f8b21688d459475b">
+      <source xml:lang="en">To clear the token cache, run `MS SQL: Clear Microsoft Entra account token cache`.</source>
+    </trans-unit>
     <trans-unit id="++CODE++94843fe76f0c666e2bce801eb3dbfa672cd6517a14f968c8e41669c580b60cb3">
       <source xml:lang="en">To compare two schemas, first select a source schema and target schema, then press compare.</source>
     </trans-unit>

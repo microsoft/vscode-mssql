@@ -1212,6 +1212,7 @@
     ]
   },
   "Clear cache and refresh token": "Clear cache and refresh token",
+  "To clear the token cache, run `MS SQL: Clear Microsoft Entra account token cache`.": "To clear the token cache, run `MS SQL: Clear Microsoft Entra account token cache`.",
   "Add Firewall Rule to {0}/{0} is the server name": {
     "message": "Add Firewall Rule to {0}",
     "comment": [

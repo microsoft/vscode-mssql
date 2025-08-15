@@ -212,7 +212,7 @@ export class MsalAzureController extends AzureController {
                     LocalizedConstants.ConnectionDialog.ClearCacheAndRefreshToken,
                     LocalizedConstants.Common.cancel,
                 );
-                if (response === LocalizedConstants.msgYes) {
+                if (response === LocalizedConstants.ConnectionDialog.ClearCacheAndRefreshToken) {
                     await this.clearTokenCache();
                     return await this.refreshAccessToken(account, accountStore, tenantId, settings);
                 }
