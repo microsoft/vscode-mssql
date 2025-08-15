@@ -2846,6 +2846,10 @@
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
       <note>{0} is the webview name</note>
     </trans-unit>
+    <trans-unit id="++CODE++dde734013704b68f0d2d57a1385773d7e4bfbae374a67c150f3f06d8abb95f9d">
+      <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
+      <note>{0} is the number of invalid accounts that have been removed</note>
+    </trans-unit>
     <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
       <source xml:lang="en">{0} issue</source>
       <note>{0} is the number of issues</note>

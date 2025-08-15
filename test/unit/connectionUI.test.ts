@@ -18,7 +18,6 @@ import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { AccountStore } from "../../src/azure/accountStore";
-import { Logger } from "../../src/models/logger";
 import * as sinon from "sinon";
 
 suite("Connection UI tests", () => {
@@ -32,7 +31,6 @@ suite("Connection UI tests", () => {
     let connectionStore: TypeMoq.IMock<ConnectionStore>;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
     let mockAccountStore: AccountStore;
-    let mockLogger: TypeMoq.IMock<Logger>;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let globalstate: TypeMoq.IMock<
         vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
@@ -72,8 +70,7 @@ suite("Connection UI tests", () => {
         globalstate = TypeMoq.Mock.ofType<
             vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
         >();
-        mockLogger = TypeMoq.Mock.ofType<Logger>();
-        mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
+        mockAccountStore = new AccountStore(mockContext.object, vscodeWrapper.object);
         connectionUI = new ConnectionUI(
             connectionManager.object,
             mockContext.object,
