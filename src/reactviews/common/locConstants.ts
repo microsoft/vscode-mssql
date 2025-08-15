@@ -198,6 +198,27 @@ export class LocConstants {
 
     public get connectionDialog() {
         return {
+            workspaces: l10n.t("Workspaces"),
+            filterByKeyword: l10n.t("Filter by keyword"),
+            filter: l10n.t("Filter"),
+            filterByType: l10n.t("Filter by type"),
+            showAll: l10n.t("Show All"),
+            sqlAnalyticsEndpoint: l10n.t("SQL Analytics Endpoint"),
+            sqlDatabase: l10n.t("SQL Database"),
+            noWorkspacesAvailable: l10n.t("No workspaces available"),
+            nameColumnHeader: l10n.t("Name"),
+            typeColumnHeader: l10n.t("Type"),
+            locationColumnHeader: l10n.t("Location (Workspace)"),
+            expandWorkspaceExplorer: l10n.t("Expand Workspace Explorer"),
+            expand: l10n.t("Expand"),
+            explorer: l10n.t("Explorer"),
+            collapseWorkspaceExplorer: l10n.t("Collapse Workspace Explorer"),
+            collapse: l10n.t("Collapse"),
+            noSqlServersFound: l10n.t(
+                "No SQL servers found. Please sign in to view available servers.",
+            ),
+            noDatabasesFound: l10n.t("No databases found in the selected workspace."),
+            databaseList: l10n.t("Database list"),
             connect: l10n.t("Connect"),
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
             advancedSettings: l10n.t("Advanced"),
