@@ -77,6 +77,10 @@ export const FabricBrowsePage = () => {
     const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
+    // Filter state
+    const [searchFilter, setSearchFilter] = useState<string>("");
+    const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
+
     function setSelectedServerWithFormState(server: string | undefined) {
         if (server === undefined && context?.state.formState.server === "") {
             return; // avoid unnecessary updates
@@ -102,14 +106,16 @@ export const FabricBrowsePage = () => {
         _: ChangeEvent<HTMLInputElement>,
         data: InputOnChangeData,
     ) => {
-        console.log(`${data.value}`);
+        setSearchFilter(data.value);
     };
 
     const handleFilterOptionChanged = (
         _: MenuCheckedValueChangeEvent,
         { name, checkedItems }: MenuCheckedValueChangeData,
     ): void => {
-        console.log(`name: ${name}, checkedItems: ${checkedItems}`);
+        if (name === "sqlType") {
+            setTypeFilter(checkedItems);
+        }
     };
 
     return (
@@ -149,8 +155,14 @@ export const FabricBrowsePage = () => {
                     <FabricWorkspaceFilter
                         onSearchInputChanged={handleSearchInputChanged}
                         onFilterOptionChanged={handleFilterOptionChanged}
+                        searchValue={searchFilter}
+                        selectedTypeFilters={typeFilter}
                     />
-                    <FabricWorkspaceViewer fabricServerInfo={context.state.fabricServers} />
+                    <FabricWorkspaceViewer
+                        fabricServerInfo={context.state.fabricServers}
+                        searchFilter={searchFilter}
+                        typeFilter={typeFilter}
+                    />
                     {/* </div> */}
 
                     {selectedServer && (

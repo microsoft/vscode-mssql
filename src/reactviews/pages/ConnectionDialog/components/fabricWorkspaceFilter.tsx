@@ -26,9 +26,16 @@ interface Props {
         _: MenuCheckedValueChangeEvent,
         { name, checkedItems }: MenuCheckedValueChangeData,
     ) => void;
+    searchValue?: string;
+    selectedTypeFilters?: string[];
 }
 
-const FabricWorkspaceFilter = ({ onSearchInputChanged, onFilterOptionChanged }: Props) => {
+const FabricWorkspaceFilter = ({
+    onSearchInputChanged,
+    onFilterOptionChanged,
+    searchValue = "",
+    selectedTypeFilters = [],
+}: Props) => {
     return (
         <div
             style={{
@@ -43,6 +50,7 @@ const FabricWorkspaceFilter = ({ onSearchInputChanged, onFilterOptionChanged }: 
                 placeholder="Filter by keyword"
                 contentAfter={<Search20Regular aria-label="Filter by keyword" />}
                 onChange={onSearchInputChanged}
+                value={searchValue}
             />
             <Label style={{ marginRight: "5px" }}>Filter</Label>
             <Menu>
@@ -52,7 +60,12 @@ const FabricWorkspaceFilter = ({ onSearchInputChanged, onFilterOptionChanged }: 
                     </Tooltip>
                 </MenuTrigger>
                 <MenuPopover>
-                    <MenuList onCheckedValueChange={onFilterOptionChanged}>
+                    <MenuList
+                        checkedValues={{ sqlType: selectedTypeFilters }}
+                        onCheckedValueChange={onFilterOptionChanged}>
+                        <MenuItemRadio name="sqlType" value="Show All">
+                            Show All
+                        </MenuItemRadio>
                         <MenuItemRadio name="sqlType" value="SQL Analytics Endpoint">
                             SQL Analytics Endpoint
                         </MenuItemRadio>

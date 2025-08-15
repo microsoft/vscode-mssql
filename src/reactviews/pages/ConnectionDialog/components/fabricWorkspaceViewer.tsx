@@ -32,6 +32,8 @@ import {
 
 interface Props {
     fabricServerInfo: FabricSqlServerInfo[];
+    searchFilter?: string;
+    typeFilter?: string[];
 }
 
 type WorkspacesListProps = {
@@ -238,7 +240,11 @@ const WorkspacesList = ({
     );
 };
 
-export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
+export const FabricWorkspaceViewer = ({
+    fabricServerInfo,
+    searchFilter = "",
+    typeFilter = [],
+}: Props) => {
     const styles = useStyles();
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false); // Ensure it's expanded by default
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
@@ -283,7 +289,7 @@ export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
                     server.databases.forEach((db) => {
                         result.push({
                             name: db,
-                            type: "SQL database",
+                            type: "SQL Database",
                             location: server.workspace.name,
                         });
                     });
@@ -300,8 +306,28 @@ export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
                 }
             });
         }
-        return result;
-    }, [filteredServers]);
+
+        // Apply filters
+        let filteredResult = result;
+
+        // Apply search filter
+        if (searchFilter.trim()) {
+            const searchTerm = searchFilter.toLowerCase();
+            filteredResult = filteredResult.filter(
+                (item) =>
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.type.toLowerCase().includes(searchTerm) ||
+                    item.location.toLowerCase().includes(searchTerm),
+            );
+        }
+
+        // Apply type filter
+        if (typeFilter.length > 0 && !typeFilter.includes("Show All")) {
+            filteredResult = filteredResult.filter((item) => typeFilter.includes(item.type));
+        }
+
+        return filteredResult;
+    }, [filteredServers, searchFilter, typeFilter]);
 
     // Define columns for the table - memoize to prevent recreation on every render
     const columns = useMemo(
