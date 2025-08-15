@@ -90,6 +90,7 @@ import {
 import { StateChangeNotification } from "../sharedInterfaces/webview";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { startMcpServer } from "../copilot/mcp/mcpServer";
 
 /**
  * The main controller class that initializes the extension
@@ -588,6 +589,8 @@ export default class MainController implements vscode.Disposable {
 
             this.registerLanguageModelTools();
 
+            // Initialize and start MCP server
+            await startMcpServer(3000, this);
             return true;
         }
     }

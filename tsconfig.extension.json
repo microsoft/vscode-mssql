@@ -27,5 +27,6 @@
         "node_modules",
         "src/reactviews",
         "samples"
-    ]
+    ],
+    "esModuleInterop": true
 }
