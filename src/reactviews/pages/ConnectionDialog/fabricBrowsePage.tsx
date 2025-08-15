@@ -3,16 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { ChangeEvent, useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
 import {
     Button,
+    InputOnChangeData,
     Label,
     Link,
     List,
     ListItem,
     makeStyles,
+    MenuCheckedValueChangeData,
+    MenuCheckedValueChangeEvent,
     Spinner,
     Textarea,
 } from "@fluentui/react-components";
@@ -95,6 +98,20 @@ export const FabricBrowsePage = () => {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
+    const handleSearchInputChanged = (
+        _: ChangeEvent<HTMLInputElement>,
+        data: InputOnChangeData,
+    ) => {
+        console.log(`${data.value}`);
+    };
+
+    const handleFilterOptionChanged = (
+        _: MenuCheckedValueChangeEvent,
+        { name, checkedItems }: MenuCheckedValueChangeData,
+    ): void => {
+        console.log(`name: ${name}, checkedItems: ${checkedItems}`);
+    };
+
     return (
         <div>
             {context.state.loadingAzureAccountsStatus === ApiStatus.NotStarted && (
@@ -128,8 +145,13 @@ export const FabricBrowsePage = () => {
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
                     <Label>Workspaces</Label>
-                    <FabricWorkspaceFilter />
+                    {/* <div style={{backgroundColor: "blue", paddingLeft: "6px", paddingBottom: "6px", paddingTop: "6px"}}> */}
+                    <FabricWorkspaceFilter
+                        onSearchInputChanged={handleSearchInputChanged}
+                        onFilterOptionChanged={handleFilterOptionChanged}
+                    />
                     <FabricWorkspaceViewer fabricServerInfo={context.state.fabricServers} />
+                    {/* </div> */}
 
                     {selectedServer && (
                         <>

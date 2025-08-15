@@ -3,11 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ChangeEvent } from "react";
 import {
     Input,
+    InputOnChangeData,
     Label,
     Menu,
     MenuButton,
+    MenuCheckedValueChangeData,
+    MenuCheckedValueChangeEvent,
     MenuItemRadio,
     MenuList,
     MenuPopover,
@@ -16,7 +20,15 @@ import {
 } from "@fluentui/react-components";
 import { FilterRegular, Search20Regular } from "@fluentui/react-icons";
 
-const FabricWorkspaceFilter = () => {
+interface Props {
+    onSearchInputChanged: (_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => void;
+    onFilterOptionChanged: (
+        _: MenuCheckedValueChangeEvent,
+        { name, checkedItems }: MenuCheckedValueChangeData,
+    ) => void;
+}
+
+const FabricWorkspaceFilter = ({ onSearchInputChanged, onFilterOptionChanged }: Props) => {
     return (
         <div
             style={{
@@ -30,6 +42,7 @@ const FabricWorkspaceFilter = () => {
                 style={{ marginRight: "20px" }}
                 placeholder="Filter by keyword"
                 contentAfter={<Search20Regular aria-label="Filter by keyword" />}
+                onChange={onSearchInputChanged}
             />
             <Label style={{ marginRight: "5px" }}>Filter</Label>
             <Menu>
@@ -39,7 +52,7 @@ const FabricWorkspaceFilter = () => {
                     </Tooltip>
                 </MenuTrigger>
                 <MenuPopover>
-                    <MenuList>
+                    <MenuList onCheckedValueChange={onFilterOptionChanged}>
                         <MenuItemRadio name="sqlType" value="SQL Analytics Endpoint">
                             SQL Analytics Endpoint
                         </MenuItemRadio>
