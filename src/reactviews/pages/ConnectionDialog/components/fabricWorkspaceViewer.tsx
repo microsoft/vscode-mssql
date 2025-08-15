@@ -31,6 +31,22 @@ import {
     PeopleTeamRegular,
 } from "@fluentui/react-icons";
 
+// Icon imports for database types
+const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
+const sqlAnalyticsEndpointIcon = require("../../../../reactviews/media/data_warehouse.svg");
+
+// Helper function to get the appropriate icon for each item type
+const getItemIcon = (itemType: string): string => {
+    switch (itemType) {
+        case "SQL Database":
+            return sqlDatabaseIcon;
+        case "SQL Analytics Endpoint":
+            return sqlAnalyticsEndpointIcon;
+        default:
+            return sqlDatabaseIcon;
+    }
+};
+
 interface Props {
     fabricServerInfo: FabricSqlServerInfo[];
     searchFilter?: string;
@@ -322,7 +338,23 @@ export const FabricWorkspaceViewer = ({
             createTableColumn({
                 columnId: "name",
                 renderHeaderCell: () => "Name",
-                renderCell: (item) => item.name,
+                renderCell: (item) => (
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                        <img
+                            src={getItemIcon(item.type)}
+                            alt={item.type}
+                            style={{
+                                width: "20px",
+                                height: "20px",
+                                marginRight: "8px",
+                                flexShrink: 0,
+                            }}
+                        />
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {item.name}
+                        </span>
+                    </div>
+                ),
             }),
             createTableColumn({
                 columnId: "type",
