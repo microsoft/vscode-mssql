@@ -8,7 +8,7 @@ import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form"
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
-import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
+import { ConnectionGroupSpec, ConnectionGroupState, IConnectionGroup } from "./connectionGroup";
 import { RequestType } from "vscode-jsonrpc/browser";
 
 export class ConnectionDialogWebviewState
@@ -45,6 +45,8 @@ export class ConnectionDialogWebviewState
     public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
+    public connectionGroups: IConnectionGroup[] = [];
+    public rootGroupId?: string;
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public readyToConnect: boolean = false;
     public formError: string = "";
