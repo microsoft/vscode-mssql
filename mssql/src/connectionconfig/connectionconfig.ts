@@ -39,11 +39,66 @@ export class ConnectionConfig implements IConnectionConfig {
         void this.initialize();
     }
 
+    public getUserConnectionsGroup(): IConnectionGroup | undefined {
+        const rootGroup = this.getRootGroup();
+        if (!rootGroup) return undefined;
+        const groups = this.getGroupsFromSettings();
+        return groups.find((g) => g.name === "User Connections" && g.parentId === rootGroup.id);
+    }
+
+    public getWorkspaceConnectionsGroup(): IConnectionGroup | undefined {
+        const rootGroup = this.getRootGroup();
+        if (!rootGroup) return undefined;
+        const groups = this.getGroupsFromSettings();
+        return groups.find(
+            (g) => g.name === "Workspace Connections" && g.parentId === rootGroup.id,
+        );
+    }
+
+    public getUserConnectionsGroupId(): string | undefined {
+        const group = this.getUserConnectionsGroup();
+        return group?.id;
+    }
+
+    public getWorkspaceConnectionsGroupId(): string | undefined {
+        const group = this.getWorkspaceConnectionsGroup();
+        return group?.id;
+    }
+
     private async initialize(): Promise<void> {
+        // Ensure workspace arrays exist
+        await this.ensureWorkspaceArraysInitialized();
         await this.assignConnectionGroupMissingIds();
         await this.assignConnectionMissingIds();
 
         this.initialized.resolve();
+    }
+
+    private async ensureWorkspaceArraysInitialized(): Promise<void> {
+        const workspaceGroups = this.getGroupsFromSettings(ConfigurationTarget.Workspace);
+        const workspaceConnections = this.getConnectionsFromSettings(ConfigurationTarget.Workspace);
+        let changed = false;
+        if (!workspaceGroups || workspaceGroups.length === 0) {
+            await this._vscodeWrapper.setConfiguration(
+                Constants.extensionName,
+                Constants.connectionGroupsArrayName,
+                [],
+                ConfigurationTarget.Workspace,
+            );
+            changed = true;
+        }
+        if (!workspaceConnections || workspaceConnections.length === 0) {
+            await this._vscodeWrapper.setConfiguration(
+                Constants.extensionName,
+                Constants.connectionsArrayName,
+                [],
+                ConfigurationTarget.Workspace,
+            );
+            changed = true;
+        }
+        if (changed) {
+            this._logger.logDebug("Initialized workspace arrays for connections and groups.");
+        }
     }
 
     //#region Connection Profiles
@@ -139,18 +194,26 @@ export class ConnectionConfig implements IConnectionConfig {
         return profiles.find((profile) => profile.id === id);
     }
 
-    public async addConnection(profile: IConnectionProfile): Promise<void> {
+    public async addConnection(
+        profile: IConnectionProfile,
+        target: ConfigTarget = ConfigurationTarget.Global,
+    ): Promise<void> {
         this.populateMissingConnectionIds(profile);
 
-        let profiles = await this.getConnections(false /* getWorkspaceConnections */);
+        // If the group is Workspace Connections, always use workspace settings
+        const workspaceGroupId = this.getWorkspaceConnectionsGroupId();
+        if (profile.groupId === workspaceGroupId) {
+            target = ConfigurationTarget.Workspace;
+        }
+
+        let profiles = this.getConnectionsFromSettings(target);
 
         // Remove the profile if already set
         profiles = profiles.filter((value) => !Utils.isSameProfile(value, profile));
         profiles.push(profile);
 
-        return await this.writeConnectionsToSettings(profiles);
+        return await this.writeConnectionsToSettings(profiles, target);
     }
-
     /**
      * Remove an existing connection from the connection config if it exists.
      * @returns true if the connection was removed, false if the connection wasn't found.
@@ -166,13 +229,25 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     public async updateConnection(updatedProfile: IConnectionProfile): Promise<void> {
-        const profiles = await this.getConnections(false /* getWorkspaceConnections */);
+        return this.updateConnectionWithTarget(updatedProfile, ConfigurationTarget.Global);
+    }
+
+    public async updateConnectionWithTarget(
+        updatedProfile: IConnectionProfile,
+        target: ConfigTarget,
+    ): Promise<void> {
+        // If the group is Workspace Connections, always use workspace settings
+        const workspaceGroupId = this.getWorkspaceConnectionsGroupId();
+        if (updatedProfile.groupId === workspaceGroupId) {
+            target = ConfigurationTarget.Workspace;
+        }
+        const profiles = this.getConnectionsFromSettings(target);
         const index = profiles.findIndex((p) => p.id === updatedProfile.id);
         if (index === -1) {
             throw new Error(`Connection with ID ${updatedProfile.id} not found`);
         }
         profiles[index] = updatedProfile;
-        await this.writeConnectionsToSettings(profiles);
+        await this.writeConnectionsToSettings(profiles, target);
     }
 
     //#endregion
@@ -219,13 +294,20 @@ export class ConnectionConfig implements IConnectionConfig {
             group.id = Utils.generateGuid();
         }
 
-        if (!group.parentId) {
-            group.parentId = this.getRootGroup().id;
+        // If this is Workspace Connections or a child, use workspace settings
+        const workspaceGroupId = this.getWorkspaceConnectionsGroupId();
+        let target: ConfigTarget = ConfigurationTarget.Global;
+        if (group.parentId === workspaceGroupId || group.id === workspaceGroupId) {
+            target = ConfigurationTarget.Workspace;
         }
 
-        const groups = this.getGroupsFromSettings();
+        if (!group.parentId) {
+            group.parentId = this.getUserConnectionsGroupId();
+        }
+
+        const groups = this.getGroupsFromSettings(target);
         groups.push(group);
-        return this.writeConnectionGroupsToSettings(groups);
+        return this.writeConnectionGroupsToSettingsWithTarget(groups, target);
     }
 
     /**
@@ -283,14 +365,15 @@ export class ConnectionConfig implements IConnectionConfig {
             // Remove all groups that were marked for removal
             remainingGroups = groups.filter((g) => !groupsToRemove.has(g.id));
         } else {
-            // Move immediate child connections to root
+            // Move immediate child connections and groups to User Connections group
+            const userGroupId = this.getUserConnectionsGroupId();
             remainingConnections = connections.map((conn) => {
                 if (conn.groupId === id) {
                     this._logger.verbose(
-                        `Moving connection '${conn.id}' to root group because its immediate parent group '${id}' was removed`,
+                        `Moving connection '${conn.id}' to User Connections group because its immediate parent group '${id}' was removed`,
                     );
                     connectionModified = true;
-                    return { ...conn, groupId: rootGroup.id };
+                    return { ...conn, groupId: userGroupId };
                 }
                 return conn;
             });
@@ -298,13 +381,13 @@ export class ConnectionConfig implements IConnectionConfig {
             // First remove the target group
             remainingGroups = groups.filter((g) => g.id !== id);
 
-            // Then reparent immediate children to root
+            // Then reparent immediate children to User Connections group
             remainingGroups = remainingGroups.map((g) => {
                 if (g.parentId === id) {
                     this._logger.verbose(
-                        `Moving group '${g.id}' to root group because its immediate parent group '${id}' was removed`,
+                        `Moving group '${g.id}' to User Connections group because its immediate parent group '${id}' was removed`,
                     );
-                    return { ...g, parentId: rootGroup.id };
+                    return { ...g, parentId: userGroupId };
                 }
                 return g;
             });
@@ -324,7 +407,19 @@ export class ConnectionConfig implements IConnectionConfig {
     }
 
     public async updateGroup(updatedGroup: IConnectionGroup): Promise<void> {
-        const groups = this.getGroupsFromSettings();
+        return this.updateGroupWithTarget(updatedGroup, ConfigurationTarget.Global);
+    }
+
+    public async updateGroupWithTarget(
+        updatedGroup: IConnectionGroup,
+        target: ConfigTarget,
+    ): Promise<void> {
+        // If this is Workspace Connections or a child, use workspace settings
+        const workspaceGroupId = this.getWorkspaceConnectionsGroupId();
+        if (updatedGroup.parentId === workspaceGroupId || updatedGroup.id === workspaceGroupId) {
+            target = ConfigurationTarget.Workspace;
+        }
+        const groups = this.getGroupsFromSettings(target);
         const index = groups.findIndex((g) => g.id === updatedGroup.id);
         if (index === -1) {
             throw Error(`Connection group with ID ${updatedGroup.id} not found when updating`);
@@ -332,7 +427,7 @@ export class ConnectionConfig implements IConnectionConfig {
             groups[index] = updatedGroup;
         }
 
-        return await this.writeConnectionGroupsToSettings(groups);
+        return await this.writeConnectionGroupsToSettingsWithTarget(groups, target);
     }
 
     //#endregion
@@ -378,9 +473,9 @@ export class ConnectionConfig implements IConnectionConfig {
 
         // ensure each profile is in a group
         if (profile.groupId === undefined) {
-            const rootGroup = this.getRootGroup();
-            if (rootGroup) {
-                profile.groupId = rootGroup.id;
+            const userGroupId = this.getUserConnectionsGroupId();
+            if (userGroupId) {
+                profile.groupId = userGroupId;
                 modified = true;
             }
         }
@@ -401,39 +496,71 @@ export class ConnectionConfig implements IConnectionConfig {
     private async assignConnectionGroupMissingIds(): Promise<void> {
         let madeChanges = false;
         const groups: IConnectionGroup[] = this.getGroupsFromSettings();
+        let connections: IConnectionProfile[] = this.getConnectionsFromSettings();
 
         // ensure ROOT group exists
         let rootGroup = await this.getRootGroup();
-
         if (!rootGroup) {
             rootGroup = {
                 name: ConnectionConfig.RootGroupName,
                 id: Utils.generateGuid(),
             };
-
             this._logger.logDebug(`Adding missing ROOT group to connection groups`);
             madeChanges = true;
             groups.push(rootGroup);
         }
 
-        // Clean up connection groups
+        // Check for User Connections and Workspace Connections under ROOT
+        let userConnectionsGroup = groups.find(
+            (g) => g.name === "User Connections" && g.parentId === rootGroup.id,
+        );
+        let workspaceConnectionsGroup = groups.find(
+            (g) => g.name === "Workspace Connections" && g.parentId === rootGroup.id,
+        );
+
+        if (!userConnectionsGroup) {
+            userConnectionsGroup = {
+                name: "User Connections",
+                id: Utils.generateGuid(),
+                parentId: rootGroup.id,
+            };
+            groups.push(userConnectionsGroup);
+            madeChanges = true;
+            this._logger.logDebug(`Created 'User Connections' group under ROOT`);
+        }
+        if (!workspaceConnectionsGroup) {
+            workspaceConnectionsGroup = {
+                name: "Workspace Connections",
+                id: Utils.generateGuid(),
+                parentId: rootGroup.id,
+            };
+            groups.push(workspaceConnectionsGroup);
+            madeChanges = true;
+            this._logger.logDebug(`Created 'Workspace Connections' group under ROOT`);
+        }
+
+        // Reparent all groups directly under ROOT (except the two new groups) to User Connections
         for (const group of groups) {
-            if (group.id === rootGroup.id) {
-                continue;
-            }
-
-            // ensure each group has an ID
-            if (!group.id) {
-                group.id = Utils.generateGuid();
+            if (
+                group.parentId === rootGroup.id &&
+                group.id !== userConnectionsGroup.id &&
+                group.id !== workspaceConnectionsGroup.id
+            ) {
+                group.parentId = userConnectionsGroup.id;
                 madeChanges = true;
-                this._logger.logDebug(`Adding missing ID to connection group '${group.name}'`);
+                this._logger.logDebug(`Reparented group '${group.name}' to 'User Connections'`);
             }
+        }
 
-            // ensure each group is in a group
-            if (!group.parentId) {
-                group.parentId = rootGroup.id;
+        // Reparent all connections directly under ROOT to User Connections
+        for (const conn of connections) {
+            // If connection is under ROOT or has no group, move to User Connections
+            if (!conn.groupId || conn.groupId === rootGroup.id) {
+                conn.groupId = userConnectionsGroup.id;
                 madeChanges = true;
-                this._logger.logDebug(`Adding missing parentId to connection '${group.name}'`);
+                this._logger.logDebug(
+                    `Reparented connection '${getConnectionDisplayName(conn)}' to 'User Connections'`,
+                );
             }
         }
 
@@ -442,8 +569,8 @@ export class ConnectionConfig implements IConnectionConfig {
             this._logger.logDebug(
                 `Updates made to connection groups.  Writing all ${groups.length} group(s) to settings.`,
             );
-
             await this.writeConnectionGroupsToSettings(groups);
+            await this.writeConnectionsToSettings(connections);
         }
     }
 
@@ -504,20 +631,34 @@ export class ConnectionConfig implements IConnectionConfig {
      * Replace existing profiles in the user settings with a new set of profiles.
      * @param profiles the set of profiles to insert into the settings file.
      */
-    private async writeConnectionsToSettings(profiles: IConnectionProfile[]): Promise<void> {
-        // Save the file
+    private async writeConnectionsToSettings(
+        profiles: IConnectionProfile[],
+        target: ConfigTarget = ConfigurationTarget.Global,
+    ): Promise<void> {
         await this._vscodeWrapper.setConfiguration(
             Constants.extensionName,
             Constants.connectionsArrayName,
             profiles,
+            target,
         );
     }
 
     private async writeConnectionGroupsToSettings(connGroups: IConnectionGroup[]): Promise<void> {
+        return this.writeConnectionGroupsToSettingsWithTarget(
+            connGroups,
+            ConfigurationTarget.Global,
+        );
+    }
+
+    private async writeConnectionGroupsToSettingsWithTarget(
+        connGroups: IConnectionGroup[],
+        target: ConfigTarget,
+    ): Promise<void> {
         await this._vscodeWrapper.setConfiguration(
             Constants.extensionName,
             Constants.connectionGroupsArrayName,
             connGroups,
+            target,
         );
     }
 

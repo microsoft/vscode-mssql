@@ -90,8 +90,12 @@ export class ObjectExplorerService {
             return [];
         }
 
-        for (const child of this._connectionGroupNodes.get(rootId)?.children || []) {
-            result.push(child);
+        // Only show 'User Connections' and 'Workspace Connections' as children of ROOT
+        const rootChildren = this._connectionGroupNodes.get(rootId)?.children || [];
+        for (const child of rootChildren) {
+            if (child.label === "User Connections" || child.label === "Workspace Connections") {
+                result.push(child);
+            }
         }
 
         return result;

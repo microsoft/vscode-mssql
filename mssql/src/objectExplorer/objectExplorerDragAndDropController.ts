@@ -105,12 +105,25 @@ export class ObjectExplorerDragAndDropController
                         `Dragged ${dragData.type} '${dragData.name}' (ID: ${dragData.id}) onto group '${targetInfo.label}' (ID: ${targetInfo.id})`,
                     );
 
+                    const workspaceGroupId =
+                        this.connectionStore.connectionConfig.getWorkspaceConnectionsGroupId();
                     if (dragData.type === "connection") {
                         const conn = await this.connectionStore.connectionConfig.getConnectionById(
                             dragData.id,
                         );
                         conn.groupId = targetInfo.id;
-                        await this.connectionStore.connectionConfig.updateConnection(conn);
+                        // If moving to Workspace Connections, store in workspace settings
+                        if (targetInfo.id === workspaceGroupId) {
+                            await this.connectionStore.connectionConfig.updateConnectionWithTarget(
+                                conn,
+                                vscode.ConfigurationTarget.Workspace,
+                            );
+                        } else {
+                            await this.connectionStore.connectionConfig.updateConnectionWithTarget(
+                                conn,
+                                vscode.ConfigurationTarget.Global,
+                            );
+                        }
                     } else {
                         const group = this.connectionStore.connectionConfig.getGroupById(
                             dragData.id,
@@ -122,7 +135,18 @@ export class ObjectExplorerDragAndDropController
                         }
 
                         group.parentId = targetInfo.id;
-                        await this.connectionStore.connectionConfig.updateGroup(group);
+                        // If moving to Workspace Connections, store in workspace settings
+                        if (targetInfo.id === workspaceGroupId) {
+                            await this.connectionStore.connectionConfig.updateGroupWithTarget(
+                                group,
+                                vscode.ConfigurationTarget.Workspace,
+                            );
+                        } else {
+                            await this.connectionStore.connectionConfig.updateGroupWithTarget(
+                                group,
+                                vscode.ConfigurationTarget.Global,
+                            );
+                        }
                     }
 
                     sendActionEvent(TelemetryViews.ObjectExplorer, TelemetryActions.DragAndDrop, {
