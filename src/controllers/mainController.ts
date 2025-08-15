@@ -367,7 +367,13 @@ export default class MainController implements vscode.Disposable {
                 }
                 // create new connection
                 if (!this.connectionManager.isConnected(uri)) {
-                    await this.onNewConnection();
+                    // Try to connect with default connection from configuration
+                    const defaultConnectionResult =
+                        await this.connectionManager.connectWithDefaultConnection(uri);
+                    if (!defaultConnectionResult) {
+                        // If no default connection or default connection failed, prompt user for connection
+                        await this.onNewConnection();
+                    }
                     sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
                 }
 
@@ -1285,6 +1291,15 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
+                    Constants.cmdSetAsWorkspaceDefault,
+                    async (node: TreeNodeInfo) => {
+                        await this.onSetAsWorkspaceDefault(node);
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
                     Constants.cmdDesignSchema,
                     async (node: TreeNodeInfo) => {
                         const schemaDesigner =
@@ -1852,6 +1867,38 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
+    /**
+     * Sets the selected connection as the workspace default connection
+     */
+    public async onSetAsWorkspaceDefault(node: TreeNodeInfo): Promise<void> {
+        if (!node || !node.connectionProfile) {
+            this._vscodeWrapper.showErrorMessage("Connection profile not found");
+            return;
+        }
+
+        try {
+            const connectionProfile = node.connectionProfile;
+            const connectionName = ConnInfo.getConnectionDisplayName(connectionProfile);
+
+            // Save the connection name to workspace settings
+            await this._vscodeWrapper.setConfiguration(
+                Constants.extensionName,
+                Constants.configDefaultConnectionName,
+                connectionName,
+                vscode.ConfigurationTarget.Workspace,
+            );
+
+            // Show success message
+            this._vscodeWrapper.showInformationMessage(
+                LocalizedConstants.msgConnectionSetAsWorkspaceDefault(connectionName),
+            );
+        } catch (error) {
+            this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.Common.error + ": " + error.toString(),
+            );
+        }
+    }
+
     public onDeployContainer(): void {
         sendActionEvent(
             TelemetryViews.ContainerDeployment,
@@ -2068,10 +2115,24 @@ export default class MainController implements vscode.Disposable {
             return false;
         }
 
-        if (this._connectionMgr.isConnected(this._vscodeWrapper.activeTextEditorUri)) {
+        const uri = this._vscodeWrapper.activeTextEditorUri;
+        Utils.logDebug(`checkIsReadyToExecuteQuery called for ${uri}`);
+
+        if (this._connectionMgr.isConnected(uri)) {
+            Utils.logDebug(`Connection already established in ${uri}`);
             return true;
         }
 
+        Utils.logDebug(`Not connected, trying default connection`);
+        // Try to connect with default connection from configuration
+        const defaultConnectionResult = await this._connectionMgr.connectWithDefaultConnection(uri);
+        if (defaultConnectionResult) {
+            Utils.logDebug(`Successfully connected with default connection`);
+            return true;
+        }
+
+        Utils.logDebug(`Default connection failed, prompting user`);
+        // If no default connection or default connection failed, prompt user for connection
         const result = await this.onNewConnection();
 
         return result;
