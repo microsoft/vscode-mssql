@@ -151,19 +151,24 @@ export const FabricBrowsePage = () => {
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
                     <Label>Workspaces</Label>
-                    {/* <div style={{backgroundColor: "blue", paddingLeft: "6px", paddingBottom: "6px", paddingTop: "6px"}}> */}
-                    <FabricWorkspaceFilter
-                        onSearchInputChanged={handleSearchInputChanged}
-                        onFilterOptionChanged={handleFilterOptionChanged}
-                        searchValue={searchFilter}
-                        selectedTypeFilters={typeFilter}
-                    />
-                    <FabricWorkspaceViewer
-                        fabricServerInfo={context.state.fabricServers}
-                        searchFilter={searchFilter}
-                        typeFilter={typeFilter}
-                    />
-                    {/* </div> */}
+                    <div
+                        style={{
+                            paddingLeft: "6px",
+                            paddingBottom: "6px",
+                            paddingTop: "6px",
+                        }}>
+                        <FabricWorkspaceFilter
+                            onSearchInputChanged={handleSearchInputChanged}
+                            onFilterOptionChanged={handleFilterOptionChanged}
+                            searchValue={searchFilter}
+                            selectedTypeFilters={typeFilter}
+                        />
+                        <FabricWorkspaceViewer
+                            fabricServerInfo={context.state.fabricServers}
+                            searchFilter={searchFilter}
+                            typeFilter={typeFilter}
+                        />
+                    </div>
 
                     {selectedServer && (
                         <>
