@@ -302,8 +302,8 @@ export async function getAccounts(
         accounts = await azureAccountService.getAccounts();
         return accounts.map((account) => {
             return {
-                displayName: account.displayInfo.displayName,
-                value: account.displayInfo.userId,
+                displayName: account.displayInfo?.displayName,
+                value: account.key.id,
             };
         });
     } catch (error) {
@@ -330,16 +330,24 @@ export async function getAccounts(
     }
 }
 
+/**
+ * Retrieves the tenants for a given Azure account.
+ * @param accountId The ID of the account to retrieve tenants for.  Recommended to be `IAccount.key.id`.
+ */
 export async function getTenants(
     azureAccountService: AzureAccountService,
     accountId: string,
     logger: Logger,
 ): Promise<FormItemOptions[]> {
     let tenants: ITenant[] = [];
+
+    if (!accountId) {
+        logger.error("getTenants(): undefined accountId passed.");
+        return [];
+    }
+
     try {
-        const account = (await azureAccountService.getAccounts()).find(
-            (account) => account.displayInfo?.userId === accountId,
-        );
+        const account = await azureAccountService.getAccount(accountId);
 
         if (!account?.properties?.tenants) {
             const missingProp = !account

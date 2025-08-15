@@ -1016,7 +1016,7 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").returns(mockAccount);
+            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
 
             // Setup Azure controller
             mockAzureController.isSqlAuthProviderEnabled.returns(true);
@@ -1092,7 +1092,7 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").returns(mockAccount);
+            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
 
             // Setup Azure controller - account NOT in cache
             mockAzureController.isSqlAuthProviderEnabled.returns(true);
@@ -1194,7 +1194,7 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").returns(mockAccount);
+            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
 
             // Setup Azure controller - SQL auth provider disabled
             mockAzureController.isSqlAuthProviderEnabled.returns(false);
@@ -1247,7 +1247,7 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").returns(mockAccount);
+            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
 
             // Setup Azure controller - SQL auth provider enabled, account in cache
             mockAzureController.isSqlAuthProviderEnabled.returns(true);
@@ -1695,7 +1695,7 @@ suite("OE Service Tests", () => {
             const mockAccount = createMockAccount("azure-account-id");
 
             // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("azure-account-id").returns(mockAccount);
+            mockAccountStore.getAccount.withArgs("azure-account-id").resolves(mockAccount);
 
             // Setup refreshAccount to return success
             sandbox.stub(objectExplorerService as any, "refreshAccount").resolves(true);
