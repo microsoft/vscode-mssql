@@ -77,7 +77,6 @@ export const FabricBrowsePage = () => {
     const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
-    // Filter state
     const [searchFilter, setSearchFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
 
@@ -102,21 +101,18 @@ export const FabricBrowsePage = () => {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
-    const handleSearchInputChanged = (
-        _: ChangeEvent<HTMLInputElement>,
-        data: InputOnChangeData,
-    ) => {
+    function handleSearchInputChanged(_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) {
         setSearchFilter(data.value);
-    };
+    }
 
-    const handleFilterOptionChanged = (
+    function handleFilterOptionChanged(
         _: MenuCheckedValueChangeEvent,
         { name, checkedItems }: MenuCheckedValueChangeData,
-    ): void => {
+    ) {
         if (name === "sqlType") {
             setTypeFilter(checkedItems);
         }
-    };
+    }
 
     return (
         <div>

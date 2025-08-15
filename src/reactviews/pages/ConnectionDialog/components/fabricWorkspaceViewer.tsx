@@ -21,6 +21,7 @@ import {
     Text,
     List,
     ListItem,
+    Label,
 } from "@fluentui/react-components";
 import { FabricSqlServerInfo } from "../../../../sharedInterfaces/connectionDialog";
 import { useState, useEffect, useMemo } from "react";
@@ -51,22 +52,22 @@ type ServerItem = {
 const useStyles = makeStyles({
     container: {
         display: "flex",
-        height: "400px", // Fixed height that will fit well in the dialog
+        height: "400px",
         width: "100%",
         ...shorthands.gap("10px"),
-        overflow: "hidden", // Prevent container from causing scrollbars
+        overflow: "hidden",
         marginTop: "10px",
     },
     workspaceExplorer: {
         display: "flex",
         flexDirection: "column",
-        width: "160px", // Slightly narrower for better proportions
-        minWidth: "160px", // Ensure it doesn't shrink below this width
+        width: "160px",
+        minWidth: "160px",
         height: "100%",
         borderRight: "1px solid var(--vscode-panel-border)",
         ...shorthands.padding("4px"),
         transition: "width 0.2s ease-in-out",
-        overflow: "auto", // Allow scrolling within the workspace list if needed
+        overflow: "auto",
         backgroundColor: "var(--vscode-sideBar-background)",
     },
     workspaceExplorerCollapsed: {
@@ -83,9 +84,9 @@ const useStyles = makeStyles({
     },
     workspaceGrid: {
         flexGrow: 1,
-        overflow: "hidden", // Changed to hidden to control overflow properly
+        overflow: "hidden",
         ...shorthands.padding("8px"),
-        height: "100%", // Fill the available height
+        height: "100%",
         display: "flex",
         flexDirection: "column",
     },
@@ -119,24 +120,21 @@ const useStyles = makeStyles({
         },
     },
     collapseButton: {
-        width: "calc(100% - 5px)", // Take up full width minus 5px
+        width: "calc(100% - 5px)",
         height: "24px",
         marginBottom: "8px",
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingLeft: "5px", // Padding on the left side
-        // paddingRight: "px", // Padding on the right side
-
-        // marginRight: "15px", // Add right margin to move away from border
+        paddingLeft: "5px",
     },
     collapseButtonIcon: {
         fontSize: "12px",
     },
     tableContainer: {
         width: "100%",
-        height: "100%", // Fill the available height
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         border: "1px solid var(--vscode-panel-border)",
@@ -181,7 +179,6 @@ const useStyles = makeStyles({
     },
 });
 
-// Memoized WorkspacesList to prevent unnecessary re-renders
 const WorkspacesList = ({
     workspaces,
     onWorkspaceSelect,
@@ -191,7 +188,7 @@ const WorkspacesList = ({
 
     // Don't render if there are no workspaces
     if (!workspaces || workspaces.length === 0) {
-        return <div>No workspaces available</div>;
+        return <Label>No workspaces available</Label>;
     }
 
     return (
@@ -203,7 +200,7 @@ const WorkspacesList = ({
                         selectedWorkspace?.id === workspace.id ? styles.workspaceItemSelected : ""
                     }
                     style={{
-                        padding: "4px 8px 4px 24px", // Added left padding for indentation
+                        padding: "4px 8px 4px 24px",
                         cursor: "pointer",
                         borderRadius: "2px",
                         marginBottom: "1px",
@@ -213,7 +210,7 @@ const WorkspacesList = ({
                         fontSize: "13px",
                         height: "24px",
                         lineHeight: "24px",
-                        position: "relative", // For icon positioning
+                        position: "relative",
                     }}
                     onClick={() => onWorkspaceSelect(workspace)}
                     onKeyDown={(e) => {
@@ -246,11 +243,10 @@ export const FabricWorkspaceViewer = ({
     typeFilter = [],
 }: Props) => {
     const styles = useStyles();
-    const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false); // Ensure it's expanded by default
+    const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
-    const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1); // Track focused row for keyboard navigation
+    const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
-    // Extract unique workspaces from the server info - memoize to prevent unnecessary recalculations
     const uniqueWorkspaces = useMemo(() => {
         return Array.from(
             new Map(
@@ -259,28 +255,23 @@ export const FabricWorkspaceViewer = ({
         );
     }, [fabricServerInfo]);
 
-    // Initialize selected workspace only on first render or when fabricServerInfo changes
     useEffect(() => {
-        // Only set the workspace ID if it's not already set or if it's no longer valid
         if (
             uniqueWorkspaces.length > 0 &&
             (!selectedWorkspaceId || !uniqueWorkspaces.some((w) => w.id === selectedWorkspaceId))
         ) {
             setSelectedWorkspaceId(uniqueWorkspaces[0].id);
         }
-    }, [fabricServerInfo.length]); // Only depend on the length of fabricServerInfo
+    }, [fabricServerInfo.length]);
 
-    // Get the selected workspace object - memoize to prevent recreation on every render
     const selectedWorkspace = useMemo(() => {
         return uniqueWorkspaces.find((workspace) => workspace.id === selectedWorkspaceId);
     }, [uniqueWorkspaces, selectedWorkspaceId]);
 
-    // Filter servers by selected workspace - memoize to prevent recreation on every render
     const filteredServers = useMemo(() => {
         return fabricServerInfo.filter((server) => selectedWorkspaceId === server.workspace.id);
     }, [fabricServerInfo, selectedWorkspaceId]);
 
-    // Create flattened items for the table - memoize to prevent recreation on every render
     const items = useMemo(() => {
         const result: ServerItem[] = [];
         if (filteredServers && filteredServers.length > 0) {
@@ -307,10 +298,8 @@ export const FabricWorkspaceViewer = ({
             });
         }
 
-        // Apply filters
         let filteredResult = result;
 
-        // Apply search filter
         if (searchFilter.trim()) {
             const searchTerm = searchFilter.toLowerCase();
             filteredResult = filteredResult.filter(
@@ -321,7 +310,6 @@ export const FabricWorkspaceViewer = ({
             );
         }
 
-        // Apply type filter
         if (typeFilter.length > 0 && !typeFilter.includes("Show All")) {
             filteredResult = filteredResult.filter((item) => typeFilter.includes(item.type));
         }
@@ -329,7 +317,6 @@ export const FabricWorkspaceViewer = ({
         return filteredResult;
     }, [filteredServers, searchFilter, typeFilter]);
 
-    // Define columns for the table - memoize to prevent recreation on every render
     const columns = useMemo(
         (): TableColumnDefinition<ServerItem>[] => [
             createTableColumn({
@@ -351,7 +338,6 @@ export const FabricWorkspaceViewer = ({
         [],
     );
 
-    // Column sizing options - memoize to prevent recreation on every render
     const columnSizingOptions = useMemo(
         (): TableColumnSizingOptions => ({
             name: { idealWidth: 250, minWidth: 150 },
@@ -361,7 +347,6 @@ export const FabricWorkspaceViewer = ({
         [],
     );
 
-    // Use table features with memoized dependencies
     const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
         {
             columns,
@@ -377,7 +362,6 @@ export const FabricWorkspaceViewer = ({
 
     const rows = getRows();
 
-    // Set focus to the first row when the table data changes
     useEffect(() => {
         if (rows.length > 0 && focusedRowIndex === -1) {
             setFocusedRowIndex(0);
@@ -386,9 +370,7 @@ export const FabricWorkspaceViewer = ({
         }
     }, [rows.length]);
 
-    // Keyboard navigation handler for the table
     const handleTableKeyDown = (e: React.KeyboardEvent<HTMLTableElement>) => {
-        // Basic keyboard handling for the table
         if (
             e.key === "ArrowDown" ||
             e.key === "ArrowUp" ||
@@ -399,7 +381,7 @@ export const FabricWorkspaceViewer = ({
             e.key === "PageUp" ||
             e.key === "PageDown"
         ) {
-            e.preventDefault(); // Prevent page scrolling
+            e.preventDefault();
 
             // Handle row navigation
             if (e.key === "ArrowDown") {
@@ -438,7 +420,6 @@ export const FabricWorkspaceViewer = ({
                         : styles.workspaceExplorer
                 }>
                 {isExplorerCollapsed ? (
-                    // When collapsed, render just the expand button prominently
                     <Button
                         appearance="subtle"
                         size="small"
@@ -462,7 +443,6 @@ export const FabricWorkspaceViewer = ({
                         }}
                     />
                 ) : (
-                    // When expanded, render the collapse button and the workspace list
                     <>
                         <div className={styles.collapseButton}>
                             <Text style={{ fontWeight: "600" }}>EXPLORER</Text>
