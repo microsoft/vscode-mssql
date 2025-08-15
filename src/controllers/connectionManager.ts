@@ -578,16 +578,7 @@ export default class ConnectionManager {
             let connection = self.getConnectionInfo(fileUri);
             connection.connecting = false;
 
-            let mruConnection: IConnectionInfo = <any>{};
-
             if (Utils.isNotEmpty(result.connectionId)) {
-                // Use the original connection information to save the MRU connection.
-                // for connections that a database is not provided, the database information will be updated
-                // to the default database name, if we use the new information as the MRU connection,
-                // the connection information will be different from the saved connections (saved connection's database property is empty).
-                // When deleting the saved connection, we won't be able to find its corresponding recent connection,
-                // and the saved connection credentials will become orphaned.
-                mruConnection = Utils.deepClone(connection.credentials);
                 // Convert to credentials if it's a connection string based connection
                 if (connection.credentials.connectionString) {
                     connection.credentials = await this.populateCredentialsFromConnectionString(
@@ -609,7 +600,6 @@ export default class ConnectionManager {
                 );
                 if (result.connectionSummary && result.connectionSummary.databaseName) {
                     newCredentials.database = result.connectionSummary.databaseName;
-                    mruConnection.database = result.connectionSummary.databaseName;
                 }
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
 
@@ -628,7 +618,6 @@ export default class ConnectionManager {
                     self._uriToConnectionCompleteParamsMap.delete(result.ownerUri);
                 }
             } else {
-                mruConnection = undefined;
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
                     if (result.errorMessage) {
@@ -648,7 +637,7 @@ export default class ConnectionManager {
                 await self.handleConnectionErrors(fileUri, connection, result);
             }
 
-            await self.tryAddMruConnection(connection, mruConnection);
+            await self.tryAddMruConnection(connection);
         };
     }
 
@@ -840,12 +829,13 @@ export default class ConnectionManager {
         return updatedConn;
     }
 
-    private async tryAddMruConnection(
-        connection: ConnectionInfo,
-        newConnection: IConnectionInfo,
-    ): Promise<void> {
-        if (newConnection) {
-            let connectionToSave: IConnectionInfo = Object.assign({}, newConnection);
+    /**
+     * Tries to add a connection to the list of most recently used connections. It saves the original credentials used to create the connection.
+     * @param connection The original connection returned from the connect operation. It could be null if the connection operation was not successful.
+     */
+    private async tryAddMruConnection(connection: ConnectionInfo): Promise<void> {
+        if (connection?.credentials) {
+            let connectionToSave: IConnectionInfo = Object.assign({}, connection.credentials);
             try {
                 await this._connectionStore.addRecentlyUsed(connectionToSave);
                 connection.connectHandler(true);
