@@ -1237,6 +1237,12 @@
       "{1} is the error message"
     ]
   },
+  "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again./{0} is the number of invalid accounts that have been removed": {
+    "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
+    "comment": [
+      "{0} is the number of invalid accounts that have been removed"
+    ]
+  },
   "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
     "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
     "comment": [

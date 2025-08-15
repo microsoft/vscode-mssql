@@ -793,7 +793,7 @@ export class ObjectExplorerService {
 
         if (connectionProfile.authenticationType === Constants.azureMfa) {
             let azureController = this._connectionManager.azureController;
-            let account = this._connectionManager.accountStore.getAccount(
+            let account = await this._connectionManager.accountStore.getAccount(
                 connectionProfile.accountId,
             );
             let needsRefresh = false;
@@ -964,7 +964,7 @@ export class ObjectExplorerService {
             this.needsAccountRefresh(failureResponse, connectionProfile.user)
         ) {
             this._logger.verbose(`Refreshing account token for ${connectionProfile.accountId}}`);
-            let account = this._connectionManager.accountStore.getAccount(
+            let account = await this._connectionManager.accountStore.getAccount(
                 connectionProfile.accountId,
             );
 

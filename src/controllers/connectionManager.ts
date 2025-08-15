@@ -166,7 +166,7 @@ export default class ConnectionManager {
         }
 
         if (!this._accountStore) {
-            this._accountStore = new AccountStore(context, this._logger);
+            this._accountStore = new AccountStore(context, this.vscodeWrapper);
         }
 
         if (!this._connectionUI) {
@@ -1218,7 +1218,7 @@ export default class ConnectionManager {
         let profile: ConnectionProfile;
 
         if (connectionInfo.accountId) {
-            account = this.accountStore.getAccount(connectionInfo.accountId);
+            account = await this.accountStore.getAccount(connectionInfo.accountId);
             profile = new ConnectionProfile(connectionInfo);
         } else {
             throw new Error(LocalizedConstants.cannotConnect);
@@ -1649,7 +1649,7 @@ export default class ConnectionManager {
     public async removeAccount(prompter: IPrompter): Promise<void> {
         // list options for accounts to remove
         let questions: IQuestion[] = [];
-        let azureAccountChoices = ConnectionProfile.getAccountChoices(this._accountStore);
+        let azureAccountChoices = await ConnectionProfile.getAccountChoices(this._accountStore);
 
         if (azureAccountChoices.length > 0) {
             questions.push({
@@ -1663,9 +1663,9 @@ export default class ConnectionManager {
                 if (answers?.account) {
                     try {
                         if (answers.account.key) {
-                            this._accountStore.removeAccount(answers.account.key.id);
+                            await this._accountStore.removeAccount(answers.account.key.id);
                         } else {
-                            await this._accountStore.pruneAccounts();
+                            await this._accountStore.pruneInvalidAccounts();
                         }
                         void this.azureController.removeAccount(answers.account);
                         this.vscodeWrapper.showInformationMessage(
@@ -1843,7 +1843,7 @@ export default class ConnectionManager {
         const activeEditorConnection =
             this._connections[this._vscodeWrapper.activeTextEditorUri]?.credentials;
         const currentAccountId = activeEditorConnection?.accountId;
-        const accounts = this._accountStore.getAccounts();
+        const accounts = await this._accountStore.getAccounts();
 
         const quickPickItems = this.createAccountQuickPickItems(accounts, currentAccountId);
         const selectedAccount = await this.showAccountQuickPick(quickPickItems);

@@ -140,18 +140,16 @@ suite("Azure Helpers", () => {
     });
 
     test("getTenants handles error cases", async () => {
-        const getAccountsStub = mockAzureAccountService.getAccounts as sinon.SinonStub;
+        const getAccountStub = mockAzureAccountService.getAccount as sinon.SinonStub;
         // undefined tenants
-        getAccountsStub.resolves([
-            {
-                displayInfo: {
-                    userId: "test-user-id",
-                },
-                properties: {
-                    tenants: undefined,
-                },
-            } as IAccount,
-        ]);
+        getAccountStub.resolves({
+            displayInfo: {
+                userId: "test-user-id",
+            },
+            properties: {
+                tenants: undefined,
+            },
+        } as IAccount);
 
         let result = await azureHelpers.getTenants(
             mockAzureAccountService,
@@ -165,18 +163,16 @@ suite("Azure Helpers", () => {
         ).to.be.true;
 
         // reset mocks for next case
-        getAccountsStub.reset();
+        getAccountStub.reset();
         (mockLogger.error as sinon.SinonStub).resetHistory();
 
         // undefined properties
-        getAccountsStub.resolves([
-            {
-                displayInfo: {
-                    userId: "test-user-id",
-                },
-                properties: undefined,
-            } as IAccount,
-        ]);
+        getAccountStub.resolves({
+            displayInfo: {
+                userId: "test-user-id",
+            },
+            properties: undefined,
+        } as IAccount);
 
         result = await azureHelpers.getTenants(mockAzureAccountService, "test-user-id", mockLogger);
         expect(result).to.be.an("array").that.is.empty;
