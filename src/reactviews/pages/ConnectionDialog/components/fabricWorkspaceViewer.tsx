@@ -288,6 +288,16 @@ export const FabricWorkspaceViewer = ({ fabricServerInfo }: Props) => {
                         });
                     });
                 }
+
+                if (server.sqlAnalyticsEndpoints && server.sqlAnalyticsEndpoints.length > 0) {
+                    server.sqlAnalyticsEndpoints.forEach((endpoint) => {
+                        result.push({
+                            name: endpoint,
+                            type: "SQL Analytics Endpoint",
+                            location: server.workspace.name,
+                        });
+                    });
+                }
             });
         }
         return result;

@@ -108,6 +108,7 @@ export interface AzureSqlServerInfo {
 export interface FabricSqlServerInfo {
     server: string;
     databases: string[];
+    sqlAnalyticsEndpoints: string[];
     workspace: {
         name: string;
         id: string;
