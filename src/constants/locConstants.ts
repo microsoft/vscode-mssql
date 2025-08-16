@@ -417,14 +417,14 @@ export function msgCheckingDefaultConnection(fileUri: string) {
         comment: ["{0} is the file URI"],
     });
 }
-export function msgDefaultConnectionNameFromConfig(defaultConnectionName: string) {
+export function msgDefaultConnectionIdFromConfig(defaultConnectionId: string) {
     return l10n.t({
-        message: "Default connection name from config: {0}",
-        args: [defaultConnectionName],
+        message: "Default connection id from config: {0}",
+        args: [defaultConnectionId],
         comment: ["{0} is the default connection name"],
     });
 }
-export let msgNoDefaultConnectionNameConfigured = l10n.t("No default connection name configured");
+export let msgNoDefaultConnectionIdConfigured = l10n.t("No default connection id configured");
 export function msgFoundSavedConnections(count: number) {
     return l10n.t({
         message: "Found {0} saved connections.",
@@ -448,9 +448,9 @@ export function msgFoundMatchingConnection(label: string) {
 }
 export function msgNoMatchingConnectionFound(defaultConnectionName: string) {
     return l10n.t({
-        message: "No matching connection found for name: {0}",
+        message: "No matching connection found for id: {0}",
         args: [defaultConnectionName],
-        comment: ["{0} is the default connection name"],
+        comment: ["{0} is the default connection id"],
     });
 }
 export function msgSearchingForDefaultConnection(fileUri: string) {

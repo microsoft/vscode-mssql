@@ -1879,12 +1879,13 @@ export default class MainController implements vscode.Disposable {
         try {
             const connectionProfile = node.connectionProfile;
             const connectionName = ConnInfo.getConnectionDisplayName(connectionProfile);
+            const connectionId = connectionProfile.id;
 
-            // Save the connection name to workspace settings
+            // Save the connection ID to workspace settings
             await this._vscodeWrapper.setConfiguration(
                 Constants.extensionName,
-                Constants.configDefaultConnectionName,
-                connectionName,
+                Constants.configDefaultConnectionId,
+                connectionId,
                 vscode.ConfigurationTarget.Workspace,
             );
 
