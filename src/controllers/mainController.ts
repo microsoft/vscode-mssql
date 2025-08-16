@@ -2831,7 +2831,7 @@ export default class MainController implements vscode.Disposable {
                 !this.connectionManager.isConnecting(uri)
             ) {
                 // add a disconnected node for the connection
-                this._objectExplorerProvider.addDisconnectedNode(conn);
+                void this._objectExplorerProvider.addDisconnectedNode(conn);
                 needsRefresh = true;
             }
         }

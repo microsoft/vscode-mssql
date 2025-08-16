@@ -1094,6 +1094,36 @@ export default class ConnectionManager {
     }
 
     /**
+     * Checks if the given connection profile is the default connection
+     * @param connectionProfile The connection profile to check
+     * @param fileUri Optional file URI to get workspace-specific config, defaults to active editor
+     * @returns true if this is the default connection, false otherwise
+     */
+    public async isDefaultConnection(
+        connectionProfile: IConnectionProfile,
+        fileUri?: string,
+    ): Promise<boolean> {
+        if (!connectionProfile?.id) {
+            return false;
+        }
+
+        // Use the active editor URI if none provided
+        const uri = fileUri || this.vscodeWrapper.activeTextEditorUri;
+        if (!uri) {
+            return false;
+        }
+
+        // Get configuration from the workspace
+        const config = this.vscodeWrapper.getConfiguration(
+            Constants.extensionConfigSectionName,
+            uri,
+        );
+        const defaultConnectionId = config.get<string>(Constants.configDefaultConnectionId);
+
+        return defaultConnectionId === connectionProfile.id;
+    }
+
+    /**
      * Attempts to connect using the default connection configuration if available
      */
     public async connectWithDefaultConnection(fileUri: string): Promise<boolean> {

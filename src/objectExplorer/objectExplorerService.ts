@@ -134,6 +134,18 @@ export class ObjectExplorerService {
 
         this._treeNodeToChildrenMap = new Map<vscode.TreeItem, vscode.TreeItem[]>();
 
+        // Listen for configuration changes to refresh when default connection changes
+        this._vscodeWrapper.onDidChangeConfiguration((e) => {
+            if (
+                e.affectsConfiguration(
+                    `${Constants.extensionConfigSectionName}.${Constants.configDefaultConnectionId}`,
+                )
+            ) {
+                // Refresh the tree when default connection configuration changes
+                this._refreshCallback(undefined);
+            }
+        });
+
         this._client.onNotification(CreateSessionCompleteNotification.type, (e) =>
             this.handleSessionCreatedNotification(e),
         );
@@ -464,12 +476,16 @@ export class ObjectExplorerService {
                 if (this._connectionNodes.has(connection.id)) {
                     connectionNode = this._connectionNodes.get(connection.id);
                     connectionNode.updateConnectionProfile(connection);
-                    connectionNode.label = getConnectionDisplayName(connection);
+                    connectionNode.label = await this.createConnectionLabel(connection);
+                    await this.styleConnectionNode(connectionNode, connection);
                 } else {
                     connectionNode = new ConnectionNode(
                         connection,
                         groupNode.id === rootId ? undefined : groupNode,
                     );
+                    // Set the label and styling after creation
+                    connectionNode.label = await this.createConnectionLabel(connection);
+                    await this.styleConnectionNode(connectionNode, connection);
                 }
 
                 connectionNode.parentNode = groupNode.id === rootId ? undefined : groupNode;
@@ -864,9 +880,15 @@ export class ObjectExplorerService {
         if (!connectionNode) {
             isNewConnection = true;
             connectionNode = new ConnectionNode(connectionProfile);
+            // Set the label and styling after creation
+            connectionNode.label = await this.createConnectionLabel(connectionProfile);
+            await this.styleConnectionNode(connectionNode, connectionProfile);
             this._connectionNodes.set(connectionProfile.id, connectionNode);
         } else {
             connectionNode.updateConnectionProfile(connectionProfile);
+            // Update the label and styling for existing nodes too
+            connectionNode.label = await this.createConnectionLabel(connectionProfile);
+            await this.styleConnectionNode(connectionNode, connectionProfile);
         }
 
         connectionNode.updateToConnectedState({
@@ -1157,8 +1179,11 @@ export class ObjectExplorerService {
      * Adds a new disconnected node to the OE tree.
      * @param connectionCredentials The connection credentials for the new node.
      */
-    public addDisconnectedNode(connectionCredentials: IConnectionProfile): void {
+    public async addDisconnectedNode(connectionCredentials: IConnectionProfile): Promise<void> {
         const connectionNode = new ConnectionNode(connectionCredentials);
+        // Set the label and styling after creation
+        connectionNode.label = await this.createConnectionLabel(connectionCredentials);
+        await this.styleConnectionNode(connectionNode, connectionCredentials);
         this.updateNode(connectionNode);
     }
 
@@ -1305,6 +1330,35 @@ export class ObjectExplorerService {
         }
 
         return serverGroupNode;
+    }
+
+    /**
+     * Creates the appropriate label for a connection node
+     * @param connectionProfile The connection profile to create the label for
+     * @returns The display name for the connection
+     */
+    private async createConnectionLabel(connectionProfile: IConnectionProfile): Promise<string> {
+        return getConnectionDisplayName(connectionProfile);
+    }
+
+    /**
+     * Sets up the styling for a connection node if it's the default connection
+     * @param connectionNode The connection node to style
+     * @param connectionProfile The connection profile
+     */
+    private async styleConnectionNode(
+        connectionNode: ConnectionNode,
+        connectionProfile: IConnectionProfile,
+    ): Promise<void> {
+        const isDefault = await this._connectionManager.isDefaultConnection(connectionProfile);
+
+        if (isDefault) {
+            // Set description to indicate this is the default connection
+            connectionNode.description = "(default)";
+        } else {
+            // Clear description for non-default connections
+            connectionNode.description = undefined;
+        }
     }
 }
 
