@@ -548,6 +548,14 @@ export let reloadChoice = l10n.t("Reload Visual Studio Code");
 export let switchToMsal = l10n.t("Switch to MSAL");
 export let dismiss = l10n.t("Dismiss");
 export let querySuccess = l10n.t("Query succeeded");
+export let searchObjectsPlaceholder = l10n.t("Search for database objects...");
+export let searchObjectsPrompt = l10n.t("Enter part of an object name to search for");
+export let searchObjectsNoResults = l10n.t("No database objects found matching your search");
+export let searchObjectsError = l10n.t("An error occurred while searching database objects");
+export let searchObjectsNoConnection = l10n.t(
+    "No active database connection. Please connect to a database first.",
+);
+export let searchObjectsSelectPrompt = l10n.t("Select an object to view its definition");
 export let queryFailed = l10n.t("Query failed");
 
 export let parameters = l10n.t("Parameters");

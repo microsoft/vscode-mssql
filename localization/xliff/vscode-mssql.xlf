@@ -151,6 +151,9 @@
       <source xml:lang="en">An error occurred while removing Microsoft Entra account: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
+      <source xml:lang="en">An error occurred while searching database objects</source>
+    </trans-unit>
     <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
       <source xml:lang="en">An error occurred: {0}</source>
       <note>{0} is the error message</note>
@@ -950,6 +953,9 @@
     <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
       <source xml:lang="en">Enter new column width</source>
     </trans-unit>
+    <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
+      <source xml:lang="en">Enter part of an object name to search for</source>
+    </trans-unit>
     <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
       <source xml:lang="en">Enter password</source>
     </trans-unit>
@@ -1675,6 +1681,9 @@
     <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
       <source xml:lang="en">No account selected</source>
     </trans-unit>
+    <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
+      <source xml:lang="en">No active database connection. Please connect to a database first.</source>
+    </trans-unit>
     <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
       <source xml:lang="en">No changes detected</source>
     </trans-unit>
@@ -1687,6 +1696,9 @@
     </trans-unit>
     <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
       <source xml:lang="en">No connection was found. Please connect to a server first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ad4ec144a83fcb59366100fafcac570af66443431fe13a3c40c5e9ba0cf1bd1c">
+      <source xml:lang="en">No database objects found matching your search</source>
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
@@ -2182,6 +2194,9 @@
     <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
       <source xml:lang="en">Search connection groups</source>
     </trans-unit>
+    <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
+      <source xml:lang="en">Search for database objects...</source>
+    </trans-unit>
     <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
       <source xml:lang="en">Search options...</source>
     </trans-unit>
@@ -2240,6 +2255,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
       <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b7c69235e9705488ba26ae90b1e9b79497ac4838e757924236f8d7eff0b4f97b">
+      <source xml:lang="en">Select an object to view its definition</source>
     </trans-unit>
     <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
       <source xml:lang="en">Select image</source>
@@ -3311,6 +3329,9 @@
     </trans-unit>
     <trans-unit id="mssql.scriptExecute">
       <source xml:lang="en">Script as Execute</source>
+    </trans-unit>
+    <trans-unit id="mssql.searchObjects">
+      <source xml:lang="en">Search Objects</source>
     </trans-unit>
     <trans-unit id="mssql.scriptSelect">
       <source xml:lang="en">Select Top 1000</source>
