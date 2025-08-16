@@ -811,8 +811,8 @@
       <source xml:lang="en">Default connection failed: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
-    <trans-unit id="++CODE++6dab915cd8d4eb0360d224d1092fc3739f6af40abf73b1fff4689f5c868a2c95">
-      <source xml:lang="en">Default connection name from config: {0}</source>
+    <trans-unit id="++CODE++ecf4fffe0c2c978cff94110ab0897b299d9529987d5bfb723c409ae51fd4fe40">
+      <source xml:lang="en">Default connection id from config: {0}</source>
       <note>{0} is the default connection name</note>
     </trans-unit>
     <trans-unit id="++CODE++9813fafb098c218090536790280a91ee70062a8490eb3615395ee731cdd40023">
@@ -1704,15 +1704,15 @@
     <trans-unit id="++CODE++56494858bbfceec1687cd287d297cc44850086570df02cd04bfcf9702bf464c9">
       <source xml:lang="en">No default connection available</source>
     </trans-unit>
-    <trans-unit id="++CODE++f6c786efa847a72e43d175ef8b02c57052707bc87c75f3806b897c0ce53ef38f">
-      <source xml:lang="en">No default connection name configured</source>
+    <trans-unit id="++CODE++375ab811bd49cac10d7d849b8c7260dcf3454adeb34da9bfe1a596a67ca16e2e">
+      <source xml:lang="en">No default connection id configured</source>
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
     </trans-unit>
-    <trans-unit id="++CODE++b122506fe646724b732c5ea5def358ba13fa658e6b04cdd4942857a565b63a8a">
-      <source xml:lang="en">No matching connection found for name: {0}</source>
-      <note>{0} is the default connection name</note>
+    <trans-unit id="++CODE++a48135e334f016b9f171b4ad121c7d4820fa6ceb1d7780e196d234a1575449c9">
+      <source xml:lang="en">No matching connection found for id: {0}</source>
+      <note>{0} is the default connection id</note>
     </trans-unit>
     <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
       <source xml:lang="en">No model found.</source>

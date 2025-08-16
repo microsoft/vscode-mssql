@@ -1009,13 +1009,13 @@
       "{0} is the file URI"
     ]
   },
-  "Default connection name from config: {0}/{0} is the default connection name": {
-    "message": "Default connection name from config: {0}",
+  "Default connection id from config: {0}/{0} is the default connection name": {
+    "message": "Default connection id from config: {0}",
     "comment": [
       "{0} is the default connection name"
     ]
   },
-  "No default connection name configured": "No default connection name configured",
+  "No default connection id configured": "No default connection id configured",
   "Found {0} saved connections./{0} is the number of saved connections": {
     "message": "Found {0} saved connections.",
     "comment": [
@@ -1035,10 +1035,10 @@
       "{0} is the connection label"
     ]
   },
-  "No matching connection found for name: {0}/{0} is the default connection name": {
-    "message": "No matching connection found for name: {0}",
+  "No matching connection found for id: {0}/{0} is the default connection id": {
+    "message": "No matching connection found for id: {0}",
     "comment": [
-      "{0} is the default connection name"
+      "{0} is the default connection id"
     ]
   },
   "Searching for default connection for file {0}/{0} is the file URI": {
