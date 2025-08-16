@@ -1107,16 +1107,14 @@ export default class ConnectionManager {
             return false;
         }
 
-        // Use the active editor URI if none provided
+        // Use the active editor URI if none provided, or fall back to workspace configuration
         const uri = fileUri || this.vscodeWrapper.activeTextEditorUri;
-        if (!uri) {
-            return false;
-        }
 
         // Get configuration from the workspace
+        // If no URI is available, use workspace-level configuration
         const config = this.vscodeWrapper.getConfiguration(
             Constants.extensionConfigSectionName,
-            uri,
+            uri, // This can be undefined, which will use workspace-level config
         );
         const defaultConnectionId = config.get<string>(Constants.configDefaultConnectionId);
 
