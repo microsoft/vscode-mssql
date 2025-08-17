@@ -476,17 +476,16 @@ export class ObjectExplorerService {
                 if (this._connectionNodes.has(connection.id)) {
                     connectionNode = this._connectionNodes.get(connection.id);
                     connectionNode.updateConnectionProfile(connection);
-                    connectionNode.label = await this.createConnectionLabel(connection);
-                    await this.styleConnectionNode(connectionNode, connection);
                 } else {
                     connectionNode = new ConnectionNode(
                         connection,
                         groupNode.id === rootId ? undefined : groupNode,
                     );
-                    // Set the label and styling after creation
-                    connectionNode.label = await this.createConnectionLabel(connection);
-                    await this.styleConnectionNode(connectionNode, connection);
                 }
+
+                // Set the label and styling after creation
+                connectionNode.label = await this.createConnectionLabel(connection);
+                await this.styleConnectionNode(connectionNode, connection);
 
                 connectionNode.parentNode = groupNode.id === rootId ? undefined : groupNode;
 
@@ -880,16 +879,14 @@ export class ObjectExplorerService {
         if (!connectionNode) {
             isNewConnection = true;
             connectionNode = new ConnectionNode(connectionProfile);
-            // Set the label and styling after creation
-            connectionNode.label = await this.createConnectionLabel(connectionProfile);
-            await this.styleConnectionNode(connectionNode, connectionProfile);
             this._connectionNodes.set(connectionProfile.id, connectionNode);
         } else {
             connectionNode.updateConnectionProfile(connectionProfile);
-            // Update the label and styling for existing nodes too
-            connectionNode.label = await this.createConnectionLabel(connectionProfile);
-            await this.styleConnectionNode(connectionNode, connectionProfile);
         }
+
+        // Set the label and styling
+        connectionNode.label = await this.createConnectionLabel(connectionProfile);
+        await this.styleConnectionNode(connectionNode, connectionProfile);
 
         connectionNode.updateToConnectedState({
             nodeInfo: successResponse.rootNode,
