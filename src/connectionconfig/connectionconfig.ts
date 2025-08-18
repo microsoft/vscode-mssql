@@ -219,11 +219,17 @@ export class ConnectionConfig implements IConnectionConfig {
      * @returns true if the connection was removed, false if the connection wasn't found.
      */
     public async removeConnection(profile: IConnectionProfile): Promise<boolean> {
-        let profiles = await this.getConnections(false /* getWorkspaceConnections */);
+        // Determine if this is a workspace connection
+        const workspaceGroupId = this.getWorkspaceConnectionsGroupId();
+        let target = ConfigurationTarget.Global;
+        if (profile.groupId === workspaceGroupId) {
+            target = ConfigurationTarget.Workspace;
+        }
+        let profiles = this.getConnectionsFromSettings(target);
 
         const found = this.removeConnectionHelper(profile, profiles);
         if (found) {
-            await this.writeConnectionsToSettings(profiles);
+            await this.writeConnectionsToSettings(profiles, target);
         }
         return found;
     }
