@@ -28,6 +28,7 @@ import {
     PeopleTeamRegular,
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
+import { Keys } from "../../../common/keys";
 
 // Icon imports for database types
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
@@ -201,7 +202,7 @@ const WorkspacesList = ({
                     }}
                     onClick={() => onWorkspaceSelect(workspace)}
                     onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
+                        if (e.key === Keys.Enter || e.key === Keys.Space) {
                             onWorkspaceSelect(workspace);
                             e.preventDefault();
                         }
@@ -375,7 +376,7 @@ export const FabricWorkspaceViewer = ({
                         icon={<ChevronDoubleRightFilled className={styles.collapseButtonIcon} />}
                         onClick={toggleExplorer}
                         onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
+                            if (e.key === Keys.Enter || e.key === Keys.Space) {
                                 toggleExplorer();
                                 e.preventDefault();
                             }
@@ -407,7 +408,7 @@ export const FabricWorkspaceViewer = ({
                                 }
                                 onClick={toggleExplorer}
                                 onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
+                                    if (e.key === Keys.Enter || e.key === Keys.Space) {
                                         toggleExplorer();
                                         e.preventDefault();
                                     }
