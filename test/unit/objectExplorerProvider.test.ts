@@ -487,7 +487,7 @@ suite("Object Explorer Provider Tests", function () {
     test("Test addDisconnectedNode function", () => {
         objectExplorerService.setup((s) => s.addDisconnectedNode(TypeMoq.It.isAny()));
         let connectionCredentials: any = { server: "test_server" };
-        objectExplorerProvider.addDisconnectedNode(connectionCredentials);
+        void objectExplorerProvider.addDisconnectedNode(connectionCredentials);
         objectExplorerService.verify(
             (s) => s.addDisconnectedNode(TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
