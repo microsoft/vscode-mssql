@@ -508,6 +508,9 @@
     <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
       <source xml:lang="en">Collapse All</source>
     </trans-unit>
+    <trans-unit id="++CODE++73bdb3fe57af851db2313c3716cc6e6d8584314063030d5262237ad2fa9f8201">
+      <source xml:lang="en">Collapse Workspace Explorer</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
     </trans-unit>
@@ -795,6 +798,9 @@
     <trans-unit id="++CODE++667dd91d86c6b574073536489e39f0c5ab034846a63d946e8ef9f7bedeb1f4fb">
       <source xml:lang="en">Database Project</source>
     </trans-unit>
+    <trans-unit id="++CODE++4027712bbc416cfc7ec6cf98c5be5578684cd55571f48076e82ea6230a66811e">
+      <source xml:lang="en">Database list</source>
+    </trans-unit>
     <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
       <source xml:lang="en">Database name</source>
     </trans-unit>
@@ -1069,6 +1075,12 @@
     <trans-unit id="++CODE++9f5b023a413a7d0771cc3fb51b103dc0aaaafe8f7b7c88c7258d43e3bc5b243d">
       <source xml:lang="en">Expand All</source>
     </trans-unit>
+    <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
+      <source xml:lang="en">Expand Workspace Explorer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
+      <source xml:lang="en">Explorer</source>
+    </trans-unit>
     <trans-unit id="++CODE++3664895579f0a7e68c4aa09c91316e20239bc74499010e6423ece40cad7c28f7">
       <source xml:lang="en">Export</source>
     </trans-unit>
@@ -1172,6 +1184,12 @@
     </trans-unit>
     <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
       <source xml:lang="en">Filter Settings</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6493eda41425d761de3497b7563b968d07d84a3eebb1844d3f54b76460eee2cb">
+      <source xml:lang="en">Filter by keyword</source>
+    </trans-unit>
+    <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
+      <source xml:lang="en">Filter by type</source>
     </trans-unit>
     <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
       <source xml:lang="en">Filter for any field...</source>
@@ -1551,6 +1569,9 @@
     <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
       <source xml:lang="en">Location</source>
     </trans-unit>
+    <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
+      <source xml:lang="en">Location (Workspace)</source>
+    </trans-unit>
     <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
       <source xml:lang="en">MSSQL</source>
     </trans-unit>
@@ -1675,6 +1696,9 @@
     <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
       <source xml:lang="en">No Queries Available</source>
     </trans-unit>
+    <trans-unit id="++CODE++7155b6d7be899f0fa8ba59863002c65d1936405d9bc57aeed904d3ecb03f929c">
+      <source xml:lang="en">No SQL servers found. Please sign in to view available servers.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
       <source xml:lang="en">No account selected</source>
     </trans-unit>
@@ -1690,6 +1714,9 @@
     </trans-unit>
     <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
       <source xml:lang="en">No connection was found. Please connect to a server first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
+      <source xml:lang="en">No databases found in the selected workspace.</source>
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
@@ -1722,6 +1749,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++663c666b98596ee2becded8ac3b2a7cf3fc428585f67937544aa219d8ad8f4b4">
+      <source xml:lang="en">No workspaces available</source>
     </trans-unit>
     <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
       <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
@@ -2083,6 +2113,12 @@
       <source xml:lang="en">Running query on connection &apos;{0}&apos;</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
+      <source xml:lang="en">SQL Analytics Endpoint</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247">
+      <source xml:lang="en">SQL Database</source>
+    </trans-unit>
     <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
       <source xml:lang="en">SQL Login</source>
     </trans-unit>
@@ -2313,6 +2349,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5e9f98120dbe568255ee059f39671686982b113d4e917b6d6faf149918c81709">
       <source xml:lang="en">Severity</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
+      <source xml:lang="en">Show All</source>
     </trans-unit>
     <trans-unit id="++CODE++a89fead964a8515cf74f4e5fcfbc0aaa029cee9744df340c6853e59a944de7ad">
       <source xml:lang="en">Show Filter</source>
@@ -2731,6 +2770,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1377264ba3b0a7172621971b49ac3e82e33b64b14328d9275d02807e67ea8460">
+      <source xml:lang="en">Workspaces</source>
     </trans-unit>
     <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
       <source xml:lang="en">Yes</source>

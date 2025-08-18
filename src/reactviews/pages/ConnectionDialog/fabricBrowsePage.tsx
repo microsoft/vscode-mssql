@@ -3,10 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { ChangeEvent, useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, Link, makeStyles, Spinner, Textarea } from "@fluentui/react-components";
+import {
+    Button,
+    InputOnChangeData,
+    Label,
+    Link,
+    List,
+    ListItem,
+    makeStyles,
+    MenuCheckedValueChangeData,
+    MenuCheckedValueChangeEvent,
+    Spinner,
+    Textarea,
+} from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
@@ -21,6 +33,8 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { removeDuplicates } from "../../common/utils";
 import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
+import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
+import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
 
 const useStyles = makeStyles({
     icon: {
@@ -63,6 +77,9 @@ export const FabricBrowsePage = () => {
     const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
+    const [searchFilter, setSearchFilter] = useState<string>("");
+    const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
+
     function setSelectedServerWithFormState(server: string | undefined) {
         if (server === undefined && context?.state.formState.server === "") {
             return; // avoid unnecessary updates
@@ -82,6 +99,19 @@ export const FabricBrowsePage = () => {
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
+    }
+
+    function handleSearchInputChanged(_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) {
+        setSearchFilter(data.value);
+    }
+
+    function handleFilterOptionChanged(
+        _: MenuCheckedValueChangeEvent,
+        { name, checkedItems }: MenuCheckedValueChangeData,
+    ) {
+        if (name === "sqlType") {
+            setTypeFilter(checkedItems);
+        }
     }
 
     return (
@@ -116,11 +146,26 @@ export const FabricBrowsePage = () => {
             )}
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
-                    <Textarea
-                        value={JSON.stringify(context.state.fabricServers, undefined, 2)}
-                        disabled
-                        style={{ width: "100%", height: "200px" }}
-                    />
+                    <Label>{Loc.connectionDialog.workspaces}</Label>
+                    <div
+                        style={{
+                            paddingLeft: "6px",
+                            paddingBottom: "6px",
+                            paddingTop: "6px",
+                        }}>
+                        <FabricWorkspaceFilter
+                            onSearchInputChanged={handleSearchInputChanged}
+                            onFilterOptionChanged={handleFilterOptionChanged}
+                            searchValue={searchFilter}
+                            selectedTypeFilters={typeFilter}
+                        />
+                        <FabricWorkspaceViewer
+                            fabricServerInfo={context.state.fabricServers}
+                            searchFilter={searchFilter}
+                            typeFilter={typeFilter}
+                        />
+                    </div>
+
                     {selectedServer && (
                         <>
                             <FormField<

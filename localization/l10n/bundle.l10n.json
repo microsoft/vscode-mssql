@@ -230,6 +230,21 @@
       "{0} is the IP address of the client"
     ]
   },
+  "Workspaces": "Workspaces",
+  "Filter by keyword": "Filter by keyword",
+  "Filter": "Filter",
+  "Filter by type": "Filter by type",
+  "Show All": "Show All",
+  "SQL Analytics Endpoint": "SQL Analytics Endpoint",
+  "SQL Database": "SQL Database",
+  "No workspaces available": "No workspaces available",
+  "Location (Workspace)": "Location (Workspace)",
+  "Expand Workspace Explorer": "Expand Workspace Explorer",
+  "Explorer": "Explorer",
+  "Collapse Workspace Explorer": "Collapse Workspace Explorer",
+  "No SQL servers found. Please sign in to view available servers.": "No SQL servers found. Please sign in to view available servers.",
+  "No databases found in the selected workspace.": "No databases found in the selected workspace.",
+  "Database list": "Database list",
   "Connect": "Connect",
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
@@ -414,7 +429,6 @@
   "Auto Arrange": "Auto Arrange",
   "Auto Arrange Confirmation": "Auto Arrange Confirmation",
   "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?": "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?",
-  "Filter": "Filter",
   "Filter ({0})/{0} is the number of selected tables": {
     "message": "Filter ({0})",
     "comment": [
