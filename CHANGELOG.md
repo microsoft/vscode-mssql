@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.35.0
+* Release date: August 20, 2025
+* Release status: GA
+### What’s new in 1.35.0
+* Released General Availability of Schema Designer, Schema Compare, and Local SQL Server Containers
+* Added Text View mode for result sets
+* Fixed an issue where parts of Object Explorer may not follow VS Code localization settings
+* Fixed several accessibility issues for error messages in some parts of the UI
+
 ## Version 1.34.1
 * Release date: August 13, 2025
 * Release status: GA
