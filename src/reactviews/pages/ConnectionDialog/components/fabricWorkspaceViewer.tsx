@@ -114,7 +114,7 @@ const useStyles = makeStyles({
         paddingTop: "4px",
     },
     workspaceItem: {
-        ...shorthands.padding("4px", "8px"),
+        ...shorthands.padding("4px", "8px", "4px", "24px"),
         cursor: "pointer",
         borderRadius: "2px",
         marginBottom: "1px",
@@ -124,6 +124,7 @@ const useStyles = makeStyles({
         fontSize: "13px",
         height: "24px",
         lineHeight: "24px",
+        position: "relative",
         "&:hover": {
             backgroundColor: "var(--vscode-list-hoverBackground)",
         },
@@ -147,6 +148,14 @@ const useStyles = makeStyles({
     },
     collapseButtonIcon: {
         fontSize: "12px",
+    },
+    collapsedExplorerButton: {
+        width: "24px",
+        height: "24px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        margin: "0 auto",
     },
     headerRow: {
         backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
@@ -191,22 +200,9 @@ const WorkspacesList = ({
             {workspaces.map((workspace) => (
                 <ListItem
                     key={workspace.id}
-                    className={
+                    className={`${styles.workspaceItem} ${
                         selectedWorkspace?.id === workspace.id ? styles.workspaceItemSelected : ""
-                    }
-                    style={{
-                        padding: "4px 8px 4px 24px",
-                        cursor: "pointer",
-                        borderRadius: "2px",
-                        marginBottom: "1px",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        fontSize: "13px",
-                        height: "24px",
-                        lineHeight: "24px",
-                        position: "relative",
-                    }}
+                    }`}
                     onClick={() => onWorkspaceSelect(workspace)}
                     onKeyDown={(e) => {
                         if (e.key === Keys.Enter || e.key === Keys.Space) {
@@ -392,14 +388,7 @@ export const FabricWorkspaceViewer = ({
                         }}
                         aria-label={Loc.connectionDialog.expandWorkspaceExplorer}
                         title={Loc.connectionDialog.expand}
-                        style={{
-                            width: "24px",
-                            height: "24px",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            margin: "0 auto",
-                        }}
+                        className={styles.collapsedExplorerButton}
                     />
                 ) : (
                     <>
