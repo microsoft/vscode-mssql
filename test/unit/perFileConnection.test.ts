@@ -189,7 +189,7 @@ suite("Per File Connection Tests", () => {
                     createTestFailedConnectionResult(params.ownerUri, Constants.errorLoginFailed),
                 );
             })
-            .returns(() => Promise.resolve(true));
+            .returns(() => Promise.resolve(false));
 
         manager.client = serviceClientMock.object;
 
@@ -255,7 +255,7 @@ suite("Per File Connection Tests", () => {
                     createTestFailedConnectionResult(params.ownerUri, Constants.errorLoginFailed),
                 );
             })
-            .returns(() => Promise.resolve(true));
+            .returns(() => Promise.resolve(false));
 
         manager.client = serviceClientMock.object;
 
