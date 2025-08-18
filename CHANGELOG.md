@@ -6,6 +6,7 @@
 ### What’s new in 1.35.0
 * Released General Availability of Schema Designer, Schema Compare, and Local SQL Server Containers
 * Added Text View mode for result sets
+* Fixed an issue where signing in with Microsoft Entra ID in the Connection Dialog may result in blank account and tenant dropdowns
 * Fixed an issue where parts of Object Explorer may not follow VS Code localization settings
 * Fixed several accessibility issues for error messages in some parts of the UI
 
