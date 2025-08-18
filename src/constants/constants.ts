@@ -211,7 +211,6 @@ export const sqlToolsServiceExecutableFilesConfigKey = "executableFiles";
 export const sqlToolsServiceVersionConfigKey = "version";
 export const sqlToolsServiceDownloadUrlConfigKey = "downloadUrl";
 export const extConfigResultFontFamily = "resultsFontFamily";
-export const configApplyLocalization = "applyLocalization";
 export const configPersistQueryResultTabs = "persistQueryResultTabs";
 export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
@@ -235,6 +234,10 @@ export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
 export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
+export const configSchemaDesignerEnableExpandCollapseButtons =
+    "mssql.schemaDesigner.enableExpandCollapseButtons";
+export const configSavePasswordsUntilRestart =
+    "mssql.connectionManagement.rememberPasswordsUntilRestart";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";

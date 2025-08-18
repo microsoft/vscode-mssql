@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 1.34.1
+* Release date: August 13, 2025
+* Release status: GA
+### What’s new in 1.34.1
+* Fixed bug in GitHub Copilot Ask Mode related to explicit GPT-4o model selection
+* Fixed bug in Local Container Deployment where Apple Silicon Mac users may be unable to pull SQL Server images
+
 ## Version 1.34.0
 * Release date: July 23, 2025
 * Release status: GA

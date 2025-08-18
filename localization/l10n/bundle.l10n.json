@@ -86,6 +86,8 @@
   "Move Up": "Move Up",
   "Move Down": "Move Down",
   "Delete": "Delete",
+  "Expand": "Expand",
+  "Collapse": "Collapse",
   "Filter Settings": "Filter Settings",
   "Cancel": "Cancel",
   "Are you sure?": "Are you sure?",
@@ -329,8 +331,6 @@
   "Collapse All": "Collapse All",
   "Filter for any field...": "Filter for any field...",
   "Previous": "Previous",
-  "Expand": "Expand",
-  "Collapse": "Collapse",
   "Microsoft would like your feedback": "Microsoft would like your feedback",
   "Overall, how satisfied are you with the MSSQL extension?": "Overall, how satisfied are you with the MSSQL extension?",
   "Very Satisfied": "Very Satisfied",
@@ -367,6 +367,27 @@
   "Search...": "Search...",
   "Maximize": "Maximize",
   "Restore": "Restore",
+  "Grid View": "Grid View",
+  "Text View": "Text View",
+  "Switch to Grid View": "Switch to Grid View",
+  "Switch to Text View": "Switch to Text View",
+  "No results to display": "No results to display",
+  "Error generating text view. Please try switching back to grid view.": "Error generating text view. Please try switching back to grid view.",
+  "(0 rows affected)": "(0 rows affected)",
+  "(1 row affected)": "(1 row affected)",
+  "({0} rows affected)/{0} is the number of rows affected": {
+    "message": "({0} rows affected)",
+    "comment": [
+      "{0} is the number of rows affected"
+    ]
+  },
+  "Result Set {0}/{0} is the index of the result set": {
+    "message": "Result Set {0}",
+    "comment": [
+      "{0} is the index of the result set"
+    ]
+  },
+  "Loading text view...": "Loading text view...",
   "Add new column": "Add new column",
   "Table": "Table",
   "Save": "Save",
@@ -1288,6 +1309,12 @@
       "{1} is the error message"
     ]
   },
+  "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again./{0} is the number of invalid accounts that have been removed": {
+    "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
+    "comment": [
+      "{0} is the number of invalid accounts that have been removed"
+    ]
+  },
   "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
     "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
     "comment": [
@@ -1401,7 +1428,7 @@
       "{0} is the architecture name of the machine"
     ]
   },
-  "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.": "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
+  "Rosetta is required to run SQL Server container images on Apple Silicon. Enable \"Use Rosetta for x86_64/amd64 emulation on Apple Silicon\" in Docker Desktop > Settings > General.": "Rosetta is required to run SQL Server container images on Apple Silicon. Enable \"Use Rosetta for x86_64/amd64 emulation on Apple Silicon\" in Docker Desktop > Settings > General.",
   "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.": "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
   "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.": "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
   "Docker failed to start within the timeout period. Please manually start Docker and try again.": "Docker failed to start within the timeout period. Please manually start Docker and try again.",
@@ -1420,6 +1447,7 @@
     ]
   },
   "Configure Linux containers": "Configure Linux containers",
+  "Configure Rosetta in Docker Desktop": "Configure Rosetta in Docker Desktop",
   "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?": "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
   "Switching to Linux containers was canceled. SQL Server only supports Linux containers.": "Switching to Linux containers was canceled. SQL Server only supports Linux containers.",
   "Failed to start SQL Server container. Please check the error message for more details, and then try again.": "Failed to start SQL Server container. Please check the error message for more details, and then try again.",
@@ -1794,6 +1822,18 @@
     ]
   },
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
+  "Cancel failed: {0}/{0} is the error message": {
+    "message": "Cancel failed: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Failed disposing query: {0}/{0} is the error message": {
+    "message": "Failed disposing query: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
   "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
     "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
     "comment": [

@@ -163,7 +163,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async initializeDialog(
         connectionToEdit: IConnectionInfo,
         initialConnectionGroup?: IConnectionGroup,
-    ) {
+    ): Promise<void> {
         // Load connection form components
         this.state.formComponents = await generateConnectionComponents(
             this._mainController.connectionManager,
@@ -611,13 +611,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             hiddenProperties.push("accountId", "tenantId");
         }
         if (this.state.connectionProfile.authenticationType === AuthenticationType.AzureMFA) {
-            // Hide tenantId if accountId has only one tenant
-            const tenants = await getTenants(
-                this._mainController.azureAccountService,
-                this.state.connectionProfile.accountId,
-                this.logger,
-            );
-            if (tenants.length === 1) {
+            let tenants = [];
+
+            if (this.state.connectionProfile.accountId !== undefined) {
+                tenants = await getTenants(
+                    this._mainController.azureAccountService,
+                    this.state.connectionProfile.accountId,
+                    this.logger,
+                );
+            }
+
+            // Hide tenantId if not signed in or accountId has only one tenant
+            if (tenants.length < 2) {
                 hiddenProperties.push("tenantId");
             }
         }
@@ -1170,17 +1175,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 if (firstOption) {
                     this.state.connectionProfile.accountId = firstOption.value;
                 }
-                tenants = await getTenants(
-                    this._mainController.azureAccountService,
-                    this.state.connectionProfile.accountId,
-                    this.logger,
-                );
-                if (tenantComponent) {
-                    tenantComponent.options = tenants;
-                    if (tenants && tenants.length > 0) {
-                        this.state.connectionProfile.tenantId = tenants[0].value;
+                if (this.state.connectionProfile.accountId) {
+                    tenants = await getTenants(
+                        this._mainController.azureAccountService,
+                        this.state.connectionProfile.accountId,
+                        this.logger,
+                    );
+                    if (tenantComponent) {
+                        tenantComponent.options = tenants;
+                        if (tenants && tenants.length > 0) {
+                            this.state.connectionProfile.tenantId = tenants[0].value;
+                        }
                     }
                 }
+
                 accountComponent.actionButtons = await this.getAzureActionButtons();
                 break;
         }

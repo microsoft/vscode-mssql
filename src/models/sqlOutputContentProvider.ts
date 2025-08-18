@@ -137,6 +137,30 @@ export class SqlOutputContentProvider {
             .queryRunner.exportCellsToClipboard(data, batchId, resultId, selection, headersFlag);
     }
 
+    public copyAsCsvRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+        includeHeaders?: boolean,
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsCsv(selection, batchId, resultId, includeHeaders);
+    }
+
+    public copyAsJsonRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+        includeHeaders?: boolean,
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsJson(selection, batchId, resultId, includeHeaders);
+    }
+
     public editorSelectionRequestHandler(uri: string, selection: ISelectionData): void {
         void this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection);
     }

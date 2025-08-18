@@ -28,11 +28,21 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout main branch
+      - name: Determine target branch
+        id: target-branch
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "branch=${{ github.event.pull_request.base.ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "branch=main" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout target branch
         uses: actions/checkout@v4
         with:
-          ref: main
-          path: './main'
+          ref: ${{ steps.target-branch.outputs.branch }}
+          path: './target'
+
 
       - name: Checkout PR branch
         uses: actions/checkout@v4
@@ -58,10 +68,10 @@ jobs:
           echo "Installing VSCE"
           npm install --global vsce@2.9.2
 
-      - name: Install dependencies and build main extension
+      - name: Install dependencies and build target extension
         uses: ./pr/.github/actions/build-extension
         with:
-          source-dir: './main'
+          source-dir: './target'
 
       - name: Install dependencies and build PR extension
         uses: ./pr/.github/actions/build-extension
@@ -79,7 +89,7 @@ jobs:
       - name: Package both branches
         continue-on-error: true
         run: |
-          cd main
+          cd target
           vsce package
           cd ../pr
           vsce package
@@ -98,15 +108,15 @@ jobs:
 
       - name: Calculate webview bundle sizes
         run: |
-          main_file=$(du -sk ./main/out/src/reactviews/assets | cut -f1)
-          pr_file=$(du -sk ./pr/out/src/reactviews/assets | cut -f1)
-          echo "Main branch bundle size: $main_file KB"
+          target_file=$(du -sk ./target/dist/views | cut -f1)
+          pr_file=$(du -sk ./pr/dist/views | cut -f1)
+          echo "Target branch bundle size: $target_file KB"
           echo "PR branch bundle size: $pr_file KB"
-          size_diff=$((pr_file - main_file))
-          percentage_change=$((100 * size_diff / main_file))
+          size_diff=$((pr_file - target_file))
+          percentage_change=$((100 * size_diff / target_file))
           echo "Size difference: $size_diff KB"
           echo "Percentage change: $percentage_change%"
-          echo "main_webview_bundle_size=$main_file" >> $GITHUB_ENV
+          echo "target_webview_bundle_size=$target_file" >> $GITHUB_ENV
           echo "pr_webview_bundle_size=$pr_file" >> $GITHUB_ENV
           echo "webview_size_diff=$size_diff" >> $GITHUB_ENV
           echo "webview_bundle_percentage_change=$percentage_change" >> $GITHUB_ENV
@@ -120,19 +130,19 @@ jobs:
 
       - name: Calculate vsix file sizes
         run: |
-          main_vsix=$(find ./main -name "*.vsix")
+          target_vsix=$(find ./target -name "*.vsix")
           pr_vsix=$(find ./pr -name "*.vsix")
-          main_size=$(stat -c%s "$main_vsix")
+          target_size=$(stat -c%s "$target_vsix")
           pr_size=$(stat -c%s "$pr_vsix")
-          main_size=$((main_size / 1024))
+          target_size=$((target_size / 1024))
           pr_size=$((pr_size / 1024))
-          size_diff=$((pr_size - main_size))
-          percentage_change=$((100 * size_diff / main_size))
-          echo "Main branch VSIX size: $main_size KB"
+          size_diff=$((pr_size - target_size))
+          percentage_change=$((100 * size_diff / target_size))
+          echo "Target branch VSIX size: $target_size KB"
           echo "PR branch VSIX size: $pr_size KB"
           echo "Size difference: $size_diff bytes"
           echo "Percentage change: $percentage_change%"
-          echo "main_vsix_size=$main_size" >> $GITHUB_ENV
+          echo "target_vsix_size=$target_size" >> $GITHUB_ENV
           echo "pr_vsix_size=$pr_size" >> $GITHUB_ENV
           echo "vsix_size_diff=$size_diff" >> $GITHUB_ENV
           echo "vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
@@ -145,12 +155,16 @@ jobs:
           fi
 
       - name: Run unit tests for PR branch
+        continue-on-error: true
         run: |
+          set +e  # Don't exit on errors
           cd pr
           DISPLAY=:10 yarn test
+          UNIT_EXIT_CODE=$?
+          echo "unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: PR Unit Test Report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
           name: 'Unit Test Report'
@@ -158,19 +172,20 @@ jobs:
           reporter: jest-junit
           working-directory: ./pr
           badge-title: 'unit-tests'
+          fail-on-error: false
 
-      - name: Run unit tests for main branch # for calculating coverage comparison
+      - name: Run unit tests for target branch # for calculating coverage comparison
         continue-on-error: true
         run: |
-          cd main
+          cd target
           DISPLAY=:10 yarn test
 
-      - name: Build mappings for React Webviews
+      - name: Build mappings for Webviews
         continue-on-error: true
         run: |
           cd ./pr
           yarn build:webviews
-          cd ../main
+          cd ../target
           yarn build:webviews
 
       - name: Setup environment for smoke tests
@@ -198,7 +213,9 @@ jobs:
         working-directory: ./pr
 
       - name: Run smoke tests for PR branch
+        continue-on-error: true
         run: |
+          set +e  # Don't exit on errors
           VS_CODE_VERSION=stable
           SERVER_NAME=localhost
           AUTHENTICATION_TYPE="SQL Login"
@@ -209,26 +226,29 @@ jobs:
           cd pr
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
+          SMOKE_EXIT_CODE=$?
+          echo "smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
-        if: failure()
         with:
           name: smoke-test-failure-screenshots
           path: ./pr/test-results/**/
           retention-days: 7
 
-      - name: Smoke Test Report
-        uses: dorny/test-reporter@v1
+
+      - name: PR Smoke Test Report
+        uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
-            name: 'Smoke Test Report'
-            path: ./test-reports/**/smoke-results.xml
-            reporter: jest-junit
-            badge-title: 'smoke-tests'
-            working-directory: ./pr
+          name: 'Smoke Test Report'
+          path: ./test-reports/**/smoke-results.xml
+          reporter: jest-junit
+          working-directory: ./pr
+          badge-title: 'smoke-tests'
+          fail-on-error: false
 
-      - name: Run smoke tests for main branch # for calculating coverage comparison
+      - name: Run smoke tests for target branch # for calculating coverage comparison
         continue-on-error: true
         run: |
           VS_CODE_VERSION=stable
@@ -238,16 +258,16 @@ jobs:
           PASSWORD=${{ env.PASSWORD }}
           SAVE_PASSWORD=No
           PROFILE_NAME=test-server
-          cd main
+          cd target
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
           DISPLAY=:10 yarn smoketest
 
       - name: Merge Smoke and Unit Test Coverage Reports
         run: |
-          if [ -f main/test/resources/mergeReports.js ]; then
-            node main/test/resources/mergeReports.js main/coverage/coverage-e2e/cobertura-coverage.xml main/coverage/cobertura-coverage.xml
+          if [ -f target/test/resources/mergeReports.js ]; then
+            node target/test/resources/mergeReports.js target/coverage/coverage-e2e/cobertura-coverage.xml target/coverage/cobertura-coverage.xml
           else
-            echo "mergeReports.js not found in ./main, skipping..."
+            echo "mergeReports.js not found in ./target, skipping..."
           fi
 
           if [ -f pr/test/resources/mergeReports.js ]; then
@@ -272,13 +292,13 @@ jobs:
 
       - name: Code coverage
         run: |
-          cd main
-          xml_coverage_main="./coverage/cobertura-coverage.xml"
-          # Pull out the line rate coverage from the main branch's cobertura report
-          line_rate_main=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_main" | sed 's/line-rate="\([0-9.]*\)"/\1/')
-          line_rate_main=$(printf "%.2f" $(echo "$line_rate_main * 100" | bc))
+          cd target
+          xml_coverage_target="./coverage/cobertura-coverage.xml"
+          # Pull out the line rate coverage from the target branch's cobertura report
+          line_rate_target=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_target" | sed 's/line-rate="\([0-9.]*\)"/\1/')
+          line_rate_target=$(printf "%.2f" $(echo "$line_rate_target * 100" | bc))
           # Save formatted line rate in env variable
-          echo "line_rate_main=$line_rate_main" >> $GITHUB_ENV
+          echo "line_rate_target=$line_rate_target" >> $GITHUB_ENV
           cd ../pr
           xml_coverage_pr="./coverage/cobertura-coverage.xml"
           # Pull out the line rate coverage from the pr branch's cobertura report
@@ -287,7 +307,7 @@ jobs:
           # Save formatted line rate in env variable
           echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
           # Calculate difference in line coverage rate
-          echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_main" | bc)" >> $GITHUB_ENV
+          echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_target" | bc)" >> $GITHUB_ENV
           # Save formatted line rate difference in env variable
           line_rate_diff=$(printf "%.2f" $(echo "$line_rate_diff * 100" | bc))
           echo "line_rate_diff=$line_rate_diff" >> $GITHUB_ENV
@@ -302,11 +322,11 @@ jobs:
       - name: Write PR results to markdown
         run: |
           echo "### PR Changes" >> results.md
-          echo "| Category                      | Main Branch        | PR Branch         | Difference           |" >> results.md
+          echo "| Category                      | Target Branch        | PR Branch         | Difference           |" >> results.md
           echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
-          echo "| Code Coverage                | ${{ env.line_rate_main }}% | ${{ env.line_rate_pr }}% | ${{ env.coverage_change_icon }} ${{ env.line_rate_diff }}%  |" >> results.md
-          echo "| VSIX Size                    | ${{ env.main_vsix_size }} KB | ${{ env.pr_vsix_size }} KB | ${{ env.vsix_change_icon }} ${{ env.vsix_size_diff }} KB ( ${{ env.vsix_percentage_change }}% ) |" >> results.md
-          echo "| Webview Bundle Size          | ${{ env.main_webview_bundle_size }} KB | ${{ env.pr_webview_bundle_size }} KB | ${{ env.webview_change_icon }} ${{ env.webview_size_diff }} KB ( ${{ env.webview_bundle_percentage_change }}% ) |" >> results.md
+          echo "| Code Coverage                | ${{ env.line_rate_target }}% | ${{ env.line_rate_pr }}% | ${{ env.coverage_change_icon }} ${{ env.line_rate_diff }}%  |" >> results.md
+          echo "| VSIX Size                    | ${{ env.target_vsix_size }} KB | ${{ env.pr_vsix_size }} KB | ${{ env.vsix_change_icon }} ${{ env.vsix_size_diff }} KB ( ${{ env.vsix_percentage_change }}% ) |" >> results.md
+          echo "| Webview Bundle Size          | ${{ env.target_webview_bundle_size }} KB | ${{ env.pr_webview_bundle_size }} KB | ${{ env.webview_change_icon }} ${{ env.webview_size_diff }} KB ( ${{ env.webview_bundle_percentage_change }}% ) |" >> results.md
 
       - name: Find comment
         uses: peter-evans/find-comment@v3
@@ -327,14 +347,6 @@ jobs:
           body-path: ./results.md
           comment-id: ${{ steps.fc.outputs.comment-id }}
           edit-mode: replace
-
-      - name: Fail if vsix size is increased by 5% or size is above 25mb
-        if: ${{ env.vsix_percentage_change > 5 || env.pr_vsix_size > 25000000 }}
-        run: exit 1
-
-      - name: Fail if bundle size is increased by 5%
-        if: ${{ env.webview_bundle_percentage_change > 5 }}
-        run: exit 1
 
       - name: Generate xliff files in PR branch
         run: |
@@ -380,13 +392,62 @@ jobs:
           edit-mode: replace
 
       - name: Delete comment
-        if: github.event_name == 'pull_request' && ${{ env.loc_update_required == 'false' }} && steps.loc-comment.outputs.comment-id != ''
+        if: ${{ github.event_name == 'pull_request' && env.loc_update_required == 'false' && steps.loc-comment.outputs.comment-id != '' }}
         run: |
           curl -X DELETE \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/${{ github.repository }}/issues/comments/${{ steps.loc-comment.outputs.comment-id }}
 
-      - name: Fail if there are changes required in english xlf files
-        if: ${{ env.loc_update_required == 'true' }}
-        run: exit 1
+      - name: Fail pipeline if any checks failed
+        if: always()
+        run: |
+          # Initialize failure flag
+          PIPELINE_FAILED=false
+
+          echo "Checking pipeline results..."
+
+          # Check unit tests
+          if [ "${{ env.unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.unit_tests_pr_exit_code }}" != "" ]; then
+            echo "  ❌ Unit tests failed with exit code ${{ env.unit_tests_pr_exit_code }}"
+            PIPELINE_FAILED=true
+          fi
+
+          # Check smoke tests
+          if [ "${{ env.smoke_tests_pr_exit_code }}" != "0" ] && [ "${{ env.smoke_tests_pr_exit_code }}" != "" ]; then
+            echo "  ❌ Smoke tests failed with exit code ${{ env.smoke_tests_pr_exit_code }}"
+            PIPELINE_FAILED=true
+          fi
+
+          # Check VSIX percentage change (if variables exist)
+          if [ "${{ env.vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
+            echo "  ❌ VSIX size increased by more than 5% (${{ env.vsix_percentage_change }}%)"
+            PIPELINE_FAILED=true
+          fi
+
+          # Check VSIX absolute size (if variables exist)
+          if [ "${{ env.pr_vsix_size }}" != "" ] && [ "${{ env.pr_vsix_size }}" -gt 25000 ]; then
+            echo "  ❌ VSIX size is above 25MB (${{ env.pr_vsix_size }} KB)"
+            PIPELINE_FAILED=true
+          fi
+
+          # Check webview bundle percentage change (if variables exist)
+          if [ "${{ env.webview_bundle_percentage_change }}" != "" ] && [ $(echo "${{ env.webview_bundle_percentage_change }} > 5" | bc -l) -eq 1 ]; then
+            echo "  ❌ Webview bundle size increased by more than 5% (${{ env.webview_bundle_percentage_change }}%)"
+            PIPELINE_FAILED=true
+          fi
+
+          # Check localization
+          if [ "${{ env.loc_update_required }}" = "true" ]; then
+            echo "  ❌ Updates to localized strings are required"
+            PIPELINE_FAILED=true
+          fi
+
+          # Fail if any issues were found
+          if [ "$PIPELINE_FAILED" = "true" ]; then
+            echo ""
+            echo "Pipeline failed due to the above issues."
+            exit 1
+          else
+            echo "  ✅ All checks passed!"
+          fi

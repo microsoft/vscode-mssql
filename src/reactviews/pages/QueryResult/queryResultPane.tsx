@@ -28,6 +28,7 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
+import { TextView } from "./textView";
 import { locConstants } from "../../common/locConstants";
 import { ACTIONBAR_WIDTH_PX, SCROLLBAR_PX, TABLE_ALIGN_PX } from "./table/table";
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
@@ -63,6 +64,13 @@ const useStyles = makeStyles({
         width: "100%",
         position: "relative",
         display: "flex",
+        fontWeight: "normal",
+    },
+    textViewContainer: {
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
         fontWeight: "normal",
     },
     queryResultPaneOpenButton: {
@@ -238,11 +246,23 @@ export const QueryResultPane = () => {
         }
     };
 
-    //#region Result Grid
+    //#region Result Display (Grid or Text)
     const gridRefs = useRef<ResultGridHandle[]>([]);
-    const renderGrid = (batchId: number, resultId: number, gridCount: number) => {
+
+    const getCurrentViewMode = (): qr.QueryResultViewMode => {
+        return state?.tabStates?.resultViewMode ?? qr.QueryResultViewMode.Grid;
+    };
+
+    const renderResultSet = (
+        batchId: number,
+        resultId: number,
+        gridIndex: number,
+        totalGridCount: number,
+    ) => {
         const divId = `grid-parent-${batchId}-${resultId}`;
         const gridId = `resultGrid-${batchId}-${resultId}`;
+        const viewMode = getCurrentViewMode();
+
         return (
             <div
                 id={divId}
@@ -252,11 +272,11 @@ export const QueryResultPane = () => {
                     height:
                         resultPaneParentRef.current && ribbonRef.current
                             ? `${calculateGridHeight(
+                                  totalGridCount,
                                   getAvailableHeight(
                                       resultPaneParentRef.current!,
                                       ribbonRef.current!,
-                                  ) - TABLE_ALIGN_PX,
-                                  gridCount,
+                                  ),
                               )}px`
                             : "",
                     fontFamily: state.fontSettings.fontFamily
@@ -264,80 +284,97 @@ export const QueryResultPane = () => {
                         : "var(--vscode-editor-font-family)",
                     fontSize: `${state.fontSettings.fontSize ?? 12}px`,
                 }}>
-                <ResultGrid
-                    loadFunc={async (offset: number, count: number): Promise<any[]> => {
-                        console.debug("getRows rpc call", {
-                            uri: state?.uri,
-                            batchId: batchId,
-                            resultId: resultId,
-                            rowStart: offset,
-                            numberOfRows: count,
-                        });
-                        const response = await webViewState.extensionRpc.sendRequest(
-                            qr.GetRowsRequest.type,
-                            {
+                {/* Render Grid View */}
+                {viewMode === qr.QueryResultViewMode.Grid && (
+                    <ResultGrid
+                        loadFunc={async (offset: number, count: number): Promise<any[]> => {
+                            console.debug("getRows rpc call", {
                                 uri: state?.uri,
                                 batchId: batchId,
                                 resultId: resultId,
                                 rowStart: offset,
                                 numberOfRows: count,
-                            },
-                        );
+                            });
+                            const response = await webViewState.extensionRpc.sendRequest(
+                                qr.GetRowsRequest.type,
+                                {
+                                    uri: state?.uri,
+                                    batchId: batchId,
+                                    resultId: resultId,
+                                    rowStart: offset,
+                                    numberOfRows: count,
+                                },
+                            );
 
-                        if (!response) {
-                            return [];
-                        }
-                        let r = response as qr.ResultSetSubset;
-                        var columnLength =
-                            state?.resultSetSummaries[batchId][resultId]?.columnInfo?.length;
-                        return r.rows.map((r) => {
-                            let dataWithSchema: {
-                                [key: string]: any;
-                            } = {};
-                            // skip the first column since its a number column
-                            for (let i = 1; columnLength && i < columnLength + 1; i++) {
-                                const displayValue = r[i - 1].displayValue ?? "";
-                                const ariaLabel = displayValue;
-                                dataWithSchema[(i - 1).toString()] = {
-                                    displayValue: displayValue,
-                                    ariaLabel: ariaLabel,
-                                    isNull: r[i - 1].isNull,
-                                    invariantCultureDisplayValue: displayValue,
-                                };
+                            if (!response) {
+                                return [];
                             }
-                            return dataWithSchema;
-                        });
-                    }}
-                    ref={(gridRef) => (gridRefs.current[gridCount] = gridRef!)}
-                    resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
-                    gridParentRef={gridParentRef}
-                    uri={state?.uri}
-                    webViewState={webViewState}
-                    linkHandler={linkHandler}
-                    gridId={gridId}
-                />
-                <CommandBar
-                    uri={state?.uri}
-                    resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
-                    maximizeResults={() => {
-                        maximizeResults(gridRefs.current[gridCount]);
-                        hideOtherGrids(gridRefs, gridCount);
-                    }}
-                    restoreResults={() => {
-                        showOtherGrids(gridRefs, gridCount);
-                        restoreResults(gridRefs.current);
-                    }}
-                />
+                            let r = response as qr.ResultSetSubset;
+                            var columnLength =
+                                state?.resultSetSummaries[batchId][resultId]?.columnInfo?.length;
+                            return r.rows.map((r) => {
+                                let dataWithSchema: {
+                                    [key: string]: any;
+                                } = {};
+                                // skip the first column since its a number column
+                                for (let i = 1; columnLength && i < columnLength + 1; i++) {
+                                    const displayValue = r[i - 1].displayValue ?? "";
+                                    const ariaLabel = displayValue;
+                                    dataWithSchema[(i - 1).toString()] = {
+                                        displayValue: displayValue,
+                                        ariaLabel: ariaLabel,
+                                        isNull: r[i - 1].isNull,
+                                        invariantCultureDisplayValue: displayValue,
+                                    };
+                                }
+                                return dataWithSchema;
+                            });
+                        }}
+                        ref={(gridRef) => (gridRefs.current[gridIndex] = gridRef!)}
+                        resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
+                        gridParentRef={gridParentRef}
+                        uri={state?.uri}
+                        webViewState={webViewState}
+                        linkHandler={linkHandler}
+                        gridId={gridId}
+                    />
+                )}
+
+                {viewMode === qr.QueryResultViewMode.Grid && (
+                    <CommandBar
+                        uri={state?.uri}
+                        resultSetSummary={state?.resultSetSummaries[batchId][resultId]}
+                        viewMode={viewMode}
+                        maximizeResults={() => {
+                            if (
+                                viewMode === qr.QueryResultViewMode.Grid &&
+                                gridRefs.current[gridIndex]
+                            ) {
+                                maximizeResults(gridRefs.current[gridIndex]);
+                                hideOtherGrids(gridRefs, gridIndex);
+                            }
+                        }}
+                        restoreResults={() => {
+                            if (
+                                viewMode === qr.QueryResultViewMode.Grid &&
+                                gridRefs.current.length > 0
+                            ) {
+                                showOtherGrids(gridRefs, gridIndex);
+                                restoreResults(gridRefs.current, gridIndex);
+                            }
+                        }}
+                    />
+                )}
             </div>
         );
     };
 
     const hideOtherGrids = (
         gridRefs: React.MutableRefObject<ResultGridHandle[]>,
-        gridCount: number,
+        gridIndexToKeep: number,
     ) => {
-        gridRefs.current.forEach((grid) => {
-            if (grid !== gridRefs.current[gridCount]) {
+        gridRefs.current.forEach((grid, index) => {
+            if (grid && index !== gridIndexToKeep) {
                 grid.hideGrid();
             }
         });
@@ -345,10 +382,10 @@ export const QueryResultPane = () => {
 
     const showOtherGrids = (
         gridRefs: React.MutableRefObject<ResultGridHandle[]>,
-        gridCount: number,
+        gridIndexToKeep: number,
     ) => {
-        gridRefs.current.forEach((grid) => {
-            if (grid !== gridRefs.current[gridCount]) {
+        gridRefs.current.forEach((grid, index) => {
+            if (grid && index !== gridIndexToKeep) {
                 grid.showGrid();
             }
         });
@@ -361,7 +398,7 @@ export const QueryResultPane = () => {
         gridRef.resizeGrid(width, height);
     };
 
-    const restoreResults = (gridRefs: ResultGridHandle[]) => {
+    const restoreResults = (gridRefs: ResultGridHandle[], scrollToGridIndex?: number) => {
         gridRefs.forEach((gridRef) => {
             const height = calculateGridHeight(
                 gridRefs.length,
@@ -370,24 +407,75 @@ export const QueryResultPane = () => {
             const width = resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
             gridRef.resizeGrid(width, height);
         });
+
+        // Scroll to the specified grid after restoration
+        if (scrollToGridIndex !== undefined && state?.resultSetSummaries) {
+            setTimeout(() => {
+                let currentIndex = 0;
+                for (const batchIdStr in state.resultSetSummaries) {
+                    const batchId = parseInt(batchIdStr);
+                    for (const resultIdStr in state.resultSetSummaries[batchId]) {
+                        const resultId = parseInt(resultIdStr);
+                        if (currentIndex === scrollToGridIndex) {
+                            const gridElement = document.getElementById(
+                                `grid-parent-${batchId}-${resultId}`,
+                            );
+                            if (gridElement) {
+                                gridElement.scrollIntoView({
+                                    behavior: "instant",
+                                    block: "start",
+                                });
+                            }
+                            return;
+                        }
+                        currentIndex++;
+                    }
+                }
+            }, 100); // Small delay to ensure grids are restored first
+        }
     };
 
-    const renderGridPanel = () => {
-        const grids = [];
+    const renderResultPanel = () => {
+        const viewMode = getCurrentViewMode();
+
+        // For text view, render a single TextView with all result sets and one CommandBar
+        if (viewMode === qr.QueryResultViewMode.Text) {
+            return (
+                <div className={classes.textViewContainer}>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "row" }}>
+                        <TextView
+                            uri={state?.uri}
+                            resultSetSummaries={state?.resultSetSummaries}
+                            fontSettings={state?.fontSettings}
+                        />
+                        <CommandBar uri={state?.uri} viewMode={viewMode} />
+                    </div>
+                </div>
+            );
+        }
+
+        // Calculate total grid count
+        let totalGridCount = 0;
+        for (const batchIdStr in state?.resultSetSummaries ?? {}) {
+            const batchId = parseInt(batchIdStr);
+            totalGridCount += Object.keys(state?.resultSetSummaries[batchId] ?? {}).length;
+        }
+
+        const results = [];
         let count = 0;
         for (const batchIdStr in state?.resultSetSummaries ?? {}) {
             const batchId = parseInt(batchIdStr);
             for (const resultIdStr in state?.resultSetSummaries[batchId] ?? {}) {
                 const resultId = parseInt(resultIdStr);
-                grids.push(
-                    <React.Fragment key={`grid-${batchId}-${resultId}`}>
-                        {renderGrid(batchId, resultId, count)}
+                results.push(
+                    <React.Fragment key={`result-${batchId}-${resultId}`}>
+                        {renderResultSet(batchId, resultId, count, totalGridCount)}
                     </React.Fragment>,
                 );
                 count++;
             }
         }
-        return grids;
+        return results;
     };
     //#endregion
 
@@ -411,7 +499,7 @@ export const QueryResultPane = () => {
                 if (item.link?.text && item.selection) {
                     return (
                         <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
-                            <div style={{ whiteSpace: "nowrap" }}>
+                            <div style={{ whiteSpace: "pre" }}>
                                 {item.message}{" "}
                                 <Link
                                     className={classes.messagesLink}
@@ -435,7 +523,7 @@ export const QueryResultPane = () => {
                         <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
                             <div
                                 style={{
-                                    whiteSpace: "nowrap",
+                                    whiteSpace: "pre",
                                     color: item.isError
                                         ? "var(--vscode-errorForeground)"
                                         : undefined,
@@ -637,7 +725,7 @@ export const QueryResultPane = () => {
                 }}>
                 {state.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
                     Object.keys(state.resultSetSummaries).length > 0 &&
-                    renderGridPanel()}
+                    renderResultPanel()}
                 {state.tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Messages && (
                     <div
                         className={classes.messagesContainer}

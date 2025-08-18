@@ -198,6 +198,38 @@ export function registerCommonRequestHandlers(
             );
     });
 
+    webviewController.onRequest(qr.CopyAsCsvRequest.type, async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            correlationId: correlationId,
+            format: "csv",
+        });
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .copyAsCsvRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+                message.includeHeaders,
+            );
+    });
+
+    webviewController.onRequest(qr.CopyAsJsonRequest.type, async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            correlationId: correlationId,
+            format: "json",
+        });
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .copyAsJsonRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+                message.includeHeaders,
+            );
+    });
+
     // Register request handlers for query result filters
     webviewController.onRequest(qr.GetFiltersRequest.type, async (message) => {
         return store.get(message.uri, SubKeys.Filter);
@@ -283,6 +315,17 @@ export function registerCommonRequestHandlers(
 
     webviewController.registerReducer("setResultTab", async (state, payload) => {
         state.tabStates.resultPaneTab = payload.tabId;
+        return state;
+    });
+    webviewController.registerReducer("setResultViewMode", async (state, payload) => {
+        if (!state.tabStates) {
+            state.tabStates = {
+                resultPaneTab: qr.QueryResultPaneTabs.Results,
+                resultViewMode: payload.viewMode,
+            };
+        } else {
+            state.tabStates.resultViewMode = payload.viewMode;
+        }
         return state;
     });
     webviewController.registerReducer("getExecutionPlan", async (state, payload) => {

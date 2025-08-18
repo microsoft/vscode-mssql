@@ -166,7 +166,7 @@ export default class ConnectionManager {
         }
 
         if (!this._accountStore) {
-            this._accountStore = new AccountStore(context, this._logger);
+            this._accountStore = new AccountStore(context, this.vscodeWrapper);
         }
 
         if (!this._connectionUI) {
@@ -612,6 +612,11 @@ export default class ConnectionManager {
                     mruConnection.database = result.connectionSummary.databaseName;
                 }
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
+
+                await this.handlePasswordStorageOnConnect(
+                    connection.credentials as IConnectionProfile,
+                );
+
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
                     promise.resolve(true);
@@ -1338,7 +1343,7 @@ export default class ConnectionManager {
         let profile: ConnectionProfile;
 
         if (connectionInfo.accountId) {
-            account = this.accountStore.getAccount(connectionInfo.accountId);
+            account = await this.accountStore.getAccount(connectionInfo.accountId);
             profile = new ConnectionProfile(connectionInfo);
         } else {
             throw new Error(LocalizedConstants.cannotConnect);
@@ -1396,10 +1401,7 @@ export default class ConnectionManager {
             // show password prompt if SQL Login and password isn't saved
             let password = connectionCreds.password;
             if (Utils.isEmpty(password)) {
-                if ((connectionCreds as IConnectionProfile).savePassword) {
-                    password = await this.connectionStore.lookupPassword(connectionCreds);
-                }
-
+                password = await this.connectionStore.lookupPassword(connectionCreds);
                 if (!password) {
                     password = await this.connectionUI.promptForPassword();
                     if (!password) {
@@ -1414,6 +1416,15 @@ export default class ConnectionManager {
             }
         }
         return true;
+    }
+
+    /**
+     * Saves password for the connection profile on successful connection.
+     * NOTE: To be only called when the connection is successful.
+     * @param profile Profile to save password for
+     */
+    public async handlePasswordStorageOnConnect(profile: IConnectionProfile): Promise<void> {
+        await this.connectionStore.saveProfilePasswordIfNeeded(profile);
     }
 
     /**
@@ -1763,7 +1774,7 @@ export default class ConnectionManager {
     public async removeAccount(prompter: IPrompter): Promise<void> {
         // list options for accounts to remove
         let questions: IQuestion[] = [];
-        let azureAccountChoices = ConnectionProfile.getAccountChoices(this._accountStore);
+        let azureAccountChoices = await ConnectionProfile.getAccountChoices(this._accountStore);
 
         if (azureAccountChoices.length > 0) {
             questions.push({
@@ -1777,9 +1788,9 @@ export default class ConnectionManager {
                 if (answers?.account) {
                     try {
                         if (answers.account.key) {
-                            this._accountStore.removeAccount(answers.account.key.id);
+                            await this._accountStore.removeAccount(answers.account.key.id);
                         } else {
-                            await this._accountStore.pruneAccounts();
+                            await this._accountStore.pruneInvalidAccounts();
                         }
                         void this.azureController.removeAccount(answers.account);
                         this.vscodeWrapper.showInformationMessage(
@@ -1957,7 +1968,7 @@ export default class ConnectionManager {
         const activeEditorConnection =
             this._connections[this._vscodeWrapper.activeTextEditorUri]?.credentials;
         const currentAccountId = activeEditorConnection?.accountId;
-        const accounts = this._accountStore.getAccounts();
+        const accounts = await this._accountStore.getAccounts();
 
         const quickPickItems = this.createAccountQuickPickItems(accounts, currentAccountId);
         const selectedAccount = await this.showAccountQuickPick(quickPickItems);

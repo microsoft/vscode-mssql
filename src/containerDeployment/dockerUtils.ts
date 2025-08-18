@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
 import { arch, platform } from "os";
-import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeploymentInterfaces";
+import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeployment";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import {
     defaultContainerName,
@@ -59,8 +59,11 @@ export const dockerLogger = Logger.create(
 );
 
 const dockerInstallErrorLink = "https://docs.docker.com/engine/install/";
-const windowsContainersErrorLink =
+// Exported for testing purposes
+export const windowsContainersErrorLink =
     "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
+export const rosettaErrorLink =
+    "https://docs.docker.com/desktop/settings-and-maintenance/settings/#general";
 
 /**
  * Commands used to interact with Docker.
@@ -83,25 +86,25 @@ export const COMMANDS = {
     GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
     GET_CONTAINERS_BY_NAME: `docker ps -a --format "{{.Names}}"`,
     INSPECT: (id: string) => `docker inspect ${id}`,
-    PULL_IMAGE: (version: string) => `docker pull mcr.microsoft.com/mssql/server:${version}-latest`,
+    PULL_IMAGE: (versionTag: string) => `docker pull mcr.microsoft.com/mssql/server:${versionTag}`,
     START_SQL_SERVER: (
         name: string,
         password: string,
         port: number,
-        version: string,
+        versionTag: string,
         hostname: string,
     ) =>
-        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${hostname}` : ""} -d mcr.microsoft.com/mssql/server:${version}-latest`,
+        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${sanitizeContainerInput(hostname)}` : ""} -d mcr.microsoft.com/mssql/server:${versionTag}`,
     CHECK_CONTAINER_RUNNING: (name: string) =>
-        `docker ps --filter "name=${sanitizeContainerName(name)}" --filter "status=running" --format "{{.Names}}"`,
+        `docker ps --filter "name=${sanitizeContainerInput(name)}" --filter "status=running" --format "{{.Names}}"`,
     VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
-    START_CONTAINER: (name: string) => `docker start "${sanitizeContainerName(name)}"`,
+    START_CONTAINER: (name: string) => `docker start "${sanitizeContainerInput(name)}"`,
     CHECK_LOGS: (name: string, platform: string, timestamp: string) =>
-        `docker logs --since ${timestamp} "${sanitizeContainerName(name)}" | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
+        `docker logs --since ${timestamp} "${sanitizeContainerInput(name)}" | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
     CHECK_CONTAINER_READY: `Recovery is complete`,
-    STOP_CONTAINER: (name: string) => `docker stop "${sanitizeContainerName(name)}"`,
+    STOP_CONTAINER: (name: string) => `docker stop "${sanitizeContainerInput(name)}"`,
     DELETE_CONTAINER: (name: string) => {
-        const safeName = sanitizeContainerName(name);
+        const safeName = sanitizeContainerInput(name);
         return `docker stop "${safeName}" && docker rm "${safeName}"`;
     },
     INSPECT_CONTAINER: (id: string) => `docker inspect ${id}`,
@@ -134,11 +137,8 @@ export function initializeDockerSteps(): DockerStep[] {
             argNames: [],
             headerText: ContainerDeployment.startDockerEngineHeader,
             bodyText: ContainerDeployment.startDockerEngineBody,
-            errorLink:
-                platform() === Platform.Windows && arch() === x64
-                    ? windowsContainersErrorLink
-                    : undefined,
-            errorLinkText: ContainerDeployment.configureLinuxContainers,
+            errorLink: getEngineErrorLink(),
+            errorLinkText: getEngineErrorLinkText(),
             stepAction: checkEngine,
         },
         {
@@ -170,6 +170,32 @@ export function initializeDockerSteps(): DockerStep[] {
             stepAction: undefined,
         },
     ];
+}
+
+/**
+ * Gets the link to the Docker engine error documentation based on the platform and architecture.
+ * @returns The link to the Docker engine error documentation based on the platform and architecture.
+ */
+export function getEngineErrorLink() {
+    if (platform() === Platform.Windows && arch() === x64) {
+        return windowsContainersErrorLink;
+    } else if (platform() === Platform.Mac && arch() !== x64) {
+        return rosettaErrorLink;
+    }
+    return undefined;
+}
+
+/**
+ * Gets the text to the Docker engine error documentation based on the platform and architecture.
+ * @returns The text to the Docker engine error documentation based on the platform and architecture.
+ */
+export function getEngineErrorLinkText() {
+    if (platform() === Platform.Windows && arch() === x64) {
+        return ContainerDeployment.configureLinuxContainers;
+    } else if (platform() === Platform.Mac && arch() !== x64) {
+        return ContainerDeployment.configureRosetta;
+    }
+    return undefined;
 }
 
 /**
@@ -207,9 +233,9 @@ export function validateSqlServerPassword(password: string): string {
 }
 
 /**
- * Sanitizes a container name by removing any characters that aren't alphanumeric, underscore, dot, or hyphen.
+ * Sanitizes container input by removing any characters that aren't alphanumeric, underscore, dot, or hyphen.
  */
-export function sanitizeContainerName(name: string): string {
+export function sanitizeContainerInput(name: string): string {
     return name.replace(/[^a-zA-Z0-9_.-]/g, "");
 }
 
@@ -355,14 +381,24 @@ export async function getDockerPath(executable: string): Promise<string> {
 }
 
 /**
+ * Temp fix for the SQL Server 2025 version issue on Mac.
+ * Returns the last working version of SQL Server 2025 for Mac.
+ */
+export function constructVersionTag(version: string): string {
+    let versionYear = version.substring(0, yearStringLength);
+    // Hard Coded until this issue is fixed for mac: https://github.com/microsoft/mssql-docker/issues/940#issue
+    if (platform() === Platform.Mac && arch() !== x64 && versionYear === "2025") {
+        return "2025-CTP2.0-ubuntu-22.04"; // Last working version of SQL Server 2025 for Mac
+    }
+    return `${versionYear}-latest`;
+}
+
+/**
  * Pulls the SQL Server container image for the specified version.
  */
 export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
     try {
-        await execCommand(COMMANDS.PULL_IMAGE(version.substring(0, yearStringLength)));
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.PullImage, {
-            containerVersion: version,
-        });
+        await execCommand(COMMANDS.PULL_IMAGE(constructVersionTag(version)));
         return { success: true };
     } catch (e) {
         return {
@@ -387,31 +423,17 @@ export async function startSqlServerDockerContainer(
         containerName,
         password,
         port,
-        version.substring(0, yearStringLength),
+        constructVersionTag(version),
         hostname,
     );
     try {
         await execCommand(command);
         dockerLogger.append(`SQL Server container ${containerName} started on port ${port}.`);
-        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.CreateSQLContainer, {
-            containerVersion: version,
-        });
         return {
             success: true,
             port,
         };
     } catch (e) {
-        sendErrorEvent(
-            TelemetryViews.ContainerDeployment,
-            TelemetryActions.CreateSQLContainer,
-            e,
-            false, // includeErrorMessage
-            undefined, // errorCode
-            undefined, // errorType
-            {
-                containerVersion: version,
-            },
-        );
         return {
             success: false,
             error: ContainerDeployment.startSqlServerContainerError,
@@ -444,6 +466,9 @@ export async function startDocker(
 ): Promise<DockerCommandParams> {
     try {
         await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
+        sendActionEvent(TelemetryViews.ContainerDeployment, TelemetryActions.StartDocker, {
+            dockerStartedThroughExtension: "false",
+        });
         return { success: true };
     } catch {} // If this command fails, docker is not running, so we proceed to start it.
     if (node && objectExplorerService) {
@@ -483,6 +508,13 @@ export async function startDocker(
                     await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
                     clearInterval(checkDocker);
                     dockerLogger.appendLine("Docker started successfully.");
+                    sendActionEvent(
+                        TelemetryViews.ContainerDeployment,
+                        TelemetryActions.StartDocker,
+                        {
+                            dockerStartedThroughExtension: "true",
+                        },
+                    );
                     resolve({ success: true });
                 } catch (e) {
                     if (++attempts >= maxAttempts) {
@@ -590,14 +622,6 @@ export async function checkIfContainerIsReadyForConnections(
                 if (readyLine) {
                     clearInterval(interval);
                     dockerLogger.appendLine(`${containerName} is ready for connections!`);
-                    sendActionEvent(
-                        TelemetryViews.ContainerDeployment,
-                        TelemetryActions.StartContainer,
-                        {}, // additional properties
-                        {
-                            timeToStartInMs: Date.now() - start,
-                        }, // additional measures
-                    );
                     return resolve({ success: true });
                 }
             } catch {

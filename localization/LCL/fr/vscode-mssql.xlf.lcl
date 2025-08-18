@@ -100,6 +100,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop > Settings > General.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rosetta est nécessaire pour exécuter des images de conteneur SQL Server sur Apple Silicon. Activez « Utiliser Rosetta pour l’émulation x86_64/amd64 sur Apple Silicon » dans Docker Desktop > Paramètres > Général.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed]]></Val>
@@ -658,6 +667,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading text view...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Chargement de l’affichage du texte...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++13bab964ffdfa4aca05306fd4c1f3e7aed36fb36a62c85dc6ef588e841299878" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authentication failed due to a state mismatch, please close ADS and try again.]]></Val>
@@ -735,6 +753,15 @@
           <Val><![CDATA[View More]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Afficher plus]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Schema Compare]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Comparer les schémas]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1054,15 +1081,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++2048d236cea5afafe8b7e125d9b86eb44250c4ac6f382bc412dca8e4188292fa" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Veuillez vérifier que la virtualisation Rosetta est activée. Vous pouvez effectuer cette opération dans vos paramètres Docker Desktop.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cost]]></Val>
@@ -1212,6 +1230,15 @@
           <Val><![CDATA[Instant Container Setup]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Configuration instantanée du conteneur]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2332577de7a1ae1c1fdad89cd3a54570fcafcfcf1e149fda9dc0c42d4f88fbdb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed disposing query: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Échec de la suppression de la requête : {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1792,6 +1819,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Grid View]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Affichage en mode grille]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Filter Azure subscriptions]]></Val>
@@ -2121,6 +2157,15 @@
           <Val><![CDATA[Invalid IP Address]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Adresse IP non valide]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[(0 rows affected)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[(0 ligne affectée)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2809,15 +2854,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[{0} (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} (Préversion)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collapse All]]></Val>
@@ -2868,6 +2904,15 @@
           <Val><![CDATA[Schema Compare Options]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Options Comparer les schémas]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5807729000cb38665e918bf3d7ac25f319624d3024eb2760aba5f15f7eb53559" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select Source Schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionner schéma source]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3061,6 +3106,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Result Set {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Jeu de résultats {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5dc504d43e14657bd7f0298bc51688ba1bb0b809a8060f3b9106ca9411db9cd4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your tenant '{0} ({1})' requires you to re-authenticate again to access {2} resources. Press Open to start the authentication process.]]></Val>
@@ -3142,6 +3196,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++60cc09ec4655851867d21c226d2f49026746cd374b1822a2b46264601219b206" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error generating text view. Please try switching back to grid view.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erreur de génération de la vue de texte. Veuillez essayer de revenir à l’affichage en grille.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Manage Connection Profiles]]></Val>
@@ -3165,6 +3228,15 @@
           <Val><![CDATA[Choose Query History]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Choisir l’historique des requêtes]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Text View]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Affichage du texte]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3327,6 +3399,15 @@
           <Val><![CDATA[Find Next]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Rechercher suivant]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[(1 row affected)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[(1 ligne affectée)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3709,6 +3790,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Configure Rosetta in Docker Desktop]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Configurer Rosetta dans Docker Desktop]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++73c5b19bd87f6238ea91f7a12afda7927ec9708f0d2a5ca86154b2e0bbe06109" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra Account]]></Val>
@@ -4074,6 +4164,15 @@
           <Val><![CDATA[Microsoft Corp]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Microsoft Corp]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select all options]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Options « Sélectionner tout »]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4654,6 +4753,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add Server Connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ajouter une Connexion au serveur]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Retry]]></Val>
@@ -5176,6 +5284,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cancel failed: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Échec de l’annulation : {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a76057f27f2880792cf681fd60ca7b9043463252597c22b60eb5beca29292017" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Filter ({0})]]></Val>
@@ -5226,6 +5343,15 @@
           <Val><![CDATA[Show Filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Afficher le filtre]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a8e5ca29d45327e2790dbaef626ac6f467741af4efddd4d0aede688f4612677e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Switch to Grid View]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Passer au mode Grille]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5347,11 +5473,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No results to display]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aucun résultat à afficher]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose color]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Choisissez une couleur]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Include all object types]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inclure tous les types d’objets]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5653,6 +5797,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select Target Schema]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sélectionner schéma cible]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b71586503f1694b5328fa16ed600eb0d20d4d9608dfb54f44ae97fe4ac43f0bf" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Foreign Key]]></Val>
@@ -5883,15 +6036,6 @@
           <Val><![CDATA[Circular reference detected: '{0}' → '{1}' creates a cycle]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Référence circulaire détectée : « {0} » → « {1} » crée un cycle]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++becc525b09db5d2c09fe7aa2203290938cd5cb1438f065f216e73957338265e2" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Schema Compare (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Comparaison de schémas (aperçu)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6868,6 +7012,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++dde734013704b68f0d2d57a1385773d7e4bfbae374a67c150f3f06d8abb95f9d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} comptes Entra invalides ont été supprimés; vous devrez peut-être exécuter « MS SQL : Effacer le cache de jetons de compte Microsoft Entra » et vous reconnecter.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++de0b1da84a5d216abd9f65d2a4f32a258f97126fc0bb19e0fb9fecd1e89ea514" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to stop {0}.]]></Val>
@@ -7161,6 +7314,15 @@
           <Val><![CDATA[General Options]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Options générales]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[({0} rows affected)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[({0} lignes affectées)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7867,6 +8029,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fe49fbfd86c4792c2bd6cf8b59085cc2d787fa377a2af3ebdcbd88104e556d8c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Switch to Text View]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Basculer vers la vue Texte]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[There was an error updating the project]]></Val>
@@ -7983,15 +8154,6 @@
           <Val><![CDATA[Add Connection (Legacy)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ajouter une connexion (Héritée)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.applyLocalization" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Facultatif]5D; Options de configuration pour effectuer la localisation dans les paramètres régionaux configurés dans VSCode (vous devez redémarrer VSCode pour appliquer les paramètres)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8524,6 +8686,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.connectionManagement.rememberPasswordsUntilRestart" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Stockez temporairement les mots de passe pour les connexions avec « Mots de passe enregistrés » désactivés, jusqu’au redémarrage de l’extension. Cela évite les invites de mot de passe répétées lors de la réutilisation des connexions au sein de la même session.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.connectionSharing.clearAllConnectionSharingPermissions" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear All Connection Sharing Permissions]]></Val>
@@ -8628,6 +8799,33 @@
           <Val><![CDATA[Create Azure Function with SQL binding]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Créer une fonction Azure avec une liaison SQL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.defaultQueryResultsViewMode.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Default view mode for query results display.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mode d’affichage par défaut pour l’affichage des résultats de la requête.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.defaultQueryResultsViewMode.grid.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Display results in a tabular grid format (default)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Afficher les résultats dans un format de grille tabulaire (par défaut)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.defaultQueryResultsViewMode.text.description" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Display results in a formatted text format.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Afficher les résultats dans un format de texte formaté.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9522,18 +9720,33 @@
       </Item>
       <Item ItemId=";package.mssql.schemaCompare" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Schema Compare (Preview)]]></Val>
+          <Val><![CDATA[Schema Compare]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Comparer les schémas (préversion)]]></Val>
+            <Val><![CDATA[Comparer les schémas]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Schema Compare (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.schemaDesigner" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Schema Designer (Preview)]]></Val>
+          <Val><![CDATA[Schema Designer]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Concepteur de schéma (version préliminaire)]]></Val>
+            <Val><![CDATA[Concepteur de schémas]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Schema Designer (Preview)]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.schemaDesigner.enableExpandCollapseButtons" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activez les boutons d'expansion/réduction dans les nœuds de table du Schéma Designer lorsque les tables comportent plus de 10 colonnes]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

@@ -5,7 +5,7 @@
 
 import { useContext, useEffect, useState } from "react";
 import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
-import { Button, makeStyles, tokens } from "@fluentui/react-components";
+import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
 import { ContainerSetupStepsPage } from "./containerSetupStepsPage";
 import {
@@ -13,7 +13,7 @@ import {
     ContainerDeploymentFormItemSpec,
     ContainerDeploymentWebviewState,
     DockerConnectionProfile,
-} from "../../../sharedInterfaces/containerDeploymentInterfaces";
+} from "../../../sharedInterfaces/containerDeployment";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 import { locConstants } from "../../common/locConstants";
@@ -23,6 +23,7 @@ import {
     CreateConnectionGroupDialogProps,
 } from "../../../sharedInterfaces/connectionGroup";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -38,8 +39,8 @@ const useStyles = makeStyles({
         height: "80vh",
     },
     button: {
-        height: "28px",
-        width: "130px",
+        height: "32px",
+        width: "160px",
     },
     advancedOptionsDiv: {
         marginLeft: "24px",
@@ -50,6 +51,11 @@ const useStyles = makeStyles({
     },
     formDiv: {
         flexGrow: 1,
+    },
+    buttonContent: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "0.5rem",
     },
 });
 
@@ -192,13 +198,26 @@ export const ContainerInputForm: React.FC = () => {
                             idx={0}
                         />
                     </div>
-                    <Button
-                        className={classes.button}
-                        type="submit"
-                        onClick={() => handleSubmit()}
-                        appearance={"primary"}>
-                        {locConstants.containerDeployment.createContainer}
-                    </Button>
+                    {state.state?.formValidationLoadState === ApiStatus.Loading ? (
+                        <Button
+                            className={classes.button}
+                            type="submit"
+                            appearance="secondary"
+                            disabled>
+                            <div className={classes.buttonContent}>
+                                <Spinner size="extra-tiny" />
+                                {locConstants.containerDeployment.createContainer}
+                            </div>
+                        </Button>
+                    ) : (
+                        <Button
+                            className={classes.button}
+                            type="submit"
+                            onClick={() => handleSubmit()}
+                            appearance="primary">
+                            {locConstants.containerDeployment.createContainer}
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>

@@ -18,6 +18,19 @@
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="translated">&lt;default&gt;</target>
       </trans-unit>
+      <trans-unit id="++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6">
+        <source xml:lang="en">(0 rows affected)</source>
+        <target state="new">(0 rows affected)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
+        <source xml:lang="en">(1 row affected)</source>
+        <target state="new">(1 row affected)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
+        <source xml:lang="en">({0} rows affected)</source>
+        <note>{0} is the number of rows affected</note>
+        <target state="new">({0} rows affected)</target>
+      </trans-unit>
       <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
         <source xml:lang="en">+ Add Azure Account</source>
         <target state="translated">+ Agregar cuenta de Azure</target>
@@ -107,7 +120,7 @@
       </trans-unit>
       <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
         <source xml:lang="en">Add Server Connection</source>
-        <target state="new">Add Server Connection</target>
+        <target state="translated">Agregar conexión de servidor</target>
       </trans-unit>
       <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
         <source xml:lang="en">Add Table</source>
@@ -383,6 +396,11 @@
       <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
         <source xml:lang="en">Cancel</source>
         <target state="translated">Cancelar</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
+        <source xml:lang="en">Cancel failed: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">No se pudo cancelar: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
         <source xml:lang="en">Cancel schema compare failed: '{0}'</source>
@@ -715,6 +733,10 @@
       <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
         <source xml:lang="en">Configure Linux containers</source>
         <target state="translated">Configuración de contenedores de Linux</target>
+      </trans-unit>
+      <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
+        <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
+        <target state="translated">Configurar Rosetta en Docker Desktop</target>
       </trans-unit>
       <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
         <source xml:lang="en">Configure and customize SQL Server containers</source>
@@ -1264,6 +1286,10 @@
 {1} is the error message</note>
         <target state="translated">Error al crear la regla de firewall {0}.  Compruebe la configuración de la cuenta de Azure y vuelva a intentarlo.  Error: {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++60cc09ec4655851867d21c226d2f49026746cd374b1822a2b46264601219b206">
+        <source xml:lang="en">Error generating text view. Please try switching back to grid view.</source>
+        <target state="new">Error generating text view. Please try switching back to grid view.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8f53a6df59ae589cf0996134e10ad383f8914500648095194f2d16cc2427954b">
         <source xml:lang="en">Error loading Azure account information for tenant ID '{0}'</source>
         <note>{0} is the tenant ID</note>
@@ -1385,6 +1411,11 @@ Error:
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
         <target state="translated">Erróneo</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2332577de7a1ae1c1fdad89cd3a54570fcafcfcf1e149fda9dc0c42d4f88fbdb">
+        <source xml:lang="en">Failed disposing query: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">Error al eliminar la consulta: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
@@ -1667,6 +1698,10 @@ Error:
         <source xml:lang="en">Greater Than or Equals</source>
         <target state="translated">Mayor o igual que</target>
       </trans-unit>
+      <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
+        <source xml:lang="en">Grid View</source>
+        <target state="new">Grid View</target>
+      </trans-unit>
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
         <target state="translated">Ayuda</target>
@@ -1734,7 +1769,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
         <source xml:lang="en">Include all object types</source>
-        <target state="new">Include all object types</target>
+        <target state="translated">Incluir todos los tipos de objeto</target>
       </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
@@ -1973,6 +2008,10 @@ Error:
         <source xml:lang="en">Loading execution plan...</source>
         <target state="translated">Cargando plan de ejecución...</target>
       </trans-unit>
+      <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
+        <source xml:lang="en">Loading text view...</source>
+        <target state="new">Loading text view...</target>
+      </trans-unit>
       <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
         <source xml:lang="en">Loading...</source>
         <target state="translated">Cargando...</target>
@@ -2193,6 +2232,10 @@ Error:
         <source xml:lang="en">No results</source>
         <target state="translated">No hay resultados</target>
       </trans-unit>
+      <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
+        <source xml:lang="en">No results to display</source>
+        <target state="new">No results to display</target>
+      </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
         <target state="translated">No se encontraron diferencias de esquema.</target>
@@ -2411,10 +2454,6 @@ Error:
         <source xml:lang="en">Please choose a unique name for the profile</source>
         <target state="translated">Elija un nombre único para el perfil</target>
       </trans-unit>
-      <trans-unit id="++CODE++2048d236cea5afafe8b7e125d9b86eb44250c4ac6f382bc412dca8e4188292fa">
-        <source xml:lang="en">Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.</source>
-        <target state="translated">Asegúrese de que la virtualización de Rosetta está habilitada. Puede hacerlo en la configuración de Docker Desktop.</target>
-      </trans-unit>
       <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
         <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
         <target state="translated">Asegúrese de que el puerto es un número y elija un puerto que no esté en uso</target>
@@ -2630,6 +2669,11 @@ Error:
         <source xml:lang="en">Restore panel size</source>
         <target state="translated">Restaurar el tamaño del panel</target>
       </trans-unit>
+      <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
+        <source xml:lang="en">Result Set {0}</source>
+        <note>{0} is the index of the result set</note>
+        <target state="new">Result Set {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
         <target state="translated">Resultados</target>
@@ -2641,6 +2685,10 @@ Error:
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
         <target state="translated">Orden alfabético inverso</target>
+      </trans-unit>
+      <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
+        <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
+        <target state="translated">Rosetta es necesaria para ejecutar imágenes de contenedor de SQL Server en Apple Silicon. Habilite "Usar Rosetta para la emulación x86_64/amd64 en Apple Silicon" en Docker Desktop &gt; Configuración &gt; General.</target>
       </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
@@ -2774,7 +2822,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
         <source xml:lang="en">Schema Compare</source>
-        <target state="new">Schema Compare</target>
+        <target state="translated">Comparación de esquemas</target>
       </trans-unit>
       <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
         <source xml:lang="en">Schema Compare Options</source>
@@ -2851,7 +2899,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++5807729000cb38665e918bf3d7ac25f319624d3024eb2760aba5f15f7eb53559">
         <source xml:lang="en">Select Source Schema</source>
-        <target state="new">Select Source Schema</target>
+        <target state="translated">Seleccionar esquema de origen</target>
       </trans-unit>
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
@@ -2859,7 +2907,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
         <source xml:lang="en">Select Target Schema</source>
-        <target state="new">Select Target Schema</target>
+        <target state="translated">Seleccionar esquema de destino</target>
       </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
@@ -2885,7 +2933,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
         <source xml:lang="en">Select all options</source>
-        <target state="new">Select all options</target>
+        <target state="translated">Seleccionar todas las opciones</target>
       </trans-unit>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
@@ -3178,9 +3226,17 @@ Consulta: {1}</target>
         <source xml:lang="en">Switch Source and Target</source>
         <target state="translated">Intercambiar origen y destino</target>
       </trans-unit>
+      <trans-unit id="++CODE++a8e5ca29d45327e2790dbaef626ac6f467741af4efddd4d0aede688f4612677e">
+        <source xml:lang="en">Switch to Grid View</source>
+        <target state="new">Switch to Grid View</target>
+      </trans-unit>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
         <target state="translated">Cambiar a MSAL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe49fbfd86c4792c2bd6cf8b59085cc2d787fa377a2af3ebdcbd88104e556d8c">
+        <source xml:lang="en">Switch to Text View</source>
+        <target state="new">Switch to Text View</target>
       </trans-unit>
       <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
         <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
@@ -3247,6 +3303,10 @@ Consulta: {1}</target>
       <trans-unit id="++CODE++90c8505baad739c0925471e0d594ba9d83f84d3a96dbdfa16a47ae7a3ad95d91">
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">Probar el perfil de conexión...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
+        <source xml:lang="en">Text View</source>
+        <target state="new">Text View</target>
       </trans-unit>
       <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
         <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
@@ -3896,6 +3956,10 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
         <source xml:lang="en">Create local SQL Container</source>
         <target state="translated">Crear contenedor SQL local</target>
       </trans-unit>
+      <trans-unit id="mssql.defaultQueryResultsViewMode.description">
+        <source xml:lang="en">Default view mode for query results display.</source>
+        <target state="new">Default view mode for query results display.</target>
+      </trans-unit>
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
         <target state="translated">Eliminar</target>
@@ -3919,6 +3983,14 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
       <trans-unit id="mssql.disconnect">
         <source xml:lang="en">Disconnect</source>
         <target state="translated">Desconectar</target>
+      </trans-unit>
+      <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
+        <source xml:lang="en">Display results in a formatted text format.</source>
+        <target state="new">Display results in a formatted text format.</target>
+      </trans-unit>
+      <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
+        <source xml:lang="en">Display results in a tabular grid format (default)</source>
+        <target state="new">Display results in a tabular grid format (default)</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -4043,6 +4115,10 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
       <trans-unit id="mssql.query.xactAbortOn">
         <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
         <target state="translated">Habilitar la opción SET XACT_ABORT ON</target>
+      </trans-unit>
+      <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
+        <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
+        <target state="translated">Habilitar botones de expandir o contraer en los nodos de la tabla del Diseñador de esquemas cuando las tablas tengan más de 10 columnas</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
         <source xml:lang="en">Enable modern features in MSSQL</source>
@@ -4262,11 +4338,11 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
-        <target state="new">Schema Compare</target>
+        <target state="translated">Comparación de esquemas</target>
       </trans-unit>
       <trans-unit id="mssql.schemaDesigner">
         <source xml:lang="en">Schema Designer</source>
-        <target state="new">Schema Designer</target>
+        <target state="translated">Diseñador de esquemas</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -4392,6 +4468,10 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <source xml:lang="en">Table Designer</source>
         <target state="translated">Diseñador de tablas</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
+        <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
+        <target state="new">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</target>
+      </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>
         <target state="translated">Color del grupo de conexiones.</target>
@@ -4495,10 +4575,6 @@ También puedes hacer clic en el botón 'Abrir en nueva pestaña' para ver los r
       <trans-unit id="mssql.copyIncludeHeaders">
         <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
         <target state="translated">[Opcional] Opciones de configuración para copiar los resultados de la vista de resultados.</target>
-      </trans-unit>
-      <trans-unit id="mssql.applyLocalization">
-        <source xml:lang="en">[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)</source>
-        <target state="translated">[Opcional] Opciones de configuración para localizar en la configuración regional establecida de VSCode (debe reiniciarse VSCode para que la configuración entre en vigencia).</target>
       </trans-unit>
       <trans-unit id="mssql.splitPaneSelection">
         <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>

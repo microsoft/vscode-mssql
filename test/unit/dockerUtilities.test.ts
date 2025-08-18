@@ -346,7 +346,6 @@ suite("Docker Utilities", () => {
         const port = 1433;
 
         const execStub = sandbox.stub(childProcess, "exec");
-        const { sendActionEvent } = stubTelemetry(sandbox);
 
         // Success case: exec yields (null error, stdout)
         execStub.onCall(0).yields(null, "some output");
@@ -360,7 +359,6 @@ suite("Docker Utilities", () => {
         );
 
         sinon.assert.calledOnce(execStub);
-        sinon.assert.calledOnce(sendActionEvent);
         assert.deepEqual(resultSuccess, {
             success: true,
             port,
@@ -511,19 +509,17 @@ suite("Docker Utilities", () => {
         execStub.onCall(4).yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
         result = await dockerUtils.restartContainer(containerName, node, mockObjectExplorerService);
         assert.ok(result, "Should return success when container is restarted successfully");
-        sinon.assert.calledTwice(sendActionEvent);
+        sinon.assert.calledThrice(sendActionEvent);
         execStub.resetHistory();
     });
 
     test("checkIfContainerIsReadyForConnections: should return true if container is ready, false otherwise", async () => {
         // Stub platform and dependent modules
         const execStub = sandbox.stub(childProcess, "exec");
-        const { sendActionEvent } = stubTelemetry(sandbox);
 
         execStub.onFirstCall().yields(null, dockerUtils.COMMANDS.CHECK_CONTAINER_READY); // START_CONTAINER
         let result = await dockerUtils.checkIfContainerIsReadyForConnections("testContainer");
         assert.ok(result, "Should return success when container is ready for connections");
-        sinon.assert.calledOnce(sendActionEvent);
         execStub.resetHistory();
     });
 
@@ -677,13 +673,13 @@ suite("Docker Utilities", () => {
         execStub.resetBehavior();
     });
 
-    test("sanitizeContainerName: should properly sanitize container names", () => {
+    test("sanitizeContainerInput: should properly sanitize container input", () => {
         // Test with valid input
-        let result = dockerUtils.sanitizeContainerName("valid-container");
+        let result = dockerUtils.sanitizeContainerInput("valid-container");
         assert.strictEqual(result, "valid-container", "Valid name should remain unchanged");
 
         // Test with alphanumeric and allowed special characters
-        result = dockerUtils.sanitizeContainerName("test_container.1-2");
+        result = dockerUtils.sanitizeContainerInput("test_container.1-2");
         assert.strictEqual(
             result,
             "test_container.1-2",
@@ -691,11 +687,11 @@ suite("Docker Utilities", () => {
         );
 
         // Test with disallowed special characters
-        result = dockerUtils.sanitizeContainerName("test@container!");
+        result = dockerUtils.sanitizeContainerInput("test@container!");
         assert.strictEqual(result, "testcontainer", "Disallowed special chars should be removed");
 
         // Test with SQL injection attempt
-        result = dockerUtils.sanitizeContainerName("container';DROP TABLE users;--");
+        result = dockerUtils.sanitizeContainerInput("container';DROP TABLE users;--");
         assert.strictEqual(
             result,
             "containerDROPTABLEusers--",
@@ -703,7 +699,7 @@ suite("Docker Utilities", () => {
         );
 
         // Test with command injection attempt
-        result = dockerUtils.sanitizeContainerName('container" && echo Injected');
+        result = dockerUtils.sanitizeContainerInput('container" && echo Injected');
         assert.strictEqual(
             result,
             "containerechoInjected",
@@ -711,19 +707,19 @@ suite("Docker Utilities", () => {
         );
 
         // Test with command injection attempt
-        result = dockerUtils.sanitizeContainerName('container"; rm -rf /');
+        result = dockerUtils.sanitizeContainerInput('container"; rm -rf /');
         assert.strictEqual(result, "containerrm-rf", "Command injection chars should be removed");
 
         // Test with empty string
-        result = dockerUtils.sanitizeContainerName("");
+        result = dockerUtils.sanitizeContainerInput("");
         assert.strictEqual(result, "", "Empty string should remain empty");
 
         // Test with only disallowed characters
-        result = dockerUtils.sanitizeContainerName("@#$%^&*()");
+        result = dockerUtils.sanitizeContainerInput("@#$%^&*()");
         assert.strictEqual(result, "", "String with only disallowed chars should become empty");
 
         // Test with command injection attempts
-        const sanitizedInjection = dockerUtils.sanitizeContainerName('container"; rm -rf / #');
+        const sanitizedInjection = dockerUtils.sanitizeContainerInput('container"; rm -rf / #');
         assert.strictEqual(
             sanitizedInjection,
             "containerrm-rf",
@@ -731,7 +727,7 @@ suite("Docker Utilities", () => {
         );
 
         // Test with invalid characters (should be removed)
-        const sanitizedInvalid = dockerUtils.sanitizeContainerName(
+        const sanitizedInvalid = dockerUtils.sanitizeContainerInput(
             "my container/with\\invalid:chars",
         );
         assert.strictEqual(
@@ -743,14 +739,57 @@ suite("Docker Utilities", () => {
 
     test("pullSqlServerContainerImage: should pull the container image from the docker registry", async () => {
         const execStub = sandbox.stub(childProcess, "exec").yields(undefined, "Pulled image");
-        const { sendActionEvent } = stubTelemetry(sandbox);
 
         let result = await dockerUtils.pullSqlServerContainerImage("2025");
         sinon.assert.calledOnce(execStub);
-        sinon.assert.calledOnce(sendActionEvent);
 
         assert.ok(result);
 
         execStub.restore();
+    });
+
+    test("getEngineErrorLink and getEngineErrorLinkText: should return correct error link and text", () => {
+        const platformStub = sandbox.stub(os, "platform");
+        const archStub = sandbox.stub(os, "arch");
+
+        // 1. Windows platform, x64 architecture
+        platformStub.returns(Platform.Windows);
+        archStub.returns("x64");
+
+        let errorLink = dockerUtils.getEngineErrorLink();
+        let errorLinkText = dockerUtils.getEngineErrorLinkText();
+        assert.strictEqual(
+            errorLink,
+            dockerUtils.windowsContainersErrorLink,
+            "Error link should match",
+        );
+        assert.strictEqual(
+            errorLinkText,
+            ContainerDeployment.configureLinuxContainers,
+            "Error link text should match",
+        );
+        platformStub.resetBehavior();
+        archStub.resetBehavior();
+
+        // 2. Mac platform, non x64 architecture
+        platformStub.returns(Platform.Mac);
+        archStub.returns("arm64");
+
+        errorLink = dockerUtils.getEngineErrorLink();
+        errorLinkText = dockerUtils.getEngineErrorLinkText();
+        assert.strictEqual(errorLink, dockerUtils.rosettaErrorLink, "Error link should match");
+        assert.strictEqual(
+            errorLinkText,
+            ContainerDeployment.configureRosetta,
+            "Error link text should match",
+        );
+        platformStub.resetBehavior();
+        archStub.resetBehavior();
+
+        // 3. Linux platform
+        platformStub.returns(Platform.Linux);
+        errorLink = dockerUtils.getEngineErrorLink();
+        errorLinkText = dockerUtils.getEngineErrorLinkText();
+        platformStub.resetBehavior();
     });
 });

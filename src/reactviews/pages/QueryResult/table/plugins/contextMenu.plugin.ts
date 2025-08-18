@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    CopyAsCsvRequest,
+    CopyAsJsonRequest,
     CopyHeadersRequest,
     CopySelectionRequest,
     CopyWithHeadersRequest,
@@ -18,7 +20,7 @@ import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { QueryResultContextProps } from "../../queryResultStateProvider";
 import { IDisposableDataProvider } from "../dataProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
-import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
+import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } from "../utils";
 import "./contextMenu.css";
 
 export class ContextMenu<T extends Slick.SlickData> {
@@ -65,6 +67,8 @@ export class ContextMenu<T extends Slick.SlickData> {
                 `<li data-action="copy" class="contextMenu">${locConstants.queryResult.copy}</li>` +
                 `<li data-action="copy-with-headers" class="contextMenu">${locConstants.queryResult.copyWithHeaders}</li>` +
                 `<li data-action="copy-headers" class="contextMenu">${locConstants.queryResult.copyHeaders}</li>` +
+                `<li data-action="copy-as-csv" class="contextMenu">Copy as CSV</li>` +
+                `<li data-action="copy-as-json" class="contextMenu">Copy as JSON</li>` +
                 `</ul>`,
         );
         // Remove any existing context menus to avoid duplication
@@ -97,6 +101,12 @@ export class ContextMenu<T extends Slick.SlickData> {
     private async handleMenuAction(action: string): Promise<void> {
         let selectedRanges = this.grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
+
+        // If no selection exists, create a selection for the entire grid
+        if (!selection || selection.length === 0) {
+            selection = selectEntireGrid(this.grid);
+        }
+
         switch (action) {
             case "select-all":
                 this.queryResultContext.log("Select All action triggered");
@@ -189,6 +199,26 @@ export class ContextMenu<T extends Slick.SlickData> {
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
                     selection: selection,
+                });
+                break;
+            case "copy-as-csv":
+                this.queryResultContext.log("Copy as CSV action triggered");
+                await this.webViewState.extensionRpc.sendRequest(CopyAsCsvRequest.type, {
+                    uri: this.uri,
+                    batchId: this.resultSetSummary.batchId,
+                    resultId: this.resultSetSummary.id,
+                    selection: selection,
+                    includeHeaders: true, // Default to including headers for CSV
+                });
+                break;
+            case "copy-as-json":
+                this.queryResultContext.log("Copy as JSON action triggered");
+                await this.webViewState.extensionRpc.sendRequest(CopyAsJsonRequest.type, {
+                    uri: this.uri,
+                    batchId: this.resultSetSummary.batchId,
+                    resultId: this.resultSetSummary.id,
+                    selection: selection,
+                    includeHeaders: true, // Default to including headers for JSON
                 });
                 break;
             default:

@@ -814,6 +814,17 @@ export class Azure {
     };
 }
 
+export class Accounts {
+    public static invalidEntraAccountsRemoved = (numRemoved: number) => {
+        return l10n.t({
+            message:
+                "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
+            args: [numRemoved],
+            comment: ["{0} is the number of invalid accounts that have been removed"],
+        });
+    };
+}
+
 export class QueryResult {
     public static nonNumericSelectionSummary = (
         count: number,
@@ -974,7 +985,7 @@ export class ContainerDeployment {
             comment: ["{0} is the architecture name of the machine"],
         });
     public static rosettaError = l10n.t(
-        "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
+        'Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop > Settings > General.',
     );
     public static windowsContainersError = l10n.t(
         "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
@@ -1007,6 +1018,7 @@ export class ContainerDeployment {
         });
     };
     public static configureLinuxContainers = l10n.t("Configure Linux containers");
+    public static configureRosetta = l10n.t("Configure Rosetta in Docker Desktop");
     public static switchToLinuxContainersConfirmation = l10n.t(
         "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
     );
@@ -1571,6 +1583,20 @@ export class MssqlChatAgent {
 
 export class QueryEditor {
     public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
+    public static queryCancelFailed(errorMessage: string) {
+        return l10n.t({
+            message: "Cancel failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
+    public static queryDisposeFailed(errorMessage: string) {
+        return l10n.t({
+            message: "Failed disposing query: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
 }
 
 export class ConnectionSharing {

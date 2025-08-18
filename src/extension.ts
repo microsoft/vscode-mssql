@@ -19,6 +19,7 @@ import { createSqlAgentRequestHandler, ISqlChatResult } from "./copilot/chatAgen
 import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
+import { IconUtils } from "./utils/iconUtils";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -28,12 +29,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
 
-    // Checking if localization should be applied
-    //let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-    //let applyLocalization = config[Constants.configApplyLocalization];
-    // if (applyLocalization) {
-    // 	LocalizedConstants.loadLocalizedConstants(vscode.env.language);
-    // }
+    IconUtils.initialize(context.extensionUri);
 
     // Check if GitHub Copilot is installed
     const copilotExtension = vscode.extensions.getExtension("GitHub.copilot");

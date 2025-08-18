@@ -24,6 +24,7 @@ import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGr
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { initializeIconUtils } from "./utils";
 
 suite("Object Explorer Provider Tests", function () {
     let objectExplorerService: TypeMoq.IMock<ObjectExplorerService>;
@@ -36,6 +37,7 @@ suite("Object Explorer Provider Tests", function () {
     let connectionStore: TypeMoq.IMock<ConnectionStore>;
 
     setup(() => {
+        initializeIconUtils();
         let mockContext: TypeMoq.IMock<vscode.ExtensionContext> =
             TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         connectionManager = TypeMoq.Mock.ofType(

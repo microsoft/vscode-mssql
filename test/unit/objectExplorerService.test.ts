@@ -58,6 +58,7 @@ import {
 import { generateUUID } from "../e2e/baseFixtures";
 import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGroupNode";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { initializeIconUtils } from "./utils";
 
 suite("OE Service Tests", () => {
     suite("rootNodeConnections", () => {
@@ -69,6 +70,7 @@ suite("OE Service Tests", () => {
         let sandbox: sinon.SinonSandbox;
 
         setup(() => {
+            initializeIconUtils();
             sandbox = sinon.createSandbox();
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
@@ -768,6 +770,7 @@ suite("OE Service Tests", () => {
             // Setup connection UI to return the mock profile
             mockConnectionUI.createAndSaveProfile.resolves(mockProfile);
             mockConnectionManager.getServerInfo.returns({ serverVersion: "12.0.0" } as IServerInfo);
+            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
 
             // Call the method with undefined connection info
             const result = await (objectExplorerService as any).prepareConnectionProfile(undefined);
@@ -822,6 +825,8 @@ suite("OE Service Tests", () => {
                 password: generateUUID(),
                 savePassword: true,
             } as IConnectionProfile;
+
+            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
 
             // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
@@ -901,53 +906,6 @@ suite("OE Service Tests", () => {
             ).to.be.false;
         });
 
-        test("prepareConnectionProfile should handle SQL Login with saved password", async () => {
-            // Create a mock SQL Login profile with empty password but savePassword=true
-            const mockProfile: IConnectionProfile = {
-                id: "test-id",
-                server: "testServer",
-                database: "testDB",
-                authenticationType: "SqlLogin",
-                user: "testUser",
-                password: "", // Empty password
-                savePassword: true,
-            } as IConnectionProfile;
-
-            // Setup connection store to return a saved password
-            const savedPassword = generateUUID(); //random password
-            mockConnectionStore.lookupPassword.resolves(savedPassword);
-
-            // Call the method with the mock profile
-            const result = await (objectExplorerService as any).prepareConnectionProfile(
-                mockProfile,
-            );
-
-            // Verify the result has the saved password
-            expect(result.password, "Result password should match saved password").to.equal(
-                savedPassword,
-            );
-
-            // Verify connection store was called with correct parameters
-            expect(
-                mockConnectionStore.lookupPassword.calledOnce,
-                "Connection store should be called once",
-            ).to.be.true;
-            expect(
-                mockConnectionStore.lookupPassword.args[0][0],
-                "Connection store should be called with mock profile",
-            ).to.equal(mockProfile);
-            expect(
-                mockConnectionStore.lookupPassword.args[0][1],
-                "Connection store should be called with isConnectionString = true",
-            ).to.be.undefined; // isConnectionString = undefined
-
-            // Verify user was NOT prompted for password
-            expect(
-                mockConnectionUI.promptForPassword.called,
-                "Connection UI should not prompt for password",
-            ).to.be.false;
-        });
-
         test("prepareConnectionProfile should proceed if container connection throws when attempting to check container status", async () => {
             // Create a mock SQL Login profile with empty password but savePassword=true
             const mockProfile: IConnectionProfile = {
@@ -961,71 +919,19 @@ suite("OE Service Tests", () => {
                 containerName: "someContainer",
             } as IConnectionProfile;
 
-            // Setup connection store to return a saved password
-            const savedPassword = generateUUID(); //random password
-            mockConnectionStore.lookupPassword.resolves(savedPassword);
+            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
 
             const containerStub = sandbox
                 .stub(DockerUtils, "restartContainer")
                 .throws(new Error("Failed to restart container"));
 
             // Call the method with the mock profile
-            const result = await (objectExplorerService as any).prepareConnectionProfile(
-                mockProfile,
-            );
+            await (objectExplorerService as any).prepareConnectionProfile(mockProfile);
 
             expect(containerStub.called, "Container restart should be attempted").to.be.true;
-
-            // Verify the result has the saved password
-            expect(result.password, "Result password should match saved password").to.equal(
-                savedPassword,
-            );
         });
 
-        test("prepareConnectionProfile should prompt for password for SQL Login with no saved password", async () => {
-            // Create a mock SQL Login profile with empty password and savePassword=false
-            const mockProfile: IConnectionProfile = {
-                id: "test-id",
-                server: "testServer",
-                database: "testDB",
-                authenticationType: "SqlLogin",
-                user: "testUser",
-                password: "", // Empty password
-                savePassword: false,
-            } as IConnectionProfile;
-
-            // Setup connection store to return undefined (no saved password)
-            mockConnectionStore.lookupPassword.resolves(undefined);
-
-            // Setup connection UI to return a password when prompted
-            const promptedPassword = generateUUID();
-            mockConnectionUI.promptForPassword.resolves(promptedPassword);
-
-            // Call the method with the mock profile
-            const result = await (objectExplorerService as any).prepareConnectionProfile(
-                mockProfile,
-            );
-
-            // Verify the result has the prompted password
-            expect(result.password, "Result password should match prompted password").to.equal(
-                promptedPassword,
-            );
-
-            // Verify connection store was NOT called (since savePassword=false)
-            expect(mockConnectionStore.lookupPassword.called).to.be.false;
-
-            // Verify user was prompted for password
-            expect(
-                mockConnectionUI.promptForPassword.calledOnce,
-                "Connection UI should prompt for password once",
-            ).to.be.true;
-
-            // Verify Azure account token was cleared
-            expect(result.azureAccountToken, "Result Azure account token should be undefined").to.be
-                .undefined;
-        });
-
-        test("prepareConnectionProfile should return undefined if user cancels password prompt", async () => {
+        test("prepareConnectionProfile should return undefined if password not handled properly", async () => {
             // Create a mock SQL Login profile with empty password
             const mockProfile: IConnectionProfile = {
                 id: "test-id",
@@ -1037,8 +943,8 @@ suite("OE Service Tests", () => {
                 savePassword: false,
             } as IConnectionProfile;
 
-            // Setup connection UI to return undefined when prompted (user canceled)
-            mockConnectionUI.promptForPassword.resolves(undefined);
+            // Setup connection manager to return false (user canceled)
+            mockConnectionManager.handlePasswordBasedCredentials.resolves(false);
 
             // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
@@ -1047,12 +953,6 @@ suite("OE Service Tests", () => {
 
             // Verify the result is undefined
             expect(result, "Result should be undefined").to.be.undefined;
-
-            // Verify user was prompted for password
-            expect(
-                mockConnectionUI.promptForPassword.calledOnce,
-                "Connection UI should prompt for password once",
-            ).to.be.true;
         });
 
         test("prepareConnectionProfile should handle Windows Authentication (Integrated)", async () => {
@@ -1066,6 +966,8 @@ suite("OE Service Tests", () => {
                 password: "",
                 azureAccountToken: "some-token", // This should be cleared
             } as IConnectionProfile;
+
+            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
 
             // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
@@ -1114,11 +1016,12 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").returns(mockAccount);
+            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
 
             // Setup Azure controller
             mockAzureController.isSqlAuthProviderEnabled.returns(true);
             mockAzureController.isAccountInCache.withArgs(mockAccount).resolves(true);
+            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
 
             // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
@@ -1189,11 +1092,12 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").returns(mockAccount);
+            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
 
             // Setup Azure controller - account NOT in cache
             mockAzureController.isSqlAuthProviderEnabled.returns(true);
             mockAzureController.isAccountInCache.withArgs(mockAccount).resolves(false);
+            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
 
             // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
@@ -1240,6 +1144,7 @@ suite("OE Service Tests", () => {
 
             // Setup Azure controller
             mockAzureController.isSqlAuthProviderEnabled.returns(true);
+            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
 
             // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
@@ -1289,10 +1194,11 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").returns(mockAccount);
+            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
 
             // Setup Azure controller - SQL auth provider disabled
             mockAzureController.isSqlAuthProviderEnabled.returns(false);
+            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
 
             // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
@@ -1341,11 +1247,12 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").returns(mockAccount);
+            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
 
             // Setup Azure controller - SQL auth provider enabled, account in cache
             mockAzureController.isSqlAuthProviderEnabled.returns(true);
             mockAzureController.isAccountInCache.withArgs(mockAccount).resolves(true);
+            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
 
             // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
@@ -1788,7 +1695,7 @@ suite("OE Service Tests", () => {
             const mockAccount = createMockAccount("azure-account-id");
 
             // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("azure-account-id").returns(mockAccount);
+            mockAccountStore.getAccount.withArgs("azure-account-id").resolves(mockAccount);
 
             // Setup refreshAccount to return success
             sandbox.stub(objectExplorerService as any, "refreshAccount").resolves(true);

@@ -913,7 +913,7 @@ export default class MainController implements vscode.Disposable {
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = this._vscodeWrapper.activeTextEditor;
         if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
-            this.onDidOpenTextDocument(activeTextEditor.document);
+            await this.onDidOpenTextDocument(activeTextEditor.document);
         }
         await this.sanitizeConnectionProfiles();
         await this.loadTokenCache();
@@ -2379,6 +2379,7 @@ export default class MainController implements vscode.Disposable {
             TelemetryActions.NewQuery,
             {
                 nodeType: source,
+                isContainer: connectionCreds?.containerName ? "true" : "false",
             },
             undefined, // additionalMeasurements
             connectionProfile as IConnectionProfile,
@@ -2399,7 +2400,9 @@ export default class MainController implements vscode.Disposable {
         sendActionEvent(
             TelemetryViews.CommandPalette,
             TelemetryActions.NewQuery,
-            undefined,
+            {
+                isContainer: credentials?.containerName ? "true" : "false",
+            },
             undefined,
             credentials as IConnectionProfile,
             this._connectionMgr.getServerInfo(credentials),
@@ -2422,7 +2425,7 @@ export default class MainController implements vscode.Disposable {
         const currentDocUri = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.document.uri.toString(true)
             : undefined;
-        const newEditor = await this._untitledSqlDocumentService.newQuery(content);
+        const newEditor = await this._untitledSqlDocumentService.newQuery(content, true);
         const newDocUri = newEditor.document.uri.toString(true);
 
         // Case 1: User right-clicked on an OE node and selected "New Query"
@@ -2612,14 +2615,23 @@ export default class MainController implements vscode.Disposable {
      * Called by VS Code when a text document is opened. Checks if a SQL file was opened
      * to enable features of our extension for the document.
      */
-    public onDidOpenTextDocument(doc: vscode.TextDocument): void {
+    public async onDidOpenTextDocument(doc: vscode.TextDocument): Promise<void> {
         if (this._connectionMgr === undefined) {
             // Avoid processing events before initialization is complete
             return;
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
-        if (this._previousActiveDocument && doc.languageId === Constants.languageId) {
+        await this.untitledSqlDocumentService.waitForOngoingCreates();
+        const skipCopyConnection = this._untitledSqlDocumentService.shouldSkipCopyConnection(
+            doc.uri.toString(true),
+        );
+
+        if (
+            this._previousActiveDocument &&
+            doc.languageId === Constants.languageId &&
+            !skipCopyConnection
+        ) {
             void this._connectionMgr.copyConnectionToFile(
                 this._previousActiveDocument.uri.toString(true),
                 doc.uri.toString(true),

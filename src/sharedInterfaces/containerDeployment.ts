@@ -33,6 +33,8 @@ export class ContainerDeploymentWebviewState
     isValidPortNumber: boolean = false;
     /** Used to check whether docker container creation can proceed */
     isDockerProfileValid: boolean = false;
+    /** Used to track the form validation state */
+    formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track the current step in the Docker deployment process */
     currentDockerStep: DockerStepOrder = DockerStepOrder.dockerInstallation;
     constructor(params?: Partial<ContainerDeploymentWebviewState>) {
@@ -52,16 +54,6 @@ export interface DockerConnectionProfile extends IConnectionDialogProfile {
     profileName: string;
     savePassword: boolean;
     acceptEula: boolean;
-}
-
-export interface ContainerDeploymentFormItemSpec
-    extends FormItemSpec<
-        DockerConnectionProfile,
-        ContainerDeploymentWebviewState,
-        ContainerDeploymentFormItemSpec
-    > {
-    componentWidth: string;
-    isAdvancedOption: boolean;
 }
 
 export interface ContainerDeploymentFormItemSpec
