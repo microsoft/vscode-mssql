@@ -6,18 +6,15 @@
 import {
     makeStyles,
     shorthands,
-    Table,
-    TableHeader,
-    TableBody,
-    TableRow,
-    TableHeaderCell,
-    TableCell,
+    DataGrid,
+    DataGridHeader,
+    DataGridHeaderCell,
+    DataGridBody,
+    DataGridRow,
+    DataGridCell,
     Button,
-    createTableColumn,
     TableColumnDefinition,
-    useTableFeatures,
-    useTableColumnSizing_unstable,
-    TableColumnSizingOptions,
+    createTableColumn,
     Text,
     List,
     ListItem,
@@ -61,6 +58,7 @@ type WorkspacesListProps = {
 };
 
 type ServerItem = {
+    id: string;
     name: string;
     type: string;
     location: string;
@@ -159,6 +157,7 @@ const useStyles = makeStyles({
         height: "22px",
         minHeight: "22px",
         maxHeight: "22px",
+        cursor: "pointer",
         "&:hover": {
             backgroundColor: "var(--vscode-list-hoverBackground)",
         },
@@ -233,7 +232,6 @@ export const FabricWorkspaceViewer = ({
     const styles = useStyles();
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
-    const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1);
 
     const uniqueWorkspaces = useMemo(() => {
         return Array.from(
@@ -265,8 +263,9 @@ export const FabricWorkspaceViewer = ({
         if (filteredServers && filteredServers.length > 0) {
             filteredServers.forEach((server) => {
                 if (server.databases && server.databases.length > 0) {
-                    server.databases.forEach((db) => {
+                    server.databases.forEach((db, dbIndex) => {
                         result.push({
+                            id: `${server.workspace.name}-db-${dbIndex}-${db}`,
                             name: db,
                             type: `${Loc.connectionDialog.sqlDatabase}`,
                             location: server.workspace.name,
@@ -275,8 +274,9 @@ export const FabricWorkspaceViewer = ({
                 }
 
                 if (server.sqlAnalyticsEndpoints && server.sqlAnalyticsEndpoints.length > 0) {
-                    server.sqlAnalyticsEndpoints.forEach((endpoint) => {
+                    server.sqlAnalyticsEndpoints.forEach((endpoint, endpointIndex) => {
                         result.push({
+                            id: `${server.workspace.name}-endpoint-${endpointIndex}-${endpoint}`,
                             name: endpoint,
                             type: `${Loc.connectionDialog.sqlAnalyticsEndpoint}`,
                             location: server.workspace.name,
@@ -307,105 +307,50 @@ export const FabricWorkspaceViewer = ({
 
     const columns = useMemo(
         (): TableColumnDefinition<ServerItem>[] => [
-            createTableColumn({
+            createTableColumn<ServerItem>({
                 columnId: "name",
                 renderHeaderCell: () => `${Loc.connectionDialog.nameColumnHeader}`,
                 renderCell: (item) => (
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                        <img
-                            src={getItemIcon(item.type)}
-                            alt={item.type}
-                            style={{
-                                width: "20px",
-                                height: "20px",
-                                marginRight: "8px",
-                                flexShrink: 0,
-                            }}
-                        />
-                        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {item.name}
-                        </span>
-                    </div>
+                    <DataGridCell>
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                            <img
+                                src={getItemIcon(item.type)}
+                                alt={item.type}
+                                style={{
+                                    width: "20px",
+                                    height: "20px",
+                                    marginRight: "8px",
+                                    flexShrink: 0,
+                                }}
+                            />
+                            <Text truncate style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {item.name}
+                            </Text>
+                        </div>
+                    </DataGridCell>
                 ),
             }),
-            createTableColumn({
+            createTableColumn<ServerItem>({
                 columnId: "type",
                 renderHeaderCell: () => `${Loc.connectionDialog.typeColumnHeader}`,
-                renderCell: (item) => item.type,
+                renderCell: (item) => (
+                    <DataGridCell>
+                        <Text truncate>{item.type}</Text>
+                    </DataGridCell>
+                ),
             }),
-            createTableColumn({
+            createTableColumn<ServerItem>({
                 columnId: "location",
                 renderHeaderCell: () => `${Loc.connectionDialog.locationColumnHeader}`,
-                renderCell: (item) => item.location,
+                renderCell: (item) => (
+                    <DataGridCell>
+                        <Text truncate>{item.location}</Text>
+                    </DataGridCell>
+                ),
             }),
         ],
         [],
     );
-
-    const columnSizingOptions = useMemo(
-        (): TableColumnSizingOptions => ({
-            name: { idealWidth: 250, minWidth: 150 },
-            type: { idealWidth: 150, minWidth: 100 },
-            location: { idealWidth: 200, minWidth: 150 },
-        }),
-        [],
-    );
-
-    const { getRows, columnSizing_unstable, tableRef } = useTableFeatures(
-        {
-            columns,
-            items,
-        },
-        [
-            useTableColumnSizing_unstable({
-                columnSizingOptions,
-                autoFitColumns: false,
-            }),
-        ],
-    );
-
-    const rows = getRows();
-
-    useEffect(() => {
-        if (rows.length > 0 && focusedRowIndex === -1) {
-            setFocusedRowIndex(0);
-        } else if (rows.length === 0) {
-            setFocusedRowIndex(-1);
-        }
-    }, [rows.length]);
-
-    const handleTableKeyDown = (e: React.KeyboardEvent<HTMLTableElement>) => {
-        if (
-            e.key === "ArrowDown" ||
-            e.key === "ArrowUp" ||
-            e.key === "ArrowLeft" ||
-            e.key === "ArrowRight" ||
-            e.key === "Home" ||
-            e.key === "End" ||
-            e.key === "PageUp" ||
-            e.key === "PageDown"
-        ) {
-            e.preventDefault();
-
-            // Handle row navigation
-            if (e.key === "ArrowDown") {
-                setFocusedRowIndex((prev) => Math.min(prev + 1, rows.length - 1));
-            } else if (e.key === "ArrowUp") {
-                setFocusedRowIndex((prev) => Math.max(prev - 1, 0));
-            } else if (e.key === "Home") {
-                setFocusedRowIndex(0);
-            } else if (e.key === "End") {
-                setFocusedRowIndex(rows.length - 1);
-            } else if (e.key === "PageDown") {
-                setFocusedRowIndex((prev) => Math.min(prev + 10, rows.length - 1));
-            } else if (e.key === "PageUp") {
-                setFocusedRowIndex((prev) => Math.max(prev - 10, 0));
-            }
-
-            // The table will automatically scroll to keep the focused row visible
-            // since we're using standard DOM focus management
-        }
-    };
 
     const handleWorkspaceSelect = (workspace: { name: string; id: string }) => {
         setSelectedWorkspaceId(workspace.id);
@@ -521,82 +466,37 @@ export const FabricWorkspaceViewer = ({
                         {Loc.connectionDialog.noDatabasesFound}
                     </div>
                 ) : (
-                    <Table
-                        {...columnSizing_unstable.getTableProps()}
-                        ref={tableRef}
+                    <DataGrid
+                        items={items}
+                        columns={columns}
+                        getRowId={(item) => item.id}
                         size="small"
-                        aria-label={Loc.connectionDialog.databaseList}
-                        aria-rowcount={rows.length}
-                        tabIndex={0}
-                        role="grid"
-                        onKeyDown={handleTableKeyDown}
+                        focusMode="composite"
                         style={{
                             flexGrow: 0,
                             height: "auto",
-                            borderSpacing: "0",
-                            borderCollapse: "collapse",
-                            tableLayout: "fixed",
                             marginTop: "-8px",
                         }}>
-                        <TableHeader className={styles.headerRow}>
-                            <TableRow role="row">
-                                {columns.map((column) => (
-                                    <TableHeaderCell
-                                        key={column.columnId}
-                                        {...columnSizing_unstable.getTableHeaderCellProps(
-                                            column.columnId,
-                                        )}
-                                        style={{
-                                            height: "22px",
-                                            padding: "0 8px",
-                                            fontSize: "12px",
-                                        }}
-                                        scope="col"
-                                        role="columnheader">
-                                        {column.renderHeaderCell()}
-                                    </TableHeaderCell>
-                                ))}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {rows.map((row, i) => (
-                                <TableRow
-                                    key={i}
-                                    className={styles.tableRow}
-                                    role="row"
-                                    aria-rowindex={i + 1}
-                                    aria-selected={focusedRowIndex === i}
-                                    onClick={() => setFocusedRowIndex(i)}
-                                    style={{
-                                        ...(focusedRowIndex === i && {
-                                            backgroundColor:
-                                                "var(--vscode-list-activeSelectionBackground)",
-                                            color: "var(--vscode-list-activeSelectionForeground)",
-                                        }),
-                                        cursor: "pointer",
+                        <DataGridHeader>
+                            <DataGridRow>
+                                {({ renderHeaderCell }) => (
+                                    <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                                )}
+                            </DataGridRow>
+                        </DataGridHeader>
+                        <DataGridBody<ServerItem>>
+                            {({ item, rowId }) => (
+                                <DataGridRow<ServerItem>
+                                    key={rowId}
+                                    onClick={() => {
+                                        // Handle row selection if needed
+                                        console.log("Selected item:", item);
                                     }}>
-                                    {columns.map((column) => (
-                                        <TableCell
-                                            key={column.columnId}
-                                            {...columnSizing_unstable.getTableCellProps(
-                                                column.columnId,
-                                            )}
-                                            role="gridcell"
-                                            style={{
-                                                height: "22px",
-                                                maxHeight: "22px",
-                                                padding: "0 8px",
-                                                fontSize: "12px",
-                                                lineHeight: "22px",
-                                                verticalAlign: "middle",
-                                            }}>
-                                            {column.renderCell(row.item)}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                                    {({ renderCell }) => <>{renderCell(item)}</>}
+                                </DataGridRow>
+                            )}
+                        </DataGridBody>
+                    </DataGrid>
                 )}
             </div>
         </div>
