@@ -121,6 +121,12 @@ export interface IWorkspace {
     type: string;
     displayName: string;
     description: string;
+    databases: string[];
+    sqlAnalyticsEndpoints: string[];
+    workspace: {
+        name: string;
+        id: string;
+    };
 }
 
 export interface ConnectionComponentsInfo {
