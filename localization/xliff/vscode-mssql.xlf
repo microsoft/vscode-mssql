@@ -1645,6 +1645,9 @@
     <trans-unit id="++CODE++4a00fefe019ef43393da250ba4b62d7b6af849a1acac99b1192ffbeda8828fe7">
       <source xml:lang="en">New Column Mapping</source>
     </trans-unit>
+    <trans-unit id="++CODE++ab23a59c68316fe4f3a53c610bdf6d7a43090ced0e69ce60895361f176ce93f6">
+      <source xml:lang="en">New Deployment</source>
+    </trans-unit>
     <trans-unit id="++CODE++b71586503f1694b5328fa16ed600eb0d20d4d9608dfb54f44ae97fe4ac43f0bf">
       <source xml:lang="en">New Foreign Key</source>
     </trans-unit>
@@ -3008,9 +3011,6 @@
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
-    <trans-unit id="mssql.deployLocalDockerContainer">
-      <source xml:lang="en">Create local SQL Container</source>
-    </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
       <source xml:lang="en">Default view mode for query results display.</source>
     </trans-unit>
@@ -3209,6 +3209,9 @@
     <trans-unit id="mssql.query.textSize">
       <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
     </trans-unit>
+    <trans-unit id="mssql.deployLocalDockerContainer">
+      <source xml:lang="en">New Deployment</source>
+    </trans-unit>
     <trans-unit id="mssql.objectExplorerNewQuery">
       <source xml:lang="en">New Query</source>
     </trans-unit>
@@ -3253,6 +3256,9 @@
     </trans-unit>
     <trans-unit id="mssql.authCodeGrant.description">
       <source xml:lang="en">Prompts users to sign in using their browser.</source>
+    </trans-unit>
+    <trans-unit id="mssql.provisionFabricDb">
+      <source xml:lang="en">Provision Fabric Database</source>
     </trans-unit>
     <trans-unit id="extension.queryHistory">
       <source xml:lang="en">Query History</source>

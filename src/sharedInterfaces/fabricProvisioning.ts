@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ApiStatus } from "./webview";
-import { FormContextProps, FormEvent, FormItemSpec, FormState } from "./form";
+import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
 
 export class FabricProvisioningWebviewState
@@ -24,6 +24,8 @@ export class FabricProvisioningWebviewState
     > = {};
     formErrors: string[] = [];
     dialog: IDialogProps | undefined;
+    public azureAccounts: string[] = [];
+    public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
     /** Used to track the form validation state */
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track fabric database provision state */
@@ -40,6 +42,7 @@ export class FabricProvisioningWebviewState
 }
 
 export interface FabricProvisioningFormState {
+    accountId: string;
     databaseName: string;
     workspace: string;
 }
@@ -59,19 +62,6 @@ export interface FabricProvisioningContextProps
         FabricProvisioningFormState,
         FabricProvisioningWebviewState,
         FabricProvisioningFormItemSpec
-    > {
-    /**
-     * Handles form-related actions and state updates.
-     * @param event The form event containing the action and data.
-     */
-    formAction(event: FormEvent<FabricProvisioningFormState>): void;
-}
+    > {}
 
-export interface FabricProvisioningReducers {
-    /**
-     * Handles form-related actions and state updates.
-     */
-    formAction: {
-        event: FormEvent<FabricProvisioningFormState>;
-    };
-}
+export interface FabricProvisioningReducers extends FormReducers<FabricProvisioningFormState> {}

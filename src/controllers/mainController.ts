@@ -236,8 +236,8 @@ export default class MainController implements vscode.Disposable {
                 this.onDeployContainer();
             });
             this.registerCommand(Constants.cmdProvisionFabricDb);
-            this._event.on(Constants.cmdProvisionFabricDb, () => {
-                this.onProvisionFabricDb();
+            this._event.on(Constants.cmdProvisionFabricDb, async () => {
+                await this.onProvisionFabricDb();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -1868,7 +1868,7 @@ export default class MainController implements vscode.Disposable {
         reactPanel.revealToForeground();
     }
 
-    public onProvisionFabricDb(): void {
+    public async onProvisionFabricDb(): Promise<void> {
         const reactPanel = new FabricProvisioningWebviewController(
             this._context,
             this._vscodeWrapper,

@@ -34,7 +34,6 @@ const FabricProvisioningStateProvider: React.FC<FabricProvisioningProviderProps>
                 state: webviewState?.state,
                 themeKind: webviewState?.themeKind,
                 ...getCoreRPCs(webviewState),
-
                 formAction: function (event): void {
                     webviewState?.extensionRpc.action("formAction", {
                         event: event,
