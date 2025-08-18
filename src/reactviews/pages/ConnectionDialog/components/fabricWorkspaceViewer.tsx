@@ -166,6 +166,13 @@ const useStyles = makeStyles({
             backgroundColor: "rgba(0, 0, 0, 0.1)",
         },
     },
+    selectedDataGridRow: {
+        backgroundColor: "var(--vscode-list-activeSelectionBackground)",
+        color: "var(--vscode-list-activeSelectionForeground)",
+        "&:hover": {
+            backgroundColor: "var(--vscode-list-activeSelectionBackground)",
+        },
+    },
 });
 
 const WorkspacesList = ({
@@ -233,6 +240,7 @@ export const FabricWorkspaceViewer = ({
     const styles = useStyles();
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
+    const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
 
     const uniqueWorkspaces = useMemo(() => {
         return Array.from(
@@ -355,6 +363,7 @@ export const FabricWorkspaceViewer = ({
 
     const handleWorkspaceSelect = (workspace: { name: string; id: string }) => {
         setSelectedWorkspaceId(workspace.id);
+        setSelectedRowId(undefined); // Clear row selection when workspace changes
     };
 
     const toggleExplorer = () => {
@@ -489,9 +498,19 @@ export const FabricWorkspaceViewer = ({
                             {({ item, rowId }) => (
                                 <DataGridRow<ServerItem>
                                     key={rowId}
+                                    className={
+                                        selectedRowId === item.id
+                                            ? styles.selectedDataGridRow
+                                            : undefined
+                                    }
                                     onClick={() => {
-                                        // Handle row selection if needed
-                                        console.log("Selected item:", item);
+                                        setSelectedRowId(item.id);
+                                    }}
+                                    onKeyDown={(e: React.KeyboardEvent) => {
+                                        if (e.key === Keys.Enter || e.key === Keys.Space) {
+                                            setSelectedRowId(item.id);
+                                            e.preventDefault();
+                                        }
                                     }}>
                                     {({ renderCell }) => <>{renderCell(item)}</>}
                                 </DataGridRow>
