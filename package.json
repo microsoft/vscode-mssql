@@ -1529,6 +1529,18 @@
                     "type": "string",
                     "description": "%mssql.saveAsCsv.delimiter%",
                     "default": ",",
+                    "enum": [
+                        ",",
+                        "\t",
+                        ";",
+                        "|"
+                    ],
+                    "enumDescriptions": [
+                        "Comma (,)",
+                        "Tab (\\t)",
+                        "Semicolon (;)",
+                        "Pipe (|)"
+                    ],
                     "scope": "resource"
                 },
                 "mssql.saveAsCsv.lineSeparator": {
@@ -1547,6 +1559,22 @@
                     "type": "string",
                     "description": "%mssql.saveAsCsv.encoding%",
                     "default": "utf-8",
+                    "enum": [
+                        "utf-8",
+                        "utf-16le",
+                        "utf-16be",
+                        "ascii",
+                        "latin1",
+                        "iso-8859-1"
+                    ],
+                    "enumDescriptions": [
+                        "UTF-8 (Unicode)",
+                        "UTF-16 Little Endian", 
+                        "UTF-16 Big Endian",
+                        "ASCII",
+                        "Latin-1 (ISO 8859-1)",
+                        "ISO 8859-1"
+                    ],
                     "scope": "resource"
                 },
                 "mssql.copyIncludeHeaders": {
