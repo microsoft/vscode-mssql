@@ -1075,6 +1075,12 @@
     <trans-unit id="++CODE++0556bfb755c73e8c60da1230c38f26ce0eaf79dc7bd5f5368371d561e5eab52f">
       <source xml:lang="en">Extremely likely</source>
     </trans-unit>
+    <trans-unit id="++CODE++2669635517c6f110f77148287c814fbb91a8ee9fb366d1113794cf21f767d9a9">
+      <source xml:lang="en">Fabric Account</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c7869b25e42d5683ca7cf9fc6cc3bbe5c8c39dab0ee1f2938b5570714350d0bb">
+      <source xml:lang="en">Fabric Account is required</source>
+    </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
     </trans-unit>

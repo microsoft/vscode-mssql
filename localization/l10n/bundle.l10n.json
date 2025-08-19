@@ -1175,6 +1175,8 @@
   },
   "Connection Dialog": "Connection Dialog",
   "Azure Account is required": "Azure Account is required",
+  "Fabric Account": "Fabric Account",
+  "Fabric Account is required": "Fabric Account is required",
   "Select an account": "Select an account",
   "Save Password": "Save Password",
   "Tenant ID": "Tenant ID",
