@@ -49,7 +49,7 @@ export class ConnectionDialogWebviewState
     public readyToConnect: boolean = false;
     public formError: string = "";
     public dialog: IDialogProps | undefined;
-    public fabricServers: FabricSqlDbInfo[] = [];
+    public fabricWorkspaces: FabricWorkspaceInfo[] = [];
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
@@ -105,11 +105,25 @@ export interface AzureSqlServerInfo {
     uri: string;
 }
 
-export interface FabricSqlDbInfo {
+export interface FabricSqlDbInfoOld {
     server: string;
+    displayName: string;
     database: string;
     workspace: IWorkspace;
     tags: string[];
+}
+
+export interface FabricSqlDbInfo {
+    server: string;
+    displayName: string;
+    database: string;
+    type: string;
+}
+
+export interface FabricWorkspaceInfo {
+    id: string;
+    displayName: string;
+    databases: FabricSqlDbInfo[];
 }
 
 /**

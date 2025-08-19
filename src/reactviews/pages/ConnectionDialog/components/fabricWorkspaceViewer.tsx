@@ -18,7 +18,10 @@ import {
     ListItem,
     Label,
 } from "@fluentui/react-components";
-import { FabricSqlServerInfo } from "../../../../sharedInterfaces/connectionDialog";
+import {
+    FabricSqlDbInfo,
+    FabricWorkspaceInfo,
+} from "../../../../sharedInterfaces/connectionDialog";
 import { useState, useEffect, useMemo } from "react";
 import {
     ChevronDoubleLeftFilled,
@@ -46,18 +49,18 @@ const getItemIcon = (itemType: string): string => {
 };
 
 interface Props {
-    fabricServerInfo: FabricSqlServerInfo[];
+    fabricWorkspaces: FabricWorkspaceInfo[];
     searchFilter?: string;
     typeFilter?: string[];
 }
 
 type WorkspacesListProps = {
-    workspaces: { name: string; id: string }[];
-    onWorkspaceSelect: (workspace: { name: string; id: string }) => void;
-    selectedWorkspace?: { name: string; id: string };
+    workspaces: FabricWorkspaceInfo[];
+    onWorkspaceSelect: (workspace: FabricWorkspaceInfo) => void;
+    selectedWorkspace?: FabricWorkspaceInfo;
 };
 
-type ServerItem = {
+type SqlDbItem = {
     id: string;
     name: string;
     type: string;
@@ -93,14 +96,14 @@ const WorkspacesList = ({
                     tabIndex={0}
                     role="option"
                     aria-selected={selectedWorkspace?.id === workspace.id}
-                    title={workspace.name}>
+                    title={workspace.displayName}>
                     <div style={{ display: "flex", alignItems: "center" }}>
                         <PeopleTeamRegular
                             style={{
                                 marginRight: "8px",
                             }}
                         />
-                        <Text>{workspace.name}</Text>
+                        <Text>{workspace.displayName}</Text>
                     </div>
                 </ListItem>
             ))}
@@ -109,7 +112,7 @@ const WorkspacesList = ({
 };
 
 export const FabricWorkspaceViewer = ({
-    fabricServerInfo,
+    fabricWorkspaces,
     searchFilter = "",
     typeFilter = [],
 }: Props) => {
@@ -118,56 +121,33 @@ export const FabricWorkspaceViewer = ({
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
 
-    const uniqueWorkspaces = useMemo(() => {
-        return Array.from(
-            new Map(
-                fabricServerInfo.map((server) => [server.workspace.id, server.workspace]),
-            ).values(),
-        );
-    }, [fabricServerInfo]);
-
     useEffect(() => {
         if (
-            uniqueWorkspaces.length > 0 &&
-            (!selectedWorkspaceId || !uniqueWorkspaces.some((w) => w.id === selectedWorkspaceId))
+            fabricWorkspaces.length > 0 &&
+            (!selectedWorkspaceId || !fabricWorkspaces.some((w) => w.id === selectedWorkspaceId))
         ) {
-            setSelectedWorkspaceId(uniqueWorkspaces[0].id);
+            setSelectedWorkspaceId(fabricWorkspaces[0].id);
         }
-    }, [fabricServerInfo.length]);
+    }, [fabricWorkspaces.length]);
 
     const selectedWorkspace = useMemo(() => {
-        return uniqueWorkspaces.find((workspace) => workspace.id === selectedWorkspaceId);
-    }, [uniqueWorkspaces, selectedWorkspaceId]);
+        return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
+    }, [fabricWorkspaces, selectedWorkspaceId]);
 
-    const filteredServers = useMemo(() => {
-        return fabricServerInfo.filter((server) => selectedWorkspaceId === server.workspace.id);
-    }, [fabricServerInfo, selectedWorkspaceId]);
+    const databasesForSelectedWorkspace = useMemo(() => {
+        return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId)?.databases || [];
+    }, [fabricWorkspaces, selectedWorkspaceId]);
 
     const items = useMemo(() => {
-        const result: ServerItem[] = [];
-        if (filteredServers && filteredServers.length > 0) {
-            filteredServers.forEach((server) => {
-                if (server.databases && server.databases.length > 0) {
-                    server.databases.forEach((db, dbIndex) => {
-                        result.push({
-                            id: `${server.workspace.name}-db-${dbIndex}-${db}`,
-                            name: db,
-                            type: `${Loc.connectionDialog.sqlDatabase}`,
-                            location: server.workspace.name,
-                        });
-                    });
-                }
-
-                if (server.sqlAnalyticsEndpoints && server.sqlAnalyticsEndpoints.length > 0) {
-                    server.sqlAnalyticsEndpoints.forEach((endpoint, endpointIndex) => {
-                        result.push({
-                            id: `${server.workspace.name}-endpoint-${endpointIndex}-${endpoint}`,
-                            name: endpoint,
-                            type: `${Loc.connectionDialog.sqlAnalyticsEndpoint}`,
-                            location: server.workspace.name,
-                        });
-                    });
-                }
+        const result: SqlDbItem[] = [];
+        if (databasesForSelectedWorkspace && databasesForSelectedWorkspace.length > 0) {
+            databasesForSelectedWorkspace.forEach((db) => {
+                result.push({
+                    id: db.database,
+                    name: db.displayName,
+                    type: `${Loc.connectionDialog.sqlDatabase}`,
+                    location: "db.workspace.name",
+                });
             });
         }
 
@@ -188,11 +168,11 @@ export const FabricWorkspaceViewer = ({
         }
 
         return filteredResult;
-    }, [filteredServers, searchFilter, typeFilter]);
+    }, [databasesForSelectedWorkspace, searchFilter, typeFilter]);
 
     const columns = useMemo(
-        (): TableColumnDefinition<ServerItem>[] => [
-            createTableColumn<ServerItem>({
+        (): TableColumnDefinition<SqlDbItem>[] => [
+            createTableColumn<SqlDbItem>({
                 columnId: "name",
                 renderHeaderCell: () => `${Loc.connectionDialog.nameColumnHeader}`,
                 renderCell: (item) => (
@@ -215,7 +195,7 @@ export const FabricWorkspaceViewer = ({
                     </DataGridCell>
                 ),
             }),
-            createTableColumn<ServerItem>({
+            createTableColumn<SqlDbItem>({
                 columnId: "type",
                 renderHeaderCell: () => `${Loc.connectionDialog.typeColumnHeader}`,
                 renderCell: (item) => (
@@ -224,7 +204,7 @@ export const FabricWorkspaceViewer = ({
                     </DataGridCell>
                 ),
             }),
-            createTableColumn<ServerItem>({
+            createTableColumn<SqlDbItem>({
                 columnId: "location",
                 renderHeaderCell: () => `${Loc.connectionDialog.locationColumnHeader}`,
                 renderCell: (item) => (
@@ -237,7 +217,7 @@ export const FabricWorkspaceViewer = ({
         [],
     );
 
-    const handleWorkspaceSelect = (workspace: { name: string; id: string }) => {
+    const handleWorkspaceSelect = (workspace: FabricWorkspaceInfo) => {
         setSelectedWorkspaceId(workspace.id);
         setSelectedRowId(undefined); // Clear row selection when workspace changes
     };
@@ -305,7 +285,7 @@ export const FabricWorkspaceViewer = ({
                             {Loc.connectionDialog.workspaces}
                         </div>
                         <WorkspacesList
-                            workspaces={uniqueWorkspaces}
+                            workspaces={fabricWorkspaces}
                             onWorkspaceSelect={handleWorkspaceSelect}
                             selectedWorkspace={selectedWorkspace}
                         />
@@ -314,7 +294,7 @@ export const FabricWorkspaceViewer = ({
             </div>
 
             <div className={styles.workspaceGrid}>
-                {fabricServerInfo.length === 0 ? (
+                {fabricWorkspaces.length === 0 ? (
                     <div
                         style={{
                             padding: "16px",
@@ -363,9 +343,9 @@ export const FabricWorkspaceViewer = ({
                                 )}
                             </DataGridRow>
                         </DataGridHeader>
-                        <DataGridBody<ServerItem>>
+                        <DataGridBody<SqlDbItem>>
                             {({ item, rowId }) => (
-                                <DataGridRow<ServerItem>
+                                <DataGridRow<SqlDbItem>
                                     key={rowId}
                                     className={
                                         selectedRowId === item.id

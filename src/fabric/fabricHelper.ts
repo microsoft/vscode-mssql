@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { FabricSqlDbInfo, IWorkspace } from "../sharedInterfaces/connectionDialog";
+import { FabricSqlDbInfoOld, IWorkspace } from "../sharedInterfaces/connectionDialog";
 import { HttpHelper } from "../http/httpHelper";
 
 export class FabricHelper {
@@ -25,7 +25,7 @@ export class FabricHelper {
 
     public static async getFabricDatabases(
         workspace: IWorkspace | string,
-    ): Promise<FabricSqlDbInfo[]> {
+    ): Promise<FabricSqlDbInfoOld[]> {
         const workspacePromise =
             typeof workspace === "string" ? this.getFabricWorkspace(workspace) : workspace;
 
@@ -38,10 +38,11 @@ export class FabricHelper {
         return response.value.map((db) => {
             return {
                 server: db.properties.serverFqdn,
+                displayName: db.displayName,
                 database: db.properties.databaseName,
                 workspace: resolvedWorkspace,
                 tags: [],
-            } as FabricSqlDbInfo;
+            } as FabricSqlDbInfoOld;
         });
     }
 

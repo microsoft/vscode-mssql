@@ -160,7 +160,7 @@ export const FabricBrowsePage = () => {
                             selectedTypeFilters={typeFilter}
                         />
                         <FabricWorkspaceViewer
-                            fabricServerInfo={context.state.fabricServers}
+                            fabricWorkspaces={context.state.fabricWorkspaces}
                             searchFilter={searchFilter}
                             typeFilter={typeFilter}
                         />

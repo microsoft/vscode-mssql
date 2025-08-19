@@ -24,6 +24,7 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
     GetConnectionDisplayNameRequest,
+    FabricWorkspaceInfo,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
@@ -261,59 +262,35 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     const workspaces = await FabricHelper.getFabricWorkspaces();
 
                     if (workspaces.length > 0) {
-                        let workspaceId = "";
+                        let workspace = undefined;
                         const benjinWsId = "c0c03b8c-d137-4ab2-b222-c83daff16d09";
 
                         if (workspaces.find((w) => w.id === benjinWsId)) {
-                            workspaceId = benjinWsId;
+                            workspace = workspaces.find((w) => w.id === benjinWsId);
                         } else {
-                            workspaceId = workspaces[0].id;
+                            workspace = workspaces[0];
                         }
+                        const stateWorkspace: FabricWorkspaceInfo = {
+                            id: workspace.id,
+                            displayName: workspace.displayName,
+                            databases: [],
+                        };
+                        state.fabricWorkspaces.push(stateWorkspace);
 
-                        state.fabricServers = await FabricHelper.getFabricDatabases(workspaceId);
+                        const databases = await FabricHelper.getFabricDatabases(workspace.id);
+
+                        stateWorkspace.databases = databases.map((db) => {
+                            return {
+                                database: db.database,
+                                displayName: db.displayName,
+                                server: db.server,
+                                type: "sql_database",
+                            };
+                        });
                     }
                 } catch (err) {
                     state.formError = getErrorMessage(err);
                 }
-                // TODO: Placeholder for populating info from Fabric
-                // state.fabricServers = [
-                //     {
-                //         server: "fabric-server-1",
-                //         databases: ["db1", "db2"],
-                //         sqlAnalyticsEndpoints: ["analytics1", "analytics2"],
-                //         workspace: { name: "workspace1", id: "workspace-id-1" },
-                //     },
-                //     {
-                //         server: "fabric-server-2",
-                //         databases: ["db3", "db4"],
-                //         sqlAnalyticsEndpoints: ["analytics3", "analytics4"],
-                //         workspace: { name: "workspace2", id: "workspace-id-2" },
-                //     },
-                //     {
-                //         server: "fabric-server-3",
-                //         databases: ["db5", "db6"],
-                //         sqlAnalyticsEndpoints: ["analytics5", "analytics6"],
-                //         workspace: { name: "workspace3", id: "workspace-id-3" },
-                //     },
-                //     {
-                //         server: "fabric-server-4",
-                //         databases: ["db7", "db8"],
-                //         sqlAnalyticsEndpoints: ["analytics7", "analytics8"],
-                //         workspace: { name: "workspace4", id: "workspace-id-4" },
-                //     },
-                //     {
-                //         server: "fabric-server-5",
-                //         databases: ["db9", "db10"],
-                //         sqlAnalyticsEndpoints: ["analytics9", "analytics10"],
-                //         workspace: { name: "workspace5", id: "workspace-id-5" },
-                //     },
-                //     {
-                //         server: "fabric-server-6",
-                //         databases: ["db11", "db12"],
-                //         sqlAnalyticsEndpoints: ["analytics11", "analytics12"],
-                //         workspace: { name: "workspace6", id: "workspace-id-6" },
-                //     },
-                // ];
             }
 
             return state;
