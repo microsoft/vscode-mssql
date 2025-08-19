@@ -64,14 +64,20 @@ const useStyles = makeStyles({
     },
 });
 
-type BrowseByOption = "myData" | "recent" | "favorites";
+type BrowseByOption = "myData" | "recent" | "favorites" | "none";
 
 const fabricWorkspaceBrowseBy = () => {
     const classes = useStyles();
     const [selectedOption, setSelectedOption] = useState<BrowseByOption>("myData");
 
     const handleButtonClick = (option: BrowseByOption) => {
-        setSelectedOption(option);
+        if (selectedOption === option) {
+            // If clicking the same button, uncheck it
+            setSelectedOption("none");
+        } else {
+            // Otherwise, select the clicked button
+            setSelectedOption(option);
+        }
     };
 
     return (
