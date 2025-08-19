@@ -198,6 +198,14 @@ export class LocConstants {
 
     public get connectionDialog() {
         return {
+            account: l10n.t("Account"),
+            signIn: l10n.t("Sign In"),
+            tenantId: l10n.t("Tenant ID"),
+            authenticationType: l10n.t("Authentication Type"),
+            browseBy: l10n.t("Browse By"),
+            myData: l10n.t("My Data"),
+            recent: l10n.t("Recent"),
+            favorites: l10n.t("Favorites"),
             workspaces: l10n.t("Workspaces"),
             filterByKeyword: l10n.t("Filter by keyword"),
             filter: l10n.t("Filter"),

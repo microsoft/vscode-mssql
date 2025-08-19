@@ -8,6 +8,9 @@ import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
 import {
     Button,
+    Dropdown,
+    InfoLabel,
+    Input,
     InputOnChangeData,
     Label,
     Link,
@@ -35,6 +38,7 @@ import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comb
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
 import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
+import FabricWorkspaceBrowseBy from "./components/fabricWorkspaceBrowseBy";
 
 const useStyles = makeStyles({
     icon: {
@@ -51,6 +55,30 @@ const useStyles = makeStyles({
     },
     signInLink: {
         marginTop: "8px",
+    },
+    formRow: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    workspaceContainer: {
+        backgroundColor: "var(--vscode-editor-background)",
+        borderRadius: "4px",
+        border: "1px solid var(--vscode-panel-border)",
+    },
+    workspaceContentPadding: {
+        paddingLeft: "6px",
+        paddingBottom: "6px",
+        paddingTop: "6px",
+    },
+    workspaceHeader: {
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "16px",
+        marginBottom: "10px",
     },
 });
 
@@ -146,24 +174,44 @@ export const FabricBrowsePage = () => {
             )}
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
+                    <div>
+                        <div className={styles.formRow} style={{ marginBottom: "2px" }}>
+                            <InfoLabel>{Loc.connectionDialog.account}</InfoLabel>
+                            <Input style={{ width: "410px" }} />
+                        </div>
+                        <Button style={{ marginBottom: "10px" }}>
+                            {Loc.connectionDialog.signIn}
+                        </Button>
+                    </div>
+
+                    <div className={styles.formRow} style={{ marginBottom: "10px" }}>
+                        <InfoLabel>{Loc.connectionDialog.tenantId}</InfoLabel>
+                        <Dropdown style={{ width: "410px" }} />
+                    </div>
+
+                    <div className={styles.formRow}>
+                        <InfoLabel>{Loc.connectionDialog.authenticationType}</InfoLabel>
+                        <Dropdown style={{ width: "410px" }} />
+                    </div>
+
                     <Label>{Loc.connectionDialog.workspaces}</Label>
-                    <div
-                        style={{
-                            paddingLeft: "6px",
-                            paddingBottom: "6px",
-                            paddingTop: "6px",
-                        }}>
-                        <FabricWorkspaceFilter
-                            onSearchInputChanged={handleSearchInputChanged}
-                            onFilterOptionChanged={handleFilterOptionChanged}
-                            searchValue={searchFilter}
-                            selectedTypeFilters={typeFilter}
-                        />
-                        <FabricWorkspaceViewer
-                            fabricServerInfo={context.state.fabricServers}
-                            searchFilter={searchFilter}
-                            typeFilter={typeFilter}
-                        />
+                    <div className={styles.workspaceContainer}>
+                        <div className={styles.workspaceContentPadding}>
+                            <div className={styles.workspaceHeader}>
+                                <FabricWorkspaceBrowseBy />
+                                <FabricWorkspaceFilter
+                                    onSearchInputChanged={handleSearchInputChanged}
+                                    onFilterOptionChanged={handleFilterOptionChanged}
+                                    searchValue={searchFilter}
+                                    selectedTypeFilters={typeFilter}
+                                />
+                            </div>
+                            <FabricWorkspaceViewer
+                                fabricServerInfo={context.state.fabricServers}
+                                searchFilter={searchFilter}
+                                typeFilter={typeFilter}
+                            />
+                        </div>
                     </div>
 
                     {selectedServer && (
