@@ -97,14 +97,12 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     private registerRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
             (state.formState as any)[payload.event.propertyName] = payload.event.value;
-            this.updateState(state);
 
             const newState = await this.validateDockerConnectionProfile(
                 state,
                 this.state.formState,
                 payload.event.propertyName,
             );
-            this.updateState(newState);
             return newState;
         });
         this.registerReducer("completeDockerStep", async (state, payload) => {
