@@ -53,14 +53,14 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
   - Interact with each step in the execution plan, including collapsing or expanding nodes for a simplified view.
   - Zoom in or out to adjust the level of detail, or use "zoom to fit" for a complete view of the plan.
   - Highlight key performance indicators, such as elapsed time or subtree cost, to identify bottlenecks in query execution.
-- **Local SQL Server Containers (`Preview`)**
+- **Local SQL Server Containers**
   - Create and manage SQL Server containers locally without Docker commands
   - Use SQL Server 2025 by default with vector and AI-ready features
   - Auto-connect with a ready-to-use connection profile
   - Start, stop, restart, or delete containers from the connection panel
   - Automatic port conflict detection and resolution
   - Customize container name, hostname, port, and version
-- **Schema Designer (`Preview`)**: Visual schema modeling and editing—code-free
+- **Schema Designer**: Visual schema modeling and editing—code-free
   - Design, view, and manage database schemas using an intuitive drag-and-drop GUI
   - Add or modify tables, columns, primary keys, and foreign key relationships without writing T-SQL
   - Preview schema changes instantly as read-only T-SQL in the built-in code pane
@@ -68,7 +68,7 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
   - Filter by table name or relationship to focus on specific areas of your schema
   - Export diagrams to share with your team or include in documentation
   - Push updates to your database using the built-in deployment
-- **Schema Compare (`Preview`)**: Effortless schema synchronization and management
+- **Schema Compare**: Effortless schema synchronization and management
   - Compare schemas between two databases, DACPAC files, or SQL projects and see additions, removals, and modifications at a glance
   - Filter and exclude specific differences before syncing
   - Apply changes directly or generate a deployment script for later use
