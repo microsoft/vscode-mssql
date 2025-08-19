@@ -8,6 +8,9 @@ import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
 import {
     Button,
+    Dropdown,
+    InfoLabel,
+    Input,
     InputOnChangeData,
     Label,
     Link,
@@ -35,6 +38,7 @@ import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comb
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
 import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
+import FabricWorkspaceBrowseBy from "./components/fabricWorkspaceBrowseBy";
 
 const useStyles = makeStyles({
     icon: {
@@ -146,24 +150,80 @@ export const FabricBrowsePage = () => {
             )}
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
+                    <div>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                marginBottom: "2px",
+                            }}>
+                            <InfoLabel>Account</InfoLabel>
+                            <Input style={{ width: "410px" }} />
+                        </div>
+                        <Button style={{ marginBottom: "10px" }}>Sign in</Button>
+                    </div>
+
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "10px",
+                        }}>
+                        <InfoLabel>Tenant ID</InfoLabel>
+                        <Dropdown style={{ width: "410px" }} />
+                    </div>
+
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}>
+                        <InfoLabel>Authentication Type</InfoLabel>
+                        <Dropdown style={{ width: "410px" }} />
+                    </div>
+
                     <Label>{Loc.connectionDialog.workspaces}</Label>
                     <div
                         style={{
-                            paddingLeft: "6px",
-                            paddingBottom: "6px",
-                            paddingTop: "6px",
+                            backgroundColor: "var(--vscode-editor-background)",
+                            borderRadius: "4px",
+                            border: "1px solid var(--vscode-panel-border)",
                         }}>
-                        <FabricWorkspaceFilter
-                            onSearchInputChanged={handleSearchInputChanged}
-                            onFilterOptionChanged={handleFilterOptionChanged}
-                            searchValue={searchFilter}
-                            selectedTypeFilters={typeFilter}
-                        />
-                        <FabricWorkspaceViewer
-                            fabricServerInfo={context.state.fabricServers}
-                            searchFilter={searchFilter}
-                            typeFilter={typeFilter}
-                        />
+                        <div
+                            style={{
+                                paddingLeft: "6px",
+                                paddingBottom: "6px",
+                                paddingTop: "6px",
+                            }}>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: "16px",
+                                    marginBottom: "10px",
+                                }}>
+                                <FabricWorkspaceBrowseBy />
+                                <FabricWorkspaceFilter
+                                    onSearchInputChanged={handleSearchInputChanged}
+                                    onFilterOptionChanged={handleFilterOptionChanged}
+                                    searchValue={searchFilter}
+                                    selectedTypeFilters={typeFilter}
+                                />
+                            </div>
+                            <FabricWorkspaceViewer
+                                fabricServerInfo={context.state.fabricServers}
+                                searchFilter={searchFilter}
+                                typeFilter={typeFilter}
+                            />
+                        </div>
                     </div>
 
                     {selectedServer && (
