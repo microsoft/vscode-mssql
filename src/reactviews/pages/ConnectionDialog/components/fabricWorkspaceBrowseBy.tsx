@@ -6,6 +6,7 @@
 import { useState } from "react";
 import { Text, ToggleButton, makeStyles, tokens } from "@fluentui/react-components";
 import { StarRegular, HistoryRegular, PersonCircleRegular } from "@fluentui/react-icons";
+import { locConstants as Loc } from "../../../common/locConstants";
 
 const useStyles = makeStyles({
     container: {
@@ -82,28 +83,28 @@ const fabricWorkspaceBrowseBy = () => {
 
     return (
         <div className={classes.container}>
-            <Text className={classes.label}>BROWSE BY:</Text>
+            <Text className={classes.label}>{Loc.connectionDialog.browseBy}</Text>
             <div className={classes.buttonGroup}>
                 <ToggleButton
                     appearance="transparent"
                     icon={<PersonCircleRegular />}
                     onClick={() => handleButtonClick("myData")}
                     checked={selectedOption === "myData"}>
-                    My Data
+                    {Loc.connectionDialog.myData}
                 </ToggleButton>
                 <ToggleButton
                     appearance="transparent"
                     icon={<HistoryRegular />}
                     onClick={() => handleButtonClick("recent")}
                     checked={selectedOption === "recent"}>
-                    Recent
+                    {Loc.connectionDialog.recent}
                 </ToggleButton>
                 <ToggleButton
                     appearance="transparent"
                     icon={<StarRegular />}
                     onClick={() => handleButtonClick("favorites")}
                     checked={selectedOption === "favorites"}>
-                    Favorites
+                    {Loc.connectionDialog.favorites}
                 </ToggleButton>
             </div>
         </div>

@@ -176,19 +176,21 @@ export const FabricBrowsePage = () => {
                 <>
                     <div>
                         <div className={styles.formRow} style={{ marginBottom: "2px" }}>
-                            <InfoLabel>Account</InfoLabel>
+                            <InfoLabel>{Loc.connectionDialog.account}</InfoLabel>
                             <Input style={{ width: "410px" }} />
                         </div>
-                        <Button style={{ marginBottom: "10px" }}>Sign in</Button>
+                        <Button style={{ marginBottom: "10px" }}>
+                            {Loc.connectionDialog.signIn}
+                        </Button>
                     </div>
 
                     <div className={styles.formRow} style={{ marginBottom: "10px" }}>
-                        <InfoLabel>Tenant ID</InfoLabel>
+                        <InfoLabel>{Loc.connectionDialog.tenantId}</InfoLabel>
                         <Dropdown style={{ width: "410px" }} />
                     </div>
 
                     <div className={styles.formRow}>
-                        <InfoLabel>Authentication Type</InfoLabel>
+                        <InfoLabel>{Loc.connectionDialog.authenticationType}</InfoLabel>
                         <Dropdown style={{ width: "410px" }} />
                     </div>
 
