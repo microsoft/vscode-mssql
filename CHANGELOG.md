@@ -7,6 +7,8 @@
 * Released general availability of Schema Designer, Schema Compare, and Local SQL Server Container
 * Fixed an issue where Microsoft Entra ID sign-in in the Connection Dialog could result in empty account or tenant dropdowns
 * Improved performance and usability of query results grid, including fixes for export and display bugs
+* Added Text View mode for result sets to display results as plain text.
+* Added support to temporarily remember SQL Auth passwords for the session until VS Code is restarted
 * Improved localization in Object Explorer and other UI components
 * Fixed multiple accessibility issues affecting error messages and visual feedback across the UI
 * Fixed edge case issues where GitHub Copilot Agent responses could misbehave when switching database connections
