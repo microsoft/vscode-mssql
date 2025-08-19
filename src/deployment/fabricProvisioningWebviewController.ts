@@ -122,7 +122,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         return {
             accountId: createFormItem({
                 propertyName: "accountId",
-                label: ConnectionDialog.azureAccount,
+                label: ConnectionDialog.fabricAccount,
                 required: true,
                 type: FormItemType.Dropdown,
                 options: azureAccountOptions,

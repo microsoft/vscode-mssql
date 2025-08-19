@@ -636,6 +636,8 @@ export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");
     public static azureAccount = l10n.t("Azure Account");
     public static azureAccountIsRequired = l10n.t("Azure Account is required");
+    public static fabricAccount = l10n.t("Fabric Account");
+    public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
     public static selectAnAccount = l10n.t("Select an account");
     public static savePassword = l10n.t("Save Password");
     public static tenantId = l10n.t("Tenant ID");
