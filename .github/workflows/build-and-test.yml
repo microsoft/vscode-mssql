@@ -184,9 +184,9 @@ jobs:
         continue-on-error: true
         run: |
           cd ./pr
-          yarn build:webviews
+          yarn build:webviews-bundle
           cd ../target
-          yarn build:webviews
+          yarn build:webviews-bundle
 
       - name: Setup environment for smoke tests
         run: |
