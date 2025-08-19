@@ -160,13 +160,13 @@ export default class QueryRunner {
                 cancelParams,
             );
         } catch (error) {
-            this._handleCancelDisposeCleanup(
+            this._handleQueryCleanup(
                 LocalizedConstants.QueryEditor.queryCancelFailed(error),
                 error,
             );
             return;
         }
-        this._handleCancelDisposeCleanup();
+        this._handleQueryCleanup();
         return queryCancelResult;
     }
 
@@ -254,6 +254,8 @@ export default class QueryRunner {
         this._totalElapsedMilliseconds = 0;
         this._statusView.executingQuery(this.uri);
 
+        this._notificationHandler.registerRunner(this, this._ownerUri);
+
         let onSuccess = (_result: unknown) => {
             // The query has started, so lets fire up the result pane
             QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).fsPath);
@@ -263,28 +265,9 @@ export default class QueryRunner {
                 QueryRunner._runningQueries,
             );
             this.eventEmitter.emit("start", this.uri);
-            this._notificationHandler.registerRunner(this, this._ownerUri);
         };
-        let onError = (error: unknown) => {
-            // Only update internal state and emit events, do not call executedQuery here
-            this._isExecuting = false;
-            this._hasCompleted = true;
-            this.removeRunningQuery();
-            // Removed call to unregisterRunner (does not exist)
-            const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
-            if (promise) {
-                promise.reject(error);
-                this._uriToQueryPromiseMap.delete(this._ownerUri);
-            }
-            this.eventEmitter.emit(
-                "complete",
-                Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
-                true,
-            );
-            // TODO: localize
-            let errorMsg = error instanceof Error ? error.message : String(error);
-            this._vscodeWrapper.showErrorMessage("Execution failed: " + errorMsg);
-            // Ensure the returned promise is rejected so the test can catch it
+        let onError = (error: Error) => {
+            this._handleQueryCleanup(undefined, error);
             throw error;
         };
 
@@ -510,24 +493,25 @@ export default class QueryRunner {
         try {
             await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
         } catch (error) {
-            this._handleCancelDisposeCleanup(
+            this._handleQueryCleanup(
                 LocalizedConstants.QueryEditor.queryDisposeFailed(error),
                 error,
             );
             return;
         }
-        this._handleCancelDisposeCleanup();
+        this._handleQueryCleanup();
     }
 
     /**
      * Handles cleanup and state reset after a cancel attempt, for both error and success scenarios.
-     * @param error Optional error object if cancel failed.
+     * @param errorMsg Optional error message to display
+     * @param error Optional error message to send to pending promises of query run. If not provided, the promise will be resolved.
      */
-    private _handleCancelDisposeCleanup(errorMsg?: String, error?: Error): void {
+    private _handleQueryCleanup(errorMsg?: String, error?: Error): void {
         this._isExecuting = false;
         this._hasCompleted = true;
         this.removeRunningQuery();
-        // Removed call to unregisterRunner (does not exist)
+
         const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
         if (promise) {
             if (error) {
@@ -543,6 +527,9 @@ export default class QueryRunner {
             true,
         );
         this._statusView.executedQuery(this._ownerUri);
+
+        this._notificationHandler.unregisterRunner(this._ownerUri);
+
         if (errorMsg) {
             this._vscodeWrapper.showErrorMessage(getErrorMessage(errorMsg));
         }
