@@ -56,6 +56,30 @@ const useStyles = makeStyles({
     signInLink: {
         marginTop: "8px",
     },
+    formRow: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    workspaceContainer: {
+        backgroundColor: "var(--vscode-editor-background)",
+        borderRadius: "4px",
+        border: "1px solid var(--vscode-panel-border)",
+    },
+    workspaceContentPadding: {
+        paddingLeft: "6px",
+        paddingBottom: "6px",
+        paddingTop: "6px",
+    },
+    workspaceHeader: {
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "16px",
+        marginBottom: "10px",
+    },
 });
 
 export const fabricLogoColor = () => {
@@ -151,65 +175,27 @@ export const FabricBrowsePage = () => {
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
                     <div>
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                marginBottom: "2px",
-                            }}>
+                        <div className={styles.formRow} style={{ marginBottom: "2px" }}>
                             <InfoLabel>Account</InfoLabel>
                             <Input style={{ width: "410px" }} />
                         </div>
                         <Button style={{ marginBottom: "10px" }}>Sign in</Button>
                     </div>
 
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "10px",
-                        }}>
+                    <div className={styles.formRow} style={{ marginBottom: "10px" }}>
                         <InfoLabel>Tenant ID</InfoLabel>
                         <Dropdown style={{ width: "410px" }} />
                     </div>
 
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                        }}>
+                    <div className={styles.formRow}>
                         <InfoLabel>Authentication Type</InfoLabel>
                         <Dropdown style={{ width: "410px" }} />
                     </div>
 
                     <Label>{Loc.connectionDialog.workspaces}</Label>
-                    <div
-                        style={{
-                            backgroundColor: "var(--vscode-editor-background)",
-                            borderRadius: "4px",
-                            border: "1px solid var(--vscode-panel-border)",
-                        }}>
-                        <div
-                            style={{
-                                paddingLeft: "6px",
-                                paddingBottom: "6px",
-                                paddingTop: "6px",
-                            }}>
-                            <div
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    gap: "16px",
-                                    marginBottom: "10px",
-                                }}>
+                    <div className={styles.workspaceContainer}>
+                        <div className={styles.workspaceContentPadding}>
+                            <div className={styles.workspaceHeader}>
                                 <FabricWorkspaceBrowseBy />
                                 <FabricWorkspaceFilter
                                     onSearchInputChanged={handleSearchInputChanged}

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useState } from "react";
-import { Button, Text, ToggleButton, makeStyles, tokens } from "@fluentui/react-components";
+import { Text, ToggleButton, makeStyles, tokens } from "@fluentui/react-components";
 import { StarRegular, HistoryRegular, PersonCircleRegular } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
