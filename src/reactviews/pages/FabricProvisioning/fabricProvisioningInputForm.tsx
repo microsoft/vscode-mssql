@@ -92,7 +92,6 @@ export const FabricProvisioningInputForm: React.FC = () => {
 
     return (
         <div>
-            hello
             <div className={classes.outerDiv}>
                 {renderFormFields()}
                 <div className={classes.bottomDiv}>

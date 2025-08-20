@@ -4,7 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { FabricSqlDbInfo, ISqlDbArtifact, IWorkspace } from "../sharedInterfaces/fabric";
+import {
+    FabricSqlDbInfo,
+    ISqlDbArtifact,
+    IWorkspace,
+    IWorkspaceRole,
+} from "../sharedInterfaces/fabric";
 import { HttpHelper } from "../http/httpHelper";
 
 export class FabricHelper {

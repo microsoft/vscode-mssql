@@ -6,6 +6,7 @@
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
+import { IWorkspace } from "./fabric";
 
 export class FabricProvisioningWebviewState
     implements
@@ -24,8 +25,8 @@ export class FabricProvisioningWebviewState
     > = {};
     formErrors: string[] = [];
     dialog: IDialogProps | undefined;
-    public azureAccounts: string[] = [];
     public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
+    public workspaces: IWorkspace[] = [];
     /** Used to track the form validation state */
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track fabric database provision state */
@@ -43,8 +44,8 @@ export class FabricProvisioningWebviewState
 
 export interface FabricProvisioningFormState {
     accountId: string;
-    databaseName: string;
     workspace: string;
+    databaseName: string;
 }
 
 export interface FabricProvisioningFormItemSpec

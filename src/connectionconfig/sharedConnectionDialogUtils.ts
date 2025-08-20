@@ -43,12 +43,13 @@ export async function getAccountActionButtons(
     handlePostSignInUpdates: (changedField: string) => Promise<void>,
     refreshAccountTokenCondition: boolean = true,
 ): Promise<FormItemActionButton[]> {
-    console.log(accountsComponent);
-    console.log(accountFormController);
     const accountFormComponentId = "accountId";
     const actionButtons: FormItemActionButton[] = [];
     actionButtons.push({
-        label: ConnectionDialog.signIn,
+        label:
+            accountFormController.state.formState.accountId === ""
+                ? ConnectionDialog.signIn
+                : ConnectionDialog.addAccount,
         id: "azureSignIn",
         callback: async () => {
             const account = await azureAccountService.addAccount();

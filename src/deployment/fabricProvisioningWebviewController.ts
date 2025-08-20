@@ -21,8 +21,9 @@ import {
     FormItemSpec,
     FormItemType,
 } from "../sharedInterfaces/form";
-import { ConnectionDialog } from "../constants/locConstants";
+import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
 import { getAccountActionButtons } from "../connectionconfig/sharedConnectionDialogUtils";
+import { FabricHelper } from "../fabric/fabricHelper";
 
 export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormState,
@@ -67,20 +68,25 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         this.state.loadState = ApiStatus.Loading;
         const connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
-        this.state.formState = {
-            accountId: "",
-            groupId: connectionGroupOptions[0].value,
-            databaseName: "",
-            workspace: "",
-        } as FabricProvisioningFormState;
         const azureAccountOptions = await getAccounts(
             this.mainController.azureAccountService,
             this.logger,
         );
+        this.state.workspaces = await FabricHelper.getFabricWorkspaces();
+        console.log(this.state.workspaces);
+        const workspaceOptions = this.getWorkspaceOptions();
+        this.state.formState = {
+            accountId: azureAccountOptions.length > 0 ? azureAccountOptions[0].value : "",
+            groupId: connectionGroupOptions[0].value,
+            workspace: workspaceOptions.length > 0 ? workspaceOptions[0].value : "",
+            databaseName: "",
+        } as FabricProvisioningFormState;
         const azureActionButtons = await this.getAzureActionButtons();
+
         this.state.formComponents = this.setFabricProvisioningFormComponents(
             azureAccountOptions,
             azureActionButtons,
+            workspaceOptions,
         );
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
@@ -100,6 +106,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     private setFabricProvisioningFormComponents(
         azureAccountOptions: FormItemOptions[],
         azureActionButtons: FormItemActionButton[],
+        workspaceOptions: FormItemOptions[],
     ): Record<
         string,
         FormItemSpec<
@@ -120,7 +127,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         return {
             accountId: createFormItem({
                 propertyName: "accountId",
-                label: ConnectionDialog.fabricAccount,
+                label: Fabric.fabricAccount,
                 required: true,
                 type: FormItemType.Dropdown,
                 options: azureAccountOptions,
@@ -128,10 +135,35 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 actionButtons: azureActionButtons,
                 validate: (_state: FabricProvisioningWebviewState, value: string) => ({
                     isValid: !!value,
-                    validationMessage: value ? "" : ConnectionDialog.azureAccountIsRequired,
+                    validationMessage: value ? "" : Fabric.fabricAccountIsRequired,
                 }),
 
                 isAdvancedOption: false,
+            }),
+            workspace: createFormItem({
+                propertyName: "workspace",
+                label: Fabric.workspace,
+                required: true,
+                type: FormItemType.SearchableDropdown,
+                options: workspaceOptions,
+                isAdvancedOption: false,
+                placeholder: Fabric.selectAWorkspace,
+                searchBoxPlaceholder: Fabric.searchWorkspaces,
+                validate: (_state: FabricProvisioningWebviewState, value: string) => ({
+                    isValid: !!value,
+                    validationMessage: value ? "" : Fabric.workspaceIsRequired,
+                }),
+            }),
+            databaseName: createFormItem({
+                propertyName: "databaseName",
+                type: FormItemType.Input,
+                label: FabricProvisioning.databaseName,
+                isAdvancedOption: true,
+                placeholder: FabricProvisioning.enterDatabaseName,
+                validate: (_state: FabricProvisioningWebviewState, value: string) => ({
+                    isValid: !!value,
+                    validationMessage: value ? "" : FabricProvisioning.databaseNameIsRequired,
+                }),
             }),
         };
     }
@@ -143,9 +175,23 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             this.mainController.azureAccountService,
             this.logger,
             this.vscodeWrapper,
-            async (changedField: string) => {
-                this.vscodeWrapper.showInformationMessage(changedField);
-            },
+            this.loadWorkspacesAfterSignIn,
         );
+    }
+
+    private async loadWorkspacesAfterSignIn(_propertyName: string) {
+        const accountComponent = this.getFormComponent(this.state, "accountId");
+        accountComponent.actionButtons = await this.getAzureActionButtons();
+        this.state.workspaces = await FabricHelper.getFabricWorkspaces();
+        const workspaceComponent = this.getFormComponent(this.state, "workspace");
+        workspaceComponent.options = this.getWorkspaceOptions();
+        this.updateState();
+    }
+
+    private getWorkspaceOptions(): FormItemOptions[] {
+        return this.state.workspaces.map((workspace) => ({
+            displayName: workspace.displayName,
+            value: workspace.id,
+        }));
     }
 }

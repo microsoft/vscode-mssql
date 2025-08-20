@@ -22,6 +22,24 @@ export interface IWorkspace {
 }
 
 /**
+ * IWorkspaceRole Fabric Workspace role as seen in api responses
+ */
+export interface IWorkspaceRole {
+    id: string;
+    role: string;
+}
+
+/**
+ * The possible workspace roles within a Fabric workspace
+ */
+export enum WorkspaceRole {
+    Admin = "Admin",
+    Member = "Member",
+    Contributor = "Contributor",
+    Viewer = "Viewer",
+}
+
+/**
  * IArtifact as seen in Fabric api responses
  */
 export interface IArtifact {

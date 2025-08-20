@@ -636,9 +636,8 @@ export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");
     public static azureAccount = l10n.t("Azure Account");
     public static azureAccountIsRequired = l10n.t("Azure Account is required");
-    public static fabricAccount = l10n.t("Fabric Account");
-    public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
     public static selectAnAccount = l10n.t("Select an account");
+    public static addAccount = l10n.t("Add account");
     public static savePassword = l10n.t("Save Password");
     public static tenantId = l10n.t("Tenant ID");
     public static selectATenant = l10n.t("Select a tenant");
@@ -727,6 +726,21 @@ export class Azure {
             ],
         });
     };
+}
+
+export class Fabric {
+    public static fabricAccount = l10n.t("Fabric Account");
+    public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
+    public static workspace = l10n.t("Workspace");
+    public static selectAWorkspace = l10n.t("Select a Workspace");
+    public static searchWorkspaces = l10n.t("Search Workspaces");
+    public static workspaceIsRequired = l10n.t("Workspace is required");
+}
+
+export class FabricProvisioning {
+    public static databaseName = l10n.t("Database Name");
+    public static enterDatabaseName = l10n.t("Enter Database Name");
+    public static databaseNameIsRequired = l10n.t("Database Name is required");
 }
 
 export class QueryResult {
