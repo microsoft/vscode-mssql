@@ -14,6 +14,7 @@ export class FabricHelper {
     public static async getFabricWorkspaces(tenantId: string): Promise<IWorkspace[]> {
         const response = await this.fetchFromFabric<{ value: IWorkspace[] }>(
             "workspaces",
+            `listing Fabric workspaces for tenant '${tenantId}'`,
             tenantId,
         );
 
@@ -26,6 +27,7 @@ export class FabricHelper {
     ): Promise<IWorkspace> {
         const response = await this.fetchFromFabric<IWorkspace>(
             `workspaces/${workspaceId}`,
+            `getting Fabric workspace '${workspaceId}'`,
             tenantId,
         );
 
@@ -41,8 +43,11 @@ export class FabricHelper {
                 ? this.getFabricWorkspace(workspace, tenantId)
                 : workspace;
 
+        const workspaceId = typeof workspace === "string" ? workspace : workspace.id;
+
         const response = await this.fetchFromFabric<{ value: ISqlDbArtifact[] }>(
-            `workspaces/${typeof workspace === "string" ? workspace : workspace.id}/sqlDatabases`,
+            `workspaces/${workspaceId}/sqlDatabases`,
+            `listing Fabric databases for workspace '${workspaceId}'`,
             tenantId,
         );
 
@@ -66,7 +71,8 @@ export class FabricHelper {
 
     public static async fetchFromFabric<TResponse>(
         api: string,
-        tenantId?: string,
+        reason: string,
+        tenantId: string,
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
         const httpHelper = new HttpHelper();
@@ -77,8 +83,9 @@ export class FabricHelper {
             scopes.push(`VSCODE_TENANT:${tenantId}`);
         }
 
-        const session = await vscode.authentication.getSession("microsoft", scopes, {
+        const session = await this.getSession("microsoft", scopes, {
             createIfNone: true,
+            requestReason: reason,
         });
         let token = session?.accessToken;
 
@@ -91,6 +98,54 @@ export class FabricHelper {
 
         return result;
     }
+
+    private static async getSession(
+        providerId: string,
+        scopes: string[],
+        options: TokenRequestOptions,
+    ) {
+        // const session = await vscode.authentication.getSession("microsoft", scopes, {
+        //     createIfNone: true,
+        // });
+
+        // return session;
+
+        if (!options || /*!options.callerId.trim() ||*/ !options.requestReason.trim()) {
+            throw new Error("Please provide requestReason in TokenRequestOptions"); // Please provide callerId and requestReason in TokenRequestOptions
+        }
+
+        // In case there a session is not found, we would like to add a request reason to the modal dialog that will request it,
+        // so we replace createIfNone with forceNewSession that behaves identically in this situation, but allows us to pass the request reason.
+        if (options.createIfNone && !options.forceNewSession) {
+            const session = await vscode.authentication.getSession(providerId, scopes, {
+                silent: true,
+            });
+            if (session) {
+                return session;
+            } else {
+                options.createIfNone = false;
+                options.forceNewSession = true;
+            }
+        }
+
+        if (options.forceNewSession === true) {
+            options.forceNewSession = { detail: options.requestReason };
+        }
+
+        return await vscode.authentication.getSession(providerId, scopes, options);
+    }
+}
+
+export interface TokenRequestOptions extends vscode.AuthenticationGetSessionOptions {
+    /**
+     * Identifier of caller partner (ex. NuGet or AvailabilityService) that would be used for telemetry.
+     */
+    callerId?: string;
+
+    /**
+     * Reason to request session from customer. This string could be displayed to customer in the future, so ideally should be localized.
+     */
+    requestReason: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

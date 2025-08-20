@@ -268,6 +268,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     for (const account of accounts) {
                         const tenants = await VsCodeAzureHelper.getTenantsForAccount(account);
                         for (const tenant of tenants) {
+                            const skipList = [
+                                "d307b5b4-08b3-4f94-9e5e-4eed3be0f1c0",
+                                "1a092f68-5741-455a-8057-2acdb897a850",
+                            ]; // TODO: remove
+
+                            if (skipList.includes(tenant.tenantId)) {
+                                continue;
+                            }
+
                             try {
                                 const workspaces = await FabricHelper.getFabricWorkspaces(
                                     tenant.tenantId,
@@ -285,7 +294,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                                 }
                             } catch (err) {
                                 this.logger.error(
-                                    `Failed to get fabric workspaces for tenant ${tenant.tenantId}: ${getErrorMessage(err)}`,
+                                    `Failed to get fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`,
                                 );
                             }
                         }
@@ -293,14 +302,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                     this.state.fabricWorkspaces = newWorkspaces;
 
-                    this.updateState();
-                    const promiseArray: Promise<void>[] = [];
+                    // this.updateState();
+                    // const promiseArray: Promise<void>[] = [];
 
-                    for (const workspace of state.fabricWorkspaces) {
-                        promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
-                    }
+                    // for (const workspace of state.fabricWorkspaces) {
+                    //     promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
+                    // }
 
-                    await Promise.all(promiseArray);
+                    // await Promise.all(promiseArray);
+
                     // if (workspaces.length > 0) {
                     //     let workspace = undefined;
                     //     const benjinWsId = "c0c03b8c-d137-4ab2-b222-c83daff16d09";
