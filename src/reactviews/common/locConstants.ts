@@ -199,6 +199,7 @@ export class LocConstants {
     public get connectionDialog() {
         return {
             workspaces: l10n.t("Workspaces"),
+            signIntoFabric: l10n.t("Sign into Fabric"),
             filterByKeyword: l10n.t("Filter by keyword"),
             filter: l10n.t("Filter"),
             filterByType: l10n.t("Filter by type"),
@@ -305,6 +306,7 @@ export class LocConstants {
                 }),
             clickToSignIntoAnAzureAccount: l10n.t("Click to sign into an Azure account"),
             currentlySignedInAs: l10n.t("Currently signed in as:"),
+            loadingAzureAccounts: l10n.t("Loading Azure Accounts"),
         };
     }
 

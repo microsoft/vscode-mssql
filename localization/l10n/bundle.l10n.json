@@ -231,6 +231,7 @@
     ]
   },
   "Workspaces": "Workspaces",
+  "Sign into Fabric": "Sign into Fabric",
   "Filter by keyword": "Filter by keyword",
   "Filter": "Filter",
   "Filter by type": "Filter by type",
@@ -313,6 +314,7 @@
   },
   "Click to sign into an Azure account": "Click to sign into an Azure account",
   "Currently signed in as:": "Currently signed in as:",
+  "Loading Azure Accounts": "Loading Azure Accounts",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",

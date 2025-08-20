@@ -1515,6 +1515,9 @@
     <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
       <source xml:lang="en">Loading</source>
     </trans-unit>
+    <trans-unit id="++CODE++6fa7126ccca3880030902e857b23844499021637082687cfb79725ee3095e087">
+      <source xml:lang="en">Loading Azure Accounts</source>
+    </trans-unit>
     <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
       <source xml:lang="en">Loading Report</source>
     </trans-unit>
@@ -2361,6 +2364,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cdc182077e173c86c2831fe9995d41691b9bc1182fe44519a292ea2b814eb17a">
       <source xml:lang="en">Sign into Azure in order to add a firewall rule.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
+      <source xml:lang="en">Sign into Fabric</source>
     </trans-unit>
     <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
       <source xml:lang="en">Signing in to Azure...</source>

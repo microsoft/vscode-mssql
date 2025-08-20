@@ -8,6 +8,7 @@ import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
 import {
     Button,
+    Field,
     InputOnChangeData,
     Label,
     Link,
@@ -15,6 +16,10 @@ import {
     MenuCheckedValueChangeData,
     MenuCheckedValueChangeEvent,
     Spinner,
+    Dropdown,
+    Option,
+    OptionOnSelectData,
+    SelectionEvents,
 } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
@@ -29,6 +34,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
 import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
+import EntraSignInEmpty from "./components/entraSignInEmpty.component";
 
 const useStyles = makeStyles({
     icon: {
@@ -74,6 +80,14 @@ export const FabricBrowsePage = () => {
     const [searchFilter, setSearchFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
 
+    // Add state for accounts
+    const [accounts] = useState<{ id: string; name: string }[]>([
+        { id: "1", name: "Account One" },
+        { id: "2", name: "Account Two" },
+        { id: "3", name: "Account Three" },
+    ]);
+    const [selectedAccount, setSelectedAccount] = useState<string>("");
+
     function setSelectedServerWithFormState(server: string | undefined) {
         if (server === undefined && context?.state.formState.server === "") {
             return; // avoid unnecessary updates
@@ -108,38 +122,40 @@ export const FabricBrowsePage = () => {
         }
     }
 
+    function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
+        const accountId = data.optionValue || "";
+        setSelectedAccount(accountId);
+        const account = accounts.find((acc) => acc.id === accountId);
+        console.log("Selected account:", account);
+    }
+
     return (
         <div>
-            {context.state.loadingAzureAccountsStatus === ApiStatus.NotStarted && (
-                <div className={styles.notSignedInContainer}>
-                    <img
-                        className={styles.icon}
-                        src={fabricLogoColor()}
-                        alt={Loc.connectionDialog.signIntoFabricToBrowse}
-                    />
-                    <div>{Loc.connectionDialog.signIntoFabricToBrowse}</div>
-                    <Link
-                        className={styles.signInLink}
-                        onClick={() => {
-                            context.signIntoAzureForBrowse();
-                        }}>
-                        {Loc.azure.signIntoAzure}
-                    </Link>
-                </div>
-            )}
-            {context.state.loadingAzureAccountsStatus === ApiStatus.Loading && (
-                <div className={styles.notSignedInContainer}>
-                    <img
-                        className={styles.icon}
-                        src={fabricLogoColor()}
-                        alt={Loc.connectionDialog.signIntoFabricToBrowse}
-                    />
-                    <div>Loading Fabric Accounts</div>
-                    <Spinner size="large" />
-                </div>
-            )}
+            <EntraSignInEmpty
+                loadAccountStatus={context.state.loadingAzureAccountsStatus}
+                brandImageSource={fabricLogoColor()}
+                signInText={Loc.connectionDialog.signIntoFabricToBrowse}
+                linkText={Loc.connectionDialog.signIntoFabric}
+                loadingText="Loading Fabric Accounts"
+                onSignInClick={() => {
+                    context.signIntoAzureForBrowse();
+                }}
+            />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
+                    <Field orientation="horizontal">
+                        <Label>Account</Label>
+                        <Dropdown
+                            value={accounts.find((acc) => acc.id === selectedAccount)?.name || ""}
+                            onOptionSelect={handleAccountChange}
+                            placeholder="Select an account">
+                            {accounts.map((account) => (
+                                <Option key={account.id} value={account.id}>
+                                    {account.name}
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    </Field>
                     <Label>{Loc.connectionDialog.workspaces}</Label>
                     <div
                         style={{
