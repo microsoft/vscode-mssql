@@ -108,6 +108,21 @@ export async function run(): Promise<void> {
         },
     });
 
+    const rawPattern = process.env.TEST_PATTERN || process.env.MOCHA_GREP;
+    const invert = /^true$/i.test(process.env.TEST_INVERT || process.env.MOCHA_INVERT || "");
+    if (rawPattern) {
+        let rx: RegExp;
+        try {
+            rx = new RegExp(rawPattern);
+        } catch {
+            const esc = rawPattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            rx = new RegExp(esc);
+        }
+        mocha.grep(rx);
+        if (invert) mocha.invert();
+        console.log(`🔎 Filtering tests with pattern: ${rx}${invert ? " (inverted)" : ""}`);
+    }
+
     // Add all files to the test suite
     const files = glob.sync("**/*.test.js", { cwd: testsRoot });
     files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
