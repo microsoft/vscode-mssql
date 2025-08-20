@@ -259,35 +259,75 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 }
             } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
                 try {
-                    const workspaces = await FabricHelper.getFabricWorkspaces();
+                    const accounts = await VsCodeAzureHelper.getAccounts(
+                        true /* onlyAllowedForExtension */,
+                    );
 
-                    if (workspaces.length > 0) {
-                        let workspace = undefined;
-                        const benjinWsId = "c0c03b8c-d137-4ab2-b222-c83daff16d09";
+                    const newWorkspaces: FabricWorkspaceInfo[] = [];
 
-                        if (workspaces.find((w) => w.id === benjinWsId)) {
-                            workspace = workspaces.find((w) => w.id === benjinWsId);
-                        } else {
-                            workspace = workspaces[0];
+                    for (const account of accounts) {
+                        const tenants = await VsCodeAzureHelper.getTenantsForAccount(account);
+                        for (const tenant of tenants) {
+                            try {
+                                const workspaces = await FabricHelper.getFabricWorkspaces(
+                                    tenant.tenantId,
+                                );
+
+                                for (const workspace of workspaces) {
+                                    const stateWorkspace: FabricWorkspaceInfo = {
+                                        id: workspace.id,
+                                        displayName: workspace.displayName,
+                                        databases: [],
+                                        tenantId: tenant.tenantId,
+                                    };
+
+                                    newWorkspaces.push(stateWorkspace);
+                                }
+                            } catch (err) {
+                                this.logger.error(
+                                    `Failed to get fabric workspaces for tenant ${tenant.tenantId}: ${getErrorMessage(err)}`,
+                                );
+                            }
                         }
-                        const stateWorkspace: FabricWorkspaceInfo = {
-                            id: workspace.id,
-                            displayName: workspace.displayName,
-                            databases: [],
-                        };
-                        state.fabricWorkspaces.push(stateWorkspace);
-
-                        const databases = await FabricHelper.getFabricDatabases(workspace.id);
-
-                        stateWorkspace.databases = databases.map((db) => {
-                            return {
-                                database: db.database,
-                                displayName: db.displayName,
-                                server: db.server,
-                                type: "sql_database",
-                            };
-                        });
                     }
+
+                    this.state.fabricWorkspaces = newWorkspaces;
+
+                    this.updateState();
+                    const promiseArray: Promise<void>[] = [];
+
+                    for (const workspace of state.fabricWorkspaces) {
+                        promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
+                    }
+
+                    await Promise.all(promiseArray);
+                    // if (workspaces.length > 0) {
+                    //     let workspace = undefined;
+                    //     const benjinWsId = "c0c03b8c-d137-4ab2-b222-c83daff16d09";
+
+                    //     if (workspaces.find((w) => w.id === benjinWsId)) {
+                    //         workspace = workspaces.find((w) => w.id === benjinWsId);
+                    //     } else {
+                    //         workspace = workspaces[0];
+                    //     }
+                    //     const stateWorkspace: FabricWorkspaceInfo = {
+                    //         id: workspace.id,
+                    //         displayName: workspace.displayName,
+                    //         databases: [],
+                    //     };
+                    //     state.fabricWorkspaces.push(stateWorkspace);
+
+                    //     const databases = await FabricHelper.getFabricDatabases(workspace.id);
+
+                    //     stateWorkspace.databases = databases.map((db) => {
+                    //         return {
+                    //             database: db.database,
+                    //             displayName: db.displayName,
+                    //             server: db.server,
+                    //             type: "sql_database",
+                    //         };
+                    //     });
+                    // }
                 } catch (err) {
                     state.formError = getErrorMessage(err);
                 }
@@ -1378,6 +1418,36 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 true, // includeErrorMessage
                 undefined, // errorCode
                 undefined, // errorType
+            );
+        }
+    }
+
+    //#endregion
+
+    //#region Fabric helpers
+
+    private async loadFabricDatabasesForWorkspace(
+        state: ConnectionDialogWebviewState,
+        workspace: FabricWorkspaceInfo,
+    ): Promise<void> {
+        try {
+            const databases = await FabricHelper.getFabricDatabases(
+                workspace.id,
+                workspace.tenantId,
+            );
+            workspace.databases = databases.map((db) => {
+                return {
+                    database: db.database,
+                    displayName: db.displayName,
+                    server: db.server,
+                    type: "sql_database",
+                };
+            });
+
+            this.updateState();
+        } catch (err) {
+            this.logger.error(
+                `Failed to load Fabric databases for workspace ${workspace.id}: ${getErrorMessage(err)}`,
             );
         }
     }

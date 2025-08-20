@@ -4,53 +4,78 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { FabricSqlDbInfoOld, IWorkspace } from "../sharedInterfaces/connectionDialog";
+import { FabricSqlDbInfoOld, IWorkspace, IFabricError } from "../sharedInterfaces/connectionDialog";
 import { HttpHelper } from "../http/httpHelper";
 
 export class FabricHelper {
     static readonly fabricUriBase = vscode.Uri.parse("https://api.fabric.microsoft.com/v1/");
     constructor() {}
 
-    public static async getFabricWorkspaces(): Promise<IWorkspace[]> {
-        const response = await this.fetchFromFabric<{ value: IWorkspace[] }>("workspaces");
+    public static async getFabricWorkspaces(tenantId: string): Promise<IWorkspace[]> {
+        const response = await this.fetchFromFabric<{ value: IWorkspace[] }>(
+            "workspaces",
+            tenantId,
+        );
 
         return response.value;
     }
 
-    public static async getFabricWorkspace(workspaceId: string): Promise<IWorkspace> {
-        const response = await this.fetchFromFabric<IWorkspace>(`workspaces/${workspaceId}`);
+    public static async getFabricWorkspace(
+        workspaceId: string,
+        tenantId: string,
+    ): Promise<IWorkspace> {
+        const response = await this.fetchFromFabric<IWorkspace>(
+            `workspaces/${workspaceId}`,
+            tenantId,
+        );
 
         return response;
     }
 
     public static async getFabricDatabases(
         workspace: IWorkspace | string,
+        tenantId?: string,
     ): Promise<FabricSqlDbInfoOld[]> {
         const workspacePromise =
-            typeof workspace === "string" ? this.getFabricWorkspace(workspace) : workspace;
+            typeof workspace === "string"
+                ? this.getFabricWorkspace(workspace, tenantId)
+                : workspace;
 
         const response = await this.fetchFromFabric<{ value: ISqlDbArtifact[] }>(
             `workspaces/${typeof workspace === "string" ? workspace : workspace.id}/sqlDatabases`,
+            tenantId,
         );
 
         const resolvedWorkspace = await workspacePromise;
 
-        return response.value.map((db) => {
-            return {
-                server: db.properties.serverFqdn,
-                displayName: db.displayName,
-                database: db.properties.databaseName,
-                workspace: resolvedWorkspace,
-                tags: [],
-            } as FabricSqlDbInfoOld;
-        });
+        try {
+            return response.value.map((db) => {
+                return {
+                    server: db.properties.serverFqdn,
+                    displayName: db.displayName,
+                    database: db.properties.databaseName,
+                    workspace: resolvedWorkspace,
+                    tags: [],
+                } as FabricSqlDbInfoOld;
+            });
+        } catch (error) {
+            console.error("Error processing Fabric databases:", error);
+            return [];
+        }
     }
 
-    public static async fetchFromFabric<TResponse>(api: string): Promise<TResponse> {
+    public static async fetchFromFabric<TResponse>(
+        api: string,
+        tenantId?: string,
+    ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
         const httpHelper = new HttpHelper();
 
         const scopes = ["https://analysis.windows.net/powerbi/api/.default"];
+
+        if (tenantId) {
+            scopes.push(`VSCODE_TENANT:${tenantId}`);
+        }
 
         const session = await vscode.authentication.getSession("microsoft", scopes, {
             createIfNone: true,
@@ -58,9 +83,24 @@ export class FabricHelper {
         let token = session?.accessToken;
 
         const response = await httpHelper.makeGetRequest<TResponse>(uri.toString(), token);
+        const result = response.data;
 
-        return response.data;
+        if (isFabricError(result)) {
+            throw new Error(result.errorCode);
+        }
+
+        return result;
     }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isFabricError(obj: any): obj is IFabricError {
+    return (
+        obj &&
+        typeof obj === "object" &&
+        typeof obj.errorCode === "string" &&
+        typeof obj.message === "string"
+    );
 }
 
 /**

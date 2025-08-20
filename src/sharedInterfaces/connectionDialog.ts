@@ -123,6 +123,7 @@ export interface FabricSqlDbInfo {
 export interface FabricWorkspaceInfo {
     id: string;
     displayName: string;
+    tenantId: string;
     databases: FabricSqlDbInfo[];
 }
 
@@ -141,6 +142,11 @@ export interface IWorkspace {
         name: string;
         id: string;
     };
+}
+
+export interface IFabricError {
+    errorCode: string;
+    message: string;
 }
 
 export interface ConnectionComponentsInfo {
