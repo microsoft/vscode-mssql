@@ -8,6 +8,7 @@ import * as assert from "assert";
 
 import StatusView from "../../src/views/statusView";
 import * as LocalizedConstants from "../../src/constants/locConstants";
+import * as Constants from "../../src/constants/constants";
 import { IServerInfo } from "vscode-mssql";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { expect } from "chai";
@@ -179,6 +180,33 @@ suite("Status View Tests", () => {
             expect(statusView["getStatusBar"](testFileUri).connectionId).to.equal(testConn.id);
             expect(statusView["getStatusBar"](testFileUri).statusConnection.color).to.equal(
                 undefined,
+            );
+        });
+
+        test("should colorize by default when connection store is accessible and no flag is explicitly set", async () => {
+            // Simulate default behavior - VS Code's configuration system will return true as the default
+            // since we changed the default in package.json from false to true
+            mockVscodeWrapper.getConfiguration.returns({
+                get: (key: string) => {
+                    if (key === Constants.configStatusBarEnableConnectionColor) {
+                        return true; // This simulates VS Code using our new default value
+                    }
+                    return undefined;
+                },
+            } as any);
+
+            let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
+            mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionStore.getGroupForConnectionId.resolves(testGroup);
+
+            const statusView = new StatusView(mockVscodeWrapper);
+            statusView.setConnectionStore(mockConnectionStore);
+
+            await statusView.connectSuccess(testFileUri, testConn, testServerInfo);
+            expect(statusView["getStatusBar"](testFileUri).connectionId).to.equal(testConn.id);
+            // With the new default (true), coloring should work by default
+            expect(statusView["getStatusBar"](testFileUri).statusConnection.color).to.equal(
+                testGroup.color,
             );
         });
 

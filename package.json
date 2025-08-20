@@ -1620,7 +1620,7 @@
                 "mssql.statusBar.enableConnectionColor": {
                     "type": "boolean",
                     "description": "%mssql.statusBar.enableConnectionColor%",
-                    "default": false,
+                    "default": true,
                     "scope": "window"
                 },
                 "mssql.format.alignColumnDefinitionsInColumns": {
