@@ -15,16 +15,14 @@ import {
 } from "../sharedInterfaces/fabricProvisioning";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getAccounts } from "../connectionconfig/azureHelpers";
-import { getErrorMessage } from "../utils/utils";
 import {
     FormItemActionButton,
     FormItemOptions,
     FormItemSpec,
     FormItemType,
 } from "../sharedInterfaces/form";
-import { ConnectionDialog, refreshTokenLabel } from "../constants/locConstants";
-import { AzureController } from "../azure/azureController";
-import { IToken } from "../azure/msal/msalAzureAuth";
+import { ConnectionDialog } from "../constants/locConstants";
+import { getAccountActionButtons } from "../connectionconfig/sharedConnectionDialogUtils";
 
 export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormState,
@@ -139,98 +137,15 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
-        const actionButtons: FormItemActionButton[] = [];
-        actionButtons.push({
-            label: ConnectionDialog.signIn,
-            id: "azureSignIn",
-            callback: async () => {
-                const account = await this.mainController.azureAccountService.addAccount();
-                this.logger.verbose(
-                    `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
-                );
-
-                const accountsComponent = this.getFormComponent(this.state, "accountId");
-
-                if (!accountsComponent) {
-                    this.logger.error("Account component not found");
-                    return;
-                }
-
-                accountsComponent.options = await getAccounts(
-                    this.mainController.azureAccountService,
-                    this.logger,
-                );
-
-                this.logger.verbose(
-                    `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
-                );
-
-                this.state.formState.accountId = account.key.id;
-
-                this.logger.verbose(`Selecting '${account.key.id}'`);
-
-                this.updateState();
+        return await getAccountActionButtons(
+            this,
+            this.getFormComponent(this.state, "accountId"),
+            this.mainController.azureAccountService,
+            this.logger,
+            this.vscodeWrapper,
+            async (changedField: string) => {
+                this.vscodeWrapper.showInformationMessage(changedField);
             },
-        });
-
-        if (this.state.formState.accountId) {
-            let session: IToken;
-            const account = (await this.mainController.azureAccountService.getAccounts()).find(
-                (account) => account.displayInfo.userId === this.state.formState.accountId,
-            );
-            if (account) {
-                let isTokenExpired = false;
-                try {
-                    session = await this.mainController.azureAccountService.getAccountSecurityToken(
-                        account,
-                        undefined,
-                    );
-                    isTokenExpired = !AzureController.isTokenValid(
-                        session.token,
-                        session.expiresOn,
-                    );
-                } catch (err) {
-                    this.logger.verbose(
-                        `Error getting token or checking validity; prompting for refresh. Error: ${getErrorMessage(err)}`,
-                    );
-
-                    this.vscodeWrapper.showErrorMessage(
-                        "Error validating Entra authentication token; you may need to refresh your token.",
-                    );
-
-                    isTokenExpired = true;
-                }
-
-                if (isTokenExpired) {
-                    actionButtons.push({
-                        label: refreshTokenLabel,
-                        id: "refreshToken",
-                        callback: async () => {
-                            const account = (
-                                await this.mainController.azureAccountService.getAccounts()
-                            ).find(
-                                (account) =>
-                                    account.displayInfo.userId === this.state.formState.accountId,
-                            );
-                            if (account) {
-                                try {
-                                    session =
-                                        await this.mainController.azureAccountService.getAccountSecurityToken(
-                                            account,
-                                            undefined,
-                                        );
-                                    this.logger.log("Token refreshed", session.expiresOn);
-                                } catch (err) {
-                                    this.logger.error(
-                                        `Error refreshing token: ${getErrorMessage(err)}`,
-                                    );
-                                }
-                            }
-                        },
-                    });
-                }
-            }
-        }
-        return actionButtons;
+        );
     }
 }
