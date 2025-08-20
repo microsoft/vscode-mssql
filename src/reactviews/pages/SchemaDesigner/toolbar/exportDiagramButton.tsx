@@ -17,9 +17,10 @@ import * as htmlToImage from "html-to-image";
 import { getNodesBounds, getViewportForBounds, useReactFlow } from "@xyflow/react";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
+import { generateSvgFromReactFlow, createSvgDataUrl } from "../utils/svgExporter";
 
 export function ExportDiagramButton() {
-    const { getNodes } = useReactFlow();
+    const { getNodes, getEdges } = useReactFlow();
     const context = useContext(SchemaDesignerContext);
 
     async function exportAs(format: "svg" | "png" | "jpeg") {
@@ -92,25 +93,53 @@ export function ExportDiagramButton() {
                     });
                 break;
             case "svg":
-                void htmlToImage
-                    .toSvg(reactFlowContainer, {
-                        width: width,
-                        height: height,
-                        backgroundColor: graphBackgroundColor,
-                        style: {
-                            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
-                            width: `${width}px`,
-                            height: `${height}px`,
+                // Use custom SVG generator for clean, editable SVG output
+                const nodes = getNodes().filter((node) => !node.hidden);
+                const edges = getEdges();
+                const nodesBounds = getNodesBounds(nodes);
+
+                try {
+                    const svgContent = generateSvgFromReactFlow(
+                        nodes as any, // Type assertion needed for React Flow generic
+                        edges,
+                        {
+                            width: nodesBounds.width + 100,
+                            height: nodesBounds.height + 100,
+                            backgroundColor: graphBackgroundColor,
                         },
-                    })
-                    .then((dataUrl) => {
-                        context.saveAsFile({
-                            format,
-                            fileContents: dataUrl,
-                            width,
-                            height,
-                        });
+                    );
+
+                    const dataUrl = createSvgDataUrl(svgContent);
+
+                    context.saveAsFile({
+                        format,
+                        fileContents: dataUrl,
+                        width: nodesBounds.width + 100,
+                        height: nodesBounds.height + 100,
                     });
+                } catch (error) {
+                    console.error("Failed to generate SVG:", error);
+                    // Fallback to html-to-image if custom export fails
+                    void htmlToImage
+                        .toSvg(reactFlowContainer, {
+                            width: width,
+                            height: height,
+                            backgroundColor: graphBackgroundColor,
+                            style: {
+                                transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+                                width: `${width}px`,
+                                height: `${height}px`,
+                            },
+                        })
+                        .then((dataUrl) => {
+                            context.saveAsFile({
+                                format,
+                                fileContents: dataUrl,
+                                width,
+                                height,
+                            });
+                        });
+                }
                 break;
         }
         context.setRenderOnlyVisibleTables(true); // Reset to default state after export
