@@ -60,6 +60,19 @@ async function connectionSharingWithCommands() {
 			console.log('No active database or unable to retrieve database name');
 		}
 
+		// New feature: Get database name for a specific connection ID
+		const databaseForConnection = await vscode.commands.executeCommand(
+			'mssql.connectionSharing.getDatabaseForConnectionId',
+			EXTENSION_ID,
+			activeConnectionId
+		) as string;
+
+		if (databaseForConnection) {
+			console.log(`Database for connection ${activeConnectionId}: ${databaseForConnection}`);
+		} else {
+			console.log(`No database configured for connection ${activeConnectionId}`);
+		}
+
 		const databaseConnectionUri = await vscode.commands.executeCommand(
 			'mssql.connectionSharing.connect',
 			EXTENSION_ID,
@@ -136,6 +149,14 @@ async function connectionSharingWithApis() {
 			vscode.window.showInformationMessage(`Currently connected to database: ${activeDatabase}`);
 		} else {
 			console.log('No active database or unable to retrieve database name');
+		}
+
+		// New feature: Get database name for a specific connection ID
+		const databaseForConnection = await connectionSharingService.getDatabaseForConnectionId(EXTENSION_ID, activeConnectionId);
+		if (databaseForConnection) {
+			console.log(`Database for connection ${activeConnectionId}: ${databaseForConnection}`);
+		} else {
+			console.log(`No database configured for connection ${activeConnectionId}`);
 		}
 
 		const databaseConnectionUri = await connectionSharingService.connect(EXTENSION_ID, activeConnectionId);

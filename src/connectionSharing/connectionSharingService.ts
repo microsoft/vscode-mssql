@@ -76,6 +76,13 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
 
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
+                "mssql.connectionSharing.getDatabaseForConnectionId",
+                (extensionId: string, connectionId: string) => this.getDatabaseForConnectionId(extensionId, connectionId),
+            ),
+        );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
                 "mssql.connectionSharing.connect",
                 (extensionId: string, connectionId: string, databaseName?: string) =>
                     this.connect(extensionId, connectionId, databaseName),
@@ -356,6 +363,20 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         }
 
         return connectionDetails.database;
+    }
+
+    public async getDatabaseForConnectionId(extensionId: string, connectionId: string): Promise<string | undefined> {
+        await this.validateExtensionPermission(extensionId);
+
+        const connections =
+            await this._connectionManager.connectionStore.connectionConfig.getConnections(false);
+        const targetConnection = connections.find((conn) => conn.id === connectionId);
+
+        if (!targetConnection) {
+            return undefined; // Connection not found
+        }
+
+        return targetConnection.database;
     }
 
     public async connect(
