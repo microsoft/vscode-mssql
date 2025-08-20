@@ -100,6 +100,20 @@ export class ObjectExplorerService {
     }
 
     /**
+     * Public method to refresh the Object Explorer tree and internal maps, merging user and workspace connections/groups.
+     * Call this after adding/removing connections/groups to ensure the tree is up to date.
+     */
+    public async refreshTree(): Promise<void> {
+        await this.getRootNodes();
+        // Optionally, trigger a UI refresh if needed
+        if (this._refreshCallback && this._rootTreeNodeArray.length > 0) {
+            for (const node of this._rootTreeNodeArray) {
+                this._refreshCallback(node);
+            }
+        }
+    }
+
+    /**
      * Map of pending session creations
      */
     private _pendingSessionCreations: Map<string, Deferred<SessionCreatedParameters>> = new Map<
@@ -380,7 +394,7 @@ export class ObjectExplorerService {
             this._connectionManager.connectionStore.connectionConfig.getGroupsFromSettings(
                 ConfigurationTarget.Workspace,
             );
-        // Merge root, user, and workspace groups
+        // Merge user and workspace groups before building hierarchy
         const allGroups = [...userGroups, ...workspaceGroups];
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
 
@@ -395,10 +409,8 @@ export class ObjectExplorerService {
             return this.getAddConnectionNodes();
         }
 
+        // Build group nodes from merged settings
         const newConnectionGroupNodes = new Map<string, ConnectionGroupNode>();
-        const newConnectionNodes = new Map<string, ConnectionNode>();
-
-        // Add all group nodes from merged settings
         for (const group of allGroups) {
             const groupNode = new ConnectionGroupNode(group);
             if (this._connectionGroupNodes.has(group.id)) {
@@ -407,12 +419,9 @@ export class ObjectExplorerService {
             newConnectionGroupNodes.set(group.id, groupNode);
         }
 
-        // Populate group hierarchy - add each group as a child to its parent
+        // Build hierarchy: add each group as a child to its parent
         for (const group of allGroups) {
-            // Skip the root group as it has no parent
-            if (group.id === rootId) {
-                continue;
-            }
+            if (group.id === rootId) continue;
             if (group.parentId && newConnectionGroupNodes.has(group.parentId)) {
                 const parentNode = newConnectionGroupNodes.get(group.parentId);
                 const childNode = newConnectionGroupNodes.get(group.id);
@@ -421,19 +430,12 @@ export class ObjectExplorerService {
                     if (parentNode.id !== rootId) {
                         childNode.parentNode = parentNode;
                     }
-                } else {
-                    this._logger.error(
-                        `Child group '${group.name}' with ID '${group.id}' does not have a valid parent group (${group.parentId}).`,
-                    );
                 }
-            } else {
-                this._logger.error(
-                    `Group '${group.name}' with ID '${group.id}' does not have a valid parent group ID.  This should have been corrected when reading server groups from settings.`,
-                );
             }
         }
 
         // Add connections as children of their respective groups
+        const newConnectionNodes = new Map<string, ConnectionNode>();
         for (const connection of savedConnections) {
             if (connection.groupId && newConnectionGroupNodes.has(connection.groupId)) {
                 const groupNode = newConnectionGroupNodes.get(connection.groupId);
@@ -451,21 +453,21 @@ export class ObjectExplorerService {
                 connectionNode.parentNode = groupNode.id === rootId ? undefined : groupNode;
                 newConnectionNodes.set(connection.id, connectionNode);
                 groupNode.addChild(connectionNode);
-            } else {
-                this._logger.error(
-                    `Connection '${getConnectionDisplayName(connection)}' with ID '${connection.id}' does not have a valid group ID.  This should have been corrected when reading connections from settings.`,
-                );
             }
         }
 
+        // Set the new maps before refreshing UI
         this._connectionGroupNodes = newConnectionGroupNodes;
         this._connectionNodes = newConnectionNodes;
 
-        const result = [...this._rootTreeNodeArray];
+        // For the ROOT node, include as children any group whose parentId matches rootId
+        const rootChildren = Array.from(newConnectionGroupNodes.values()).filter(
+            (groupNode) => groupNode.connectionGroup.parentId === rootId,
+        );
         getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
-            nodeCount: result.length,
+            nodeCount: rootChildren.length,
         });
-        return result;
+        return rootChildren;
     }
 
     /**
