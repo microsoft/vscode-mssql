@@ -1175,9 +1175,8 @@
   },
   "Connection Dialog": "Connection Dialog",
   "Azure Account is required": "Azure Account is required",
-  "Fabric Account": "Fabric Account",
-  "Fabric Account is required": "Fabric Account is required",
   "Select an account": "Select an account",
+  "Add account": "Add account",
   "Save Password": "Save Password",
   "Tenant ID": "Tenant ID",
   "Select a tenant": "Select a tenant",
@@ -1239,6 +1238,15 @@
       "{1} is the error message"
     ]
   },
+  "Fabric Account": "Fabric Account",
+  "Fabric Account is required": "Fabric Account is required",
+  "Workspace": "Workspace",
+  "Select a Workspace": "Select a Workspace",
+  "Search Workspaces": "Search Workspaces",
+  "Workspace is required": "Workspace is required",
+  "Database Name": "Database Name",
+  "Enter Database Name": "Enter Database Name",
+  "Database Name is required": "Database Name is required",
   "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
     "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
     "comment": [
