@@ -20,6 +20,7 @@ import { Timer } from "../models/utils";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { CREATE_NEW_GROUP_ID, IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { FormItemOptions } from "../sharedInterfaces/form";
+import { ConfigurationTarget } from "../connectionconfig/connectionconfig";
 
 /**
  * The different tasks for managing connection profiles.
@@ -438,19 +439,26 @@ export class ConnectionUI {
      */
     public async getConnectionGroupOptions(): Promise<FormItemOptions[]> {
         const rootId = this._connectionManager.connectionStore.rootGroupId;
-        let connectionGroups =
-            await this._connectionManager.connectionStore.readAllConnectionGroups();
-        connectionGroups = connectionGroups.filter((g) => g.id !== rootId);
+        // Fetch user and workspace groups separately
+        const userGroups = await this._connectionManager.connectionStore.connectionConfig.getGroups(
+            ConfigurationTarget.Global,
+        );
+        const workspaceGroups =
+            await this._connectionManager.connectionStore.connectionConfig.getGroups(
+                ConfigurationTarget.Workspace,
+            );
+        // Merge and filter out the root group
+        let allGroups = [...userGroups, ...workspaceGroups].filter((g) => g.id !== rootId);
 
         // Count occurrences of group names to handle naming conflicts
         const nameOccurrences = new Map<string, number>();
-        for (const group of connectionGroups) {
+        for (const group of allGroups) {
             const count = nameOccurrences.get(group.name) || 0;
             nameOccurrences.set(group.name, count + 1);
         }
 
         // Create a map of group IDs to their full paths
-        const groupById = new Map(connectionGroups.map((g) => [g.id, g]));
+        const groupById = new Map(allGroups.map((g) => [g.id, g]));
 
         // Helper function to get parent path
         const getParentPath = (group: IConnectionGroup): string => {
@@ -464,7 +472,7 @@ export class ConnectionUI {
             return `${getParentPath(parent)} > ${group.name}`;
         };
 
-        const result = connectionGroups
+        const result = allGroups
             .map((g) => {
                 // If there are naming conflicts, use the full path
                 const displayName = nameOccurrences.get(g.name) > 1 ? getParentPath(g) : g.name;

@@ -20,7 +20,7 @@ import {
     IConnectionGroup,
 } from "./interfaces";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
-import { ConnectionConfig } from "../connectionconfig/connectionconfig";
+import { ConnectionConfig, ConfigurationTarget } from "../connectionconfig/connectionconfig";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
@@ -369,6 +369,17 @@ export class ConnectionStore {
     ): Promise<IConnectionProfile> {
         await this._connectionConfig.populateMissingConnectionIds(profile);
 
+        // Determine the correct target for saving based on groupId
+        let target = ConfigurationTarget.Global;
+        // Get all workspace group IDs
+        const workspaceGroups = this._connectionConfig.getGroupsFromSettings(
+            ConfigurationTarget.Workspace,
+        );
+        const workspaceGroupIds = new Set(workspaceGroups.map((g) => g.id));
+        if (workspaceGroupIds.has(profile.groupId)) {
+            target = ConfigurationTarget.Workspace;
+        }
+
         // Add the profile to the saved list, taking care to clear out the password field if necessary
         let savedProfile: IConnectionProfile;
         if (profile.authenticationType === Utils.authTypeToString(AuthenticationTypes.AzureMFA)) {
@@ -383,7 +394,7 @@ export class ConnectionStore {
             }
         }
 
-        await this._connectionConfig.addConnection(savedProfile);
+        await this._connectionConfig.addConnection(savedProfile, target);
 
         if (await this.saveProfilePasswordIfNeeded(profile)) {
             ConnInfo.fixupConnectionCredentials(profile);

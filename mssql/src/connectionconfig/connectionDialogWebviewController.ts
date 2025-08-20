@@ -1080,6 +1080,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     cleanedConnection as any,
                 );
+                // Refresh the Object Explorer tree to include new connections/groups
+                if (self._objectExplorerProvider?.objectExplorerService?.refreshTree) {
+                    await self._objectExplorerProvider.objectExplorerService.refreshTree();
+                }
                 const node =
                     await self._mainController.createObjectExplorerSession(cleanedConnection);
                 await self.updateLoadedConnections(state);
