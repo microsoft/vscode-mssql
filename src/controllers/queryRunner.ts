@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { EventEmitter } from "events";
-
 import * as vscode from "vscode";
 import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
@@ -37,7 +35,12 @@ import {
     QueryCancelResult,
     QueryCancelRequest,
 } from "../models/contracts/queryCancel";
-import { ISlickRange, ISelectionData, IResultMessage } from "../models/interfaces";
+import {
+    ISlickRange,
+    ISelectionData,
+    IResultMessage,
+    ResultSetSummary,
+} from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "./../models/utils";
@@ -50,6 +53,12 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 export interface IResultSet {
     columns: string[];
     totalNumberOfRows: number;
+}
+
+export interface QueryExecutionCompleteEvent {
+    totalMilliseconds: string;
+    hasError: boolean;
+    isRefresh?: boolean;
 }
 
 /*
@@ -65,10 +74,32 @@ export default class QueryRunner {
     private _totalElapsedMilliseconds: number;
     private _hasCompleted: boolean;
     private _isSqlCmd: boolean = false;
-    public eventEmitter: EventEmitter = new EventEmitter();
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
     private static _runningQueries = [];
+
+    private _startEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
+    public onStart: vscode.Event<string> = this._startEmitter.event;
+
+    private _batchStartEmitter: vscode.EventEmitter<BatchSummary> =
+        new vscode.EventEmitter<BatchSummary>();
+    public onBatchStart: vscode.Event<BatchSummary> = this._batchStartEmitter.event;
+
+    private _batchCompleteEmitter: vscode.EventEmitter<BatchSummary> =
+        new vscode.EventEmitter<BatchSummary>();
+    public onBatchComplete: vscode.Event<BatchSummary> = this._batchCompleteEmitter.event;
+
+    private _resultSetEmitter: vscode.EventEmitter<ResultSetSummary> =
+        new vscode.EventEmitter<ResultSetSummary>();
+    public onResultSet: vscode.Event<ResultSetSummary> = this._resultSetEmitter.event;
+
+    private _messageEmitter: vscode.EventEmitter<IResultMessage> =
+        new vscode.EventEmitter<IResultMessage>();
+    public onMessage: vscode.Event<IResultMessage> = this._messageEmitter.event;
+
+    private _completeEmitter: vscode.EventEmitter<QueryExecutionCompleteEvent> =
+        new vscode.EventEmitter<QueryExecutionCompleteEvent>();
+    public onComplete: vscode.Event<QueryExecutionCompleteEvent> = this._completeEmitter.event;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -264,7 +295,7 @@ export default class QueryRunner {
                 "mssql.runningQueries",
                 QueryRunner._runningQueries,
             );
-            this.eventEmitter.emit("start", this.uri);
+            this._startEmitter.fire(this.uri);
         };
         let onError = (error: Error) => {
             this._handleQueryCleanup(undefined, error);
@@ -329,11 +360,10 @@ export default class QueryRunner {
         );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
         this.removeRunningQuery();
-        this.eventEmitter.emit(
-            "complete",
-            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+        this._completeEmitter.fire({
+            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
             hasError,
-        );
+        });
         sendActionEvent(
             TelemetryViews.QueryEditor,
             TelemetryActions.QueryExecutionCompleted,
@@ -358,7 +388,7 @@ export default class QueryRunner {
 
         // Store the batch
         this._batchSets[batch.id] = batch;
-        this.eventEmitter.emit("batchStart", batch);
+        this._batchStartEmitter.fire(batch);
     }
 
     public handleBatchComplete(result: QueryExecuteBatchNotificationParams): void {
@@ -372,7 +402,7 @@ export default class QueryRunner {
             // send a time message in the format used for query complete
             this.sendBatchTimeMessage(batch.id, Utils.parseNumAsTimeString(executionTime));
         }
-        this.eventEmitter.emit("batchComplete", batch);
+        this._batchCompleteEmitter.fire(batch);
     }
 
     /**
@@ -383,7 +413,7 @@ export default class QueryRunner {
         this._hasCompleted = false;
         for (let batchId = 0; batchId < this.batchSets.length; batchId++) {
             const batchSet = this.batchSets[batchId];
-            this.eventEmitter.emit("batchStart", batchSet);
+            this._batchStartEmitter.fire(batchSet);
             let executionTime = <number>(Utils.parseTimeString(batchSet.executionElapsed) || 0);
             if (executionTime > 0) {
                 // send a time message in the format used for query complete
@@ -395,30 +425,30 @@ export default class QueryRunner {
             if (messages !== undefined) {
                 for (let messageId = 0; messageId < messages.length; ++messageId) {
                     // Send the message to the results pane
-                    this.eventEmitter.emit("message", messages[messageId]);
+                    this._messageEmitter.fire(messages[messageId]);
                 }
             }
 
-            this.eventEmitter.emit("batchComplete", batchSet);
+            this._batchCompleteEmitter.fire(batchSet);
             for (
                 let resultSetId = 0;
                 resultSetId < batchSet.resultSetSummaries.length;
                 resultSetId++
             ) {
                 let resultSet = batchSet.resultSetSummaries[resultSetId];
-                this.eventEmitter.emit("resultSet", resultSet, true);
+                this._resultSetEmitter.fire(resultSet);
             }
         }
         // We're done with this query so shut down any waiting mechanisms
         this._statusView.executedQuery(uri);
         this._isExecuting = false;
         this._hasCompleted = true;
-        this.eventEmitter.emit(
-            "complete",
-            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
-            true,
-            true,
-        );
+
+        this._completeEmitter.fire({
+            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            hasError: false,
+            isRefresh: false,
+        });
         return true;
     }
 
@@ -428,7 +458,7 @@ export default class QueryRunner {
 
         // Store the result set in the batch and emit that a result set has completed
         batchSet.resultSetSummaries[resultSet.id] = resultSet;
-        this.eventEmitter.emit("resultSet", resultSet);
+        this._resultSetEmitter.fire(resultSet);
     }
 
     public handleMessage(obj: QueryExecuteMessageParams): void {
@@ -441,7 +471,7 @@ export default class QueryRunner {
         }
 
         // Send the message to the results pane
-        this.eventEmitter.emit("message", message);
+        this._messageEmitter.fire(message);
 
         // Set row count on status bar if there are no errors
         if (!obj.message.isError) {
@@ -521,11 +551,11 @@ export default class QueryRunner {
             }
             this._uriToQueryPromiseMap.delete(this._ownerUri);
         }
-        this.eventEmitter.emit(
-            "complete",
-            Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
-            true,
-        );
+
+        this._completeEmitter.fire({
+            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
+            hasError: !!error,
+        });
         this._statusView.executedQuery(this._ownerUri);
 
         this._notificationHandler.unregisterRunner(this._ownerUri);
@@ -992,8 +1022,7 @@ export default class QueryRunner {
                 time: undefined,
                 isError: false,
             };
-            // Send the message to the results pane
-            this.eventEmitter.emit("message", message);
+            this._messageEmitter.fire(message);
         }
     }
 

@@ -5,7 +5,6 @@
 
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
-import { EventEmitter } from "events";
 import QueryRunner from "../../src/controllers/queryRunner";
 import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
 import * as Utils from "../../src/models/utils";
@@ -90,10 +89,6 @@ suite("Query Runner tests", () => {
             .setup((x) => x.openTextDocument(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(testDoc));
 
-        // ... Mock up a event emitter to accept a start event (only)
-        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Loose);
-        mockEventEmitter.setup((x) => x.emit("start"));
-
         // If:
         // ... I create a query runner
         let queryRunner = new QueryRunner(
@@ -104,7 +99,6 @@ suite("Query Runner tests", () => {
             testQueryNotificationHandler.object,
             testVscodeWrapper.object,
         );
-        queryRunner.eventEmitter = mockEventEmitter.object;
 
         // ... And run a query
         return queryRunner.runQuery(standardSelection).then(() => {
@@ -114,9 +108,6 @@ suite("Query Runner tests", () => {
                 (x) => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
                 TypeMoq.Times.once(),
             );
-
-            // ... Start is the only event that should be emitted during successful query start
-            mockEventEmitter.verify((x) => x.emit("start", standardUri), TypeMoq.Times.once());
 
             // ... The VS Code status should be updated
             testStatusView.verify<void>((x) => x.executingQuery(standardUri), TypeMoq.Times.once());
@@ -156,9 +147,6 @@ suite("Query Runner tests", () => {
             .setup((x) => x.openTextDocument(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(testDoc));
 
-        // ... Setup the event emitter to handle complete event for cleanup
-        let testEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Loose);
-
         // If:
         // ... I create a query runner
         let queryRunner = new QueryRunner(
@@ -169,7 +157,6 @@ suite("Query Runner tests", () => {
             testQueryNotificationHandler.object,
             testVscodeWrapper.object,
         );
-        queryRunner.eventEmitter = testEventEmitter.object;
 
         // ... And I run a query that is going to fail to start
         try {
@@ -227,18 +214,11 @@ suite("Query Runner tests", () => {
             testQueryNotificationHandler.object,
             testVscodeWrapper.object,
         );
-        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        mockEventEmitter.setup((x) => x.emit("batchStart", TypeMoq.It.isAny()));
-        queryRunner.eventEmitter = mockEventEmitter.object;
         queryRunner.handleBatchStart(batchStart);
 
         // Then: It should store the batch, messages and emit a batch start
         assert.equal(queryRunner.batchSets.indexOf(batchStart.batchSummary), 0);
         assert.ok(queryRunner.batchSetMessages[batchStart.batchSummary.id]);
-        mockEventEmitter.verify(
-            (x) => x.emit("batchStart", TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
     });
 
     function testBatchCompleteNotification(sendBatchTime: boolean): void {
@@ -293,10 +273,6 @@ suite("Query Runner tests", () => {
         };
         queryRunner.batchSetMessages[queryRunner.batchSets[0].id] = [];
 
-        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        mockEventEmitter.setup((x) => x.emit("batchComplete", TypeMoq.It.isAny()));
-        mockEventEmitter.setup((x) => x.emit("message", TypeMoq.It.isAny(), TypeMoq.It.isAny()));
-        queryRunner.eventEmitter = mockEventEmitter.object;
         queryRunner.handleBatchComplete(batchComplete);
 
         // Then: It should the remainder of the information and emit a batch complete notification
@@ -319,16 +295,6 @@ suite("Query Runner tests", () => {
         // ... Result sets should not be set by the batch complete notification
         assert.equal(typeof storedBatch.resultSetSummaries, typeof []);
         assert.equal(storedBatch.resultSetSummaries.length, 0);
-
-        mockEventEmitter.verify(
-            (x) => x.emit("batchComplete", TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
-        let expectedMessageTimes = sendBatchTime ? TypeMoq.Times.once() : TypeMoq.Times.never();
-        mockEventEmitter.verify(
-            (x) => x.emit("message", TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            expectedMessageTimes,
-        );
     }
 
     test("Notification - Batch Complete no message", () => {
@@ -374,9 +340,6 @@ suite("Query Runner tests", () => {
             },
             resultSetSummaries: [],
         };
-        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        mockEventEmitter.setup((x) => x.emit("resultSet", TypeMoq.It.isAny()));
-        queryRunner.eventEmitter = mockEventEmitter.object;
         queryRunner.handleResultSetComplete(resultSetComplete);
 
         // Then:
@@ -385,12 +348,6 @@ suite("Query Runner tests", () => {
         assert.equal(
             queryRunner.batchSets[0].resultSetSummaries[0],
             resultSetComplete.resultSetSummary,
-        );
-
-        // ... The resultset complete event should have been emitted
-        mockEventEmitter.verify(
-            (x) => x.emit("resultSet", TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
         );
     });
 
@@ -416,10 +373,6 @@ suite("Query Runner tests", () => {
             },
         };
 
-        // ... Create a mock event emitter to receive the events
-        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        mockEventEmitter.setup((x) => x.emit("resultSet", TypeMoq.It.isAny()));
-
         // If:
         // ... I submit a resultSet completion notification to the query runner
         let queryRunner = new QueryRunner(
@@ -444,7 +397,6 @@ suite("Query Runner tests", () => {
             },
             resultSetSummaries: [],
         };
-        queryRunner.eventEmitter = mockEventEmitter.object;
         queryRunner.handleResultSetComplete(resultSetComplete1);
 
         // ... And submit a second result set completion notification
@@ -461,19 +413,10 @@ suite("Query Runner tests", () => {
             queryRunner.batchSets[0].resultSetSummaries[1],
             resultSetComplete2.resultSetSummary,
         );
-
-        // ... The resultset complete event should have been emitted twice
-        mockEventEmitter.verify(
-            (x) => x.emit("resultSet", TypeMoq.It.isAny()),
-            TypeMoq.Times.exactly(2),
-        );
     });
 
     test("Notification - Message", () => {
         // Setup:
-        // ... Create a mock for an event emitter that handles message notifications
-        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        mockEventEmitter.setup((x) => x.emit("message", TypeMoq.It.isAny()));
 
         // ... Create a message notification with some message
         let message: QueryExecuteContracts.QueryExecuteMessageParams = {
@@ -497,24 +440,16 @@ suite("Query Runner tests", () => {
             testVscodeWrapper.object,
         );
         queryRunner.batchSetMessages[message.message.batchId] = [];
-        queryRunner.eventEmitter = mockEventEmitter.object;
 
         // ... And I ask to handle a message
         queryRunner.handleMessage(message);
 
-        // Then: A message event should have been emitted
-        mockEventEmitter.verify((x) => x.emit("message", TypeMoq.It.isAny()), TypeMoq.Times.once());
         // ... Result set message cache contains one entry
         assert.equal(queryRunner.batchSetMessages[message.message.batchId].length, 1);
     });
 
     test("Notification - Query complete", () => {
         // Setup:
-        // ... Create a mock for an event emitter that handles complete notifications
-        let mockEventEmitter = TypeMoq.Mock.ofType(EventEmitter, TypeMoq.MockBehavior.Strict);
-        mockEventEmitter.setup((x) =>
-            x.emit("complete", TypeMoq.It.isAnyString(), TypeMoq.It.isAny()),
-        );
 
         // ... Setup the VS Code view handlers
         testStatusView.setup((x) => x.executedQuery(TypeMoq.It.isAny()));
@@ -546,7 +481,6 @@ suite("Query Runner tests", () => {
             testQueryNotificationHandler.object,
             testVscodeWrapper.object,
         );
-        queryRunner.eventEmitter = mockEventEmitter.object;
 
         // ... And I handle a query completion event
         queryRunner.handleQueryComplete(result);
@@ -554,12 +488,6 @@ suite("Query Runner tests", () => {
         // Then:
         // ... The VS Code view should have stopped executing
         testStatusView.verify((x) => x.executedQuery(standardUri), TypeMoq.Times.once());
-
-        // ... The event emitter should have gotten a complete event
-        mockEventEmitter.verify(
-            (x) => x.emit("complete", TypeMoq.It.isAnyString(), TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
 
         // ... The state of the query runner has been updated
         assert.equal(queryRunner.batchSets.length, 1);
