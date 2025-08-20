@@ -77,7 +77,7 @@ export const cmdObjectExplorerEnableGroupBySchemaCommand =
 export const cmdObjectExplorerDisableGroupBySchemaCommand =
     "mssql.objectExplorer.disableGroupBySchema";
 export const cmdObjectExplorerCollapseOrExpandByDefault =
-    "objectExplorer.connectionGroupsCollapsedOnStartup";
+    "objectExplorer.collapseConnectionGroupsOnStartup";
 export const cmdEnableRichExperiencesCommand = "mssql.enableRichExperiences";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";

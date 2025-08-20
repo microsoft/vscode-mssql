@@ -1926,9 +1926,9 @@
                     "description": "%mssql.objectExplorer.groupBySchema%",
                     "default": false
                 },
-                "mssql.objectExplorer.connectionGroupsCollapsedOnStartup": {
+                "mssql.objectExplorer.collapseConnectionGroupsOnStartup": {
                     "type": "boolean",
-                    "description": "%mssql.objectExplorer.connectionGroupsCollapsedOnStartupDescription%",
+                    "description": "%mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription%",
                     "default": false,
                     "scope": "window"
                 },
