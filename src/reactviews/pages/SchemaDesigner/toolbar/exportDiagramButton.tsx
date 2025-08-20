@@ -99,46 +99,53 @@ export function ExportDiagramButton() {
                 const nodesBounds = getNodesBounds(nodes);
 
                 try {
-                    const svgContent = generateSvgFromReactFlow(
-                        nodes as any, // Type assertion needed for React Flow generic
-                        edges,
-                        {
-                            width: nodesBounds.width + 100,
-                            height: nodesBounds.height + 100,
-                            backgroundColor: graphBackgroundColor,
-                        },
-                    );
+                    // Run SVG generation asynchronously to prevent UI blocking
+                    setTimeout(() => {
+                        try {
+                            const svgContent = generateSvgFromReactFlow(
+                                nodes as any, // Type assertion needed for React Flow generic
+                                edges,
+                                {
+                                    width: nodesBounds.width + 100,
+                                    height: nodesBounds.height + 100,
+                                    backgroundColor: graphBackgroundColor,
+                                },
+                            );
 
-                    const dataUrl = createSvgDataUrl(svgContent);
+                            const dataUrl = createSvgDataUrl(svgContent);
 
-                    context.saveAsFile({
-                        format,
-                        fileContents: dataUrl,
-                        width: nodesBounds.width + 100,
-                        height: nodesBounds.height + 100,
-                    });
-                } catch (error) {
-                    console.error("Failed to generate SVG:", error);
-                    // Fallback to html-to-image if custom export fails
-                    void htmlToImage
-                        .toSvg(reactFlowContainer, {
-                            width: width,
-                            height: height,
-                            backgroundColor: graphBackgroundColor,
-                            style: {
-                                transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
-                                width: `${width}px`,
-                                height: `${height}px`,
-                            },
-                        })
-                        .then((dataUrl) => {
                             context.saveAsFile({
                                 format,
                                 fileContents: dataUrl,
-                                width,
-                                height,
+                                width: nodesBounds.width + 100,
+                                height: nodesBounds.height + 100,
                             });
-                        });
+                        } catch (error) {
+                            console.error("Failed to generate SVG:", error);
+                            // Fallback to html-to-image if custom export fails
+                            void htmlToImage
+                                .toSvg(reactFlowContainer, {
+                                    width: width,
+                                    height: height,
+                                    backgroundColor: graphBackgroundColor,
+                                    style: {
+                                        transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+                                        width: `${width}px`,
+                                        height: `${height}px`,
+                                    },
+                                })
+                                .then((dataUrl) => {
+                                    context.saveAsFile({
+                                        format,
+                                        fileContents: dataUrl,
+                                        width,
+                                        height,
+                                    });
+                                });
+                        }
+                    }, 10); // Small delay to allow UI to update
+                } catch (error) {
+                    console.error("Failed to initiate SVG export:", error);
                 }
                 break;
         }

@@ -34,6 +34,15 @@ export function generateSvgFromReactFlow(
 ): string {
     const { backgroundColor = "#1e1e1e" } = options;
 
+    if (!nodes.length) {
+        // Return a minimal SVG if no nodes are provided
+        return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="${backgroundColor}"/>
+  <text x="200" y="150" text-anchor="middle" fill="#cccccc" font-family="'Segoe UI', sans-serif" font-size="16">No tables to display</text>
+</svg>`;
+    }
+
     // Calculate bounds of all nodes to center the content
     let minX = Infinity;
     let minY = Infinity;
@@ -57,7 +66,7 @@ export function generateSvgFromReactFlow(
     const offsetX = -minX + padding;
     const offsetY = -minY + padding;
 
-    // Start building SVG
+    // Start building SVG with optimized structure
     let svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="${contentWidth}" height="${contentHeight}" 
      viewBox="0 0 ${contentWidth} ${contentHeight}"
@@ -72,7 +81,17 @@ export function generateSvgFromReactFlow(
       .primary-key { fill: #ffd700; font-weight: bold; }
       .foreign-key { fill: #ff6b6b; }
       .relationship-line { stroke: #666666; stroke-width: 2; fill: none; }
-    </style>
+    </style>`;
+
+    // Add marker definitions only if there are edges
+    if (edges.length > 0) {
+        svg += `
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666666"/>
+    </marker>`;
+    }
+
+    svg += `
   </defs>
   <rect width="100%" height="100%" fill="${backgroundColor}"/>
 `;
@@ -83,16 +102,18 @@ export function generateSvgFromReactFlow(
         const targetNode = nodes.find((n) => n.id === edge.target);
 
         if (sourceNode && targetNode) {
-            const sourceX =
-                sourceNode.position.x + offsetX + (sourceNode.measured?.width || 200) / 2;
-            const sourceY =
-                sourceNode.position.y + offsetY + (sourceNode.measured?.height || 100) / 2;
-            const targetX =
-                targetNode.position.x + offsetX + (targetNode.measured?.width || 200) / 2;
-            const targetY =
-                targetNode.position.y + offsetY + (targetNode.measured?.height || 100) / 2;
+            const sourceWidth = sourceNode.measured?.width || 200;
+            const sourceHeight = sourceNode.measured?.height || 100;
+            const targetWidth = targetNode.measured?.width || 200;
+            const targetHeight = targetNode.measured?.height || 100;
 
-            svg += `  <line x1="${sourceX}" y1="${sourceY}" x2="${targetX}" y2="${targetY}" class="relationship-line"/>\n`;
+            // Calculate edge connection points (center-to-center for now)
+            const sourceX = sourceNode.position.x + offsetX + sourceWidth / 2;
+            const sourceY = sourceNode.position.y + offsetY + sourceHeight / 2;
+            const targetX = targetNode.position.x + offsetX + targetWidth / 2;
+            const targetY = targetNode.position.y + offsetY + targetHeight / 2;
+
+            svg += `  <line x1="${sourceX}" y1="${sourceY}" x2="${targetX}" y2="${targetY}" class="relationship-line" marker-end="url(#arrowhead)"/>\n`;
         }
     });
 
@@ -117,9 +138,12 @@ export function generateSvgFromReactFlow(
         const tableName = `${table.schema}.${table.name}`;
         svg += `  <text x="${x + 10}" y="${y + 20}" class="table-header">${escapeXml(tableName)}</text>\n`;
 
-        // Columns
-        let currentY = y + headerHeight + 20;
-        table.columns.forEach((column, index) => {
+        // Columns - limit to visible columns to prevent performance issues
+        let currentY = y + headerHeight + 15;
+        const maxVisibleColumns = Math.floor((nodeHeight - headerHeight - 20) / 18);
+        const visibleColumns = table.columns.slice(0, maxVisibleColumns);
+
+        visibleColumns.forEach((column, index) => {
             const columnY = currentY + index * 18;
 
             // Column icon and text
@@ -136,12 +160,22 @@ export function generateSvgFromReactFlow(
                 icon = "🔗 ";
             }
 
-            const columnText = `${icon}${column.name}: ${column.dataType}`;
-            if (columnY < y + nodeHeight - 10) {
-                // Only show if within node bounds
-                svg += `  <text x="${x + 10}" y="${columnY}" class="${columnClass}">${escapeXml(columnText)}</text>\n`;
+            // Truncate long column names/types for better display
+            const maxColumnTextLength = Math.floor((nodeWidth - 40) / 7); // Approximate character width
+            let columnText = `${icon}${column.name}: ${column.dataType}`;
+            if (columnText.length > maxColumnTextLength) {
+                columnText = columnText.substring(0, maxColumnTextLength - 3) + "...";
             }
+
+            svg += `  <text x="${x + 10}" y="${columnY}" class="${columnClass}">${escapeXml(columnText)}</text>\n`;
         });
+
+        // Add indicator if there are more columns
+        if (table.columns.length > maxVisibleColumns) {
+            const moreColumnsY = currentY + maxVisibleColumns * 18;
+            const remainingCount = table.columns.length - maxVisibleColumns;
+            svg += `  <text x="${x + 10}" y="${moreColumnsY}" class="column-text" font-style="italic">... and ${remainingCount} more columns</text>\n`;
+        }
     });
 
     svg += "</svg>";
