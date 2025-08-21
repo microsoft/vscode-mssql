@@ -126,6 +126,18 @@ export class VsCodeAzureHelper {
         return auth;
     }
 
+    public static getHomeTenantIdForAccount(
+        account: vscode.AuthenticationSessionAccountInformation | string,
+    ): string | undefined {
+        const accountId = typeof account === "string" ? account : account.id;
+
+        if (accountId?.includes(".")) {
+            return accountId.split(".")[1]; // account ID takes the format <accountID>.<homeTenantID>
+        }
+
+        return undefined;
+    }
+
     /**
      * Gets the tenants available for a specific Azure account
      * @param account The account to get tenants for

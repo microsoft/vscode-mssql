@@ -119,6 +119,16 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                         browseTarget,
                     });
                 },
+                selectAzureAccount: (accountId: string) => {
+                    webviewContext.extensionRpc.action("selectAzureAccount", {
+                        accountId,
+                    });
+                },
+                selectAzureTenant: (tenantId: string) => {
+                    webviewContext.extensionRpc.action("selectAzureTenant", {
+                        tenantId,
+                    });
+                },
             }}>
             {children}
         </ConnectionDialogContext.Provider>

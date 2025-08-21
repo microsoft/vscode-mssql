@@ -49,6 +49,10 @@ export class ConnectionDialogWebviewState
     public readyToConnect: boolean = false;
     public formError: string = "";
     public dialog: IDialogProps | undefined;
+
+    public selectedAccountId: string | undefined;
+    public azureTenants: IAzureTenant[] = [];
+    public selectedTenantId: string | undefined;
     public fabricWorkspaces: FabricWorkspaceInfo[] = [];
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
@@ -63,6 +67,11 @@ export class ConnectionDialogWebviewState
 }
 
 export interface IAzureAccount {
+    id: string;
+    name: string;
+}
+
+export interface IAzureTenant {
     id: string;
     name: string;
 }
@@ -216,6 +225,8 @@ export interface ConnectionDialogContextProps
     openConnectionStringDialog: () => void;
     signIntoAzureForFirewallRule: () => void;
     signIntoAzureForBrowse: (browseTarget: "azure" | "fabric") => void;
+    selectAzureAccount: (accountId: string) => void;
+    selectAzureTenant: (tenantId: string) => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
@@ -280,6 +291,8 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
     signIntoAzureForBrowse: { browseTarget: "azure" | "fabric" };
+    selectAzureAccount: { accountId: string };
+    selectAzureTenant: { tenantId: string };
 }
 
 export namespace GetConnectionDisplayNameRequest {

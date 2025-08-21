@@ -604,6 +604,33 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             return state;
         });
+
+        this.registerReducer("selectAzureAccount", async (state, payload) => {
+            state.selectedAccountId = payload.accountId;
+
+            // set the list of tenants and selected tenant
+            const azureAccount = await VsCodeAzureHelper.getAccountById(payload.accountId);
+            const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureAccount);
+
+            state.azureTenants = tenants.map((t) => ({
+                id: t.tenantId,
+                name: t.displayName,
+            }));
+
+            // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
+            const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(azureAccount);
+
+            state.selectedTenantId =
+                homeTenantId ??
+                (state.azureTenants.length > 0 ? state.azureTenants[0].id : undefined);
+
+            return state;
+        });
+
+        this.registerReducer("selectAzureTenant", async (state, payload) => {
+            state.selectedTenantId = payload.tenantId;
+            return state;
+        });
     }
 
     //#region Helpers

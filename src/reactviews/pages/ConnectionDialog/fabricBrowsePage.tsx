@@ -70,19 +70,19 @@ export const FabricBrowsePage = () => {
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     const [servers, setServers] = useState<string[]>([]);
-    const [selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
+    const [selectedServer, setSelectedServer] = useState<string>("");
     const [serverValue, setServerValue] = useState<string>("");
 
     const [databases, setDatabases] = useState<string[]>([]);
-    const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
+    const [selectedDatabase, setSelectedDatabase] = useState<string>("");
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
     const [searchFilter, setSearchFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
 
-    // Replace hardcoded accounts with real accounts from state
     const [accounts, setAccounts] = useState<IAzureAccount[]>([]);
-    const [selectedAccount, setSelectedAccount] = useState<string | undefined>(undefined);
+    // const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+    const [selectedAccountName, setSelectedAccountName] = useState<string>("");
 
     // Load accounts from state when component mounts
     useEffect(() => {
@@ -93,8 +93,12 @@ export const FabricBrowsePage = () => {
             setAccounts(context.state.azureAccounts);
 
             // Set the first account as selected if available
-            if (context.state.azureAccounts.length > 0 && !selectedAccount) {
-                setSelectedAccount(context.state.azureAccounts[0].id);
+            if (context.state.azureAccounts.length > 0 && !context.state.selectedAccountId) {
+                handleAccountChange({} as any, {
+                    optionText: context.state.azureAccounts[0].name,
+                    optionValue: context.state.azureAccounts[0].id,
+                    selectedOptions: [context.state.azureAccounts[0].id],
+                });
             }
         }
     }, [context.state.loadingAzureAccountsStatus, context.state.azureAccounts]);
@@ -104,7 +108,7 @@ export const FabricBrowsePage = () => {
             return; // avoid unnecessary updates
         }
 
-        setSelectedServer(server);
+        setSelectedServer(server || "");
 
         let serverUri = "";
 
@@ -134,9 +138,12 @@ export const FabricBrowsePage = () => {
     }
 
     function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
-        const accountName = data.optionValue || "";
-        setSelectedAccount(accountName);
-        console.log("Selected account:", accountName);
+        const accountName = data.optionText || "";
+        const accountId = data.optionValue || "";
+        setSelectedAccountName(accountName);
+        // setSelectedAccountId(accountId);
+
+        context!.selectAzureAccount(accountId);
     }
 
     return (
@@ -156,7 +163,12 @@ export const FabricBrowsePage = () => {
                     <Field orientation="horizontal">
                         <Label>Account</Label>
                         <Dropdown
-                            value={selectedAccount}
+                            value={selectedAccountName}
+                            selectedOptions={
+                                context.state.selectedAccountId
+                                    ? [context.state.selectedAccountId]
+                                    : []
+                            }
                             onOptionSelect={handleAccountChange}
                             placeholder="Select an account">
                             {accounts.map((account) => (
@@ -178,6 +190,11 @@ export const FabricBrowsePage = () => {
                             onFilterOptionChanged={handleFilterOptionChanged}
                             searchValue={searchFilter}
                             selectedTypeFilters={typeFilter}
+                            selectTenantId={(id) => {
+                                context.selectAzureTenant(id);
+                            }}
+                            azureTenants={context.state.azureTenants}
+                            selectedTenantId={context.state.selectedTenantId}
                         />
                         <FabricWorkspaceViewer
                             fabricWorkspaces={context.state.fabricWorkspaces}
@@ -208,7 +225,7 @@ export const FabricBrowsePage = () => {
                                     setValue: setDatabaseValue,
                                     selection: selectedDatabase,
                                     setSelection: (db) => {
-                                        setSelectedDatabase(db);
+                                        setSelectedDatabase(db ?? "");
                                         setConnectionProperty("database", db ?? "");
                                     },
                                     placeholder: `<${Loc.connectionDialog.default}>`,
