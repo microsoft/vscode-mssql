@@ -15,151 +15,99 @@ import {
     QueryExecuteBatchCompleteNotification,
     QueryExecuteResultSetCompleteNotification,
     QueryExecuteMessageNotification,
+    QueryExecuteCompleteNotificationResult,
+    QueryExecuteBatchNotificationParams,
+    QueryExecuteResultSetCompleteNotificationParams,
+    QueryExecuteMessageParams,
 } from "../models/contracts/queryExecute";
 import { NotificationHandler } from "vscode-languageclient";
 
 export class QueryNotificationHandler {
     private static _instance: QueryNotificationHandler;
+    static get instance() {
+        return (this._instance ??= new QueryNotificationHandler());
+    }
 
     // public for testing only
     public _queryRunners = new Map<string, QueryRunner>();
+    constructor() {
+        this.initialize();
+    }
 
+    // Registers queryRunners with their uris to distribute notifications.
     // public for testing only
-    public _handlerCallbackQueue: ((run: QueryRunner) => void)[] = [];
+    public registerRunner(runner: QueryRunner, uri: string): void {
+        this._queryRunners.set(uri, runner);
+    }
 
-    static get instance(): QueryNotificationHandler {
-        if (QueryNotificationHandler._instance) {
-            return QueryNotificationHandler._instance;
-        } else {
-            QueryNotificationHandler._instance = new QueryNotificationHandler();
-            QueryNotificationHandler._instance.initialize();
-            return QueryNotificationHandler._instance;
-        }
+    public unregisterRunner(uri: string): void {
+        this._queryRunners.delete(uri);
     }
 
     // register the handler to handle notifications for queries
     private initialize(): void {
-        SqlToolsServiceClient.instance.onNotification(
+        const client = SqlToolsServiceClient.instance;
+        client.onNotification(
             QueryExecuteCompleteNotification.type,
             this.handleQueryCompleteNotification(),
         );
-        SqlToolsServiceClient.instance.onNotification(
+        client.onNotification(
             QueryExecuteBatchStartNotification.type,
             this.handleBatchStartNotification(),
         );
-        SqlToolsServiceClient.instance.onNotification(
+        client.onNotification(
             QueryExecuteBatchCompleteNotification.type,
             this.handleBatchCompleteNotification(),
         );
-        SqlToolsServiceClient.instance.onNotification(
+        client.onNotification(
             QueryExecuteResultSetCompleteNotification.type,
             this.handleResultSetCompleteNotification(),
         );
-        SqlToolsServiceClient.instance.onNotification(
+        client.onNotification(
             QueryExecuteMessageNotification.type,
             this.handleMessageNotification(),
         );
     }
 
-    // Registers queryRunners with their uris to distribute notifications.
-    // Ensures that notifications are handled in the correct order by handling
-    // enqueued handlers first.
-    // public for testing only
-    public registerRunner(runner: QueryRunner, uri: string): void {
-        // If enqueueOrRun was called before registerRunner for the current query,
-        // _handlerCallbackQueue will be non-empty. Run all handlers in the queue first
-        // so that notifications are handled in order they arrived
-        while (this._handlerCallbackQueue.length > 0) {
-            let handler: NotificationHandler<any> = this._handlerCallbackQueue.shift();
-            handler(runner);
-        }
-
-        // Set the runner for any other handlers if the runner is in use by the
-        // current query or a subsequent query
-        if (!runner.hasCompleted) {
-            this._queryRunners.set(uri, runner);
-        }
-    }
-
-    // Handles logic to run the given handlerCallback at the appropriate time. If the given runner is
-    // undefined, the handlerCallback is put on the _handlerCallbackQueue to be run once the runner is set
-    // public for testing only
-    private enqueueOrRun(
-        handlerCallback: (runnerParam: QueryRunner) => void,
-        runner: QueryRunner,
-    ): void {
-        if (runner === undefined) {
-            this._handlerCallbackQueue.push(handlerCallback);
-        } else {
-            handlerCallback(runner);
-        }
-    }
-
-    // Distributes result completion notification to appropriate methods
-    // public for testing only
-    public handleQueryCompleteNotification(): NotificationHandler<any> {
-        const self = this;
-        return (event) => {
-            let handlerCallback = (runner: QueryRunner) => {
-                runner.handleQueryComplete(event);
-
-                // There should be no more notifications for this query, so unbind the QueryRunner if it
-                // is present in the map. If it is not present, handleQueryCompleteNotification must have been
-                // called before registerRunner
-                if (self._queryRunners.get(event.ownerUri) !== undefined) {
-                    self._queryRunners.delete(event.ownerUri);
-                }
-            };
-
-            self.enqueueOrRun(handlerCallback, self._queryRunners.get(event.ownerUri));
+    private makeHandler<T extends { ownerUri: string }>(
+        invoke: (r: QueryRunner, e: T) => void,
+        onComplete = false,
+    ): NotificationHandler<T> {
+        return (e: T) => {
+            const r = this._queryRunners.get(e.ownerUri);
+            if (!r) return; // runner not registered (rare)
+            invoke(r, e);
+            if (onComplete) this._queryRunners.delete(e.ownerUri);
         };
     }
 
-    // Distributes batch start notification to appropriate methods
-    // public for testing only
-    public handleBatchStartNotification(): NotificationHandler<any> {
-        const self = this;
-        return (event) => {
-            let handlerCallback = (runner: QueryRunner) => {
-                runner.handleBatchStart(event);
-            };
-            self.enqueueOrRun(handlerCallback, self._queryRunners.get(event.ownerUri));
-        };
+    // Now give each handler its precise event type:
+    public handleQueryCompleteNotification(): NotificationHandler<QueryExecuteCompleteNotificationResult> {
+        return this.makeHandler<QueryExecuteCompleteNotificationResult>(
+            (r, e) => r.handleQueryComplete(e),
+            true,
+        );
     }
 
-    // Distributes batch completion notification to appropriate methods
-    // public for testing only
-    public handleBatchCompleteNotification(): NotificationHandler<any> {
-        const self = this;
-        return (event) => {
-            let handlerCallback = (runner: QueryRunner) => {
-                runner.handleBatchComplete(event);
-            };
-            self.enqueueOrRun(handlerCallback, self._queryRunners.get(event.ownerUri));
-        };
+    public handleBatchStartNotification(): NotificationHandler<QueryExecuteBatchNotificationParams> {
+        return this.makeHandler<QueryExecuteBatchNotificationParams>((r, e) =>
+            r.handleBatchStart(e),
+        );
     }
 
-    // Distributes result set completion notification to appropriate methods
-    // public for testing only
-    public handleResultSetCompleteNotification(): NotificationHandler<any> {
-        const self = this;
-        return (event) => {
-            let handlerCallback = (runner: QueryRunner) => {
-                runner.handleResultSetComplete(event);
-            };
-            self.enqueueOrRun(handlerCallback, self._queryRunners.get(event.ownerUri));
-        };
+    public handleBatchCompleteNotification(): NotificationHandler<QueryExecuteBatchNotificationParams> {
+        return this.makeHandler<QueryExecuteBatchNotificationParams>((r, e) =>
+            r.handleBatchComplete(e),
+        );
     }
 
-    // Distributes message notifications
-    // public for testing only
-    public handleMessageNotification(): NotificationHandler<any> {
-        const self = this;
-        return (event) => {
-            let handlerCallback = (runner: QueryRunner) => {
-                runner.handleMessage(event);
-            };
-            self.enqueueOrRun(handlerCallback, self._queryRunners.get(event.ownerUri));
-        };
+    public handleResultSetCompleteNotification(): NotificationHandler<QueryExecuteResultSetCompleteNotificationParams> {
+        return this.makeHandler<QueryExecuteResultSetCompleteNotificationParams>((r, e) =>
+            r.handleResultSetComplete(e),
+        );
+    }
+
+    public handleMessageNotification(): NotificationHandler<QueryExecuteMessageParams> {
+        return this.makeHandler<QueryExecuteMessageParams>((r, e) => r.handleMessage(e));
     }
 }
