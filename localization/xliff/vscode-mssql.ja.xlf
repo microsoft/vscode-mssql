@@ -4590,16 +4590,16 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[省略可能] ReadWrite や ReadOnly のように、SQL Server へ接続する際のアプリケーション ワークロードの型を宣言します。詳細については、SQL Server AlwaysOn を参照してください。</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.delimiter">
-        <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV</source>
-        <target state="translated">[省略可能] 結果を CSV として保存するときのデータ項目を区切るための区切り文字</target>
+        <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</source>
+        <target state="new">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</target>
       </trans-unit>
       <trans-unit id="mssql.ignorePlatformWarning">
         <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
         <target state="translated">[省略可能] サポートされていないプラットフォームの警告を表示しない</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.encoding">
-        <source xml:lang="en">[Optional] File encoding used when saving results as CSV</source>
-        <target state="translated">[省略可能] 結果を CSV として保存するときに使用するファイル エンコード</target>
+        <source xml:lang="en">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</source>
+        <target state="new">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</target>
       </trans-unit>
       <trans-unit id="mssql.connection.currentLanguage">
         <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>
