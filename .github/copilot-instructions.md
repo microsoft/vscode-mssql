@@ -65,6 +65,11 @@ yarn lint src/ test/
 # This is expected behavior - tests work in CI with proper VS Code setup
 yarn test
 # Expected to fail with "ENOTFOUND update.code.visualstudio.com" in sandboxed environments
+
+# Run targeted unit tests using grep patterns
+yarn test --grep "ConnectionManager"          # Run tests matching "ConnectionManager"
+yarn test --pattern ".*service.*"             # Run tests matching service pattern
+yarn test --testPattern "QueryRunner"         # Alternative syntax for test filtering
 ```
 
 #### E2E Tests (Smoke Tests)
