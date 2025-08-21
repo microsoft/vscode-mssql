@@ -479,9 +479,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                         <a
                             href="https://go.microsoft.com/fwlink/?LinkId=746388"
                             target="_blank"
-                        >
-                            ${ContainerDeployment.termsAndConditions}
-                        </a>
+                        >${ContainerDeployment.termsAndConditions}</a>
                     </span>`,
                 required: true,
                 tooltip: ContainerDeployment.acceptSqlServerEulaTooltip,
