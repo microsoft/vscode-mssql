@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent, useContext } from "react";
+import { ChangeEvent, useContext, useEffect, useState } from "react";
 import {
+    Dropdown,
     Input,
     InputOnChangeData,
     Label,
@@ -16,6 +17,9 @@ import {
     MenuList,
     MenuPopover,
     MenuTrigger,
+    Option,
+    OptionOnSelectData,
+    SelectionEvents,
     Tooltip,
 } from "@fluentui/react-components";
 import { Search20Regular } from "@fluentui/react-icons";
@@ -23,6 +27,7 @@ import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
 import { themeType } from "../../../common/utils";
 import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { locConstants as Loc } from "../../../common/locConstants";
+import { IAzureTenant } from "../../../../sharedInterfaces/connectionDialog";
 
 interface Props {
     onSearchInputChanged: (_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => void;
@@ -30,8 +35,11 @@ interface Props {
         _: MenuCheckedValueChangeEvent,
         { name, checkedItems }: MenuCheckedValueChangeData,
     ) => void;
+    selectTenantId: (tenantId: string) => void;
     searchValue?: string;
     selectedTypeFilters?: string[];
+    azureTenants: IAzureTenant[];
+    selectedTenantId: string | undefined;
 }
 
 export const filterIcon = (colorTheme: ColorThemeKind) => {
@@ -46,11 +54,35 @@ export const filterIcon = (colorTheme: ColorThemeKind) => {
 const FabricWorkspaceFilter = ({
     onSearchInputChanged,
     onFilterOptionChanged,
+    selectTenantId,
     searchValue = "",
     selectedTypeFilters = [],
+    azureTenants = [],
+    selectedTenantId = "",
 }: Props) => {
     const context = useContext(ConnectionDialogContext);
     const theme = context!.themeKind;
+
+    // const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+    const [selectedTenantName, setSelectedTenantName] = useState<string>("");
+
+    // Load accounts from state when component mounts
+    useEffect(() => {
+        if (selectedTenantId) {
+            const tenant = azureTenants.find((t) => t.id === selectedTenantId);
+            if (tenant) {
+                setSelectedTenantName(tenant.name);
+            }
+        }
+    }, [selectedTenantId]);
+
+    function handleTenantChange(_event: SelectionEvents, data: OptionOnSelectData) {
+        const tenantName = data.optionText || "";
+        const tenantId = data.optionValue || "";
+        setSelectedTenantName(tenantName);
+
+        selectTenantId(tenantId);
+    }
 
     return (
         <div
@@ -61,6 +93,18 @@ const FabricWorkspaceFilter = ({
                 alignItems: "center",
                 marginRight: "6px",
             }}>
+            <Label>Tenant</Label>
+            <Dropdown
+                value={selectedTenantName}
+                selectedOptions={selectedTenantId ? [selectedTenantId] : []}
+                onOptionSelect={handleTenantChange}
+                placeholder="Select a tenant">
+                {azureTenants.map((tenant) => (
+                    <Option key={tenant.id} value={tenant.id} text={tenant.name}>
+                        {tenant.name}
+                    </Option>
+                ))}
+            </Dropdown>
             <Input
                 style={{ marginRight: "20px" }}
                 placeholder={Loc.connectionDialog.filterByKeyword}

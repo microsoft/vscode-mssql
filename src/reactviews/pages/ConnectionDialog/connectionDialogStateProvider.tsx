@@ -114,8 +114,29 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 signIntoAzureForFirewallRule: function (): void {
                     webviewContext.extensionRpc.action("signIntoAzureForFirewallRule");
                 },
-                signIntoAzureForBrowse: function (): void {
-                    webviewContext.extensionRpc.action("signIntoAzureForBrowse");
+                signIntoAzureForBrowse: function (
+                    browseTarget:
+                        | ConnectionInputMode.AzureBrowse
+                        | ConnectionInputMode.FabricBrowse,
+                ): void {
+                    webviewContext.extensionRpc.action("signIntoAzureForBrowse", {
+                        browseTarget,
+                    });
+                },
+                selectAzureAccount: (accountId: string) => {
+                    webviewContext.extensionRpc.action("selectAzureAccount", {
+                        accountId,
+                    });
+                },
+                selectAzureTenant: (tenantId: string) => {
+                    webviewContext.extensionRpc.action("selectAzureTenant", {
+                        tenantId,
+                    });
+                },
+                selectFabricWorkspace: (workspaceId: string) => {
+                    webviewContext.extensionRpc.action("selectFabricWorkspace", {
+                        workspaceId,
+                    });
                 },
             }}>
             {children}

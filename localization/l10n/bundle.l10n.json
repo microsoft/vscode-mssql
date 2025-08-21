@@ -231,6 +231,7 @@
     ]
   },
   "Workspaces": "Workspaces",
+  "Sign into Fabric": "Sign into Fabric",
   "Filter by keyword": "Filter by keyword",
   "Filter": "Filter",
   "Filter by type": "Filter by type",
@@ -242,7 +243,13 @@
   "Expand Workspace Explorer": "Expand Workspace Explorer",
   "Explorer": "Explorer",
   "Collapse Workspace Explorer": "Collapse Workspace Explorer",
-  "No SQL servers found. Please sign in to view available servers.": "No SQL servers found. Please sign in to view available servers.",
+  "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+  "No databases found in workspace '{0}'./{0} is the name of the workspace": {
+    "message": "No databases found in workspace '{0}'.",
+    "comment": [
+      "{0} is the name of the workspace"
+    ]
+  },
   "No databases found in the selected workspace.": "No databases found in the selected workspace.",
   "Database list": "Database list",
   "Connect": "Connect",
@@ -300,6 +307,14 @@
   "Search settings...": "Search settings...",
   "You must be signed into Azure in order to browse SQL databases.": "You must be signed into Azure in order to browse SQL databases.",
   "You must be signed into Fabric in order to browse SQL databases.": "You must be signed into Fabric in order to browse SQL databases.",
+  "Loading workspaces...": "Loading workspaces...",
+  "Loading databases in '{0}'.../{0} is the name of the workspace": {
+    "message": "Loading databases in '{0}'...",
+    "comment": [
+      "{0} is the name of the workspace"
+    ]
+  },
+  "Loading databases in selected workspace...": "Loading databases in selected workspace...",
   "Sign into Azure": "Sign into Azure",
   "Not signed in": "Not signed in",
   "Azure Account": "Azure Account",
@@ -313,6 +328,7 @@
   },
   "Click to sign into an Azure account": "Click to sign into an Azure account",
   "Currently signed in as:": "Currently signed in as:",
+  "Loading Azure Accounts": "Loading Azure Accounts",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",

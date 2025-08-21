@@ -101,7 +101,7 @@ export const ConnectionInfoFormContainer = () => {
             case 0:
                 return locConstants.azure.notSignedIn;
             case 1:
-                return context.state.azureAccounts[0];
+                return context.state.azureAccounts[0].name;
             default:
                 return locConstants.azure.nAccounts(context.state.azureAccounts.length);
         }
@@ -252,8 +252,8 @@ export const ConnectionInfoFormContainer = () => {
                                                             <ul>
                                                                 {context.state.azureAccounts.map(
                                                                     (account) => (
-                                                                        <li key={account}>
-                                                                            {account}
+                                                                        <li key={account.id}>
+                                                                            {account.name}
                                                                         </li>
                                                                     ),
                                                                 )}
@@ -265,7 +265,9 @@ export const ConnectionInfoFormContainer = () => {
                                             relationship="description">
                                             <Link
                                                 onClick={() => {
-                                                    context.signIntoAzureForBrowse();
+                                                    context.signIntoAzureForBrowse(
+                                                        ConnectionInputMode.AzureBrowse,
+                                                    );
                                                 }}
                                                 inline>
                                                 {getAzureAccountsText()}

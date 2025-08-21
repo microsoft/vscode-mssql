@@ -17,49 +17,69 @@ import {
     List,
     ListItem,
     Label,
+    Spinner,
+    Tooltip,
 } from "@fluentui/react-components";
-import { FabricSqlServerInfo } from "../../../../sharedInterfaces/connectionDialog";
+import {
+    FabricWorkspaceInfo,
+    SqlArtifactTypes,
+} from "../../../../sharedInterfaces/connectionDialog";
 import { useState, useEffect, useMemo } from "react";
 import {
     ChevronDoubleLeftFilled,
     ChevronDoubleRightFilled,
+    ErrorCircleRegular,
     PeopleTeamRegular,
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { Keys } from "../../../common/keys";
 import { useStyles } from "./fabricWorkspaceViewer.styles";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 // Icon imports for database types
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
 const sqlAnalyticsEndpointIcon = require("../../../../reactviews/media/data_warehouse.svg");
 
-// Helper function to get the appropriate icon for each item type
-const getItemIcon = (itemType: string): string => {
-    switch (itemType) {
-        case "SQL Database":
+function getItemIcon(artifactType: string): string {
+    switch (artifactType) {
+        case SqlArtifactTypes.SqlDatabase:
             return sqlDatabaseIcon;
-        case "SQL Analytics Endpoint":
+        case SqlArtifactTypes.SqlAnalyticsEndpoint:
             return sqlAnalyticsEndpointIcon;
         default:
             return sqlDatabaseIcon;
     }
-};
+}
+
+function getTypeDisplayName(artifactType: string): string {
+    switch (artifactType) {
+        case SqlArtifactTypes.SqlDatabase:
+            return Loc.connectionDialog.sqlDatabase;
+        case SqlArtifactTypes.SqlAnalyticsEndpoint:
+            return Loc.connectionDialog.sqlAnalyticsEndpoint;
+        default:
+            return artifactType;
+    }
+}
 
 interface Props {
-    fabricServerInfo: FabricSqlServerInfo[];
+    selectFabricWorkspace: (workspaceId: string) => void;
+    fabricWorkspacesLoadStatus: ApiStatus;
+    fabricWorkspaces: FabricWorkspaceInfo[];
     searchFilter?: string;
     typeFilter?: string[];
 }
 
 type WorkspacesListProps = {
-    workspaces: { name: string; id: string }[];
-    onWorkspaceSelect: (workspace: { name: string; id: string }) => void;
-    selectedWorkspace?: { name: string; id: string };
+    workspaces: FabricWorkspaceInfo[];
+    onWorkspaceSelect: (workspace: FabricWorkspaceInfo) => void;
+    selectedWorkspace?: FabricWorkspaceInfo;
 };
 
-type ServerItem = {
+type SqlDbItem = {
     id: string;
     name: string;
+    typeDisplayName: string;
     type: string;
     location: string;
 };
@@ -93,14 +113,50 @@ const WorkspacesList = ({
                     tabIndex={0}
                     role="option"
                     aria-selected={selectedWorkspace?.id === workspace.id}
-                    title={workspace.name}>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                        <PeopleTeamRegular
+                    title={workspace.displayName}>
+                    <div style={{ display: "flex", alignItems: "center", minHeight: "20px" }}>
+                        {/* Icon container with consistent styling */}
+                        <div
                             style={{
+                                width: "16px",
+                                height: "16px",
                                 marginRight: "8px",
-                            }}
-                        />
-                        <Text>{workspace.name}</Text>
+                                flexShrink: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}>
+                            {/* display error if workspace status is errored */}
+                            {workspace.status === ApiStatus.Error && (
+                                <Tooltip
+                                    content={workspace.errorMessage ?? ""}
+                                    relationship="label">
+                                    <ErrorCircleRegular style={{ width: "100%", height: "100%" }} />
+                                </Tooltip>
+                            )}
+                            {/* display loading spinner */}
+                            {workspace.status === ApiStatus.Loading && (
+                                <Spinner
+                                    size="extra-tiny"
+                                    style={{ width: "100%", height: "100%" }}
+                                />
+                            )}
+                            {/* display workspace icon */}
+                            {(workspace.status === ApiStatus.Loaded ||
+                                workspace.status === ApiStatus.NotStarted) && (
+                                <PeopleTeamRegular style={{ width: "100%", height: "100%" }} />
+                            )}
+                        </div>
+
+                        <Text
+                            style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                flex: 1,
+                            }}>
+                            {workspace.displayName}
+                        </Text>
                     </div>
                 </ListItem>
             ))}
@@ -109,7 +165,9 @@ const WorkspacesList = ({
 };
 
 export const FabricWorkspaceViewer = ({
-    fabricServerInfo,
+    selectFabricWorkspace,
+    fabricWorkspacesLoadStatus,
+    fabricWorkspaces,
     searchFilter = "",
     typeFilter = [],
 }: Props) => {
@@ -118,56 +176,34 @@ export const FabricWorkspaceViewer = ({
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
 
-    const uniqueWorkspaces = useMemo(() => {
-        return Array.from(
-            new Map(
-                fabricServerInfo.map((server) => [server.workspace.id, server.workspace]),
-            ).values(),
-        );
-    }, [fabricServerInfo]);
-
     useEffect(() => {
         if (
-            uniqueWorkspaces.length > 0 &&
-            (!selectedWorkspaceId || !uniqueWorkspaces.some((w) => w.id === selectedWorkspaceId))
+            fabricWorkspaces.length > 0 &&
+            (!selectedWorkspaceId || !fabricWorkspaces.some((w) => w.id === selectedWorkspaceId))
         ) {
-            setSelectedWorkspaceId(uniqueWorkspaces[0].id);
+            setSelectedWorkspaceId(fabricWorkspaces[0].id);
         }
-    }, [fabricServerInfo.length]);
+    }, [fabricWorkspaces.length]);
 
     const selectedWorkspace = useMemo(() => {
-        return uniqueWorkspaces.find((workspace) => workspace.id === selectedWorkspaceId);
-    }, [uniqueWorkspaces, selectedWorkspaceId]);
+        return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
+    }, [fabricWorkspaces, selectedWorkspaceId]);
 
-    const filteredServers = useMemo(() => {
-        return fabricServerInfo.filter((server) => selectedWorkspaceId === server.workspace.id);
-    }, [fabricServerInfo, selectedWorkspaceId]);
+    const databasesForSelectedWorkspace = useMemo(() => {
+        return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId)?.databases || [];
+    }, [fabricWorkspaces, selectedWorkspaceId]);
 
     const items = useMemo(() => {
-        const result: ServerItem[] = [];
-        if (filteredServers && filteredServers.length > 0) {
-            filteredServers.forEach((server) => {
-                if (server.databases && server.databases.length > 0) {
-                    server.databases.forEach((db, dbIndex) => {
-                        result.push({
-                            id: `${server.workspace.name}-db-${dbIndex}-${db}`,
-                            name: db,
-                            type: `${Loc.connectionDialog.sqlDatabase}`,
-                            location: server.workspace.name,
-                        });
-                    });
-                }
-
-                if (server.sqlAnalyticsEndpoints && server.sqlAnalyticsEndpoints.length > 0) {
-                    server.sqlAnalyticsEndpoints.forEach((endpoint, endpointIndex) => {
-                        result.push({
-                            id: `${server.workspace.name}-endpoint-${endpointIndex}-${endpoint}`,
-                            name: endpoint,
-                            type: `${Loc.connectionDialog.sqlAnalyticsEndpoint}`,
-                            location: server.workspace.name,
-                        });
-                    });
-                }
+        const result: SqlDbItem[] = [];
+        if (databasesForSelectedWorkspace && databasesForSelectedWorkspace.length > 0) {
+            databasesForSelectedWorkspace.forEach((db) => {
+                result.push({
+                    id: db.database,
+                    name: db.displayName,
+                    type: db.type,
+                    typeDisplayName: getTypeDisplayName(db.type),
+                    location: db.workspaceName,
+                });
             });
         }
 
@@ -178,21 +214,23 @@ export const FabricWorkspaceViewer = ({
             filteredResult = filteredResult.filter(
                 (item) =>
                     item.name.toLowerCase().includes(searchTerm) ||
-                    item.type.toLowerCase().includes(searchTerm) ||
+                    item.typeDisplayName.toLowerCase().includes(searchTerm) ||
                     item.location.toLowerCase().includes(searchTerm),
             );
         }
 
         if (typeFilter.length > 0 && !typeFilter.includes("Show All")) {
-            filteredResult = filteredResult.filter((item) => typeFilter.includes(item.type));
+            filteredResult = filteredResult.filter((item) =>
+                typeFilter.includes(item.typeDisplayName),
+            );
         }
 
         return filteredResult;
-    }, [filteredServers, searchFilter, typeFilter]);
+    }, [databasesForSelectedWorkspace, searchFilter, typeFilter]);
 
     const columns = useMemo(
-        (): TableColumnDefinition<ServerItem>[] => [
-            createTableColumn<ServerItem>({
+        (): TableColumnDefinition<SqlDbItem>[] => [
+            createTableColumn<SqlDbItem>({
                 columnId: "name",
                 renderHeaderCell: () => `${Loc.connectionDialog.nameColumnHeader}`,
                 renderCell: (item) => (
@@ -200,7 +238,7 @@ export const FabricWorkspaceViewer = ({
                         <div style={{ display: "flex", alignItems: "center" }}>
                             <img
                                 src={getItemIcon(item.type)}
-                                alt={item.type}
+                                alt={item.typeDisplayName}
                                 style={{
                                     width: "20px",
                                     height: "20px",
@@ -215,16 +253,16 @@ export const FabricWorkspaceViewer = ({
                     </DataGridCell>
                 ),
             }),
-            createTableColumn<ServerItem>({
+            createTableColumn<SqlDbItem>({
                 columnId: "type",
                 renderHeaderCell: () => `${Loc.connectionDialog.typeColumnHeader}`,
                 renderCell: (item) => (
                     <DataGridCell>
-                        <Text truncate>{item.type}</Text>
+                        <Text truncate>{item.typeDisplayName}</Text>
                     </DataGridCell>
                 ),
             }),
-            createTableColumn<ServerItem>({
+            createTableColumn<SqlDbItem>({
                 columnId: "location",
                 renderHeaderCell: () => `${Loc.connectionDialog.locationColumnHeader}`,
                 renderCell: (item) => (
@@ -237,9 +275,10 @@ export const FabricWorkspaceViewer = ({
         [],
     );
 
-    const handleWorkspaceSelect = (workspace: { name: string; id: string }) => {
+    const handleWorkspaceSelect = (workspace: FabricWorkspaceInfo) => {
         setSelectedWorkspaceId(workspace.id);
         setSelectedRowId(undefined); // Clear row selection when workspace changes
+        selectFabricWorkspace(workspace.id);
     };
 
     const toggleExplorer = () => {
@@ -304,32 +343,42 @@ export const FabricWorkspaceViewer = ({
                         <div className={styles.workspaceTitle}>
                             {Loc.connectionDialog.workspaces}
                         </div>
-                        <WorkspacesList
-                            workspaces={uniqueWorkspaces}
-                            onWorkspaceSelect={handleWorkspaceSelect}
-                            selectedWorkspace={selectedWorkspace}
-                        />
+                        {fabricWorkspacesLoadStatus === ApiStatus.Loading && (
+                            <div>
+                                <Spinner size="medium" />
+                            </div>
+                        )}
+                        {fabricWorkspacesLoadStatus === ApiStatus.Loaded && (
+                            <WorkspacesList
+                                workspaces={fabricWorkspaces}
+                                onWorkspaceSelect={handleWorkspaceSelect}
+                                selectedWorkspace={selectedWorkspace}
+                            />
+                        )}
                     </>
                 )}
             </div>
 
             <div className={styles.workspaceGrid}>
-                {fabricServerInfo.length === 0 ? (
+                {fabricWorkspacesLoadStatus === ApiStatus.Loading ? (
                     <div
                         style={{
                             padding: "16px",
-                            textAlign: "center",
                             color: "var(--vscode-descriptionForeground)",
                             height: "100%",
                             display: "flex",
+                            flexDirection: "column",
                             alignItems: "center",
                             justifyContent: "center",
+                            gap: "12px",
                         }}
-                        role="alert"
+                        role="status"
                         aria-live="polite">
-                        {Loc.connectionDialog.noSqlServersFound}
+                        <Spinner size="medium" />
+                        <Text>{Loc.connectionDialog.loadingWorkspaces}</Text>
                     </div>
-                ) : items.length === 0 ? (
+                ) : fabricWorkspacesLoadStatus === ApiStatus.Loaded &&
+                  fabricWorkspaces.length === 0 ? (
                     <div
                         style={{
                             padding: "16px",
@@ -342,7 +391,47 @@ export const FabricWorkspaceViewer = ({
                         }}
                         role="alert"
                         aria-live="polite">
-                        {Loc.connectionDialog.noDatabasesFound}
+                        {Loc.connectionDialog.noWorkspacesFound}
+                    </div>
+                ) : selectedWorkspace && selectedWorkspace.status === ApiStatus.Loading ? (
+                    <div
+                        style={{
+                            padding: "16px",
+                            color: "var(--vscode-descriptionForeground)",
+                            height: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "12px",
+                        }}
+                        role="status"
+                        aria-live="polite">
+                        <Spinner size="medium" />
+                        <Text>
+                            {Loc.connectionDialog.loadingDatabasesInWorkspace(
+                                selectedWorkspace?.displayName,
+                            )}
+                        </Text>
+                    </div>
+                ) : selectedWorkspace &&
+                  selectedWorkspace.status === ApiStatus.Loaded &&
+                  items.length === 0 ? (
+                    <div
+                        style={{
+                            padding: "16px",
+                            textAlign: "center",
+                            color: "var(--vscode-descriptionForeground)",
+                            height: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                        role="alert"
+                        aria-live="polite">
+                        {Loc.connectionDialog.noDatabasesFoundInWorkspace(
+                            selectedWorkspace?.displayName,
+                        )}
                     </div>
                 ) : (
                     <DataGrid
@@ -363,9 +452,9 @@ export const FabricWorkspaceViewer = ({
                                 )}
                             </DataGridRow>
                         </DataGridHeader>
-                        <DataGridBody<ServerItem>>
+                        <DataGridBody<SqlDbItem>>
                             {({ item, rowId }) => (
-                                <DataGridRow<ServerItem>
+                                <DataGridRow<SqlDbItem>
                                     key={rowId}
                                     className={
                                         selectedRowId === item.id
