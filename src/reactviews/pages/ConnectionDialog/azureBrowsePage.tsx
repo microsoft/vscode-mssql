@@ -21,6 +21,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { removeDuplicates } from "../../common/utils";
 import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
+import { EntraSignInEmpty } from "./components/entraSignInEmpty.component";
 
 const useStyles = makeStyles({
     icon: {
@@ -232,34 +233,14 @@ export const AzureBrowsePage = () => {
 
     return (
         <div>
-            {context.state.loadingAzureAccountsStatus === ApiStatus.NotStarted && (
-                <div className={styles.notSignedInContainer}>
-                    <img
-                        className={styles.icon}
-                        src={azureLogoColor()}
-                        alt={Loc.connectionDialog.signIntoAzureToBrowse}
-                    />
-                    <div>{Loc.connectionDialog.signIntoAzureToBrowse}</div>
-                    <Link
-                        className={styles.signInLink}
-                        onClick={() => {
-                            context.signIntoAzureForBrowse();
-                        }}>
-                        {Loc.azure.signIntoAzure}
-                    </Link>
-                </div>
-            )}
-            {context.state.loadingAzureAccountsStatus === ApiStatus.Loading && (
-                <div className={styles.notSignedInContainer}>
-                    <img
-                        className={styles.icon}
-                        src={azureLogoColor()}
-                        alt={Loc.connectionDialog.signIntoAzureToBrowse}
-                    />
-                    <div>Loading Azure Accounts</div>
-                    <Spinner size="large" />
-                </div>
-            )}
+            <EntraSignInEmpty
+                loadAccountStatus={context.state.loadingAzureAccountsStatus}
+                brandImageSource={azureLogoColor()}
+                signInText={Loc.connectionDialog.signIntoAzureToBrowse}
+                linkText={Loc.azure.signIntoAzure}
+                loadingText={Loc.azure.loadingAzureAccounts}
+                onSignInClick={() => context.signIntoAzureForBrowse("azure")}
+            />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
                     <AzureFilterCombobox

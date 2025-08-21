@@ -1515,6 +1515,9 @@
     <trans-unit id="++CODE++dc380888c4e2c7762212480ff86eb39150ec70b45009c33bc6adcbd0041384b1">
       <source xml:lang="en">Loading</source>
     </trans-unit>
+    <trans-unit id="++CODE++6fa7126ccca3880030902e857b23844499021637082687cfb79725ee3095e087">
+      <source xml:lang="en">Loading Azure Accounts</source>
+    </trans-unit>
     <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
       <source xml:lang="en">Loading Report</source>
     </trans-unit>
@@ -1527,11 +1530,21 @@
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
+    <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
+      <source xml:lang="en">Loading databases in &apos;{0}&apos;...</source>
+      <note>{0} is the name of the workspace</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a67a8cf028d055264cd779f840ad3290cb70557277e6fe38ecf976fce921f030">
+      <source xml:lang="en">Loading databases in selected workspace...</source>
+    </trans-unit>
     <trans-unit id="++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2">
       <source xml:lang="en">Loading deployment page...</source>
     </trans-unit>
     <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
       <source xml:lang="en">Loading execution plan...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
+      <source xml:lang="en">Loading workspaces...</source>
     </trans-unit>
     <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
       <source xml:lang="en">Loading...</source>
@@ -1669,9 +1682,6 @@
     <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
       <source xml:lang="en">No Queries Available</source>
     </trans-unit>
-    <trans-unit id="++CODE++7155b6d7be899f0fa8ba59863002c65d1936405d9bc57aeed904d3ecb03f929c">
-      <source xml:lang="en">No SQL servers found. Please sign in to view available servers.</source>
-    </trans-unit>
     <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
       <source xml:lang="en">No account selected</source>
     </trans-unit>
@@ -1690,6 +1700,10 @@
     </trans-unit>
     <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
       <source xml:lang="en">No databases found in the selected workspace.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44abb1efd9e1246e7a38688a54d76fd070a07de55884b732dff70f7eff9a0491">
+      <source xml:lang="en">No databases found in workspace &apos;{0}&apos;.</source>
+      <note>{0} is the name of the workspace</note>
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
@@ -1722,6 +1736,9 @@
     </trans-unit>
     <trans-unit id="++CODE++663c666b98596ee2becded8ac3b2a7cf3fc428585f67937544aa219d8ad8f4b4">
       <source xml:lang="en">No workspaces available</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f567a09466c3451f2b171ee4b409a52f3aea306cea3bd4ca9ad4cef8669f1856">
+      <source xml:lang="en">No workspaces found. Please change Fabric account or tenant to view available workspaces.</source>
     </trans-unit>
     <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
       <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
@@ -2361,6 +2378,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cdc182077e173c86c2831fe9995d41691b9bc1182fe44519a292ea2b814eb17a">
       <source xml:lang="en">Sign into Azure in order to add a firewall rule.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
+      <source xml:lang="en">Sign into Fabric</source>
     </trans-unit>
     <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
       <source xml:lang="en">Signing in to Azure...</source>

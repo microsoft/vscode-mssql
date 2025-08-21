@@ -3,38 +3,39 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent, useContext, useEffect, useState } from "react";
+import { ChangeEvent, useContext, useState, useEffect } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
 import {
     Button,
+    Field,
     InputOnChangeData,
     Label,
     Link,
-    List,
-    ListItem,
     makeStyles,
     MenuCheckedValueChangeData,
     MenuCheckedValueChangeEvent,
-    Spinner,
-    Textarea,
+    Dropdown,
+    Option,
+    OptionOnSelectData,
+    SelectionEvents,
 } from "@fluentui/react-components";
-import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
+    ConnectionInputMode,
+    IAzureAccount,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { removeDuplicates } from "../../common/utils";
-import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
 import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
+import EntraSignInEmpty from "./components/entraSignInEmpty.component";
 
 const useStyles = makeStyles({
     icon: {
@@ -70,22 +71,45 @@ export const FabricBrowsePage = () => {
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     const [servers, setServers] = useState<string[]>([]);
-    const [selectedServer, setSelectedServer] = useState<string | undefined>(undefined);
+    const [selectedServer, setSelectedServer] = useState<string>("");
     const [serverValue, setServerValue] = useState<string>("");
 
     const [databases, setDatabases] = useState<string[]>([]);
-    const [selectedDatabase, setSelectedDatabase] = useState<string | undefined>(undefined);
+    const [selectedDatabase, setSelectedDatabase] = useState<string>("");
     const [databaseValue, setDatabaseValue] = useState<string>("");
 
     const [searchFilter, setSearchFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
+
+    const [accounts, setAccounts] = useState<IAzureAccount[]>([]);
+    // const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+    const [selectedAccountName, setSelectedAccountName] = useState<string>("");
+
+    // Load accounts from state when component mounts
+    useEffect(() => {
+        if (
+            context.state.loadingAzureAccountsStatus === ApiStatus.Loaded &&
+            context.state.azureAccounts
+        ) {
+            setAccounts(context.state.azureAccounts);
+
+            // Set the first account as selected if available
+            if (context.state.azureAccounts.length > 0 && !context.state.selectedAccountId) {
+                handleAccountChange({} as any, {
+                    optionText: context.state.azureAccounts[0].name,
+                    optionValue: context.state.azureAccounts[0].id,
+                    selectedOptions: [context.state.azureAccounts[0].id],
+                });
+            }
+        }
+    }, [context.state.loadingAzureAccountsStatus, context.state.azureAccounts]);
 
     function setSelectedServerWithFormState(server: string | undefined) {
         if (server === undefined && context?.state.formState.server === "") {
             return; // avoid unnecessary updates
         }
 
-        setSelectedServer(server);
+        setSelectedServer(server || "");
 
         let serverUri = "";
 
@@ -114,38 +138,47 @@ export const FabricBrowsePage = () => {
         }
     }
 
+    function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
+        const accountName = data.optionText || "";
+        const accountId = data.optionValue || "";
+        setSelectedAccountName(accountName);
+        // setSelectedAccountId(accountId);
+
+        context!.selectAzureAccount(accountId);
+    }
+
     return (
         <div>
-            {context.state.loadingAzureAccountsStatus === ApiStatus.NotStarted && (
-                <div className={styles.notSignedInContainer}>
-                    <img
-                        className={styles.icon}
-                        src={fabricLogoColor()}
-                        alt={Loc.connectionDialog.signIntoFabricToBrowse}
-                    />
-                    <div>{Loc.connectionDialog.signIntoFabricToBrowse}</div>
-                    <Link
-                        className={styles.signInLink}
-                        onClick={() => {
-                            context.signIntoAzureForBrowse();
-                        }}>
-                        {Loc.azure.signIntoAzure}
-                    </Link>
-                </div>
-            )}
-            {context.state.loadingAzureAccountsStatus === ApiStatus.Loading && (
-                <div className={styles.notSignedInContainer}>
-                    <img
-                        className={styles.icon}
-                        src={fabricLogoColor()}
-                        alt={Loc.connectionDialog.signIntoFabricToBrowse}
-                    />
-                    <div>Loading Fabric Accounts</div>
-                    <Spinner size="large" />
-                </div>
-            )}
+            <EntraSignInEmpty
+                loadAccountStatus={context.state.loadingAzureAccountsStatus}
+                brandImageSource={fabricLogoColor()}
+                signInText={Loc.connectionDialog.signIntoFabricToBrowse}
+                linkText={Loc.connectionDialog.signIntoFabric}
+                loadingText="Loading Fabric Accounts"
+                onSignInClick={() => {
+                    context.signIntoAzureForBrowse(ConnectionInputMode.FabricBrowse);
+                }}
+            />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
+                    <Field orientation="horizontal">
+                        <Label>Fabric Account</Label>
+                        <Dropdown
+                            value={selectedAccountName}
+                            selectedOptions={
+                                context.state.selectedAccountId
+                                    ? [context.state.selectedAccountId]
+                                    : []
+                            }
+                            onOptionSelect={handleAccountChange}
+                            placeholder="Select an account">
+                            {accounts.map((account) => (
+                                <Option key={account.id} value={account.id} text={account.name}>
+                                    {account.name}
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    </Field>
                     <Label>{Loc.connectionDialog.workspaces}</Label>
                     <div
                         style={{
@@ -158,11 +191,18 @@ export const FabricBrowsePage = () => {
                             onFilterOptionChanged={handleFilterOptionChanged}
                             searchValue={searchFilter}
                             selectedTypeFilters={typeFilter}
+                            selectTenantId={(id) => {
+                                context.selectAzureTenant(id);
+                            }}
+                            azureTenants={context.state.azureTenants}
+                            selectedTenantId={context.state.selectedTenantId}
                         />
                         <FabricWorkspaceViewer
-                            fabricServerInfo={context.state.fabricServers}
+                            fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
+                            fabricWorkspaces={context.state.fabricWorkspaces}
                             searchFilter={searchFilter}
                             typeFilter={typeFilter}
+                            selectFabricWorkspace={context.selectFabricWorkspace}
                         />
                     </div>
 
@@ -188,7 +228,7 @@ export const FabricBrowsePage = () => {
                                     setValue: setDatabaseValue,
                                     selection: selectedDatabase,
                                     setSelection: (db) => {
-                                        setSelectedDatabase(db);
+                                        setSelectedDatabase(db ?? "");
                                         setConnectionProperty("database", db ?? "");
                                     },
                                     placeholder: `<${Loc.connectionDialog.default}>`,

@@ -24,6 +24,8 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
     GetConnectionDisplayNameRequest,
+    FabricWorkspaceInfo,
+    IAzureAccount,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
@@ -76,6 +78,9 @@ import {
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { FabricHelper } from "../fabric/fabricHelper";
+
+const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -232,7 +237,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         await this.updateItemVisibility();
 
-        this.state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
+        this.state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+            return {
+                id: a.id,
+                name: a.label,
+            } as IAzureAccount;
+        });
         this.state.loadingAzureAccountsStatus =
             this.state.azureAccounts.length === 0 ? ApiStatus.NotStarted : ApiStatus.Loaded;
         this.updateState();
@@ -256,45 +266,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     await this.loadAllAzureServers(state);
                 }
             } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
-                // TODO: Placeholder for populating info from Fabric
-                state.fabricServers = [
-                    {
-                        server: "fabric-server-1",
-                        databases: ["db1", "db2"],
-                        sqlAnalyticsEndpoints: ["analytics1", "analytics2"],
-                        workspace: { name: "workspace1", id: "workspace-id-1" },
-                    },
-                    {
-                        server: "fabric-server-2",
-                        databases: ["db3", "db4"],
-                        sqlAnalyticsEndpoints: ["analytics3", "analytics4"],
-                        workspace: { name: "workspace2", id: "workspace-id-2" },
-                    },
-                    {
-                        server: "fabric-server-3",
-                        databases: ["db5", "db6"],
-                        sqlAnalyticsEndpoints: ["analytics5", "analytics6"],
-                        workspace: { name: "workspace3", id: "workspace-id-3" },
-                    },
-                    {
-                        server: "fabric-server-4",
-                        databases: ["db7", "db8"],
-                        sqlAnalyticsEndpoints: ["analytics7", "analytics8"],
-                        workspace: { name: "workspace4", id: "workspace-id-4" },
-                    },
-                    {
-                        server: "fabric-server-5",
-                        databases: ["db9", "db10"],
-                        sqlAnalyticsEndpoints: ["analytics9", "analytics10"],
-                        workspace: { name: "workspace5", id: "workspace-id-5" },
-                    },
-                    {
-                        server: "fabric-server-6",
-                        databases: ["db11", "db12"],
-                        sqlAnalyticsEndpoints: ["analytics11", "analytics12"],
-                        workspace: { name: "workspace6", id: "workspace-id-6" },
-                    },
-                ];
+                if (state.selectedAccountId && state.selectedTenantId) {
+                    await this.loadFabricWorkspaces(
+                        state,
+                        state.selectedAccountId,
+                        state.selectedTenantId,
+                    );
+                }
             }
 
             return state;
@@ -592,11 +570,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
-        this.registerReducer("signIntoAzureForBrowse", async (state) => {
-            if (state.selectedInputMode !== ConnectionInputMode.AzureBrowse) {
-                state.selectedInputMode = ConnectionInputMode.AzureBrowse;
-                state.formError = undefined;
-                this.updateState(state);
+        this.registerReducer("signIntoAzureForBrowse", async (state, payload) => {
+            if (payload.browseTarget === ConnectionInputMode.AzureBrowse) {
+                if (state.selectedInputMode !== ConnectionInputMode.AzureBrowse) {
+                    state.selectedInputMode = ConnectionInputMode.AzureBrowse;
+                    state.formError = undefined;
+                    this.updateState(state);
+                }
             }
 
             if (state.loadingAzureAccountsStatus === ApiStatus.NotStarted) {
@@ -613,11 +593,80 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
+            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+                return {
+                    id: a.id,
+                    name: a.label,
+                } as IAzureAccount;
+            });
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
             this.updateState(state);
 
-            await this.loadAllAzureServers(state);
+            if (payload.browseTarget === ConnectionInputMode.AzureBrowse) {
+                await this.loadAllAzureServers(state);
+
+                return state;
+            }
+
+            return state;
+        });
+
+        this.registerReducer("selectAzureAccount", async (state, payload) => {
+            state.selectedAccountId = payload.accountId;
+
+            // TODO: loading state
+
+            // set the list of tenants and selected tenant
+            const azureAccount = await VsCodeAzureHelper.getAccountById(payload.accountId);
+            const tenants = await VsCodeAzureHelper.getTenantsForAccount(azureAccount);
+
+            state.azureTenants = tenants.map((t) => ({
+                id: t.tenantId,
+                name: t.displayName,
+            }));
+
+            // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
+            const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(azureAccount);
+
+            state.selectedTenantId =
+                homeTenantId ??
+                (state.azureTenants.length > 0 ? state.azureTenants[0].id : undefined);
+
+            return state;
+        });
+
+        this.registerReducer("selectAzureTenant", async (state, payload) => {
+            state.selectedTenantId = payload.tenantId;
+            state.fabricWorkspacesLoadStatus = ApiStatus.Loading;
+            this.updateState(state);
+
+            await this.loadFabricWorkspaces(state, state.selectedAccountId, state.selectedTenantId);
+            state.fabricWorkspacesLoadStatus = ApiStatus.Loaded;
+
+            if (state.fabricWorkspaces.length <= FABRIC_WORKSPACE_AUTOLOAD_LIMIT) {
+                this.updateState(state);
+
+                const promiseArray: Promise<void>[] = [];
+
+                for (const workspace of state.fabricWorkspaces) {
+                    promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
+                }
+
+                await Promise.all(promiseArray);
+            }
+
+            return state;
+        });
+
+        this.registerReducer("selectFabricWorkspace", async (state, payload) => {
+            const workspace = state.fabricWorkspaces.find((w) => w.id === payload.workspaceId);
+
+            if (
+                (workspace && workspace.status === ApiStatus.NotStarted) ||
+                workspace.status === ApiStatus.Error
+            ) {
+                await this.loadFabricDatabasesForWorkspace(state, workspace);
+            }
 
             return state;
         });
@@ -1242,7 +1291,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             state.formError = "";
-            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
+            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+                return {
+                    id: a.id,
+                    name: a.label,
+                } as IAzureAccount;
+            });
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
             this.updateState();
@@ -1383,6 +1437,117 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 undefined, // errorCode
                 undefined, // errorType
             );
+        }
+    }
+
+    //#endregion
+
+    //#region Fabric helpers
+
+    private async loadFabricWorkspaces(
+        state: ConnectionDialogWebviewState,
+        account: IAzureAccount | string,
+        tenantId: string,
+    ): Promise<void> {
+        try {
+            const accountId = typeof account === "string" ? account : account.id;
+            const vscodeAccount = await VsCodeAzureHelper.getAccountById(accountId);
+
+            const newWorkspaces: FabricWorkspaceInfo[] = [];
+
+            const tenant = await VsCodeAzureHelper.getTenant(vscodeAccount, tenantId);
+
+            if (!tenant) {
+                this.logger.error(
+                    `Failed to get tenant '${tenantId}' for account '${vscodeAccount.label}'.`,
+                );
+            }
+
+            try {
+                const workspaces = await FabricHelper.getFabricWorkspaces(tenant.tenantId);
+
+                for (const workspace of workspaces) {
+                    const stateWorkspace: FabricWorkspaceInfo = {
+                        id: workspace.id,
+                        displayName: workspace.displayName,
+                        databases: [],
+                        tenantId: tenant.tenantId,
+                        status: ApiStatus.NotStarted,
+                    };
+
+                    newWorkspaces.push(stateWorkspace);
+                }
+            } catch (err) {
+                this.logger.error(
+                    `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`,
+                );
+            }
+
+            this.state.fabricWorkspaces = newWorkspaces;
+        } catch (err) {
+            state.formError = getErrorMessage(err);
+        }
+    }
+
+    private async loadFabricDatabasesForWorkspace(
+        state: ConnectionDialogWebviewState,
+        workspace: FabricWorkspaceInfo,
+    ): Promise<void> {
+        workspace.status = ApiStatus.Loading;
+        this.updateState(state);
+
+        try {
+            const databases = [];
+            const errorMessages: string[] = [];
+
+            try {
+                databases.push(
+                    ...(await FabricHelper.getFabricDatabases(workspace.id, workspace.tenantId)),
+                );
+            } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                console.error(
+                    `Error loading Fabric databases for workspace ${workspace.id}: ${errorMessage}`,
+                );
+                errorMessages.push(errorMessage);
+            }
+
+            try {
+                databases.push(
+                    ...(await FabricHelper.getFabricSqlEndpoints(workspace.id, workspace.tenantId)),
+                );
+            } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                console.error(
+                    `Error loading Fabric SQL endpoints for workspace ${workspace.id}: ${errorMessage}`,
+                );
+                errorMessages.push(errorMessage);
+            }
+
+            workspace.databases = databases.map((db) => {
+                return {
+                    database: db.database,
+                    displayName: db.displayName,
+                    server: db.server,
+                    type: db.type,
+                    workspaceName: workspace.displayName,
+                };
+            });
+
+            if (errorMessages.length > 0) {
+                workspace.status = ApiStatus.Error;
+                workspace.errorMessage = errorMessages.join("\n");
+            } else {
+                workspace.status = ApiStatus.Loaded;
+            }
+
+            this.updateState(state);
+        } catch (err) {
+            this.logger.error(
+                `Failed to load Fabric databases for workspace ${workspace.id}: ${getErrorMessage(err)}`,
+            );
+
+            workspace.status = ApiStatus.Error;
         }
     }
 

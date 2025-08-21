@@ -199,6 +199,7 @@ export class LocConstants {
     public get connectionDialog() {
         return {
             workspaces: l10n.t("Workspaces"),
+            signIntoFabric: l10n.t("Sign into Fabric"),
             filterByKeyword: l10n.t("Filter by keyword"),
             filter: l10n.t("Filter"),
             filterByType: l10n.t("Filter by type"),
@@ -214,10 +215,20 @@ export class LocConstants {
             explorer: l10n.t("Explorer"),
             collapseWorkspaceExplorer: l10n.t("Collapse Workspace Explorer"),
             collapse: l10n.t("Collapse"),
-            noSqlServersFound: l10n.t(
-                "No SQL servers found. Please sign in to view available servers.",
+            noWorkspacesFound: l10n.t(
+                "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
             ),
-            noDatabasesFound: l10n.t("No databases found in the selected workspace."),
+            noDatabasesFoundInWorkspace: (workspaceName?: string) => {
+                if (workspaceName) {
+                    return l10n.t({
+                        message: "No databases found in workspace '{0}'.",
+                        args: [workspaceName],
+                        comment: ["{0} is the name of the workspace"],
+                    });
+                } else {
+                    return l10n.t("No databases found in the selected workspace.");
+                }
+            },
             databaseList: l10n.t("Database list"),
             connect: l10n.t("Connect"),
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
@@ -287,6 +298,18 @@ export class LocConstants {
             signIntoFabricToBrowse: l10n.t(
                 "You must be signed into Fabric in order to browse SQL databases.",
             ),
+            loadingWorkspaces: l10n.t("Loading workspaces..."),
+            loadingDatabasesInWorkspace: (workspaceName?: string) => {
+                if (workspaceName) {
+                    return l10n.t({
+                        message: "Loading databases in '{0}'...",
+                        args: [workspaceName],
+                        comment: ["{0} is the name of the workspace"],
+                    });
+                } else {
+                    return l10n.t("Loading databases in selected workspace...");
+                }
+            },
         };
     }
 
@@ -305,6 +328,7 @@ export class LocConstants {
                 }),
             clickToSignIntoAnAzureAccount: l10n.t("Click to sign into an Azure account"),
             currentlySignedInAs: l10n.t("Currently signed in as:"),
+            loadingAzureAccounts: l10n.t("Loading Azure Accounts"),
         };
     }
 
