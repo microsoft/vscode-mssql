@@ -162,7 +162,7 @@ export const FabricBrowsePage = () => {
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
                     <Field orientation="horizontal">
-                        <Label>Account</Label>
+                        <Label>Fabric Account</Label>
                         <Dropdown
                             value={selectedAccountName}
                             selectedOptions={
@@ -198,9 +198,11 @@ export const FabricBrowsePage = () => {
                             selectedTenantId={context.state.selectedTenantId}
                         />
                         <FabricWorkspaceViewer
+                            fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
                             fabricWorkspaces={context.state.fabricWorkspaces}
                             searchFilter={searchFilter}
                             typeFilter={typeFilter}
+                            selectFabricWorkspace={context.selectFabricWorkspace}
                         />
                     </div>
 

@@ -69,6 +69,7 @@ export class FabricHelper {
             );
         } catch (error) {
             console.error("Error processing Fabric databases:", error);
+            throw error;
         }
 
         return result;
@@ -112,6 +113,7 @@ export class FabricHelper {
             }
         } catch (error) {
             console.error("Error processing Fabric SQL Endpoints:", error);
+            throw error;
         }
 
         return result;
@@ -141,7 +143,8 @@ export class FabricHelper {
         const result = response.data;
 
         if (isFabricError(result)) {
-            throw new Error(result.errorCode);
+            const errorMessage = `Fabric API error occurred (${result.errorCode}): ${result.message}`;
+            throw new Error(errorMessage);
         }
 
         return result;

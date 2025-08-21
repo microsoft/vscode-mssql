@@ -80,6 +80,8 @@ import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureS
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FabricHelper } from "../fabric/fabricHelper";
 
+const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
+
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
     ConnectionDialogWebviewState,
@@ -635,24 +637,37 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("selectAzureTenant", async (state, payload) => {
             state.selectedTenantId = payload.tenantId;
-
-            // TODO: loading state
-
-            await this.loadFabricWorkspaces(state, state.selectedAccountId, state.selectedTenantId);
+            state.fabricWorkspacesLoadStatus = ApiStatus.Loading;
             this.updateState(state);
 
-            const promiseArray: Promise<void>[] = [];
+            await this.loadFabricWorkspaces(state, state.selectedAccountId, state.selectedTenantId);
+            state.fabricWorkspacesLoadStatus = ApiStatus.Loaded;
 
-            // for (const workspace of state.fabricWorkspaces) {
-            //     promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
-            // }
+            if (state.fabricWorkspaces.length <= FABRIC_WORKSPACE_AUTOLOAD_LIMIT) {
+                this.updateState(state);
 
-            const workspace = state.fabricWorkspaces.find(
-                (w) => w.id === "c0c03b8c-d137-4ab2-b222-c83daff16d09",
-            );
-            promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
+                const promiseArray: Promise<void>[] = [];
 
-            await Promise.all(promiseArray);
+                for (const workspace of state.fabricWorkspaces) {
+                    promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
+                }
+
+                await Promise.all(promiseArray);
+            }
+
+            return state;
+        });
+
+        this.registerReducer("selectFabricWorkspace", async (state, payload) => {
+            const workspace = state.fabricWorkspaces.find((w) => w.id === payload.workspaceId);
+
+            if (
+                (workspace && workspace.status === ApiStatus.NotStarted) ||
+                workspace.status === ApiStatus.Error
+            ) {
+                await this.loadFabricDatabasesForWorkspace(state, workspace);
+            }
+
             return state;
         });
     }
@@ -1457,6 +1472,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         displayName: workspace.displayName,
                         databases: [],
                         tenantId: tenant.tenantId,
+                        status: ApiStatus.NotStarted,
                     };
 
                     newWorkspaces.push(stateWorkspace);
@@ -1477,15 +1493,36 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         state: ConnectionDialogWebviewState,
         workspace: FabricWorkspaceInfo,
     ): Promise<void> {
-        try {
-            const databases = await FabricHelper.getFabricDatabases(
-                workspace.id,
-                workspace.tenantId,
-            );
+        workspace.status = ApiStatus.Loading;
+        this.updateState(state);
 
-            databases.push(
-                ...(await FabricHelper.getFabricSqlEndpoints(workspace.id, workspace.tenantId)),
-            );
+        try {
+            const databases = [];
+            const errorMessages: string[] = [];
+
+            try {
+                databases.push(
+                    ...(await FabricHelper.getFabricDatabases(workspace.id, workspace.tenantId)),
+                );
+            } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                console.error(
+                    `Error loading Fabric databases for workspace ${workspace.id}: ${errorMessage}`,
+                );
+                errorMessages.push(errorMessage);
+            }
+
+            try {
+                databases.push(
+                    ...(await FabricHelper.getFabricSqlEndpoints(workspace.id, workspace.tenantId)),
+                );
+            } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                console.error(
+                    `Error loading Fabric SQL endpoints for workspace ${workspace.id}: ${errorMessage}`,
+                );
+                errorMessages.push(errorMessage);
+            }
 
             workspace.databases = databases.map((db) => {
                 return {
@@ -1497,11 +1534,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 };
             });
 
+            if (errorMessages.length > 0) {
+                workspace.status = ApiStatus.Error;
+                workspace.errorMessage = errorMessages.join("\n");
+            } else {
+                workspace.status = ApiStatus.Loaded;
+            }
+
             this.updateState(state);
         } catch (err) {
             this.logger.error(
                 `Failed to load Fabric databases for workspace ${workspace.id}: ${getErrorMessage(err)}`,
             );
+
+            workspace.status = ApiStatus.Error;
         }
     }
 

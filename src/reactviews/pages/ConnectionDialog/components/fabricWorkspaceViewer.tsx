@@ -17,6 +17,8 @@ import {
     List,
     ListItem,
     Label,
+    Spinner,
+    Tooltip,
 } from "@fluentui/react-components";
 import {
     FabricWorkspaceInfo,
@@ -26,11 +28,13 @@ import { useState, useEffect, useMemo } from "react";
 import {
     ChevronDoubleLeftFilled,
     ChevronDoubleRightFilled,
+    ErrorCircleRegular,
     PeopleTeamRegular,
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { Keys } from "../../../common/keys";
 import { useStyles } from "./fabricWorkspaceViewer.styles";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 // Icon imports for database types
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
@@ -59,6 +63,8 @@ function getTypeDisplayName(artifactType: string): string {
 }
 
 interface Props {
+    selectFabricWorkspace: (workspaceId: string) => void;
+    fabricWorkspacesLoadStatus: ApiStatus;
     fabricWorkspaces: FabricWorkspaceInfo[];
     searchFilter?: string;
     typeFilter?: string[];
@@ -109,11 +115,24 @@ const WorkspacesList = ({
                     aria-selected={selectedWorkspace?.id === workspace.id}
                     title={workspace.displayName}>
                     <div style={{ display: "flex", alignItems: "center" }}>
-                        <PeopleTeamRegular
-                            style={{
-                                marginRight: "8px",
-                            }}
-                        />
+                        {/* display error if workspace status is errored */}
+                        {workspace.status === ApiStatus.Error && (
+                            <Tooltip content={workspace.errorMessage ?? ""} relationship="label">
+                                <ErrorCircleRegular />
+                            </Tooltip>
+                        )}
+                        {workspace.status === ApiStatus.Loading && (
+                            <Spinner size="extra-tiny" style={{ marginRight: "8px" }} />
+                        )}
+                        {(workspace.status === ApiStatus.Loaded ||
+                            workspace.status === ApiStatus.NotStarted) && (
+                            <PeopleTeamRegular
+                                style={{
+                                    marginRight: "8px",
+                                }}
+                            />
+                        )}
+
                         <Text>{workspace.displayName}</Text>
                     </div>
                 </ListItem>
@@ -123,6 +142,8 @@ const WorkspacesList = ({
 };
 
 export const FabricWorkspaceViewer = ({
+    selectFabricWorkspace,
+    fabricWorkspacesLoadStatus,
     fabricWorkspaces,
     searchFilter = "",
     typeFilter = [],
@@ -234,6 +255,7 @@ export const FabricWorkspaceViewer = ({
     const handleWorkspaceSelect = (workspace: FabricWorkspaceInfo) => {
         setSelectedWorkspaceId(workspace.id);
         setSelectedRowId(undefined); // Clear row selection when workspace changes
+        selectFabricWorkspace(workspace.id);
     };
 
     const toggleExplorer = () => {
@@ -298,11 +320,18 @@ export const FabricWorkspaceViewer = ({
                         <div className={styles.workspaceTitle}>
                             {Loc.connectionDialog.workspaces}
                         </div>
-                        <WorkspacesList
-                            workspaces={fabricWorkspaces}
-                            onWorkspaceSelect={handleWorkspaceSelect}
-                            selectedWorkspace={selectedWorkspace}
-                        />
+                        {fabricWorkspacesLoadStatus === ApiStatus.Loading && (
+                            <div>
+                                <Spinner size="medium" />
+                            </div>
+                        )}
+                        {fabricWorkspacesLoadStatus === ApiStatus.Loaded && (
+                            <WorkspacesList
+                                workspaces={fabricWorkspaces}
+                                onWorkspaceSelect={handleWorkspaceSelect}
+                                selectedWorkspace={selectedWorkspace}
+                            />
+                        )}
                     </>
                 )}
             </div>
@@ -321,7 +350,7 @@ export const FabricWorkspaceViewer = ({
                         }}
                         role="alert"
                         aria-live="polite">
-                        {Loc.connectionDialog.noSqlServersFound}
+                        {Loc.connectionDialog.noWorkspacesFound}
                     </div>
                 ) : items.length === 0 ? (
                     <div
@@ -336,7 +365,9 @@ export const FabricWorkspaceViewer = ({
                         }}
                         role="alert"
                         aria-live="polite">
-                        {Loc.connectionDialog.noDatabasesFound}
+                        {Loc.connectionDialog.noDatabasesFoundInWorkspace(
+                            selectedWorkspace?.displayName,
+                        )}
                     </div>
                 ) : (
                     <DataGrid

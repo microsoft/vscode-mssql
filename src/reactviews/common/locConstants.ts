@@ -215,10 +215,20 @@ export class LocConstants {
             explorer: l10n.t("Explorer"),
             collapseWorkspaceExplorer: l10n.t("Collapse Workspace Explorer"),
             collapse: l10n.t("Collapse"),
-            noSqlServersFound: l10n.t(
-                "No SQL servers found. Please sign in to view available servers.",
+            noWorkspacesFound: l10n.t(
+                "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
             ),
-            noDatabasesFound: l10n.t("No databases found in the selected workspace."),
+            noDatabasesFoundInWorkspace: (workspaceName?: string) => {
+                if (workspaceName) {
+                    return l10n.t({
+                        message: "No databases found in workspace '{0}'.",
+                        args: [workspaceName],
+                        comment: ["{0} is the name of the workspace"],
+                    });
+                } else {
+                    return l10n.t("No databases found in the selected workspace.");
+                }
+            },
             databaseList: l10n.t("Database list"),
             connect: l10n.t("Connect"),
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),

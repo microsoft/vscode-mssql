@@ -133,6 +133,11 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                         tenantId,
                     });
                 },
+                selectFabricWorkspace: (workspaceId: string) => {
+                    webviewContext.extensionRpc.action("selectFabricWorkspace", {
+                        workspaceId,
+                    });
+                },
             }}>
             {children}
         </ConnectionDialogContext.Provider>

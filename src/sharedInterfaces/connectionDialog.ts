@@ -53,6 +53,7 @@ export class ConnectionDialogWebviewState
     public selectedAccountId: string | undefined;
     public azureTenants: IAzureTenant[] = [];
     public selectedTenantId: string | undefined;
+    public fabricWorkspacesLoadStatus: ApiStatus = ApiStatus.NotStarted;
     public fabricWorkspaces: FabricWorkspaceInfo[] = [];
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
@@ -132,6 +133,8 @@ export interface FabricWorkspaceInfo {
     displayName: string;
     tenantId: string;
     databases: FabricSqlDbInfo[];
+    status: ApiStatus;
+    errorMessage?: string;
 }
 
 export enum SqlArtifactTypes {
@@ -254,6 +257,7 @@ export interface ConnectionDialogContextProps
     ) => void;
     selectAzureAccount: (accountId: string) => void;
     selectAzureTenant: (tenantId: string) => void;
+    selectFabricWorkspace: (workspaceId: string) => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
@@ -295,6 +299,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     };
     selectAzureAccount: { accountId: string };
     selectAzureTenant: { tenantId: string };
+    selectFabricWorkspace: { workspaceId: string };
 }
 
 export namespace GetConnectionDisplayNameRequest {
