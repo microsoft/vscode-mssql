@@ -109,13 +109,23 @@ const useStyles = makeStyles({
         cursor: "pointer",
     },
     noResultsContainer: {
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        overflowY: "auto",
+        overflowX: "hidden",
+        boxSizing: "border-box",
+        padding: "20px",
+    },
+    noResultsScrollablePane: {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        height: "100%",
-        textAlign: "center",
         gap: "8px",
+        minHeight: "150px",
     },
     noResultsIcon: {
         width: "56px",
@@ -674,21 +684,28 @@ export const QueryResultPane = () => {
     }, [state?.uri]);
 
     return !state || !hasResultsOrMessages(state) ? (
-        <div className={classes.noResultsContainer}>
-            <div className={classes.noResultsIcon} aria-hidden>
-                <DatabaseSearch24Regular />
+        <div className={classes.root}>
+            <div className={classes.noResultsContainer}>
+                <div className={classes.noResultsScrollablePane}>
+                    <div className={classes.noResultsIcon} aria-hidden>
+                        <DatabaseSearch24Regular />
+                    </div>
+                    <Title3>{locConstants.queryResult.noResultsHeader}</Title3>
+                    <Text>{locConstants.queryResult.noResultMessage}</Text>
+                    <Link
+                        className={classes.hidePanelLink}
+                        onClick={async () => {
+                            await webViewState.extensionRpc.sendRequest(
+                                ExecuteCommandRequest.type,
+                                {
+                                    command: "workbench.action.closePanel",
+                                },
+                            );
+                        }}>
+                        {locConstants.queryResult.clickHereToHideThisPanel}
+                    </Link>
+                </div>
             </div>
-            <Title3>{locConstants.queryResult.noResultsHeader}</Title3>
-            <Text>{locConstants.queryResult.noResultMessage}</Text>
-            <Link
-                className={classes.hidePanelLink}
-                onClick={async () => {
-                    await webViewState.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-                        command: "workbench.action.closePanel",
-                    });
-                }}>
-                {locConstants.queryResult.clickHereToHideThisPanel}
-            </Link>
         </div>
     ) : (
         <div className={classes.root} ref={resultPaneParentRef}>
