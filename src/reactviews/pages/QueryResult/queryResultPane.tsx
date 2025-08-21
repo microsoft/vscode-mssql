@@ -10,9 +10,11 @@ import {
     TabList,
     TableColumnDefinition,
     TableColumnSizingOptions,
+    Title3,
     createTableColumn,
     makeStyles,
     shorthands,
+    Text,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -22,7 +24,7 @@ import {
     RowRenderer,
 } from "@fluentui-contrib/react-data-grid-react-window";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { OpenRegular } from "@fluentui/react-icons";
+import { DatabaseSearch24Regular, OpenRegular } from "@fluentui/react-icons";
 import { QueryResultContext } from "./queryResultStateProvider";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -106,6 +108,23 @@ const useStyles = makeStyles({
         margin: "10px 0 0 10px",
         cursor: "pointer",
     },
+    noResultsContainer: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        textAlign: "center",
+        gap: "8px",
+    },
+    noResultsIcon: {
+        width: "56px",
+        height: "56px",
+        display: "grid",
+        placeItems: "center",
+        borderRadius: "14px",
+        background: "linear-gradient(135deg, rgba(0,120,212,.16), rgba(0,120,212,.06))",
+    },
 });
 
 const MIN_GRID_HEIGHT = 273; // Minimum height for a grid
@@ -169,6 +188,18 @@ export const QueryResultPane = () => {
     const gridParentRef = useRef<HTMLDivElement>(null);
     const scrollabelPanelRef = useRef<HTMLDivElement>(null);
     const [messageGridHeight, setMessageGridHeight] = useState(0);
+
+    const getGridCount = () => {
+        let count = 0;
+        const batchIds = Object.keys(state?.resultSetSummaries ?? {});
+        for (const batchId of batchIds) {
+            const summary = state.resultSetSummaries[parseInt(batchId)];
+            if (summary) {
+                count += Object.keys(summary).length;
+            }
+        }
+        return count;
+    };
 
     // Resize grid when parent element resizes
     useEffect(() => {
@@ -455,11 +486,7 @@ export const QueryResultPane = () => {
         }
 
         // Calculate total grid count
-        let totalGridCount = 0;
-        for (const batchIdStr in state?.resultSetSummaries ?? {}) {
-            const batchId = parseInt(batchIdStr);
-            totalGridCount += Object.keys(state?.resultSetSummaries[batchId] ?? {}).length;
-        }
+        let totalGridCount = getGridCount();
 
         const results = [];
         let count = 0;
@@ -647,21 +674,21 @@ export const QueryResultPane = () => {
     }, [state?.uri]);
 
     return !state || !hasResultsOrMessages(state) ? (
-        <div>
-            <div className={classes.noResultMessage}>
-                {locConstants.queryResult.noResultMessage}
+        <div className={classes.noResultsContainer}>
+            <div className={classes.noResultsIcon} aria-hidden>
+                <DatabaseSearch24Regular />
             </div>
-            <div>
-                <Link
-                    className={classes.hidePanelLink}
-                    onClick={async () => {
-                        await webViewState.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-                            command: "workbench.action.closePanel",
-                        });
-                    }}>
-                    {locConstants.queryResult.clickHereToHideThisPanel}
-                </Link>
-            </div>
+            <Title3>{locConstants.queryResult.noResultsHeader}</Title3>
+            <Text>{locConstants.queryResult.noResultMessage}</Text>
+            <Link
+                className={classes.hidePanelLink}
+                onClick={async () => {
+                    await webViewState.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
+                        command: "workbench.action.closePanel",
+                    });
+                }}>
+                {locConstants.queryResult.clickHereToHideThisPanel}
+            </Link>
         </div>
     ) : (
         <div className={classes.root} ref={resultPaneParentRef}>
@@ -677,7 +704,7 @@ export const QueryResultPane = () => {
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
                             key={qr.QueryResultPaneTabs.Results}>
-                            {locConstants.queryResult.results}
+                            {locConstants.queryResult.results(getGridCount())}
                         </Tab>
                     )}
                     <Tab
