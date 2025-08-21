@@ -205,7 +205,8 @@
                 {
                     "type": "webview",
                     "id": "queryResult",
-                    "name": "%extension.queryResult%"
+                    "name": "%extension.queryResult%",
+                    "when": "!config.mssql.openQueryResultsInTabByDefault"
                 }
             ],
             "objectExplorer": [
@@ -1570,7 +1571,7 @@
                     ],
                     "enumDescriptions": [
                         "UTF-8 (Unicode)",
-                        "UTF-16 Little Endian", 
+                        "UTF-16 Little Endian",
                         "UTF-16 Big Endian",
                         "ASCII",
                         "Latin-1 (ISO 8859-1)",
