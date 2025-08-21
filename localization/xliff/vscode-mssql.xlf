@@ -1672,9 +1672,6 @@
     <trans-unit id="++CODE++b5353eb771f89b7df467f5082500e61791da1296427482e4eb5bb0cc5b6bec04">
       <source xml:lang="en">No Queries Available</source>
     </trans-unit>
-    <trans-unit id="++CODE++7155b6d7be899f0fa8ba59863002c65d1936405d9bc57aeed904d3ecb03f929c">
-      <source xml:lang="en">No SQL servers found. Please sign in to view available servers.</source>
-    </trans-unit>
     <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
       <source xml:lang="en">No account selected</source>
     </trans-unit>
@@ -1693,6 +1690,10 @@
     </trans-unit>
     <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
       <source xml:lang="en">No databases found in the selected workspace.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44abb1efd9e1246e7a38688a54d76fd070a07de55884b732dff70f7eff9a0491">
+      <source xml:lang="en">No databases found in workspace &apos;{0}&apos;.</source>
+      <note>{0} is the name of the workspace</note>
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
@@ -1725,6 +1726,9 @@
     </trans-unit>
     <trans-unit id="++CODE++663c666b98596ee2becded8ac3b2a7cf3fc428585f67937544aa219d8ad8f4b4">
       <source xml:lang="en">No workspaces available</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f567a09466c3451f2b171ee4b409a52f3aea306cea3bd4ca9ad4cef8669f1856">
+      <source xml:lang="en">No workspaces found. Please change Fabric account or tenant to view available workspaces.</source>
     </trans-unit>
     <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
       <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>

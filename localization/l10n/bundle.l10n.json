@@ -243,7 +243,13 @@
   "Expand Workspace Explorer": "Expand Workspace Explorer",
   "Explorer": "Explorer",
   "Collapse Workspace Explorer": "Collapse Workspace Explorer",
-  "No SQL servers found. Please sign in to view available servers.": "No SQL servers found. Please sign in to view available servers.",
+  "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+  "No databases found in workspace '{0}'./{0} is the name of the workspace": {
+    "message": "No databases found in workspace '{0}'.",
+    "comment": [
+      "{0} is the name of the workspace"
+    ]
+  },
   "No databases found in the selected workspace.": "No databases found in the selected workspace.",
   "Database list": "Database list",
   "Connect": "Connect",
