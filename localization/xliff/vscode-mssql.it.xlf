@@ -2224,13 +2224,13 @@ Errore:
 {1} is the uri</note>
         <target state="translated">Non è necessario aggiornare il token dell'account Microsoft Entra per la connessione {0} con URI {1}</target>
       </trans-unit>
-      <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
-        <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
-        <target state="translated">Nessun risultato trovato per l'editor attivo. Eseguire una query o passare a un altro editor.</target>
-      </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
         <target state="translated">Nessun risultato</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
+        <source xml:lang="en">No results for the active editor</source>
+        <target state="new">No results for the active editor</target>
       </trans-unit>
       <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
         <source xml:lang="en">No results to display</source>
@@ -2678,6 +2678,11 @@ Errore:
         <source xml:lang="en">Results</source>
         <target state="translated">Risultati</target>
       </trans-unit>
+      <trans-unit id="++CODE++ccb11e8d73c1d40ef67b26d9ca77a50ab2987d9ac9af361e065c3c1c6699c116">
+        <source xml:lang="en">Results ({0})</source>
+        <note>{0} is the number of results</note>
+        <target state="new">Results ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
         <target state="translated">Riprova</target>
@@ -2701,6 +2706,10 @@ Errore:
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
         <target state="translated">Eseguire la cronologia delle query</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
+        <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+        <target state="new">Run a query in the current editor, or switch to an editor that has results.</target>
       </trans-unit>
       <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
         <source xml:lang="en">Run query on connection '{0}'?
