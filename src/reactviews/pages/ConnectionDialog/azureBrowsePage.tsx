@@ -239,7 +239,7 @@ export const AzureBrowsePage = () => {
                 signInText={Loc.connectionDialog.signIntoAzureToBrowse}
                 linkText={Loc.azure.signIntoAzure}
                 loadingText={Loc.azure.loadingAzureAccounts}
-                onSignInClick={context.signIntoAzureForBrowse}
+                onSignInClick={() => context.signIntoAzureForBrowse("azure")}
             />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>

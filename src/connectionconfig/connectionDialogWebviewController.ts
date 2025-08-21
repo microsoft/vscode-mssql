@@ -25,6 +25,7 @@ import {
     ConnectionStringDialogProps,
     GetConnectionDisplayNameRequest,
     FabricWorkspaceInfo,
+    IAzureAccount,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
@@ -234,7 +235,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         await this.updateItemVisibility();
 
-        this.state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
+        this.state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+            return {
+                id: a.id,
+                name: a.label,
+            } as IAzureAccount;
+        });
         this.state.loadingAzureAccountsStatus =
             this.state.azureAccounts.length === 0 ? ApiStatus.NotStarted : ApiStatus.Loaded;
         this.updateState();
@@ -258,88 +264,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     await this.loadAllAzureServers(state);
                 }
             } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
-                try {
-                    const accounts = await VsCodeAzureHelper.getAccounts(
-                        true /* onlyAllowedForExtension */,
-                    );
-
-                    const newWorkspaces: FabricWorkspaceInfo[] = [];
-
-                    for (const account of accounts) {
-                        const tenants = await VsCodeAzureHelper.getTenantsForAccount(account);
-                        for (const tenant of tenants) {
-                            const skipList = [
-                                "d307b5b4-08b3-4f94-9e5e-4eed3be0f1c0",
-                                "1a092f68-5741-455a-8057-2acdb897a850",
-                            ]; // TODO: remove
-
-                            if (skipList.includes(tenant.tenantId)) {
-                                continue;
-                            }
-
-                            try {
-                                const workspaces = await FabricHelper.getFabricWorkspaces(
-                                    tenant.tenantId,
-                                );
-
-                                for (const workspace of workspaces) {
-                                    const stateWorkspace: FabricWorkspaceInfo = {
-                                        id: workspace.id,
-                                        displayName: workspace.displayName,
-                                        databases: [],
-                                        tenantId: tenant.tenantId,
-                                    };
-
-                                    newWorkspaces.push(stateWorkspace);
-                                }
-                            } catch (err) {
-                                this.logger.error(
-                                    `Failed to get fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`,
-                                );
-                            }
-                        }
-                    }
-
-                    this.state.fabricWorkspaces = newWorkspaces;
-
-                    // this.updateState();
-                    // const promiseArray: Promise<void>[] = [];
-
-                    // for (const workspace of state.fabricWorkspaces) {
-                    //     promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
-                    // }
-
-                    // await Promise.all(promiseArray);
-
-                    // if (workspaces.length > 0) {
-                    //     let workspace = undefined;
-                    //     const benjinWsId = "c0c03b8c-d137-4ab2-b222-c83daff16d09";
-
-                    //     if (workspaces.find((w) => w.id === benjinWsId)) {
-                    //         workspace = workspaces.find((w) => w.id === benjinWsId);
-                    //     } else {
-                    //         workspace = workspaces[0];
-                    //     }
-                    //     const stateWorkspace: FabricWorkspaceInfo = {
-                    //         id: workspace.id,
-                    //         displayName: workspace.displayName,
-                    //         databases: [],
-                    //     };
-                    //     state.fabricWorkspaces.push(stateWorkspace);
-
-                    //     const databases = await FabricHelper.getFabricDatabases(workspace.id);
-
-                    //     stateWorkspace.databases = databases.map((db) => {
-                    //         return {
-                    //             database: db.database,
-                    //             displayName: db.displayName,
-                    //             server: db.server,
-                    //             type: "sql_database",
-                    //         };
-                    //     });
-                    // }
-                } catch (err) {
-                    state.formError = getErrorMessage(err);
+                if (state.azureAccounts.length > 0) {
+                    await this.loadFabricWorkspaces(state, state.azureAccounts[0]);
                 }
             }
 
@@ -638,11 +564,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
-        this.registerReducer("signIntoAzureForBrowse", async (state) => {
-            if (state.selectedInputMode !== ConnectionInputMode.AzureBrowse) {
-                state.selectedInputMode = ConnectionInputMode.AzureBrowse;
-                state.formError = undefined;
-                this.updateState(state);
+        this.registerReducer("signIntoAzureForBrowse", async (state, payload) => {
+            if (payload.browseTarget === "azure") {
+                if (state.selectedInputMode !== ConnectionInputMode.AzureBrowse) {
+                    state.selectedInputMode = ConnectionInputMode.AzureBrowse;
+                    state.formError = undefined;
+                    this.updateState(state);
+                }
             }
 
             if (state.loadingAzureAccountsStatus === ApiStatus.NotStarted) {
@@ -659,11 +587,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
+            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+                return {
+                    id: a.id,
+                    name: a.label,
+                } as IAzureAccount;
+            });
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
             this.updateState(state);
 
-            await this.loadAllAzureServers(state);
+            if (payload.browseTarget === "azure") {
+                await this.loadAllAzureServers(state);
+
+                return state;
+            }
 
             return state;
         });
@@ -1288,7 +1225,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             state.formError = "";
-            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => a.label);
+            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+                return {
+                    id: a.id,
+                    name: a.label,
+                } as IAzureAccount;
+            });
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
             this.updateState();
@@ -1435,6 +1377,53 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#endregion
 
     //#region Fabric helpers
+
+    private async loadFabricWorkspaces(
+        state: ConnectionDialogWebviewState,
+        account: IAzureAccount | string,
+    ): Promise<void> {
+        try {
+            const accountId = typeof account === "string" ? account : account.id;
+            const vscodeAccount = await VsCodeAzureHelper.getAccountById(accountId);
+
+            const newWorkspaces: FabricWorkspaceInfo[] = [];
+
+            const tenants = await VsCodeAzureHelper.getTenantsForAccount(vscodeAccount);
+            for (const tenant of tenants) {
+                const skipList = [
+                    "d307b5b4-08b3-4f94-9e5e-4eed3be0f1c0",
+                    "1a092f68-5741-455a-8057-2acdb897a850",
+                ]; // TODO: remove
+
+                if (skipList.includes(tenant.tenantId)) {
+                    continue;
+                }
+
+                try {
+                    const workspaces = await FabricHelper.getFabricWorkspaces(tenant.tenantId);
+
+                    for (const workspace of workspaces) {
+                        const stateWorkspace: FabricWorkspaceInfo = {
+                            id: workspace.id,
+                            displayName: workspace.displayName,
+                            databases: [],
+                            tenantId: tenant.tenantId,
+                        };
+
+                        newWorkspaces.push(stateWorkspace);
+                    }
+                } catch (err) {
+                    this.logger.error(
+                        `Failed to get fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`,
+                    );
+                }
+            }
+
+            this.state.fabricWorkspaces = newWorkspaces;
+        } catch (err) {
+            state.formError = getErrorMessage(err);
+        }
+    }
 
     private async loadFabricDatabasesForWorkspace(
         state: ConnectionDialogWebviewState,

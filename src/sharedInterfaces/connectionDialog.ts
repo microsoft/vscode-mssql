@@ -37,7 +37,7 @@ export class ConnectionDialogWebviewState
         mainOptions: [],
         groupedAdvancedOptions: [],
     };
-    public azureAccounts: string[] = [];
+    public azureAccounts: IAzureAccount[] = [];
     public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureSubscriptions: AzureSubscriptionInfo[] = [];
     public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
@@ -60,6 +60,11 @@ export class ConnectionDialogWebviewState
             }
         }
     }
+}
+
+export interface IAzureAccount {
+    id: string;
+    name: string;
 }
 
 export interface IDialogProps {
@@ -210,7 +215,7 @@ export interface ConnectionDialogContextProps
     loadFromConnectionString: (connectionString: string) => void;
     openConnectionStringDialog: () => void;
     signIntoAzureForFirewallRule: () => void;
-    signIntoAzureForBrowse: () => void;
+    signIntoAzureForBrowse: (browseTarget: "azure" | "fabric") => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
@@ -274,7 +279,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
-    signIntoAzureForBrowse: {};
+    signIntoAzureForBrowse: { browseTarget: "azure" | "fabric" };
 }
 
 export namespace GetConnectionDisplayNameRequest {

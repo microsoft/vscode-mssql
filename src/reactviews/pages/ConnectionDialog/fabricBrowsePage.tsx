@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent, useContext, useState } from "react";
+import { ChangeEvent, useContext, useState, useEffect } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
 import {
@@ -15,7 +15,6 @@ import {
     makeStyles,
     MenuCheckedValueChangeData,
     MenuCheckedValueChangeEvent,
-    Spinner,
     Dropdown,
     Option,
     OptionOnSelectData,
@@ -26,6 +25,7 @@ import {
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
+    IAzureAccount,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
@@ -80,13 +80,24 @@ export const FabricBrowsePage = () => {
     const [searchFilter, setSearchFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
 
-    // Add state for accounts
-    const [accounts] = useState<{ id: string; name: string }[]>([
-        { id: "1", name: "Account One" },
-        { id: "2", name: "Account Two" },
-        { id: "3", name: "Account Three" },
-    ]);
-    const [selectedAccount, setSelectedAccount] = useState<string>("");
+    // Replace hardcoded accounts with real accounts from state
+    const [accounts, setAccounts] = useState<IAzureAccount[]>([]);
+    const [selectedAccount, setSelectedAccount] = useState<string | undefined>(undefined);
+
+    // Load accounts from state when component mounts
+    useEffect(() => {
+        if (
+            context.state.loadingAzureAccountsStatus === ApiStatus.Loaded &&
+            context.state.azureAccounts
+        ) {
+            setAccounts(context.state.azureAccounts);
+
+            // Set the first account as selected if available
+            if (context.state.azureAccounts.length > 0 && !selectedAccount) {
+                setSelectedAccount(context.state.azureAccounts[0].id);
+            }
+        }
+    }, [context.state.loadingAzureAccountsStatus, context.state.azureAccounts]);
 
     function setSelectedServerWithFormState(server: string | undefined) {
         if (server === undefined && context?.state.formState.server === "") {
@@ -123,10 +134,9 @@ export const FabricBrowsePage = () => {
     }
 
     function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
-        const accountId = data.optionValue || "";
-        setSelectedAccount(accountId);
-        const account = accounts.find((acc) => acc.id === accountId);
-        console.log("Selected account:", account);
+        const accountName = data.optionValue || "";
+        setSelectedAccount(accountName);
+        console.log("Selected account:", accountName);
     }
 
     return (
@@ -138,7 +148,7 @@ export const FabricBrowsePage = () => {
                 linkText={Loc.connectionDialog.signIntoFabric}
                 loadingText="Loading Fabric Accounts"
                 onSignInClick={() => {
-                    context.signIntoAzureForBrowse();
+                    context.signIntoAzureForBrowse("fabric");
                 }}
             />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
@@ -146,11 +156,11 @@ export const FabricBrowsePage = () => {
                     <Field orientation="horizontal">
                         <Label>Account</Label>
                         <Dropdown
-                            value={accounts.find((acc) => acc.id === selectedAccount)?.name || ""}
+                            value={selectedAccount}
                             onOptionSelect={handleAccountChange}
                             placeholder="Select an account">
                             {accounts.map((account) => (
-                                <Option key={account.id} value={account.id}>
+                                <Option key={account.id} value={account.id} text={account.name}>
                                     {account.name}
                                 </Option>
                             ))}
