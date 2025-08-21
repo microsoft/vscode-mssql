@@ -3541,13 +3541,13 @@
       <source xml:lang="en">[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source>
     </trans-unit>
     <trans-unit id="mssql.saveAsCsv.delimiter">
-      <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV</source>
+      <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</source>
     </trans-unit>
     <trans-unit id="mssql.ignorePlatformWarning">
       <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
     </trans-unit>
     <trans-unit id="mssql.saveAsCsv.encoding">
-      <source xml:lang="en">[Optional] File encoding used when saving results as CSV</source>
+      <source xml:lang="en">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</source>
     </trans-unit>
     <trans-unit id="mssql.connection.currentLanguage">
       <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>

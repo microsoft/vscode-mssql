@@ -29,8 +29,10 @@ const MESSAGE_INTERVAL_IN_MS = 300;
 export class QueryRunnerState {
     timeout: NodeJS.Timer;
     flaggedForDeletion: boolean;
+    listeners: vscode.Disposable[];
     constructor(public queryRunner: QueryRunner) {
         this.flaggedForDeletion = false;
+        this.listeners = [];
     }
 }
 
@@ -278,7 +280,8 @@ export class SqlOutputContentProvider {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
-            queryRunner.eventEmitter.on("start", async (_panelUri) => {
+
+            const startListener = queryRunner.onStart(async (_panelUri) => {
                 this._lastSendMessageTime = Date.now();
                 this._queryResultWebviewController.addQueryResultState(
                     queryRunner.uri,
@@ -300,11 +303,16 @@ export class SqlOutputContentProvider {
                     defaultLocation: this.isOpenQueryResultsInTabByDefaultEnabled ? "tab" : "pane",
                 });
             });
-            queryRunner.eventEmitter.on("resultSet", async (resultSet: ResultSetSummary) => {
-                this._queryResultWebviewController.addResultSetSummary(queryRunner.uri, resultSet);
-                this._queryResultWebviewController.updatePanelState(queryRunner.uri);
-            });
-            queryRunner.eventEmitter.on("batchStart", async (batch) => {
+            const resultSetListener = queryRunner.onResultSet(
+                async (resultSet: ResultSetSummary) => {
+                    this._queryResultWebviewController.addResultSetSummary(
+                        queryRunner.uri,
+                        resultSet,
+                    );
+                    this._queryResultWebviewController.updatePanelState(queryRunner.uri);
+                },
+            );
+            const batchStartListener = queryRunner.onBatchStart(async (batch) => {
                 let time = new Date().toLocaleTimeString();
                 if (batch.executionElapsed && batch.executionEnd) {
                     time = new Date(batch.executionStart).toLocaleTimeString();
@@ -338,7 +346,7 @@ export class SqlOutputContentProvider {
                     await this._queryResultWebviewController.revealToForeground();
                 }
             });
-            queryRunner.eventEmitter.on("message", async (message) => {
+            const onMessageListener = queryRunner.onMessage(async (message) => {
                 this._queryResultWebviewController
                     .getQueryResultState(queryRunner.uri)
                     .messages.push(message);
@@ -357,51 +365,58 @@ export class SqlOutputContentProvider {
                     this._lastSendMessageTime = Date.now();
                 }
             });
-            queryRunner.eventEmitter.on(
-                "complete",
-                async (totalMilliseconds, hasError, isRefresh?) => {
-                    if (!isRefresh) {
-                        // only update query history with new queries
-                        this._vscodeWrapper.executeCommand(
-                            Constants.cmdRefreshQueryHistory,
-                            queryRunner.uri,
-                            hasError,
-                        );
-                    }
-
-                    this._queryResultWebviewController
-                        .getQueryResultState(queryRunner.uri)
-                        .messages.push({
-                            message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
-                            isError: false, // Elapsed time messages are never displayed as errors
-                        });
-                    // if there is an error, show the error message and set the tab to the messages tab
-                    let tabState: QueryResultPaneTabs;
-                    if (hasError) {
-                        tabState = QueryResultPaneTabs.Messages;
-                    } else {
-                        tabState =
-                            Object.keys(
-                                this._queryResultWebviewController.getQueryResultState(
-                                    queryRunner.uri,
-                                ).resultSetSummaries,
-                            ).length > 0
-                                ? QueryResultPaneTabs.Results
-                                : QueryResultPaneTabs.Messages;
-                    }
-
-                    this._queryResultWebviewController.getQueryResultState(
+            const onCompleteListener = queryRunner.onComplete(async (e) => {
+                const { totalMilliseconds, hasError, isRefresh } = e;
+                if (!isRefresh) {
+                    // only update query history with new queries
+                    this._vscodeWrapper.executeCommand(
+                        Constants.cmdRefreshQueryHistory,
                         queryRunner.uri,
-                    ).tabStates.resultPaneTab = tabState;
-                    this._queryResultWebviewController.state =
-                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
-                    this._queryResultWebviewController.updatePanelState(queryRunner.uri);
-                    if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
-                        await this._queryResultWebviewController.revealToForeground();
-                    }
-                },
+                        hasError,
+                    );
+                }
+
+                this._queryResultWebviewController
+                    .getQueryResultState(queryRunner.uri)
+                    .messages.push({
+                        message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
+                        isError: false, // Elapsed time messages are never displayed as errors
+                    });
+                // if there is an error, show the error message and set the tab to the messages tab
+                let tabState: QueryResultPaneTabs;
+                if (hasError) {
+                    tabState = QueryResultPaneTabs.Messages;
+                } else {
+                    tabState =
+                        Object.keys(
+                            this._queryResultWebviewController.getQueryResultState(queryRunner.uri)
+                                .resultSetSummaries,
+                        ).length > 0
+                            ? QueryResultPaneTabs.Results
+                            : QueryResultPaneTabs.Messages;
+                }
+
+                this._queryResultWebviewController.getQueryResultState(
+                    queryRunner.uri,
+                ).tabStates.resultPaneTab = tabState;
+                this._queryResultWebviewController.state =
+                    this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                this._queryResultWebviewController.updatePanelState(queryRunner.uri);
+                if (!this._queryResultWebviewController.hasPanel(queryRunner.uri)) {
+                    await this._queryResultWebviewController.revealToForeground();
+                }
+            });
+
+            const queryRunnerState = new QueryRunnerState(queryRunner);
+            queryRunnerState.listeners.push(
+                startListener,
+                resultSetListener,
+                batchStartListener,
+                onMessageListener,
+                onCompleteListener,
             );
-            this._queryResultsMap.set(uri, new QueryRunnerState(queryRunner));
+
+            this._queryResultsMap.set(uri, queryRunnerState);
         }
 
         return queryRunner;
@@ -496,7 +511,7 @@ export class SqlOutputContentProvider {
             let queryRunnerState = self._queryResultsMap.get(uri);
             if (queryRunnerState.flaggedForDeletion) {
                 self._queryResultsMap.delete(uri);
-
+                queryRunnerState.listeners.forEach((listener) => listener.dispose());
                 if (queryRunnerState.queryRunner.isExecutingQuery) {
                     // We need to cancel it, which will dispose it
                     this.cancelQuery(queryRunnerState.queryRunner);
