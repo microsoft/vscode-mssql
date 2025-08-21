@@ -1530,11 +1530,21 @@
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
+    <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
+      <source xml:lang="en">Loading databases in &apos;{0}&apos;...</source>
+      <note>{0} is the name of the workspace</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a67a8cf028d055264cd779f840ad3290cb70557277e6fe38ecf976fce921f030">
+      <source xml:lang="en">Loading databases in selected workspace...</source>
+    </trans-unit>
     <trans-unit id="++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2">
       <source xml:lang="en">Loading deployment page...</source>
     </trans-unit>
     <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
       <source xml:lang="en">Loading execution plan...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
+      <source xml:lang="en">Loading workspaces...</source>
     </trans-unit>
     <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
       <source xml:lang="en">Loading...</source>
