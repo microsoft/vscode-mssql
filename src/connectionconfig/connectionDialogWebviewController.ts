@@ -264,8 +264,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     await this.loadAllAzureServers(state);
                 }
             } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
-                if (state.azureAccounts.length > 0) {
-                    await this.loadFabricWorkspaces(state, state.azureAccounts[0]);
+                if (state.selectedAccountId && state.selectedTenantId) {
+                    await this.loadFabricWorkspaces(
+                        state,
+                        state.selectedAccountId,
+                        state.selectedTenantId,
+                    );
                 }
             }
 
@@ -565,7 +569,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("signIntoAzureForBrowse", async (state, payload) => {
-            if (payload.browseTarget === "azure") {
+            if (payload.browseTarget === ConnectionInputMode.AzureBrowse) {
                 if (state.selectedInputMode !== ConnectionInputMode.AzureBrowse) {
                     state.selectedInputMode = ConnectionInputMode.AzureBrowse;
                     state.formError = undefined;
@@ -596,7 +600,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
             this.updateState(state);
 
-            if (payload.browseTarget === "azure") {
+            if (payload.browseTarget === ConnectionInputMode.AzureBrowse) {
                 await this.loadAllAzureServers(state);
 
                 return state;
@@ -607,6 +611,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("selectAzureAccount", async (state, payload) => {
             state.selectedAccountId = payload.accountId;
+
+            // TODO: loading state
 
             // set the list of tenants and selected tenant
             const azureAccount = await VsCodeAzureHelper.getAccountById(payload.accountId);
@@ -629,6 +635,24 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("selectAzureTenant", async (state, payload) => {
             state.selectedTenantId = payload.tenantId;
+
+            // TODO: loading state
+
+            await this.loadFabricWorkspaces(state, state.selectedAccountId, state.selectedTenantId);
+            this.updateState(state);
+
+            const promiseArray: Promise<void>[] = [];
+
+            // for (const workspace of state.fabricWorkspaces) {
+            //     promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
+            // }
+
+            const workspace = state.fabricWorkspaces.find(
+                (w) => w.id === "c0c03b8c-d137-4ab2-b222-c83daff16d09",
+            );
+            promiseArray.push(this.loadFabricDatabasesForWorkspace(state, workspace));
+
+            await Promise.all(promiseArray);
             return state;
         });
     }
@@ -1408,6 +1432,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async loadFabricWorkspaces(
         state: ConnectionDialogWebviewState,
         account: IAzureAccount | string,
+        tenantId: string,
     ): Promise<void> {
         try {
             const accountId = typeof account === "string" ? account : account.id;
@@ -1415,35 +1440,31 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             const newWorkspaces: FabricWorkspaceInfo[] = [];
 
-            const tenants = await VsCodeAzureHelper.getTenantsForAccount(vscodeAccount);
-            for (const tenant of tenants) {
-                const skipList = [
-                    "d307b5b4-08b3-4f94-9e5e-4eed3be0f1c0",
-                    "1a092f68-5741-455a-8057-2acdb897a850",
-                ]; // TODO: remove
+            const tenant = await VsCodeAzureHelper.getTenant(vscodeAccount, tenantId);
 
-                if (skipList.includes(tenant.tenantId)) {
-                    continue;
+            if (!tenant) {
+                this.logger.error(
+                    `Failed to get tenant '${tenantId}' for account '${vscodeAccount.label}'.`,
+                );
+            }
+
+            try {
+                const workspaces = await FabricHelper.getFabricWorkspaces(tenant.tenantId);
+
+                for (const workspace of workspaces) {
+                    const stateWorkspace: FabricWorkspaceInfo = {
+                        id: workspace.id,
+                        displayName: workspace.displayName,
+                        databases: [],
+                        tenantId: tenant.tenantId,
+                    };
+
+                    newWorkspaces.push(stateWorkspace);
                 }
-
-                try {
-                    const workspaces = await FabricHelper.getFabricWorkspaces(tenant.tenantId);
-
-                    for (const workspace of workspaces) {
-                        const stateWorkspace: FabricWorkspaceInfo = {
-                            id: workspace.id,
-                            displayName: workspace.displayName,
-                            databases: [],
-                            tenantId: tenant.tenantId,
-                        };
-
-                        newWorkspaces.push(stateWorkspace);
-                    }
-                } catch (err) {
-                    this.logger.error(
-                        `Failed to get fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`,
-                    );
-                }
+            } catch (err) {
+                this.logger.error(
+                    `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`,
+                );
             }
 
             this.state.fabricWorkspaces = newWorkspaces;
@@ -1461,16 +1482,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 workspace.id,
                 workspace.tenantId,
             );
+
+            databases.push(
+                ...(await FabricHelper.getFabricSqlEndpoints(workspace.id, workspace.tenantId)),
+            );
+
             workspace.databases = databases.map((db) => {
                 return {
                     database: db.database,
                     displayName: db.displayName,
                     server: db.server,
-                    type: "sql_database",
+                    type: db.type,
+                    workspaceName: workspace.displayName,
                 };
             });
 
-            this.updateState();
+            this.updateState(state);
         } catch (err) {
             this.logger.error(
                 `Failed to load Fabric databases for workspace ${workspace.id}: ${getErrorMessage(err)}`,

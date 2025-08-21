@@ -114,7 +114,11 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 signIntoAzureForFirewallRule: function (): void {
                     webviewContext.extensionRpc.action("signIntoAzureForFirewallRule");
                 },
-                signIntoAzureForBrowse: function (browseTarget: "azure" | "fabric"): void {
+                signIntoAzureForBrowse: function (
+                    browseTarget:
+                        | ConnectionInputMode.AzureBrowse
+                        | ConnectionInputMode.FabricBrowse,
+                ): void {
                     webviewContext.extensionRpc.action("signIntoAzureForBrowse", {
                         browseTarget,
                     });

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { FabricSqlDbInfoOld, IWorkspace, IFabricError } from "../sharedInterfaces/connectionDialog";
+import { FabricSqlDbInfo, IWorkspace, IFabricError } from "../sharedInterfaces/connectionDialog";
 import { HttpHelper } from "../http/httpHelper";
 
 export class FabricHelper {
@@ -37,7 +37,7 @@ export class FabricHelper {
     public static async getFabricDatabases(
         workspace: IWorkspace | string,
         tenantId?: string,
-    ): Promise<FabricSqlDbInfoOld[]> {
+    ): Promise<FabricSqlDbInfo[]> {
         const workspacePromise =
             typeof workspace === "string"
                 ? this.getFabricWorkspace(workspace, tenantId)
@@ -45,28 +45,76 @@ export class FabricHelper {
 
         const workspaceId = typeof workspace === "string" ? workspace : workspace.id;
 
-        const response = await this.fetchFromFabric<{ value: ISqlDbArtifact[] }>(
-            `workspaces/${workspaceId}/sqlDatabases`,
-            `listing Fabric databases for workspace '${workspaceId}'`,
-            tenantId,
-        );
-
-        const resolvedWorkspace = await workspacePromise;
+        const result: FabricSqlDbInfo[] = [];
 
         try {
-            return response.value.map((db) => {
-                return {
-                    server: db.properties.serverFqdn,
-                    displayName: db.displayName,
-                    database: db.properties.databaseName,
-                    workspace: resolvedWorkspace,
-                    tags: [],
-                } as FabricSqlDbInfoOld;
-            });
+            const response = await this.fetchFromFabric<{ value: ISqlDbArtifact[] }>(
+                `workspaces/${workspaceId}/sqlDatabases`,
+                `Listing Fabric SQL Databases for workspace '${workspaceId}'`,
+                tenantId,
+            );
+
+            const resolvedWorkspace = await workspacePromise;
+
+            result.push(
+                ...response.value.map((db) => {
+                    return {
+                        server: db.properties.serverFqdn,
+                        displayName: db.displayName,
+                        database: db.properties.databaseName,
+                        workspaceName: resolvedWorkspace.displayName,
+                        type: db.type,
+                    } as FabricSqlDbInfo;
+                }),
+            );
         } catch (error) {
             console.error("Error processing Fabric databases:", error);
-            return [];
         }
+
+        return result;
+    }
+
+    public static async getFabricSqlEndpoints(workspace: IWorkspace | string, tenantId?: string) {
+        const workspacePromise =
+            typeof workspace === "string"
+                ? this.getFabricWorkspace(workspace, tenantId)
+                : workspace;
+
+        const workspaceId = typeof workspace === "string" ? workspace : workspace.id;
+
+        const result: FabricSqlDbInfo[] = [];
+
+        try {
+            const response = await this.fetchFromFabric<{ value: ISqlEndpointArtifact[] }>(
+                `workspaces/${workspaceId}/sqlEndpoints`,
+                `Listing Fabric SQL Endpoints for workspace '${workspaceId}'`,
+                tenantId,
+            );
+
+            const resolvedWorkspace = await workspacePromise;
+
+            for (const endpoint of response.value) {
+                const connectionStringResponse = await this.fetchFromFabric<{
+                    connectionString: string;
+                }>(
+                    `workspaces/${workspaceId}/sqlEndpoints/${endpoint.id}/connectionString`,
+                    `Getting connection string for SQL Endpoint '${endpoint.id}' in workspace '${workspaceId}'`,
+                    tenantId,
+                );
+
+                result.push({
+                    server: connectionStringResponse.connectionString,
+                    displayName: endpoint.displayName,
+                    database: "TO VALIDATE", // TODO: validate that warehouses don't have a database
+                    workspaceName: resolvedWorkspace.displayName,
+                    type: endpoint.type,
+                } as FabricSqlDbInfo);
+            }
+        } catch (error) {
+            console.error("Error processing Fabric SQL Endpoints:", error);
+        }
+
+        return result;
     }
 
     public static async fetchFromFabric<TResponse>(
@@ -178,3 +226,5 @@ export interface ISqlDbArtifact extends IArtifact {
         serverFqdn: string;
     };
 }
+
+export interface ISqlEndpointArtifact extends IArtifact {}

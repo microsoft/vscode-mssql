@@ -265,7 +265,9 @@ export const ConnectionInfoFormContainer = () => {
                                             relationship="description">
                                             <Link
                                                 onClick={() => {
-                                                    context.signIntoAzureForBrowse("azure");
+                                                    context.signIntoAzureForBrowse(
+                                                        ConnectionInputMode.AzureBrowse,
+                                                    );
                                                 }}
                                                 inline>
                                                 {getAzureAccountsText()}

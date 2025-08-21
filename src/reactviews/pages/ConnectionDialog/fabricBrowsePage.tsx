@@ -25,6 +25,7 @@ import {
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
+    ConnectionInputMode,
     IAzureAccount,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
@@ -155,7 +156,7 @@ export const FabricBrowsePage = () => {
                 linkText={Loc.connectionDialog.signIntoFabric}
                 loadingText="Loading Fabric Accounts"
                 onSignInClick={() => {
-                    context.signIntoAzureForBrowse("fabric");
+                    context.signIntoAzureForBrowse(ConnectionInputMode.FabricBrowse);
                 }}
             />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (

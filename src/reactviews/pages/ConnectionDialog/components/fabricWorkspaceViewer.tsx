@@ -19,8 +19,8 @@ import {
     Label,
 } from "@fluentui/react-components";
 import {
-    FabricSqlDbInfo,
     FabricWorkspaceInfo,
+    SqlArtifactTypes,
 } from "../../../../sharedInterfaces/connectionDialog";
 import { useState, useEffect, useMemo } from "react";
 import {
@@ -36,17 +36,27 @@ import { useStyles } from "./fabricWorkspaceViewer.styles";
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
 const sqlAnalyticsEndpointIcon = require("../../../../reactviews/media/data_warehouse.svg");
 
-// Helper function to get the appropriate icon for each item type
-const getItemIcon = (itemType: string): string => {
-    switch (itemType) {
-        case "SQL Database":
+function getItemIcon(artifactType: string): string {
+    switch (artifactType) {
+        case SqlArtifactTypes.SqlDatabase:
             return sqlDatabaseIcon;
-        case "SQL Analytics Endpoint":
+        case SqlArtifactTypes.SqlAnalyticsEndpoint:
             return sqlAnalyticsEndpointIcon;
         default:
             return sqlDatabaseIcon;
     }
-};
+}
+
+function getTypeDisplayName(artifactType: string): string {
+    switch (artifactType) {
+        case SqlArtifactTypes.SqlDatabase:
+            return Loc.connectionDialog.sqlDatabase;
+        case SqlArtifactTypes.SqlAnalyticsEndpoint:
+            return Loc.connectionDialog.sqlAnalyticsEndpoint;
+        default:
+            return artifactType;
+    }
+}
 
 interface Props {
     fabricWorkspaces: FabricWorkspaceInfo[];
@@ -63,6 +73,7 @@ type WorkspacesListProps = {
 type SqlDbItem = {
     id: string;
     name: string;
+    typeDisplayName: string;
     type: string;
     location: string;
 };
@@ -145,8 +156,9 @@ export const FabricWorkspaceViewer = ({
                 result.push({
                     id: db.database,
                     name: db.displayName,
-                    type: `${Loc.connectionDialog.sqlDatabase}`,
-                    location: "db.workspace.name",
+                    type: db.type,
+                    typeDisplayName: getTypeDisplayName(db.type),
+                    location: db.workspaceName,
                 });
             });
         }
@@ -158,13 +170,15 @@ export const FabricWorkspaceViewer = ({
             filteredResult = filteredResult.filter(
                 (item) =>
                     item.name.toLowerCase().includes(searchTerm) ||
-                    item.type.toLowerCase().includes(searchTerm) ||
+                    item.typeDisplayName.toLowerCase().includes(searchTerm) ||
                     item.location.toLowerCase().includes(searchTerm),
             );
         }
 
         if (typeFilter.length > 0 && !typeFilter.includes("Show All")) {
-            filteredResult = filteredResult.filter((item) => typeFilter.includes(item.type));
+            filteredResult = filteredResult.filter((item) =>
+                typeFilter.includes(item.typeDisplayName),
+            );
         }
 
         return filteredResult;
@@ -180,7 +194,7 @@ export const FabricWorkspaceViewer = ({
                         <div style={{ display: "flex", alignItems: "center" }}>
                             <img
                                 src={getItemIcon(item.type)}
-                                alt={item.type}
+                                alt={item.typeDisplayName}
                                 style={{
                                     width: "20px",
                                     height: "20px",
@@ -200,7 +214,7 @@ export const FabricWorkspaceViewer = ({
                 renderHeaderCell: () => `${Loc.connectionDialog.typeColumnHeader}`,
                 renderCell: (item) => (
                     <DataGridCell>
-                        <Text truncate>{item.type}</Text>
+                        <Text truncate>{item.typeDisplayName}</Text>
                     </DataGridCell>
                 ),
             }),

@@ -119,19 +119,12 @@ export interface AzureSqlServerInfo {
     uri: string;
 }
 
-export interface FabricSqlDbInfoOld {
-    server: string;
-    displayName: string;
-    database: string;
-    workspace: IWorkspace;
-    tags: string[];
-}
-
 export interface FabricSqlDbInfo {
     server: string;
     displayName: string;
     database: string;
     type: string;
+    workspaceName: string;
 }
 
 export interface FabricWorkspaceInfo {
@@ -139,6 +132,11 @@ export interface FabricWorkspaceInfo {
     displayName: string;
     tenantId: string;
     databases: FabricSqlDbInfo[];
+}
+
+export enum SqlArtifactTypes {
+    SqlDatabase = "SQLDatabase",
+    SqlAnalyticsEndpoint = "SQLEndpoint",
 }
 
 /**
@@ -201,37 +199,6 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     id?: string;
 }
 
-export interface ConnectionDialogContextProps
-    extends FormContextProps<
-        IConnectionDialogProfile,
-        ConnectionDialogWebviewState,
-        ConnectionDialogFormItemSpec
-    > {
-    // Reducers
-    loadConnection: (connection: IConnectionDialogProfile) => void;
-    setConnectionInputType: (inputType: ConnectionInputMode) => void;
-    connect: () => void;
-    loadAzureServers: (subscriptionId: string) => void;
-    closeDialog: () => void;
-    closeMessage: () => void;
-    addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
-    openCreateConnectionGroupDialog: () => void;
-    createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
-    filterAzureSubscriptions: () => void;
-    refreshConnectionsList: () => void;
-    deleteSavedConnection(connection: IConnectionDialogProfile): void;
-    removeRecentConnection(connection: IConnectionDialogProfile): void;
-    loadFromConnectionString: (connectionString: string) => void;
-    openConnectionStringDialog: () => void;
-    signIntoAzureForFirewallRule: () => void;
-    signIntoAzureForBrowse: (browseTarget: "azure" | "fabric") => void;
-    selectAzureAccount: (accountId: string) => void;
-    selectAzureTenant: (tenantId: string) => void;
-
-    // Request handlers
-    getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
-}
-
 export enum AuthenticationType {
     /**
      * Username and password
@@ -257,6 +224,39 @@ export enum AuthenticationType {
      * No authentication required
      */
     None = "None",
+}
+
+export interface ConnectionDialogContextProps
+    extends FormContextProps<
+        IConnectionDialogProfile,
+        ConnectionDialogWebviewState,
+        ConnectionDialogFormItemSpec
+    > {
+    // Reducers
+    loadConnection: (connection: IConnectionDialogProfile) => void;
+    setConnectionInputType: (inputType: ConnectionInputMode) => void;
+    connect: () => void;
+    loadAzureServers: (subscriptionId: string) => void;
+    closeDialog: () => void;
+    closeMessage: () => void;
+    addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
+    openCreateConnectionGroupDialog: () => void;
+    createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
+    filterAzureSubscriptions: () => void;
+    refreshConnectionsList: () => void;
+    deleteSavedConnection(connection: IConnectionDialogProfile): void;
+    removeRecentConnection(connection: IConnectionDialogProfile): void;
+    loadFromConnectionString: (connectionString: string) => void;
+    openConnectionStringDialog: () => void;
+    signIntoAzureForFirewallRule: () => void;
+    signIntoAzureForBrowse: (
+        browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse,
+    ) => void;
+    selectAzureAccount: (accountId: string) => void;
+    selectAzureTenant: (tenantId: string) => void;
+
+    // Request handlers
+    getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
 }
 
 export interface ConnectionDialogReducers extends FormReducers<IConnectionDialogProfile> {
@@ -290,7 +290,9 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
-    signIntoAzureForBrowse: { browseTarget: "azure" | "fabric" };
+    signIntoAzureForBrowse: {
+        browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse;
+    };
     selectAzureAccount: { accountId: string };
     selectAzureTenant: { tenantId: string };
 }

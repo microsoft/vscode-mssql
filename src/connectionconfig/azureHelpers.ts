@@ -160,6 +160,14 @@ export class VsCodeAzureHelper {
         }
     }
 
+    public static async getTenant(
+        account: vscode.AuthenticationSessionAccountInformation | string,
+        tenantId: string,
+    ): Promise<AzureTenant> {
+        const tenants = await this.getTenantsForAccount(account);
+        return tenants.find((t) => t.tenantId === tenantId);
+    }
+
     /**
      * Gets the subscriptions available for a specific Azure tenant
      * @param tenant The tenant to get subscriptions for
