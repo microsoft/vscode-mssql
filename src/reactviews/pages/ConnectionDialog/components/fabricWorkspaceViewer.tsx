@@ -114,26 +114,49 @@ const WorkspacesList = ({
                     role="option"
                     aria-selected={selectedWorkspace?.id === workspace.id}
                     title={workspace.displayName}>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                        {/* display error if workspace status is errored */}
-                        {workspace.status === ApiStatus.Error && (
-                            <Tooltip content={workspace.errorMessage ?? ""} relationship="label">
-                                <ErrorCircleRegular />
-                            </Tooltip>
-                        )}
-                        {workspace.status === ApiStatus.Loading && (
-                            <Spinner size="extra-tiny" style={{ marginRight: "8px" }} />
-                        )}
-                        {(workspace.status === ApiStatus.Loaded ||
-                            workspace.status === ApiStatus.NotStarted) && (
-                            <PeopleTeamRegular
-                                style={{
-                                    marginRight: "8px",
-                                }}
-                            />
-                        )}
+                    <div style={{ display: "flex", alignItems: "center", minHeight: "20px" }}>
+                        {/* Icon container with consistent styling */}
+                        <div
+                            style={{
+                                width: "16px",
+                                height: "16px",
+                                marginRight: "8px",
+                                flexShrink: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}>
+                            {/* display error if workspace status is errored */}
+                            {workspace.status === ApiStatus.Error && (
+                                <Tooltip
+                                    content={workspace.errorMessage ?? ""}
+                                    relationship="label">
+                                    <ErrorCircleRegular style={{ width: "100%", height: "100%" }} />
+                                </Tooltip>
+                            )}
+                            {/* display loading spinner */}
+                            {workspace.status === ApiStatus.Loading && (
+                                <Spinner
+                                    size="extra-tiny"
+                                    style={{ width: "100%", height: "100%" }}
+                                />
+                            )}
+                            {/* display workspace icon */}
+                            {(workspace.status === ApiStatus.Loaded ||
+                                workspace.status === ApiStatus.NotStarted) && (
+                                <PeopleTeamRegular style={{ width: "100%", height: "100%" }} />
+                            )}
+                        </div>
 
-                        <Text>{workspace.displayName}</Text>
+                        <Text
+                            style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                flex: 1,
+                            }}>
+                            {workspace.displayName}
+                        </Text>
                     </div>
                 </ListItem>
             ))}
@@ -337,7 +360,25 @@ export const FabricWorkspaceViewer = ({
             </div>
 
             <div className={styles.workspaceGrid}>
-                {fabricWorkspaces.length === 0 ? (
+                {fabricWorkspacesLoadStatus === ApiStatus.Loading ? (
+                    <div
+                        style={{
+                            padding: "16px",
+                            color: "var(--vscode-descriptionForeground)",
+                            height: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "12px",
+                        }}
+                        role="status"
+                        aria-live="polite">
+                        <Spinner size="medium" />
+                        <Text>{Loc.connectionDialog.loadingWorkspaces}</Text>
+                    </div>
+                ) : fabricWorkspacesLoadStatus === ApiStatus.Loaded &&
+                  fabricWorkspaces.length === 0 ? (
                     <div
                         style={{
                             padding: "16px",
@@ -352,7 +393,30 @@ export const FabricWorkspaceViewer = ({
                         aria-live="polite">
                         {Loc.connectionDialog.noWorkspacesFound}
                     </div>
-                ) : items.length === 0 ? (
+                ) : selectedWorkspace && selectedWorkspace.status === ApiStatus.Loading ? (
+                    <div
+                        style={{
+                            padding: "16px",
+                            color: "var(--vscode-descriptionForeground)",
+                            height: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "12px",
+                        }}
+                        role="status"
+                        aria-live="polite">
+                        <Spinner size="medium" />
+                        <Text>
+                            {Loc.connectionDialog.loadingDatabasesInWorkspace(
+                                selectedWorkspace?.displayName,
+                            )}
+                        </Text>
+                    </div>
+                ) : selectedWorkspace &&
+                  selectedWorkspace.status === ApiStatus.Loaded &&
+                  items.length === 0 ? (
                     <div
                         style={{
                             padding: "16px",

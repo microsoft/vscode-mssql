@@ -298,6 +298,18 @@ export class LocConstants {
             signIntoFabricToBrowse: l10n.t(
                 "You must be signed into Fabric in order to browse SQL databases.",
             ),
+            loadingWorkspaces: l10n.t("Loading workspaces..."),
+            loadingDatabasesInWorkspace: (workspaceName?: string) => {
+                if (workspaceName) {
+                    return l10n.t({
+                        message: "Loading databases in '{0}'...",
+                        args: [workspaceName],
+                        comment: ["{0} is the name of the workspace"],
+                    });
+                } else {
+                    return l10n.t("Loading databases in selected workspace...");
+                }
+            },
         };
     }
 
