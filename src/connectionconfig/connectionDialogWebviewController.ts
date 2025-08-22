@@ -1481,7 +1481,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     newWorkspaces.push(stateWorkspace);
                 }
 
-                this.state.fabricWorkspaces = newWorkspaces;
+                this.state.fabricWorkspaces = newWorkspaces.sort((a, b) =>
+                    a.displayName.localeCompare(b.displayName),
+                );
                 state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loaded };
             } catch (err) {
                 const message = `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`;
@@ -1531,6 +1533,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             workspace.databases = databases.map((db) => {
                 return {
+                    id: db.id,
                     database: db.database,
                     displayName: db.displayName,
                     server: db.server,
@@ -1547,6 +1550,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             } else {
                 workspace.loadStatus = { status: ApiStatus.Loaded };
             }
+
+            workspace.databases.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
             this.updateState(state);
         } catch (err) {

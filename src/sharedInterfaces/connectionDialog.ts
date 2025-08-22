@@ -121,6 +121,7 @@ export interface AzureSqlServerInfo {
 }
 
 export interface FabricSqlDbInfo {
+    id: string;
     server: string;
     displayName: string;
     database: string;

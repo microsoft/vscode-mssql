@@ -189,7 +189,7 @@ export const FabricWorkspaceViewer = ({
         if (databasesForSelectedWorkspace && databasesForSelectedWorkspace.length > 0) {
             databasesForSelectedWorkspace.forEach((db) => {
                 result.push({
-                    id: db.database,
+                    id: db.id,
                     name: db.displayName,
                     type: db.type,
                     typeDisplayName: getTypeDisplayName(db.type),
@@ -419,7 +419,7 @@ export const FabricWorkspaceViewer = ({
                     <DataGrid
                         items={items}
                         columns={columns}
-                        getRowId={(item) => item.id}
+                        getRowId={(item: SqlDbItem) => item.id}
                         size="small"
                         focusMode="composite"
                         style={{

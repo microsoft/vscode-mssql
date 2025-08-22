@@ -59,6 +59,7 @@ export class FabricHelper {
             result.push(
                 ...response.value.map((db) => {
                     return {
+                        id: db.id,
                         server: db.properties.serverFqdn,
                         displayName: db.displayName,
                         database: db.properties.databaseName,
@@ -97,6 +98,7 @@ export class FabricHelper {
             result.push(
                 ...response.value.map((endpoint) => {
                     return {
+                        id: endpoint.id,
                         server: undefined, // requires a second Fabric API call to populate; fill later to avoid throttling
                         displayName: endpoint.displayName,
                         database: "TO VALIDATE", // TODO: validate that warehouses don't have a database
