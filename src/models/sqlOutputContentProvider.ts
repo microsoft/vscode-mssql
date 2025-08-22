@@ -115,15 +115,12 @@ export class SqlOutputContentProvider {
         );
 
         /**
-         * Command that reveals the query result panel
+         * Command that reveals the query result
          */
         this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdrevealQueryResultPanel,
-                (uri: vscode.Uri) => {
-                    this.revealQueryResultPanel(uri.toString(true));
-                },
-            ),
+            vscode.commands.registerCommand(Constants.cmdrevealQueryResult, (uri: vscode.Uri) => {
+                this.revealQueryResult(uri.toString(true));
+            }),
         );
     }
 
@@ -361,7 +358,7 @@ export class SqlOutputContentProvider {
                     await this._queryResultWebviewController.createPanelController(queryRunner.uri);
                 }
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResultPanel(queryRunner.uri);
+                this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
@@ -406,7 +403,7 @@ export class SqlOutputContentProvider {
                 resultWebviewState.messages.push(message);
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResultPanel(queryRunner.uri);
+                this.revealQueryResult(queryRunner.uri);
             });
             const onMessageListener = queryRunner.onMessage(async (message) => {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
@@ -419,7 +416,7 @@ export class SqlOutputContentProvider {
                 if (this._lastSendMessageTime < Date.now() - MESSAGE_INTERVAL_IN_MS) {
                     resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                    this.revealQueryResultPanel(queryRunner.uri);
+                    this.revealQueryResult(queryRunner.uri);
                     this._lastSendMessageTime = Date.now();
                 }
             });
@@ -453,7 +450,7 @@ export class SqlOutputContentProvider {
                 }
                 resultWebviewState.tabStates.resultPaneTab = tabState;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResultPanel(queryRunner.uri);
+                this.revealQueryResult(queryRunner.uri);
             });
 
             const queryRunnerState = new QueryRunnerState(queryRunner);
@@ -693,7 +690,7 @@ export class SqlOutputContentProvider {
      * Reveals the results grid in either webview panel or webview view.
      * @param uri
      */
-    public revealQueryResultPanel(uri: string): void {
+    public revealQueryResult(uri: string): void {
         const openInNewTabConfig = isOpenQueryResultsInTabByDefaultEnabled();
 
         if (openInNewTabConfig) {
@@ -793,7 +790,7 @@ export class SqlOutputContentProvider {
          * Only reveal the panel if user is working on the same editor
          */
         if (activeEditorUri === uri) {
-            this.revealQueryResultPanel(uri);
+            this.revealQueryResult(uri);
         }
     }
 }

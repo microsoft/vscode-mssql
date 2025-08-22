@@ -297,7 +297,7 @@
                     "group": "navigation@2"
                 },
                 {
-                    "command": "mssql.revealQueryResultPanel",
+                    "command": "mssql.revealQueryResult",
                     "when": "editorLangId == sql && !isInDiffEditor && view.queryResult.visible == false",
                     "group": "navigation@2"
                 },
@@ -737,8 +737,8 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.revealQueryResultPanel",
-                "title": "%mssql.revealQueryResultPanel%",
+                "command": "mssql.revealQueryResult",
+                "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
                 "icon": "media/revealQueryResult.svg"
             },
