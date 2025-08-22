@@ -637,11 +637,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("selectAzureTenant", async (state, payload) => {
             state.selectedTenantId = payload.tenantId;
-            state.fabricWorkspacesLoadStatus = ApiStatus.Loading;
+            state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
+            state.fabricWorkspaces = [];
             this.updateState(state);
 
             await this.loadFabricWorkspaces(state, state.selectedAccountId, state.selectedTenantId);
-            state.fabricWorkspacesLoadStatus = ApiStatus.Loaded;
 
             if (state.fabricWorkspaces.length <= FABRIC_WORKSPACE_AUTOLOAD_LIMIT) {
                 this.updateState(state);
@@ -662,8 +662,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const workspace = state.fabricWorkspaces.find((w) => w.id === payload.workspaceId);
 
             if (
-                (workspace && workspace.status === ApiStatus.NotStarted) ||
-                workspace.status === ApiStatus.Error
+                (workspace && workspace.loadStatus.status === ApiStatus.NotStarted) ||
+                workspace.loadStatus.status === ApiStatus.Error
             ) {
                 await this.loadFabricDatabasesForWorkspace(state, workspace);
             }
@@ -1466,9 +1466,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const tenant = await VsCodeAzureHelper.getTenant(vscodeAccount, tenantId);
 
             if (!tenant) {
-                this.logger.error(
-                    `Failed to get tenant '${tenantId}' for account '${vscodeAccount.label}'.`,
-                );
+                const message = `Failed to get tenant '${tenantId}' for account '${vscodeAccount.label}'.`;
+
+                this.logger.error(message);
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message };
+
+                return;
             }
 
             try {
@@ -1480,18 +1483,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         displayName: workspace.displayName,
                         databases: [],
                         tenantId: tenant.tenantId,
-                        status: ApiStatus.NotStarted,
+                        loadStatus: { status: ApiStatus.NotStarted },
                     };
 
                     newWorkspaces.push(stateWorkspace);
                 }
-            } catch (err) {
-                this.logger.error(
-                    `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`,
-                );
-            }
 
-            this.state.fabricWorkspaces = newWorkspaces;
+                this.state.fabricWorkspaces = newWorkspaces.sort((a, b) =>
+                    a.displayName.localeCompare(b.displayName),
+                );
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loaded };
+            } catch (err) {
+                const message = `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`;
+
+                this.logger.error(message);
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message };
+            }
         } catch (err) {
             state.formError = getErrorMessage(err);
         }
@@ -1501,7 +1508,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         state: ConnectionDialogWebviewState,
         workspace: FabricWorkspaceInfo,
     ): Promise<void> {
-        workspace.status = ApiStatus.Loading;
+        workspace.loadStatus = { status: ApiStatus.Loading };
         this.updateState(state);
 
         try {
@@ -1534,6 +1541,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             workspace.databases = databases.map((db) => {
                 return {
+                    id: db.id,
                     database: db.database,
                     displayName: db.displayName,
                     server: db.server,
@@ -1543,19 +1551,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             });
 
             if (errorMessages.length > 0) {
-                workspace.status = ApiStatus.Error;
-                workspace.errorMessage = errorMessages.join("\n");
+                workspace.loadStatus = {
+                    status: ApiStatus.Error,
+                    message: errorMessages.join("\n"),
+                };
             } else {
-                workspace.status = ApiStatus.Loaded;
+                workspace.loadStatus = { status: ApiStatus.Loaded };
             }
+
+            workspace.databases.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
             this.updateState(state);
         } catch (err) {
-            this.logger.error(
-                `Failed to load Fabric databases for workspace ${workspace.id}: ${getErrorMessage(err)}`,
-            );
+            const message = `Failed to load Fabric databases for workspace ${workspace.id}: ${getErrorMessage(err)}`;
 
-            workspace.status = ApiStatus.Error;
+            this.logger.error(message);
+            workspace.loadStatus = { status: ApiStatus.Error, message: getErrorMessage(err) };
         }
     }
 

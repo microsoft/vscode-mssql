@@ -321,6 +321,8 @@ export class LocConstants {
                     return l10n.t("Loading databases in selected workspace...");
                 }
             },
+            errorLoadingWorkspaces: l10n.t("Error loading workspaces"),
+            errorLoadingDatabases: l10n.t("Error loading databases"),
         };
     }
 

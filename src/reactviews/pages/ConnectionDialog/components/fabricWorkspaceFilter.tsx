@@ -85,7 +85,6 @@ const FabricWorkspaceFilter = ({
     const theme = context!.themeKind;
     const styles = useStyles();
 
-    // const [selectedAccountId, setSelectedAccountId] = useState<string>("");
     const [selectedTenantName, setSelectedTenantName] = useState<string>("");
 
     // Load accounts from state when component mounts
@@ -93,7 +92,11 @@ const FabricWorkspaceFilter = ({
         if (selectedTenantId) {
             const tenant = azureTenants.find((t) => t.id === selectedTenantId);
             if (tenant) {
-                setSelectedTenantName(tenant.name);
+                handleTenantChange({} as any, {
+                    optionText: tenant.name,
+                    optionValue: tenant.id,
+                    selectedOptions: [tenant.id],
+                });
             }
         }
     }, [selectedTenantId]);

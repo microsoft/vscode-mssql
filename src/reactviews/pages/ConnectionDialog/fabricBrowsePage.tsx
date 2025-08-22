@@ -132,23 +132,6 @@ export const FabricBrowsePage = () => {
         context.state.selectedAccountId,
     ]);
 
-    function setSelectedServerWithFormState(server: string | undefined) {
-        if (server === undefined && context?.state.formState.server === "") {
-            return; // avoid unnecessary updates
-        }
-
-        setSelectedServer(server || "");
-
-        let serverUri = "";
-
-        if (server) {
-            const srv = context?.state.azureServers.find((s) => s.server === server);
-            serverUri = srv?.uri || "";
-        }
-
-        setConnectionProperty("server", serverUri);
-    }
-
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
     }

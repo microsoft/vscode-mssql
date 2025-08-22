@@ -36,7 +36,7 @@ import {
 import { locConstants as Loc } from "../../../common/locConstants";
 import { Keys } from "../../../common/keys";
 import { useStyles } from "./fabricWorkspaceViewer.styles";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
 
 // Icon imports for database types
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
@@ -66,7 +66,7 @@ function getTypeDisplayName(artifactType: string): string {
 
 interface Props {
     selectFabricWorkspace: (workspaceId: string) => void;
-    fabricWorkspacesLoadStatus: ApiStatus;
+    fabricWorkspacesLoadStatus: Status;
     fabricWorkspaces: FabricWorkspaceInfo[];
     searchFilter?: string;
     typeFilter?: string[];
@@ -118,34 +118,25 @@ const WorkspacesList = ({
                     title={workspace.displayName}>
                     <div style={{ display: "flex", alignItems: "center", minHeight: "20px" }}>
                         {/* Icon container with consistent styling */}
-                        <div
-                            style={{
-                                width: "16px",
-                                height: "16px",
-                                marginRight: "8px",
-                                flexShrink: 0,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}>
+                        <div className={styles.iconContainer}>
                             {/* display error if workspace status is errored */}
-                            {workspace.status === ApiStatus.Error && (
+                            {workspace.loadStatus.status === ApiStatus.Error && (
                                 <Tooltip
-                                    content={workspace.errorMessage ?? ""}
+                                    content={workspace.loadStatus.message ?? ""}
                                     relationship="label">
                                     <ErrorCircleRegular style={{ width: "100%", height: "100%" }} />
                                 </Tooltip>
                             )}
                             {/* display loading spinner */}
-                            {workspace.status === ApiStatus.Loading && (
+                            {workspace.loadStatus.status === ApiStatus.Loading && (
                                 <Spinner
                                     size="extra-tiny"
                                     style={{ width: "100%", height: "100%" }}
                                 />
                             )}
                             {/* display workspace icon */}
-                            {(workspace.status === ApiStatus.Loaded ||
-                                workspace.status === ApiStatus.NotStarted) && (
+                            {(workspace.loadStatus.status === ApiStatus.Loaded ||
+                                workspace.loadStatus.status === ApiStatus.NotStarted) && (
                                 <PeopleTeamRegular style={{ width: "100%", height: "100%" }} />
                             )}
                         </div>
@@ -211,7 +202,7 @@ export const FabricWorkspaceViewer = ({
         if (databasesForSelectedWorkspace && databasesForSelectedWorkspace.length > 0) {
             databasesForSelectedWorkspace.forEach((db) => {
                 result.push({
-                    id: db.database,
+                    id: db.id,
                     name: db.displayName,
                     type: db.type,
                     typeDisplayName: getTypeDisplayName(db.type),
@@ -369,12 +360,12 @@ export const FabricWorkspaceViewer = ({
                             </div>
                         </div>
                         <div className={styles.workspaceListContainer}>
-                            {fabricWorkspacesLoadStatus === ApiStatus.Loading && (
+                            {fabricWorkspacesLoadStatus.status === ApiStatus.Loading && (
                                 <div>
                                     <Spinner size="medium" />
                                 </div>
                             )}
-                            {fabricWorkspacesLoadStatus === ApiStatus.Loaded && (
+                            {fabricWorkspacesLoadStatus.status === ApiStatus.Loaded && (
                                 <WorkspacesList
                                     workspaces={filteredWorkspaces}
                                     onWorkspaceSelect={handleWorkspaceSelect}
@@ -387,75 +378,48 @@ export const FabricWorkspaceViewer = ({
             </div>
 
             <div className={styles.workspaceGrid}>
-                {fabricWorkspacesLoadStatus === ApiStatus.Loading ? (
-                    <div
-                        style={{
-                            padding: "16px",
-                            color: "var(--vscode-descriptionForeground)",
-                            height: "100%",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "12px",
-                        }}
-                        role="status"
-                        aria-live="polite">
+                {fabricWorkspacesLoadStatus.status === ApiStatus.Loading ? (
+                    <div className={styles.gridMessageContainer} role="status" aria-live="polite">
                         <Spinner size="medium" />
-                        <Text>{Loc.connectionDialog.loadingWorkspaces}</Text>
+                        <Text className={styles.messageText}>
+                            {Loc.connectionDialog.loadingWorkspaces}
+                        </Text>
                     </div>
-                ) : fabricWorkspacesLoadStatus === ApiStatus.Loaded &&
+                ) : fabricWorkspacesLoadStatus.status === ApiStatus.Error ? (
+                    <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
+                        <ErrorCircleRegular className={styles.errorIcon} />
+                        <Text className={styles.messageText}>
+                            {fabricWorkspacesLoadStatus.message ||
+                                Loc.connectionDialog.errorLoadingWorkspaces}
+                        </Text>
+                    </div>
+                ) : fabricWorkspacesLoadStatus.status === ApiStatus.Loaded &&
                   fabricWorkspaces.length === 0 ? (
-                    <div
-                        style={{
-                            padding: "16px",
-                            textAlign: "center",
-                            color: "var(--vscode-descriptionForeground)",
-                            height: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                        role="alert"
-                        aria-live="polite">
+                    <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
                         {Loc.connectionDialog.noWorkspacesFound}
                     </div>
-                ) : selectedWorkspace && selectedWorkspace.status === ApiStatus.Loading ? (
-                    <div
-                        style={{
-                            padding: "16px",
-                            color: "var(--vscode-descriptionForeground)",
-                            height: "100%",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "12px",
-                        }}
-                        role="status"
-                        aria-live="polite">
+                ) : selectedWorkspace &&
+                  selectedWorkspace.loadStatus.status === ApiStatus.Loading ? (
+                    <div className={styles.gridMessageContainer} role="status" aria-live="polite">
                         <Spinner size="medium" />
-                        <Text>
+                        <Text className={styles.messageText}>
                             {Loc.connectionDialog.loadingDatabasesInWorkspace(
                                 selectedWorkspace?.displayName,
                             )}
                         </Text>
                     </div>
+                ) : selectedWorkspace && selectedWorkspace.loadStatus.status === ApiStatus.Error ? (
+                    <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
+                        <ErrorCircleRegular className={styles.errorIcon} />
+                        <Text className={styles.messageText}>
+                            {selectedWorkspace.loadStatus.message ||
+                                Loc.connectionDialog.errorLoadingDatabases}
+                        </Text>
+                    </div>
                 ) : selectedWorkspace &&
-                  selectedWorkspace.status === ApiStatus.Loaded &&
+                  selectedWorkspace.loadStatus.status === ApiStatus.Loaded &&
                   items.length === 0 ? (
-                    <div
-                        style={{
-                            padding: "16px",
-                            textAlign: "center",
-                            color: "var(--vscode-descriptionForeground)",
-                            height: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                        role="alert"
-                        aria-live="polite">
+                    <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
                         {Loc.connectionDialog.noDatabasesFoundInWorkspace(
                             selectedWorkspace?.displayName,
                         )}
@@ -464,7 +428,7 @@ export const FabricWorkspaceViewer = ({
                     <DataGrid
                         items={items}
                         columns={columns}
-                        getRowId={(item) => item.id}
+                        getRowId={(item: SqlDbItem) => item.id}
                         size="small"
                         focusMode="composite"
                         style={{
