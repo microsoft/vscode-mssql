@@ -31,13 +31,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
     IconUtils.initialize(context.extensionUri);
 
-    // Checking if localization should be applied
-    //let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-    //let applyLocalization = config[Constants.configApplyLocalization];
-    // if (applyLocalization) {
-    // 	LocalizedConstants.loadLocalizedConstants(vscode.env.language);
-    // }
-
     // Check if GitHub Copilot is installed
     const copilotExtension = vscode.extensions.getExtension("GitHub.copilot");
     vscode.commands.executeCommand(

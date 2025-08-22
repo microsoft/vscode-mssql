@@ -13,6 +13,16 @@
     <trans-unit id="++CODE++0d7668d337e375d8ccfc1a69ca8f6e22a0b0c850a78c4770b0c4aa3b0daca630">
       <source xml:lang="en">&lt;default&gt;</source>
     </trans-unit>
+    <trans-unit id="++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6">
+      <source xml:lang="en">(0 rows affected)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
+      <source xml:lang="en">(1 row affected)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
+      <source xml:lang="en">({0} rows affected)</source>
+      <note>{0} is the number of rows affected</note>
+    </trans-unit>
     <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
       <source xml:lang="en">+ Add Azure Account</source>
     </trans-unit>
@@ -300,6 +310,10 @@
     </trans-unit>
     <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
       <source xml:lang="en">Cancel</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
+      <source xml:lang="en">Cancel failed: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
       <source xml:lang="en">Cancel schema compare failed: &apos;{0}&apos;</source>
@@ -985,6 +999,9 @@
       <note>{0} is the rule info in format &apos;name (startIp - endIp)&apos;
 {1} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++60cc09ec4655851867d21c226d2f49026746cd374b1822a2b46264601219b206">
+      <source xml:lang="en">Error generating text view. Please try switching back to grid view.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8f53a6df59ae589cf0996134e10ad383f8914500648095194f2d16cc2427954b">
       <source xml:lang="en">Error loading Azure account information for tenant ID &apos;{0}&apos;</source>
       <note>{0} is the tenant ID</note>
@@ -1084,6 +1101,10 @@
     </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2332577de7a1ae1c1fdad89cd3a54570fcafcfcf1e149fda9dc0c42d4f88fbdb">
+      <source xml:lang="en">Failed disposing query: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
       <source xml:lang="en">Failed to apply changes: &apos;{0}&apos;</source>
@@ -1310,6 +1331,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0ca098e2022c5054b1ec77c08df3f3b1d5ccecfbf78f232071f644eb71161e8d">
       <source xml:lang="en">Greater Than or Equals</source>
+    </trans-unit>
+    <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
+      <source xml:lang="en">Grid View</source>
     </trans-unit>
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
@@ -1561,6 +1585,9 @@
     <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
       <source xml:lang="en">Loading workspaces...</source>
     </trans-unit>
+    <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
+      <source xml:lang="en">Loading text view...</source>
+    </trans-unit>
     <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
       <source xml:lang="en">Loading...</source>
     </trans-unit>
@@ -1734,11 +1761,14 @@
       <note>{0} is the connection id
 {1} is the uri</note>
     </trans-unit>
-    <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
-      <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
-    </trans-unit>
     <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
       <source xml:lang="en">No results</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
+      <source xml:lang="en">No results for the active editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
+      <source xml:lang="en">No results to display</source>
     </trans-unit>
     <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
       <source xml:lang="en">No schema differences were found.</source>
@@ -2077,8 +2107,16 @@
     <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
       <source xml:lang="en">Restore panel size</source>
     </trans-unit>
+    <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
+      <source xml:lang="en">Result Set {0}</source>
+      <note>{0} is the index of the result set</note>
+    </trans-unit>
     <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
       <source xml:lang="en">Results</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ccb11e8d73c1d40ef67b26d9ca77a50ab2987d9ac9af361e065c3c1c6699c116">
+      <source xml:lang="en">Results ({0})</source>
+      <note>{0} is the number of results</note>
     </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
@@ -2097,6 +2135,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
       <source xml:lang="en">Run Query History</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
+      <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
     </trans-unit>
     <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
       <source xml:lang="en">Run query on connection &apos;{0}&apos;?&#10;&#10;Query: {1}</source>
@@ -2508,8 +2549,14 @@
     <trans-unit id="++CODE++d7a3cd6cbe28889d5ba18259f276a78a6023030468a7b4013b74a45a2923b9d9">
       <source xml:lang="en">Switch Source and Target</source>
     </trans-unit>
+    <trans-unit id="++CODE++a8e5ca29d45327e2790dbaef626ac6f467741af4efddd4d0aede688f4612677e">
+      <source xml:lang="en">Switch to Grid View</source>
+    </trans-unit>
     <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
       <source xml:lang="en">Switch to MSAL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fe49fbfd86c4792c2bd6cf8b59085cc2d787fa377a2af3ebdcbd88104e556d8c">
+      <source xml:lang="en">Switch to Text View</source>
     </trans-unit>
     <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
       <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
@@ -2560,6 +2607,9 @@
     </trans-unit>
     <trans-unit id="++CODE++90c8505baad739c0925471e0d594ba9d83f84d3a96dbdfa16a47ae7a3ad95d91">
       <source xml:lang="en">Testing connection profile...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
+      <source xml:lang="en">Text View</source>
     </trans-unit>
     <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
       <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
@@ -2895,6 +2945,10 @@
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
       <note>{0} is the webview name</note>
     </trans-unit>
+    <trans-unit id="++CODE++dde734013704b68f0d2d57a1385773d7e4bfbae374a67c150f3f06d8abb95f9d">
+      <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
+      <note>{0} is the number of invalid accounts that have been removed</note>
+    </trans-unit>
     <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
       <source xml:lang="en">{0} issue</source>
       <note>{0} is the number of issues</note>
@@ -3060,6 +3114,9 @@
     <trans-unit id="mssql.deployLocalDockerContainer">
       <source xml:lang="en">Create local SQL Container</source>
     </trans-unit>
+    <trans-unit id="mssql.defaultQueryResultsViewMode.description">
+      <source xml:lang="en">Default view mode for query results display.</source>
+    </trans-unit>
     <trans-unit id="mssql.deleteQueryHistory">
       <source xml:lang="en">Delete</source>
     </trans-unit>
@@ -3077,6 +3134,12 @@
     </trans-unit>
     <trans-unit id="mssql.disconnect">
       <source xml:lang="en">Disconnect</source>
+    </trans-unit>
+    <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
+      <source xml:lang="en">Display results in a formatted text format.</source>
+    </trans-unit>
+    <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
+      <source xml:lang="en">Display results in a tabular grid format (default)</source>
     </trans-unit>
     <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
       <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -3318,8 +3381,8 @@
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
-    <trans-unit id="mssql.revealQueryResultPanel">
-      <source xml:lang="en">Reveal Query Result Panel</source>
+    <trans-unit id="mssql.revealQueryResult">
+      <source xml:lang="en">Reveal Query Result</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query (Preview)</source>
@@ -3429,6 +3492,9 @@
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
       <source xml:lang="en">Table Designer</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
+      <source xml:lang="en">Temporarily store passwords for connections with &apos;Saved Passwords&apos; disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
+    </trans-unit>
     <trans-unit id="mssql.connectionGroup.color">
       <source xml:lang="en">The color of the connection group.</source>
     </trans-unit>
@@ -3504,9 +3570,6 @@
     <trans-unit id="mssql.copyIncludeHeaders">
       <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
     </trans-unit>
-    <trans-unit id="mssql.applyLocalization">
-      <source xml:lang="en">[Optional] Configuration options for localizing into VSCode&apos;s configured locale (must restart VSCode for settings to take effect)</source>
-    </trans-unit>
     <trans-unit id="mssql.splitPaneSelection">
       <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
     </trans-unit>
@@ -3514,13 +3577,13 @@
       <source xml:lang="en">[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source>
     </trans-unit>
     <trans-unit id="mssql.saveAsCsv.delimiter">
-      <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV</source>
+      <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</source>
     </trans-unit>
     <trans-unit id="mssql.ignorePlatformWarning">
       <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
     </trans-unit>
     <trans-unit id="mssql.saveAsCsv.encoding">
-      <source xml:lang="en">[Optional] File encoding used when saving results as CSV</source>
+      <source xml:lang="en">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</source>
     </trans-unit>
     <trans-unit id="mssql.connection.currentLanguage">
       <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>

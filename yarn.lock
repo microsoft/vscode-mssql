@@ -2097,11 +2097,6 @@
   resolved "https://registry.yarnpkg.com/@istanbuljs/schema/-/schema-0.1.3.tgz#e45e384e4b8ec16bce2fd903af78450f6bf7ec98"
   integrity sha512-ZXRY4jNvVgSVQ8DL3LTcakaAtXwTVUxE81hslsyD2AtoXW/wVob10HkOJ1X/pAlcI7D+2YoZKg5do8G/w6RYgA==
 
-"@jgoz/esbuild-plugin-typecheck@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@jgoz/esbuild-plugin-typecheck/-/esbuild-plugin-typecheck-4.0.0.tgz#53b373c907b2fac30753f9124d6929722812a312"
-  integrity sha512-7yyamv/ahDr1INsPlkrmRxxa60haiGCvifcMniO9eVfSs37bz+f7yb588lNb52geUuzuPnY8Uo0LnbtFHr96BQ==
-
 "@jridgewell/gen-mapping@^0.3.5":
   version "0.3.5"
   resolved "https://registry.yarnpkg.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.5.tgz#dcce6aff74bdf6dad1a95802b69b04a2fcb1fb36"

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ContainerDeploymentContextProps } from "../../../sharedInterfaces/containerDeploymentInterfaces";
+import { ContainerDeploymentContextProps } from "../../../sharedInterfaces/containerDeployment";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 /**
