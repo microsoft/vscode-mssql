@@ -26,16 +26,13 @@ import { StateChangeNotification } from "../sharedInterfaces/webview";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
-const deletionTimeoutTime = 1.8e6; // in ms, currently 30 minutes
 const MESSAGE_INTERVAL_IN_MS = 300;
 
 // holds information about the state of a query runner
 export class QueryRunnerState {
     timeout: NodeJS.Timer;
-    flaggedForDeletion: boolean;
     listeners: vscode.Disposable[];
     constructor(public queryRunner: QueryRunner) {
-        this.flaggedForDeletion = false;
         this.listeners = [];
     }
 }
@@ -556,15 +553,15 @@ export class SqlOutputContentProvider {
     public onDidCloseTextDocument(doc: vscode.TextDocument): void {
         const closedDocumentUri = doc.uri.toString(true);
 
-        for (let [key, value] of this._queryResultsMap.entries()) {
-            // closes text document related to a results window we are holding
-            if (closedDocumentUri === value.queryRunner.uri) {
-                value.flaggedForDeletion = true;
-            }
-
-            // "closes" a results window we are holding
+        for (let [key, _value] of this._queryResultsMap.entries()) {
             if (closedDocumentUri === key) {
-                value.timeout = this.setRunnerDeletionTimeout(key);
+                /**
+                 * If the result is in a webview view, immediately dispose the runner
+                 * For panel results, we wait until the panel is closed to dispose the runner
+                 */
+                if (!this._queryResultWebviewController.hasPanel(key)) {
+                    this.cleanupRunner(key);
+                }
             }
         }
 
@@ -589,24 +586,19 @@ export class SqlOutputContentProvider {
         );
     }
 
-    private setRunnerDeletionTimeout(uri: string): NodeJS.Timer {
-        const self = this;
-        return setTimeout(() => {
-            let queryRunnerState = self._queryResultsMap.get(uri);
-            if (queryRunnerState.flaggedForDeletion) {
-                self._queryResultsMap.delete(uri);
-                queryRunnerState.listeners.forEach((listener) => listener.dispose());
-                if (queryRunnerState.queryRunner.isExecutingQuery) {
-                    // We need to cancel it, which will dispose it
-                    this.cancelQuery(queryRunnerState.queryRunner);
-                } else {
-                    // We need to explicitly dispose the query
-                    void queryRunnerState.queryRunner.dispose();
-                }
+    public cleanupRunner(uri: string): void {
+        let queryRunnerState = this._queryResultsMap.get(uri);
+        if (queryRunnerState) {
+            this._queryResultsMap.delete(uri);
+            queryRunnerState.listeners?.forEach((listener) => listener.dispose());
+            if (queryRunnerState.queryRunner.isExecutingQuery) {
+                // We need to cancel it, which will dispose it
+                this.cancelQuery(queryRunnerState.queryRunner);
             } else {
-                queryRunnerState.timeout = this.setRunnerDeletionTimeout(uri);
+                // We need to explicitly dispose the query
+                void queryRunnerState.queryRunner.dispose();
             }
-        }, deletionTimeoutTime);
+        }
     }
 
     public onToggleActualPlan(isEnable: boolean): void {
