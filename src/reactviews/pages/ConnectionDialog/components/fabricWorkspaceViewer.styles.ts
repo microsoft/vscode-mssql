@@ -21,9 +21,8 @@ export const useStyles = makeStyles({
         minWidth: "160px",
         height: "100%",
         borderRight: "1px solid var(--vscode-panel-border)",
-        ...shorthands.padding("4px"),
         transition: "width 0.2s ease-in-out",
-        overflow: "auto",
+        overflow: "hidden",
         backgroundColor: "var(--vscode-sideBar-background)",
     },
     workspaceExplorerCollapsed: {
@@ -40,8 +39,8 @@ export const useStyles = makeStyles({
     },
     workspaceGrid: {
         flexGrow: 1,
-        overflow: "hidden",
-        ...shorthands.padding("8px"),
+        overflow: "auto",
+        ...shorthands.padding("8px", "8px", "16px", "8px"),
         height: "100%",
         display: "flex",
         flexDirection: "column",
@@ -52,6 +51,26 @@ export const useStyles = makeStyles({
         marginBottom: "8px",
         paddingLeft: "8px",
         paddingTop: "4px",
+        paddingRight: "4px",
+        flexShrink: 0,
+    },
+    workspaceListContainer: {
+        flexGrow: 1,
+        overflow: "auto",
+        paddingLeft: "4px",
+        paddingRight: "4px",
+    },
+    workspaceHeader: {
+        flexShrink: 0,
+        paddingTop: "4px",
+        paddingLeft: "4px",
+        paddingRight: "4px",
+    },
+    workspaceSearchBox: {
+        marginTop: "4px",
+        marginBottom: "8px",
+        paddingLeft: "4px",
+        paddingRight: "4px",
     },
     workspaceItem: {
         ...shorthands.padding("4px", "8px", "4px", "24px"),
