@@ -366,16 +366,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return res;
     }
 
-    public addResultSetSummary(uri: string, resultSetSummary: qr.ResultSetSummary) {
-        let state = this.getQueryResultState(uri);
-        const batchId = resultSetSummary.batchId;
-        const resultId = resultSetSummary.id;
-        if (!state.resultSetSummaries[batchId]) {
-            state.resultSetSummaries[batchId] = {};
-        }
-        state.resultSetSummaries[batchId][resultId] = resultSetSummary;
-    }
-
     public getSqlOutputContentProvider(): SqlOutputContentProvider {
         return this._sqlOutputContentProvider;
     }

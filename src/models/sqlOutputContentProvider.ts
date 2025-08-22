@@ -368,11 +368,15 @@ export class SqlOutputContentProvider {
             });
             const resultSetListener = queryRunner.onResultSet(
                 async (resultSet: ResultSetSummary) => {
-                    this._queryResultWebviewController.addResultSetSummary(
-                        queryRunner.uri,
-                        resultSet,
-                    );
-                    this._queryResultWebviewController.updatePanelState(queryRunner.uri);
+                    const resultWebviewState =
+                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    const batchId = resultSet.batchId;
+                    const resultId = resultSet.id;
+                    if (!resultWebviewState.resultSetSummaries[batchId]) {
+                        resultWebviewState.resultSetSummaries[batchId] = {};
+                    }
+                    resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
+                    this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 },
             );
             const batchStartListener = queryRunner.onBatchStart(async (batch) => {
