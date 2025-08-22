@@ -93,8 +93,16 @@ export const FabricBrowsePage = () => {
         ) {
             setAccounts(context.state.azureAccounts);
 
-            // Set the first account as selected if available
-            if (context.state.azureAccounts.length > 0 && !context.state.selectedAccountId) {
+            // Sync selectedAccountName with the globally stored selectedAccountId
+            if (context.state.selectedAccountId) {
+                const selectedAccount = context.state.azureAccounts.find(
+                    (account) => account.id === context.state.selectedAccountId,
+                );
+                if (selectedAccount) {
+                    setSelectedAccountName(selectedAccount.name);
+                }
+            } else if (context.state.azureAccounts.length > 0) {
+                // Set the first account as selected if no account is currently selected
                 handleAccountChange({} as any, {
                     optionText: context.state.azureAccounts[0].name,
                     optionValue: context.state.azureAccounts[0].id,
@@ -102,7 +110,11 @@ export const FabricBrowsePage = () => {
                 });
             }
         }
-    }, [context.state.loadingAzureAccountsStatus, context.state.azureAccounts]);
+    }, [
+        context.state.loadingAzureAccountsStatus,
+        context.state.azureAccounts,
+        context.state.selectedAccountId,
+    ]);
 
     function setSelectedServerWithFormState(server: string | undefined) {
         if (server === undefined && context?.state.formState.server === "") {
