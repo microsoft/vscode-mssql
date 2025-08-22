@@ -47,6 +47,32 @@ async function connectionSharingWithCommands() {
 
 		console.log(`Active connection ID: ${activeConnectionId}`);
 
+		// New feature: Get the active database name using command approach
+		const activeDatabase = await vscode.commands.executeCommand(
+			'mssql.connectionSharing.getActiveDatabase',
+			EXTENSION_ID
+		) as string;
+
+		if (activeDatabase) {
+			console.log(`Active database: ${activeDatabase}`);
+			vscode.window.showInformationMessage(`Currently connected to database: ${activeDatabase}`);
+		} else {
+			console.log('No active database or unable to retrieve database name');
+		}
+
+		// New feature: Get database name for a specific connection ID
+		const databaseForConnection = await vscode.commands.executeCommand(
+			'mssql.connectionSharing.getDatabaseForConnectionId',
+			EXTENSION_ID,
+			activeConnectionId
+		) as string;
+
+		if (databaseForConnection) {
+			console.log(`Database for connection ${activeConnectionId}: ${databaseForConnection}`);
+		} else {
+			console.log(`No database configured for connection ${activeConnectionId}`);
+		}
+
 		const databaseConnectionUri = await vscode.commands.executeCommand(
 			'mssql.connectionSharing.connect',
 			EXTENSION_ID,
@@ -115,6 +141,23 @@ async function connectionSharingWithApis() {
 		}
 
 		console.log(`Retrieved connection ID: ${activeConnectionId}`);
+
+		// New feature: Get the active database name
+		const activeDatabase = await connectionSharingService.getActiveDatabase(EXTENSION_ID);
+		if (activeDatabase) {
+			console.log(`Active database: ${activeDatabase}`);
+			vscode.window.showInformationMessage(`Currently connected to database: ${activeDatabase}`);
+		} else {
+			console.log('No active database or unable to retrieve database name');
+		}
+
+		// New feature: Get database name for a specific connection ID
+		const databaseForConnection = await connectionSharingService.getDatabaseForConnectionId(EXTENSION_ID, activeConnectionId);
+		if (databaseForConnection) {
+			console.log(`Database for connection ${activeConnectionId}: ${databaseForConnection}`);
+		} else {
+			console.log(`No database configured for connection ${activeConnectionId}`);
+		}
 
 		const databaseConnectionUri = await connectionSharingService.connect(EXTENSION_ID, activeConnectionId);
 		if (!databaseConnectionUri) {
