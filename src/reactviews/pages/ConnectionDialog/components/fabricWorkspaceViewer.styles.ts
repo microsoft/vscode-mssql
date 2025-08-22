@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, shorthands } from "@fluentui/react-components";
+import { makeStyles, shorthands, tokens } from "@fluentui/react-components";
 
 export const useStyles = makeStyles({
     container: {
@@ -89,10 +89,15 @@ export const useStyles = makeStyles({
         },
     },
     workspaceItemSelected: {
-        backgroundColor: "var(--vscode-list-activeSelectionBackground)",
+        backgroundColor: tokens.colorSubtleBackgroundSelected,
         color: "var(--vscode-list-activeSelectionForeground)",
+        fontWeight: "600",
+        "@media (forced-colors:active)": {
+            background: "Highlight",
+            color: "HighlightText",
+        },
         "&:hover": {
-            backgroundColor: "var(--vscode-list-activeSelectionBackground)",
+            backgroundColor: tokens.colorSubtleBackgroundSelected,
         },
     },
     collapseButton: {

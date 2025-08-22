@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as React from "react";
+
 import {
     DataGrid,
     DataGridHeader,
@@ -20,12 +22,14 @@ import {
     Spinner,
     Tooltip,
     Input,
+    mergeClasses,
+    SelectionItemId,
 } from "@fluentui/react-components";
 import {
     FabricWorkspaceInfo,
     SqlArtifactTypes,
 } from "../../../../sharedInterfaces/connectionDialog";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
     ChevronDoubleLeftFilled,
     ChevronDoubleRightFilled,
@@ -97,25 +101,40 @@ const WorkspacesList = ({
         return <Label>{Loc.connectionDialog.noWorkspacesAvailable}</Label>;
     }
 
+    const selectedItems: SelectionItemId[] = selectedWorkspace ? [selectedWorkspace.id] : [];
+
+    const onSelectionChange = useCallback(
+        (_: React.SyntheticEvent | Event, data: { selectedItems: SelectionItemId[] }) => {
+            if (data.selectedItems.length > 0) {
+                const selectedId = data.selectedItems[0] as string;
+                const workspace = workspaces.find((w) => w.id === selectedId);
+                if (workspace) {
+                    onWorkspaceSelect(workspace);
+                }
+            }
+        },
+        [workspaces, onWorkspaceSelect],
+    );
+
     return (
-        <List role="listbox" aria-label={Loc.connectionDialog.workspaces}>
+        <List
+            role="listbox"
+            aria-label={Loc.connectionDialog.workspaces}
+            selectionMode="single"
+            navigationMode="composite"
+            selectedItems={selectedItems}
+            onSelectionChange={onSelectionChange}>
             {workspaces.map((workspace) => (
                 <ListItem
                     key={workspace.id}
-                    className={`${styles.workspaceItem} ${
-                        selectedWorkspace?.id === workspace.id ? styles.workspaceItemSelected : ""
-                    }`}
-                    onClick={() => onWorkspaceSelect(workspace)}
-                    onKeyDown={(e) => {
-                        if (e.key === Keys.Enter || e.key === Keys.Space) {
-                            onWorkspaceSelect(workspace);
-                            e.preventDefault();
-                        }
-                    }}
-                    tabIndex={0}
-                    role="option"
-                    aria-selected={selectedWorkspace?.id === workspace.id}
-                    title={workspace.displayName}>
+                    value={workspace.id}
+                    className={mergeClasses(
+                        styles.workspaceItem,
+                        selectedItems.includes(workspace.id) && styles.workspaceItemSelected,
+                    )}
+                    aria-label={workspace.displayName}
+                    title={workspace.displayName}
+                    checkmark={null}>
                     <div style={{ display: "flex", alignItems: "center", minHeight: "20px" }}>
                         {/* Icon container with consistent styling */}
                         <div
