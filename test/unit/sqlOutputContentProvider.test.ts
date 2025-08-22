@@ -21,7 +21,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let contentProvider: SqlOutputContentProvider;
     let mockContentProvider: TypeMoq.IMock<SqlOutputContentProvider>;
-    let context: TypeMoq.IMock<vscode.ExtensionContext> = stubs.TestExtensionContext;
+    let context: TypeMoq.IMock<vscode.ExtensionContext>;
     let statusView: TypeMoq.IMock<StatusView>;
     let untitledSqlDocumentService: TypeMoq.IMock<UntitledSqlDocumentService>;
     let executionPlanService: TypeMoq.IMock<ExecutionPlanService>;
@@ -34,6 +34,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         statusView = TypeMoq.Mock.ofType(StatusView);
         untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
         executionPlanService = TypeMoq.Mock.ofType(ExecutionPlanService);
+        context = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 
         // Mock the onDidOpenTextDocument event
         vscodeWrapper
@@ -56,6 +57,10 @@ suite("SqlOutputProvider Tests using mocks", () => {
                 };
             });
 
+        // Store original functions to restore later
+        const originalRegisterWebviewViewProvider = vscode.window.registerWebviewViewProvider;
+        const originalRegisterCommand = vscode.commands.registerCommand;
+
         // Mock window.registerWebviewViewProvider to avoid "already registered" errors
         (vscode.window as any).registerWebviewViewProvider = () =>
             ({
@@ -70,12 +75,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         statusView.setup((x) => x.cancelingQuery(TypeMoq.It.isAny()));
         statusView.setup((x) => x.executedQuery(TypeMoq.It.isAny()));
         context.setup((c) => c.extensionPath).returns(() => "test_uri");
-        // Make sure subscriptions is an array with a push method
-        const subscriptions: any[] = [];
-        subscriptions.push = (item: any) => {
-            subscriptions[subscriptions.length] = item;
-            return subscriptions.length;
-        };
+        const subscriptions: vscode.Disposable[] = [];
         context.setup((c) => c.subscriptions).returns(() => subscriptions);
         contentProvider = new SqlOutputContentProvider(
             context.object,
@@ -185,6 +185,10 @@ suite("SqlOutputProvider Tests using mocks", () => {
             .returns(() => {
                 return mockMap.get(testUri);
             });
+
+        // Restore original functions after setup
+        (vscode.window as any).registerWebviewViewProvider = originalRegisterWebviewViewProvider;
+        (vscode.commands as any).registerCommand = originalRegisterCommand;
     });
 
     test("Correctly outputs the new result pane view column", (done) => {
