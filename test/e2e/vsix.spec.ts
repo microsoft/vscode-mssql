@@ -10,7 +10,7 @@ import {
 } from "./utils/launchVscodeWithMsSqlExt";
 import { addConnectionButton } from "./utils/commonSelectors";
 import { test, expect } from "./baseFixtures";
-import { screenshotOnFailure } from "./utils/screenshotOnError";
+import { screenshotOnFailure } from "./utils/screenshotUtils";
 import { getWebviewByTitle } from "./utils/testHelpers";
 
 /**

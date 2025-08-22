@@ -10,6 +10,7 @@ import {
     ColorThemeChangeNotification,
     ExecuteCommandParams,
     ExecuteCommandRequest,
+    GetEOLRequest,
     GetLocalizationRequest,
     GetPlatformRequest,
     GetStateRequest,
@@ -46,7 +47,7 @@ import {
     RequestType,
 } from "vscode-jsonrpc/node";
 import { MessageReader } from "vscode-languageclient";
-
+import os from "os";
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
     private _disposables: vscode.Disposable[] = [];
@@ -354,6 +355,10 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                 );
                 throw new Error(`No reducer registered for action ${action.type as string}`);
             }
+        });
+
+        this.onRequest(GetEOLRequest.type, () => {
+            return os.EOL;
         });
     }
 

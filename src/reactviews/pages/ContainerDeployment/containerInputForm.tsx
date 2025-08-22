@@ -13,7 +13,7 @@ import {
     ContainerDeploymentFormItemSpec,
     ContainerDeploymentWebviewState,
     DockerConnectionProfile,
-} from "../../../sharedInterfaces/containerDeploymentInterfaces";
+} from "../../../sharedInterfaces/containerDeployment";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
 import { locConstants } from "../../common/locConstants";

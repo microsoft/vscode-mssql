@@ -416,7 +416,12 @@ export class LocConstants {
 
     public get queryResult() {
         return {
-            results: l10n.t("Results"),
+            results: (count: number) =>
+                l10n.t({
+                    message: "Results ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of results"],
+                }),
             messages: l10n.t("Messages"),
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
@@ -429,9 +434,6 @@ export class LocConstants {
             saveAsCsv: l10n.t("Save as CSV"),
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),
-            noResultMessage: l10n.t(
-                "No result found for the active editor; please run a query or switch to another editor.",
-            ),
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
             queryPlan: l10n.t("Query Plan"),
             selectAll: l10n.t("Select All"),
@@ -446,6 +448,39 @@ export class LocConstants {
             close: l10n.t("Close"),
             maximize: l10n.t("Maximize"),
             restore: l10n.t("Restore"),
+            gridView: l10n.t("Grid View"),
+            textView: l10n.t("Text View"),
+            toggleToGridView: l10n.t("Switch to Grid View"),
+            toggleToTextView: l10n.t("Switch to Text View"),
+            noResultsToDisplay: l10n.t("No results to display"),
+            errorGeneratingTextView: l10n.t(
+                "Error generating text view. Please try switching back to grid view.",
+            ),
+            rowsAffected: (rowCount: number) => {
+                switch (rowCount) {
+                    case 0:
+                        return l10n.t("(0 rows affected)");
+                    case 1:
+                        return l10n.t("(1 row affected)");
+                    default:
+                        return l10n.t({
+                            message: "({0} rows affected)",
+                            args: [rowCount],
+                            comment: ["{0} is the number of rows affected"],
+                        });
+                }
+            },
+            resultSet: (index: string) =>
+                l10n.t({
+                    message: "Result Set {0}",
+                    args: [index],
+                    comment: ["{0} is the index of the result set"],
+                }),
+            loadingTextView: l10n.t("Loading text view..."),
+            noResultsHeader: l10n.t("No results for the active editor"),
+            noResultMessage: l10n.t(
+                "Run a query in the current editor, or switch to an editor that has results.",
+            ),
         };
     }
 

@@ -727,6 +727,17 @@ export class Azure {
     };
 }
 
+export class Accounts {
+    public static invalidEntraAccountsRemoved = (numRemoved: number) => {
+        return l10n.t({
+            message:
+                "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
+            args: [numRemoved],
+            comment: ["{0} is the number of invalid accounts that have been removed"],
+        });
+    };
+}
+
 export class QueryResult {
     public static nonNumericSelectionSummary = (
         count: number,
@@ -1485,6 +1496,20 @@ export class MssqlChatAgent {
 
 export class QueryEditor {
     public static codeLensConnect = l10n.t("$(plug)  Connect to MSSQL");
+    public static queryCancelFailed(errorMessage: string) {
+        return l10n.t({
+            message: "Cancel failed: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
+    public static queryDisposeFailed(errorMessage: string) {
+        return l10n.t({
+            message: "Failed disposing query: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    }
 }
 
 export class ConnectionSharing {

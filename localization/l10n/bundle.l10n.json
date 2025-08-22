@@ -389,7 +389,12 @@
   "Privacy Statement": "Privacy Statement",
   "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...",
   "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
-  "Results": "Results",
+  "Results ({0})/{0} is the number of results": {
+    "message": "Results ({0})",
+    "comment": [
+      "{0} is the number of results"
+    ]
+  },
   "Messages": "Messages",
   "Timestamp": "Timestamp",
   "Message": "Message",
@@ -402,7 +407,6 @@
   "Save as CSV": "Save as CSV",
   "Save as Excel": "Save as Excel",
   "Save as JSON": "Save as JSON",
-  "No result found for the active editor; please run a query or switch to another editor.": "No result found for the active editor; please run a query or switch to another editor.",
   "Hide this panel": "Hide this panel",
   "Query Plan": "Query Plan",
   "Select All": "Select All",
@@ -413,6 +417,29 @@
   "Search...": "Search...",
   "Maximize": "Maximize",
   "Restore": "Restore",
+  "Grid View": "Grid View",
+  "Text View": "Text View",
+  "Switch to Grid View": "Switch to Grid View",
+  "Switch to Text View": "Switch to Text View",
+  "No results to display": "No results to display",
+  "Error generating text view. Please try switching back to grid view.": "Error generating text view. Please try switching back to grid view.",
+  "(0 rows affected)": "(0 rows affected)",
+  "(1 row affected)": "(1 row affected)",
+  "({0} rows affected)/{0} is the number of rows affected": {
+    "message": "({0} rows affected)",
+    "comment": [
+      "{0} is the number of rows affected"
+    ]
+  },
+  "Result Set {0}/{0} is the index of the result set": {
+    "message": "Result Set {0}",
+    "comment": [
+      "{0} is the index of the result set"
+    ]
+  },
+  "Loading text view...": "Loading text view...",
+  "No results for the active editor": "No results for the active editor",
+  "Run a query in the current editor, or switch to an editor that has results.": "Run a query in the current editor, or switch to an editor that has results.",
   "Add new column": "Add new column",
   "Table": "Table",
   "Save": "Save",
@@ -1069,6 +1096,7 @@
   "CSV": "CSV",
   "JSON": "JSON",
   "Excel": "Excel",
+  "Results": "Results",
   "Select all": "Select all",
   "Executing query...": "Executing query...",
   "Query executed": "Query executed",
@@ -1256,6 +1284,12 @@
     "comment": [
       "{0} is the rule info in format 'name (startIp - endIp)'",
       "{1} is the error message"
+    ]
+  },
+  "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again./{0} is the number of invalid accounts that have been removed": {
+    "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
+    "comment": [
+      "{0} is the number of invalid accounts that have been removed"
     ]
   },
   "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
@@ -1765,6 +1799,18 @@
     ]
   },
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
+  "Cancel failed: {0}/{0} is the error message": {
+    "message": "Cancel failed: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Failed disposing query: {0}/{0} is the error message": {
+    "message": "Failed disposing query: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
   "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
     "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
     "comment": [

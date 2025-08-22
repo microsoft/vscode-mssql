@@ -9,7 +9,7 @@ import * as vscode from "vscode";
 import { ExecutionPlanWebviewController } from "../../src/controllers/executionPlanWebviewController";
 import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
-import * as ep from "../../src/sharedInterfaces/executionPlanInterfaces";
+import * as ep from "../../src/sharedInterfaces/executionPlan";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as epUtils from "../../src/controllers/sharedExecutionPlanUtils";
 import { contents } from "../resources/testsqlplan";

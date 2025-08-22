@@ -267,3 +267,7 @@ export interface PendingRequest {
     resolve: (result: any) => void;
     reject: (error: any) => void;
 }
+
+export namespace GetEOLRequest {
+    export const type = new RequestType<void, string, void>("getEOL");
+}

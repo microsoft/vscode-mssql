@@ -1195,8 +1195,6 @@ declare module "vscode-mssql" {
         getLocations(session: IAzureAccountSession): Promise<azure.subscription.Location[]>;
     }
 
-
-
     /**
      * Interface containing deployment options of boolean type
      */
@@ -1328,13 +1326,6 @@ declare module "vscode-mssql" {
         dataSchemaProvider: string;
     }
 
-    export const enum SchemaUpdateAction {
-        Delete = 0,
-        Change = 1,
-        Add = 2,
-    }
-
-
     export interface DiffEntry {
         updateAction: SchemaUpdateAction;
         differenceType: SchemaDifferenceType;
@@ -1345,6 +1336,8 @@ declare module "vscode-mssql" {
         children: DiffEntry[];
         sourceScript: string;
         targetScript: string;
+        sourceObjectType: string;
+        targetObjectType: string;
         included: boolean;
         position?: number;
     }

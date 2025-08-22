@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as cd from "../sharedInterfaces/containerDeploymentInterfaces";
+import * as cd from "../sharedInterfaces/containerDeployment";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { platform } from "os";
@@ -97,14 +97,12 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
     private registerRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
             (state.formState as any)[payload.event.propertyName] = payload.event.value;
-            this.updateState(state);
 
             const newState = await this.validateDockerConnectionProfile(
                 state,
                 this.state.formState,
                 payload.event.propertyName,
             );
-            this.updateState(newState);
             return newState;
         });
         this.registerReducer("completeDockerStep", async (state, payload) => {
@@ -481,9 +479,7 @@ export class ContainerDeploymentWebviewController extends FormWebviewController<
                         <a
                             href="https://go.microsoft.com/fwlink/?LinkId=746388"
                             target="_blank"
-                        >
-                            ${ContainerDeployment.termsAndConditions}
-                        </a>
+                        >${ContainerDeployment.termsAndConditions}</a>
                     </span>`,
                 required: true,
                 tooltip: ContainerDeployment.acceptSqlServerEulaTooltip,

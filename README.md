@@ -7,9 +7,7 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 
 ## Explore and Learn
 
-<a href="https://aka.ms/vscode-mssql-demos">
-  <img src="images/yt-thumbnail.png" alt="MSSQL Extension Demo Playlist" width="720"/>
-</a>
+[![MSSQL Extension Demo Playlist](images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
 
 - [Watch the demos](https://aka.ms/vscode-mssql-demos): Explore key features through our YouTube playlist
 - [Read our blog posts](https://aka.ms/vscode-mssql-blogs): Learn from use cases, walkthroughs, and product updates
@@ -55,6 +53,26 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
   - Interact with each step in the execution plan, including collapsing or expanding nodes for a simplified view.
   - Zoom in or out to adjust the level of detail, or use "zoom to fit" for a complete view of the plan.
   - Highlight key performance indicators, such as elapsed time or subtree cost, to identify bottlenecks in query execution.
+- **Local SQL Server Containers**
+  - Create and manage SQL Server containers locally without Docker commands
+  - Use SQL Server 2025 by default with vector and AI-ready features
+  - Auto-connect with a ready-to-use connection profile
+  - Start, stop, restart, or delete containers from the connection panel
+  - Automatic port conflict detection and resolution
+  - Customize container name, hostname, port, and version
+- **Schema Designer**: Visual schema modeling and editing—code-free
+  - Design, view, and manage database schemas using an intuitive drag-and-drop GUI
+  - Add or modify tables, columns, primary keys, and foreign key relationships without writing T-SQL
+  - Preview schema changes instantly as read-only T-SQL in the built-in code pane
+  - Navigate large schemas easily with search, mini-map, zoom, and auto-layout
+  - Filter by table name or relationship to focus on specific areas of your schema
+  - Export diagrams to share with your team or include in documentation
+  - Push updates to your database using the built-in deployment
+- **Schema Compare**: Effortless schema synchronization and management
+  - Compare schemas between two databases, DACPAC files, or SQL projects and see additions, removals, and modifications at a glance
+  - Filter and exclude specific differences before syncing
+  - Apply changes directly or generate a deployment script for later use
+  - Save comparisons to rerun or audit schema changes
 - **Customizable Extension Options**: Configure command shortcuts, appearance, and other settings to personalize your development experience.
 
 ## Public Preview Features
@@ -73,29 +91,8 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
   - Get connection details for the current session
   - Show database schema contextually
   - Access all available Agent tools from the Agent Tools panel
-- **Local SQL Server Containers (`Preview`)**
-  - Create and manage SQL Server containers locally without Docker commands
-  - Use SQL Server 2025 by default with vector and AI-ready features
-  - Auto-connect with a ready-to-use connection profile
-  - Start, stop, restart, or delete containers from the connection panel
-  - Automatic port conflict detection and resolution
-  - Customize container name, hostname, port, and version
-- **Schema Designer (`Preview`)**: Visual schema modeling and editing—code-free
-  - Design, view, and manage database schemas using an intuitive drag-and-drop GUI
-  - Add or modify tables, columns, primary keys, and foreign key relationships without writing T-SQL
-  - Preview schema changes instantly as read-only T-SQL in the built-in code pane
-  - Navigate large schemas easily with search, mini-map, zoom, and auto-layout
-  - Filter by table name or relationship to focus on specific areas of your schema
-  - Export diagrams to share with your team or include in documentation
-  - Push updates to your database using the built-in deployment
-- **Schema Compare (`Preview`)**: Effortless schema synchronization and management
-  - Compare schemas between two databases, DACPAC files, or SQL projects and see additions, removals, and modifications at a glance
-  - Filter and exclude specific differences before syncing
-  - Apply changes directly or generate a deployment script for later use
-  - Save comparisons to rerun or audit schema changes
 
-<img src="https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif" alt="demo" style="width:480px;"/>
-
+![Demo](https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif)
 
 ## Resources
 
@@ -118,24 +115,26 @@ Follow these steps to get started with the MSSQL extension:
 7. Run queries by selecting **MS SQL: Execute Query** from the Command Palette (`F1`), or use the shortcut:
   - **Windows/Linux**: `Ctrl+Shift+E`
   - **macOS**: `Cmd+Shift+E`
-   View results in the result pane.
 8. Customize shortcuts via the command palette or in your `settings.json`. See [customize shortcuts](https://github.com/Microsoft/vscode-mssql/wiki/customize-shortcuts) for help.
 
 ## Command Palette Commands
+
 The extension provides several commands in the Command Palette for working with ```.sql``` files. Here are some of the most commonly used commands:
-* **MS SQL: Connect** to SQL Server, Azure SQL Database or SQL Data Warehouse using connection profiles or recent connections.
-    * **Create Connection Profile** to create a new connection profile and connect.
-* **MS SQL: Disconnect** from SQL Server, Azure SQL Database or SQL Data Warehouse in the editor session.
-* **MS SQL: Use Database** to switch the database connection to another database within the same connected server in the editor session.
-* **MS SQL: Execute Query** script, T-SQL statements or batches in the editor.
-* **MS SQL: Cancel Query** execution in progress in the editor session.
-* **MS SQL: Manage Connection Profiles**
-    * **Create** a new connection profile using command palette's step-by-step UI guide.
-    * **Edit** user settings file (settings.json) in the editor to manually create, edit or remove connection profiles.
-    * **Remove** an existing connection profile using command palette's step-by-step UI guide.
-    * **Clear Recent Connection List** to clear the history of recent connections.
+
+- **MS SQL: Connect** to SQL Server, Azure SQL Database or SQL Data Warehouse using connection profiles or recent connections.
+  - **Create Connection Profile** to create a new connection profile and connect.
+- **MS SQL: Disconnect** from SQL Server, Azure SQL Database or SQL Data Warehouse in the editor session.
+- **MS SQL: Use Database** to switch the database connection to another database within the same connected server in the editor session.
+- **MS SQL: Execute Query** script, T-SQL statements or batches in the editor.
+- **MS SQL: Cancel Query** execution in progress in the editor session.
+- **MS SQL: Manage Connection Profiles**
+  - **Create** a new connection profile using command palette's step-by-step UI guide.
+  - **Edit** user settings file (settings.json) in the editor to manually create, edit or remove connection profiles.
+  - **Remove** an existing connection profile using command palette's step-by-step UI guide.
+  - **Clear Recent Connection List** to clear the history of recent connections.
 
 ## Extension Settings
+
 The following Visual Studio Code settings are available for the mssql extension. These can be set in user preferences (cmd+,) or workspace settings ```(.vscode/settings.json)```.
 
 ```javascript
@@ -146,7 +145,7 @@ The following Visual Studio Code settings are available for the mssql extension.
   "mssql.openQueryResultsInTabByDefault": false,
   "mssql.logDebugInfo": false,
   "mssql.messagesDefaultOpen": true,
-  "mssql.applyLocalization": false,
+  "mssql.connectionManagement.rememberPasswordsUntilRestart": true
 }
 
 // IntelliSense
@@ -165,10 +164,10 @@ The following Visual Studio Code settings are available for the mssql extension.
   "mssql.copyIncludeHeaders": false,
   "mssql.copyRemoveNewLine": true,
   "mssql.saveAsCsv.includeHeaders": true,
-  "mssql.saveAsCsv.delimiter": ",",
+  "mssql.saveAsCsv.delimiter": ",",    // Options: ",", "\t", ";", "|"
   "mssql.saveAsCsv.lineSeparator": null,
   "mssql.saveAsCsv.textIdentifier": "\"",
-  "mssql.saveAsCsv.encoding": "utf-8",
+  "mssql.saveAsCsv.encoding": "utf-8", // Options: "utf-8", "utf-16le", "utf-16be", "ascii", "latin1", "iso-8859-1"
   "mssql.splitPaneSelection": "next",
   "mssql.persistQueryResultTabs": false
 }
@@ -213,42 +212,50 @@ The following Visual Studio Code settings are available for the mssql extension.
 See [customize options](https://github.com/Microsoft/vscode-mssql/wiki/customize-options) and [manage connection profiles](https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles) for more details.
 
 ## Change Log
+
 See the [change log](https://github.com/Microsoft/vscode-mssql/blob/main/CHANGELOG.md) for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 
 Currently this extension supports the following operating systems:
 
-* Windows (x64 | x86 | arm64)
-* macOS (x64 | arm64)
-* Ubuntu 14.04 / Linux Mint 17 / Linux Mint 18 / Elementary OS 0.3
-* Ubuntu 16.04 / Elementary OS 0.4
-* Debian 8.2
-* CentOS 7.1 / Oracle Linux 7
-* Red Hat Enterprise Linux (RHEL)
-* Fedora 23
-* OpenSUSE 13.2
-* Linux arm64
+- Windows (x64 | x86 | arm64)
+- macOS (x64 | arm64)
+- Ubuntu 14.04 / Linux Mint 17 / Linux Mint 18 / Elementary OS 0.3
+- Ubuntu 16.04 / Elementary OS 0.4
+- Debian 8.2
+- CentOS 7.1 / Oracle Linux 7
+- Red Hat Enterprise Linux (RHEL)
+- Fedora 23
+- OpenSUSE 13.2
+- Linux arm64
 
 ## Offline Installation
+
 The extension will download and install a required SqlToolsService package during activation. For machines with no Internet access, you can still use the extension by choosing the `Install from VSIX...` option in the extension view and installing a bundled release from our [Releases](https://github.com/Microsoft/vscode-mssql/releases) page.
 
 Each operating system has a `.vsix` file with the required service included. Pick the file for your OS, download and install to get started. We recommend you choose a full release and ignore any alpha or beta releases as these are our daily builds used in testing.
 
 ## Support
+
 Support for this extension is provided via [GitHub issues](https://github.com/Microsoft/vscode-mssql/issues). You can submit a [bug report](https://aka.ms/vscode-mssql-bug), a [feature suggestion](https://aka.ms/vscode-mssql-feature-request) or participate in [discussions](https://aka.ms/vscode-mssql-discussions).
 
 ## Contributing to the Extension
+
 See the [developer documentation](https://github.com/Microsoft/vscode-mssql/wiki/contributing) for details on how to contribute to this extension.
 
 ## Code of Conduct
+
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Telemetry
+
 This extension collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data and you can disable telemetry as described in the VS Code [disable telemetry reporting](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) documentation.
 
 ## Privacy Statement
+
 The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7) describes the privacy statement of this software.
 
 ## License
+
 This extension is [licensed under the MIT License](https://github.com/Microsoft/vscode-mssql/blob/main/LICENSE.txt). Please see the [third-party notices](https://github.com/Microsoft/vscode-mssql/blob/main/ThirdPartyNotices.txt) file for additional copyright notices and license terms applicable to portions of the software.

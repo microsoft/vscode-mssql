@@ -673,13 +673,13 @@ suite("Docker Utilities", () => {
         execStub.resetBehavior();
     });
 
-    test("sanitizeContainerName: should properly sanitize container names", () => {
+    test("sanitizeContainerInput: should properly sanitize container input", () => {
         // Test with valid input
-        let result = dockerUtils.sanitizeContainerName("valid-container");
+        let result = dockerUtils.sanitizeContainerInput("valid-container");
         assert.strictEqual(result, "valid-container", "Valid name should remain unchanged");
 
         // Test with alphanumeric and allowed special characters
-        result = dockerUtils.sanitizeContainerName("test_container.1-2");
+        result = dockerUtils.sanitizeContainerInput("test_container.1-2");
         assert.strictEqual(
             result,
             "test_container.1-2",
@@ -687,11 +687,11 @@ suite("Docker Utilities", () => {
         );
 
         // Test with disallowed special characters
-        result = dockerUtils.sanitizeContainerName("test@container!");
+        result = dockerUtils.sanitizeContainerInput("test@container!");
         assert.strictEqual(result, "testcontainer", "Disallowed special chars should be removed");
 
         // Test with SQL injection attempt
-        result = dockerUtils.sanitizeContainerName("container';DROP TABLE users;--");
+        result = dockerUtils.sanitizeContainerInput("container';DROP TABLE users;--");
         assert.strictEqual(
             result,
             "containerDROPTABLEusers--",
@@ -699,7 +699,7 @@ suite("Docker Utilities", () => {
         );
 
         // Test with command injection attempt
-        result = dockerUtils.sanitizeContainerName('container" && echo Injected');
+        result = dockerUtils.sanitizeContainerInput('container" && echo Injected');
         assert.strictEqual(
             result,
             "containerechoInjected",
@@ -707,19 +707,19 @@ suite("Docker Utilities", () => {
         );
 
         // Test with command injection attempt
-        result = dockerUtils.sanitizeContainerName('container"; rm -rf /');
+        result = dockerUtils.sanitizeContainerInput('container"; rm -rf /');
         assert.strictEqual(result, "containerrm-rf", "Command injection chars should be removed");
 
         // Test with empty string
-        result = dockerUtils.sanitizeContainerName("");
+        result = dockerUtils.sanitizeContainerInput("");
         assert.strictEqual(result, "", "Empty string should remain empty");
 
         // Test with only disallowed characters
-        result = dockerUtils.sanitizeContainerName("@#$%^&*()");
+        result = dockerUtils.sanitizeContainerInput("@#$%^&*()");
         assert.strictEqual(result, "", "String with only disallowed chars should become empty");
 
         // Test with command injection attempts
-        const sanitizedInjection = dockerUtils.sanitizeContainerName('container"; rm -rf / #');
+        const sanitizedInjection = dockerUtils.sanitizeContainerInput('container"; rm -rf / #');
         assert.strictEqual(
             sanitizedInjection,
             "containerrm-rf",
@@ -727,7 +727,7 @@ suite("Docker Utilities", () => {
         );
 
         // Test with invalid characters (should be removed)
-        const sanitizedInvalid = dockerUtils.sanitizeContainerName(
+        const sanitizedInvalid = dockerUtils.sanitizeContainerInput(
             "my container/with\\invalid:chars",
         );
         assert.strictEqual(
