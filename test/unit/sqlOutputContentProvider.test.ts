@@ -14,10 +14,12 @@ import * as assert from "assert";
 import { ISelectionData } from "../../src/models/interfaces";
 import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
+import * as sinon from "sinon";
 
 suite("SqlOutputProvider Tests using mocks", () => {
     const testUri = "Test_URI";
 
+    let sandbox: sinon.SinonSandbox;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let contentProvider: SqlOutputContentProvider;
     let mockContentProvider: TypeMoq.IMock<SqlOutputContentProvider>;
@@ -30,6 +32,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
     let setCurrentEditorColumn: (column: number) => void;
 
     setup(() => {
+        sandbox = sinon.createSandbox();
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         statusView = TypeMoq.Mock.ofType(StatusView);
         untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
@@ -57,21 +60,18 @@ suite("SqlOutputProvider Tests using mocks", () => {
                 };
             });
 
-        // Store original functions to restore later
-        const originalRegisterWebviewViewProvider = vscode.window.registerWebviewViewProvider;
-        const originalRegisterCommand = vscode.commands.registerCommand;
-
-        // Mock window.registerWebviewViewProvider to avoid "already registered" errors
-        (vscode.window as any).registerWebviewViewProvider = () =>
-            ({
+        sandbox.stub(vscode.window, "registerWebviewViewProvider").callsFake(() => {
+            return {
                 dispose: () => {},
-            }) as vscode.Disposable;
+            } as vscode.Disposable;
+        });
 
-        // Mock commands.registerCommand to avoid "already exists" errors
-        (vscode.commands as any).registerCommand = () =>
-            ({
+        sandbox.stub(vscode.commands, "registerCommand").callsFake(() => {
+            return {
                 dispose: () => {},
-            }) as vscode.Disposable;
+            } as vscode.Disposable;
+        });
+
         statusView.setup((x) => x.cancelingQuery(TypeMoq.It.isAny()));
         statusView.setup((x) => x.executedQuery(TypeMoq.It.isAny()));
         context.setup((c) => c.extensionPath).returns(() => "test_uri");
@@ -185,10 +185,10 @@ suite("SqlOutputProvider Tests using mocks", () => {
             .returns(() => {
                 return mockMap.get(testUri);
             });
+    });
 
-        // Restore original functions after setup
-        (vscode.window as any).registerWebviewViewProvider = originalRegisterWebviewViewProvider;
-        (vscode.commands as any).registerCommand = originalRegisterCommand;
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("Correctly outputs the new result pane view column", (done) => {
