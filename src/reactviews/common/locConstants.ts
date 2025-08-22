@@ -198,6 +198,17 @@ export class LocConstants {
 
     public get connectionDialog() {
         return {
+            loadingFabricAccounts: l10n.t("Loading Fabric Accounts"),
+            fabricAccount: l10n.t("Fabric Account"),
+            selectAnAccount: l10n.t("Select an account"),
+            account: l10n.t("Account"),
+            signIn: l10n.t("Sign In"),
+            tenantId: l10n.t("Tenant ID"),
+            authenticationType: l10n.t("Authentication Type"),
+            browseBy: l10n.t("Browse By"),
+            myData: l10n.t("My Data"),
+            recent: l10n.t("Recent"),
+            favorites: l10n.t("Favorites"),
             workspaces: l10n.t("Workspaces"),
             signIntoFabric: l10n.t("Sign into Fabric"),
             filterByKeyword: l10n.t("Filter by keyword"),
