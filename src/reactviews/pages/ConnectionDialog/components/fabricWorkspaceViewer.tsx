@@ -19,6 +19,7 @@ import {
     Label,
     Spinner,
     Tooltip,
+    Input,
 } from "@fluentui/react-components";
 import {
     FabricWorkspaceInfo,
@@ -30,6 +31,7 @@ import {
     ChevronDoubleRightFilled,
     ErrorCircleRegular,
     PeopleTeamRegular,
+    SearchRegular,
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { Keys } from "../../../common/keys";
@@ -175,6 +177,7 @@ export const FabricWorkspaceViewer = ({
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
+    const [workspaceSearchFilter, setWorkspaceSearchFilter] = useState("");
 
     useEffect(() => {
         if (
@@ -184,6 +187,16 @@ export const FabricWorkspaceViewer = ({
             setSelectedWorkspaceId(fabricWorkspaces[0].id);
         }
     }, [fabricWorkspaces.length]);
+
+    const filteredWorkspaces = useMemo(() => {
+        if (!workspaceSearchFilter.trim()) {
+            return fabricWorkspaces;
+        }
+        const searchTerm = workspaceSearchFilter.toLowerCase();
+        return fabricWorkspaces.filter((workspace) =>
+            workspace.displayName.toLowerCase().includes(searchTerm),
+        );
+    }, [fabricWorkspaces, workspaceSearchFilter]);
 
     const selectedWorkspace = useMemo(() => {
         return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
@@ -341,6 +354,16 @@ export const FabricWorkspaceViewer = ({
                                     }}
                                 />
                             </div>
+                            <div className={styles.workspaceSearchBox}>
+                                <Input
+                                    placeholder="Search workspaces..."
+                                    value={workspaceSearchFilter}
+                                    onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
+                                    contentBefore={<SearchRegular />}
+                                    size="small"
+                                    style={{ width: "100%" }}
+                                />
+                            </div>
                             <div className={styles.workspaceTitle}>
                                 {Loc.connectionDialog.workspaces}
                             </div>
@@ -353,7 +376,7 @@ export const FabricWorkspaceViewer = ({
                             )}
                             {fabricWorkspacesLoadStatus === ApiStatus.Loaded && (
                                 <WorkspacesList
-                                    workspaces={fabricWorkspaces}
+                                    workspaces={filteredWorkspaces}
                                     onWorkspaceSelect={handleWorkspaceSelect}
                                     selectedWorkspace={selectedWorkspace}
                                 />

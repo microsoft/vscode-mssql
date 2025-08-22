@@ -66,6 +66,12 @@ export const useStyles = makeStyles({
         paddingLeft: "4px",
         paddingRight: "4px",
     },
+    workspaceSearchBox: {
+        marginTop: "4px",
+        marginBottom: "8px",
+        paddingLeft: "4px",
+        paddingRight: "4px",
+    },
     workspaceItem: {
         ...shorthands.padding("4px", "8px", "4px", "24px"),
         cursor: "pointer",
