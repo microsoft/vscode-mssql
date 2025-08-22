@@ -6,7 +6,7 @@
 import * as vscodeMssql from "vscode-mssql";
 import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form";
 import { FirewallRuleSpec } from "./firewallRule";
-import { ApiStatus } from "./webview";
+import { ApiStatus, Status } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
 import { RequestType } from "vscode-jsonrpc/browser";
@@ -53,7 +53,7 @@ export class ConnectionDialogWebviewState
     public selectedAccountId: string | undefined;
     public azureTenants: IAzureTenant[] = [];
     public selectedTenantId: string | undefined;
-    public fabricWorkspacesLoadStatus: ApiStatus = ApiStatus.NotStarted;
+    public fabricWorkspacesLoadStatus: Status = { status: ApiStatus.NotStarted };
     public fabricWorkspaces: FabricWorkspaceInfo[] = [];
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
@@ -133,8 +133,7 @@ export interface FabricWorkspaceInfo {
     displayName: string;
     tenantId: string;
     databases: FabricSqlDbInfo[];
-    status: ApiStatus;
-    errorMessage?: string;
+    loadStatus: Status;
 }
 
 export enum SqlArtifactTypes {
