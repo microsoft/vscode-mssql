@@ -138,11 +138,6 @@ export default class MainController implements vscode.Disposable {
         }
         this._vscodeWrapper = vscodeWrapper ?? new VscodeWrapper();
         this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
-        /**
-         * TODO: aaskhan
-         * Good candidate for dependency injection.
-         */
-        this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
         this.configuration = vscode.workspace.getConfiguration();
         UserSurvey.createInstance(this._context, this._vscodeWrapper);
     }
@@ -858,6 +853,12 @@ export default class MainController implements vscode.Disposable {
 
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
+
+        /**
+         * TODO: aaskhan
+         * Good candidate for dependency injection.
+         */
+        this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
