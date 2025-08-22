@@ -2,7 +2,7 @@
     "mssql.runQuery": "Execute Query",
     "mssql.runCurrentStatement": "Execute Current Statement",
     "mssql.cancelQuery": "Cancel Query",
-    "mssql.revealQueryResultPanel": "Reveal Query Result Panel",
+    "mssql.revealQueryResult": "Reveal Query Result",
     "mssql.copyAll": "Copy All",
     "mssql.changeDatabase": "Change Database",
     "mssql.addObjectExplorerLegacy": "Add Connection (Legacy)",

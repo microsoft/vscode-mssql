@@ -205,7 +205,8 @@
                 {
                     "type": "webview",
                     "id": "queryResult",
-                    "name": "%extension.queryResult%"
+                    "name": "%extension.queryResult%",
+                    "when": "!config.mssql.openQueryResultsInTabByDefault"
                 }
             ],
             "objectExplorer": [
@@ -296,7 +297,7 @@
                     "group": "navigation@2"
                 },
                 {
-                    "command": "mssql.revealQueryResultPanel",
+                    "command": "mssql.revealQueryResult",
                     "when": "editorLangId == sql && !isInDiffEditor && view.queryResult.visible == false",
                     "group": "navigation@2"
                 },
@@ -736,8 +737,8 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.revealQueryResultPanel",
-                "title": "%mssql.revealQueryResultPanel%",
+                "command": "mssql.revealQueryResult",
+                "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
                 "icon": "media/revealQueryResult.svg"
             },
@@ -1570,7 +1571,7 @@
                     ],
                     "enumDescriptions": [
                         "UTF-8 (Unicode)",
-                        "UTF-16 Little Endian", 
+                        "UTF-16 Little Endian",
                         "UTF-16 Big Endian",
                         "ASCII",
                         "Latin-1 (ISO 8859-1)",

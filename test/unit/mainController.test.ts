@@ -64,6 +64,12 @@ suite("MainController Tests", function () {
 
     // Standard closed document event test
     test("onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager", () => {
+        // Reset internal timers to ensure clean test state
+        (mainController as any)._lastSavedUri = undefined;
+        (mainController as any)._lastSavedTimer = undefined;
+        (mainController as any)._lastOpenedTimer = undefined;
+        (mainController as any)._lastOpenedUri = undefined;
+
         void mainController.onDidCloseTextDocument(document);
         try {
             connectionManager.verify(

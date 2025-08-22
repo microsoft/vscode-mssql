@@ -3289,8 +3289,8 @@
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
-    <trans-unit id="mssql.revealQueryResultPanel">
-      <source xml:lang="en">Reveal Query Result Panel</source>
+    <trans-unit id="mssql.revealQueryResult">
+      <source xml:lang="en">Reveal Query Result</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query (Preview)</source>

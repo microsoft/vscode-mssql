@@ -407,3 +407,11 @@ export function messageToString(message: qr.IMessage): string {
     }
     return message.message;
 }
+
+/**
+ * Checks if the setting to open query results in a new tab by default is enabled.
+ * @returns True if the setting is enabled, false otherwise.
+ */
+export function isOpenQueryResultsInTabByDefaultEnabled(): boolean {
+    return vscode.workspace.getConfiguration().get(Constants.configOpenQueryResultsInTabByDefault);
+}
