@@ -19,6 +19,7 @@ import {
     Label,
     Spinner,
     Tooltip,
+    Input,
 } from "@fluentui/react-components";
 import {
     FabricWorkspaceInfo,
@@ -30,6 +31,7 @@ import {
     ChevronDoubleRightFilled,
     ErrorCircleRegular,
     PeopleTeamRegular,
+    SearchRegular,
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { Keys } from "../../../common/keys";
@@ -166,6 +168,7 @@ export const FabricWorkspaceViewer = ({
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
+    const [workspaceSearchFilter, setWorkspaceSearchFilter] = useState("");
 
     useEffect(() => {
         if (
@@ -175,6 +178,16 @@ export const FabricWorkspaceViewer = ({
             setSelectedWorkspaceId(fabricWorkspaces[0].id);
         }
     }, [fabricWorkspaces.length]);
+
+    const filteredWorkspaces = useMemo(() => {
+        if (!workspaceSearchFilter.trim()) {
+            return fabricWorkspaces;
+        }
+        const searchTerm = workspaceSearchFilter.toLowerCase();
+        return fabricWorkspaces.filter((workspace) =>
+            workspace.displayName.toLowerCase().includes(searchTerm),
+        );
+    }, [fabricWorkspaces, workspaceSearchFilter]);
 
     const selectedWorkspace = useMemo(() => {
         return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
@@ -302,68 +315,64 @@ export const FabricWorkspaceViewer = ({
                     />
                 ) : (
                     <>
-                        <div className={styles.collapseButton}>
-                            <Text style={{ fontWeight: "600" }}>
-                                {Loc.connectionDialog.explorer}
-                            </Text>
-                            <Button
-                                appearance="subtle"
-                                size="small"
-                                icon={
-                                    <ChevronDoubleLeftFilled
-                                        className={styles.collapseButtonIcon}
-                                    />
-                                }
-                                onClick={toggleExplorer}
-                                onKeyDown={(e) => {
-                                    if (e.key === Keys.Enter || e.key === Keys.Space) {
-                                        toggleExplorer();
-                                        e.preventDefault();
-                                    }
-                                }}
-                                aria-label={Loc.connectionDialog.collapseWorkspaceExplorer}
-                                title={Loc.connectionDialog.collapse}
-                                style={{
-                                    minWidth: "24px",
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    padding: "0 4px",
-                                }}
-                            />
-                        </div>
-                        <div className={styles.workspaceTitle}>
-                            {Loc.connectionDialog.workspaces}
-                        </div>
-                        {fabricWorkspacesLoadStatus.status === ApiStatus.Loading && (
-                            <div className={styles.gridMessageContainer}>
-                                <Spinner size="small" />
-                                <Text className={styles.messageText}>
-                                    {Loc.connectionDialog.loadingWorkspaces}
+                        <div className={styles.workspaceHeader}>
+                            <div className={styles.collapseButton}>
+                                <Text style={{ fontWeight: "600" }}>
+                                    {Loc.connectionDialog.explorer}
                                 </Text>
-                            </div>
-                        )}
-                        {fabricWorkspacesLoadStatus.status === ApiStatus.Error && (
-                            <div className={styles.gridMessageContainer}>
-                                <Tooltip
-                                    content={
-                                        fabricWorkspacesLoadStatus.message ||
-                                        Loc.connectionDialog.errorLoadingWorkspaces
+                                <Button
+                                    appearance="subtle"
+                                    size="small"
+                                    icon={
+                                        <ChevronDoubleLeftFilled
+                                            className={styles.collapseButtonIcon}
+                                        />
                                     }
-                                    relationship={"label"}>
-                                    <ErrorCircleRegular className={styles.errorIcon} />
-                                </Tooltip>
-                                <Text className={styles.messageText}>
-                                    {Loc.connectionDialog.errorLoadingWorkspaces}
-                                </Text>
+                                    onClick={toggleExplorer}
+                                    onKeyDown={(e) => {
+                                        if (e.key === Keys.Enter || e.key === Keys.Space) {
+                                            toggleExplorer();
+                                            e.preventDefault();
+                                        }
+                                    }}
+                                    aria-label={Loc.connectionDialog.collapseWorkspaceExplorer}
+                                    title={Loc.connectionDialog.collapse}
+                                    style={{
+                                        minWidth: "24px",
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        padding: "0 4px",
+                                    }}
+                                />
                             </div>
-                        )}
-                        {fabricWorkspacesLoadStatus.status === ApiStatus.Loaded && (
-                            <WorkspacesList
-                                workspaces={fabricWorkspaces}
-                                onWorkspaceSelect={handleWorkspaceSelect}
-                                selectedWorkspace={selectedWorkspace}
-                            />
-                        )}
+                            <div className={styles.workspaceSearchBox}>
+                                <Input
+                                    placeholder="Search workspaces..."
+                                    value={workspaceSearchFilter}
+                                    onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
+                                    contentBefore={<SearchRegular />}
+                                    size="small"
+                                    style={{ width: "100%" }}
+                                />
+                            </div>
+                            <div className={styles.workspaceTitle}>
+                                {Loc.connectionDialog.workspaces}
+                            </div>
+                        </div>
+                        <div className={styles.workspaceListContainer}>
+                            {fabricWorkspacesLoadStatus.status === ApiStatus.Loading && (
+                                <div>
+                                    <Spinner size="medium" />
+                                </div>
+                            )}
+                            {fabricWorkspacesLoadStatus.status === ApiStatus.Loaded && (
+                                <WorkspacesList
+                                    workspaces={filteredWorkspaces}
+                                    onWorkspaceSelect={handleWorkspaceSelect}
+                                    selectedWorkspace={selectedWorkspace}
+                                />
+                            )}
+                        </div>
                     </>
                 )}
             </div>
@@ -423,9 +432,9 @@ export const FabricWorkspaceViewer = ({
                         size="small"
                         focusMode="composite"
                         style={{
-                            flexGrow: 0,
-                            height: "auto",
-                            marginTop: "-8px",
+                            flexGrow: 1,
+                            height: "100%",
+                            overflow: "auto",
                         }}>
                         <DataGridHeader>
                             <DataGridRow>
