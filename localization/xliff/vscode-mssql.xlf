@@ -45,6 +45,9 @@
       <note>{0} is the connection id
 {1} is the uri</note>
     </trans-unit>
+    <trans-unit id="++CODE++7e1b0d5641f2640ce9a953ec231eea2c27a2a7633f7d3c273e5735e2b30c10b7">
+      <source xml:lang="en">Account</source>
+    </trans-unit>
     <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
       <source xml:lang="en">Account not found</source>
     </trans-unit>
@@ -280,6 +283,9 @@
     </trans-unit>
     <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
       <source xml:lang="en">Browse Azure</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d2945638af819132af21f6c456f562493e7bf76e6ce1bb782eeef16cbfbeb85b">
+      <source xml:lang="en">Browse By</source>
     </trans-unit>
     <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
       <source xml:lang="en">Browse Fabric</source>
@@ -1144,6 +1150,9 @@
       <source xml:lang="en">Failed to stop {0}.</source>
       <note>Failed to stop {0}.</note>
     </trans-unit>
+    <trans-unit id="++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b">
+      <source xml:lang="en">Favorites</source>
+    </trans-unit>
     <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
       <source xml:lang="en">Fetching {0} script...</source>
       <note>{0} is the script type</note>
@@ -1637,6 +1646,9 @@
     <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
       <source xml:lang="en">Move to Root</source>
     </trans-unit>
+    <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
+      <source xml:lang="en">My Data</source>
+    </trans-unit>
     <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
       <source xml:lang="en">NULL</source>
     </trans-unit>
@@ -2005,6 +2017,9 @@
     <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
       <source xml:lang="en">Readying container for connections...</source>
     </trans-unit>
+    <trans-unit id="++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93">
+      <source xml:lang="en">Recent</source>
+    </trans-unit>
     <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
       <source xml:lang="en">Recent Connections</source>
     </trans-unit>
@@ -2357,6 +2372,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
       <source xml:lang="en">Showplan XML</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bcc0bcc9140b0c97a6440ce56966a07a05e85bddd509ddc5e2ab98755f319af1">
+      <source xml:lang="en">Sign In</source>
     </trans-unit>
     <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
       <source xml:lang="en">Sign in</source>

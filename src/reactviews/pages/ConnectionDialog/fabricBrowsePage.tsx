@@ -53,6 +53,30 @@ const useStyles = makeStyles({
     signInLink: {
         marginTop: "8px",
     },
+    formRow: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    workspaceContainer: {
+        backgroundColor: "var(--vscode-editor-background)",
+        borderRadius: "4px",
+        border: "1px solid var(--vscode-panel-border)",
+    },
+    workspaceContentPadding: {
+        paddingLeft: "6px",
+        paddingBottom: "6px",
+        paddingTop: "6px",
+    },
+    workspaceHeader: {
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "16px",
+        marginBottom: "10px",
+    },
 });
 
 export const fabricLogoColor = () => {
