@@ -2281,6 +2281,9 @@
     <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
       <source xml:lang="en">Search tables...</source>
     </trans-unit>
+    <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
+      <source xml:lang="en">Search workspaces...</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
       <source xml:lang="en">Search...</source>
     </trans-unit>
