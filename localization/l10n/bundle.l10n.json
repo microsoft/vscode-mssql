@@ -326,6 +326,8 @@
     ]
   },
   "Loading databases in selected workspace...": "Loading databases in selected workspace...",
+  "Error loading workspaces": "Error loading workspaces",
+  "Error loading databases": "Error loading databases",
   "Sign into Azure": "Sign into Azure",
   "Not signed in": "Not signed in",
   "Azure Account": "Azure Account",

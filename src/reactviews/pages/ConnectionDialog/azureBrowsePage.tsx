@@ -6,13 +6,14 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, Link, makeStyles, Spinner } from "@fluentui/react-components";
+import { Button, makeStyles, Spinner } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
+    ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
@@ -239,7 +240,9 @@ export const AzureBrowsePage = () => {
                 signInText={Loc.connectionDialog.signIntoAzureToBrowse}
                 linkText={Loc.azure.signIntoAzure}
                 loadingText={Loc.azure.loadingAzureAccounts}
-                onSignInClick={() => context.signIntoAzureForBrowse("azure")}
+                onSignInClick={() =>
+                    context.signIntoAzureForBrowse(ConnectionInputMode.AzureBrowse)
+                }
             />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>

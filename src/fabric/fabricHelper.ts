@@ -59,6 +59,7 @@ export class FabricHelper {
             result.push(
                 ...response.value.map((db) => {
                     return {
+                        id: db.id,
                         server: db.properties.serverFqdn,
                         displayName: db.displayName,
                         database: db.properties.databaseName,
@@ -94,23 +95,29 @@ export class FabricHelper {
 
             const resolvedWorkspace = await workspacePromise;
 
-            for (const endpoint of response.value) {
-                const connectionStringResponse = await this.fetchFromFabric<{
-                    connectionString: string;
-                }>(
-                    `workspaces/${workspaceId}/sqlEndpoints/${endpoint.id}/connectionString`,
-                    `Getting connection string for SQL Endpoint '${endpoint.id}' in workspace '${workspaceId}'`,
-                    tenantId,
-                );
+            result.push(
+                ...response.value.map((endpoint) => {
+                    return {
+                        id: endpoint.id,
+                        server: undefined, // requires a second Fabric API call to populate; fill later to avoid throttling
+                        displayName: endpoint.displayName,
+                        database: "TO VALIDATE", // TODO: validate that warehouses don't have a database
+                        workspaceName: resolvedWorkspace.displayName,
+                        type: endpoint.type,
+                    } as FabricSqlDbInfo;
+                }),
+            );
 
-                result.push({
-                    server: connectionStringResponse.connectionString,
-                    displayName: endpoint.displayName,
-                    database: "TO VALIDATE", // TODO: validate that warehouses don't have a database
-                    workspaceName: resolvedWorkspace.displayName,
-                    type: endpoint.type,
-                } as FabricSqlDbInfo);
-            }
+            // Fabric REST API rate-limits at 50/user/minute.
+            // To avoid throttling, we'll instead fetch this only once the user has selected this in the UI.
+            // for (const endpoint of result) {
+            //     const connectionStringResponse = await this.fetchFromFabric<{
+            //         connectionString: string;
+            //     }>(
+            //         `workspaces/${workspaceId}/sqlEndpoints/${endpoint.id}/connectionString`,
+            //         `Getting connection string for SQL Endpoint '${endpoint.id}' in workspace '${workspaceId}'`,
+            //         tenantId,
+            //     );
         } catch (error) {
             console.error("Error processing Fabric SQL Endpoints:", error);
             throw error;
