@@ -21,6 +21,7 @@ import {
     OptionOnSelectData,
     SelectionEvents,
     Tooltip,
+    makeStyles,
 } from "@fluentui/react-components";
 import { Search20Regular } from "@fluentui/react-icons";
 import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
@@ -51,6 +52,26 @@ export const filterIcon = (colorTheme: ColorThemeKind) => {
     return filterIcon;
 };
 
+const useStyles = makeStyles({
+    filterContainer: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginRight: "6px",
+    },
+    inputSection: {
+        marginRight: "20px",
+    },
+    filterLabel: {
+        marginRight: "5px",
+    },
+    filterIcon: {
+        width: "20px",
+        height: "20px",
+    },
+});
+
 const FabricWorkspaceFilter = ({
     onSearchInputChanged,
     onFilterOptionChanged,
@@ -62,6 +83,7 @@ const FabricWorkspaceFilter = ({
 }: Props) => {
     const context = useContext(ConnectionDialogContext);
     const theme = context!.themeKind;
+    const styles = useStyles();
 
     const [selectedTenantName, setSelectedTenantName] = useState<string>("");
 
@@ -88,66 +110,65 @@ const FabricWorkspaceFilter = ({
     }
 
     return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "flex-end",
-                alignItems: "center",
-                marginRight: "6px",
-            }}>
-            <Label>Tenant</Label>
-            <Dropdown
-                value={selectedTenantName}
-                selectedOptions={selectedTenantId ? [selectedTenantId] : []}
-                onOptionSelect={handleTenantChange}
-                placeholder="Select a tenant">
-                {azureTenants.map((tenant) => (
-                    <Option key={tenant.id} value={tenant.id} text={tenant.name}>
-                        {tenant.name}
-                    </Option>
-                ))}
-            </Dropdown>
-            <Input
-                style={{ marginRight: "20px" }}
-                placeholder={Loc.connectionDialog.filterByKeyword}
-                contentAfter={<Search20Regular aria-label={Loc.connectionDialog.filterByKeyword} />}
-                onChange={onSearchInputChanged}
-                value={searchValue}
-            />
-            <Label style={{ marginRight: "5px" }}>{Loc.connectionDialog.filter}</Label>
-            <Menu>
-                <MenuTrigger>
-                    <Tooltip content={Loc.connectionDialog.filterByType} relationship="label">
-                        <MenuButton
-                            icon={
-                                <img
-                                    src={filterIcon(theme)}
-                                    alt={Loc.connectionDialog.filter}
-                                    style={{ width: "20px", height: "20px" }}
-                                />
-                            }
-                        />
-                    </Tooltip>
-                </MenuTrigger>
-                <MenuPopover>
-                    <MenuList
-                        checkedValues={{ sqlType: selectedTypeFilters }}
-                        onCheckedValueChange={onFilterOptionChanged}>
-                        <MenuItemRadio name="sqlType" value={Loc.connectionDialog.showAll}>
-                            {Loc.connectionDialog.showAll}
-                        </MenuItemRadio>
-                        <MenuItemRadio
-                            name="sqlType"
-                            value={Loc.connectionDialog.sqlAnalyticsEndpoint}>
-                            {Loc.connectionDialog.sqlAnalyticsEndpoint}
-                        </MenuItemRadio>
-                        <MenuItemRadio name="sqlType" value={Loc.connectionDialog.sqlDatabase}>
-                            {Loc.connectionDialog.sqlDatabase}
-                        </MenuItemRadio>
-                    </MenuList>
-                </MenuPopover>
-            </Menu>
+        <div className={styles.filterContainer}>
+            <div>
+                <Label>Tenant</Label>
+                <Dropdown
+                    value={selectedTenantName}
+                    selectedOptions={selectedTenantId ? [selectedTenantId] : []}
+                    onOptionSelect={handleTenantChange}
+                    placeholder="Select a tenant">
+                    {azureTenants.map((tenant) => (
+                        <Option key={tenant.id} value={tenant.id} text={tenant.name}>
+                            {tenant.name}
+                        </Option>
+                    ))}
+                </Dropdown>
+            </div>
+            <div>
+                <Input
+                    className={styles.inputSection}
+                    placeholder={Loc.connectionDialog.filterByKeyword}
+                    contentAfter={
+                        <Search20Regular aria-label={Loc.connectionDialog.filterByKeyword} />
+                    }
+                    onChange={onSearchInputChanged}
+                    value={searchValue}
+                />
+                <Label className={styles.filterLabel}>{Loc.connectionDialog.filter}</Label>
+                <Menu>
+                    <MenuTrigger>
+                        <Tooltip content={Loc.connectionDialog.filterByType} relationship="label">
+                            <MenuButton
+                                icon={
+                                    <img
+                                        src={filterIcon(theme)}
+                                        alt={Loc.connectionDialog.filter}
+                                        className={styles.filterIcon}
+                                    />
+                                }
+                            />
+                        </Tooltip>
+                    </MenuTrigger>
+                    <MenuPopover>
+                        <MenuList
+                            checkedValues={{ sqlType: selectedTypeFilters }}
+                            onCheckedValueChange={onFilterOptionChanged}>
+                            <MenuItemRadio name="sqlType" value={Loc.connectionDialog.showAll}>
+                                {Loc.connectionDialog.showAll}
+                            </MenuItemRadio>
+                            <MenuItemRadio
+                                name="sqlType"
+                                value={Loc.connectionDialog.sqlAnalyticsEndpoint}>
+                                {Loc.connectionDialog.sqlAnalyticsEndpoint}
+                            </MenuItemRadio>
+                            <MenuItemRadio name="sqlType" value={Loc.connectionDialog.sqlDatabase}>
+                                {Loc.connectionDialog.sqlDatabase}
+                            </MenuItemRadio>
+                        </MenuList>
+                    </MenuPopover>
+                </Menu>
+            </div>
         </div>
     );
 };

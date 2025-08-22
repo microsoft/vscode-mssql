@@ -53,6 +53,22 @@ const useStyles = makeStyles({
     signInLink: {
         marginTop: "8px",
     },
+    formRow: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    workspaceContainer: {
+        backgroundColor: "var(--vscode-editor-background)",
+        borderRadius: "4px",
+        border: "1px solid var(--vscode-panel-border)",
+    },
+    workspaceContentPadding: {
+        paddingLeft: "6px",
+        paddingBottom: "6px",
+        paddingTop: "6px",
+    },
 });
 
 export const fabricLogoColor = () => {
@@ -93,8 +109,16 @@ export const FabricBrowsePage = () => {
         ) {
             setAccounts(context.state.azureAccounts);
 
-            // Set the first account as selected if available
-            if (context.state.azureAccounts.length > 0 && !context.state.selectedAccountId) {
+            // Sync selectedAccountName with the globally stored selectedAccountId
+            if (context.state.selectedAccountId) {
+                const selectedAccount = context.state.azureAccounts.find(
+                    (account) => account.id === context.state.selectedAccountId,
+                );
+                if (selectedAccount) {
+                    setSelectedAccountName(selectedAccount.name);
+                }
+            } else if (context.state.azureAccounts.length > 0) {
+                // Set the first account as selected if no account is currently selected
                 handleAccountChange({} as any, {
                     optionText: context.state.azureAccounts[0].name,
                     optionValue: context.state.azureAccounts[0].id,
@@ -102,7 +126,11 @@ export const FabricBrowsePage = () => {
                 });
             }
         }
-    }, [context.state.loadingAzureAccountsStatus, context.state.azureAccounts]);
+    }, [
+        context.state.loadingAzureAccountsStatus,
+        context.state.azureAccounts,
+        context.state.selectedAccountId,
+    ]);
 
     function setSelectedServerWithFormState(server: string | undefined) {
         if (server === undefined && context?.state.formState.server === "") {
@@ -154,7 +182,7 @@ export const FabricBrowsePage = () => {
                 brandImageSource={fabricLogoColor()}
                 signInText={Loc.connectionDialog.signIntoFabricToBrowse}
                 linkText={Loc.connectionDialog.signIntoFabric}
-                loadingText="Loading Fabric Accounts"
+                loadingText={Loc.connectionDialog.loadingFabricAccounts}
                 onSignInClick={() => {
                     context.signIntoAzureForBrowse(ConnectionInputMode.FabricBrowse);
                 }}
@@ -162,7 +190,7 @@ export const FabricBrowsePage = () => {
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
                     <Field orientation="horizontal">
-                        <Label>Fabric Account</Label>
+                        <Label>{Loc.connectionDialog.fabricAccount}</Label>
                         <Dropdown
                             value={selectedAccountName}
                             selectedOptions={
@@ -171,7 +199,7 @@ export const FabricBrowsePage = () => {
                                     : []
                             }
                             onOptionSelect={handleAccountChange}
-                            placeholder="Select an account">
+                            placeholder={Loc.connectionDialog.selectAnAccount}>
                             {accounts.map((account) => (
                                 <Option key={account.id} value={account.id} text={account.name}>
                                     {account.name}
@@ -180,30 +208,29 @@ export const FabricBrowsePage = () => {
                         </Dropdown>
                     </Field>
                     <Label>{Loc.connectionDialog.workspaces}</Label>
-                    <div
-                        style={{
-                            paddingLeft: "6px",
-                            paddingBottom: "6px",
-                            paddingTop: "6px",
-                        }}>
-                        <FabricWorkspaceFilter
-                            onSearchInputChanged={handleSearchInputChanged}
-                            onFilterOptionChanged={handleFilterOptionChanged}
-                            searchValue={searchFilter}
-                            selectedTypeFilters={typeFilter}
-                            selectTenantId={(id) => {
-                                context.selectAzureTenant(id);
-                            }}
-                            azureTenants={context.state.azureTenants}
-                            selectedTenantId={context.state.selectedTenantId}
-                        />
-                        <FabricWorkspaceViewer
-                            fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
-                            fabricWorkspaces={context.state.fabricWorkspaces}
-                            searchFilter={searchFilter}
-                            typeFilter={typeFilter}
-                            selectFabricWorkspace={context.selectFabricWorkspace}
-                        />
+                    <div className={styles.workspaceContainer}>
+                        <div className={styles.workspaceContentPadding}>
+                            <FabricWorkspaceFilter
+                                onSearchInputChanged={handleSearchInputChanged}
+                                onFilterOptionChanged={handleFilterOptionChanged}
+                                searchValue={searchFilter}
+                                selectedTypeFilters={typeFilter}
+                                selectTenantId={(id) => {
+                                    context.selectAzureTenant(id);
+                                }}
+                                azureTenants={context.state.azureTenants}
+                                selectedTenantId={context.state.selectedTenantId}
+                            />
+                            <FabricWorkspaceViewer
+                                fabricWorkspacesLoadStatus={
+                                    context.state.fabricWorkspacesLoadStatus
+                                }
+                                fabricWorkspaces={context.state.fabricWorkspaces}
+                                searchFilter={searchFilter}
+                                typeFilter={typeFilter}
+                                selectFabricWorkspace={context.selectFabricWorkspace}
+                            />
+                        </div>
                     </div>
 
                     {selectedServer && (
