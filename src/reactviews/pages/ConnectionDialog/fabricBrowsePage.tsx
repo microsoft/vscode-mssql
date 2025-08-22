@@ -69,14 +69,6 @@ const useStyles = makeStyles({
         paddingBottom: "6px",
         paddingTop: "6px",
     },
-    workspaceHeader: {
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "16px",
-        marginBottom: "10px",
-    },
 });
 
 export const fabricLogoColor = () => {
