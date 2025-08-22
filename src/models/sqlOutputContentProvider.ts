@@ -695,6 +695,7 @@ export class SqlOutputContentProvider {
 
         if (openInNewTabConfig) {
             this._queryResultWebviewController.revealPanel(uri);
+            return;
         }
 
         const isContainedInWebviewView =
