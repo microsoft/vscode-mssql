@@ -37,7 +37,7 @@ async function installSqlToolsService(platform = null) {
   logger.step('Installing SQL Tools Service...');
 
   try {
-    const install = require('../out/src/languageservice/serviceInstallerUtil');
+    const install = require('../dist/serviceInstallerUtil');
     await install.installService(platform);
     logger.success('SQL Tools Service installed');
   } catch (error) {
