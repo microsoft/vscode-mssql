@@ -347,7 +347,7 @@ export const FabricWorkspaceViewer = ({
                             </div>
                             <div className={styles.workspaceSearchBox}>
                                 <Input
-                                    placeholder="Search workspaces..."
+                                    placeholder={Loc.connectionDialog.searchWorkspaces}
                                     value={workspaceSearchFilter}
                                     onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
                                     contentBefore={<SearchRegular />}
