@@ -230,6 +230,9 @@
       "{0} is the IP address of the client"
     ]
   },
+  "Loading Fabric Accounts": "Loading Fabric Accounts",
+  "Fabric Account": "Fabric Account",
+  "Select an account": "Select an account",
   "Account": "Account",
   "Sign In": "Sign In",
   "Tenant ID": "Tenant ID",
@@ -1193,7 +1196,6 @@
   },
   "Connection Dialog": "Connection Dialog",
   "Azure Account is required": "Azure Account is required",
-  "Select an account": "Select an account",
   "Save Password": "Save Password",
   "Select a tenant": "Select a tenant",
   "Tenant ID is required": "Tenant ID is required",
