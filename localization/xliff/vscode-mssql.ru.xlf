@@ -4590,16 +4590,16 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[Необязательно] Объявляет тип рабочей нагрузки приложения при подключении к серверу SQL Server, например ReadWrite или ReadOnly. Подробнее см. в SQL Server AlwaysOn.</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.delimiter">
-        <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV</source>
-        <target state="translated">[Необязательно] Разделитель для разграничения элементов данных при сохранении результатов в формате CSV</target>
+        <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</source>
+        <target state="new">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</target>
       </trans-unit>
       <trans-unit id="mssql.ignorePlatformWarning">
         <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
         <target state="translated">[Необязательно] Не показывать предупреждения для неподдерживаемых платформ</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.encoding">
-        <source xml:lang="en">[Optional] File encoding used when saving results as CSV</source>
-        <target state="translated">[Необязательно] Кодировка файла, используемая при сохранении результатов в формате CSV</target>
+        <source xml:lang="en">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</source>
+        <target state="new">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</target>
       </trans-unit>
       <trans-unit id="mssql.connection.currentLanguage">
         <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>

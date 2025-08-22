@@ -1699,11 +1699,11 @@
       <note>{0} is the connection id
 {1} is the uri</note>
     </trans-unit>
-    <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
-      <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
-    </trans-unit>
     <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
       <source xml:lang="en">No results</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
+      <source xml:lang="en">No results for the active editor</source>
     </trans-unit>
     <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
       <source xml:lang="en">No results to display</source>
@@ -2043,6 +2043,10 @@
     <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
       <source xml:lang="en">Results</source>
     </trans-unit>
+    <trans-unit id="++CODE++ccb11e8d73c1d40ef67b26d9ca77a50ab2987d9ac9af361e065c3c1c6699c116">
+      <source xml:lang="en">Results ({0})</source>
+      <note>{0} is the number of results</note>
+    </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
     </trans-unit>
@@ -2060,6 +2064,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
       <source xml:lang="en">Run Query History</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
+      <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
     </trans-unit>
     <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
       <source xml:lang="en">Run query on connection &apos;{0}&apos;?&#10;&#10;Query: {1}</source>
