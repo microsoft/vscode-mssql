@@ -4334,9 +4334,9 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">Microsoft Entra アカウントの削除</target>
       </trans-unit>
-      <trans-unit id="mssql.revealQueryResultPanel">
-        <source xml:lang="en">Reveal Query Result Panel</source>
-        <target state="translated">クエリ結果パネルの表示</target>
+      <trans-unit id="mssql.revealQueryResult">
+        <source xml:lang="en">Reveal Query Result</source>
+        <target state="new">Reveal Query Result</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query (Preview)</source>

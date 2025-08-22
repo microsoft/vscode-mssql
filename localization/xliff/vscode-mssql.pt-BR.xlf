@@ -4334,9 +4334,9 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">Remover Conta do Microsoft Entra</target>
       </trans-unit>
-      <trans-unit id="mssql.revealQueryResultPanel">
-        <source xml:lang="en">Reveal Query Result Panel</source>
-        <target state="translated">Revelar Painel de Resultados da Consulta</target>
+      <trans-unit id="mssql.revealQueryResult">
+        <source xml:lang="en">Reveal Query Result</source>
+        <target state="new">Reveal Query Result</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query (Preview)</source>
