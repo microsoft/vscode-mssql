@@ -27,17 +27,26 @@ export enum TelemetryViews {
     AzureAccountManagement = "AzureAccountManagement",
     ConnectionGroup = "ConnectionGroup",
     SchemaDesigner = "SchemaDesigner",
+    Connection = "Connection",
 }
 
 export enum TelemetryActions {
     GetDatabaseProjectScriptFiles = "GetDatabaseProjectScriptFiles",
     GetDatabaseProjectSchemaProvider = "GetDatabaseProjectSchemaProvider",
     ListingDatabasesForActiveServer = "ListingDatabasesForActiveServer",
+    IncludeExcludeAllNodes = "IncludeExcludeAllNodes",
+    IncludeExcludeNode = "IncludeExcludeNode",
+    PublishProjectChanges = "PublishProjectChanges",
+    PublishDatabaseChanges = "PublishDatabaseChanges",
+    AddNewConnectionDialogOpened = "AddNewConnectionDialogOpened",
+    ListingActiveServers = "ListingActiveServers",
+    SqlProjectInstalledVerification = "SqlProjectInstalledVerification",
     Compare = "Compare",
     Switch = "Switch",
     OpenScmp = "OpenScmp",
     SaveScmp = "SaveScmp",
     OptionsChanged = "OptionsChanged",
+    RunCompareAfterChangingOptions = "RunCompareAfterChangingOptions",
     ResetOptions = "ResetOptions",
     Activated = "Activated",
     GenerateScript = "GenerateScript",
@@ -123,6 +132,7 @@ export enum TelemetryActions {
     GetReport = "GetReport",
     PublishSession = "PublishSession",
     GetDefinition = "GetDefinition",
+    LookupPassword = "LookupPassword",
 }
 
 /**

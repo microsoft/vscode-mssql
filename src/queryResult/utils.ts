@@ -198,6 +198,38 @@ export function registerCommonRequestHandlers(
             );
     });
 
+    webviewController.onRequest(qr.CopyAsCsvRequest.type, async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            correlationId: correlationId,
+            format: "csv",
+        });
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .copyAsCsvRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+                message.includeHeaders,
+            );
+    });
+
+    webviewController.onRequest(qr.CopyAsJsonRequest.type, async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            correlationId: correlationId,
+            format: "json",
+        });
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .copyAsJsonRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+                message.includeHeaders,
+            );
+    });
+
     // Register request handlers for query result filters
     webviewController.onRequest(qr.GetFiltersRequest.type, async (message) => {
         return store.get(message.uri, SubKeys.Filter);
@@ -285,6 +317,17 @@ export function registerCommonRequestHandlers(
         state.tabStates.resultPaneTab = payload.tabId;
         return state;
     });
+    webviewController.registerReducer("setResultViewMode", async (state, payload) => {
+        if (!state.tabStates) {
+            state.tabStates = {
+                resultPaneTab: qr.QueryResultPaneTabs.Results,
+                resultViewMode: payload.viewMode,
+            };
+        } else {
+            state.tabStates.resultViewMode = payload.viewMode;
+        }
+        return state;
+    });
     webviewController.registerReducer("getExecutionPlan", async (state, payload) => {
         // because this is an overridden call, this makes sure it is being
         // called properly
@@ -363,4 +406,12 @@ export function messageToString(message: qr.IMessage): string {
         return `${message.message}${message.link.text}`;
     }
     return message.message;
+}
+
+/**
+ * Checks if the setting to open query results in a new tab by default is enabled.
+ * @returns True if the setting is enabled, false otherwise.
+ */
+export function isOpenQueryResultsInTabByDefaultEnabled(): boolean {
+    return vscode.workspace.getConfiguration().get(Constants.configOpenQueryResultsInTabByDefault);
 }

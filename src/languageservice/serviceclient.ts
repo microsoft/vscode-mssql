@@ -501,13 +501,9 @@ export default class SqlToolsServiceClient {
                 serverArgs.push("--enable-connection-pooling");
             }
 
-            // Send Locale for sqltoolsservice localization
-            let applyLocalization = config[Constants.configApplyLocalization];
-            if (applyLocalization) {
-                let locale = vscode.env.language;
-                serverArgs.push("--locale");
-                serverArgs.push(locale);
-            }
+            let locale = vscode.env.language;
+            serverArgs.push("--locale");
+            serverArgs.push(locale);
         }
 
         // run the service host using dotnet.exe from the path

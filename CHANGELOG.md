@@ -1,10 +1,24 @@
 # Change Log
 
+## Version 1.35.0
+* Release date: August 20, 2025
+* Release status: GA
+### What’s new in 1.35.0
+* Released general availability of Schema Designer, Schema Compare, and Local SQL Server Container
+* Fixed an issue where Microsoft Entra ID sign-in in the Connection Dialog could result in empty account or tenant dropdowns
+* Improved performance and usability of query results grid, including fixes for export and display bugs
+* Added Text View mode for result sets to display results as plain text.
+* Added support to temporarily remember SQL Auth passwords for the session until VS Code is restarted
+* Improved localization in Object Explorer and other UI components
+* Fixed multiple accessibility issues affecting error messages and visual feedback across the UI
+* Fixed edge case issues where GitHub Copilot Agent responses could misbehave when switching database connections
+
 ## Version 1.34.1
-* Release date: August 7, 2025
+* Release date: August 13, 2025
 * Release status: GA
 ### What’s new in 1.34.1
-* Fix bug in GitHub Copilot Ask Mode related to explicit GPT-4o model selection
+* Fixed bug in GitHub Copilot Ask Mode related to explicit GPT-4o model selection
+* Fixed bug in Local Container Deployment where Apple Silicon Mac users may be unable to pull SQL Server images
 
 ## Version 1.34.0
 * Release date: July 23, 2025
