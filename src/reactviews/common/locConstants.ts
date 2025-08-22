@@ -198,6 +198,9 @@ export class LocConstants {
 
     public get connectionDialog() {
         return {
+            loadingFabricAccounts: l10n.t("Loading Fabric Accounts"),
+            fabricAccount: l10n.t("Fabric Account"),
+            selectAnAccount: l10n.t("Select an account"),
             account: l10n.t("Account"),
             signIn: l10n.t("Sign In"),
             tenantId: l10n.t("Tenant ID"),
