@@ -5,9 +5,20 @@
 
 import { AzureController } from "../../src/azure/azureController";
 import * as assert from "assert";
+import * as sinon from "sinon";
 
 suite("Azure Controller Tests", () => {
-    const currentTime = Date.now() / 1000;
+    const currentTime = 1600000000; // Fixed timestamp to avoid timing issues
+    let dateStub: sinon.SinonStub;
+
+    setup(() => {
+        // Mock Date.now() to return consistent timestamp
+        dateStub = sinon.stub(Date, "now").returns(currentTime * 1000);
+    });
+
+    teardown(() => {
+        dateStub.restore();
+    });
 
     test("isTokenValid should return false for undefined token", () => {
         const actual = AzureController.isTokenValid(undefined, currentTime);
