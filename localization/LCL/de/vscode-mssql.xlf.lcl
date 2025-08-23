@@ -9675,19 +9675,25 @@
       </Item>
       <Item ItemId=";package.mssql.saveAsCsv.delimiter" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
+          <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Optional]5D; Trennzeichen für die Trennung von Datenelementen, das beim Speichern der Ergebnisse als CSV verwendet wird.]]></Val>
+            <Val><![CDATA[[Optional]5D; Trennzeichen zum Trennen von Datenelementen beim Speichern von Ergebnissen als CSV. Wählen Sie aus allgemeinen Trennzeichen wie Komma (,), Tabstopp (\t), Semikolon (;) oder Pipe (|) aus.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.saveAsCsv.encoding" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
+          <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Optional]5D; Dateicodierung, die beim Speichern der Ergebnisse als CSV verwendet wird.]]></Val>
+            <Val><![CDATA[[Optional]5D; Dateicodierung, die beim Speichern von Ergebnissen als CSV verwendet wird. Wählen Sie je nach Zielanwendungskompatibilität zwischen UTF-8 (empfohlen), UTF-16, ASCII oder Latin-1 aus.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
