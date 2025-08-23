@@ -22,6 +22,7 @@ import {
     Input,
 } from "@fluentui/react-components";
 import {
+    FabricSqlDbInfo,
     FabricWorkspaceInfo,
     SqlArtifactTypes,
 } from "../../../../sharedInterfaces/connectionDialog";
@@ -66,6 +67,7 @@ function getTypeDisplayName(artifactType: string): string {
 
 interface Props {
     selectFabricWorkspace: (workspaceId: string) => void;
+    onSelectDatabase: (database: FabricSqlDbInfo) => void;
     fabricWorkspacesLoadStatus: Status;
     fabricWorkspaces: FabricWorkspaceInfo[];
     searchFilter?: string;
@@ -78,13 +80,9 @@ type WorkspacesListProps = {
     selectedWorkspace?: FabricWorkspaceInfo;
 };
 
-type SqlDbItem = {
-    id: string;
-    name: string;
+interface FabricSqlGridItem extends FabricSqlDbInfo {
     typeDisplayName: string;
-    type: string;
-    location: string;
-};
+}
 
 const WorkspacesList = ({
     workspaces,
@@ -159,6 +157,7 @@ const WorkspacesList = ({
 
 export const FabricWorkspaceViewer = ({
     selectFabricWorkspace,
+    onSelectDatabase,
     fabricWorkspacesLoadStatus,
     fabricWorkspaces,
     searchFilter = "",
@@ -198,15 +197,12 @@ export const FabricWorkspaceViewer = ({
     }, [fabricWorkspaces, selectedWorkspaceId]);
 
     const items = useMemo(() => {
-        const result: SqlDbItem[] = [];
+        const result: FabricSqlGridItem[] = [];
         if (databasesForSelectedWorkspace && databasesForSelectedWorkspace.length > 0) {
             databasesForSelectedWorkspace.forEach((db) => {
                 result.push({
-                    id: db.id,
-                    name: db.displayName,
-                    type: db.type,
+                    ...db,
                     typeDisplayName: getTypeDisplayName(db.type),
-                    location: db.workspaceName,
                 });
             });
         }
@@ -217,9 +213,9 @@ export const FabricWorkspaceViewer = ({
             const searchTerm = searchFilter.toLowerCase();
             filteredResult = filteredResult.filter(
                 (item) =>
-                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.displayName.toLowerCase().includes(searchTerm) ||
                     item.typeDisplayName.toLowerCase().includes(searchTerm) ||
-                    item.location.toLowerCase().includes(searchTerm),
+                    item.workspaceName.toLowerCase().includes(searchTerm),
             );
         }
 
@@ -233,8 +229,8 @@ export const FabricWorkspaceViewer = ({
     }, [databasesForSelectedWorkspace, searchFilter, typeFilter]);
 
     const columns = useMemo(
-        (): TableColumnDefinition<SqlDbItem>[] => [
-            createTableColumn<SqlDbItem>({
+        (): TableColumnDefinition<FabricSqlGridItem>[] => [
+            createTableColumn<FabricSqlGridItem>({
                 columnId: "name",
                 renderHeaderCell: () => `${Loc.connectionDialog.nameColumnHeader}`,
                 renderCell: (item) => (
@@ -251,13 +247,13 @@ export const FabricWorkspaceViewer = ({
                                 }}
                             />
                             <Text truncate style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
-                                {item.name}
+                                {item.displayName}
                             </Text>
                         </div>
                     </DataGridCell>
                 ),
             }),
-            createTableColumn<SqlDbItem>({
+            createTableColumn<FabricSqlGridItem>({
                 columnId: "type",
                 renderHeaderCell: () => `${Loc.connectionDialog.typeColumnHeader}`,
                 renderCell: (item) => (
@@ -266,12 +262,12 @@ export const FabricWorkspaceViewer = ({
                     </DataGridCell>
                 ),
             }),
-            createTableColumn<SqlDbItem>({
+            createTableColumn<FabricSqlGridItem>({
                 columnId: "location",
                 renderHeaderCell: () => `${Loc.connectionDialog.locationColumnHeader}`,
                 renderCell: (item) => (
                     <DataGridCell>
-                        <Text truncate>{item.location}</Text>
+                        <Text truncate>{item.workspaceName}</Text>
                     </DataGridCell>
                 ),
             }),
@@ -288,6 +284,11 @@ export const FabricWorkspaceViewer = ({
     const toggleExplorer = () => {
         setIsExplorerCollapsed(!isExplorerCollapsed);
     };
+
+    function handleServerSelected(database: FabricSqlGridItem) {
+        setSelectedRowId(database.id);
+        onSelectDatabase(database);
+    }
 
     return (
         <div className={styles.container}>
@@ -428,7 +429,7 @@ export const FabricWorkspaceViewer = ({
                     <DataGrid
                         items={items}
                         columns={columns}
-                        getRowId={(item: SqlDbItem) => item.id}
+                        getRowId={(item: FabricSqlGridItem) => item.id}
                         size="small"
                         focusMode="composite"
                         style={{
@@ -443,9 +444,9 @@ export const FabricWorkspaceViewer = ({
                                 )}
                             </DataGridRow>
                         </DataGridHeader>
-                        <DataGridBody<SqlDbItem>>
+                        <DataGridBody<FabricSqlGridItem>>
                             {({ item, rowId }) => (
-                                <DataGridRow<SqlDbItem>
+                                <DataGridRow<FabricSqlGridItem>
                                     key={rowId}
                                     className={
                                         selectedRowId === item.id
@@ -453,11 +454,11 @@ export const FabricWorkspaceViewer = ({
                                             : undefined
                                     }
                                     onClick={() => {
-                                        setSelectedRowId(item.id);
+                                        handleServerSelected(item);
                                     }}
                                     onKeyDown={(e: React.KeyboardEvent) => {
                                         if (e.key === Keys.Enter || e.key === Keys.Space) {
-                                            setSelectedRowId(item.id);
+                                            handleServerSelected(item);
                                             e.preventDefault();
                                         }
                                     }}>
