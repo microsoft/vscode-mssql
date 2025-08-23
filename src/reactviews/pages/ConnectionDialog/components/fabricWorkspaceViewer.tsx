@@ -4,12 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    DataGrid,
     DataGridHeader,
     DataGridHeaderCell,
-    DataGridBody,
-    DataGridRow,
-    DataGridCell,
     Button,
     TableColumnDefinition,
     createTableColumn,
@@ -17,6 +13,13 @@ import {
     Spinner,
     Input,
 } from "@fluentui/react-components";
+import {
+    DataGridBody,
+    DataGrid,
+    DataGridRow,
+    DataGridCell,
+    RowRenderer,
+} from "@fluentui-contrib/react-data-grid-react-window";
 import {
     FabricWorkspaceInfo,
     SqlArtifactTypes,
@@ -208,6 +211,31 @@ export const FabricWorkspaceViewer = ({
         setIsExplorerCollapsed(!isExplorerCollapsed);
     };
 
+    const renderRow: RowRenderer<SqlDbItem> = (
+        { item, rowId }: { item: SqlDbItem; rowId: string },
+        style: React.CSSProperties,
+    ) => {
+        return (
+            <DataGridRow<SqlDbItem>
+                key={rowId}
+                className={selectedRowId === item.id ? styles.selectedDataGridRow : undefined}
+                style={style}
+                onClick={() => {
+                    setSelectedRowId(item.id);
+                }}
+                onKeyDown={(e: React.KeyboardEvent) => {
+                    if (e.key === Keys.Enter || e.key === Keys.Space) {
+                        setSelectedRowId(item.id);
+                        e.preventDefault();
+                    }
+                }}>
+                {({ renderCell }: { renderCell: (item: SqlDbItem) => React.ReactNode }) => (
+                    <>{renderCell(item)}</>
+                )}
+            </DataGridRow>
+        );
+    };
+
     return (
         <div className={styles.container}>
             <div
@@ -357,32 +385,15 @@ export const FabricWorkspaceViewer = ({
                         }}>
                         <DataGridHeader>
                             <DataGridRow>
-                                {({ renderHeaderCell }) => (
-                                    <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
-                                )}
+                                {({
+                                    renderHeaderCell,
+                                }: {
+                                    renderHeaderCell: () => React.ReactNode;
+                                }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
                             </DataGridRow>
                         </DataGridHeader>
-                        <DataGridBody<SqlDbItem>>
-                            {({ item, rowId }) => (
-                                <DataGridRow<SqlDbItem>
-                                    key={rowId}
-                                    className={
-                                        selectedRowId === item.id
-                                            ? styles.selectedDataGridRow
-                                            : undefined
-                                    }
-                                    onClick={() => {
-                                        setSelectedRowId(item.id);
-                                    }}
-                                    onKeyDown={(e: React.KeyboardEvent) => {
-                                        if (e.key === Keys.Enter || e.key === Keys.Space) {
-                                            setSelectedRowId(item.id);
-                                            e.preventDefault();
-                                        }
-                                    }}>
-                                    {({ renderCell }) => <>{renderCell(item)}</>}
-                                </DataGridRow>
-                            )}
+                        <DataGridBody<SqlDbItem> itemSize={30} height={360} width={"100%"}>
+                            {renderRow}
                         </DataGridBody>
                     </DataGrid>
                 )}
