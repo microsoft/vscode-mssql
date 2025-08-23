@@ -9675,19 +9675,25 @@
       </Item>
       <Item ItemId=";package.mssql.saveAsCsv.delimiter" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
+          <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Opcional]5D; Delimitador para separar los elementos de datos al guardar los resultados como CSV.]]></Val>
+            <Val><![CDATA[[Opcional]5D; Delimitador para separar los elementos de datos al guardar los resultados como CSV. Elija entre separadores comunes, como coma (,), tabulación (\t), punto y coma (;) o barra vertical (|)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.saveAsCsv.encoding" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
+          <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[Opcional]5D; Codificación de archivo que se usa al guardar los resultados como CSV.]]></Val>
+            <Val><![CDATA[[Opcional]5D; Codificación de archivo que se usa al guardar los resultados como CSV. Elija entre UTF-8 (recomendado), UTF-16, ASCII o Latin-1 en función de la compatibilidad de la aplicación de destino]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

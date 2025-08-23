@@ -9675,19 +9675,25 @@
       </Item>
       <Item ItemId=";package.mssql.saveAsCsv.delimiter" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
+          <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[選用]5D; 將結果另存為 CSV 時分隔資料項目的分隔符號]]></Val>
+            <Val><![CDATA[[選用]5D; 將結果另存為 CSV 時分隔資料項目的分隔符號。從常用的分隔符號中選擇，例如逗號 (，)、定位字元 (\t)、分號 (;) 或直立分隔號 (|)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.saveAsCsv.encoding" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
+          <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[選用]5D; 將結果另存為 CSV 時使用的檔案編碼]]></Val>
+            <Val><![CDATA[[選用]5D; 將結果另存為 CSV 時使用的檔案編碼。根據您的目標應用程式相容性，從 UTF-8 (建議)、UTF-16、ASCII 或 Latin-1 中進行選擇]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

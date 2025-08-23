@@ -9675,19 +9675,25 @@
       </Item>
       <Item ItemId=";package.mssql.saveAsCsv.delimiter" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
+          <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[옵션]5D; 결과를 CSV로 저장할 경우 데이터 항목을 분리하기 위한 구분 기호]]></Val>
+            <Val><![CDATA[[옵션]5D; 결과를 CSV로 저장할 경우 데이터 항목을 분리하기 위한 구분 기호. 쉼표(,), 탭(\t), 세미콜론(;) 또는 파이프(|)와 같은 일반적인 구분 기호 중에서 선택하기]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.saveAsCsv.encoding" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
+          <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[옵션]5D; 결과를 CSV로 저장할 때 사용되는 파일 인코딩]]></Val>
+            <Val><![CDATA[[옵션]5D; 결과를 CSV로 저장할 때 사용되는 파일 인코딩. 대상 응용 프로그램의 호환성에 따라 UTF-8(권장), UTF-16, ASCII 또는 Latin-1 중에서 선택하기]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
