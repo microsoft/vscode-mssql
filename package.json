@@ -468,6 +468,11 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
+                    "command": "mssql.searchObjects",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@3"
+                },
+                {
                     "command": "mssql.scriptSelect",
                     "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/",
                     "group": "3_MSSQL_script@1"
@@ -900,6 +905,12 @@
                 "command": "mssql.disconnectObjectExplorerNode",
                 "title": "%mssql.disconnect%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.searchObjects",
+                "title": "%mssql.searchObjects%",
+                "category": "MS SQL",
+                "icon": "$(search)"
             },
             {
                 "command": "mssql.scriptSelect",
