@@ -16,6 +16,8 @@ import {
     QueryExecuteStatementRequest,
     QueryExecuteCompleteNotificationResult,
     QueryExecuteSubsetResult,
+    QueryExecuteResultSetAvailableNotificationParams,
+    QueryExecuteResultSetUpdatedNotificationParams,
     QueryExecuteResultSetCompleteNotificationParams,
     QueryExecuteSubsetParams,
     QueryExecuteSubsetRequest,
@@ -89,6 +91,21 @@ export default class QueryRunner {
         new vscode.EventEmitter<BatchSummary>();
     public onBatchComplete: vscode.Event<BatchSummary> = this._batchCompleteEmitter.event;
 
+    private _resultSetAvailableEmitter: vscode.EventEmitter<ResultSetSummary> =
+        new vscode.EventEmitter<ResultSetSummary>();
+    public onResultSetAvailable: vscode.Event<ResultSetSummary> =
+        this._resultSetAvailableEmitter.event;
+
+    private _resultSetUpdatedEmitter: vscode.EventEmitter<ResultSetSummary> =
+        new vscode.EventEmitter<ResultSetSummary>();
+    public onResultSetUpdated: vscode.Event<ResultSetSummary> = this._resultSetUpdatedEmitter.event;
+
+    private _resultSetCompleteEmitter: vscode.EventEmitter<ResultSetSummary> =
+        new vscode.EventEmitter<ResultSetSummary>();
+    public onResultSetComplete: vscode.Event<ResultSetSummary> =
+        this._resultSetCompleteEmitter.event;
+
+    // Keep the old event for backwards compatibility
     private _resultSetEmitter: vscode.EventEmitter<ResultSetSummary> =
         new vscode.EventEmitter<ResultSetSummary>();
     public onResultSet: vscode.Event<ResultSetSummary> = this._resultSetEmitter.event;
@@ -444,12 +461,43 @@ export default class QueryRunner {
         return true;
     }
 
+    public handleResultSetAvailable(
+        result: QueryExecuteResultSetAvailableNotificationParams,
+    ): void {
+        let resultSet = result.resultSetSummary;
+        let batchSet = this._batchSets[resultSet.batchId];
+
+        // Initialize result set in the batch if it doesn't exist
+        if (!batchSet.resultSetSummaries[resultSet.id]) {
+            batchSet.resultSetSummaries[resultSet.id] = resultSet;
+        }
+
+        this._resultSetAvailableEmitter.fire(resultSet);
+        // Also fire the old event for backwards compatibility
+        this._resultSetEmitter.fire(resultSet);
+    }
+
+    public handleResultSetUpdated(result: QueryExecuteResultSetUpdatedNotificationParams): void {
+        let resultSet = result.resultSetSummary;
+        let batchSet = this._batchSets[resultSet.batchId];
+
+        // Update the result set in the batch
+        batchSet.resultSetSummaries[resultSet.id] = resultSet;
+
+        this._resultSetUpdatedEmitter.fire(resultSet);
+        // Also fire the old event for backwards compatibility
+        this._resultSetEmitter.fire(resultSet);
+    }
+
     public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
         let resultSet = result.resultSetSummary;
         let batchSet = this._batchSets[resultSet.batchId];
 
         // Store the result set in the batch and emit that a result set has completed
         batchSet.resultSetSummaries[resultSet.id] = resultSet;
+
+        this._resultSetCompleteEmitter.fire(resultSet);
+        // Also fire the old event for backwards compatibility
         this._resultSetEmitter.fire(resultSet);
     }
 
