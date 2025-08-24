@@ -1,0 +1,3 @@
+path_classifiers:
+  library:
+    - "out/src/views/htmlcontent/src/js/lib/*.js"
