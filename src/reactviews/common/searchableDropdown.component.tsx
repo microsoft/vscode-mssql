@@ -118,9 +118,7 @@ const searchOptions = (text: string, items: SearchableDropdownOptions[]) => {
 export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const [searchText, setSearchText] = useState("");
     const [selectedOption, setSelectedOption] = useState(
-        props.selectedOption ?? {
-            value: "",
-        },
+        props.selectedOption ?? props.options[0] ?? { value: "", text: props.placeholder ?? "" },
     );
 
     const id = props.id ?? useId();
@@ -265,11 +263,14 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     }, [buttonRef.current]);
 
     useEffect(() => {
-        setSelectedOption(props.selectedOption ?? props.options[0]);
+        setSelectedOption(
+            props.selectedOption ??
+                props.options[0] ?? { value: "", text: props.placeholder ?? "" },
+        );
         setSelectedOptionIndex(
             props.options.findIndex((opt) => opt.value === props.selectedOption?.value),
         );
-    }, [props.selectedOption]);
+    }, [props.selectedOption, props.options, props.placeholder]);
 
     return (
         <Menu
