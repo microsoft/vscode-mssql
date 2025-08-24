@@ -350,6 +350,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             this._queryResultWebviewPanelControllerMap.get(uri).revealToForeground();
         }
     }
+    /**
+     * Returns whether a QueryResultWebviewState exists for the given URI.
+     * Useful for guarding calls to getQueryResultState to avoid throwing on non-query documents.
+     */
+    public hasQueryResultState(uri: string): boolean {
+        return this._queryResultStateMap.has(uri);
+    }
 
     public getQueryResultState(uri: string): qr.QueryResultWebviewState {
         var res = this._queryResultStateMap.get(uri);

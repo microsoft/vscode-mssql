@@ -39,3 +39,4 @@ prettier.config.mjs
 scripts
 out
 node_modules/**
+sqltoolsservice

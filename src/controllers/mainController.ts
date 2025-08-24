@@ -7,7 +7,7 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo } from "vscode-mssql";
+import { IConnectionInfo, IScriptingObject } from "vscode-mssql";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -48,6 +48,10 @@ import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
+import {
+    DatabaseObjectSearchService,
+    DatabaseObject,
+} from "../services/databaseObjectSearchService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
@@ -1000,6 +1004,263 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Handles the search objects command
+     * @param node Optional connection node to search within
+     */
+    public async onSearchObjects(node?: ConnectionNode): Promise<void> {
+        try {
+            // Get the connection URI and database name
+            let connectionUri: string;
+            let databaseName: string | undefined;
+
+            if (node && node.connectionProfile) {
+                // Called from Object Explorer context menu
+                connectionUri = ObjectExplorerUtils.getNodeUri(node);
+                databaseName = node.connectionProfile.database;
+
+                // Ensure we have an active connection for this URI
+                if (!this.connectionManager.isConnected(connectionUri)) {
+                    let connectionCreds = node.connectionProfile;
+                    const nodeDatabaseName = ObjectExplorerUtils.getDatabaseName(node);
+                    if (nodeDatabaseName !== connectionCreds.database) {
+                        connectionCreds.database = nodeDatabaseName;
+                        databaseName = nodeDatabaseName;
+                    }
+
+                    if (!this.connectionManager.isConnecting(connectionUri)) {
+                        const promise = new Deferred<boolean>();
+                        await this.connectionManager.connect(
+                            connectionUri,
+                            connectionCreds,
+                            promise,
+                        );
+                        await promise;
+                    }
+                }
+            } else {
+                // Called from command palette - use active connection
+                const activeUri = this._vscodeWrapper.activeTextEditorUri;
+                if (!activeUri) {
+                    void vscode.window.showErrorMessage(
+                        LocalizedConstants.searchObjectsNoConnection,
+                    );
+                    return;
+                }
+                const connection = this._connectionMgr.getConnectionInfo(activeUri);
+                if (!connection) {
+                    void vscode.window.showErrorMessage(
+                        LocalizedConstants.searchObjectsNoConnection,
+                    );
+                    return;
+                }
+                connectionUri = activeUri;
+                databaseName = connection.credentials.database;
+            }
+
+            // Validate the connection URI before proceeding
+            if (!connectionUri || connectionUri.trim() === "") {
+                void vscode.window.showErrorMessage(
+                    LocalizedConstants.searchObjectsInvalidConnectionUri,
+                );
+                return;
+            }
+
+            // Live, debounced QuickPick search using cached metadata
+            const searchService = new DatabaseObjectSearchService(this._connectionMgr.client);
+            await searchService.warmCache(connectionUri).catch(() => undefined);
+
+            type SearchPick = vscode.QuickPickItem & { object?: DatabaseObject };
+            const qp = vscode.window.createQuickPick<SearchPick>();
+            qp.placeholder = LocalizedConstants.searchObjectsPlaceholder;
+            qp.matchOnDescription = true;
+            qp.matchOnDetail = true;
+            qp.ignoreFocusOut = true;
+            qp.items = [];
+
+            let lastToken = 0;
+            let debounceHandle: NodeJS.Timeout | undefined;
+
+            const runSearch = async (value: string, token: number) => {
+                const term = value?.trim();
+                if (!term) {
+                    qp.items = [];
+                    return;
+                }
+                const result = await searchService.searchObjects(connectionUri, term, databaseName);
+                if (token !== lastToken) {
+                    return; // stale response
+                }
+                if (!result.success) {
+                    qp.items = [
+                        {
+                            label: LocalizedConstants.searchObjectsErrorWithDetail(result.error),
+                            description: "",
+                            detail: "",
+                        },
+                    ];
+                    return;
+                }
+                if (result.objects.length === 0) {
+                    const msg = LocalizedConstants.searchObjectsNoResultsMessage(term);
+                    qp.items = [
+                        {
+                            label: msg,
+                            description: "",
+                            detail: "",
+                        },
+                    ];
+                    return;
+                }
+                qp.items = result.objects.map((r) => ({
+                    label: r.name,
+                    description: r.type,
+                    detail: r.schema ? `${r.schema}.${r.name}` : r.name,
+                    object: r,
+                }));
+            };
+
+            const onChangeDisp = qp.onDidChangeValue((value) => {
+                lastToken++;
+                const current = lastToken;
+                if (debounceHandle) {
+                    clearTimeout(debounceHandle);
+                }
+                qp.busy = true;
+                debounceHandle = setTimeout(() => {
+                    void runSearch(value, current).finally(() => {
+                        if (current === lastToken) {
+                            qp.busy = false;
+                        }
+                    });
+                }, 200);
+            });
+
+            let selectedItem: SearchPick | undefined;
+            const onAcceptDisp = qp.onDidAccept(() => {
+                selectedItem = qp.selectedItems?.[0];
+                qp.hide();
+            });
+            const onHide = new Promise<void>((resolve) => {
+                const d = qp.onDidHide(() => {
+                    d.dispose();
+                    resolve();
+                });
+            });
+            qp.show();
+            await onHide;
+            onChangeDisp.dispose();
+            onAcceptDisp.dispose();
+            qp.dispose();
+
+            if (!selectedItem || !selectedItem.object) {
+                return; // cancelled or picked an info row
+            }
+
+            // Let user pick what kind of script to generate based on object type
+            const objType = selectedItem.object.type;
+            const operations: { label: string; op: ScriptOperation }[] = [];
+            if (objType === "Table" || objType === "View") {
+                operations.push(
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
+                        op: ScriptOperation.Select,
+                    },
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptCreateLabel,
+                        op: ScriptOperation.Create,
+                    },
+                );
+            } else if (objType === "Stored Procedure") {
+                operations.push(
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptExecuteLabel,
+                        op: ScriptOperation.Execute,
+                    },
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptAlterLabel,
+                        op: ScriptOperation.Alter,
+                    },
+                );
+            } else if (objType === "Scalar Function" || objType === "Table-valued Function") {
+                operations.push(
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
+                        op: ScriptOperation.Select,
+                    },
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptAlterLabel,
+                        op: ScriptOperation.Alter,
+                    },
+                );
+            } else {
+                operations.push({
+                    label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
+                    op: ScriptOperation.Select,
+                });
+            }
+
+            const selectedOp = await vscode.window.showQuickPick(
+                operations.map((o) => o.label),
+                {
+                    placeHolder: LocalizedConstants.ObjectExplorer.FetchingScriptLabel("…"),
+                    ignoreFocusOut: true,
+                },
+            );
+            if (!selectedOp) {
+                return;
+            }
+            const op = operations.find((o) => o.label === selectedOp)?.op ?? ScriptOperation.Select;
+
+            // Use ScriptingService to generate script and open connected untitled doc
+            const connection = this._connectionMgr.getConnectionInfo(connectionUri);
+            const serverInfo = this._connectionMgr.getServerInfo(connection?.credentials);
+            // Map friendly type to metadata type name used by scripting
+            const mapType = (t: string): string => {
+                switch (t) {
+                    case "Table":
+                        return "Table";
+                    case "View":
+                        return "View";
+                    case "Stored Procedure":
+                        return "StoredProcedure";
+                    case "Scalar Function":
+                        return "ScalarValuedFunction";
+                    case "Table-valued Function":
+                        return "TableValuedFunction";
+                    default:
+                        return t;
+                }
+            };
+            // Build an IScriptingObject from search result
+            const scriptingObject: IScriptingObject = {
+                type: mapType(objType),
+                schema: selectedItem.object.schema,
+                name: selectedItem.object.name,
+            };
+
+            const scriptingParams = this._scriptingService.createScriptingParams(
+                serverInfo,
+                scriptingObject,
+                connectionUri,
+                op,
+            );
+            const script = await this._scriptingService.script(scriptingParams);
+
+            const editor = await this._untitledSqlDocumentService.newQuery(script);
+            const newDocUri = editor.document.uri.toString(true);
+            const promise = new Deferred<boolean>();
+            await this.connectionManager.connect(newDocUri, connection?.credentials, promise);
+            await promise;
+            this._statusview.languageFlavorChanged(newDocUri, Constants.mssqlProviderName);
+            this._statusview.sqlCmdModeChanged(newDocUri, false);
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.searchObjectsErrorWithDetail(getErrorMessage(error)),
+            );
+        }
+    }
+
+    /**
      * Initializes the Object Explorer commands
      * @param objectExplorerProvider provider settable for testing purposes
      */
@@ -1159,6 +1420,16 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdDisconnectObjectExplorerNode,
                 async (node: ConnectionNode) => {
                     await this._objectExplorerProvider.disconnectNode(node);
+                },
+            ),
+        );
+
+        // Search Objects in Database
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdSearchObjects,
+                async (node?: ConnectionNode) => {
+                    await this.onSearchObjects(node);
                 },
             ),
         );
@@ -2404,7 +2675,7 @@ export default class MainController implements vscode.Disposable {
             // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
         } else if (
             this._lastOpenedUri &&
-            this._lastSavedTimer?.getDuration() < Constants.untitledSaveTimeThreshold
+            this._lastOpenedTimer?.getDuration() < Constants.untitledSaveTimeThreshold
         ) {
             await this.updateUri(closedDocumentUri, this._lastOpenedUri);
         } else {
@@ -2430,7 +2701,7 @@ export default class MainController implements vscode.Disposable {
     }
 
     private async updateUri(oldUri: string, newUri: string) {
-        // Transfer the connection to the new URI
+        // Always transfer the connection to the new URI, even if there's no query result state
         await this._connectionMgr.copyConnectionToFile(oldUri, newUri);
 
         // Call STS  & Query Runner to update URI
@@ -2438,6 +2709,23 @@ export default class MainController implements vscode.Disposable {
 
         // Update the URI in the output content provider query result map
         this._outputContentProvider.onUntitledFileSaved(oldUri, newUri);
+
+        // Only perform webview state updates if the old URI is tracked
+        if (this._queryResultWebviewController.hasQueryResultState(oldUri)) {
+            let state = this._queryResultWebviewController.getQueryResultState(oldUri);
+            if (state) {
+                state.uri = newUri;
+
+                await this._queryResultWebviewController.sendNotification(
+                    StateChangeNotification.type<QueryResultWebviewState>(),
+                    state,
+                );
+
+                // Update the URI in the query result webview state
+                this._queryResultWebviewController.setQueryResultState(newUri, state);
+                this._queryResultWebviewController.deleteQueryResultState(oldUri);
+            }
+        }
     }
 
     /**
