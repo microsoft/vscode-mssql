@@ -284,17 +284,13 @@ export default class QueryRunner {
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
         this._statusView.executingQuery(this.uri);
+        QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).fsPath);
+        this.updateRunningQueries();
 
         this._notificationHandler.registerRunner(this, this._ownerUri);
 
         let onSuccess = (_result: unknown) => {
             // The query has started, so lets fire up the result pane
-            QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).fsPath);
-            vscode.commands.executeCommand(
-                "setContext",
-                "mssql.runningQueries",
-                QueryRunner._runningQueries,
-            );
             this._startEmitter.fire(this.uri);
         };
         let onError = (error: Error) => {
@@ -322,11 +318,7 @@ export default class QueryRunner {
         QueryRunner._runningQueries = QueryRunner._runningQueries.filter(
             (fileName) => fileName !== vscode.Uri.parse(this._ownerUri).fsPath,
         );
-        vscode.commands.executeCommand(
-            "setContext",
-            "mssql.runningQueries",
-            QueryRunner._runningQueries,
-        );
+        this.updateRunningQueries();
     }
 
     // handle the result of the notification
@@ -1371,5 +1363,14 @@ export default class QueryRunner {
 
         // Return as string
         return value;
+    }
+
+    private updateRunningQueries() {
+        vscode.commands.executeCommand(
+            "setContext",
+            "mssql.runningQueries",
+            QueryRunner._runningQueries,
+        );
+        this._startEmitter.fire(this.uri);
     }
 }
