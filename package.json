@@ -317,7 +317,7 @@
                     "group": "navigation@4"
                 },
                 {
-                    "command": "mssql.showExecutionPlanInResults",
+                    "command": "mssql.showEstimatedPlan",
                     "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
                     "group": "navigation@4"
                 },
@@ -1016,8 +1016,8 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.showExecutionPlanInResults",
-                "title": "%mssql.showExecutionPlanInResults%",
+                "command": "mssql.showEstimatedPlan",
+                "title": "%mssql.showEstimatedPlan%",
                 "category": "MS SQL",
                 "icon": {
                     "dark": "media/executionPlan_dark.svg",
@@ -2013,7 +2013,7 @@
                             "altText": "%mssql.walkthroughs.nextSteps.viewQueryPlan.altText%"
                         },
                         "completionEvents": [
-                            "onCommand:mssql.showExecutionPlanInResults",
+                            "onCommand:mssql.showEstimatedPlan",
                             "onCommand:mssql.enableActualPlan",
                             "onCommand:mssql.disableActualPlan"
                         ]
