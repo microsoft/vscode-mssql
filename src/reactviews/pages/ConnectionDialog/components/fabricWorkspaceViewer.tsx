@@ -270,23 +270,24 @@ export const FabricWorkspaceViewer = ({
                                         onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
                                         contentBefore={<SearchRegular />}
                                         contentAfter={
-                                            workspaceSearchFilter && (
-                                                <DismissRegular
-                                                    style={{
-                                                        cursor: "pointer",
-                                                    }}
-                                                    onClick={handleClearWorkspaceSearch}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === Keys.Enter) {
-                                                            handleClearWorkspaceSearch(e);
-                                                        }
-                                                    }}
-                                                    aria-label={Loc.common.clear}
-                                                    title={Loc.common.clear}
-                                                    role="button"
-                                                    tabIndex={0}
-                                                />
-                                            )
+                                            <DismissRegular
+                                                style={{
+                                                    cursor: "pointer",
+                                                    visibility: workspaceSearchFilter
+                                                        ? "visible"
+                                                        : "hidden",
+                                                }}
+                                                onClick={handleClearWorkspaceSearch}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === Keys.Enter) {
+                                                        handleClearWorkspaceSearch(e);
+                                                    }
+                                                }}
+                                                aria-label={Loc.common.clear}
+                                                title={Loc.common.clear}
+                                                role="button"
+                                                tabIndex={workspaceSearchFilter ? 0 : -1}
+                                            />
                                         }
                                         size="small"
                                         style={{ width: "100%" }}
