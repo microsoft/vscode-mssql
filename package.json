@@ -313,22 +313,22 @@
                 },
                 {
                     "command": "mssql.changeDatabase",
-                    "when": "editorLangId == sql && !isInDiffEditor",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
                     "group": "navigation@4"
                 },
                 {
                     "command": "mssql.showExecutionPlanInResults",
-                    "when": "editorLangId == sql && !isInDiffEditor",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
                     "group": "navigation@4"
                 },
                 {
                     "command": "mssql.enableActualPlan",
-                    "when": "editorLangId == sql && !isInDiffEditor && !(resource in mssql.executionPlan.urisWithActualPlanEnabled)",
+                    "when": "editorLangId == sql && !isInDiffEditor && !(resource in mssql.executionPlan.urisWithActualPlanEnabled) && resourcePath not in mssql.runningQueries",
                     "group": "navigation@5"
                 },
                 {
                     "command": "mssql.disableActualPlan",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.executionPlan.urisWithActualPlanEnabled",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.executionPlan.urisWithActualPlanEnabled && resourcePath not in mssql.runningQueries",
                     "group": "navigation@5"
                 }
             ],
