@@ -46,6 +46,10 @@ export interface FabricProvisioningFormState {
     accountId: string;
     workspace: string;
     databaseName: string;
+    databaseDescription?: string;
+    tenantId: string;
+    profileName: string;
+    groupId: string;
 }
 
 export interface FabricProvisioningFormItemSpec
@@ -67,12 +71,12 @@ export interface FabricProvisioningContextProps
     /**
      * Loads the workspaces for the form.
      */
-    loadWorkspaces(): void;
+    loadWorkspaces(reloadWorkspacesWithTenantId?: string): void;
 }
 
 export interface FabricProvisioningReducers extends FormReducers<FabricProvisioningFormState> {
     /**
      * Loads the workspaces for the form.
      */
-    loadWorkspaces: {};
+    loadWorkspaces: { reloadWorkspacesWithTenantId?: string };
 }

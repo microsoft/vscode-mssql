@@ -12,7 +12,6 @@ import {
     LocalContainers,
     msgSavePassword,
     passwordPrompt,
-    profileNameTooltip,
 } from "../constants/locConstants";
 import { DeploymentCommonReducers } from "../sharedInterfaces/deployment";
 import * as lc from "../sharedInterfaces/localContainers";
@@ -356,8 +355,8 @@ export function setLocalContainersFormComponents(
             type: FormItemType.Input,
             propertyName: "profileName",
             label: ConnectionDialog.profileName,
-            tooltip: profileNameTooltip,
-            placeholder: LocalContainers.profileNamePlaceholder,
+            tooltip: ConnectionDialog.profileNameTooltip,
+            placeholder: ConnectionDialog.profileNamePlaceholder,
         }),
 
         groupId: createFormItem(getGroupIdFormItem(groupOptions) as lc.LocalContainersFormItemSpec),

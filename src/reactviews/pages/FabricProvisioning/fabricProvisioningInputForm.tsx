@@ -3,8 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
-import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
+import { useContext, useEffect, useState } from "react";
+import {
+    Button,
+    makeStyles,
+    OptionOnSelectData,
+    SelectionEvents,
+    Spinner,
+    tokens,
+} from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
 import {
     FabricProvisioningContextProps,
@@ -14,6 +21,8 @@ import {
 } from "../../../sharedInterfaces/fabricProvisioning";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
+import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -57,14 +66,16 @@ export const FabricProvisioningInputForm: React.FC = () => {
     if (!state || !fabricProvisioningState) return undefined;
 
     const { formComponents } = fabricProvisioningState;
+    const [showAdvancedOptions, setShowAdvanced] = useState(false);
 
     const renderFormFields = (isAdvanced: boolean) =>
         Object.values(formComponents)
             .filter(
                 (component) =>
                     component.isAdvancedOption === isAdvanced &&
-                    // component.propertyName !== "groupId" &&
-                    component.propertyName !== "workspace",
+                    component.propertyName !== "groupId" &&
+                    component.propertyName !== "workspace" &&
+                    component.propertyName !== "tenantId",
             )
             .map((component, index) => (
                 <div
@@ -102,23 +113,72 @@ export const FabricProvisioningInputForm: React.FC = () => {
     return (
         <div>
             <div className={classes.outerDiv}>
-                {renderFormFields(false)}
-                {fabricProvisioningState.workspaces.length > 0 && (
-                    <FormField<
-                        FabricProvisioningFormState,
-                        FabricProvisioningWebviewState,
-                        FabricProvisioningFormItemSpec,
-                        FabricProvisioningContextProps
-                    >
-                        context={state}
-                        component={
-                            fabricProvisioningState.formComponents[
-                                "workspace"
-                            ] as FabricProvisioningFormItemSpec
-                        }
-                        idx={0}
-                    />
-                )}
+                <div className={classes.formDiv}>
+                    {renderFormFields(false)}
+                    {fabricProvisioningState.formState.accountId && (
+                        <FormField<
+                            FabricProvisioningFormState,
+                            FabricProvisioningWebviewState,
+                            FabricProvisioningFormItemSpec,
+                            FabricProvisioningContextProps
+                        >
+                            context={state}
+                            component={
+                                fabricProvisioningState.formComponents[
+                                    "tenantId"
+                                ] as FabricProvisioningFormItemSpec
+                            }
+                            idx={0}
+                            componentProps={{
+                                onOptionSelect: (
+                                    _event: SelectionEvents,
+                                    data: OptionOnSelectData,
+                                ) => {
+                                    state.formAction({
+                                        propertyName: "tenantId",
+                                        isAction: false,
+                                        value: data.optionValue as string,
+                                    });
+                                    state.loadWorkspaces(data.optionValue as string);
+                                },
+                            }}
+                        />
+                    )}
+                    {fabricProvisioningState.workspaces.length > 0 && (
+                        <FormField<
+                            FabricProvisioningFormState,
+                            FabricProvisioningWebviewState,
+                            FabricProvisioningFormItemSpec,
+                            FabricProvisioningContextProps
+                        >
+                            context={state}
+                            component={
+                                fabricProvisioningState.formComponents[
+                                    "workspace"
+                                ] as FabricProvisioningFormItemSpec
+                            }
+                            idx={0}
+                        />
+                    )}
+                    <div>
+                        <Button
+                            icon={
+                                showAdvancedOptions ? (
+                                    <ChevronDown20Regular />
+                                ) : (
+                                    <ChevronRight20Regular />
+                                )
+                            }
+                            appearance="subtle"
+                            onClick={() => setShowAdvanced(!showAdvancedOptions)}
+                        />
+                        {locConstants.connectionDialog.advancedOptions}
+                    </div>
+
+                    {showAdvancedOptions && (
+                        <div className={classes.advancedOptionsDiv}>{renderFormFields(true)}</div>
+                    )}
+                </div>
                 <div className={classes.bottomDiv}>
                     <hr style={{ background: tokens.colorNeutralBackground2 }} />
                     {fabricProvisioningState.formValidationLoadState === ApiStatus.Loading ? (

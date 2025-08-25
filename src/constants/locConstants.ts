@@ -204,9 +204,6 @@ export let msgSavePassword = l10n.t(
     "Save Password? If 'No', password will be required each time you connect",
 );
 export let profileNamePrompt = l10n.t("Profile Name");
-export let profileNameTooltip = l10n.t(
-    "[Optional] Enter a display name for this connection profile",
-);
 export let msgCannotOpenContent = l10n.t("Error occurred opening content in editor.");
 export let msgSaveStarted = l10n.t("Started saving results to ");
 export let msgSaveFailed = l10n.t("Failed to save results. ");
@@ -643,6 +640,10 @@ export class ConnectionDialog {
     public static selectATenant = l10n.t("Select a tenant");
     public static tenantIdIsRequired = l10n.t("Tenant ID is required");
     public static profileName = l10n.t("Profile Name");
+    public static profileNamePlaceholder = l10n.t("Enter profile name");
+    public static profileNameTooltip = l10n.t(
+        "[Optional] Enter a display name for this connection profile",
+    );
     public static connectionGroup = l10n.t("Connection Group");
     public static serverIsRequired = l10n.t("Server is required");
     public static usernameIsRequired = l10n.t("User name is required");
@@ -752,6 +753,8 @@ export class FabricProvisioning {
     public static databaseName = l10n.t("Database Name");
     public static enterDatabaseName = l10n.t("Enter Database Name");
     public static databaseNameIsRequired = l10n.t("Database Name is required");
+    public static databaseDescription = l10n.t("Database Description");
+    public static enterDatabaseDescription = l10n.t("Enter Database Description");
 }
 
 export class QueryResult {
@@ -964,7 +967,6 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
-    public static profileNamePlaceholder = l10n.t("Enter profile name");
 }
 
 export class UserSurvey {

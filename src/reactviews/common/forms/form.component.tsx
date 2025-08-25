@@ -278,12 +278,16 @@ export function generateFormComponent<
                         )?.displayName ?? ""
                     }
                     selectedOptions={[formState[component.propertyName] as string]}
-                    onOptionSelect={(_event, data) => {
-                        context?.formAction({
-                            propertyName: component.propertyName,
-                            isAction: false,
-                            value: data.optionValue as string,
-                        });
+                    onOptionSelect={(event, data) => {
+                        if (props && props.onOptionSelect) {
+                            props.onOptionSelect(event, data);
+                        } else {
+                            context?.formAction({
+                                propertyName: component.propertyName,
+                                isAction: false,
+                                value: data.optionValue as string,
+                            });
+                        }
                     }}
                     {...props}>
                     {component.options?.map((option, idx) => {

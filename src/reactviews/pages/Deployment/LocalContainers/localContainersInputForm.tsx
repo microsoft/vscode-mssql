@@ -176,7 +176,7 @@ export const LocalContainersInputForm: React.FC = () => {
                             appearance="subtle"
                             onClick={() => setShowAdvanced(!showAdvancedOptions)}
                         />
-                        {locConstants.localContainers.advancedOptions}
+                        {locConstants.connectionDialog.advancedOptions}
                     </div>
 
                     {showAdvancedOptions && (

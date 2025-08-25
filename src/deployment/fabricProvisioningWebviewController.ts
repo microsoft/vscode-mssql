@@ -14,7 +14,7 @@ import {
     FabricProvisioningReducers,
 } from "../sharedInterfaces/fabricProvisioning";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { getAccounts } from "../connectionconfig/azureHelpers";
+import { getAccounts, getTenants } from "../connectionconfig/azureHelpers";
 import {
     FormItemActionButton,
     FormItemOptions,
@@ -24,6 +24,7 @@ import {
 import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
 import { getAccountActionButtons } from "../connectionconfig/sharedConnectionDialogUtils";
 import { FabricHelper } from "../fabric/fabricHelper";
+import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 
 export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormState,
@@ -73,11 +74,19 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             this.mainController.azureAccountService,
             this.logger,
         );
+        const defaultAccountId = azureAccountOptions.length > 0 ? azureAccountOptions[0].value : "";
+        const tenantOptions = await getTenants(
+            this.mainController.azureAccountService,
+            defaultAccountId,
+            this.logger,
+        );
         this.state.formState = {
-            accountId: azureAccountOptions.length > 0 ? azureAccountOptions[0].value : "",
+            accountId: defaultAccountId,
             groupId: connectionGroupOptions[0].value,
+            tenantId: tenantOptions.length > 0 ? tenantOptions[0].value : "",
             workspace: "",
             databaseName: "",
+            databaseDescription: "",
         } as FabricProvisioningFormState;
         console.log(this.state);
         const azureActionButtons = await this.getAzureActionButtons();
@@ -85,7 +94,8 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         this.state.formComponents = this.setFabricProvisioningFormComponents(
             azureAccountOptions,
             azureActionButtons,
-            this.getWorkspaceOptions(),
+            connectionGroupOptions,
+            tenantOptions,
         );
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
@@ -95,8 +105,13 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private registerRpcHandlers() {
-        this.registerReducer("loadWorkspaces", async (state, _payload) => {
-            if (this.state.workspaces) {
+        this.registerReducer("loadWorkspaces", async (state, payload) => {
+            if (payload.reloadWorkspacesWithTenantId) {
+                console.log("hellos????A", payload);
+                console.log(payload);
+                state.workspaces = [];
+                this.reloadWorkspaces();
+            } else if (this.state.workspaces) {
                 state.workspaces = this.state.workspaces;
             }
             return state;
@@ -114,7 +129,8 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     private setFabricProvisioningFormComponents(
         azureAccountOptions: FormItemOptions[],
         azureActionButtons: FormItemActionButton[],
-        workspaceOptions: FormItemOptions[],
+        groupOptions: FormItemOptions[],
+        tenantOptions: FormItemOptions[],
     ): Record<
         string,
         FormItemSpec<
@@ -153,7 +169,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 label: Fabric.workspace,
                 required: true,
                 type: FormItemType.SearchableDropdown,
-                options: workspaceOptions,
+                options: [],
                 isAdvancedOption: false,
                 placeholder: Fabric.selectAWorkspace,
                 searchBoxPlaceholder: Fabric.searchWorkspaces,
@@ -165,14 +181,45 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             databaseName: createFormItem({
                 propertyName: "databaseName",
                 type: FormItemType.Input,
+                required: true,
                 label: FabricProvisioning.databaseName,
-                isAdvancedOption: true,
+                isAdvancedOption: false,
                 placeholder: FabricProvisioning.enterDatabaseName,
                 validate: (_state: FabricProvisioningWebviewState, value: string) => ({
                     isValid: !!value,
                     validationMessage: value ? "" : FabricProvisioning.databaseNameIsRequired,
                 }),
             }),
+            tenantId: createFormItem({
+                propertyName: "tenantId",
+                label: ConnectionDialog.tenantId,
+                required: true,
+                type: FormItemType.Dropdown,
+                options: tenantOptions,
+                placeholder: ConnectionDialog.selectATenant,
+                validate: (_state: FabricProvisioningWebviewState, value: string) => ({
+                    isValid: !!value,
+                    validationMessage: value ? "" : ConnectionDialog.tenantIdIsRequired,
+                }),
+            }),
+            databaseDescription: createFormItem({
+                propertyName: "databaseDescription",
+                label: FabricProvisioning.databaseDescription,
+                required: false,
+                type: FormItemType.Input,
+                isAdvancedOption: true,
+                placeholder: FabricProvisioning.enterDatabaseDescription,
+            }),
+            profileName: createFormItem({
+                type: FormItemType.Input,
+                propertyName: "profileName",
+                label: ConnectionDialog.profileName,
+                tooltip: ConnectionDialog.profileNameTooltip,
+                placeholder: ConnectionDialog.profileNamePlaceholder,
+            }),
+            groupId: createFormItem(
+                getGroupIdFormItem(groupOptions) as FabricProvisioningFormItemSpec,
+            ),
         };
     }
 
@@ -183,16 +230,40 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             this.mainController.azureAccountService,
             this.logger,
             this.vscodeWrapper,
-            this.loadWorkspacesAfterSignIn,
+            this.loadComponentsAfterSignIn,
         );
     }
 
-    private async loadWorkspacesAfterSignIn(_propertyName: string) {
+    private async loadComponentsAfterSignIn(_propertyName: string) {
         const accountComponent = this.getFormComponent(this.state, "accountId");
+
+        // Reload tenant options
+        const tenantComponent = this.getFormComponent(this.state, "tenantId");
+        const tenants = await getTenants(
+            this.mainController.azureAccountService,
+            this.state.formState.accountId,
+            this.logger,
+        );
+        if (tenantComponent) {
+            tenantComponent.options = tenants;
+            if (
+                tenants.length > 0 &&
+                !tenants.find((t) => t.value === this.state.formState.tenantId)
+            ) {
+                // if expected tenantId is not in the list of tenants, set it to the first tenant
+                this.state.formState.tenantId = tenants[0].value;
+                await this.validateForm(this.state.formState, "tenantId");
+            }
+        }
         accountComponent.actionButtons = await this.getAzureActionButtons();
+
+        this.reloadWorkspaces();
+    }
+
+    private reloadWorkspaces(tenantId?: string) {
         this.state.workspaces = [];
         this.updateState();
-        this.getWorkspaces();
+        this.getWorkspaces(tenantId);
     }
 
     private getWorkspaceOptions(): FormItemOptions[] {
@@ -202,8 +273,9 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         }));
     }
 
-    private getWorkspaces(): void {
-        FabricHelper.getFabricWorkspaces(undefined)
+    private getWorkspaces(tenantId?: string): void {
+        if (this.state.formState.tenantId === "" && !tenantId) return;
+        FabricHelper.getFabricWorkspaces(tenantId || this.state.formState.tenantId)
             .then((workspaces) => {
                 this.state.workspaces = workspaces;
                 const workspaceComponent = this.getFormComponent(this.state, "workspace");

@@ -262,6 +262,7 @@ export class LocConstants {
             signIntoAzureToBrowse: l10n.t(
                 "You must be signed into Azure in order to browse SQL databases.",
             ),
+            advancedOptions: l10n.t("Advanced Options"),
         };
     }
 
@@ -846,7 +847,6 @@ export class LocConstants {
             getStarted: l10n.t("Get Started"),
             gettingDockerReady: l10n.t("Getting Docker Ready..."),
             checkingPrerequisites: l10n.t("Checking pre-requisites"),
-            advancedOptions: l10n.t("Advanced Options"),
             createContainer: l10n.t("Create Container"),
             settingUp: l10n.t("Setting up"),
             gettingContainerReadyForConnection: l10n.t("Getting container ready for connections"),
