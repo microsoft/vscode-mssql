@@ -12,13 +12,13 @@ import {
     Text,
     Spinner,
     Input,
+    TableRowData,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
     DataGrid,
     DataGridRow,
     DataGridCell,
-    RowRenderer,
 } from "@fluentui-contrib/react-data-grid-react-window";
 import {
     FabricSqlDbInfo,
@@ -64,7 +64,7 @@ function getTypeDisplayName(artifactType: string): string {
     }
 }
 
-interface Props {
+interface WorkspacesListProps {
     selectFabricWorkspace: (workspaceId: string) => void;
     onSelectDatabase: (database: FabricSqlDbInfo) => void;
     fabricWorkspacesLoadStatus: Status;
@@ -72,12 +72,6 @@ interface Props {
     searchFilter?: string;
     typeFilter?: string[];
 }
-
-type WorkspacesListProps = {
-    workspaces: FabricWorkspaceInfo[];
-    onWorkspaceSelect: (workspace: FabricWorkspaceInfo) => void;
-    selectedWorkspace?: FabricWorkspaceInfo;
-};
 
 interface FabricSqlGridItem extends FabricSqlDbInfo {
     typeDisplayName: string;
@@ -90,7 +84,7 @@ export const FabricWorkspaceViewer = ({
     fabricWorkspaces,
     searchFilter = "",
     typeFilter = [],
-}: Props) => {
+}: WorkspacesListProps) => {
     const styles = useStyles();
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
@@ -218,35 +212,10 @@ export const FabricWorkspaceViewer = ({
         onSelectDatabase(database);
     }
 
-    // function renderRow(
-    //     { item, rowId }: { item: FabricSqlGridItem; rowId: string },
-    //     style: React.CSSProperties,
-    // ) {
-    //     return (
-    //         <DataGridRow<FabricSqlGridItem>
-    //             key={rowId}
-    //             className={selectedRowId === item.id ? styles.selectedDataGridRow : undefined}
-    //             style={style}
-    //             onClick={() => {
-    //                 handleServerSelected(item);
-    //             }}
-    //             onKeyDown={(e: React.KeyboardEvent) => {
-    //                 if (e.key === Keys.Enter || e.key === Keys.Space) {
-    //                     handleServerSelected(item);
-    //                     e.preventDefault();
-    //                 }
-    //             }}>
-    //             {({ renderCell }: { renderCell: (item: FabricSqlGridItem) => React.ReactNode }) => (
-    //                 <>{renderCell(item)}</>
-    //             )}
-    //         </DataGridRow>
-    //     );
-    // }
-
-    const renderRow: RowRenderer<FabricSqlGridItem> = (
-        { item, rowId }: { item: FabricSqlGridItem; rowId: string },
+    function renderRow(
+        { item, rowId }: TableRowData<FabricSqlGridItem>,
         style: React.CSSProperties,
-    ) => {
+    ): React.ReactNode {
         return (
             <DataGridRow<FabricSqlGridItem>
                 key={rowId}
@@ -266,7 +235,7 @@ export const FabricWorkspaceViewer = ({
                 )}
             </DataGridRow>
         );
-    };
+    }
 
     return (
         <div className={styles.container}>
