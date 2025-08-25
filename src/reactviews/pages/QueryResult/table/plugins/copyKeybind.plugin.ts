@@ -4,7 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { KeyboardEvent } from "react";
-import { ResultSetSummary, DbCellValue } from "../../../../../sharedInterfaces/queryResult";
+import {
+    ResultSetSummary,
+    DbCellValue,
+    SendToClipboardRequest,
+    CopySelectionRequest,
+} from "../../../../../sharedInterfaces/queryResult";
 import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } from "../utils";
 import { Keys } from "../../../../common/keys";
 import { IDisposableDataProvider } from "../dataProvider";
@@ -89,7 +94,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
                         }) as DbCellValue,
                 );
             });
-            void this._qrContext.sendToClipboardRequest({
+            await this._qrContext.extensionRpc.sendRequest(SendToClipboardRequest.type, {
                 uri: uri,
                 data: dataArray,
                 batchId: resultSetSummary.batchId,
@@ -98,7 +103,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
                 headersFlag: false, // Assuming headers are not needed for in-memory data
             });
         } else {
-            void this._qrContext.copySelection({
+            await this._qrContext.extensionRpc.sendRequest(CopySelectionRequest.type, {
                 uri: uri,
                 batchId: resultSetSummary.batchId,
                 resultId: resultSetSummary.id,
