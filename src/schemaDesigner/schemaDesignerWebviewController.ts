@@ -259,59 +259,54 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             });
         });
 
-        this.onNotification(
-            SchemaDesigner.OpenInEditorWithConnectionNotification.type,
-            (params) => {
-                const generateScriptActivity = startActivity(
-                    TelemetryViews.SchemaDesigner,
-                    TelemetryActions.GenerateScript,
-                    undefined,
-                );
-                vscode.window.withProgress(
-                    {
-                        location: vscode.ProgressLocation.Notification,
-                        title: LocConstants.SchemaDesigner.OpeningPublishScript,
-                        cancellable: false,
-                    },
-                    async () => {
-                        try {
-                            const result = await this.schemaDesignerService.generateScript({
-                                sessionId: this._sessionId,
-                            });
-                            generateScriptActivity.end(
-                                ActivityStatus.Succeeded,
-                                undefined,
-                                result?.script
-                                    ? { scriptLength: result?.script?.length }
-                                    : { scriptLength: 0 },
-                            );
-                            // Open the document in the editor with the connection
-                            if (this.treeNode) {
-                                void this.mainController.onNewQuery(this.treeNode, result?.script);
-                            } else if (this.connectionUri) {
-                                const editor =
-                                    await this.mainController.untitledSqlDocumentService.newQuery(
-                                        result?.script,
-                                    );
-                                await this.mainController.connectionManager.connect(
-                                    editor.document.uri.toString(true),
-                                    this.mainController.connectionManager.getConnectionInfo(
-                                        this.connectionUri,
-                                    ).credentials,
+        this.onNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, () => {
+            const generateScriptActivity = startActivity(
+                TelemetryViews.SchemaDesigner,
+                TelemetryActions.GenerateScript,
+                undefined,
+            );
+            vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: LocConstants.SchemaDesigner.OpeningPublishScript,
+                    cancellable: false,
+                },
+                async () => {
+                    try {
+                        const result = await this.schemaDesignerService.generateScript({
+                            sessionId: this._sessionId,
+                        });
+                        generateScriptActivity.end(
+                            ActivityStatus.Succeeded,
+                            undefined,
+                            result?.script
+                                ? { scriptLength: result?.script?.length }
+                                : { scriptLength: 0 },
+                        );
+                        // Open the document in the editor with the connection
+                        if (this.treeNode) {
+                            void this.mainController.onNewQuery(this.treeNode, result?.script);
+                        } else if (this.connectionUri) {
+                            const editor =
+                                await this.mainController.untitledSqlDocumentService.newQuery(
+                                    result?.script,
                                 );
-                            }
-                        } catch (error) {
-                            generateScriptActivity.endFailed(error, false);
-                            vscode.window.showErrorMessage(
-                                LocConstants.SchemaDesigner.PublishScriptFailed(
-                                    getErrorMessage(error),
-                                ),
+                            await this.mainController.connectionManager.connect(
+                                editor.document.uri.toString(true),
+                                this.mainController.connectionManager.getConnectionInfo(
+                                    this.connectionUri,
+                                ).credentials,
                             );
                         }
-                    },
-                );
-            },
-        );
+                    } catch (error) {
+                        generateScriptActivity.endFailed(error, false);
+                        vscode.window.showErrorMessage(
+                            LocConstants.SchemaDesigner.PublishScriptFailed(getErrorMessage(error)),
+                        );
+                    }
+                },
+            );
+        });
 
         this.onNotification(SchemaDesigner.CloseSchemaDesignerNotification.type, () => {
             // Close the schema designer panel

@@ -271,3 +271,9 @@ export interface PendingRequest {
 export namespace GetEOLRequest {
     export const type = new RequestType<void, string, void>("getEOL");
 }
+
+export interface CoreRPCs {
+    log(message: string, level?: LoggerLevel): void;
+    sendActionEvent(event: WebviewTelemetryActionEvent): void;
+    sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
+}
