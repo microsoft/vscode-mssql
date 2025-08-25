@@ -22,10 +22,8 @@ export class DeploymentWebviewState
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
     isDeploymentTypeInitialized: boolean = false;
     dialog: IDialogProps | undefined;
-    // @ts-ignore
-    deploymentTypeState: DeploymentTypeState = undefined;
-    // @ts-ignore
-    formState: DeploymentFormState = undefined;
+    deploymentTypeState: DeploymentTypeState = {} as DeploymentTypeState;
+    formState: DeploymentFormState = {} as DeploymentFormState;
     formComponents: Partial<Record<keyof DeploymentFormState, DeploymentFormItemSpec>> = {};
     formErrors: string[] = [];
     connectionGroupOptions: FormItemOptions[] = [];
