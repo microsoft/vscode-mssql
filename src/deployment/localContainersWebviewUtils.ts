@@ -187,7 +187,6 @@ export async function handleLocalContainersFormAction(
     state: lc.LocalContainersWebviewState,
     payload: DeploymentCommonReducers["formAction"],
 ): Promise<lc.LocalContainersWebviewState> {
-    (state.formState as any)[payload.event.propertyName] = payload.event.value;
     return await validateDockerConnectionProfile(state, payload.event.propertyName);
 }
 

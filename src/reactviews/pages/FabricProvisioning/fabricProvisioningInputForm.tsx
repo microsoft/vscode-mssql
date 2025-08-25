@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { FormField } from "../../common/forms/form.component";
 import {
@@ -12,8 +12,6 @@ import {
     FabricProvisioningWebviewState,
     FabricProvisioningFormState,
 } from "../../../sharedInterfaces/fabricProvisioning";
-import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
-import { locConstants } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
 
@@ -60,40 +58,67 @@ export const FabricProvisioningInputForm: React.FC = () => {
 
     const { formComponents } = fabricProvisioningState;
 
-    const renderFormFields = () =>
-        Object.values(formComponents).map((component, index) => (
-            <div
-                key={index}
-                style={
-                    component.componentWidth
-                        ? {
-                              width: component.componentWidth,
-                              maxWidth: component.componentWidth,
-                              whiteSpace: "normal", // allows wrapping
-                              overflowWrap: "break-word", // breaks long words if needed
-                              wordBreak: "break-word",
-                          }
-                        : {}
-                }>
-                <FormField<
-                    FabricProvisioningFormState,
-                    FabricProvisioningWebviewState,
-                    FabricProvisioningFormItemSpec,
-                    FabricProvisioningContextProps
-                >
-                    context={state}
-                    component={component}
-                    idx={index}
-                />
-            </div>
-        ));
+    const renderFormFields = (isAdvanced: boolean) =>
+        Object.values(formComponents)
+            .filter(
+                (component) =>
+                    component.isAdvancedOption === isAdvanced &&
+                    // component.propertyName !== "groupId" &&
+                    component.propertyName !== "workspace",
+            )
+            .map((component, index) => (
+                <div
+                    key={index}
+                    style={
+                        component.componentWidth
+                            ? {
+                                  width: component.componentWidth,
+                                  maxWidth: component.componentWidth,
+                                  whiteSpace: "normal", // allows wrapping
+                                  overflowWrap: "break-word", // breaks long words if needed
+                                  wordBreak: "break-word",
+                              }
+                            : {}
+                    }>
+                    <FormField<
+                        FabricProvisioningFormState,
+                        FabricProvisioningWebviewState,
+                        FabricProvisioningFormItemSpec,
+                        FabricProvisioningContextProps
+                    >
+                        context={state}
+                        component={component}
+                        idx={index}
+                    />
+                </div>
+            ));
 
     const handleSubmit = async () => {};
+
+    useEffect(() => {
+        state.loadWorkspaces();
+    }, [fabricProvisioningState.workspaces]);
 
     return (
         <div>
             <div className={classes.outerDiv}>
-                {renderFormFields()}
+                {renderFormFields(false)}
+                {fabricProvisioningState.workspaces.length > 0 && (
+                    <FormField<
+                        FabricProvisioningFormState,
+                        FabricProvisioningWebviewState,
+                        FabricProvisioningFormItemSpec,
+                        FabricProvisioningContextProps
+                    >
+                        context={state}
+                        component={
+                            fabricProvisioningState.formComponents[
+                                "workspace"
+                            ] as FabricProvisioningFormItemSpec
+                        }
+                        idx={0}
+                    />
+                )}
                 <div className={classes.bottomDiv}>
                     <hr style={{ background: tokens.colorNeutralBackground2 }} />
                     {fabricProvisioningState.formValidationLoadState === ApiStatus.Loading ? (

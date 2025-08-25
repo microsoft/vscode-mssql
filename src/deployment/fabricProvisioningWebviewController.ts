@@ -65,6 +65,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private async initialize() {
+        const startTime = Date.now();
         this.state.loadState = ApiStatus.Loading;
         const connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
@@ -72,13 +73,10 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             this.mainController.azureAccountService,
             this.logger,
         );
-        this.state.workspaces = await FabricHelper.getFabricWorkspaces();
-        console.log(this.state.workspaces);
-        const workspaceOptions = this.getWorkspaceOptions();
         this.state.formState = {
             accountId: azureAccountOptions.length > 0 ? azureAccountOptions[0].value : "",
             groupId: connectionGroupOptions[0].value,
-            workspace: workspaceOptions.length > 0 ? workspaceOptions[0].value : "",
+            workspace: "",
             databaseName: "",
         } as FabricProvisioningFormState;
         const azureActionButtons = await this.getAzureActionButtons();
@@ -86,14 +84,35 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         this.state.formComponents = this.setFabricProvisioningFormComponents(
             azureAccountOptions,
             azureActionButtons,
-            workspaceOptions,
+            this.getWorkspaceOptions(),
         );
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
         this.updateState();
+        this.getWorkspaces();
+        console.log("Load stats: ", Date.now() - startTime);
     }
 
-    private registerRpcHandlers() {}
+    private registerRpcHandlers() {
+        this.registerReducer("formAction", async (state, payload) => {
+            if (state.formState) {
+                (state.formState as any)[payload.event.propertyName] = payload.event.value;
+            }
+
+            if (payload.event.propertyName === "accountId") {
+                state.workspaces = [];
+                this.updateState(state);
+                this.getWorkspaces();
+            }
+            return state;
+        });
+        this.registerReducer("loadWorkspaces", async (state, _payload) => {
+            if (this.state.workspaces) {
+                state.workspaces = this.state.workspaces;
+            }
+            return state;
+        });
+    }
 
     async updateItemVisibility() {}
 
@@ -193,5 +212,18 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             displayName: workspace.displayName,
             value: workspace.id,
         }));
+    }
+
+    private getWorkspaces(): void {
+        FabricHelper.getFabricWorkspaces()
+            .then((workspaces) => {
+                this.state.workspaces = workspaces;
+                const workspaceComponent = this.getFormComponent(this.state, "workspace");
+                workspaceComponent.options = this.getWorkspaceOptions();
+            })
+            .catch((err) => {
+                console.error("Failed to load workspaces", err);
+            });
+        this.updateState();
     }
 }

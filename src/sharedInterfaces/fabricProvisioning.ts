@@ -63,6 +63,16 @@ export interface FabricProvisioningContextProps
         FabricProvisioningFormState,
         FabricProvisioningWebviewState,
         FabricProvisioningFormItemSpec
-    > {}
+    > {
+    /**
+     * Loads the workspaces for the form.
+     */
+    loadWorkspaces(): void;
+}
 
-export interface FabricProvisioningReducers extends FormReducers<FabricProvisioningFormState> {}
+export interface FabricProvisioningReducers extends FormReducers<FabricProvisioningFormState> {
+    /**
+     * Loads the workspaces for the form.
+     */
+    loadWorkspaces: {};
+}

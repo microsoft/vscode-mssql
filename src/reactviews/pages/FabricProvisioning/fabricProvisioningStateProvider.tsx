@@ -39,6 +39,9 @@ const FabricProvisioningStateProvider: React.FC<FabricProvisioningProviderProps>
                         event: event,
                     });
                 },
+                loadWorkspaces: function (): void {
+                    webviewState?.extensionRpc.action("loadWorkspaces", {});
+                },
             }}>
             {children}
         </FabricProvisioningContext.Provider>
