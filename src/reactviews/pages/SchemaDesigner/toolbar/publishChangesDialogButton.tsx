@@ -93,19 +93,19 @@ export function PublishChangesDialogButton() {
                     });
                     setPublishButtonDisabled(true);
                     const getReportResponse = await context.getReport();
-                    if (getReportResponse.error) {
+                    if (getReportResponse?.error) {
                         setState({
                             ...state,
                             currentStage: PublishDialogStages.ReportError,
                             reportError: getReportResponse.error,
                         });
                     } else {
-                        if (!getReportResponse.report.hasSchemaChanged) {
+                        if (!getReportResponse?.report.hasSchemaChanged) {
                             setState({
                                 ...state,
                                 currentStage: PublishDialogStages.ReportSuccessNoChanges,
                                 reportError: undefined,
-                                report: getReportResponse.report,
+                                report: getReportResponse?.report,
                             });
                         } else {
                             setState({

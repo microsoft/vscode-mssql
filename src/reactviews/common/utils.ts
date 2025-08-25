@@ -5,10 +5,12 @@
 
 import {
     ColorThemeKind,
+    CoreRPCs,
     LoggerLevel,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
+import { WebviewRpc } from "./rpc";
 import { VscodeWebviewContext } from "./vscodeWebviewProvider";
 
 /**
@@ -76,16 +78,20 @@ export function deepClone<T>(obj: T): T {
 
 export function getCoreRPCs<TState, TReducers>(
     webviewContext: VscodeWebviewContext<TState, TReducers>,
-): any {
+): CoreRPCs {
+    return getCoreRPCs2(webviewContext.extensionRpc);
+}
+
+export function getCoreRPCs2<TReducers>(extensionRpc: WebviewRpc<TReducers>): CoreRPCs {
     return {
         log(message: string, level?: LoggerLevel) {
-            webviewContext.extensionRpc.log(message, level);
+            extensionRpc.log(message, level);
         },
         sendActionEvent(event: WebviewTelemetryActionEvent) {
-            webviewContext.extensionRpc.sendActionEvent(event);
+            extensionRpc.sendActionEvent(event);
         },
         sendErrorEvent(event: WebviewTelemetryErrorEvent) {
-            webviewContext.extensionRpc.sendErrorEvent(event);
+            extensionRpc.sendErrorEvent(event);
         },
     };
 }

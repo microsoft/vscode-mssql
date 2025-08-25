@@ -28,13 +28,9 @@ export interface SchemaDesignerContextProps
         edges: Edge<SchemaDesigner.ForeignKey>[];
     }>;
     saveAsFile: (fileProps: SchemaDesigner.ExportFileOptions) => void;
-    getReport: () => Promise<{
-        report: SchemaDesigner.GetReportResponse;
-        error?: string;
-    }>;
+    getReport: () => Promise<SchemaDesigner.GetReportWebviewResponse | undefined>;
     openInEditor: (text: string) => void;
     openInEditorWithConnection: () => void;
-    setSelectedTable: (selectedTable: SchemaDesigner.Table) => void;
     copyToClipboard: (text: string) => void;
     extractSchema: () => SchemaDesigner.Schema;
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
@@ -205,12 +201,9 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         });
     };
 
-    const openInEditorWithConnection = (text: string) => {
+    const openInEditorWithConnection = () => {
         void extensionRpc.sendNotification(
             SchemaDesigner.OpenInEditorWithConnectionNotification.type,
-            {
-                text: text,
-            },
         );
     };
 
@@ -366,6 +359,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
         void reactFlow.deleteElements({ nodes: [node] });
         eventBus.emit("pushState");
+        return true;
     };
 
     /**
