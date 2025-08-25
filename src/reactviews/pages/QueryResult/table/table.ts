@@ -18,6 +18,7 @@ import { QueryResultReactProvider } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
 import { MouseButton } from "../../../common/utils";
+import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
     return {
@@ -61,6 +62,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         private configuration: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
+        autoSizeColumns: boolean = false,
+        themeKind: ColorThemeKind = ColorThemeKind.Dark,
     ) {
         this.linkHandler = linkHandler;
         this.selectionModel = new CellSelectionModel<T>(
@@ -123,12 +126,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this._container.appendChild(this._tableContainer);
         this.styleElement = DOM.createStyleSheet(this._container);
         this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
-        this.headerFilter = new HeaderFilter(
-            webViewState.themeKind,
-            this.queryResultContext,
-            this.webViewState,
-            gridId,
-        );
+        this.headerFilter = new HeaderFilter(this.uri, themeKind, this.context, gridId);
         this.registerPlugin(this.headerFilter);
         this.registerPlugin(
             new ContextMenu(
@@ -151,7 +149,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             new AutoColumnSize(
                 {
                     maxWidth: MAX_COLUMN_WIDTH_PX,
-                    autoSizeOnRender: this.webViewState.state.autoSizeColumns,
+                    autoSizeOnRender: autoSizeColumns,
                 },
                 this.context,
             ),

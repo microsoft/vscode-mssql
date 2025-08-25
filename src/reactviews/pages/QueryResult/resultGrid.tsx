@@ -68,6 +68,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         (state) => state.inMemoryDataProcessingThreshold,
     );
     const fontSettings = useQueryResultSelector((state) => state.fontSettings);
+    const autoSizeColumns = useQueryResultSelector((state) => state.autoSizeColumns);
+    const { themeKind } = useVscodeWebview2();
 
     const gridContainerRef = useRef<HTMLDivElement>(null);
     const [refreshKey, setRefreshKey] = useState(0);
@@ -264,6 +266,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             { dataProvider: dataProvider, columns: columns },
             tableOptions,
             props.gridParentRef,
+            autoSizeColumns,
+            themeKind,
         );
         void setupState();
         collection.setCollectionChangedCallback((startIndex, count) => {
