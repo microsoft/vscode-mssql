@@ -2,7 +2,7 @@
     "mssql.runQuery": "Execute Query",
     "mssql.runCurrentStatement": "Execute Current Statement",
     "mssql.cancelQuery": "Cancel Query",
-    "mssql.revealQueryResultPanel": "Reveal Query Result Panel",
+    "mssql.revealQueryResult": "Reveal Query Result",
     "mssql.copyAll": "Copy All",
     "mssql.changeDatabase": "Change Database",
     "mssql.addObjectExplorerLegacy": "Add Connection (Legacy)",
@@ -106,10 +106,10 @@
     "mssql.resultsFontFamily": "Set the font family for the results grid; set to blank to use the editor font",
     "mssql.resultsFontSize": "Set the font size for the results grid; set to blank to use the editor size",
     "mssql.saveAsCsv.includeHeaders": "[Optional] When true, column headers are included when saving results as CSV",
-    "mssql.saveAsCsv.delimiter": "[Optional] Delimiter for separating data items when saving results as CSV",
+    "mssql.saveAsCsv.delimiter": "[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\\t), semicolon (;), or pipe (|)",
     "mssql.saveAsCsv.lineSeparator": "[Optional] Character(s) used for separating rows when saving results as CSV",
     "mssql.saveAsCsv.textIdentifier": "[Optional] Character used for enclosing text fields when saving results as CSV",
-    "mssql.saveAsCsv.encoding": "[Optional] File encoding used when saving results as CSV",
+    "mssql.saveAsCsv.encoding": "[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility",
     "mssql.copyIncludeHeaders": "[Optional] Configuration options for copying results from the Results View",
     "mssql.copyRemoveNewLine": "[Optional] Configuration options for copying multi-line results from the Results View",
     "mssql.showBatchTime": "[Optional] Should execution time be shown for individual batches",
@@ -224,5 +224,6 @@
     "mssql.connectionSharing.editConnectionSharingPermissions": "Edit Connection Sharing Permissions",
     "mssql.connectionSharing.clearAllConnectionSharingPermissions": "Clear All Connection Sharing Permissions",
     "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.",
-    "mssql.schemaDesigner.enableExpandCollapseButtons": "Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns"
+    "mssql.schemaDesigner.enableExpandCollapseButtons": "Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns",
+    "mssql.connectionManagement.rememberPasswordsUntilRestart": "Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session."
 }

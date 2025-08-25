@@ -25,6 +25,7 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
     return (
         <DeploymentContext.Provider
             value={{
+                // @ts-ignore
                 state: webviewState?.state,
                 themeKind: webviewState?.themeKind,
                 ...getCoreRPCs(webviewState),

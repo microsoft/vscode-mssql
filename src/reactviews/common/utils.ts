@@ -5,6 +5,7 @@
 
 import {
     ColorThemeKind,
+    CoreRPCs,
     LoggerLevel,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
@@ -76,7 +77,7 @@ export function deepClone<T>(obj: T): T {
 
 export function getCoreRPCs<TState, TReducers>(
     webviewContext: VscodeWebviewContext<TState, TReducers>,
-): any {
+): CoreRPCs {
     return {
         log(message: string, level?: LoggerLevel) {
             webviewContext.extensionRpc.log(message, level);

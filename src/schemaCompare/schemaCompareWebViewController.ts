@@ -1083,6 +1083,31 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 return state;
             }
 
+            if (state.schemaCompareResult && state.schemaCompareResult.differences) {
+                const includedDiffs = state.schemaCompareResult.differences.filter(
+                    (diff) => diff.included,
+                );
+                const actionCounts = {
+                    [SchemaUpdateAction.Delete]: 0,
+                    [SchemaUpdateAction.Add]: 0,
+                    [SchemaUpdateAction.Change]: 0,
+                };
+
+                includedDiffs.forEach((diff) => {
+                    actionCounts[diff.updateAction]++;
+                });
+
+                const updateActionBreakdown = {
+                    numDiffsDeleted: actionCounts[SchemaUpdateAction.Delete],
+                    numDiffsAdded: actionCounts[SchemaUpdateAction.Add],
+                    numDiffsChanged: actionCounts[SchemaUpdateAction.Change],
+                };
+                endActivity.update({
+                    operationId: this.operationId,
+                    updateActionSummary: JSON.stringify(updateActionBreakdown),
+                });
+            }
+
             this.logger.info(
                 `Starting publish operation to ${getSchemaCompareEndpointTypeString(state.targetEndpointInfo.endpointType)} - OperationId: ${this.operationId}`,
             );
@@ -2132,6 +2157,50 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             );
         }
 
+        const booleanOptionsAsStrings: { [key: string]: string } = {};
+
+        const generalOptionsDictionary =
+            state.defaultDeploymentOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary;
+
+        for (const key in generalOptionsDictionary) {
+            if (generalOptionsDictionary.hasOwnProperty(key)) {
+                booleanOptionsAsStrings[key] = generalOptionsDictionary[key].value.toString();
+            }
+        }
+
+        endActivity.update({
+            operationId: this.operationId,
+            generalOptionsConfig: JSON.stringify(booleanOptionsAsStrings),
+        });
+
+        const objectTypesDictionary =
+            state.defaultDeploymentOptionsResult.defaultDeploymentOptions.objectTypesDictionary;
+        const includedObjectTypesTelemetryDictionary: { [key: string]: string } = {};
+
+        for (const key in objectTypesDictionary) {
+            if (objectTypesDictionary.hasOwnProperty(key)) {
+                includedObjectTypesTelemetryDictionary[key] = "Included";
+            }
+        }
+
+        const excludeObjectTypes =
+            state.defaultDeploymentOptionsResult.defaultDeploymentOptions.excludeObjectTypes.value;
+
+        excludeObjectTypes.forEach((type) => {
+            const matchingKey = Object.keys(objectTypesDictionary).find(
+                (key) => key.toLowerCase() === type.toLowerCase(),
+            );
+
+            if (matchingKey) {
+                includedObjectTypesTelemetryDictionary[matchingKey] = "Excluded";
+            }
+        });
+
+        endActivity.update({
+            operationId: this.operationId,
+            includeObjectTypesConfig: JSON.stringify(includedObjectTypesTelemetryDictionary),
+        });
+
         this.logger.info(`Executing schema comparison with operation ID: ${this.operationId}`);
         const result = await compare(
             this.operationId,
@@ -2163,6 +2232,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
             return state;
         }
+
+        const diffTypeFrequencies = this.countTargetObjectTypeFrequencies(result.differences);
+        const stringifiedFrequencies: { [key: string]: number } = {};
+
+        for (const key in diffTypeFrequencies) {
+            if (diffTypeFrequencies.hasOwnProperty(key)) {
+                stringifiedFrequencies[key] = diffTypeFrequencies[key];
+            }
+        }
+        endActivity.update({
+            operationId: this.operationId,
+            compareObjectTypeSummary: JSON.stringify(stringifiedFrequencies),
+        });
 
         this.logger.info(
             `Schema comparison completed successfully with ${result.differences?.length || 0} differences found - OperationId: ${this.operationId}`,
@@ -2347,5 +2429,42 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             default:
                 return "";
         }
+    }
+
+    /**
+     * Counts the frequency of each targetObjectType in a schema comparison result.
+     *
+     * @param differences The differences array from the schema compare result
+     * @returns An object mapping each object type to its frequency count
+     */
+    private countTargetObjectTypeFrequencies(differences: DiffEntry[]): { [key: string]: number } {
+        const frequencyCounts: { [key: string]: number } = {};
+
+        differences.forEach((difference) => {
+            const objectType = this.extractObjectTypeFromSourceType(
+                difference.sourceObjectType || difference.targetObjectType,
+            );
+
+            // Use a standardized form of the object type for counting
+            const typeKey = objectType || "Unknown";
+
+            frequencyCounts[typeKey] = (frequencyCounts[typeKey] || 0) + 1;
+        });
+
+        return frequencyCounts;
+    }
+
+    /**
+     * Extracts the object type name from a fully qualified source object type
+     * For example: "Microsoft.Data.Tools.Schema.Sql.SchemaModel.SqlTable" -> "SqlTable"
+     */
+    private extractObjectTypeFromSourceType(diffType: string): string {
+        if (!diffType) {
+            return undefined;
+        }
+
+        // Extract the last part of the fully qualified type name
+        const parts = diffType.split(".");
+        return parts[parts.length - 1] || diffType;
     }
 }

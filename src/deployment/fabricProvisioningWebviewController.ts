@@ -201,7 +201,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     private async loadWorkspacesAfterSignIn(_propertyName: string) {
         const accountComponent = this.getFormComponent(this.state, "accountId");
         accountComponent.actionButtons = await this.getAzureActionButtons();
-        this.state.workspaces = await FabricHelper.getFabricWorkspaces();
+        this.state.workspaces = await FabricHelper.getFabricWorkspaces(undefined);
         const workspaceComponent = this.getFormComponent(this.state, "workspace");
         workspaceComponent.options = this.getWorkspaceOptions();
         this.updateState();
@@ -215,7 +215,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private getWorkspaces(): void {
-        FabricHelper.getFabricWorkspaces()
+        FabricHelper.getFabricWorkspaces(undefined)
             .then((workspaces) => {
                 this.state.workspaces = workspaces;
                 const workspaceComponent = this.getFormComponent(this.state, "workspace");

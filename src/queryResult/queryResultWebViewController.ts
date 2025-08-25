@@ -35,7 +35,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     >();
     private _queryResultWebviewPanelControllerMap: Map<string, QueryResultWebviewPanelController> =
         new Map<string, QueryResultWebviewPanelController>();
-    private _sqlOutputContentProvider: SqlOutputContentProvider;
     private _correlationId: string = randomUUID();
     private _selectionSummaryStatusBarItem: vscode.StatusBarItem =
         vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
@@ -46,6 +45,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         vscodeWrapper: VscodeWrapper,
         private executionPlanService: ExecutionPlanService,
         private untitledSqlDocumentService: UntitledSqlDocumentService,
+        private _sqlOutputContentProvider: SqlOutputContentProvider,
     ) {
         super(context, vscodeWrapper, "queryResult", "queryResult", {
             resultSetSummaries: {},
@@ -62,24 +62,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor((editor) => {
                 const uri = editor?.document?.uri?.toString(true);
-                if (uri && this._queryResultStateMap.has(uri)) {
+                /**
+                 * Do not load query results in the webview view if a panel is already opened for the results
+                 */
+                if (uri && this._queryResultStateMap.has(uri) && !this.hasPanel(uri)) {
                     this.state = this.getQueryResultState(uri);
                 } else {
-                    this.state = {
-                        resultSetSummaries: {},
-                        messages: [],
-                        tabStates: undefined,
-                        isExecutionPlan: false,
-                        executionPlanState: {},
-                        fontSettings: {
-                            fontSize: this.getFontSizeConfig(),
-
-                            fontFamily: this.getFontFamilyConfig(),
-                        },
-                        autoSizeColumns: this.getAutoSizeColumnsConfig(),
-                        inMemoryDataProcessingThreshold:
-                            this.getInMemoryDataProcessingThresholdConfig(),
-                    };
+                    this.showSplashScreen();
                 }
             }),
         );
@@ -217,6 +206,23 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         registerCommonRequestHandlers(this, this._correlationId);
     }
 
+    private showSplashScreen() {
+        this.state = {
+            resultSetSummaries: {},
+            messages: [],
+            tabStates: undefined,
+            isExecutionPlan: false,
+            executionPlanState: {},
+            fontSettings: {
+                fontSize: this.getFontSizeConfig(),
+
+                fontFamily: this.getFontFamilyConfig(),
+            },
+            autoSizeColumns: this.getAutoSizeColumnsConfig(),
+            inMemoryDataProcessingThreshold: this.getInMemoryDataProcessingThresholdConfig(),
+        };
+    }
+
     public async createPanelController(uri: string) {
         const viewColumn = getNewResultPaneViewColumn(uri, this.vscodeWrapper);
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
@@ -235,9 +241,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         controller.state = this.getQueryResultState(uri);
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
-        if (this.isVisible()) {
-            await vscode.commands.executeCommand("workbench.action.togglePanel");
-        }
+        this.showSplashScreen();
     }
 
     public addQueryResultState(
@@ -330,11 +334,21 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     public removePanel(uri: string): void {
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
             this._queryResultWebviewPanelControllerMap.delete(uri);
+            /**
+             * Remove the corresponding query runner on panel closed
+             */
+            this._sqlOutputContentProvider.cleanupRunner(uri);
         }
     }
 
     public hasPanel(uri: string): boolean {
         return this._queryResultWebviewPanelControllerMap.has(uri);
+    }
+
+    public revealPanel(uri: string): void {
+        if (this.hasPanel(uri)) {
+            this._queryResultWebviewPanelControllerMap.get(uri).revealToForeground();
+        }
     }
 
     public getQueryResultState(uri: string): qr.QueryResultWebviewState {
@@ -356,26 +370,8 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return res;
     }
 
-    public addResultSetSummary(uri: string, resultSetSummary: qr.ResultSetSummary) {
-        let state = this.getQueryResultState(uri);
-        const batchId = resultSetSummary.batchId;
-        const resultId = resultSetSummary.id;
-        if (!state.resultSetSummaries[batchId]) {
-            state.resultSetSummaries[batchId] = {};
-        }
-        state.resultSetSummaries[batchId][resultId] = resultSetSummary;
-    }
-
-    public setSqlOutputContentProvider(provider: SqlOutputContentProvider): void {
-        this._sqlOutputContentProvider = provider;
-    }
-
     public getSqlOutputContentProvider(): SqlOutputContentProvider {
         return this._sqlOutputContentProvider;
-    }
-
-    public setExecutionPlanService(service: ExecutionPlanService): void {
-        this.executionPlanService = service;
     }
 
     public getExecutionPlanService(): ExecutionPlanService {

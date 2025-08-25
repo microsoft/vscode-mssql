@@ -19,15 +19,16 @@ export class DeploymentWebviewState
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
-    deploymentTypeState: DeploymentTypeState;
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
     isDeploymentTypeInitialized: boolean = false;
     dialog: IDialogProps | undefined;
     // @ts-ignore
+    deploymentTypeState: DeploymentTypeState = undefined;
+    // @ts-ignore
     formState: DeploymentFormState = undefined;
     formComponents: Partial<Record<keyof DeploymentFormState, DeploymentFormItemSpec>> = {};
     formErrors: string[] = [];
-    connectionGroupOptions: FormItemOptions[];
+    connectionGroupOptions: FormItemOptions[] = [];
 }
 
 export interface DeploymentCommonReducers {

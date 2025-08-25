@@ -104,34 +104,30 @@ suite("QueryNotificationHandler tests", () => {
             0,
             "Query runner map not cleared after call to handleQueryCompleteNotification()",
         );
-        assert.equal(
-            notificationHandler._handlerCallbackQueue.length,
-            0,
-            "Handler queue populated despite QueryRunner being present",
-        );
 
         done();
     });
 
-    test("QueryNotificationHandler handles registerRunner in the middle of the event flow", (done) => {
+    test("QueryNotificationHandler ignores notifications when no runner is registered", (done) => {
         resetBools();
 
-        // If some notifications are fired before registerRunner
+        // If notifications are fired before registerRunner, they should be ignored (not queued)
         batchStartHandler(eventData);
         messageHandler(eventData);
 
-        // The queue should be populated with the run notifications, and the callbacks should not be fired
-        assert.equal(notificationHandler._handlerCallbackQueue.length, 2);
+        // The callbacks should not be fired since no runner is registered
         assert.equal(batchStartHandlerCalled, false);
         assert.equal(messageHandlerCalled, false);
 
-        // If register runner is then called, the query runner map should be populated and the callbacks should occur
+        // If register runner is then called, the query runner map should be populated
         notificationHandler.registerRunner(runnerMock.object, eventData.ownerUri);
         assert.equal(notificationHandler._queryRunners.size, 1);
-        assert.equal(batchStartHandlerCalled, true);
-        assert.equal(messageHandlerCalled, true);
 
-        // If the rest of the notifications are fired, the callbacks should be immediately fired too
+        // Previous notifications were ignored, so handlers still not called
+        assert.equal(batchStartHandlerCalled, false);
+        assert.equal(messageHandlerCalled, false);
+
+        // If new notifications are fired, the callbacks should be immediately fired
         resultSetCompleteHandler(eventData);
         assert.equal(resultSetCompleteHandlerCalled, true);
         batchCompleteHandler(eventData);
@@ -145,41 +141,51 @@ suite("QueryNotificationHandler tests", () => {
             0,
             "Query runner map not cleared after call to handleQueryCompleteNotification()",
         );
-        assert.equal(
-            notificationHandler._handlerCallbackQueue.length,
-            0,
-            "Handler queue populated despite QueryRunner being present",
-        );
 
         done();
     });
 
-    test("QueryNotificationHandler handles registerRunner at the end of the event flow", (done) => {
+    test("QueryNotificationHandler properly unregisters runner after query completion", (done) => {
         resetBools();
 
-        // If all notifications are fired before registerRunner
-        batchStartHandler(eventData);
-        messageHandler(eventData);
-        resultSetCompleteHandler(eventData);
-        batchCompleteHandler(eventData);
-        queryCompleteHandler(eventData);
-
-        // The queue should be populated with the run notifications, and the callbacks should not be fired
-        assert.equal(notificationHandler._handlerCallbackQueue.length, 5);
-        assert.equal(batchStartHandlerCalled, false);
-        assert.equal(messageHandlerCalled, false);
-        assert.equal(resultSetCompleteHandlerCalled, false);
-        assert.equal(batchCompleteHandlerCalled, false);
-        assert.equal(queryCompleteHandlerCalled, false);
-
-        // If register runner is then called, the callbacks should occur and the map should not be populated
+        // Register runner first
         notificationHandler.registerRunner(runnerMock.object, eventData.ownerUri);
+        assert.equal(notificationHandler._queryRunners.size, 1);
+
+        // Fire all notifications - they should all be handled
+        batchStartHandler(eventData);
         assert.equal(batchStartHandlerCalled, true);
+        messageHandler(eventData);
         assert.equal(messageHandlerCalled, true);
+        resultSetCompleteHandler(eventData);
         assert.equal(resultSetCompleteHandlerCalled, true);
+        batchCompleteHandler(eventData);
         assert.equal(batchCompleteHandlerCalled, true);
+        queryCompleteHandler(eventData);
         assert.equal(queryCompleteHandlerCalled, true);
+
+        // After query complete, runner should be unregistered automatically
         assert.equal(notificationHandler._queryRunners.size, 0);
+
+        done();
+    });
+
+    test("QueryNotificationHandler handles manual unregister", (done) => {
+        resetBools();
+
+        // Register runner
+        notificationHandler.registerRunner(runnerMock.object, eventData.ownerUri);
+        assert.equal(notificationHandler._queryRunners.size, 1);
+
+        // Manually unregister
+        notificationHandler.unregisterRunner(eventData.ownerUri);
+        assert.equal(notificationHandler._queryRunners.size, 0);
+
+        // Notifications should be ignored after unregister
+        batchStartHandler(eventData);
+        assert.equal(batchStartHandlerCalled, false);
+        messageHandler(eventData);
+        assert.equal(messageHandlerCalled, false);
 
         done();
     });

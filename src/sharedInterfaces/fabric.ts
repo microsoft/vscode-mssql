@@ -3,11 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { Status } from "./webview";
+
 export interface FabricSqlDbInfo {
+    id: string;
     server: string;
+    displayName: string;
     database: string;
-    workspace: IWorkspace;
-    tags: string[];
+    type: string;
+    workspaceName: string;
+}
+
+export interface FabricWorkspaceInfo {
+    id: string;
+    displayName: string;
+    tenantId: string;
+    databases: FabricSqlDbInfo[];
+    loadStatus: Status;
+}
+
+export enum SqlArtifactTypes {
+    SqlDatabase = "SQLDatabase",
+    SqlAnalyticsEndpoint = "SQLEndpoint",
 }
 
 /**
@@ -19,6 +36,17 @@ export interface IWorkspace {
     type: string;
     displayName: string;
     description: string;
+    databases: string[];
+    sqlAnalyticsEndpoints: string[];
+    workspace: {
+        name: string;
+        id: string;
+    };
+}
+
+export interface IFabricError {
+    errorCode: string;
+    message: string;
 }
 
 /**

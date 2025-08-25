@@ -50,7 +50,6 @@ import { ConnectionDialogWebviewController } from "../connectionconfig/connectio
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
-import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
@@ -87,8 +86,6 @@ import {
     prepareForDockerContainerCommand,
     stopContainer,
 } from "../deployment/dockerUtils";
-import { StateChangeNotification } from "../sharedInterfaces/webview";
-import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { FabricProvisioningWebviewController } from "../deployment/fabricProvisioningWebviewController";
 
@@ -99,7 +96,6 @@ export default class MainController implements vscode.Disposable {
     private _context: vscode.ExtensionContext;
     private _event: events.EventEmitter = new events.EventEmitter();
     private _outputContentProvider: SqlOutputContentProvider;
-    private _queryResultWebviewController: QueryResultWebviewController;
     private _statusview: StatusView;
     private _connectionMgr: ConnectionManager;
     private _prompter: IPrompter;
@@ -114,10 +110,6 @@ export default class MainController implements vscode.Disposable {
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
-    private _executionPlanOptions: ExecutionPlanOptions = {
-        includeEstimatedExecutionPlanXml: false,
-        includeActualExecutionPlanXml: false,
-    };
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
@@ -220,7 +212,6 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
                 void UserSurvey.getInstance().promptUserForNPSFeedback();
-                this._executionPlanOptions.includeEstimatedExecutionPlanXml = false;
                 void this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -294,16 +285,9 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearAzureTokenCache, () => this.onClearAzureTokenCache());
             this.registerCommand(Constants.cmdShowExecutionPlanInResults);
             this._event.on(Constants.cmdShowExecutionPlanInResults, () => {
-                this._executionPlanOptions.includeEstimatedExecutionPlanXml = true;
-                void this.onRunQuery();
-            });
-            this.registerCommand(Constants.cmdEnableActualPlan);
-            this._event.on(Constants.cmdEnableActualPlan, () => {
-                this.onToggleActualPlan(true);
-            });
-            this.registerCommand(Constants.cmdDisableActualPlan);
-            this._event.on(Constants.cmdDisableActualPlan, () => {
-                this.onToggleActualPlan(false);
+                void this.onRunQuery({
+                    includeEstimatedExecutionPlanXml: true,
+                });
             });
 
             this._context.subscriptions.push(
@@ -530,15 +514,9 @@ export default class MainController implements vscode.Disposable {
                 azureResourceController,
                 this._connectionMgr.accountStore,
             );
+
             this.tableDesignerService = new TableDesignerService(SqlToolsServerClient.instance);
-            this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
             this.copilotService = new CopilotService(SqlToolsServerClient.instance);
-
-            this._queryResultWebviewController.setExecutionPlanService(this.executionPlanService);
-            this._queryResultWebviewController.setUntitledDocumentService(
-                this._untitledSqlDocumentService,
-            );
-
             this.schemaDesignerService = new SchemaDesignerService(SqlToolsServerClient.instance);
 
             this.connectionSharingService = new ConnectionSharingService(
@@ -759,7 +737,7 @@ export default class MainController implements vscode.Disposable {
                     uri,
                     undefined,
                     title,
-                    {},
+                    undefined,
                     queryPromise,
                 );
                 await queryPromise;
@@ -881,23 +859,20 @@ export default class MainController implements vscode.Disposable {
         // Init CodeAdapter for use when user response to questions is needed
         this._prompter = new CodeAdapter(this._vscodeWrapper);
 
-        // Init Query Results Webview Controller
-        this._queryResultWebviewController = new QueryResultWebviewController(
-            this._context,
-            this._vscodeWrapper,
-            this.executionPlanService,
-            this.untitledSqlDocumentService,
-        );
+        /**
+         * TODO: aaskhan
+         * Good candidate for dependency injection.
+         */
+        this.executionPlanService = new ExecutionPlanService(SqlToolsServerClient.instance);
 
         // Init content provider for results pane
         this._outputContentProvider = new SqlOutputContentProvider(
+            this._context,
             this._statusview,
             this._vscodeWrapper,
+            this.untitledSqlDocumentService,
+            this.executionPlanService,
         );
-        this._outputContentProvider.setQueryResultWebviewController(
-            this._queryResultWebviewController,
-        );
-        this._queryResultWebviewController.setSqlOutputContentProvider(this._outputContentProvider);
 
         // Init connection manager and connection MRU
         this._connectionMgr = new ConnectionManager(
@@ -912,7 +887,7 @@ export default class MainController implements vscode.Disposable {
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = this._vscodeWrapper.activeTextEditor;
         if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
-            this.onDidOpenTextDocument(activeTextEditor.document);
+            await this.onDidOpenTextDocument(activeTextEditor.document);
         }
         await this.sanitizeConnectionProfiles();
         await this.loadTokenCache();
@@ -1402,13 +1377,6 @@ export default class MainController implements vscode.Disposable {
                     },
                 ),
             );
-
-            this._context.subscriptions.push(
-                vscode.window.registerWebviewViewProvider(
-                    "queryResult",
-                    this._queryResultWebviewController,
-                ),
-            );
         }
 
         // Initiate the scripting service
@@ -1605,23 +1573,6 @@ export default class MainController implements vscode.Disposable {
                     }
                 },
             ),
-        );
-
-        // Reveal Query Results command
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdrevealQueryResultPanel, () => {
-                vscode.commands.executeCommand("queryResult.focus", {
-                    preserveFocus: true,
-                });
-            }),
-        );
-
-        // Query Results copy messages command
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(Constants.cmdCopyAll, async (context) => {
-                const uri = context.uri;
-                await this._queryResultWebviewController.copyAllMessagesToClipboard(uri);
-            }),
         );
     }
 
@@ -1996,45 +1947,36 @@ export default class MainController implements vscode.Disposable {
     /**
      * get the T-SQL query from the editor, run it and show output
      */
-    public async onRunQuery(callbackThis?: MainController): Promise<void> {
-        // the 'this' context is lost in retry callback, so capture it here
-        let self: MainController = callbackThis ? callbackThis : this;
+    public async onRunQuery(executionPlanOptions?: ExecutionPlanOptions): Promise<void> {
         try {
-            if (!self.canRunCommand() || !self.validateTextDocumentHasFocus()) {
+            if (!this.canRunCommand() || !this.validateTextDocumentHasFocus()) {
                 return;
             }
 
             // check if we're connected and editing a SQL file
-            if (!(await self.checkIsReadyToExecuteQuery())) {
+            if (!(await this.checkIsReadyToExecuteQuery())) {
                 return;
             }
 
-            let editor = self._vscodeWrapper.activeTextEditor;
-            let uri = self._vscodeWrapper.activeTextEditorUri;
-
-            if (self._queryResultWebviewController) {
-                self._executionPlanOptions.includeActualExecutionPlanXml =
-                    self._queryResultWebviewController.actualPlanStatuses.includes(uri);
-            } else {
-                self._executionPlanOptions.includeActualExecutionPlanXml = false;
-            }
+            let editor = this._vscodeWrapper.activeTextEditor;
+            let uri = this._vscodeWrapper.activeTextEditorUri;
 
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
             if (editor.selections?.length > 1) {
-                self._vscodeWrapper.showErrorMessage(
+                this._vscodeWrapper.showErrorMessage(
                     LocalizedConstants.msgMultipleSelectionModeNotSupported,
                 );
                 return;
             }
 
             // create new connection
-            if (!self.connectionManager.isConnected(uri)) {
-                await self.onNewConnection();
+            if (!this.connectionManager.isConnected(uri)) {
+                await this.onNewConnection();
                 sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
             }
             // check if current connection is still valid / active - if not, refresh azure account token
-            await self._connectionMgr.refreshAzureAccountToken(uri);
+            await this._connectionMgr.refreshAzureAccountToken(uri);
 
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
@@ -2058,12 +2000,12 @@ export default class MainController implements vscode.Disposable {
             // Delete stored filters and dimension states for result grid when a new query is executed
             store.deleteMainKey(uri);
 
-            await self._outputContentProvider.runQuery(
-                self._statusview,
+            await this._outputContentProvider.runQuery(
+                this._statusview,
                 uri,
                 querySelection,
                 title,
-                self._executionPlanOptions,
+                executionPlanOptions,
             );
         } catch (err) {
             console.warn(`Unexpected error running query : ${err}`);
@@ -2097,30 +2039,6 @@ export default class MainController implements vscode.Disposable {
             self._vscodeWrapper.showErrorMessage(LocalizedConstants.msgError + err);
             return undefined;
         });
-    }
-
-    public onToggleActualPlan(isEnable: boolean): void {
-        const uri = this._vscodeWrapper.activeTextEditorUri;
-        let actualPlanStatuses = this._queryResultWebviewController.actualPlanStatuses;
-
-        // adds the current uri to the list of uris with actual plan enabled
-        // or removes the uri if the user is disabling it
-        if (isEnable && !actualPlanStatuses.includes(uri)) {
-            actualPlanStatuses.push(uri);
-        } else {
-            this._queryResultWebviewController.actualPlanStatuses = actualPlanStatuses.filter(
-                (statusUri) => statusUri != uri,
-            );
-        }
-
-        // sets the vscode context variable associated with the
-        // actual plan statuses; this is used in the package.json to
-        // know when to change the enabling/disabling icon
-        void vscode.commands.executeCommand(
-            "setContext",
-            "mssql.executionPlan.urisWithActualPlanEnabled",
-            this._queryResultWebviewController.actualPlanStatuses,
-        );
     }
 
     /**
@@ -2374,7 +2292,7 @@ export default class MainController implements vscode.Disposable {
         const currentDocUri = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.document.uri.toString(true)
             : undefined;
-        const newEditor = await this._untitledSqlDocumentService.newQuery(content);
+        const newEditor = await this._untitledSqlDocumentService.newQuery(content, true);
         const newDocUri = newEditor.document.uri.toString(true);
 
         // Case 1: User right-clicked on an OE node and selected "New Query"
@@ -2506,19 +2424,6 @@ export default class MainController implements vscode.Disposable {
             this._outputContentProvider.onDidCloseTextDocument(doc);
         }
 
-        // clean up: if a document is closed with actual plan enabled, remove it
-        // from our status list
-        if (this._queryResultWebviewController.actualPlanStatuses.includes(closedDocumentUri)) {
-            this._queryResultWebviewController.actualPlanStatuses.filter(
-                (uri) => uri != closedDocumentUri,
-            );
-            vscode.commands.executeCommand(
-                "setContext",
-                "mssql.executionPlan.urisWithActualPlanEnabled",
-                this._queryResultWebviewController.actualPlanStatuses,
-            );
-        }
-
         // Reset special case timers and events
         this._lastSavedUri = undefined;
         this._lastSavedTimer = undefined;
@@ -2540,38 +2445,33 @@ export default class MainController implements vscode.Disposable {
         await this._connectionMgr.copyConnectionToFile(oldUri, newUri);
 
         // Call STS  & Query Runner to update URI
-        this._outputContentProvider.updateQueryRunnerUri(oldUri, newUri);
+        await this._outputContentProvider.updateQueryRunnerUri(oldUri, newUri);
 
         // Update the URI in the output content provider query result map
         this._outputContentProvider.onUntitledFileSaved(oldUri, newUri);
-
-        let state = this._queryResultWebviewController.getQueryResultState(oldUri);
-        if (state) {
-            state.uri = newUri;
-
-            await this._queryResultWebviewController.sendNotification(
-                StateChangeNotification.type<QueryResultWebviewState>(),
-                state,
-            );
-
-            //Update the URI in the query result webview state
-            this._queryResultWebviewController.setQueryResultState(newUri, state);
-            this._queryResultWebviewController.deleteQueryResultState(oldUri);
-        }
     }
 
     /**
      * Called by VS Code when a text document is opened. Checks if a SQL file was opened
      * to enable features of our extension for the document.
      */
-    public onDidOpenTextDocument(doc: vscode.TextDocument): void {
+    public async onDidOpenTextDocument(doc: vscode.TextDocument): Promise<void> {
         if (this._connectionMgr === undefined) {
             // Avoid processing events before initialization is complete
             return;
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
-        if (this._previousActiveDocument && doc.languageId === Constants.languageId) {
+        await this.untitledSqlDocumentService.waitForOngoingCreates();
+        const skipCopyConnection = this._untitledSqlDocumentService.shouldSkipCopyConnection(
+            doc.uri.toString(true),
+        );
+
+        if (
+            this._previousActiveDocument &&
+            doc.languageId === Constants.languageId &&
+            !skipCopyConnection
+        ) {
             void this._connectionMgr.copyConnectionToFile(
                 this._previousActiveDocument.uri.toString(true),
                 doc.uri.toString(true),

@@ -29,31 +29,13 @@ import { IDeferred } from "../../models/interfaces";
 import { Logger } from "../../models/logger";
 import { AzureAuthError } from "../azureAuthError";
 import * as Constants from "../constants";
-import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
 import { ErrorResponseBody } from "@azure/arm-subscriptions";
-import * as tunnel from "tunnel";
-import * as http from "http";
-import * as https from "https";
-import { Url } from "url";
+import { HttpHelper } from "../../http/httpHelper";
 
 export type GetTenantsResponseData = {
     value: ITenantResponse[];
 };
 export type ErrorResponseBodyWithError = Required<ErrorResponseBody>;
-
-interface ProxyAgent {
-    isHttps: boolean;
-    agent: http.Agent | https.Agent;
-}
-
-interface ProxyAgentOptions {
-    auth: string | null;
-    secureProxy?: boolean;
-    host?: string | null;
-    path?: string | null;
-    port?: string | number | null;
-    rejectUnauthorized: boolean;
-}
 
 export abstract class MsalAzureAuth {
     protected readonly loginEndpointUrl: string;
@@ -62,6 +44,7 @@ export abstract class MsalAzureAuth {
     protected readonly scopesString: string;
     protected readonly clientId: string;
     protected readonly resources: Resource[];
+    private readonly httpHelper: HttpHelper;
 
     constructor(
         protected readonly providerSettings: IProviderSettings,
@@ -77,6 +60,8 @@ export abstract class MsalAzureAuth {
         this.clientId = this.providerSettings.clientId;
         this.scopes = [...this.providerSettings.scopes];
         this.scopesString = this.scopes.join(" ");
+
+        this.httpHelper = new HttpHelper(logger);
     }
 
     public async startLogin(): Promise<IAccount | IPromptFailedResult> {
@@ -306,7 +291,7 @@ export abstract class MsalAzureAuth {
         try {
             this.logger.verbose("Fetching tenants with uri {0}", tenantUri);
             let tenantList: string[] = [];
-            const tenantResponse = await this.makeGetRequest<GetTenantsResponseData>(
+            const tenantResponse = await this.httpHelper.makeGetRequest<GetTenantsResponseData>(
                 tenantUri,
                 token,
             );
@@ -352,224 +337,6 @@ export abstract class MsalAzureAuth {
 
     private isErrorResponseBodyWithError(body: any): body is ErrorResponseBodyWithError {
         return "error" in body && body.error;
-    }
-
-    private async makeGetRequest<T>(requestUrl: string, token: string): Promise<AxiosResponse<T>> {
-        const config: AxiosRequestConfig = {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            validateStatus: () => true, // Never throw
-        };
-
-        const httpConfig = vscode.workspace.getConfiguration("http");
-        let proxy: string | undefined = httpConfig["proxy"] as string;
-        if (!proxy) {
-            this.logger.verbose(
-                "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
-            );
-
-            proxy = this.loadEnvironmentProxyValue();
-        }
-
-        if (proxy) {
-            this.logger.verbose(
-                "Proxy endpoint found in environment variables or workspace configuration.",
-            );
-
-            // Turning off automatic proxy detection to avoid issues with tunneling agent by setting proxy to false.
-            // https://github.com/axios/axios/blob/bad6d8b97b52c0c15311c92dd596fc0bff122651/lib/adapters/http.js#L85
-            config.proxy = false;
-
-            const agent = this.createProxyAgent(requestUrl, proxy, httpConfig["proxyStrictSSL"]);
-            if (agent.isHttps) {
-                config.httpsAgent = agent.agent;
-            } else {
-                config.httpAgent = agent.agent;
-            }
-
-            const HTTPS_PORT = 443;
-            const HTTP_PORT = 80;
-            const parsedRequestUrl = url.parse(requestUrl);
-            const port = parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT;
-
-            // Request URL will include HTTPS port 443 ('https://management.azure.com:443/tenants?api-version=2019-11-01'), so
-            // that Axios doesn't try to reach this URL with HTTP port 80 on HTTP proxies, which result in an error. See https://github.com/axios/axios/issues/925
-            const requestUrlWithPort = `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.path}`;
-            const response: AxiosResponse = await axios.get<T>(requestUrlWithPort, config);
-            this.logger.piiSanitized(
-                "GET request ",
-                [
-                    {
-                        name: "response",
-                        objOrArray:
-                            (response.data?.value as ITenantResponse[]) ??
-                            (response.data as GetTenantsResponseData),
-                    },
-                ],
-                [],
-                requestUrl,
-            );
-            return response;
-        }
-
-        const response: AxiosResponse = await axios.get<T>(requestUrl, config);
-        this.logger.piiSanitized(
-            "GET request ",
-            [
-                {
-                    name: "response",
-                    objOrArray:
-                        (response.data?.value as ITenantResponse[]) ??
-                        (response.data as GetTenantsResponseData),
-                },
-            ],
-            [],
-            requestUrl,
-        );
-        return response;
-    }
-
-    private loadEnvironmentProxyValue(): string | undefined {
-        const HTTP_PROXY = "HTTP_PROXY";
-        const HTTPS_PROXY = "HTTPS_PROXY";
-
-        if (!process) {
-            this.logger.verbose(
-                "No process object found, unable to read environment variables for proxy.",
-            );
-            return undefined;
-        }
-
-        if (process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()]) {
-            this.logger.verbose("Loading proxy value from HTTP_PROXY environment variable.");
-
-            return process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()];
-        } else if (process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()]) {
-            this.logger.verbose("Loading proxy value from HTTPS_PROXY environment variable.");
-
-            return process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()];
-        }
-
-        this.logger.verbose(
-            "No proxy value found in either HTTPS_PROXY or HTTP_PROXY environment variables.",
-        );
-
-        return undefined;
-    }
-
-    private createProxyAgent(
-        requestUrl: string,
-        proxy: string,
-        proxyStrictSSL: boolean,
-    ): ProxyAgent {
-        const agentOptions = this.getProxyAgentOptions(
-            url.parse(requestUrl),
-            proxy,
-            proxyStrictSSL,
-        );
-        if (!agentOptions || !agentOptions.host || !agentOptions.port) {
-            this.logger.error("Unable to read proxy agent options to create proxy agent.");
-            throw new Error(LocalizedConstants.unableToGetProxyAgentOptionsToGetTenants);
-        }
-
-        let tunnelOptions: tunnel.HttpsOverHttpsOptions = {};
-        if (typeof agentOptions.auth === "string" && agentOptions.auth) {
-            tunnelOptions = {
-                proxy: {
-                    proxyAuth: agentOptions.auth,
-                    host: agentOptions.host,
-                    port: Number(agentOptions.port),
-                },
-            };
-        } else {
-            tunnelOptions = {
-                proxy: {
-                    host: agentOptions.host,
-                    port: Number(agentOptions.port),
-                },
-            };
-        }
-
-        const isHttpsRequest = requestUrl.startsWith("https");
-        const isHttpsProxy = proxy.startsWith("https");
-        const proxyAgent = {
-            isHttps: isHttpsProxy,
-            agent: this.createTunnelingAgent(isHttpsRequest, isHttpsProxy, tunnelOptions),
-        } as ProxyAgent;
-
-        return proxyAgent;
-    }
-
-    /*
-     * Returns the proxy agent using the proxy url in the parameters or the system proxy. Returns null if no proxy found
-     */
-    private getProxyAgentOptions(
-        requestURL: Url,
-        proxy?: string,
-        strictSSL?: boolean,
-    ): ProxyAgentOptions | undefined {
-        const proxyURL = proxy || this.getSystemProxyURL(requestURL);
-
-        if (!proxyURL) {
-            return undefined;
-        }
-
-        const proxyEndpoint = url.parse(proxyURL);
-
-        if (!/^https?:$/.test(proxyEndpoint.protocol!)) {
-            return undefined;
-        }
-
-        const opts: ProxyAgentOptions = {
-            host: proxyEndpoint.hostname,
-            port: Number(proxyEndpoint.port),
-            auth: proxyEndpoint.auth,
-            rejectUnauthorized: this.isBoolean(strictSSL) ? strictSSL : true,
-        };
-
-        return opts;
-    }
-
-    private getSystemProxyURL(requestURL: Url): string | undefined {
-        if (requestURL.protocol === "http:") {
-            return process.env.HTTP_PROXY || process.env.http_proxy || undefined;
-        } else if (requestURL.protocol === "https:") {
-            return (
-                process.env.HTTPS_PROXY ||
-                process.env.https_proxy ||
-                process.env.HTTP_PROXY ||
-                process.env.http_proxy ||
-                undefined
-            );
-        }
-
-        return undefined;
-    }
-
-    private isBoolean(obj: any): obj is boolean {
-        return obj === true || obj === false;
-    }
-
-    private createTunnelingAgent(
-        isHttpsRequest: boolean,
-        isHttpsProxy: boolean,
-        tunnelOptions: tunnel.HttpsOverHttpsOptions,
-    ): http.Agent | https.Agent {
-        if (isHttpsRequest && isHttpsProxy) {
-            this.logger.verbose("Creating https request over https proxy tunneling agent");
-            return tunnel.httpsOverHttps(tunnelOptions);
-        } else if (isHttpsRequest && !isHttpsProxy) {
-            this.logger.verbose("Creating https request over http proxy tunneling agent");
-            return tunnel.httpsOverHttp(tunnelOptions);
-        } else if (!isHttpsRequest && isHttpsProxy) {
-            this.logger.verbose("Creating http request over https proxy tunneling agent");
-            return tunnel.httpOverHttps(tunnelOptions);
-        } else {
-            this.logger.verbose("Creating http request over http proxy tunneling agent");
-            return tunnel.httpOverHttp(tunnelOptions);
-        }
     }
 
     //#region interaction handling

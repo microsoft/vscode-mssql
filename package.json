@@ -1,7 +1,7 @@
 {
     "name": "mssql",
     "displayName": "SQL Server (mssql)",
-    "version": "1.35.0",
+    "version": "1.36.0",
     "description": "Design and optimize schemas for SQL Server, Azure SQL, and SQL Database in Fabric using a modern, lightweight extension built for developers",
     "publisher": "ms-mssql",
     "preview": false,
@@ -55,12 +55,14 @@
         "build:prepare": "yarn build:copy-assets && yarn build:runtime-localization",
         "build:extension": "tsc -p tsconfig.extension.json",
         "build:extension-bundle": "node scripts/bundle-extension.js",
-        "build:webviews": "node scripts/bundle-reactviews.js",
+        "build:webviews": "tsc -p tsconfig.react.json",
+        "build:webviews-bundle": "node scripts/bundle-reactviews.js",
         "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
         "watch:extension-bundle": "node scripts/bundle-extension.js --watch",
-        "watch:webviews": "node scripts/bundle-reactviews.js --watch",
-        "watch": "yarn build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews",
+        "watch:webviews": "tsc -watch -p tsconfig.react.json --preserveWatchOutput",
+        "watch:webviews-bundle": "node scripts/bundle-reactviews.js --watch",
+        "watch": "yarn build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle",
         "lint": "eslint --quiet --cache",
         "localization": "node scripts/extract-localization.js",
         "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
@@ -86,7 +88,6 @@
         "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
         "@fluentui/react-components": "^9.64.0",
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
-        "@jgoz/esbuild-plugin-typecheck": "^4.0.0",
         "@monaco-editor/react": "^4.6.0",
         "@playwright/test": "^1.45.0",
         "@stylistic/eslint-plugin": "^2.8.0",
@@ -204,7 +205,8 @@
                 {
                     "type": "webview",
                     "id": "queryResult",
-                    "name": "%extension.queryResult%"
+                    "name": "%extension.queryResult%",
+                    "when": "!config.mssql.openQueryResultsInTabByDefault"
                 }
             ],
             "objectExplorer": [
@@ -286,7 +288,7 @@
             "editor/title": [
                 {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql && !isInDiffEditor",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
                     "group": "navigation@1"
                 },
                 {
@@ -295,7 +297,7 @@
                     "group": "navigation@2"
                 },
                 {
-                    "command": "mssql.revealQueryResultPanel",
+                    "command": "mssql.revealQueryResult",
                     "when": "editorLangId == sql && !isInDiffEditor && view.queryResult.visible == false",
                     "group": "navigation@2"
                 },
@@ -660,10 +662,6 @@
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/"
                 },
                 {
-                    "command": "mssql.toggleSqlCmd",
-                    "when": "editorFocus && editorLangId == 'sql'"
-                },
-                {
                     "command": "mssql.startQueryHistoryCapture",
                     "when": "config.mssql.enableQueryHistoryFeature && !config.mssql.enableQueryHistoryCapture"
                 },
@@ -739,8 +737,8 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.revealQueryResultPanel",
-                "title": "%mssql.revealQueryResultPanel%",
+                "command": "mssql.revealQueryResult",
+                "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
                 "icon": "media/revealQueryResult.svg"
             },
@@ -1543,6 +1541,18 @@
                     "type": "string",
                     "description": "%mssql.saveAsCsv.delimiter%",
                     "default": ",",
+                    "enum": [
+                        ",",
+                        "\t",
+                        ";",
+                        "|"
+                    ],
+                    "enumDescriptions": [
+                        "Comma (,)",
+                        "Tab (\\t)",
+                        "Semicolon (;)",
+                        "Pipe (|)"
+                    ],
                     "scope": "resource"
                 },
                 "mssql.saveAsCsv.lineSeparator": {
@@ -1561,6 +1571,22 @@
                     "type": "string",
                     "description": "%mssql.saveAsCsv.encoding%",
                     "default": "utf-8",
+                    "enum": [
+                        "utf-8",
+                        "utf-16le",
+                        "utf-16be",
+                        "ascii",
+                        "latin1",
+                        "iso-8859-1"
+                    ],
+                    "enumDescriptions": [
+                        "UTF-8 (Unicode)",
+                        "UTF-16 Little Endian",
+                        "UTF-16 Big Endian",
+                        "ASCII",
+                        "Latin-1 (ISO 8859-1)",
+                        "ISO 8859-1"
+                    ],
                     "scope": "resource"
                 },
                 "mssql.copyIncludeHeaders": {
@@ -1920,6 +1946,11 @@
                     "type": "number",
                     "default": -1,
                     "description": "%mssql.statusBar.connectionInfoMaxLength.description%"
+                },
+                "mssql.connectionManagement.rememberPasswordsUntilRestart": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.connectionManagement.rememberPasswordsUntilRestart%"
                 }
             }
         },

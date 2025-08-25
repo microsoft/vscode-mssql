@@ -418,7 +418,7 @@ export namespace SchemaDesigner {
     }
 
     export namespace OpenInEditorWithConnectionNotification {
-        export const type = new NotificationType<OpenInEditorParams>("openInEditorWithConnection");
+        export const type = new NotificationType<void>("openInEditorWithConnection");
     }
     export namespace OpenInEditorNotification {
         export const type = new NotificationType<OpenInEditorOptions>("openInEditor");

@@ -84,10 +84,6 @@ export class DeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("formAction", async (state, payload) => {
-            if (state.formState) {
-                (state.formState as any)[payload.event.propertyName] = payload.event.value;
-            }
-
             let newDeploymentTypeState: DeploymentTypeState = state.deploymentTypeState;
             if (state.deploymentType === DeploymentType.LocalContainers) {
                 newDeploymentTypeState = await localContainers.handleLocalContainersFormAction(

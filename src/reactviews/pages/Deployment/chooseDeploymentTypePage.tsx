@@ -5,7 +5,6 @@
 
 import { useContext, useEffect, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
-import { locConstants } from "../../common/locConstants";
 import { DeploymentContext } from "./deploymentStateProvider";
 import { LocalContainersStartPage } from "./LocalContainers/localContainersStartPage";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";

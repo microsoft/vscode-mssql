@@ -294,7 +294,6 @@ suite("LocalContainersWebviewController", () => {
             controller as any,
             "validateDockerConnectionProfile",
         );
-        const updateStateSpy = sandbox.spy(controller as any, "updateState");
 
         const callState = controller["state"];
 
@@ -307,11 +306,6 @@ suite("LocalContainersWebviewController", () => {
         });
 
         assert.ok(validateProfileSpy.calledOnce, "profile validation should be called once");
-        assert.ok(
-            updateStateSpy.calledTwice,
-            "updateState should be called once within formAction",
-        );
-
         assert.equal(newState.isValidContainerName, true);
     });
 

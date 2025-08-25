@@ -354,7 +354,12 @@ export class LocConstants {
 
     public get queryResult() {
         return {
-            results: l10n.t("Results"),
+            results: (count: number) =>
+                l10n.t({
+                    message: "Results ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of results"],
+                }),
             messages: l10n.t("Messages"),
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
@@ -367,9 +372,6 @@ export class LocConstants {
             saveAsCsv: l10n.t("Save as CSV"),
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),
-            noResultMessage: l10n.t(
-                "No result found for the active editor; please run a query or switch to another editor.",
-            ),
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
             queryPlan: l10n.t("Query Plan"),
             selectAll: l10n.t("Select All"),
@@ -413,6 +415,10 @@ export class LocConstants {
                     comment: ["{0} is the index of the result set"],
                 }),
             loadingTextView: l10n.t("Loading text view..."),
+            noResultsHeader: l10n.t("No results for the active editor"),
+            noResultMessage: l10n.t(
+                "Run a query in the current editor, or switch to an editor that has results.",
+            ),
         };
     }
 

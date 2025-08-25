@@ -771,30 +771,10 @@ export class ObjectExplorerService {
             }
         }
 
-        if (ConnectionCredentials.isPasswordBasedCredential(connectionProfile)) {
-            // show password prompt if SQL Login and password isn't saved
-            let password = connectionProfile.password;
-            if (Utils.isEmpty(password)) {
-                if (connectionProfile.savePassword) {
-                    password =
-                        await this._connectionManager.connectionStore.lookupPassword(
-                            connectionProfile,
-                        );
-                }
-
-                if (!password) {
-                    password = await this._connectionManager.connectionUI.promptForPassword();
-                    if (!password) {
-                        return undefined;
-                    }
-                }
-
-                if (connectionProfile.authenticationType !== Constants.azureMfa) {
-                    connectionProfile.azureAccountToken = undefined;
-                }
-                connectionProfile.password = password;
-            }
-            return connectionProfile;
+        const isPasswordHandled =
+            await this._connectionManager.handlePasswordBasedCredentials(connectionProfile);
+        if (!isPasswordHandled) {
+            return undefined;
         }
 
         if (
@@ -807,7 +787,7 @@ export class ObjectExplorerService {
 
         if (connectionProfile.authenticationType === Constants.azureMfa) {
             let azureController = this._connectionManager.azureController;
-            let account = this._connectionManager.accountStore.getAccount(
+            let account = await this._connectionManager.accountStore.getAccount(
                 connectionProfile.accountId,
             );
             let needsRefresh = false;
@@ -881,6 +861,9 @@ export class ObjectExplorerService {
         if (isNewConnection) {
             this.addConnectionNode(connectionNode);
         }
+
+        await this._connectionManager.handlePasswordStorageOnConnect(connectionProfile);
+
         // remove the sign in node once the session is created
         if (this._treeNodeToChildrenMap.has(connectionNode)) {
             this._treeNodeToChildrenMap.delete(connectionNode);
@@ -975,7 +958,7 @@ export class ObjectExplorerService {
             this.needsAccountRefresh(failureResponse, connectionProfile.user)
         ) {
             this._logger.verbose(`Refreshing account token for ${connectionProfile.accountId}}`);
-            let account = this._connectionManager.accountStore.getAccount(
+            let account = await this._connectionManager.accountStore.getAccount(
                 connectionProfile.accountId,
             );
 

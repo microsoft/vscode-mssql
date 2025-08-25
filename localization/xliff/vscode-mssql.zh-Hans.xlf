@@ -20,16 +20,16 @@
       </trans-unit>
       <trans-unit id="++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6">
         <source xml:lang="en">(0 rows affected)</source>
-        <target state="new">(0 rows affected)</target>
+        <target state="translated">(0 行受影响)</target>
       </trans-unit>
       <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
         <source xml:lang="en">(1 row affected)</source>
-        <target state="new">(1 row affected)</target>
+        <target state="translated">(1 行受影响)</target>
       </trans-unit>
       <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
         <source xml:lang="en">({0} rows affected)</source>
         <note>{0} is the number of rows affected</note>
-        <target state="new">({0} rows affected)</target>
+        <target state="translated">({0} 行受影响)</target>
       </trans-unit>
       <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
         <source xml:lang="en">+ Add Azure Account</source>
@@ -400,7 +400,7 @@
       <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
         <source xml:lang="en">Cancel failed: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Cancel failed: {0}</target>
+        <target state="translated">取消失败: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
         <source xml:lang="en">Cancel schema compare failed: '{0}'</source>
@@ -1288,7 +1288,7 @@
       </trans-unit>
       <trans-unit id="++CODE++60cc09ec4655851867d21c226d2f49026746cd374b1822a2b46264601219b206">
         <source xml:lang="en">Error generating text view. Please try switching back to grid view.</source>
-        <target state="new">Error generating text view. Please try switching back to grid view.</target>
+        <target state="translated">生成文本视图时出错。请尝试切换回网格视图。</target>
       </trans-unit>
       <trans-unit id="++CODE++8f53a6df59ae589cf0996134e10ad383f8914500648095194f2d16cc2427954b">
         <source xml:lang="en">Error loading Azure account information for tenant ID '{0}'</source>
@@ -1415,7 +1415,7 @@ Error:
       <trans-unit id="++CODE++2332577de7a1ae1c1fdad89cd3a54570fcafcfcf1e149fda9dc0c42d4f88fbdb">
         <source xml:lang="en">Failed disposing query: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed disposing query: {0}</target>
+        <target state="translated">未能释放查询: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
@@ -1700,7 +1700,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
         <source xml:lang="en">Grid View</source>
-        <target state="new">Grid View</target>
+        <target state="translated">网格视图</target>
       </trans-unit>
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
@@ -2010,7 +2010,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
         <source xml:lang="en">Loading text view...</source>
-        <target state="new">Loading text view...</target>
+        <target state="translated">正在加载文本视图...</target>
       </trans-unit>
       <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
         <source xml:lang="en">Loading...</source>
@@ -2224,17 +2224,17 @@ Error:
 {1} is the uri</note>
         <target state="translated">无需刷新 URI {1} 的连接 {0} 的 Microsoft Entra 帐户令牌</target>
       </trans-unit>
-      <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
-        <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
-        <target state="translated">未找到活动编辑器的结果; 请运行查询或切换到其他编辑器。</target>
-      </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
         <target state="translated">无结果</target>
       </trans-unit>
+      <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
+        <source xml:lang="en">No results for the active editor</source>
+        <target state="new">No results for the active editor</target>
+      </trans-unit>
       <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
         <source xml:lang="en">No results to display</source>
-        <target state="new">No results to display</target>
+        <target state="translated">没有可显示的结果</target>
       </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
@@ -2672,11 +2672,16 @@ Error:
       <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
         <source xml:lang="en">Result Set {0}</source>
         <note>{0} is the index of the result set</note>
-        <target state="new">Result Set {0}</target>
+        <target state="translated">结果集 {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
         <target state="translated">结果</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ccb11e8d73c1d40ef67b26d9ca77a50ab2987d9ac9af361e065c3c1c6699c116">
+        <source xml:lang="en">Results ({0})</source>
+        <note>{0} is the number of results</note>
+        <target state="new">Results ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
@@ -2701,6 +2706,10 @@ Error:
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
         <target state="translated">运行“查询历史记录”</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
+        <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+        <target state="new">Run a query in the current editor, or switch to an editor that has results.</target>
       </trans-unit>
       <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
         <source xml:lang="en">Run query on connection '{0}'?
@@ -3228,7 +3237,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++a8e5ca29d45327e2790dbaef626ac6f467741af4efddd4d0aede688f4612677e">
         <source xml:lang="en">Switch to Grid View</source>
-        <target state="new">Switch to Grid View</target>
+        <target state="translated">切换到网格视图</target>
       </trans-unit>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
@@ -3236,7 +3245,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++fe49fbfd86c4792c2bd6cf8b59085cc2d787fa377a2af3ebdcbd88104e556d8c">
         <source xml:lang="en">Switch to Text View</source>
-        <target state="new">Switch to Text View</target>
+        <target state="translated">切换到文本视图</target>
       </trans-unit>
       <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
         <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
@@ -3306,7 +3315,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
         <source xml:lang="en">Text View</source>
-        <target state="new">Text View</target>
+        <target state="translated">文本视图</target>
       </trans-unit>
       <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
         <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
@@ -3739,6 +3748,11 @@ Query: {1}</source>
         <note>{0} is the webview name</note>
         <target state="translated">{0} 已关闭。是否要还原它?</target>
       </trans-unit>
+      <trans-unit id="++CODE++dde734013704b68f0d2d57a1385773d7e4bfbae374a67c150f3f06d8abb95f9d">
+        <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
+        <note>{0} is the number of invalid accounts that have been removed</note>
+        <target state="translated">{0} 已移除无效的 Entra 帐户；可能需要运行 `MS SQL: 清除 Microsoft Entra 帐户令牌缓存`，然后重新登录。</target>
+      </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
         <note>{0} is the number of issues</note>
@@ -3958,7 +3972,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.description">
         <source xml:lang="en">Default view mode for query results display.</source>
-        <target state="new">Default view mode for query results display.</target>
+        <target state="translated">用于显示查询结果的默认视图模式。</target>
       </trans-unit>
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
@@ -3986,11 +4000,11 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
         <source xml:lang="en">Display results in a formatted text format.</source>
-        <target state="new">Display results in a formatted text format.</target>
+        <target state="translated">以格式化文本格式显示结果。</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
         <source xml:lang="en">Display results in a tabular grid format (default)</source>
-        <target state="new">Display results in a tabular grid format (default)</target>
+        <target state="translated">以表格网格格式显示结果(默认)</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -4320,9 +4334,9 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">移除 Microsoft Entra 帐户</target>
       </trans-unit>
-      <trans-unit id="mssql.revealQueryResultPanel">
-        <source xml:lang="en">Reveal Query Result Panel</source>
-        <target state="translated">显示查询结果面板</target>
+      <trans-unit id="mssql.revealQueryResult">
+        <source xml:lang="en">Reveal Query Result</source>
+        <target state="new">Reveal Query Result</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query (Preview)</source>
@@ -4468,6 +4482,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Table Designer</source>
         <target state="translated">表设计器</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
+        <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
+        <target state="translated">在禁用“已保存密码”的情况下，暂时存储连接的密码，直到扩展程序重新启动。这可以防止在同一会话中重复使用连接时出现多次密码提示。</target>
+      </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>
         <target state="translated">连接组的颜色。</target>
@@ -4581,16 +4599,16 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[可选] 声明连接到 SQL Server 时的应用程序工作负载类型，例如 ReadWrite 或 ReadOnly。有关详细信息，请参阅 SQL Server AlwaysOn 可用性组。</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.delimiter">
-        <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV</source>
-        <target state="translated">[可选] 将结果保存为 CSV 时用于分隔数据项的分隔符</target>
+        <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</source>
+        <target state="new">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</target>
       </trans-unit>
       <trans-unit id="mssql.ignorePlatformWarning">
         <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
         <target state="translated">[可选] 不显示不受支持的平台警告</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.encoding">
-        <source xml:lang="en">[Optional] File encoding used when saving results as CSV</source>
-        <target state="translated">[可选] 将结果保存为 CSV 时使用的文件编码</target>
+        <source xml:lang="en">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</source>
+        <target state="new">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</target>
       </trans-unit>
       <trans-unit id="mssql.connection.currentLanguage">
         <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>

@@ -728,6 +728,17 @@ export class Azure {
     };
 }
 
+export class Accounts {
+    public static invalidEntraAccountsRemoved = (numRemoved: number) => {
+        return l10n.t({
+            message:
+                "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
+            args: [numRemoved],
+            comment: ["{0} is the number of invalid accounts that have been removed"],
+        });
+    };
+}
+
 export class Fabric {
     public static fabricAccount = l10n.t("Fabric Account");
     public static fabricAccountIsRequired = l10n.t("Fabric Account is required");

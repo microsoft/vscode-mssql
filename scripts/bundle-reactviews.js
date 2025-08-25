@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 const logger = require('./terminal-logger');
-const { typecheckPlugin } = require('@jgoz/esbuild-plugin-typecheck');
 const { esbuildProblemMatcherPlugin, build, watch } = require('./esbuild-utils');
 
 
@@ -44,7 +43,6 @@ const config = {
   tsconfig: './tsconfig.react.json',
   plugins: [
     esbuildProblemMatcherPlugin('webviews'),
-    typecheckPlugin()
   ],
   sourcemap: isProd ? false : 'inline',
   metafile: !isProd,

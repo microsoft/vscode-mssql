@@ -1717,11 +1717,11 @@
       <note>{0} is the connection id
 {1} is the uri</note>
     </trans-unit>
-    <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
-      <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
-    </trans-unit>
     <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
       <source xml:lang="en">No results</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
+      <source xml:lang="en">No results for the active editor</source>
     </trans-unit>
     <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
       <source xml:lang="en">No results to display</source>
@@ -2061,6 +2061,10 @@
     <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
       <source xml:lang="en">Results</source>
     </trans-unit>
+    <trans-unit id="++CODE++ccb11e8d73c1d40ef67b26d9ca77a50ab2987d9ac9af361e065c3c1c6699c116">
+      <source xml:lang="en">Results ({0})</source>
+      <note>{0} is the number of results</note>
+    </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
     </trans-unit>
@@ -2078,6 +2082,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
       <source xml:lang="en">Run Query History</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
+      <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
     </trans-unit>
     <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
       <source xml:lang="en">Run query on connection &apos;{0}&apos;?&#10;&#10;Query: {1}</source>
@@ -2876,6 +2883,10 @@
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
       <note>{0} is the webview name</note>
     </trans-unit>
+    <trans-unit id="++CODE++dde734013704b68f0d2d57a1385773d7e4bfbae374a67c150f3f06d8abb95f9d">
+      <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
+      <note>{0} is the number of invalid accounts that have been removed</note>
+    </trans-unit>
     <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
       <source xml:lang="en">{0} issue</source>
       <note>{0} is the number of issues</note>
@@ -3311,8 +3322,8 @@
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
-    <trans-unit id="mssql.revealQueryResultPanel">
-      <source xml:lang="en">Reveal Query Result Panel</source>
+    <trans-unit id="mssql.revealQueryResult">
+      <source xml:lang="en">Reveal Query Result</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.rewriteQuery">
       <source xml:lang="en">Rewrite Query (Preview)</source>
@@ -3422,6 +3433,9 @@
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
       <source xml:lang="en">Table Designer</source>
     </trans-unit>
+    <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
+      <source xml:lang="en">Temporarily store passwords for connections with &apos;Saved Passwords&apos; disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
+    </trans-unit>
     <trans-unit id="mssql.connectionGroup.color">
       <source xml:lang="en">The color of the connection group.</source>
     </trans-unit>
@@ -3504,13 +3518,13 @@
       <source xml:lang="en">[Optional] Declares the application workload type when connecting to SQL Server such as ReadWrite or ReadOnly. Refer to SQL Server AlwaysOn for more detail.</source>
     </trans-unit>
     <trans-unit id="mssql.saveAsCsv.delimiter">
-      <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV</source>
+      <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</source>
     </trans-unit>
     <trans-unit id="mssql.ignorePlatformWarning">
       <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
     </trans-unit>
     <trans-unit id="mssql.saveAsCsv.encoding">
-      <source xml:lang="en">[Optional] File encoding used when saving results as CSV</source>
+      <source xml:lang="en">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</source>
     </trans-unit>
     <trans-unit id="mssql.connection.currentLanguage">
       <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>

@@ -27,6 +27,7 @@ export enum TelemetryViews {
     AzureAccountManagement = "AzureAccountManagement",
     ConnectionGroup = "ConnectionGroup",
     SchemaDesigner = "SchemaDesigner",
+    Connection = "Connection",
 }
 
 export enum TelemetryActions {
@@ -131,6 +132,7 @@ export enum TelemetryActions {
     GetReport = "GetReport",
     PublishSession = "PublishSession",
     GetDefinition = "GetDefinition",
+    LookupPassword = "LookupPassword",
 }
 
 /**
