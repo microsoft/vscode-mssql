@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, shorthands } from "@fluentui/react-components";
-import { useContext, useEffect } from "react";
-import { QueryResultContext } from "./queryResultStateProvider";
+import { useEffect } from "react";
 import { QueryResultPane } from "./queryResultPane";
 import { Keys } from "../../common/keys";
 
@@ -91,8 +90,6 @@ const useStyles = makeStyles({
 
 export const QueryResult = () => {
     const classes = useStyles();
-    const context = useContext(QueryResultContext);
-    const state = context?.state;
 
     // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
     useEffect(() => {
@@ -118,9 +115,7 @@ export const QueryResult = () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
     }, []);
-    if (!state) {
-        return null;
-    }
+
     return (
         <div className={classes.root}>
             {
