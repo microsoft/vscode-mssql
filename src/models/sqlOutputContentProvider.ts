@@ -30,7 +30,6 @@ const MESSAGE_INTERVAL_IN_MS = 300;
 
 // holds information about the state of a query runner
 export class QueryRunnerState {
-    timeout: NodeJS.Timer;
     listeners: vscode.Disposable[];
     constructor(public queryRunner: QueryRunner) {
         this.listeners = [];
@@ -47,7 +46,6 @@ class ResultsConfig implements Interfaces.IResultsConfig {
 export class SqlOutputContentProvider {
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _queryResultWebviewController: QueryResultWebviewController;
-    private _lastSendMessageTime: number;
     private _actualPlanStatuses: string[] = [];
 
     constructor(
@@ -346,7 +344,6 @@ export class SqlOutputContentProvider {
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
 
             const startListener = queryRunner.onStart(async (_panelUri) => {
-                this._lastSendMessageTime = Date.now();
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
@@ -460,12 +457,7 @@ export class SqlOutputContentProvider {
 
                 resultWebviewState.messages.push(message);
 
-                // Set state for messages at fixed intervals to avoid spamming the webview
-                if (this._lastSendMessageTime < Date.now() - MESSAGE_INTERVAL_IN_MS) {
-                    //resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-                    this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                    this._lastSendMessageTime = Date.now();
-                }
+                this.updateWebviewState(queryRunner.uri, resultWebviewState);
             });
             const onCompleteListener = queryRunner.onComplete(async (e) => {
                 const { totalMilliseconds, hasError, isRefresh } = e;
