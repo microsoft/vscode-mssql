@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { QueryResultWebviewState } from "../../../sharedInterfaces/queryResult";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 
