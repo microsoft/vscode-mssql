@@ -4,23 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    DataGrid,
     DataGridHeader,
     DataGridHeaderCell,
-    DataGridBody,
-    DataGridRow,
-    DataGridCell,
     Button,
     TableColumnDefinition,
     createTableColumn,
     Text,
-    List,
-    ListItem,
-    Label,
     Spinner,
-    Tooltip,
     Input,
 } from "@fluentui/react-components";
+import {
+    DataGridBody,
+    DataGrid,
+    DataGridRow,
+    DataGridCell,
+    RowRenderer,
+} from "@fluentui-contrib/react-data-grid-react-window";
 import {
     FabricSqlDbInfo,
     FabricWorkspaceInfo,
@@ -31,13 +30,13 @@ import {
     ChevronDoubleLeftFilled,
     ChevronDoubleRightFilled,
     ErrorCircleRegular,
-    PeopleTeamRegular,
     SearchRegular,
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { Keys } from "../../../common/keys";
 import { useStyles } from "./fabricWorkspaceViewer.styles";
 import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
+import { WorkspacesList } from "./fabricWorkspacesList";
 
 // Icon imports for database types
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
@@ -83,77 +82,6 @@ type WorkspacesListProps = {
 interface FabricSqlGridItem extends FabricSqlDbInfo {
     typeDisplayName: string;
 }
-
-const WorkspacesList = ({
-    workspaces,
-    onWorkspaceSelect,
-    selectedWorkspace,
-}: WorkspacesListProps) => {
-    const styles = useStyles();
-
-    if (!workspaces || workspaces.length === 0) {
-        return <Label>{Loc.connectionDialog.noWorkspacesAvailable}</Label>;
-    }
-
-    return (
-        <List role="listbox" aria-label={Loc.connectionDialog.workspaces}>
-            {workspaces.map((workspace) => (
-                <ListItem
-                    key={workspace.id}
-                    className={`${styles.workspaceItem} ${
-                        selectedWorkspace?.id === workspace.id ? styles.workspaceItemSelected : ""
-                    }`}
-                    onClick={() => onWorkspaceSelect(workspace)}
-                    onKeyDown={(e) => {
-                        if (e.key === Keys.Enter || e.key === Keys.Space) {
-                            onWorkspaceSelect(workspace);
-                            e.preventDefault();
-                        }
-                    }}
-                    tabIndex={0}
-                    role="option"
-                    aria-selected={selectedWorkspace?.id === workspace.id}
-                    title={workspace.displayName}>
-                    <div style={{ display: "flex", alignItems: "center", minHeight: "20px" }}>
-                        {/* Icon container with consistent styling */}
-                        <div className={styles.iconContainer}>
-                            {/* display error if workspace status is errored */}
-                            {workspace.loadStatus.status === ApiStatus.Error && (
-                                <Tooltip
-                                    content={workspace.loadStatus.message ?? ""}
-                                    relationship="label">
-                                    <ErrorCircleRegular style={{ width: "100%", height: "100%" }} />
-                                </Tooltip>
-                            )}
-                            {/* display loading spinner */}
-                            {workspace.loadStatus.status === ApiStatus.Loading && (
-                                <Spinner
-                                    size="extra-tiny"
-                                    style={{ width: "100%", height: "100%" }}
-                                />
-                            )}
-                            {/* display workspace icon */}
-                            {(workspace.loadStatus.status === ApiStatus.Loaded ||
-                                workspace.loadStatus.status === ApiStatus.NotStarted) && (
-                                <PeopleTeamRegular style={{ width: "100%", height: "100%" }} />
-                            )}
-                        </div>
-
-                        <Text
-                            style={{
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                flex: 1,
-                            }}>
-                            {workspace.displayName}
-                        </Text>
-                    </div>
-                </ListItem>
-            ))}
-        </List>
-    );
-};
 
 export const FabricWorkspaceViewer = ({
     selectFabricWorkspace,
@@ -290,6 +218,56 @@ export const FabricWorkspaceViewer = ({
         onSelectDatabase(database);
     }
 
+    // function renderRow(
+    //     { item, rowId }: { item: FabricSqlGridItem; rowId: string },
+    //     style: React.CSSProperties,
+    // ) {
+    //     return (
+    //         <DataGridRow<FabricSqlGridItem>
+    //             key={rowId}
+    //             className={selectedRowId === item.id ? styles.selectedDataGridRow : undefined}
+    //             style={style}
+    //             onClick={() => {
+    //                 handleServerSelected(item);
+    //             }}
+    //             onKeyDown={(e: React.KeyboardEvent) => {
+    //                 if (e.key === Keys.Enter || e.key === Keys.Space) {
+    //                     handleServerSelected(item);
+    //                     e.preventDefault();
+    //                 }
+    //             }}>
+    //             {({ renderCell }: { renderCell: (item: FabricSqlGridItem) => React.ReactNode }) => (
+    //                 <>{renderCell(item)}</>
+    //             )}
+    //         </DataGridRow>
+    //     );
+    // }
+
+    const renderRow: RowRenderer<FabricSqlGridItem> = (
+        { item, rowId }: { item: FabricSqlGridItem; rowId: string },
+        style: React.CSSProperties,
+    ) => {
+        return (
+            <DataGridRow<FabricSqlGridItem>
+                key={rowId}
+                className={selectedRowId === item.id ? styles.selectedDataGridRow : undefined}
+                style={style}
+                onClick={() => {
+                    handleServerSelected(item);
+                }}
+                onKeyDown={(e: React.KeyboardEvent) => {
+                    if (e.key === Keys.Enter || e.key === Keys.Space) {
+                        handleServerSelected(item);
+                        e.preventDefault();
+                    }
+                }}>
+                {({ renderCell }: { renderCell: (item: FabricSqlGridItem) => React.ReactNode }) => (
+                    <>{renderCell(item)}</>
+                )}
+            </DataGridRow>
+        );
+    };
+
     return (
         <div className={styles.container}>
             <div
@@ -348,7 +326,7 @@ export const FabricWorkspaceViewer = ({
                             </div>
                             <div className={styles.workspaceSearchBox}>
                                 <Input
-                                    placeholder="Search workspaces..."
+                                    placeholder={Loc.connectionDialog.searchWorkspaces}
                                     value={workspaceSearchFilter}
                                     onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
                                     contentBefore={<SearchRegular />}
@@ -439,32 +417,15 @@ export const FabricWorkspaceViewer = ({
                         }}>
                         <DataGridHeader>
                             <DataGridRow>
-                                {({ renderHeaderCell }) => (
-                                    <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
-                                )}
+                                {({
+                                    renderHeaderCell,
+                                }: {
+                                    renderHeaderCell: () => React.ReactNode;
+                                }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
                             </DataGridRow>
                         </DataGridHeader>
-                        <DataGridBody<FabricSqlGridItem>>
-                            {({ item, rowId }) => (
-                                <DataGridRow<FabricSqlGridItem>
-                                    key={rowId}
-                                    className={
-                                        selectedRowId === item.id
-                                            ? styles.selectedDataGridRow
-                                            : undefined
-                                    }
-                                    onClick={() => {
-                                        handleServerSelected(item);
-                                    }}
-                                    onKeyDown={(e: React.KeyboardEvent) => {
-                                        if (e.key === Keys.Enter || e.key === Keys.Space) {
-                                            handleServerSelected(item);
-                                            e.preventDefault();
-                                        }
-                                    }}>
-                                    {({ renderCell }) => <>{renderCell(item)}</>}
-                                </DataGridRow>
-                            )}
+                        <DataGridBody<FabricSqlGridItem> itemSize={30} height={360} width={"100%"}>
+                            {renderRow}
                         </DataGridBody>
                     </DataGrid>
                 )}
