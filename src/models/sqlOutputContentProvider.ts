@@ -26,8 +26,6 @@ import { StateChangeNotification } from "../sharedInterfaces/webview";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
-const MESSAGE_INTERVAL_IN_MS = 300;
-
 // holds information about the state of a query runner
 export class QueryRunnerState {
     listeners: vscode.Disposable[];

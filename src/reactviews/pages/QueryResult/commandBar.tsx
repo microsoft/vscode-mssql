@@ -54,7 +54,7 @@ const CommandBar = (props: CommandBarProps) => {
     }
 
     const saveResults = (buttonLabel: string) => {
-        void context.saveResults({
+        void context.extensionRpc.sendRequest(qr.SaveResultsWebviewRequest.type, {
             uri: props.uri ?? "",
             batchId: props.resultSetSummary?.batchId,
             resultId: props.resultSetSummary?.id,

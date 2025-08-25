@@ -101,13 +101,16 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
 
                         // Get all rows for this result set first to calculate proper column widths
                         if (resultSetSummary.rowCount > 0) {
-                            const response = await context?.getRows({
-                                uri: uri,
-                                batchId: batchId,
-                                resultId: resultId,
-                                rowStart: 0,
-                                numberOfRows: resultSetSummary.rowCount,
-                            });
+                            const response = await context?.extensionRpc.sendRequest(
+                                qr.GetRowsRequest.type,
+                                {
+                                    uri: uri,
+                                    batchId: batchId,
+                                    resultId: resultId,
+                                    rowStart: 0,
+                                    numberOfRows: resultSetSummary.rowCount,
+                                },
+                            );
 
                             if (response && response.rows) {
                                 // Calculate proper column widths by considering all data values

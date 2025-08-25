@@ -9,31 +9,10 @@ import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { ExecutionPlanProvider } from "../../../sharedInterfaces/executionPlan";
 import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
-    GetColumnWidthsParams,
-    GetColumnWidthsRequest,
-    GetFiltersParams,
-    GetFiltersRequest,
-    GetGridScrollPositionParams,
-    GetGridScrollPositionRequest,
-    GetGridScrollPositionResponse,
-    GetRowsParams,
-    GetRowsRequest,
-    GetWebviewLocationRequest,
-    GridColumnMap,
     QueryResultPaneTabs,
     QueryResultReducers,
     QueryResultViewMode,
-    QueryResultWebviewLocation,
     QueryResultWebviewState,
-    ResultSetSubset,
-    SaveResultsWebviewParams,
-    SaveResultsWebviewRequest,
-    SetColumnWidthsParams,
-    SetColumnWidthsRequest,
-    SetEditorSelectionParams,
-    SetEditorSelectionRequest,
-    SetGridScrollPositionNotification,
-    SetGridScrollPositionParams,
 } from "../../../sharedInterfaces/queryResult";
 import { WebviewRpc } from "../../common/rpc";
 
@@ -55,16 +34,6 @@ export interface QueryResultReactProvider
      * @param type the type of file to open
      */
     openFileThroughLink(content: string, type: string): void;
-    getColumnWidths(params: GetColumnWidthsParams): Promise<number[]>;
-    setColumnWidths(params: SetColumnWidthsParams): Promise<void>;
-    getScrollPosition(params: GetGridScrollPositionParams): Promise<GetGridScrollPositionResponse>;
-    setGridScrollPosition(params: SetGridScrollPositionParams): Promise<void>;
-    getFilter(params: GetFiltersParams): Promise<GridColumnMap[]>;
-
-    saveResults(params: SaveResultsWebviewParams): Promise<void>;
-    getRows(params: GetRowsParams): Promise<ResultSetSubset>;
-    setEditorSelection(params: SetEditorSelectionParams): Promise<void>;
-    getWebviewLocation(): Promise<QueryResultWebviewLocation>;
 }
 
 export const QueryResultCommandsContext = createContext<QueryResultReactProvider | undefined>(
@@ -91,39 +60,6 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
 
             openFileThroughLink: (content: string, type: string) => {
                 extensionRpc.action("openFileThroughLink", { content, type });
-            },
-            getColumnWidths: (params: GetColumnWidthsParams) => {
-                return extensionRpc.sendRequest(GetColumnWidthsRequest.type, params);
-            },
-            setColumnWidths: (params: SetColumnWidthsParams) => {
-                return extensionRpc.sendRequest(SetColumnWidthsRequest.type, params);
-            },
-            getScrollPosition: (params: GetGridScrollPositionParams) => {
-                return extensionRpc.sendRequest(GetGridScrollPositionRequest.type, params);
-            },
-            setGridScrollPosition: (params: SetGridScrollPositionParams) => {
-                return extensionRpc.sendNotification(
-                    SetGridScrollPositionNotification.type,
-                    params,
-                );
-            },
-            getFilter: (params: GetFiltersParams) => {
-                return extensionRpc.sendRequest(GetFiltersRequest.type, params);
-            },
-
-            // NEW
-
-            saveResults: (params: SaveResultsWebviewParams) => {
-                return extensionRpc.sendRequest(SaveResultsWebviewRequest.type, params);
-            },
-            getRows: (params: GetRowsParams) => {
-                return extensionRpc.sendRequest(GetRowsRequest.type, params);
-            },
-            setEditorSelection: (params: SetEditorSelectionParams) => {
-                return extensionRpc.sendRequest(SetEditorSelectionRequest.type, params);
-            },
-            getWebviewLocation: () => {
-                return extensionRpc.sendRequest(GetWebviewLocationRequest.type);
             },
 
             // Execution Plan commands

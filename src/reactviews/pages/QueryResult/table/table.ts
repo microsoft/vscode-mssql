@@ -13,7 +13,15 @@ import { CellSelectionModel } from "./plugins/cellSelectionModel.plugin";
 import { mixin } from "./objects";
 import { HeaderFilter } from "./plugins/headerFilter.plugin";
 import { ContextMenu } from "./plugins/contextMenu.plugin";
-import { ColumnFilterState, ResultSetSummary } from "../../../../sharedInterfaces/queryResult";
+import {
+    ColumnFilterState,
+    GetColumnWidthsRequest,
+    GetFiltersRequest,
+    GetGridScrollPositionRequest,
+    ResultSetSummary,
+    SetColumnWidthsRequest,
+    SetGridScrollPositionNotification,
+} from "../../../../sharedInterfaces/queryResult";
 import { QueryResultReactProvider } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
@@ -184,13 +192,14 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                 .getColumns()
                 .slice(1)
                 .map((v) => v.width);
-            let currentColumnSizes = await this.context.getColumnWidths({
-                uri: this.uri,
-            });
+            let currentColumnSizes = await this.context.extensionRpc.sendRequest(
+                GetColumnWidthsRequest.type,
+                { uri: this.uri },
+            );
             if (currentColumnSizes === columnSizes) {
                 return;
             }
-            await this.context.setColumnWidths({
+            await this.context.extensionRpc.sendRequest(SetColumnWidthsRequest.type, {
                 uri: this.uri,
                 columnWidths: columnSizes as number[],
             });
@@ -202,12 +211,15 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             }
 
             const viewport = this._grid.getViewport();
-            await this.context.setGridScrollPosition({
-                uri: this.uri,
-                gridId: this.gridId,
-                scrollLeft: viewport.leftPx,
-                scrollTop: viewport.top,
-            });
+            await this.context.extensionRpc.sendNotification(
+                SetGridScrollPositionNotification.type,
+                {
+                    uri: this.uri,
+                    gridId: this.gridId,
+                    scrollLeft: viewport.leftPx,
+                    scrollTop: viewport.top,
+                },
+            );
         });
 
         this.style(styles);
@@ -215,9 +227,12 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     public async restoreColumnWidths(): Promise<void> {
-        const columnWidthArray = await this.context.getColumnWidths({
-            uri: this.uri,
-        });
+        const columnWidthArray = await this.context.extensionRpc.sendRequest(
+            GetColumnWidthsRequest.type,
+            {
+                uri: this.uri,
+            },
+        );
 
         if (!columnWidthArray) {
             return;
@@ -241,7 +256,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     public async setupFilterState(): Promise<boolean> {
         let sortColumn: Slick.Column<T> | undefined = undefined;
         let sortDirection: boolean | undefined = undefined;
-        const filterMapArray = await this.context.getFilter({
+        const filterMapArray = await this.context.extensionRpc.sendRequest(GetFiltersRequest.type, {
             uri: this.uri,
         });
         if (!filterMapArray) {
@@ -287,10 +302,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     public async setupScrollPosition(): Promise<void> {
-        const scrollPosition = await this.context.getScrollPosition({
-            uri: this.uri,
-            gridId: this.gridId,
-        });
+        const scrollPosition = await this.context.extensionRpc.sendRequest(
+            GetGridScrollPositionRequest.type,
+            {
+                uri: this.uri,
+                gridId: this.gridId,
+            },
+        );
         if (scrollPosition) {
             setTimeout(() => {
                 this._grid.scrollRowToTop(scrollPosition.scrollTop);

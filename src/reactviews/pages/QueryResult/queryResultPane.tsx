@@ -307,13 +307,16 @@ export const QueryResultPane = () => {
                 {viewMode === qr.QueryResultViewMode.Grid && (
                     <ResultGrid
                         loadFunc={async (offset: number, count: number): Promise<any[]> => {
-                            const response = await context.getRows({
-                                uri: uri!,
-                                batchId: batchId,
-                                resultId: resultId,
-                                rowStart: offset,
-                                numberOfRows: count,
-                            });
+                            const response = await context.extensionRpc.sendRequest(
+                                qr.GetRowsRequest.type,
+                                {
+                                    uri: uri!,
+                                    batchId: batchId,
+                                    resultId: resultId,
+                                    rowStart: offset,
+                                    numberOfRows: count,
+                                },
+                            );
 
                             if (!response) {
                                 return [];
@@ -508,10 +511,13 @@ export const QueryResultPane = () => {
                                 <Link
                                     className={classes.messagesLink}
                                     onClick={async () => {
-                                        await context.setEditorSelection({
-                                            uri: item.link?.uri!,
-                                            selectionData: item.selection!,
-                                        });
+                                        await context.extensionRpc.sendRequest(
+                                            qr.SetEditorSelectionRequest.type,
+                                            {
+                                                uri: item.link?.uri,
+                                                selectionData: item.selection,
+                                            },
+                                        );
                                     }}
                                     inline>
                                     {item?.link?.text}
@@ -605,7 +611,9 @@ export const QueryResultPane = () => {
     //#endregion
 
     const getWebviewLocation = async () => {
-        const res = await context?.getWebviewLocation();
+        const res = await context.extensionRpc.sendRequest(qr.GetWebviewLocationRequest.type, {
+            uri: state?.uri,
+        });
         setWebviewLocation(res);
     };
     const [webviewLocation, setWebviewLocation] = useState("");
