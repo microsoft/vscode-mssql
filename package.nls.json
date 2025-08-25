@@ -167,6 +167,7 @@
     "mssql.chooseAuthMethod": "Chooses which Authentication method to use",
     "mssql.authCodeGrant.description": "Prompts users to sign in using their browser.",
     "mssql.deviceCode.description": "Allows users to sign in to input-constrained devices.",
+    "mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription": "When enabled, connection groups will be collapsed instead of expanded at startup.",
     "mssql.objectExplorer.groupBySchema": "When enabled, the database objects in Object Explorer will be categorized by schema.",
     "mssql.objectExplorer.enableGroupBySchema": "Enable Group By Schema",
     "mssql.objectExplorer.disableGroupBySchema": "Disable Group By Schema",
