@@ -13,9 +13,6 @@ import {
     GetColumnWidthsRequest,
     GetFiltersParams,
     GetFiltersRequest,
-    GetGridPaneScrollPositionParams,
-    GetGridPaneScrollPositionRequest,
-    GetGridPaneScrollPositionResponse,
     GetGridScrollPositionParams,
     GetGridScrollPositionRequest,
     GetGridScrollPositionResponse,
@@ -35,8 +32,6 @@ import {
     SetColumnWidthsRequest,
     SetEditorSelectionParams,
     SetEditorSelectionRequest,
-    SetGridPaneScrollPositionNotification,
-    SetGridPaneScrollPositionParams,
     SetGridScrollPositionNotification,
     SetGridScrollPositionParams,
 } from "../../../sharedInterfaces/queryResult";
@@ -70,10 +65,6 @@ export interface QueryResultReactProvider
     getRows(params: GetRowsParams): Promise<ResultSetSubset>;
     setEditorSelection(params: SetEditorSelectionParams): Promise<void>;
     getWebviewLocation(): Promise<QueryResultWebviewLocation>;
-    getGridPaneScrollPosition(
-        params: GetGridPaneScrollPositionParams,
-    ): Promise<GetGridPaneScrollPositionResponse>;
-    setGridPaneScrollPosition: (params: SetGridPaneScrollPositionParams) => Promise<void>;
 }
 
 export const QueryResultCommandsContext = createContext<QueryResultReactProvider | undefined>(
@@ -133,15 +124,6 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             },
             getWebviewLocation: () => {
                 return extensionRpc.sendRequest(GetWebviewLocationRequest.type);
-            },
-            getGridPaneScrollPosition: (params: GetGridPaneScrollPositionParams) => {
-                return extensionRpc.sendRequest(GetGridPaneScrollPositionRequest.type, params);
-            },
-            setGridPaneScrollPosition: (params: SetGridPaneScrollPositionParams) => {
-                return extensionRpc.sendNotification(
-                    SetGridPaneScrollPositionNotification.type,
-                    params,
-                );
             },
 
             // Execution Plan commands

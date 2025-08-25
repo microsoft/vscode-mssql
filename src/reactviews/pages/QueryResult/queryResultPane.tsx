@@ -620,7 +620,10 @@ export const QueryResultPane = () => {
         async function loadScrollPosition() {
             if (uri) {
                 isProgrammaticScroll.current = true;
-                const position = await context?.getGridPaneScrollPosition({ uri });
+                const position = await context?.extensionRpc.sendRequest(
+                    qr.GetGridPaneScrollPositionRequest.type,
+                    { uri: state.uri },
+                );
                 const el = scrollablePanelRef.current;
                 if (!el) return;
 
@@ -715,7 +718,10 @@ export const QueryResultPane = () => {
                 onScroll={(e) => {
                     if (isProgrammaticScroll.current) return;
                     const scrollTop = e.currentTarget.scrollTop;
-                    void context.setGridPaneScrollPosition({ uri: uri!, scrollTop });
+                    void context.extensionRpc.sendNotification(
+                        qr.SetGridPaneScrollPositionNotification.type,
+                        { uri: state?.uri, scrollTop },
+                    );
                 }}>
                 {tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&
                     Object.keys(resultSetSummaries).length > 0 &&
