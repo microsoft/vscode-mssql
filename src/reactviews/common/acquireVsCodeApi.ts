@@ -5,18 +5,12 @@
 
 import { WebviewApi } from "vscode-webview";
 
-export class VscodeApiSingleton {
-    private static instance: VscodeApiSingleton;
+class VscodeApiSingleton {
     public vscodeApiInstance: WebviewApi<unknown>;
-
-    public static getInstance(): VscodeApiSingleton {
-        if (!VscodeApiSingleton.instance) {
-            VscodeApiSingleton.instance = new VscodeApiSingleton();
-        }
-        return VscodeApiSingleton.instance;
-    }
 
     constructor() {
         this.vscodeApiInstance = acquireVsCodeApi<unknown>();
     }
 }
+
+export const vscodeApiSingleton = new VscodeApiSingleton();

@@ -195,10 +195,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         });
     };
 
-    const openInEditor = (text: string) => {
-        void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type, {
-            text: text,
-        });
+    const openInEditor = () => {
+        void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type);
     };
 
     const openInEditorWithConnection = () => {
