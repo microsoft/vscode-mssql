@@ -288,7 +288,7 @@
             "editor/title": [
                 {
                     "command": "mssql.runQuery",
-                    "when": "editorLangId == sql && !isInDiffEditor",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
                     "group": "navigation@1"
                 },
                 {
