@@ -12,15 +12,9 @@ import { RowNumberColumn } from "./table/plugins/rowNumberColumn.plugin";
 import { VirtualizedCollection } from "./table/asyncDataView";
 import { HybridDataProvider } from "./table/hybridDataProvider";
 import { hyperLinkFormatter, textFormatter, DBCellValue, escape } from "./table/formatters";
-import {
-    DbCellValue,
-    QueryResultReducers,
-    QueryResultWebviewState,
-    ResultSetSummary,
-} from "../../../sharedInterfaces/queryResult";
+import { DbCellValue, ResultSetSummary } from "../../../sharedInterfaces/queryResult";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
-import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { LogCallback } from "../../../sharedInterfaces/webview";
 import { useQueryResultSelector } from "./queryResultSelector";
@@ -44,7 +38,6 @@ export interface ResultGridProps {
     resultSetSummary?: ResultSetSummary;
     divId?: string;
     uri?: string;
-    webViewState?: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>;
     gridParentRef?: React.RefObject<HTMLDivElement>;
     linkHandler: (fileContent: string, fileType: string) => void;
     gridId: string;
@@ -259,7 +252,6 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             defaultTableStyles,
             props.uri!,
             props.resultSetSummary!,
-            props.webViewState!,
             context,
             props.linkHandler!,
             props.gridId,
