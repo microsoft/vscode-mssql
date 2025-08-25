@@ -12,12 +12,7 @@ import { RowNumberColumn } from "./table/plugins/rowNumberColumn.plugin";
 import { VirtualizedCollection } from "./table/asyncDataView";
 import { HybridDataProvider } from "./table/hybridDataProvider";
 import { hyperLinkFormatter, textFormatter, DBCellValue, escape } from "./table/formatters";
-import {
-    DbCellValue,
-    QueryResultReducers,
-    QueryResultWebviewState,
-    ResultSetSummary,
-} from "../../../sharedInterfaces/queryResult";
+import { DbCellValue, ResultSetSummary } from "../../../sharedInterfaces/queryResult";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";

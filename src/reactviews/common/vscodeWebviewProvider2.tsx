@@ -23,6 +23,7 @@ import {
     StateChangeNotification,
 } from "../../sharedInterfaces/webview";
 import { getEOL } from "./utils";
+import { VscodeApiSingleton } from "./acquireVsCodeApi";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -59,7 +60,7 @@ export interface IVscodeWebviewContext2<State, Reducers> {
     EOL: string;
 }
 
-const vscodeApiInstance = acquireVsCodeApi<unknown>();
+const vscodeApiInstance = VscodeApiSingleton.getInstance().vscodeApiInstance;
 
 export const VscodeWebviewContext2 = createContext<
     IVscodeWebviewContext2<unknown, unknown> | undefined

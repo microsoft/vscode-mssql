@@ -7,16 +7,8 @@
 // heavily modified
 
 import { CellRangeSelector, ICellRangeSelector } from "./cellRangeSelector";
-import {
-    ISlickRange,
-    QueryResultReducers,
-    QueryResultWebviewState,
-    SelectionSummaryStats,
-    SetSelectionSummaryRequest,
-} from "../../../../../sharedInterfaces/queryResult";
+import { SelectionSummaryStats } from "../../../../../sharedInterfaces/queryResult";
 
-import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
-// import { convertJQueryKeyDownEvent } from 'sql/base/browser/dom';
 import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
@@ -144,14 +136,14 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
         this.ranges = this.removeInvalidRanges(ranges);
         this.onSelectedRangesChanged.notify(this.ranges);
-        this.webViewState.state.selection = JSON.parse(
-            JSON.stringify(this.ranges),
-        ) as ISlickRange[];
-        // Adjust selection to account for number column
-        this.webViewState.state.selection.forEach((range) => {
-            range.fromCell = range.fromCell - 1;
-            range.toCell = range.toCell - 1;
-        });
+        // this.webViewState.state.selection = JSON.parse(
+        //     JSON.stringify(this.ranges),
+        // ) as ISlickRange[];
+        // // Adjust selection to account for number column
+        // this.webViewState.state.selection.forEach((range) => {
+        //     range.fromCell = range.fromCell - 1;
+        //     range.toCell = range.toCell - 1;
+        // });
     }
 
     public getSelectedRanges(): Slick.Range[] {

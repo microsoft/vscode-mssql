@@ -5,17 +5,17 @@
 
 import ReactDOM from "react-dom/client";
 import "../../index.css";
+import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { SchemaDesignerStateProvider } from "./schemaDesignerStateProvider";
 import { SchemaDesignerPage } from "./schemaDesignerPage";
 import { ReactFlowProvider } from "@xyflow/react";
-import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
+    <VscodeWebviewProvider>
         <ReactFlowProvider>
             <SchemaDesignerStateProvider>
                 <SchemaDesignerPage />
             </SchemaDesignerStateProvider>
         </ReactFlowProvider>
-    </VscodeWebviewProvider2>,
+    </VscodeWebviewProvider>,
 );
