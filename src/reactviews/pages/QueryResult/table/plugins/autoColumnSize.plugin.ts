@@ -5,14 +5,10 @@
 
 // Adapted from https://github.com/naresh-n/slickgrid-column-data-autosize/blob/master/src/slick.autocolumnsize.js
 
-import {
-    QueryResultWebviewState,
-    QueryResultReducers,
-} from "../../../../../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../../../../../sharedInterfaces/telemetry";
 import { WebviewTelemetryActionEvent } from "../../../../../sharedInterfaces/webview";
 import { deepClone } from "../../../../common/utils";
-import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
+import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { mixin } from "../objects";
 import { MAX_COLUMN_WIDTH_PX } from "../table";
 
@@ -39,10 +35,9 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
 
     constructor(
         options: IAutoColumnSizeOptions = defaultOptions,
-        private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
+        private _qrContext: QueryResultReactProvider,
     ) {
         this._options = mixin(options, defaultOptions, false);
-        this.webViewState = webViewState;
     }
 
     public init(grid: Slick.Grid<T>) {
@@ -313,7 +308,7 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
                 columns: numColumns,
             },
         };
-        this.webViewState.extensionRpc.sendActionEvent(telemetryEvent);
+        this._qrContext.sendActionEvent(telemetryEvent);
         return maxTemplate!;
     }
 
