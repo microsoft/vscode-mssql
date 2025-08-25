@@ -37,6 +37,7 @@ import { hasResultsOrMessages, splitMessages } from "./queryResultUtils";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
+import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     root: {
@@ -653,7 +654,9 @@ export const QueryResultPane = () => {
                     <Link
                         className={classes.hidePanelLink}
                         onClick={async () => {
-                            await context?.closePanel();
+                            await context.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
+                                command: "workbench.action.closePanel",
+                            });
                         }}>
                         {locConstants.queryResult.clickHereToHideThisPanel}
                     </Link>
@@ -696,7 +699,7 @@ export const QueryResultPane = () => {
                         iconPosition="after"
                         appearance="subtle"
                         onClick={async () => {
-                            await context.openInNewTab({
+                            await context.extensionRpc.sendRequest(qr.OpenInNewTabRequest.type, {
                                 uri: uri!,
                             });
                         }}

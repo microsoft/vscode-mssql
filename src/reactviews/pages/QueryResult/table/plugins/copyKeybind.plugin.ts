@@ -14,6 +14,7 @@ import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } fr
 import { Keys } from "../../../../common/keys";
 import { IDisposableDataProvider } from "../dataProvider";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
+import { GetPlatformRequest } from "../../../../../sharedInterfaces/webview";
 
 /**
  * Implements the various additional navigation keybindings we want out of slickgrid
@@ -47,7 +48,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         let handled = false;
-        let platform = await this._qrContext.getPlatform();
+        let platform = await this._qrContext.extensionRpc.sendRequest(GetPlatformRequest.type);
         if (platform === "darwin") {
             // Cmd + C
             if (e.metaKey && e.key === Keys.c) {

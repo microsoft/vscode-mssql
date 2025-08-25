@@ -7,11 +7,7 @@ import { ReactNode, createContext, useMemo } from "react";
 import { getCoreRPCs2 } from "../../common/utils";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { ExecutionPlanProvider } from "../../../sharedInterfaces/executionPlan";
-import {
-    CoreRPCs,
-    ExecuteCommandRequest,
-    GetPlatformRequest,
-} from "../../../sharedInterfaces/webview";
+import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
     GetColumnWidthsParams,
     GetColumnWidthsRequest,
@@ -27,8 +23,6 @@ import {
     GetRowsRequest,
     GetWebviewLocationRequest,
     GridColumnMap,
-    OpenInNewTabParams,
-    OpenInNewTabRequest,
     QueryResultPaneTabs,
     QueryResultReducers,
     QueryResultViewMode,
@@ -80,9 +74,6 @@ export interface QueryResultReactProvider
         params: GetGridPaneScrollPositionParams,
     ): Promise<GetGridPaneScrollPositionResponse>;
     setGridPaneScrollPosition: (params: SetGridPaneScrollPositionParams) => Promise<void>;
-    closePanel: () => Promise<void>;
-    openInNewTab: (params: OpenInNewTabParams) => Promise<void>;
-    getPlatform(): Promise<string>;
 }
 
 export const QueryResultCommandsContext = createContext<QueryResultReactProvider | undefined>(
@@ -151,17 +142,6 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                     SetGridPaneScrollPositionNotification.type,
                     params,
                 );
-            },
-            closePanel: () => {
-                return extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-                    command: "workbench.action.closePanel",
-                });
-            },
-            openInNewTab: (params: OpenInNewTabParams) => {
-                return extensionRpc.sendRequest(OpenInNewTabRequest.type, params);
-            },
-            getPlatform: () => {
-                return extensionRpc.sendRequest(GetPlatformRequest.type);
             },
 
             // Execution Plan commands
