@@ -3,9 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { WebviewApi } from "vscode-webview";
+
 export class VscodeApiSingleton {
     private static instance: VscodeApiSingleton;
-    public vscodeApiInstance: unknown;
+    public vscodeApiInstance: WebviewApi<unknown>;
 
     public static getInstance(): VscodeApiSingleton {
         if (!VscodeApiSingleton.instance) {
