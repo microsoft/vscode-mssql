@@ -28,7 +28,7 @@ import {
 } from "../../../sharedInterfaces/tableDesigner";
 import { ChevronRightFilled, ChevronLeftFilled, DismissRegular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
-import { useAccordionStyles } from "../../common/styles";
+import { useItemGroupStyles } from "../../common/styles";
 
 const useStyles = makeStyles({
     root: {
@@ -69,7 +69,7 @@ const useStyles = makeStyles({
 
 export const DesignerPropertiesPane = () => {
     const classes = useStyles();
-    const accordionStyles = useAccordionStyles();
+    const itemGroupStyles = useItemGroupStyles();
     const context = useContext(TableDesignerContext);
     if (!context) {
         return null;
@@ -102,7 +102,7 @@ export const DesignerPropertiesPane = () => {
             return undefined;
         }
         return (
-            <AccordionItem value={group} className={accordionStyles.accordionItem} key={group}>
+            <AccordionItem value={group} className={itemGroupStyles.itemGroup} key={group}>
                 <AccordionHeader>{group}</AccordionHeader>
                 <AccordionPanel>
                     <div className={classes.group}>

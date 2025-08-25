@@ -17,8 +17,8 @@ export const useStyles = makeStyles({
     workspaceExplorer: {
         display: "flex",
         flexDirection: "column",
-        width: "160px",
-        minWidth: "160px",
+        width: "250px",
+        minWidth: "250px",
         height: "100%",
         borderRight: "1px solid var(--vscode-panel-border)",
         transition: "width 0.2s ease-in-out",

@@ -665,6 +665,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("selectFabricWorkspace", async (state, payload) => {
             const workspace = state.fabricWorkspaces.find((w) => w.id === payload.workspaceId);
+            this.state.connectionProfile.server = "";
+            this.state.connectionProfile.database = "";
 
             if (
                 (workspace && workspace.loadStatus.status === ApiStatus.NotStarted) ||

@@ -105,7 +105,6 @@ const FabricWorkspaceFilter = ({
         const tenantName = data.optionText || "";
         const tenantId = data.optionValue || "";
         setSelectedTenantName(tenantName);
-
         selectTenantId(tenantId);
     }
 
@@ -147,6 +146,7 @@ const FabricWorkspaceFilter = ({
                                         className={styles.filterIcon}
                                     />
                                 }
+                                appearance="subtle"
                             />
                         </Tooltip>
                     </MenuTrigger>

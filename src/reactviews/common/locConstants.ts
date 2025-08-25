@@ -211,7 +211,7 @@ export class LocConstants {
             myData: l10n.t("My Data"),
             recent: l10n.t("Recent"),
             favorites: l10n.t("Favorites"),
-            workspaces: l10n.t("Workspaces"),
+            fabricWorkspaces: l10n.t("Fabric Workspaces"),
             signIntoFabric: l10n.t("Sign into Fabric"),
             filterByKeyword: l10n.t("Filter by keyword"),
             filter: l10n.t("Filter"),

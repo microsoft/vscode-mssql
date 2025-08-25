@@ -51,7 +51,7 @@ export const WorkspacesList = ({ workspaces, onWorkspaceSelect, selectedWorkspac
     return (
         <List
             role="listbox"
-            aria-label={Loc.connectionDialog.workspaces}
+            aria-label={Loc.connectionDialog.fabricWorkspaces}
             selectionMode="single"
             navigationMode="composite"
             selectedItems={selectedItems}

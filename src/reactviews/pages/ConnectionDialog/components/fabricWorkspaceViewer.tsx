@@ -185,15 +185,6 @@ export const FabricWorkspaceViewer = ({
                     </DataGridCell>
                 ),
             }),
-            createTableColumn<FabricSqlGridItem>({
-                columnId: "location",
-                renderHeaderCell: () => `${Loc.connectionDialog.locationColumnHeader}`,
-                renderCell: (item) => (
-                    <DataGridCell>
-                        <Text truncate>{item.workspaceName}</Text>
-                    </DataGridCell>
-                ),
-            }),
         ],
         [],
     );
@@ -272,9 +263,35 @@ export const FabricWorkspaceViewer = ({
                     <>
                         <div className={styles.workspaceHeader}>
                             <div className={styles.collapseButton}>
-                                <Text style={{ fontWeight: "600" }}>
-                                    {Loc.connectionDialog.explorer}
-                                </Text>
+                                <div className={styles.workspaceSearchBox}>
+                                    <Input
+                                        placeholder={Loc.connectionDialog.searchWorkspaces}
+                                        value={workspaceSearchFilter}
+                                        onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
+                                        contentBefore={<SearchRegular />}
+                                        contentAfter={
+                                            workspaceSearchFilter && (
+                                                <DismissRegular
+                                                    style={{
+                                                        cursor: "pointer",
+                                                    }}
+                                                    onClick={handleClearWorkspaceSearch}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === Keys.Enter) {
+                                                            handleClearWorkspaceSearch(e);
+                                                        }
+                                                    }}
+                                                    aria-label={Loc.common.clear}
+                                                    title={Loc.common.clear}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                />
+                                            )
+                                        }
+                                        size="small"
+                                        style={{ width: "100%" }}
+                                    />
+                                </div>
                                 <Button
                                     appearance="subtle"
                                     size="small"
@@ -299,38 +316,6 @@ export const FabricWorkspaceViewer = ({
                                         padding: "0 4px",
                                     }}
                                 />
-                            </div>
-                            <div className={styles.workspaceSearchBox}>
-                                <Input
-                                    placeholder={Loc.connectionDialog.searchWorkspaces}
-                                    value={workspaceSearchFilter}
-                                    onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
-                                    contentBefore={<SearchRegular />}
-                                    contentAfter={
-                                        workspaceSearchFilter && (
-                                            <DismissRegular
-                                                style={{
-                                                    cursor: "pointer",
-                                                }}
-                                                onClick={handleClearWorkspaceSearch}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === Keys.Enter) {
-                                                        handleClearWorkspaceSearch(e);
-                                                    }
-                                                }}
-                                                aria-label={Loc.common.clear}
-                                                title={Loc.common.clear}
-                                                role="button"
-                                                tabIndex={0}
-                                            />
-                                        )
-                                    }
-                                    size="small"
-                                    style={{ width: "100%" }}
-                                />
-                            </div>
-                            <div className={styles.workspaceTitle}>
-                                {Loc.connectionDialog.workspaces}
                             </div>
                         </div>
                         <div className={styles.workspaceListContainer}>

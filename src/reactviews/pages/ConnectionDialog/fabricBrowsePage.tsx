@@ -37,6 +37,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
 import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
+import { useItemGroupStyles } from "../../common/styles";
 
 const useStyles = makeStyles({
     icon: {
@@ -88,8 +89,9 @@ export const FabricBrowsePage = () => {
         return undefined;
     }
 
-    const formStyles = useFormStyles();
     const styles = useStyles();
+    const formStyles = useFormStyles();
+    const itemGroupStyles = useItemGroupStyles();
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
@@ -216,7 +218,7 @@ export const FabricBrowsePage = () => {
                         </Field>
                     </div>
 
-                    <Label>{Loc.connectionDialog.workspaces}</Label>
+                    <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
                     <div className={styles.workspaceContainer}>
                         <div className={styles.workspaceContentPadding}>
                             <FabricWorkspaceFilter
@@ -244,7 +246,7 @@ export const FabricBrowsePage = () => {
                     </div>
 
                     {context.state.formState.server && (
-                        <>
+                        <div className={itemGroupStyles.itemGroup}>
                             {context.state.connectionComponents.mainOptions
                                 .filter(
                                     (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
@@ -276,7 +278,7 @@ export const FabricBrowsePage = () => {
                                         />
                                     );
                                 })}
-                        </>
+                        </div>
                     )}
 
                     <AdvancedOptionsDrawer
