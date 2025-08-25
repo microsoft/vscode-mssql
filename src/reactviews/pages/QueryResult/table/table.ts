@@ -3,10 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// import 'media/table';
-// import 'media/slick.grid';
-// import 'media/slickColorTheme';
-
 import "../../../media/table.css";
 import { TableDataView } from "./tableDataView";
 import { ITableSorter, ITableConfiguration, ITableStyles, FilterableColumn } from "./interfaces";
@@ -17,23 +13,11 @@ import { CellSelectionModel } from "./plugins/cellSelectionModel.plugin";
 import { mixin } from "./objects";
 import { HeaderFilter } from "./plugins/headerFilter.plugin";
 import { ContextMenu } from "./plugins/contextMenu.plugin";
-import {
-    ColumnFilterState,
-    GetColumnWidthsRequest,
-    GetFiltersRequest,
-    GetGridScrollPositionRequest,
-    QueryResultReducers,
-    QueryResultWebviewState,
-    ResultSetSummary,
-    SetColumnWidthsRequest,
-    SetGridScrollPositionNotification,
-} from "../../../../sharedInterfaces/queryResult";
-import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
-import { QueryResultContextProps } from "../queryResultStateProvider";
+import { ColumnFilterState, ResultSetSummary } from "../../../../sharedInterfaces/queryResult";
+import { QueryResultReactProvider } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
 import { MouseButton } from "../../../common/utils";
-// import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
     return {
@@ -51,7 +35,6 @@ export const xmlLanguageId = "xml";
 export const jsonLanguageId = "json";
 
 export class Table<T extends Slick.SlickData> implements IThemable {
-    public queryResultContext: QueryResultContextProps;
     protected styleElement: HTMLStyleElement;
     protected idPrefix: string;
 
@@ -72,21 +55,19 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         styles: ITableStyles,
         private uri: string,
         private resultSetSummary: ResultSetSummary,
-        private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
-        context: QueryResultContextProps,
+        private context: QueryResultReactProvider,
         private linkHandler: (fileContent: string, fileType: string) => void,
         private gridId: string,
         private configuration: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
     ) {
-        this.queryResultContext = context!;
         this.linkHandler = linkHandler;
         this.selectionModel = new CellSelectionModel<T>(
             {
                 hasRowSelector: true,
             },
-            webViewState,
+            context,
         );
         if (
             !configuration ||
@@ -153,8 +134,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             new ContextMenu(
                 this.uri,
                 this.resultSetSummary,
-                this.queryResultContext,
-                this.webViewState,
+                this.context,
                 this.configuration.dataProvider as IDisposableDataProvider<T>,
             ),
         );
@@ -162,7 +142,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             new CopyKeybind(
                 this.uri,
                 this.resultSetSummary,
-                this.webViewState,
+                this.context,
                 this.configuration.dataProvider as IDisposableDataProvider<T>,
             ),
         );
@@ -173,7 +153,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                     maxWidth: MAX_COLUMN_WIDTH_PX,
                     autoSizeOnRender: this.webViewState.state.autoSizeColumns,
                 },
-                this.webViewState,
+                this.context,
             ),
         );
 
@@ -206,22 +186,16 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                 .getColumns()
                 .slice(1)
                 .map((v) => v.width);
-            let currentColumnSizes = await this.webViewState.extensionRpc.sendRequest(
-                GetColumnWidthsRequest.type,
-                {
-                    uri: this.queryResultContext.state.uri,
-                },
-            );
+            let currentColumnSizes = await this.context.getColumnWidths({
+                uri: this.uri,
+            });
             if (currentColumnSizes === columnSizes) {
                 return;
             }
-
-            let message = {
-                uri: this.queryResultContext.state.uri,
-                columnWidths: columnSizes,
-            };
-
-            await this.webViewState.extensionRpc.sendRequest(SetColumnWidthsRequest.type, message);
+            await this.context.setColumnWidths({
+                uri: this.uri,
+                columnWidths: columnSizes as number[],
+            });
         });
 
         this._grid.onScroll.subscribe(async (_e, data) => {
@@ -230,15 +204,12 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             }
 
             const viewport = this._grid.getViewport();
-            await this.webViewState.extensionRpc.sendNotification(
-                SetGridScrollPositionNotification.type,
-                {
-                    uri: this.queryResultContext.state.uri,
-                    gridId: this.gridId,
-                    scrollLeft: viewport.leftPx,
-                    scrollTop: viewport.top,
-                },
-            );
+            await this.context.setGridScrollPosition({
+                uri: this.uri,
+                gridId: this.gridId,
+                scrollLeft: viewport.leftPx,
+                scrollTop: viewport.top,
+            });
         });
 
         this.style(styles);
@@ -246,12 +217,10 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     public async restoreColumnWidths(): Promise<void> {
-        const columnWidthArray = await this.webViewState.extensionRpc.sendRequest(
-            GetColumnWidthsRequest.type,
-            {
-                uri: this.queryResultContext.state.uri,
-            },
-        );
+        const columnWidthArray = await this.context.getColumnWidths({
+            uri: this.uri,
+        });
+
         if (!columnWidthArray) {
             return;
         }
@@ -274,19 +243,15 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     public async setupFilterState(): Promise<boolean> {
         let sortColumn: Slick.Column<T> | undefined = undefined;
         let sortDirection: boolean | undefined = undefined;
-        const filterMapArray = await this.webViewState.extensionRpc.sendRequest(
-            GetFiltersRequest.type,
-            {
-                uri: this.queryResultContext.state.uri,
-            },
-        );
-
+        const filterMapArray = await this.context.getFilter({
+            uri: this.uri,
+        });
         if (!filterMapArray) {
             return false;
         }
         const filterMap = filterMapArray.find((filter) => filter[this.gridId]);
         if (!filterMap || !filterMap[this.gridId]) {
-            this.queryResultContext.log("No filters found in store");
+            this.context.log("No filters found in store");
             return false;
         }
         for (const column of this.columns) {
@@ -324,13 +289,10 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     public async setupScrollPosition(): Promise<void> {
-        const scrollPosition = await this.webViewState.extensionRpc.sendRequest(
-            GetGridScrollPositionRequest.type,
-            {
-                uri: this.queryResultContext.state.uri,
-                gridId: this.gridId,
-            },
-        );
+        const scrollPosition = await this.context.getScrollPosition({
+            uri: this.uri,
+            gridId: this.gridId,
+        });
         if (scrollPosition) {
             setTimeout(() => {
                 this._grid.scrollRowToTop(scrollPosition.scrollTop);

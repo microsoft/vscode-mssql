@@ -16,7 +16,6 @@ import { resolveVscodeThemeType } from "../../../../common/utils";
 import { VirtualizedList } from "../../../../common/virtualizedList";
 import { EventManager } from "../../../../common/eventManager";
 
-import { QueryResultContextProps } from "../../queryResultStateProvider";
 import {
     ColumnFilterState,
     GetFiltersRequest,
@@ -85,11 +84,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
             .subscribe(this.grid.onHeaderContextMenu, (e: Event) =>
                 this.headerContextMenuHandler(e),
             );
-        // .subscribe(this.grid.onClick, (e: DOMEvent) => this.handleBodyMouseDown(e as MouseEvent))
-        // .subscribe(this.grid.onColumnsResized, () => this.columnsResized());
-
-        // addEventListener('click', e => this.handleBodyMouseDown(e));
-        // this.disposableStore.add(addDisposableListener(document.body, 'keydown', e => this.handleKeyDown(e)));
     }
 
     public destroy() {

@@ -21,6 +21,7 @@ import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
 import { Keys } from "../../../../common/keys";
+import { QueryResultReactProvider } from "../../queryResultStateProvider";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -45,16 +46,14 @@ export class CellSelectionModel<T extends Slick.SlickData>
     private selector: ICellRangeSelector<T>;
     private ranges: Array<Slick.Range> = [];
     private _handler = new Slick.EventHandler();
-    private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>;
     private isMac: boolean | undefined;
 
     public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
     constructor(
         private options: ICellSelectionModelOptions = defaults,
-        webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
+        private context: QueryResultReactProvider,
     ) {
-        this.webViewState = webViewState;
         this.options = mixin(this.options, defaults, false);
         if (this.options.cellRangeSelector) {
             this.selector = this.options.cellRangeSelector;
@@ -634,7 +633,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private async setSelectionSummaryText(isSelection?: boolean) {
-        await this.webViewState.extensionRpc.sendRequest(SetSelectionSummaryRequest.type, {
+        await this.context.setSelection({
             summary: await selectionSummaryHelper(this.getSelectedRanges(), this.grid, isSelection),
         });
     }

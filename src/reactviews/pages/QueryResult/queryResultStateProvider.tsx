@@ -7,8 +7,21 @@ import { ReactNode, createContext, useMemo } from "react";
 import { getCoreRPCs2 } from "../../common/utils";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { ExecutionPlanProvider } from "../../../sharedInterfaces/executionPlan";
-import { CoreRPCs, ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 import {
+    CoreRPCs,
+    ExecuteCommandRequest,
+    GetPlatformRequest,
+} from "../../../sharedInterfaces/webview";
+import {
+    CopyAsCsvRequest,
+    copyAsJsonRequest,
+    CopyAsJsonRequest,
+    CopyHeadersParams,
+    CopyHeadersRequest,
+    CopySelectionRequest,
+    CopySelectionRequestParams,
+    CopyWithHeadersParams,
+    CopyWithHeadersRequest,
     GetColumnWidthsParams,
     GetColumnWidthsRequest,
     GetFiltersParams,
@@ -33,6 +46,8 @@ import {
     ResultSetSubset,
     SaveResultsWebviewParams,
     SaveResultsWebviewRequest,
+    SendToClipboardParams,
+    SendToClipboardRequest,
     SetColumnWidthsParams,
     SetColumnWidthsRequest,
     SetEditorSelectionParams,
@@ -41,6 +56,8 @@ import {
     SetGridPaneScrollPositionParams,
     SetGridScrollPositionNotification,
     SetGridScrollPositionParams,
+    SetSelectionSummary,
+    SetSelectionSummaryRequest,
 } from "../../../sharedInterfaces/queryResult";
 
 export interface QueryResultReactProvider
@@ -76,6 +93,14 @@ export interface QueryResultReactProvider
     setGridPaneScrollPosition: (params: SetGridPaneScrollPositionParams) => Promise<void>;
     closePanel: () => Promise<void>;
     openInNewTab: (params: OpenInNewTabParams) => Promise<void>;
+    setSelection: (params: SetSelectionSummary) => Promise<void>;
+    sendToClipboardRequest(params: SendToClipboardParams): Promise<void>;
+    copySelection(params: CopySelectionRequestParams): Promise<void>;
+    getPlatform(): Promise<string>;
+    copyHeaders(params: CopyHeadersParams): Promise<void>;
+    copyWithHeaders(params: CopyWithHeadersParams): Promise<void>;
+    copyAsCsv(params: CopyAsCsvRequest): Promise<void>;
+    copyAsJson(params: copyAsJsonRequest): Promise<void>;
 }
 
 export const QueryResultCommandsContext = createContext<QueryResultReactProvider | undefined>(
@@ -151,6 +176,30 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             },
             openInNewTab: (params: OpenInNewTabParams) => {
                 return extensionRpc.sendRequest(OpenInNewTabRequest.type, params);
+            },
+            setSelection: (params: SetSelectionSummary) => {
+                return extensionRpc.sendRequest(SetSelectionSummaryRequest.type, params);
+            },
+            sendToClipboardRequest: (params: SendToClipboardParams) => {
+                return extensionRpc.sendRequest(SendToClipboardRequest.type, params);
+            },
+            copySelection: (params: CopySelectionRequestParams) => {
+                return extensionRpc.sendRequest(CopySelectionRequest.type, params);
+            },
+            getPlatform: () => {
+                return extensionRpc.sendRequest(GetPlatformRequest.type);
+            },
+            copyWithHeaders: (params: CopyWithHeadersParams) => {
+                return extensionRpc.sendRequest(CopyWithHeadersRequest.type, params);
+            },
+            copyHeaders: (params: CopyHeadersParams) => {
+                return extensionRpc.sendRequest(CopyHeadersRequest.type, params);
+            },
+            copyAsCsv: (params: CopyAsCsvRequest) => {
+                return extensionRpc.sendRequest(CopyAsCsvRequest.type, params);
+            },
+            copyAsJson: (params: copyAsJsonRequest) => {
+                return extensionRpc.sendRequest(CopyAsJsonRequest.type, params);
             },
 
             // Execution Plan commands

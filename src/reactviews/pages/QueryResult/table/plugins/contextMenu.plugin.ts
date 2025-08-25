@@ -3,21 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    CopyAsCsvRequest,
-    CopyAsJsonRequest,
-    CopyHeadersRequest,
-    CopySelectionRequest,
-    CopyWithHeadersRequest,
-    DbCellValue,
-    QueryResultReducers,
-    QueryResultWebviewState,
-    ResultSetSummary,
-    SendToClipboardRequest,
-} from "../../../../../sharedInterfaces/queryResult";
+import { DbCellValue, ResultSetSummary } from "../../../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../../../common/locConstants";
-import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
-import { QueryResultContextProps } from "../../queryResultStateProvider";
+import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { IDisposableDataProvider } from "../dataProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
 import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } from "../utils";
@@ -31,13 +19,11 @@ export class ContextMenu<T extends Slick.SlickData> {
     constructor(
         private uri: string,
         private resultSetSummary: ResultSetSummary,
-        private queryResultContext: QueryResultContextProps,
-        private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
+        private queryResultContext: QueryResultReactProvider,
         private dataProvider: IDisposableDataProvider<T>,
     ) {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
-        this.webViewState = webViewState;
     }
 
     public init(grid: Slick.Grid<T>): void {
@@ -135,7 +121,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                                 }) as DbCellValue,
                         );
                     });
-                    await this.webViewState.extensionRpc.sendRequest(SendToClipboardRequest.type, {
+                    await this.queryResultContext.sendToClipboardRequest({
                         uri: this.uri,
                         data: dataArray,
                         batchId: this.resultSetSummary.batchId,
@@ -144,7 +130,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                         headersFlag: false,
                     });
                 } else {
-                    await this.webViewState.extensionRpc.sendRequest(CopySelectionRequest.type, {
+                    await this.queryResultContext.copySelection({
                         uri: this.uri,
                         batchId: this.resultSetSummary.batchId,
                         resultId: this.resultSetSummary.id,
@@ -174,7 +160,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                                 }) as DbCellValue,
                         );
                     });
-                    await this.webViewState.extensionRpc.sendRequest(SendToClipboardRequest.type, {
+                    await this.queryResultContext.sendToClipboardRequest({
                         uri: this.uri,
                         data: dataArray,
                         batchId: this.resultSetSummary.batchId,
@@ -183,7 +169,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                         headersFlag: true,
                     });
                 } else {
-                    await this.webViewState.extensionRpc.sendRequest(CopyWithHeadersRequest.type, {
+                    await this.queryResultContext.copyWithHeaders({
                         uri: this.uri,
                         batchId: this.resultSetSummary.batchId,
                         resultId: this.resultSetSummary.id,
@@ -194,7 +180,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 break;
             case "copy-headers":
                 this.queryResultContext.log("Copy Headers action triggered");
-                await this.webViewState.extensionRpc.sendRequest(CopyHeadersRequest.type, {
+                await this.queryResultContext.copyHeaders({
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
@@ -203,7 +189,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 break;
             case "copy-as-csv":
                 this.queryResultContext.log("Copy as CSV action triggered");
-                await this.webViewState.extensionRpc.sendRequest(CopyAsCsvRequest.type, {
+                await this.queryResultContext.copyAsCsv({
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
@@ -213,7 +199,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 break;
             case "copy-as-json":
                 this.queryResultContext.log("Copy as JSON action triggered");
-                await this.webViewState.extensionRpc.sendRequest(CopyAsJsonRequest.type, {
+                await this.queryResultContext.copyAsJson({
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,

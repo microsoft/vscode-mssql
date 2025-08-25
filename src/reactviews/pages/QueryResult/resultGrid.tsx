@@ -12,12 +12,18 @@ import { RowNumberColumn } from "./table/plugins/rowNumberColumn.plugin";
 import { VirtualizedCollection } from "./table/asyncDataView";
 import { HybridDataProvider } from "./table/hybridDataProvider";
 import { hyperLinkFormatter, textFormatter, DBCellValue, escape } from "./table/formatters";
-import { DbCellValue, ResultSetSummary } from "../../../sharedInterfaces/queryResult";
+import {
+    DbCellValue,
+    QueryResultReducers,
+    QueryResultWebviewState,
+    ResultSetSummary,
+} from "../../../sharedInterfaces/queryResult";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { LogCallback } from "../../../sharedInterfaces/webview";
 import { useQueryResultSelector } from "./queryResultSelector";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
