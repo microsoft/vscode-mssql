@@ -1419,6 +1419,5 @@ export default class QueryRunner {
             "mssql.runningQueries",
             QueryRunner._runningQueries,
         );
-        this._startEmitter.fire(this.uri);
     }
 }
