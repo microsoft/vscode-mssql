@@ -33,6 +33,7 @@ export class LocConstants {
             apply: l10n.t("Apply"),
             next: l10n.t("Next"),
             clearSelection: l10n.t("Clear Selection"),
+            clear: l10n.t("Clear"),
             find: l10n.t("Find"),
             findNext: l10n.t("Find Next"),
             findPrevious: l10n.t("Find Previous"),

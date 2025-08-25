@@ -25,10 +25,11 @@ import {
     FabricWorkspaceInfo,
     SqlArtifactTypes,
 } from "../../../../sharedInterfaces/connectionDialog";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, BaseSyntheticEvent } from "react";
 import {
     ChevronDoubleLeftFilled,
     ChevronDoubleRightFilled,
+    DismissRegular,
     ErrorCircleRegular,
     SearchRegular,
 } from "@fluentui/react-icons";
@@ -212,6 +213,12 @@ export const FabricWorkspaceViewer = ({
         onSelectDatabase(database);
     }
 
+    function handleClearWorkspaceSearch(e: BaseSyntheticEvent) {
+        setWorkspaceSearchFilter("");
+        e?.stopPropagation();
+        // buttonRef.current?.focus();
+    }
+
     function renderRow(
         { item, rowId }: TableRowData<FabricSqlGridItem>,
         style: React.CSSProperties,
@@ -299,6 +306,25 @@ export const FabricWorkspaceViewer = ({
                                     value={workspaceSearchFilter}
                                     onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
                                     contentBefore={<SearchRegular />}
+                                    contentAfter={
+                                        workspaceSearchFilter && (
+                                            <DismissRegular
+                                                style={{
+                                                    cursor: "pointer",
+                                                }}
+                                                onClick={handleClearWorkspaceSearch}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === Keys.Enter) {
+                                                        handleClearWorkspaceSearch(e);
+                                                    }
+                                                }}
+                                                aria-label={Loc.common.clear}
+                                                title={Loc.common.clear}
+                                                role="button"
+                                                tabIndex={0}
+                                            />
+                                        )
+                                    }
                                     size="small"
                                     style={{ width: "100%" }}
                                 />

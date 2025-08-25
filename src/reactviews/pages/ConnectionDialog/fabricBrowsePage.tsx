@@ -195,24 +195,27 @@ export const FabricBrowsePage = () => {
             />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
-                    <Field orientation="horizontal">
-                        <Label>{Loc.connectionDialog.fabricAccount}</Label>
-                        <Dropdown
-                            value={selectedAccountName}
-                            selectedOptions={
-                                context.state.selectedAccountId
-                                    ? [context.state.selectedAccountId]
-                                    : []
-                            }
-                            onOptionSelect={handleAccountChange}
-                            placeholder={Loc.connectionDialog.selectAnAccount}>
-                            {accounts.map((account) => (
-                                <Option key={account.id} value={account.id} text={account.name}>
-                                    {account.name}
-                                </Option>
-                            ))}
-                        </Dropdown>
-                    </Field>
+                    <div className={formStyles.formComponentDiv}>
+                        <Field orientation="horizontal">
+                            <Label>{Loc.connectionDialog.fabricAccount}</Label>
+                            <Dropdown
+                                value={selectedAccountName}
+                                selectedOptions={
+                                    context.state.selectedAccountId
+                                        ? [context.state.selectedAccountId]
+                                        : []
+                                }
+                                onOptionSelect={handleAccountChange}
+                                placeholder={Loc.connectionDialog.selectAnAccount}>
+                                {accounts.map((account) => (
+                                    <Option key={account.id} value={account.id} text={account.name}>
+                                        {account.name}
+                                    </Option>
+                                ))}
+                            </Dropdown>
+                        </Field>
+                    </div>
+
                     <Label>{Loc.connectionDialog.workspaces}</Label>
                     <div className={styles.workspaceContainer}>
                         <div className={styles.workspaceContentPadding}>
