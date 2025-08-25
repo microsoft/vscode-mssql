@@ -66,6 +66,7 @@ export const WorkspacesList = ({ workspaces, onWorkspaceSelect, selectedWorkspac
                     )}
                     aria-label={workspace.displayName}
                     title={workspace.displayName}
+                    // eslint-disable-next-line no-restricted-syntax
                     checkmark={null}>
                     <div style={{ display: "flex", alignItems: "center", minHeight: "20px" }}>
                         {/* Icon container with consistent styling */}

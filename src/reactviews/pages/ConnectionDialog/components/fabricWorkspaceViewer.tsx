@@ -13,6 +13,7 @@ import {
     Spinner,
     Input,
     TableRowData,
+    Tooltip,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -319,10 +320,54 @@ export const FabricWorkspaceViewer = ({
                                 />
                             </div>
                         </div>
-                        <div className={styles.workspaceListContainer}>
+                        <div
+                            className={styles.workspaceListContainer}
+                            style={{ position: "relative" }}>
                             {fabricWorkspacesLoadStatus.status === ApiStatus.Loading && (
-                                <div>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        padding: "16px",
+                                    }}>
                                     <Spinner size="medium" />
+                                    <Text className={styles.messageText}>
+                                        {Loc.connectionDialog.loadingWorkspaces}
+                                    </Text>
+                                </div>
+                            )}
+                            {fabricWorkspacesLoadStatus.status === ApiStatus.Error && (
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        padding: "16px",
+                                    }}>
+                                    <Tooltip
+                                        content={
+                                            fabricWorkspacesLoadStatus.message ||
+                                            Loc.connectionDialog.errorLoadingWorkspaces
+                                        }
+                                        relationship="label">
+                                        <ErrorCircleRegular className={styles.errorIcon} />
+                                    </Tooltip>
+                                    <Text className={styles.messageText}>
+                                        {Loc.connectionDialog.errorLoadingWorkspaces}
+                                    </Text>
                                 </div>
                             )}
                             {fabricWorkspacesLoadStatus.status === ApiStatus.Loaded && (
