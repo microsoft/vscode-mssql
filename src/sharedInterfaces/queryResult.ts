@@ -285,7 +285,7 @@ export namespace CopyAsCsvRequest {
     export const type = new RequestType<CopyAsCsvRequest, void, void>("copyAsCsv");
 }
 
-export interface copyAsJsonRequest {
+export interface CopyAsJsonRequest {
     uri: string;
     batchId: number;
     resultId: number;
@@ -294,7 +294,7 @@ export interface copyAsJsonRequest {
 }
 
 export namespace CopyAsJsonRequest {
-    export const type = new RequestType<copyAsJsonRequest, void, void>("copyAsJson");
+    export const type = new RequestType<CopyAsJsonRequest, void, void>("copyAsJson");
 }
 
 export interface SetSelectionSummary {

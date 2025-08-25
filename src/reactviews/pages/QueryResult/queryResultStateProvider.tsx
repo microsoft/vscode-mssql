@@ -14,7 +14,6 @@ import {
 } from "../../../sharedInterfaces/webview";
 import {
     CopyAsCsvRequest,
-    copyAsJsonRequest,
     CopyAsJsonRequest,
     CopyHeadersParams,
     CopyHeadersRequest,
@@ -56,8 +55,6 @@ import {
     SetGridPaneScrollPositionParams,
     SetGridScrollPositionNotification,
     SetGridScrollPositionParams,
-    SetSelectionSummary,
-    SetSelectionSummaryRequest,
 } from "../../../sharedInterfaces/queryResult";
 import { WebviewRpc } from "../../common/rpc";
 
@@ -95,14 +92,13 @@ export interface QueryResultReactProvider
     setGridPaneScrollPosition: (params: SetGridPaneScrollPositionParams) => Promise<void>;
     closePanel: () => Promise<void>;
     openInNewTab: (params: OpenInNewTabParams) => Promise<void>;
-    setSelection: (params: SetSelectionSummary) => Promise<void>;
     sendToClipboardRequest(params: SendToClipboardParams): Promise<void>;
     copySelection(params: CopySelectionRequestParams): Promise<void>;
     getPlatform(): Promise<string>;
     copyHeaders(params: CopyHeadersParams): Promise<void>;
     copyWithHeaders(params: CopyWithHeadersParams): Promise<void>;
     copyAsCsv(params: CopyAsCsvRequest): Promise<void>;
-    copyAsJson(params: copyAsJsonRequest): Promise<void>;
+    copyAsJson(params: CopyAsJsonRequest): Promise<void>;
 }
 
 export const QueryResultCommandsContext = createContext<QueryResultReactProvider | undefined>(
@@ -180,9 +176,6 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             openInNewTab: (params: OpenInNewTabParams) => {
                 return extensionRpc.sendRequest(OpenInNewTabRequest.type, params);
             },
-            setSelection: (params: SetSelectionSummary) => {
-                return extensionRpc.sendRequest(SetSelectionSummaryRequest.type, params);
-            },
             sendToClipboardRequest: (params: SendToClipboardParams) => {
                 return extensionRpc.sendRequest(SendToClipboardRequest.type, params);
             },
@@ -201,7 +194,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             copyAsCsv: (params: CopyAsCsvRequest) => {
                 return extensionRpc.sendRequest(CopyAsCsvRequest.type, params);
             },
-            copyAsJson: (params: copyAsJsonRequest) => {
+            copyAsJson: (params: CopyAsJsonRequest) => {
                 return extensionRpc.sendRequest(CopyAsJsonRequest.type, params);
             },
 

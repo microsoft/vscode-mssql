@@ -7,7 +7,10 @@
 // heavily modified
 
 import { CellRangeSelector, ICellRangeSelector } from "./cellRangeSelector";
-import { SelectionSummaryStats } from "../../../../../sharedInterfaces/queryResult";
+import {
+    SelectionSummaryStats,
+    SetSelectionSummaryRequest,
+} from "../../../../../sharedInterfaces/queryResult";
 
 import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
@@ -625,7 +628,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private async setSelectionSummaryText(isSelection?: boolean) {
-        await this.context.setSelection({
+        await this.context.extensionRpc.sendRequest(SetSelectionSummaryRequest.type, {
             summary: await selectionSummaryHelper(this.getSelectedRanges(), this.grid, isSelection),
         });
     }
