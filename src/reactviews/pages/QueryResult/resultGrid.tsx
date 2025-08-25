@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import $ from "jquery";
-import { forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useContext, useEffect, useImperativeHandle, useRef } from "react";
 import "../../media/slickgrid.css";
 import { ACTIONBAR_WIDTH_PX, range, Table } from "./table/table";
 import { defaultTableStyles } from "./table/interfaces";
@@ -52,7 +52,7 @@ export interface ResultGridHandle {
 }
 
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultGridProps, ref) => {
-    let table: Table<any>;
+    const tableRef = useRef<Table<any> | null>(null);
 
     const context = useContext(QueryResultCommandsContext);
     if (!context) {
@@ -67,7 +67,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     const { themeKind } = useVscodeWebview2();
 
     const gridContainerRef = useRef<HTMLDivElement>(null);
-    const [refreshKey, setRefreshKey] = useState(0);
+    const isTableCreated = useRef<boolean>(false);
     if (!props.gridParentRef) {
         return undefined;
     }
@@ -77,12 +77,15 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                 gridContainerRef.current.removeChild(gridContainerRef.current.firstChild);
             }
         }
+        isTableCreated.current = false;
+        tableRef.current = null;
     };
+
     const resizeGrid = (width: number, height: number) => {
-        if (!table) {
-            context.log("resizeGrid - table is not initialized");
-            refreshGrid();
-            setRefreshKey(refreshKey + 1);
+        if (!tableRef.current) {
+            context.log("resizeGrid - table is not initialized, creating table");
+            createTableIfNeeded();
+            return;
         }
         let gridParent: HTMLElement | null;
         if (!props.resultSetSummary) {
@@ -95,7 +98,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             gridParent.style.height = `${height}px`;
         }
         const dimension = new DOM.Dimension(width, height);
-        table?.layout(dimension);
+        tableRef.current?.layout(dimension);
     };
 
     const hideGrid = () => {
@@ -124,15 +127,32 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         }
     };
 
-    const createTable = () => {
-        const setupState = async () => {
-            await table.setupFilterState();
-            await table.restoreColumnWidths();
-            await table.setupScrollPosition();
-            table.headerFilter.enabled =
-                table.grid.getDataLength() < inMemoryDataProcessingThreshold!;
+    const updateRowCountOnly = () => {
+        if (tableRef.current && props.resultSetSummary) {
+            // Update the data provider with new row count
+            const dataProvider = tableRef.current.getData() as HybridDataProvider<any>;
+            if (dataProvider && "length" in dataProvider) {
+                dataProvider.length = props.resultSetSummary.rowCount;
+            }
+            tableRef.current.updateRowCount();
+        }
+    };
 
-            table.rerenderGrid();
+    const createTableIfNeeded = () => {
+        if (isTableCreated.current && tableRef.current) {
+            // Table already exists, just update row count
+            updateRowCountOnly();
+            return;
+        }
+        const setupState = async () => {
+            if (!tableRef.current) return;
+            await tableRef.current.setupFilterState();
+            await tableRef.current.restoreColumnWidths();
+            await tableRef.current.setupScrollPosition();
+            tableRef.current.headerFilter.enabled =
+                tableRef.current.grid.getDataLength() < inMemoryDataProcessingThreshold!;
+
+            tableRef.current.rerenderGrid();
         };
         const DEFAULT_FONT_SIZE = 12;
 
@@ -250,7 +270,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             undefined,
             undefined,
         );
-        table = new Table(
+        tableRef.current = new Table(
             div,
             defaultTableStyles,
             props.uri!,
@@ -267,22 +287,24 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         void setupState();
         collection.setCollectionChangedCallback((startIndex, count) => {
             let refreshedRows = range(startIndex, startIndex + count);
-            table.invalidateRows(refreshedRows, true);
+            tableRef.current?.invalidateRows(refreshedRows, true);
         });
-        table.updateRowCount();
+        tableRef.current.updateRowCount();
         gridContainerRef.current?.appendChild(div);
         if (
             props.gridParentRef &&
             props.gridParentRef.current &&
             props.gridParentRef.current.clientWidth
         ) {
-            table.layout(
+            tableRef.current.layout(
                 new DOM.Dimension(
                     props.gridParentRef.current.clientWidth - ACTIONBAR_WIDTH_PX,
                     props.gridParentRef.current.clientHeight,
                 ),
             );
         }
+
+        isTableCreated.current = true;
     };
 
     useImperativeHandle(ref, () => ({
@@ -293,8 +315,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     }));
 
     useEffect(() => {
-        createTable();
-    }, [refreshKey]);
+        createTableIfNeeded();
+    }, [props.resultSetSummary?.rowCount]);
 
     return <div id="gridContainter" ref={gridContainerRef}></div>;
 });

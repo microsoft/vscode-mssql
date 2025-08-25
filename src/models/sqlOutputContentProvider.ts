@@ -455,7 +455,7 @@ export class SqlOutputContentProvider {
                     queryRunner.uri,
                 );
                 resultWebviewState.messages.push(message);
-                resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+                //resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri);
             });
@@ -468,7 +468,7 @@ export class SqlOutputContentProvider {
 
                 // Set state for messages at fixed intervals to avoid spamming the webview
                 if (this._lastSendMessageTime < Date.now() - MESSAGE_INTERVAL_IN_MS) {
-                    resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+                    //resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
                     this.revealQueryResult(queryRunner.uri);
                     this._lastSendMessageTime = Date.now();
