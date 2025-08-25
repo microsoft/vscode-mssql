@@ -6,14 +6,11 @@
 import {
     DataGridHeader,
     DataGridHeaderCell,
-    Button,
     TableColumnDefinition,
     createTableColumn,
     Text,
     Spinner,
-    Input,
     TableRowData,
-    Tooltip,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -26,14 +23,8 @@ import {
     FabricWorkspaceInfo,
     SqlArtifactTypes,
 } from "../../../../sharedInterfaces/connectionDialog";
-import { useState, useEffect, useMemo, BaseSyntheticEvent } from "react";
-import {
-    ChevronDoubleLeftFilled,
-    ChevronDoubleRightFilled,
-    DismissRegular,
-    ErrorCircleRegular,
-    SearchRegular,
-} from "@fluentui/react-icons";
+import { useState, useEffect, useMemo } from "react";
+import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { Keys } from "../../../common/keys";
 import { useStyles } from "./fabricWorkspaceViewer.styles";
@@ -44,41 +35,6 @@ import { WorkspacesList } from "./fabricWorkspacesList";
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
 const sqlAnalyticsEndpointIcon = require("../../../../reactviews/media/data_warehouse.svg");
 
-function getItemIcon(artifactType: string): string {
-    switch (artifactType) {
-        case SqlArtifactTypes.SqlDatabase:
-            return sqlDatabaseIcon;
-        case SqlArtifactTypes.SqlAnalyticsEndpoint:
-            return sqlAnalyticsEndpointIcon;
-        default:
-            return sqlDatabaseIcon;
-    }
-}
-
-function getTypeDisplayName(artifactType: string): string {
-    switch (artifactType) {
-        case SqlArtifactTypes.SqlDatabase:
-            return Loc.connectionDialog.sqlDatabase;
-        case SqlArtifactTypes.SqlAnalyticsEndpoint:
-            return Loc.connectionDialog.sqlAnalyticsEndpoint;
-        default:
-            return artifactType;
-    }
-}
-
-interface WorkspacesListProps {
-    selectFabricWorkspace: (workspaceId: string) => void;
-    onSelectDatabase: (database: FabricSqlDbInfo) => void;
-    fabricWorkspacesLoadStatus: Status;
-    fabricWorkspaces: FabricWorkspaceInfo[];
-    searchFilter?: string;
-    typeFilter?: string[];
-}
-
-interface FabricSqlGridItem extends FabricSqlDbInfo {
-    typeDisplayName: string;
-}
-
 export const FabricWorkspaceViewer = ({
     selectFabricWorkspace,
     onSelectDatabase,
@@ -88,10 +44,10 @@ export const FabricWorkspaceViewer = ({
     typeFilter = [],
 }: WorkspacesListProps) => {
     const styles = useStyles();
-    const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
-    const [workspaceSearchFilter, setWorkspaceSearchFilter] = useState("");
+
+    //#region Hooks
 
     useEffect(() => {
         if (
@@ -101,16 +57,6 @@ export const FabricWorkspaceViewer = ({
             setSelectedWorkspaceId(fabricWorkspaces[0].id);
         }
     }, [fabricWorkspaces.length]);
-
-    const filteredWorkspaces = useMemo(() => {
-        if (!workspaceSearchFilter.trim()) {
-            return fabricWorkspaces;
-        }
-        const searchTerm = workspaceSearchFilter.toLowerCase();
-        return fabricWorkspaces.filter((workspace) =>
-            workspace.displayName.toLowerCase().includes(searchTerm),
-        );
-    }, [fabricWorkspaces, workspaceSearchFilter]);
 
     const selectedWorkspace = useMemo(() => {
         return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
@@ -196,19 +142,9 @@ export const FabricWorkspaceViewer = ({
         selectFabricWorkspace(workspace.id);
     };
 
-    const toggleExplorer = () => {
-        setIsExplorerCollapsed(!isExplorerCollapsed);
-    };
-
     function handleServerSelected(database: FabricSqlGridItem) {
         setSelectedRowId(database.id);
         onSelectDatabase(database);
-    }
-
-    function handleClearWorkspaceSearch(e: BaseSyntheticEvent) {
-        setWorkspaceSearchFilter("");
-        e?.stopPropagation();
-        // buttonRef.current?.focus();
     }
 
     function renderRow(
@@ -236,152 +172,16 @@ export const FabricWorkspaceViewer = ({
         );
     }
 
+    //#endregion Hooks
+
     return (
         <div className={styles.container}>
-            <div
-                className={
-                    isExplorerCollapsed
-                        ? styles.workspaceExplorerCollapsed
-                        : styles.workspaceExplorer
-                }>
-                {isExplorerCollapsed ? (
-                    <Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<ChevronDoubleRightFilled className={styles.collapseButtonIcon} />}
-                        onClick={toggleExplorer}
-                        onKeyDown={(e) => {
-                            if (e.key === Keys.Enter || e.key === Keys.Space) {
-                                toggleExplorer();
-                                e.preventDefault();
-                            }
-                        }}
-                        aria-label={Loc.connectionDialog.expandWorkspaceExplorer}
-                        title={Loc.connectionDialog.expand}
-                        className={styles.collapsedExplorerButton}
-                    />
-                ) : (
-                    <>
-                        <div className={styles.workspaceHeader}>
-                            <div className={styles.collapseButton}>
-                                <div className={styles.workspaceSearchBox}>
-                                    <Input
-                                        placeholder={Loc.connectionDialog.searchWorkspaces}
-                                        value={workspaceSearchFilter}
-                                        onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
-                                        contentBefore={<SearchRegular />}
-                                        contentAfter={
-                                            <DismissRegular
-                                                style={{
-                                                    cursor: "pointer",
-                                                    visibility: workspaceSearchFilter
-                                                        ? "visible"
-                                                        : "hidden",
-                                                }}
-                                                onClick={handleClearWorkspaceSearch}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === Keys.Enter) {
-                                                        handleClearWorkspaceSearch(e);
-                                                    }
-                                                }}
-                                                aria-label={Loc.common.clear}
-                                                title={Loc.common.clear}
-                                                role="button"
-                                                tabIndex={workspaceSearchFilter ? 0 : -1}
-                                            />
-                                        }
-                                        size="small"
-                                        style={{ width: "100%" }}
-                                    />
-                                </div>
-                                <Button
-                                    appearance="subtle"
-                                    size="small"
-                                    icon={
-                                        <ChevronDoubleLeftFilled
-                                            className={styles.collapseButtonIcon}
-                                        />
-                                    }
-                                    onClick={toggleExplorer}
-                                    onKeyDown={(e) => {
-                                        if (e.key === Keys.Enter || e.key === Keys.Space) {
-                                            toggleExplorer();
-                                            e.preventDefault();
-                                        }
-                                    }}
-                                    aria-label={Loc.connectionDialog.collapseWorkspaceExplorer}
-                                    title={Loc.connectionDialog.collapse}
-                                    style={{
-                                        minWidth: "24px",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        padding: "0 4px",
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div
-                            className={styles.workspaceListContainer}
-                            style={{ position: "relative" }}>
-                            {fabricWorkspacesLoadStatus.status === ApiStatus.Loading && (
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        position: "absolute",
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        bottom: 0,
-                                        padding: "16px",
-                                    }}>
-                                    <Spinner size="medium" />
-                                    <Text className={styles.messageText}>
-                                        {Loc.connectionDialog.loadingWorkspaces}
-                                    </Text>
-                                </div>
-                            )}
-                            {fabricWorkspacesLoadStatus.status === ApiStatus.Error && (
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        position: "absolute",
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        bottom: 0,
-                                        padding: "16px",
-                                    }}>
-                                    <Tooltip
-                                        content={
-                                            fabricWorkspacesLoadStatus.message ||
-                                            Loc.connectionDialog.errorLoadingWorkspaces
-                                        }
-                                        relationship="label">
-                                        <ErrorCircleRegular className={styles.errorIcon} />
-                                    </Tooltip>
-                                    <Text className={styles.messageText}>
-                                        {Loc.connectionDialog.errorLoadingWorkspaces}
-                                    </Text>
-                                </div>
-                            )}
-                            {fabricWorkspacesLoadStatus.status === ApiStatus.Loaded && (
-                                <WorkspacesList
-                                    workspaces={filteredWorkspaces}
-                                    onWorkspaceSelect={handleWorkspaceSelect}
-                                    selectedWorkspace={selectedWorkspace}
-                                />
-                            )}
-                        </div>
-                    </>
-                )}
-            </div>
-
+            <WorkspacesList
+                workspaces={fabricWorkspaces}
+                onWorkspaceSelect={handleWorkspaceSelect}
+                selectedWorkspace={selectedWorkspace}
+                fabricWorkspacesLoadStatus={fabricWorkspacesLoadStatus}
+            />
             <div className={styles.workspaceGrid}>
                 {fabricWorkspacesLoadStatus.status === ApiStatus.Loading ? (
                     <div className={styles.gridMessageContainer} role="status" aria-live="polite">
@@ -459,3 +259,38 @@ export const FabricWorkspaceViewer = ({
         </div>
     );
 };
+
+function getItemIcon(artifactType: string): string {
+    switch (artifactType) {
+        case SqlArtifactTypes.SqlDatabase:
+            return sqlDatabaseIcon;
+        case SqlArtifactTypes.SqlAnalyticsEndpoint:
+            return sqlAnalyticsEndpointIcon;
+        default:
+            return sqlDatabaseIcon;
+    }
+}
+
+function getTypeDisplayName(artifactType: string): string {
+    switch (artifactType) {
+        case SqlArtifactTypes.SqlDatabase:
+            return Loc.connectionDialog.sqlDatabase;
+        case SqlArtifactTypes.SqlAnalyticsEndpoint:
+            return Loc.connectionDialog.sqlAnalyticsEndpoint;
+        default:
+            return artifactType;
+    }
+}
+
+interface WorkspacesListProps {
+    selectFabricWorkspace: (workspaceId: string) => void;
+    onSelectDatabase: (database: FabricSqlDbInfo) => void;
+    fabricWorkspacesLoadStatus: Status;
+    fabricWorkspaces: FabricWorkspaceInfo[];
+    searchFilter?: string;
+    typeFilter?: string[];
+}
+
+interface FabricSqlGridItem extends FabricSqlDbInfo {
+    typeDisplayName: string;
+}
