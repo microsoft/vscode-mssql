@@ -266,6 +266,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     await this.loadAllAzureServers(state);
                 }
             } else if (state.selectedInputMode === ConnectionInputMode.FabricBrowse) {
+                // Don't port connection information when switching to Fabric Browse
+                state.connectionProfile.server = undefined;
+                state.connectionProfile.database = undefined;
+                state.connectionProfile.user = undefined;
+
                 if (state.selectedAccountId && state.selectedTenantId) {
                     await this.loadFabricWorkspaces(
                         state,
@@ -728,13 +733,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     protected getActiveFormComponents(
         state: ConnectionDialogWebviewState,
     ): (keyof IConnectionDialogProfile)[] {
-        if (
-            state.selectedInputMode === ConnectionInputMode.Parameters ||
-            state.selectedInputMode === ConnectionInputMode.AzureBrowse
-        ) {
-            return [...state.connectionComponents.mainOptions, "groupId"];
-        }
-        return ["connectionString", "profileName"];
+        return [...state.connectionComponents.mainOptions, "groupId"];
     }
 
     /** Returns a copy of `connection` that's been cleaned up by clearing the properties that aren't being used

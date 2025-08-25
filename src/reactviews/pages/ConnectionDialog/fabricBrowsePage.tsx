@@ -11,7 +11,6 @@ import {
     Field,
     InputOnChangeData,
     Label,
-    Link,
     makeStyles,
     MenuCheckedValueChangeData,
     MenuCheckedValueChangeEvent,
@@ -22,17 +21,19 @@ import {
 } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
+    AuthenticationType,
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
+    FabricSqlDbInfo,
     IAzureAccount,
     IConnectionDialogProfile,
+    SqlArtifactTypes,
 } from "../../../sharedInterfaces/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
 import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
@@ -75,6 +76,12 @@ export const fabricLogoColor = () => {
     return require(`../../media/fabric-color.svg`);
 };
 
+const fabricAuthOptions: (keyof IConnectionDialogProfile)[] = [
+    "authenticationType",
+    "accountId",
+    "tenantId",
+];
+
 export const FabricBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
     if (context === undefined) {
@@ -85,14 +92,6 @@ export const FabricBrowsePage = () => {
     const styles = useStyles();
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
-
-    const [servers, setServers] = useState<string[]>([]);
-    const [selectedServer, setSelectedServer] = useState<string>("");
-    const [serverValue, setServerValue] = useState<string>("");
-
-    const [databases, setDatabases] = useState<string[]>([]);
-    const [selectedDatabase, setSelectedDatabase] = useState<string>("");
-    const [databaseValue, setDatabaseValue] = useState<string>("");
 
     const [searchFilter, setSearchFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
@@ -158,6 +157,30 @@ export const FabricBrowsePage = () => {
         context!.selectAzureAccount(accountId);
     }
 
+    function handleServerSelected(selectedServer: FabricSqlDbInfo) {
+        switch (selectedServer.type) {
+            case SqlArtifactTypes.SqlAnalyticsEndpoint: {
+                // TODO: RPC to fetch server name
+                console.error("Selecting Fabric SQL Endpoints is not yet supported.");
+                return;
+
+                const serverUrl = "TODO";
+                setConnectionProperty("server", serverUrl);
+                setConnectionProperty("profileName", selectedServer.displayName);
+                setConnectionProperty("azureAuthType", AuthenticationType.AzureMFA);
+            }
+            case SqlArtifactTypes.SqlDatabase:
+                setConnectionProperty("server", selectedServer.server);
+                setConnectionProperty("database", selectedServer.database);
+                setConnectionProperty("profileName", selectedServer.displayName);
+                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+
+                return;
+            default:
+                console.error("Unknown server type selected.");
+        }
+    }
+
     return (
         <div>
             <EntraSignInEmpty
@@ -212,49 +235,16 @@ export const FabricBrowsePage = () => {
                                 searchFilter={searchFilter}
                                 typeFilter={typeFilter}
                                 selectFabricWorkspace={context.selectFabricWorkspace}
+                                onSelectDatabase={handleServerSelected}
                             />
                         </div>
                     </div>
 
-                    {selectedServer && (
+                    {context.state.formState.server && (
                         <>
-                            <FormField<
-                                IConnectionDialogProfile,
-                                ConnectionDialogWebviewState,
-                                ConnectionDialogFormItemSpec,
-                                ConnectionDialogContextProps
-                            >
-                                context={context}
-                                component={context.state.formComponents["trustServerCertificate"]!}
-                                idx={0}
-                                props={{ orientation: "horizontal" }}
-                            />
-                            <AzureFilterCombobox
-                                label={Loc.connectionDialog.databaseLabel}
-                                clearable
-                                content={{
-                                    valueList: databases,
-                                    value: databaseValue,
-                                    setValue: setDatabaseValue,
-                                    selection: selectedDatabase,
-                                    setSelection: (db) => {
-                                        setSelectedDatabase(db ?? "");
-                                        setConnectionProperty("database", db ?? "");
-                                    },
-                                    placeholder: `<${Loc.connectionDialog.default}>`,
-                                    invalidOptionErrorMessage:
-                                        Loc.connectionDialog.invalidAzureBrowse(
-                                            Loc.connectionDialog.database,
-                                        ),
-                                }}
-                            />
                             {context.state.connectionComponents.mainOptions
                                 .filter(
-                                    // filter out inputs that are manually placed above
-                                    (opt) =>
-                                        !["server", "database", "trustServerCertificate"].includes(
-                                            opt,
-                                        ),
+                                    (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
                                 )
                                 .map((inputName, idx) => {
                                     const component =
@@ -277,6 +267,9 @@ export const FabricBrowsePage = () => {
                                             component={component}
                                             idx={idx}
                                             props={{ orientation: "horizontal" }}
+                                            componentProps={{
+                                                disabled: inputName === "authenticationType",
+                                            }}
                                         />
                                     );
                                 })}
