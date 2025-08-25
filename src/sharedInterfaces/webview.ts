@@ -15,6 +15,11 @@ export enum ApiStatus {
     Error = "error",
 }
 
+export interface Status {
+    status: ApiStatus;
+    message?: string;
+}
+
 export interface WebviewTelemetryActionEvent {
     /**
      * The view in which the event occurred.
