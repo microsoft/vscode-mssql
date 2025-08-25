@@ -152,8 +152,6 @@ export const QueryResultPane = () => {
         return;
     }
 
-    const state = useQueryResultSelector<qr.QueryResultWebviewState>((s) => s);
-
     // Use selectors to get specific state pieces
     const resultSetSummaries = useQueryResultSelector<
         Record<number, Record<number, qr.ResultSetSummary>>
@@ -599,7 +597,6 @@ export const QueryResultPane = () => {
         // gets execution plans
         if (
             context &&
-            state &&
             isExecutionPlan &&
             uri &&
             executionPlanState &&
@@ -612,7 +609,7 @@ export const QueryResultPane = () => {
 
     const getWebviewLocation = async () => {
         const res = await context.extensionRpc.sendRequest(qr.GetWebviewLocationRequest.type, {
-            uri: state?.uri,
+            uri: uri,
         });
         setWebviewLocation(res);
     };
@@ -630,7 +627,7 @@ export const QueryResultPane = () => {
                 isProgrammaticScroll.current = true;
                 const position = await context?.extensionRpc.sendRequest(
                     qr.GetGridPaneScrollPositionRequest.type,
-                    { uri: state.uri },
+                    { uri: uri },
                 );
                 const el = scrollablePanelRef.current;
                 if (!el) return;
@@ -653,7 +650,7 @@ export const QueryResultPane = () => {
         }, 10);
     }, [uri]);
 
-    return !state || !hasResultsOrMessages(state) ? (
+    return !uri || !hasResultsOrMessages(resultSetSummaries, messages) ? (
         <div className={classes.root}>
             <div className={classes.noResultsContainer}>
                 <div className={classes.noResultsScrollablePane}>
@@ -728,7 +725,7 @@ export const QueryResultPane = () => {
                     const scrollTop = e.currentTarget.scrollTop;
                     void context.extensionRpc.sendNotification(
                         qr.SetGridPaneScrollPositionNotification.type,
-                        { uri: state?.uri, scrollTop },
+                        { uri: uri, scrollTop },
                     );
                 }}>
                 {tabStates!.resultPaneTab === qr.QueryResultPaneTabs.Results &&

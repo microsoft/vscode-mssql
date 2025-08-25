@@ -25,8 +25,11 @@ export const saveAsExcelIcon = (theme: ColorThemeKind) => {
         : require("../../media/saveExcel_inverse.svg");
 };
 
-export function hasResultsOrMessages(state: QueryResultWebviewState): boolean {
-    return Object.keys(state.resultSetSummaries).length > 0 || state.messages.length > 0;
+export function hasResultsOrMessages(
+    resultSetSummaries: Record<number, Record<number, qr.ResultSetSummary>>,
+    messages: qr.IMessage[],
+): boolean {
+    return Object.keys(resultSetSummaries).length > 0 || messages.length > 0;
 }
 
 /**
