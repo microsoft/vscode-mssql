@@ -21,8 +21,9 @@ import {
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
-import { QueryResultContext } from "./queryResultStateProvider";
+import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { LogCallback } from "../../../sharedInterfaces/webview";
+import { useQueryResultSelector } from "./queryResultSelector";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -59,10 +60,16 @@ export interface ResultGridHandle {
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultGridProps, ref) => {
     let table: Table<any>;
 
-    const context = useContext(QueryResultContext);
+    const context = useContext(QueryResultCommandsContext);
     if (!context) {
         return undefined;
     }
+
+    const inMemoryDataProcessingThreshold = useQueryResultSelector<number | undefined>(
+        (state) => state.inMemoryDataProcessingThreshold,
+    );
+    const fontSettings = useQueryResultSelector((state) => state.fontSettings);
+
     const gridContainerRef = useRef<HTMLDivElement>(null);
     const [refreshKey, setRefreshKey] = useState(0);
     if (!props.gridParentRef) {
@@ -127,18 +134,14 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             await table.restoreColumnWidths();
             await table.setupScrollPosition();
             table.headerFilter.enabled =
-                table.grid.getDataLength() < context.state.inMemoryDataProcessingThreshold!;
+                table.grid.getDataLength() < inMemoryDataProcessingThreshold!;
 
             table.rerenderGrid();
         };
         const DEFAULT_FONT_SIZE = 12;
-        context?.log(`resultGrid: ${context.state.fontSettings.fontSize}`);
 
-        const ROW_HEIGHT = context.state.fontSettings.fontSize! + 12; // 12 px is the padding
-        const COLUMN_WIDTH = Math.max(
-            (context.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) * 120,
-            120,
-        ); // Scale width with font size, but keep a minimum of 120px
+        const ROW_HEIGHT = fontSettings.fontSize! + 12; // 12 px is the padding
+        const COLUMN_WIDTH = Math.max((fontSettings.fontSize! / DEFAULT_FONT_SIZE) * 120, 120); // Scale width with font size, but keep a minimum of 120px
         if (!props.resultSetSummary || !props.linkHandler) {
             return;
         }
@@ -246,7 +249,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             },
             {
                 inMemoryDataProcessing: true,
-                inMemoryDataCountThreshold: context.state.inMemoryDataProcessingThreshold,
+                inMemoryDataCountThreshold: inMemoryDataProcessingThreshold,
             },
             undefined,
             undefined,
