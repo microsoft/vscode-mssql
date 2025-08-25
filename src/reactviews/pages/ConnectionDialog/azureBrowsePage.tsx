@@ -53,7 +53,6 @@ export const AzureBrowsePage = () => {
     }
 
     const formStyles = useFormStyles();
-    const styles = useStyles();
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
