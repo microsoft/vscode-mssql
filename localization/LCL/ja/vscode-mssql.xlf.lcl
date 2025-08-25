@@ -9675,19 +9675,25 @@
       </Item>
       <Item ItemId=";package.mssql.saveAsCsv.delimiter" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
+          <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[省略可能]5D; 結果を CSV として保存するときのデータ項目を区切るための区切り文字]]></Val>
+            <Val><![CDATA[[省略可能]5D; 結果を CSV として保存するときにデータ項目を区切るための区切り記号です。コンマ (,)、タブ (\t)、セミコロン (;)、パイプ (|) などの一般的な区切り記号から選択します]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; Delimiter for separating data items when saving results as CSV]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.saveAsCsv.encoding" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
+          <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[[省略可能]5D; 結果を CSV として保存するときに使用するファイル エンコード]]></Val>
+            <Val><![CDATA[[省略可能]5D; 結果を CSV として保存するときに使用するファイル エンコードです。ターゲット アプリケーションの互換性に基づいて、UTF-8 (推奨)、UTF-16、ASCII、または Latin-1 から選択します]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[[Optional]5D; File encoding used when saving results as CSV]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
