@@ -59,10 +59,12 @@ import {
     SetSelectionSummary,
     SetSelectionSummaryRequest,
 } from "../../../sharedInterfaces/queryResult";
+import { WebviewRpc } from "../../common/rpc";
 
 export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan">,
         CoreRPCs {
+    extensionRpc: WebviewRpc<QueryResultReducers>;
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     setResultViewMode: (viewMode: QueryResultViewMode) => void;
     /**
@@ -116,6 +118,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
 
     const commands = useMemo<QueryResultReactProvider>(
         () => ({
+            extensionRpc,
             ...getCoreRPCs2<QueryResultReducers>(extensionRpc),
             setResultTab: (tabId: QueryResultPaneTabs) => {
                 extensionRpc.action("setResultTab", { tabId });
