@@ -79,6 +79,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             workspace: "",
             databaseName: "",
         } as FabricProvisioningFormState;
+        console.log(this.state);
         const azureActionButtons = await this.getAzureActionButtons();
 
         this.state.formComponents = this.setFabricProvisioningFormComponents(
@@ -94,18 +95,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private registerRpcHandlers() {
-        this.registerReducer("formAction", async (state, payload) => {
-            if (state.formState) {
-                (state.formState as any)[payload.event.propertyName] = payload.event.value;
-            }
-
-            if (payload.event.propertyName === "accountId") {
-                state.workspaces = [];
-                this.updateState(state);
-                this.getWorkspaces();
-            }
-            return state;
-        });
         this.registerReducer("loadWorkspaces", async (state, _payload) => {
             if (this.state.workspaces) {
                 state.workspaces = this.state.workspaces;
@@ -201,10 +190,9 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     private async loadWorkspacesAfterSignIn(_propertyName: string) {
         const accountComponent = this.getFormComponent(this.state, "accountId");
         accountComponent.actionButtons = await this.getAzureActionButtons();
-        this.state.workspaces = await FabricHelper.getFabricWorkspaces(undefined);
-        const workspaceComponent = this.getFormComponent(this.state, "workspace");
-        workspaceComponent.options = this.getWorkspaceOptions();
+        this.state.workspaces = [];
         this.updateState();
+        this.getWorkspaces();
     }
 
     private getWorkspaceOptions(): FormItemOptions[] {
