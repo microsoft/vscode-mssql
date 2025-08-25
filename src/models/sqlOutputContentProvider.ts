@@ -360,7 +360,7 @@ export class SqlOutputContentProvider {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
             });
-            const resultSetListener = queryRunner.onResultSet(
+            const resultSetAvailableListener = queryRunner.onResultSetAvailable(
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
                         this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
@@ -370,7 +370,64 @@ export class SqlOutputContentProvider {
                         resultWebviewState.resultSetSummaries[batchId] = {};
                     }
                     resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
+
+                    // Switch to results tab as soon as first results are available
+                    resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                    this.revealQueryResult(queryRunner.uri);
+                },
+            );
+
+            const resultSetUpdatedListener = queryRunner.onResultSetUpdated(
+                async (resultSet: ResultSetSummary) => {
+                    const resultWebviewState =
+                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    const batchId = resultSet.batchId;
+                    const resultId = resultSet.id;
+                    if (!resultWebviewState.resultSetSummaries[batchId]) {
+                        resultWebviewState.resultSetSummaries[batchId] = {};
+                    }
+                    resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
+
+                    // Update the stored state immediately
+                    this._queryResultWebviewController.setQueryResultState(
+                        queryRunner.uri,
+                        resultWebviewState,
+                    );
+
+                    this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                    this.revealQueryResult(queryRunner.uri);
+                },
+            );
+
+            const resultSetCompleteListener = queryRunner.onResultSetComplete(
+                async (resultSet: ResultSetSummary) => {
+                    const resultWebviewState =
+                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    const batchId = resultSet.batchId;
+                    const resultId = resultSet.id;
+                    if (!resultWebviewState.resultSetSummaries[batchId]) {
+                        resultWebviewState.resultSetSummaries[batchId] = {};
+                    }
+                    resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
+
+                    this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                    this.revealQueryResult(queryRunner.uri);
+                },
+            );
+
+            // Keep the old listener for backwards compatibility
+            const resultSetListener = queryRunner.onResultSet(
+                async (resultSet: ResultSetSummary) => {
+                    // const resultWebviewState =
+                    //     this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    // const batchId = resultSet.batchId;
+                    // const resultId = resultSet.id;
+                    // if (!resultWebviewState.resultSetSummaries[batchId]) {
+                    //     resultWebviewState.resultSetSummaries[batchId] = {};
+                    // }
+                    // resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
+                    // this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 },
             );
             const batchStartListener = queryRunner.onBatchStart(async (batch) => {
@@ -453,6 +510,9 @@ export class SqlOutputContentProvider {
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
                 startListener,
+                resultSetAvailableListener,
+                resultSetUpdatedListener,
+                resultSetCompleteListener,
                 resultSetListener,
                 batchStartListener,
                 onMessageListener,
