@@ -327,7 +327,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             this._queryResultWebviewPanelControllerMap
                 .get(uri)
                 .updateState(this.getQueryResultState(uri));
-            this._queryResultWebviewPanelControllerMap.get(uri).revealToForeground();
+            //this._queryResultWebviewPanelControllerMap.get(uri).revealToForeground();
         }
     }
 

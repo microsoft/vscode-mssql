@@ -355,7 +355,6 @@ export class SqlOutputContentProvider {
                     await this._queryResultWebviewController.createPanelController(queryRunner.uri);
                 }
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
@@ -374,7 +373,6 @@ export class SqlOutputContentProvider {
                     // Switch to results tab as soon as first results are available
                     resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                    this.revealQueryResult(queryRunner.uri);
                 },
             );
 
@@ -396,7 +394,6 @@ export class SqlOutputContentProvider {
                     );
 
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                    this.revealQueryResult(queryRunner.uri);
                 },
             );
 
@@ -412,7 +409,6 @@ export class SqlOutputContentProvider {
                     resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
 
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                    this.revealQueryResult(queryRunner.uri);
                 },
             );
 
@@ -455,9 +451,7 @@ export class SqlOutputContentProvider {
                     queryRunner.uri,
                 );
                 resultWebviewState.messages.push(message);
-                //resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResult(queryRunner.uri);
             });
             const onMessageListener = queryRunner.onMessage(async (message) => {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
@@ -470,7 +464,6 @@ export class SqlOutputContentProvider {
                 if (this._lastSendMessageTime < Date.now() - MESSAGE_INTERVAL_IN_MS) {
                     //resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                    this.revealQueryResult(queryRunner.uri);
                     this._lastSendMessageTime = Date.now();
                 }
             });
@@ -504,7 +497,6 @@ export class SqlOutputContentProvider {
                 }
                 resultWebviewState.tabStates.resultPaneTab = tabState;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResult(queryRunner.uri);
             });
 
             const queryRunnerState = new QueryRunnerState(queryRunner);
