@@ -34,9 +34,7 @@ import { ACTIONBAR_WIDTH_PX, SCROLLBAR_PX, TABLE_ALIGN_PX } from "./table/table"
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateProvider";
 import { hasResultsOrMessages, splitMessages } from "./queryResultUtils";
-import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
-import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 
