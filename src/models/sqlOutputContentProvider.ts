@@ -358,7 +358,7 @@ export class SqlOutputContentProvider {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
             });
-            const resultSetListener = queryRunner.onResultSetComplete(
+            const resultSetCompleteListener = queryRunner.onResultSetComplete(
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
                         this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
@@ -487,7 +487,7 @@ export class SqlOutputContentProvider {
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
                 startListener,
-                resultSetListener,
+                resultSetCompleteListener,
                 batchStartListener,
                 onMessageListener,
                 onCompleteListener,
