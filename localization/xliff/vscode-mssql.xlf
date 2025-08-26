@@ -3163,7 +3163,7 @@
     <trans-unit id="mssql.enableSqlAuthenticationProvider">
       <source xml:lang="en">Enables use of the Sql Authentication Provider for &apos;Microsoft Entra Id Interactive&apos; authentication mode when user selects &apos;AzureMFA&apos; authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for &apos;MSAL&apos; Authentication Library. Please restart Visual Studio Code after changing this option.</source>
     </trans-unit>
-    <trans-unit id="mssql.showExecutionPlanInResults">
+    <trans-unit id="mssql.showEstimatedPlan">
       <source xml:lang="en">Estimated Plan</source>
     </trans-unit>
     <trans-unit id="mssql.runCurrentStatement">
