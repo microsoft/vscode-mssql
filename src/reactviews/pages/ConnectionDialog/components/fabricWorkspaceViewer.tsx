@@ -37,32 +37,32 @@ const sqlAnalyticsEndpointIcon = require("../../../../reactviews/media/data_ware
 export const WorkspaceContentsList = ({
     onSelectDatabase,
     fabricWorkspacesLoadStatus,
-    fabricWorkspaces,
+    selectedWorkspace,
     searchFilter = "",
     typeFilter = [],
 }: WorkspaceContentsList) => {
     const styles = useFabricBrowserStyles();
-    const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
+    // const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
 
     //#region Hooks
 
-    useEffect(() => {
-        if (
-            fabricWorkspaces.length > 0 &&
-            (!selectedWorkspaceId || !fabricWorkspaces.some((w) => w.id === selectedWorkspaceId))
-        ) {
-            setSelectedWorkspaceId(fabricWorkspaces[0].id);
-        }
-    }, [fabricWorkspaces.length]);
+    // useEffect(() => {
+    //     if (
+    //         fabricWorkspaces.length > 0 &&
+    //         (!selectedWorkspaceId || !fabricWorkspaces.some((w) => w.id === selectedWorkspaceId))
+    //     ) {
+    //         setSelectedWorkspaceId(fabricWorkspaces[0].id);
+    //     }
+    // }, [fabricWorkspaces.length]);
 
-    const selectedWorkspace = useMemo(() => {
-        return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
-    }, [fabricWorkspaces, selectedWorkspaceId]);
+    // const selectedWorkspace = useMemo(() => {
+    //     return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
+    // }, [fabricWorkspaces, selectedWorkspaceId]);
 
     const databasesForSelectedWorkspace = useMemo(() => {
-        return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId)?.databases || [];
-    }, [fabricWorkspaces, selectedWorkspaceId]);
+        return selectedWorkspace?.databases || [];
+    }, [selectedWorkspace?.id]);
 
     const items = useMemo(() => {
         const result: FabricSqlGridItem[] = [];
@@ -184,8 +184,7 @@ export const WorkspaceContentsList = ({
                                 Loc.connectionDialog.errorLoadingWorkspaces}
                         </Text>
                     </div>
-                ) : fabricWorkspacesLoadStatus.status === ApiStatus.Loaded &&
-                  fabricWorkspaces.length === 0 ? (
+                ) : fabricWorkspacesLoadStatus.status === ApiStatus.Loaded && !selectedWorkspace ? (
                     <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
                         {Loc.connectionDialog.noWorkspacesFound}
                     </div>
@@ -271,7 +270,7 @@ function getTypeDisplayName(artifactType: string): string {
 interface WorkspaceContentsList {
     onSelectDatabase: (database: FabricSqlDbInfo) => void;
     fabricWorkspacesLoadStatus: Status;
-    fabricWorkspaces: FabricWorkspaceInfo[];
+    selectedWorkspace: FabricWorkspaceInfo | undefined;
     searchFilter?: string;
     typeFilter?: string[];
 }

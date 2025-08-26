@@ -42,6 +42,10 @@ export const FabricExplorer = ({
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
 
     const selectedWorkspace = useMemo(() => {
+        if (fabricWorkspaces.length === 0 || !selectedWorkspaceId) {
+            return undefined;
+        }
+
         return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
     }, [fabricWorkspaces, selectedWorkspaceId]);
 
@@ -92,7 +96,7 @@ export const FabricExplorer = ({
                 />
                 <WorkspaceContentsList
                     fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
-                    fabricWorkspaces={context.state.fabricWorkspaces}
+                    selectedWorkspace={selectedWorkspace}
                     searchFilter={searchFilter}
                     typeFilter={typeFilter}
                     onSelectDatabase={handleDatabaseSelected}

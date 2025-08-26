@@ -35,8 +35,6 @@ import {
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { WorkspaceContentsList } from "./components/fabricWorkspaceViewer";
-import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
 import { useItemGroupStyles } from "../../common/styles";
 import { FabricExplorer } from "./components/fabric/fabricExplorer.component";
@@ -95,9 +93,6 @@ export const FabricBrowsePage = () => {
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
-    const [searchFilter, setSearchFilter] = useState<string>("");
-    const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
-
     const [accounts, setAccounts] = useState<IAzureAccount[]>([]);
     // const [selectedAccountId, setSelectedAccountId] = useState<string>("");
     const [selectedAccountName, setSelectedAccountName] = useState<string>("");
@@ -120,6 +115,7 @@ export const FabricBrowsePage = () => {
                 }
             } else if (context.state.azureAccounts.length > 0) {
                 // Set the first account as selected if no account is currently selected
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 handleAccountChange({} as any, {
                     optionText: context.state.azureAccounts[0].name,
                     optionValue: context.state.azureAccounts[0].id,
@@ -135,19 +131,6 @@ export const FabricBrowsePage = () => {
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
-    }
-
-    function handleSearchInputChanged(_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) {
-        setSearchFilter(data.value);
-    }
-
-    function handleFilterOptionChanged(
-        _: MenuCheckedValueChangeEvent,
-        { name, checkedItems }: MenuCheckedValueChangeData,
-    ) {
-        if (name === "sqlType") {
-            setTypeFilter(checkedItems);
-        }
     }
 
     function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
