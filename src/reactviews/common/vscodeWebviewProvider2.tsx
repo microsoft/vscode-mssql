@@ -85,78 +85,79 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
 
     const stateRef = useRef<State | undefined>(undefined);
     const listenersRef = useRef(new Set<() => void>());
+    const [isInitialized, setIsInitialized] = useState(false);
 
-    const getSnapshot = useCallback(() => stateRef.current as State, []);
+    const getSnapshot = useCallback(() => {
+        // Return a safe default while not initialized to prevent useSyncExternalStore from erroring
+        return stateRef.current ?? ({} as State);
+    }, []);
+
     const subscribe = useCallback((listener: () => void) => {
         listenersRef.current.add(listener);
         return () => {
             listenersRef.current.delete(listener);
         };
     }, []);
+
     const emit = () => {
         listenersRef.current.forEach((fn) => fn());
     };
 
-    // Bootstrap
+    // Bootstrap - register notification handlers BEFORE fetching state
     useEffect(() => {
-        async function getTheme() {
-            const theme = await extensionRpc.sendRequest(GetThemeRequest.type);
-            setTheme(theme);
-        }
+        // Register notification handlers first to prevent race conditions
+        extensionRpc.onNotification(ColorThemeChangeNotification.type, (params) => {
+            setTheme(params as ColorThemeKind);
+        });
 
-        async function getState() {
-            const initial = await extensionRpc.sendRequest(GetStateRequest.type<State>());
-            stateRef.current = initial;
+        extensionRpc.onNotification<State>(StateChangeNotification.type<State>(), (params) => {
+            stateRef.current = params;
             emit();
-        }
+        });
 
-        async function loadStats() {
-            await extensionRpc.sendNotification(LoadStatsNotification.type, {
-                loadCompleteTimeStamp: Date.now(),
-            });
-        }
+        async function bootstrap() {
+            try {
+                // Coordinate all initialization operations
+                const [theme, initialState, eol, fileContents] = await Promise.all([
+                    extensionRpc.sendRequest(GetThemeRequest.type),
+                    extensionRpc.sendRequest(GetStateRequest.type<State>()),
+                    extensionRpc.sendRequest(GetEOLRequest.type),
+                    extensionRpc.sendRequest(GetLocalizationRequest.type),
+                ]);
 
-        async function getLocalization() {
-            const fileContents = await extensionRpc.sendRequest(GetLocalizationRequest.type);
-            if (fileContents) {
-                await l10n.config({
-                    contents: fileContents,
+                // Set state atomically
+                setTheme(theme);
+                stateRef.current = initialState;
+                setEOL(eol);
+
+                // Handle localization if available
+                if (fileContents) {
+                    await l10n.config({
+                        contents: fileContents,
+                    });
+                    // Brief delay to ensure l10n is properly initialized
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    LocConstants.createInstance();
+                }
+                setLocalization(true);
+
+                // Send load stats notification
+                await extensionRpc.sendNotification(LoadStatsNotification.type, {
+                    loadCompleteTimeStamp: Date.now(),
                 });
-                //delay 100ms to make sure the l10n is initialized before the component is rendered
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-                LocConstants.createInstance();
+
+                // Mark as initialized and emit state change
+                setIsInitialized(true);
+                emit();
+            } catch (error) {
+                console.error("Bootstrap failed:", error);
+                // Still mark as initialized to prevent infinite loading
+                setIsInitialized(true);
             }
-            /**
-             * This is a hack to force a re-render of the component when the localization filecontent
-             * is received from the extension.
-             */
-            setLocalization(true);
         }
 
-        async function getEOL() {
-            const eol = await extensionRpc.sendRequest(GetEOLRequest.type);
-            setEOL(eol);
-        }
-
-        void getTheme();
-        void getState();
-        void loadStats();
-        void getLocalization();
-        void getEOL();
+        void bootstrap();
     }, []);
-
-    extensionRpc.onNotification(ColorThemeChangeNotification.type, (params) => {
-        setTheme(params as ColorThemeKind);
-    });
-
-    extensionRpc.onNotification<State>(StateChangeNotification.type<State>(), (params) => {
-        stateRef.current = params;
-        emit();
-    });
-
-    function isInitialized(): boolean {
-        return stateRef.current !== undefined;
-    }
 
     return (
         <VscodeWebviewContext2.Provider
@@ -176,8 +177,8 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
                 }}
                 theme={webviewTheme(theme)}>
                 {
-                    // don't render webview unless necessary dependencies are initialized
-                    isInitialized() && children
+                    // don't render webview unless initialization is complete and state is available
+                    isInitialized && stateRef.current !== undefined && children
                 }
             </FluentProvider>
         </VscodeWebviewContext2.Provider>

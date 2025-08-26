@@ -87,6 +87,16 @@ export class WebviewRpc<Reducers> {
             new WebviewRpcMessageReader(),
             new WebviewRpcMessageWriter(_vscodeApi),
         );
+
+        // Add error handling for RPC connection
+        this.connection.onError((error) => {
+            console.error("WebviewRpc connection error:", error);
+        });
+
+        this.connection.onClose(() => {
+            console.warn("WebviewRpc connection closed");
+        });
+
         this.connection.listen();
     }
 
