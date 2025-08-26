@@ -478,10 +478,15 @@ export class SqlOutputContentProvider {
                 if (hasError) {
                     tabState = QueryResultPaneTabs.Messages;
                 } else {
-                    tabState =
-                        Object.keys(resultWebviewState.resultSetSummaries).length > 0
-                            ? QueryResultPaneTabs.Results
-                            : QueryResultPaneTabs.Messages;
+                    if (resultWebviewState.isExecutionPlan) {
+                        tabState = QueryResultPaneTabs.ExecutionPlan;
+                    } else {
+                        if (Object.keys(resultWebviewState.resultSetSummaries)?.length > 0) {
+                            tabState = QueryResultPaneTabs.Results;
+                        } else {
+                            tabState = QueryResultPaneTabs.Messages;
+                        }
+                    }
                 }
                 resultWebviewState.tabStates.resultPaneTab = tabState;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
