@@ -30,13 +30,13 @@ import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { IAzureTenant } from "../../../../sharedInterfaces/connectionDialog";
 
-interface Props {
+interface FabricExplorerFilterProps {
     onSearchInputChanged: (_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => void;
     onFilterOptionChanged: (
         _: MenuCheckedValueChangeEvent,
         { name, checkedItems }: MenuCheckedValueChangeData,
     ) => void;
-    selectTenantId: (tenantId: string) => void;
+    onSelectTenantId: (tenantId: string) => void;
     searchValue?: string;
     selectedTypeFilters?: string[];
     azureTenants: IAzureTenant[];
@@ -75,12 +75,12 @@ const useStyles = makeStyles({
 const FabricWorkspaceFilter = ({
     onSearchInputChanged,
     onFilterOptionChanged,
-    selectTenantId,
+    onSelectTenantId,
     searchValue = "",
     selectedTypeFilters = [],
     azureTenants = [],
     selectedTenantId = "",
-}: Props) => {
+}: FabricExplorerFilterProps) => {
     const context = useContext(ConnectionDialogContext);
     const theme = context!.themeKind;
     const styles = useStyles();
@@ -105,7 +105,7 @@ const FabricWorkspaceFilter = ({
         const tenantName = data.optionText || "";
         const tenantId = data.optionValue || "";
         setSelectedTenantName(tenantName);
-        selectTenantId(tenantId);
+        onSelectTenantId(tenantId);
     }
 
     return (

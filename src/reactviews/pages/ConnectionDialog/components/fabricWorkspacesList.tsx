@@ -26,24 +26,24 @@ import {
     SearchRegular,
 } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
-import { useStyles } from "./fabricWorkspaceViewer.styles";
+import { useFabricBrowserStyles } from "./fabricWorkspaceViewer.styles";
 import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
 import { Keys } from "../../../common/keys";
 
-interface Props {
+interface WorkspacesListProps {
     workspaces: FabricWorkspaceInfo[];
-    onWorkspaceSelect: (workspace: FabricWorkspaceInfo) => void;
+    onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;
     selectedWorkspace?: FabricWorkspaceInfo;
     fabricWorkspacesLoadStatus: Status;
 }
 
 export const WorkspacesList = ({
     workspaces,
-    onWorkspaceSelect,
+    onSelectWorkspace,
     selectedWorkspace,
     fabricWorkspacesLoadStatus,
-}: Props) => {
-    const styles = useStyles();
+}: WorkspacesListProps) => {
+    const styles = useFabricBrowserStyles();
 
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
 
@@ -77,11 +77,11 @@ export const WorkspacesList = ({
                 const selectedId = data.selectedItems[0] as string;
                 const workspace = workspaces.find((w) => w.id === selectedId);
                 if (workspace) {
-                    onWorkspaceSelect(workspace);
+                    onSelectWorkspace(workspace);
                 }
             }
         },
-        [workspaces, onWorkspaceSelect],
+        [workspaces, onSelectWorkspace],
     );
 
     return (

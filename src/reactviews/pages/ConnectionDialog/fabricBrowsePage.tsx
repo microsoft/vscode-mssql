@@ -34,7 +34,7 @@ import {
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
+import { WorkspaceContentsList } from "./components/fabricWorkspaceViewer";
 import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
 import { useItemGroupStyles } from "../../common/styles";
@@ -226,20 +226,19 @@ export const FabricBrowsePage = () => {
                                 onFilterOptionChanged={handleFilterOptionChanged}
                                 searchValue={searchFilter}
                                 selectedTypeFilters={typeFilter}
-                                selectTenantId={(id) => {
+                                onSelectTenantId={(id) => {
                                     context.selectAzureTenant(id);
                                 }}
                                 azureTenants={context.state.azureTenants}
                                 selectedTenantId={context.state.selectedTenantId}
                             />
-                            <FabricWorkspaceViewer
+                            <WorkspaceContentsList
                                 fabricWorkspacesLoadStatus={
                                     context.state.fabricWorkspacesLoadStatus
                                 }
                                 fabricWorkspaces={context.state.fabricWorkspaces}
                                 searchFilter={searchFilter}
                                 typeFilter={typeFilter}
-                                selectFabricWorkspace={context.selectFabricWorkspace}
                                 onSelectDatabase={handleServerSelected}
                             />
                         </div>

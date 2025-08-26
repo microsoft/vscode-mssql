@@ -3,19 +3,31 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent, useContext, useState } from "react";
+import { ChangeEvent, useContext, useMemo, useState } from "react";
 import { ConnectionDialogContext } from "../../connectionDialogStateProvider";
 import FabricWorkspaceFilter from "../fabricWorkspaceFilter";
-import { FabricWorkspaceViewer } from "../fabricWorkspaceViewer";
+import { WorkspaceContentsList } from "../fabricWorkspaceViewer";
 import { WorkspacesList } from "../fabricWorkspacesList";
 import {
     InputOnChangeData,
     MenuCheckedValueChangeData,
     MenuCheckedValueChangeEvent,
 } from "@fluentui/react-components";
+import {
+    FabricSqlDbInfo,
+    FabricWorkspaceInfo,
+} from "../../../../../sharedInterfaces/connectionDialog";
+import { Status } from "../../../../../sharedInterfaces/webview";
 
-export const FabricBrowsePage = ({ fabricWorkspaces }: FabricExplorerProps) => {
+export const FabricBrowsePage = ({
+    fabricWorkspaces,
+    fabricWorkspacesLoadStatus,
+    onSelectTenantId,
+    onSelectWorkspace,
+    onSelectDatabase,
+}: FabricExplorerProps) => {
     const context = useContext(ConnectionDialogContext);
+
     if (context === undefined) {
         return undefined;
     }
@@ -23,8 +35,25 @@ export const FabricBrowsePage = ({ fabricWorkspaces }: FabricExplorerProps) => {
     const [searchFilter, setSearchFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
 
+    const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
+    const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
+
+    const selectedWorkspace = useMemo(() => {
+        return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
+    }, [fabricWorkspaces, selectedWorkspaceId]);
+
     function handleSearchInputChanged(_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) {
         setSearchFilter(data.value);
+    }
+
+    function handleDatabaseSelected(database: FabricSqlDbInfo) {
+        setSelectedRowId(database.id);
+        onSelectDatabase(database);
+    }
+
+    function handleWorkspaceSelected(workspace: FabricWorkspaceInfo) {
+        setSelectedWorkspaceId(workspace.id);
+        onSelectWorkspace(workspace);
     }
 
     function handleFilterOptionChanged(
@@ -36,37 +65,42 @@ export const FabricBrowsePage = ({ fabricWorkspaces }: FabricExplorerProps) => {
         }
     }
 
+    function handleSelectTenantId(tenantId: string) {
+        onSelectTenantId(tenantId);
+    }
+
     return (
         <>
             <FabricWorkspaceFilter
-                onSearchInputChanged={handleSearchInputChanged}
-                onFilterOptionChanged={handleFilterOptionChanged}
                 searchValue={searchFilter}
                 selectedTypeFilters={typeFilter}
-                selectTenantId={(id) => {
-                    context.selectAzureTenant(id);
-                }}
                 azureTenants={context.state.azureTenants}
                 selectedTenantId={context.state.selectedTenantId}
+                onSearchInputChanged={handleSearchInputChanged}
+                onFilterOptionChanged={handleFilterOptionChanged}
+                onSelectTenantId={handleSelectTenantId}
             />
             <WorkspacesList
                 workspaces={fabricWorkspaces}
-                onWorkspaceSelect={handleWorkspaceSelect}
                 selectedWorkspace={selectedWorkspace}
                 fabricWorkspacesLoadStatus={fabricWorkspacesLoadStatus}
+                onSelectWorkspace={handleWorkspaceSelected}
             />
-            <FabricWorkspaceViewer
+            <WorkspaceContentsList
                 fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
                 fabricWorkspaces={context.state.fabricWorkspaces}
                 searchFilter={searchFilter}
                 typeFilter={typeFilter}
-                selectFabricWorkspace={context.selectFabricWorkspace}
-                onSelectDatabase={handleServerSelected}
+                onSelectDatabase={handleDatabaseSelected}
             />
         </>
     );
 };
 
 export interface FabricExplorerProps {
-    fabricWorkspaces: [];
+    fabricWorkspaces: FabricWorkspaceInfo[];
+    fabricWorkspacesLoadStatus: Status;
+    onSelectTenantId: (tenantId: string) => void;
+    onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;
+    onSelectDatabase: (database: FabricSqlDbInfo) => void;
 }

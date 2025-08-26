@@ -27,23 +27,21 @@ import { useState, useEffect, useMemo } from "react";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { Keys } from "../../../common/keys";
-import { useStyles } from "./fabricWorkspaceViewer.styles";
+import { useFabricBrowserStyles } from "./fabricWorkspaceViewer.styles";
 import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
-import { WorkspacesList } from "./fabricWorkspacesList";
 
 // Icon imports for database types
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
 const sqlAnalyticsEndpointIcon = require("../../../../reactviews/media/data_warehouse.svg");
 
-export const FabricWorkspaceViewer = ({
-    selectFabricWorkspace,
+export const WorkspaceContentsList = ({
     onSelectDatabase,
     fabricWorkspacesLoadStatus,
     fabricWorkspaces,
     searchFilter = "",
     typeFilter = [],
-}: WorkspacesListProps) => {
-    const styles = useStyles();
+}: WorkspaceContentsList) => {
+    const styles = useFabricBrowserStyles();
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
 
@@ -136,12 +134,6 @@ export const FabricWorkspaceViewer = ({
         [],
     );
 
-    const handleWorkspaceSelect = (workspace: FabricWorkspaceInfo) => {
-        setSelectedWorkspaceId(workspace.id);
-        setSelectedRowId(undefined); // Clear row selection when workspace changes
-        selectFabricWorkspace(workspace.id);
-    };
-
     function handleServerSelected(database: FabricSqlGridItem) {
         setSelectedRowId(database.id);
         onSelectDatabase(database);
@@ -176,12 +168,6 @@ export const FabricWorkspaceViewer = ({
 
     return (
         <div className={styles.container}>
-            <WorkspacesList
-                workspaces={fabricWorkspaces}
-                onWorkspaceSelect={handleWorkspaceSelect}
-                selectedWorkspace={selectedWorkspace}
-                fabricWorkspacesLoadStatus={fabricWorkspacesLoadStatus}
-            />
             <div className={styles.workspaceGrid}>
                 {fabricWorkspacesLoadStatus.status === ApiStatus.Loading ? (
                     <div className={styles.gridMessageContainer} role="status" aria-live="polite">
@@ -282,8 +268,7 @@ function getTypeDisplayName(artifactType: string): string {
     }
 }
 
-interface WorkspacesListProps {
-    selectFabricWorkspace: (workspaceId: string) => void;
+interface WorkspaceContentsList {
     onSelectDatabase: (database: FabricSqlDbInfo) => void;
     fabricWorkspacesLoadStatus: Status;
     fabricWorkspaces: FabricWorkspaceInfo[];
