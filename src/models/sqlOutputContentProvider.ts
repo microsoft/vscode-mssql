@@ -21,7 +21,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import * as qr from "../sharedInterfaces/queryResult";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { ExecutionPlanService } from "../services/executionPlanService";
-import { isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
+import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
@@ -362,9 +362,10 @@ export class SqlOutputContentProvider {
                         resultWebviewState.resultSetSummaries[batchId] = {};
                     }
                     resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
-
-                    // Switch to results tab as soon as first results are available
-                    resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
+                    // Switch to results tab for the first result set
+                    if (countResultSets(resultWebviewState.resultSetSummaries) === 1) {
+                        resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
+                    }
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 },
             );
@@ -379,13 +380,10 @@ export class SqlOutputContentProvider {
                         resultWebviewState.resultSetSummaries[batchId] = {};
                     }
                     resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
-
-                    // Update the stored state immediately
-                    this._queryResultWebviewController.setQueryResultState(
-                        queryRunner.uri,
-                        resultWebviewState,
-                    );
-
+                    // Switch to results tab for the first result set
+                    if (countResultSets(resultWebviewState.resultSetSummaries) === 1) {
+                        resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
+                    }
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 },
             );
@@ -493,10 +491,6 @@ export class SqlOutputContentProvider {
 
                 const xmlPlans = resultWebviewState.executionPlanState.xmlPlans;
                 xmlPlans[`${e.batchId},${e.resultId}`] = e.xml;
-                console.log("plan", planGraphs.graphs.length);
-                const totalCost = existingGraphs.reduce((acc, graph) => acc + graph.root.cost, 0);
-
-                console.log(`total cost`, totalCost);
 
                 resultWebviewState.isExecutionPlan = true;
                 resultWebviewState.executionPlanState = {

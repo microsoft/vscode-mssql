@@ -36,7 +36,10 @@ export function hasResultsOrMessages(
  * @param messages - Array messages to process
  * @returns Array of messages with newline characters split into separate messages
  */
-export const splitMessages = (messages: qr.IMessage[]): qr.IMessage[] => {
+export const splitMessages = (messages: qr.IMessage[] | undefined | null): qr.IMessage[] => {
+    if (!messages || messages.length === 0) {
+        return [];
+    }
     return messages.flatMap((message) => {
         const lines = message.message.split(/\r?\n/);
         return lines.map((line) => {

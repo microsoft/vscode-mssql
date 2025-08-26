@@ -559,7 +559,7 @@ export const QueryResultPane = () => {
     };
 
     const [columns] = useState<TableColumnDefinition<qr.IMessage>[]>(columnsDef);
-    const items: qr.IMessage[] = splitMessages(messages) ?? [];
+    const items: qr.IMessage[] = splitMessages(messages);
 
     const sizingOptions: TableColumnSizingOptions = {
         time: {

@@ -353,3 +353,20 @@ export function messageToString(message: qr.IMessage): string {
 export function isOpenQueryResultsInTabByDefaultEnabled(): boolean {
     return vscode.workspace.getConfiguration().get(Constants.configOpenQueryResultsInTabByDefault);
 }
+
+/**
+ * Counts the number of result sets in the given summaries.
+ * @param resultSetSummaries The result set summaries to count.
+ * @returns The number of result sets.
+ */
+export function countResultSets(
+    resultSetSummaries: Record<number, Record<number, qr.ResultSetSummary>>,
+): number {
+    let count = 0;
+    for (const batchId in resultSetSummaries) {
+        if (Object.prototype.hasOwnProperty.call(resultSetSummaries, batchId)) {
+            count += Object.keys(resultSetSummaries[batchId]).length;
+        }
+    }
+    return count;
+}
