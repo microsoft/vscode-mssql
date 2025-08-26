@@ -74,14 +74,12 @@ export class SqlOutputContentProvider {
             this,
         );
 
-        if (!isOpenQueryResultsInTabByDefaultEnabled()) {
-            this._context.subscriptions.push(
-                vscode.window.registerWebviewViewProvider(
-                    "queryResult",
-                    this._queryResultWebviewController,
-                ),
-            );
-        }
+        this._context.subscriptions.push(
+            vscode.window.registerWebviewViewProvider(
+                "queryResult",
+                this._queryResultWebviewController,
+            ),
+        );
 
         /**
          * Command to copy all messages to clipboard for the active query result
