@@ -18,8 +18,9 @@ import {
     FabricWorkspaceInfo,
 } from "../../../../../sharedInterfaces/connectionDialog";
 import { Status } from "../../../../../sharedInterfaces/webview";
+import { useFabricBrowserStyles } from "../fabricWorkspaceViewer.styles";
 
-export const FabricBrowsePage = ({
+export const FabricExplorer = ({
     fabricWorkspaces,
     fabricWorkspacesLoadStatus,
     onSelectTenantId,
@@ -31,6 +32,8 @@ export const FabricBrowsePage = ({
     if (context === undefined) {
         return undefined;
     }
+
+    const fabricStyles = useFabricBrowserStyles();
 
     const [searchFilter, setSearchFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
@@ -80,19 +83,21 @@ export const FabricBrowsePage = ({
                 onFilterOptionChanged={handleFilterOptionChanged}
                 onSelectTenantId={handleSelectTenantId}
             />
-            <WorkspacesList
-                workspaces={fabricWorkspaces}
-                selectedWorkspace={selectedWorkspace}
-                fabricWorkspacesLoadStatus={fabricWorkspacesLoadStatus}
-                onSelectWorkspace={handleWorkspaceSelected}
-            />
-            <WorkspaceContentsList
-                fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
-                fabricWorkspaces={context.state.fabricWorkspaces}
-                searchFilter={searchFilter}
-                typeFilter={typeFilter}
-                onSelectDatabase={handleDatabaseSelected}
-            />
+            <div className={fabricStyles.container}>
+                <WorkspacesList
+                    workspaces={fabricWorkspaces}
+                    selectedWorkspace={selectedWorkspace}
+                    fabricWorkspacesLoadStatus={fabricWorkspacesLoadStatus}
+                    onSelectWorkspace={handleWorkspaceSelected}
+                />
+                <WorkspaceContentsList
+                    fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
+                    fabricWorkspaces={context.state.fabricWorkspaces}
+                    searchFilter={searchFilter}
+                    typeFilter={typeFilter}
+                    onSelectDatabase={handleDatabaseSelected}
+                />
+            </div>
         </>
     );
 };

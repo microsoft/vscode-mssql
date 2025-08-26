@@ -27,6 +27,7 @@ import {
     ConnectionDialogWebviewState,
     ConnectionInputMode,
     FabricSqlDbInfo,
+    FabricWorkspaceInfo,
     IAzureAccount,
     IConnectionDialogProfile,
     SqlArtifactTypes,
@@ -38,6 +39,7 @@ import { WorkspaceContentsList } from "./components/fabricWorkspaceViewer";
 import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
 import { useItemGroupStyles } from "../../common/styles";
+import { FabricExplorer } from "./components/fabric/fabricExplorer.component";
 
 const useStyles = makeStyles({
     icon: {
@@ -65,8 +67,6 @@ const useStyles = makeStyles({
         backgroundColor: "var(--vscode-editor-background)",
         borderRadius: "4px",
         border: "1px solid var(--vscode-panel-border)",
-    },
-    workspaceContentPadding: {
         paddingLeft: "6px",
         paddingBottom: "6px",
         paddingTop: "6px",
@@ -159,6 +159,14 @@ export const FabricBrowsePage = () => {
         context!.selectAzureAccount(accountId);
     }
 
+    function handleSelectTenantId(tenantId: string) {
+        context!.selectAzureTenant(tenantId);
+    }
+
+    function handleSelectWorkspace(workspace: FabricWorkspaceInfo) {
+        context!.selectFabricWorkspace(workspace.id);
+    }
+
     function handleServerSelected(selectedServer: FabricSqlDbInfo) {
         switch (selectedServer.type) {
             case SqlArtifactTypes.SqlAnalyticsEndpoint: {
@@ -220,28 +228,13 @@ export const FabricBrowsePage = () => {
 
                     <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
                     <div className={styles.workspaceContainer}>
-                        <div className={styles.workspaceContentPadding}>
-                            <FabricWorkspaceFilter
-                                onSearchInputChanged={handleSearchInputChanged}
-                                onFilterOptionChanged={handleFilterOptionChanged}
-                                searchValue={searchFilter}
-                                selectedTypeFilters={typeFilter}
-                                onSelectTenantId={(id) => {
-                                    context.selectAzureTenant(id);
-                                }}
-                                azureTenants={context.state.azureTenants}
-                                selectedTenantId={context.state.selectedTenantId}
-                            />
-                            <WorkspaceContentsList
-                                fabricWorkspacesLoadStatus={
-                                    context.state.fabricWorkspacesLoadStatus
-                                }
-                                fabricWorkspaces={context.state.fabricWorkspaces}
-                                searchFilter={searchFilter}
-                                typeFilter={typeFilter}
-                                onSelectDatabase={handleServerSelected}
-                            />
-                        </div>
+                        <FabricExplorer
+                            fabricWorkspaces={context.state.fabricWorkspaces}
+                            fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
+                            onSelectTenantId={handleSelectTenantId}
+                            onSelectWorkspace={handleSelectWorkspace}
+                            onSelectDatabase={handleServerSelected}
+                        />
                     </div>
 
                     {context.state.formState.server && (
