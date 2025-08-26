@@ -308,7 +308,7 @@
                 },
                 {
                     "command": "mssql.disconnect",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && resourcePath not in mssql.runningQueries",
                     "group": "navigation@3"
                 },
                 {

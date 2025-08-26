@@ -5,7 +5,7 @@
 
 import { WebviewApi } from "vscode-webview";
 
-class VscodeApiSingleton {
+class VsCodeApiFetcher {
     public vscodeApiInstance: WebviewApi<unknown>;
 
     constructor() {
@@ -13,4 +13,4 @@ class VscodeApiSingleton {
     }
 }
 
-export const vscodeApiSingleton = new VscodeApiSingleton();
+export const vsCodeApiInstance = new VsCodeApiFetcher();

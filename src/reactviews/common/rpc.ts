@@ -82,13 +82,11 @@ export class WebviewRpc<Reducers> {
     }
 
     private constructor(_vscodeApi: WebviewApi<unknown>) {
-        //this._setupMessageListener();
         this.connection = createMessageConnection(
             new WebviewRpcMessageReader(),
             new WebviewRpcMessageWriter(_vscodeApi),
         );
 
-        // Add error handling for RPC connection
         this.connection.onError((error) => {
             console.error("WebviewRpc connection error:", error);
         });

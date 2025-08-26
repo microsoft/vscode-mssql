@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as qr from "../../../sharedInterfaces/queryResult";
-import { useVscodeSelector } from "../../common/useVscodeSelector2";
+import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useQueryResultSelector<T>(
     selector: (state: qr.QueryResultWebviewState) => T,

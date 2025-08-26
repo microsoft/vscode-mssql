@@ -7,7 +7,7 @@ import {
     ExecutionPlanReducers,
     ExecutionPlanWebviewState,
 } from "../../../sharedInterfaces/executionPlan";
-import { useVscodeSelector } from "../../common/useVscodeSelector2";
+import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useExecutionPlanSelector<T>(
     selector: (state: ExecutionPlanWebviewState) => T,

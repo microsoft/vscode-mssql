@@ -23,14 +23,14 @@ import {
     StateChangeNotification,
 } from "../../sharedInterfaces/webview";
 import { getEOL } from "./utils";
-import { vscodeApiSingleton } from "./acquireVsCodeApi";
+import { vsCodeApiInstance } from "./acquireVsCodeApi";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
  * @template State interface that contains definitions for all state properties.
  * @template Reducers interface that contains definitions for all reducers and their payloads.
  */
-export interface IVscodeWebviewContext2<State, Reducers> {
+export interface VscodeWebviewContext2Props<State, Reducers> {
     /**
      * The vscode api instance.
      */
@@ -60,10 +60,10 @@ export interface IVscodeWebviewContext2<State, Reducers> {
     EOL: string;
 }
 
-const vscodeApiInstance = vscodeApiSingleton.vscodeApiInstance;
+const vscodeApiInstance = vsCodeApiInstance.vscodeApiInstance;
 
 export const VscodeWebviewContext2 = createContext<
-    IVscodeWebviewContext2<unknown, unknown> | undefined
+    VscodeWebviewContext2Props<unknown, unknown> | undefined
 >(undefined);
 
 interface VscodeWebviewProvider2Props {
@@ -190,5 +190,5 @@ export function useVscodeWebview2<State, Reducers>() {
     if (!context) {
         throw new Error("useVscodeWebview2 must be used within a VscodeWebviewProvider2");
     }
-    return context as IVscodeWebviewContext2<State, Reducers>;
+    return context as VscodeWebviewContext2Props<State, Reducers>;
 }
