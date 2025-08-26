@@ -4,12 +4,31 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { FabricSqlDbInfo, IWorkspace, IFabricError } from "../sharedInterfaces/fabric";
+import {
+    FabricSqlDbInfo,
+    IWorkspace,
+    IFabricError,
+    FabricScopes,
+    ICapacity,
+} from "../sharedInterfaces/fabric";
 import { HttpHelper } from "../http/httpHelper";
 
 export class FabricHelper {
     static readonly fabricUriBase = vscode.Uri.parse("https://api.fabric.microsoft.com/v1/");
+    static readonly fabricTokenRequestUriBase = vscode.Uri.parse(
+        "https://analysis.windows.net/powerbi/api/",
+    );
     constructor() {}
+
+    public static async getFabricCapacities(tenantId: string): Promise<ICapacity[]> {
+        const response = await this.fetchFromFabric<{ value: ICapacity[] }>(
+            "capacities",
+            `listing Fabric capacities for tenant '${tenantId}'`,
+            tenantId,
+        );
+
+        return response.value;
+    }
 
     public static async getFabricWorkspaces(tenantId: string): Promise<IWorkspace[]> {
         const response = await this.fetchFromFabric<{ value: IWorkspace[] }>(
@@ -118,21 +137,12 @@ export class FabricHelper {
     public static async fetchFromFabric<TResponse>(
         api: string,
         reason: string,
-        tenantId: string,
+        tenantId: string | undefined,
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
         const httpHelper = new HttpHelper();
 
-        const scopes = ["https://analysis.windows.net/powerbi/api/.default"];
-
-        if (tenantId) {
-            scopes.push(`VSCODE_TENANT:${tenantId}`);
-        }
-
-        const session = await this.getSession("microsoft", scopes, {
-            createIfNone: true,
-            requestReason: reason,
-        });
+        const session = await this.createScopedFabricSession(tenantId, reason);
         let token = session?.accessToken;
 
         const response = await httpHelper.makeGetRequest<TResponse>(uri.toString(), token);
@@ -146,12 +156,112 @@ export class FabricHelper {
         return result;
     }
 
+    public static async createWorkspace(
+        capacityId: string,
+        displayName: string,
+        description: string,
+        tenantId?: string,
+    ) {
+        const response = await this.postToFabric<
+            { value: IWorkspace },
+            { displayName: string; capacityId: string; description: string }
+        >(
+            `workspaces`,
+            {
+                displayName: displayName,
+                capacityId: capacityId,
+                description: description,
+            },
+            `Create workspace with capacity ${capacityId}`,
+            tenantId,
+        );
+
+        return response.value;
+    }
+
+    public static async createFabricSqlDatabase(
+        workspaceId: string,
+        displayName: string,
+        description: string,
+        tenantId?: string,
+    ) {
+        const response = await this.postToFabric<
+            { value: ISqlDbArtifact },
+            { displayName: string; description: string }
+        >(
+            `workspaces/${workspaceId}/sqlDatabases`,
+            {
+                displayName: displayName,
+                description: description,
+            },
+            `Create SQL Database for workspace ${workspaceId}`,
+            tenantId,
+        );
+
+        return response.value;
+    }
+
+    public static async postToFabric<TResponse, TPayload>(
+        api: string,
+        payload: TPayload,
+        reason: string,
+        tenantId: string | undefined,
+        scopes?: FabricScopes[],
+    ) {
+        const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
+        const httpHelper = new HttpHelper();
+
+        const session = await this.createScopedFabricSession(tenantId, reason, scopes);
+        let token = session?.accessToken;
+
+        const response = await httpHelper.makePostRequest<TResponse, TPayload>(
+            uri.toString(),
+            token,
+            payload,
+        );
+        const result = response.data;
+
+        if (isFabricError(result)) {
+            const errorMessage = `Fabric API error occurred (${result.errorCode}): ${result.message}`;
+            throw new Error(errorMessage);
+        }
+
+        return result;
+    }
+
+    /**
+     * Creates or retrieves a Fabric authentication session with the given scopes.
+     *
+     * Always requests the `.default` scope to ensure baseline permissions
+     *
+     * @param tenantId - Optional tenant ID to scope the session to a specific tenant.
+     * @param reason - A user-facing string explaining why the session is requested.
+     * @param fabricScopes - Additional Fabric scopes to request (default: []).
+     * @returns A VS Code AuthenticationSession with the requested scopes.
+     */
+    public static async createScopedFabricSession(
+        tenantId: string | undefined,
+        reason: string,
+        fabricScopes: FabricScopes[] = [FabricScopes.Default],
+    ): Promise<vscode.AuthenticationSession> {
+        let scopes = fabricScopes.map((scope) => `${this.fabricTokenRequestUriBase}${scope}`);
+
+        if (tenantId) {
+            scopes.push(`VSCODE_TENANT:${tenantId}`);
+        }
+
+        return await this.getSession("microsoft", scopes, {
+            createIfNone: true,
+            requestReason: reason,
+        });
+    }
+
     // Logic copied from vscode-fabric's TokenService
     private static async getSession(
         providerId: string,
         scopes: string[],
         options: TokenRequestOptions,
-    ) {
+    ): Promise<vscode.AuthenticationSession> {
         if (!options || !options.requestReason.trim()) {
             throw new Error("RequestReason required in TokenRequestOptions");
         }

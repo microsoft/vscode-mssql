@@ -5,6 +5,12 @@
 
 import { Status } from "./webview";
 
+export enum FabricScopes {
+    Default = ".default",
+    WorskpaceReadWrite = "Workspace.ReadWrite.All",
+    ItemReadWrite = "Item.ReadWrite.All",
+}
+
 export interface FabricSqlDbInfo {
     id: string;
     server: string;
@@ -25,6 +31,22 @@ export interface FabricWorkspaceInfo {
 export enum SqlArtifactTypes {
     SqlDatabase = "SQLDatabase",
     SqlAnalyticsEndpoint = "SQLEndpoint",
+}
+
+/**
+ * ICapacity Fabric capacity as seen in api responses
+ */
+export interface ICapacity {
+    id: string;
+    displayName: string;
+    region: string;
+    sku: string;
+    state: ICapacityState;
+}
+
+export enum ICapacityState {
+    Active = "Active",
+    Inactive = "Inactive",
 }
 
 /**
