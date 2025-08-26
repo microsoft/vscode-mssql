@@ -63,6 +63,13 @@ export interface QueryExecutionCompleteEvent {
     isRefresh?: boolean;
 }
 
+export interface ExecutionPlanEvent {
+    uri: string;
+    xml: string;
+    batchId: number;
+    resultId: number;
+}
+
 /*
  * Query Runner class which handles running a query, reports the results to the content manager,
  * and handles getting more rows from the service layer and disposing when the content is closed.
@@ -105,10 +112,9 @@ export default class QueryRunner {
     public onResultSetComplete: vscode.Event<ResultSetSummary> =
         this._resultSetCompleteEmitter.event;
 
-    // Keep the old event for backwards compatibility
-    private _resultSetEmitter: vscode.EventEmitter<ResultSetSummary> =
-        new vscode.EventEmitter<ResultSetSummary>();
-    public onResultSet: vscode.Event<ResultSetSummary> = this._resultSetEmitter.event;
+    private _executionPlanEmitter: vscode.EventEmitter<ExecutionPlanEvent> =
+        new vscode.EventEmitter<ExecutionPlanEvent>();
+    public onExecutionPlan: vscode.Event<ExecutionPlanEvent> = this._executionPlanEmitter.event;
 
     private _messageEmitter: vscode.EventEmitter<IResultMessage> =
         new vscode.EventEmitter<IResultMessage>();
@@ -439,14 +445,6 @@ export default class QueryRunner {
             }
 
             this._batchCompleteEmitter.fire(batchSet);
-            for (
-                let resultSetId = 0;
-                resultSetId < batchSet.resultSetSummaries.length;
-                resultSetId++
-            ) {
-                let resultSet = batchSet.resultSetSummaries[resultSetId];
-                this._resultSetEmitter.fire(resultSet);
-            }
         }
         // We're done with this query so shut down any waiting mechanisms
         this._statusView.executedQuery(uri);
@@ -473,8 +471,6 @@ export default class QueryRunner {
         }
 
         this._resultSetAvailableEmitter.fire(resultSet);
-        // Also fire the old event for backwards compatibility
-        this._resultSetEmitter.fire(resultSet);
     }
 
     public handleResultSetUpdated(result: QueryExecuteResultSetUpdatedNotificationParams): void {
@@ -485,11 +481,11 @@ export default class QueryRunner {
         batchSet.resultSetSummaries[resultSet.id] = resultSet;
 
         this._resultSetUpdatedEmitter.fire(resultSet);
-        // Also fire the old event for backwards compatibility
-        this._resultSetEmitter.fire(resultSet);
     }
 
-    public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
+    public async handleResultSetComplete(
+        result: QueryExecuteResultSetCompleteNotificationParams,
+    ): Promise<void> {
         let resultSet = result.resultSetSummary;
         let batchSet = this._batchSets[resultSet.batchId];
 
@@ -497,8 +493,16 @@ export default class QueryRunner {
         batchSet.resultSetSummaries[resultSet.id] = resultSet;
 
         this._resultSetCompleteEmitter.fire(resultSet);
-        // Also fire the old event for backwards compatibility
-        this._resultSetEmitter.fire(resultSet);
+
+        if (resultSet.columnInfo[0].columnName === Constants.showPlanXmlColumnName) {
+            const result = await this.getRows(0, 1, resultSet.batchId, resultSet.id);
+            this._executionPlanEmitter.fire({
+                uri: this.uri,
+                xml: result.resultSubset.rows[0][0].displayValue,
+                batchId: resultSet.batchId,
+                resultId: resultSet.id,
+            });
+        }
     }
 
     public handleMessage(obj: QueryExecuteMessageParams): void {

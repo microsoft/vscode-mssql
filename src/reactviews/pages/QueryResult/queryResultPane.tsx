@@ -36,8 +36,8 @@ import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateP
 import { hasResultsOrMessages, splitMessages } from "./queryResultUtils";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
-import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
+import { ExecutionPlanGraph } from "../../../sharedInterfaces/executionPlan";
 
 const useStyles = makeStyles({
     root: {
@@ -163,8 +163,8 @@ export const QueryResultPane = () => {
         (s) => s.tabStates,
     );
     const isExecutionPlan = useQueryResultSelector<boolean | undefined>((s) => s.isExecutionPlan);
-    const executionPlanState = useQueryResultSelector<ExecutionPlanState>(
-        (s) => s.executionPlanState,
+    const executionPlanGraphs = useQueryResultSelector<ExecutionPlanGraph[] | undefined>(
+        (s) => s.executionPlanState?.executionPlanGraphs,
     );
     const isProgrammaticScroll = useRef(true);
     isProgrammaticScroll.current = true;
@@ -328,12 +328,15 @@ export const QueryResultPane = () => {
                                 } = {};
                                 // skip the first column since its a number column
                                 for (let i = 1; columnLength && i < columnLength + 1; i++) {
-                                    const displayValue = r[i - 1].displayValue ?? "";
+                                    const cell = r[i - 1];
+                                    const displayValue = cell.isNull
+                                        ? "NULL"
+                                        : (cell.displayValue ?? "");
                                     const ariaLabel = displayValue;
                                     dataWithSchema[(i - 1).toString()] = {
                                         displayValue: displayValue,
                                         ariaLabel: ariaLabel,
-                                        isNull: r[i - 1].isNull,
+                                        isNull: cell.isNull,
                                         invariantCultureDisplayValue: displayValue,
                                     };
                                 }
@@ -592,21 +595,6 @@ export const QueryResultPane = () => {
     };
     //#endregion
 
-    //#region Query Plan
-    useEffect(() => {
-        // gets execution plans
-        if (
-            context &&
-            isExecutionPlan &&
-            uri &&
-            executionPlanState &&
-            !executionPlanState.executionPlanGraphs!.length
-        ) {
-            context.getExecutionPlan(uri);
-        }
-    }, [executionPlanState?.xmlPlans]);
-    //#endregion
-
     const getWebviewLocation = async () => {
         const res = await context.extensionRpc.sendRequest(qr.GetWebviewLocationRequest.type, {
             uri: uri,
@@ -697,7 +685,7 @@ export const QueryResultPane = () => {
                         <Tab
                             value={qr.QueryResultPaneTabs.ExecutionPlan}
                             key={qr.QueryResultPaneTabs.ExecutionPlan}>
-                            {locConstants.queryResult.queryPlan}
+                            {`${locConstants.queryResult.queryPlan} (${executionPlanGraphs?.length || 0})`}
                         </Tab>
                     )}
                 </TabList>

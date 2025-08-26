@@ -22,7 +22,7 @@ import * as qr from "../sharedInterfaces/queryResult";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
-import { StateChangeNotification } from "../sharedInterfaces/webview";
+import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -405,20 +405,6 @@ export class SqlOutputContentProvider {
                 },
             );
 
-            // Keep the old listener for backwards compatibility
-            const resultSetListener = queryRunner.onResultSet(
-                async (resultSet: ResultSetSummary) => {
-                    // const resultWebviewState =
-                    //     this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
-                    // const batchId = resultSet.batchId;
-                    // const resultId = resultSet.id;
-                    // if (!resultWebviewState.resultSetSummaries[batchId]) {
-                    //     resultWebviewState.resultSetSummaries[batchId] = {};
-                    // }
-                    // resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
-                    // this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                },
-            );
             const batchStartListener = queryRunner.onBatchStart(async (batch) => {
                 let time = new Date().toLocaleTimeString();
                 if (batch.executionElapsed && batch.executionEnd) {
@@ -492,16 +478,51 @@ export class SqlOutputContentProvider {
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
             });
 
+            const onExecutionPlanListener = queryRunner.onExecutionPlan(async (e) => {
+                const planGraphs = await this._executionPlanService.getExecutionPlan({
+                    graphFileContent: e.xml,
+                    graphFileType: "xml",
+                });
+
+                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
+                    e.uri,
+                );
+
+                const existingGraphs = resultWebviewState.executionPlanState.executionPlanGraphs;
+                existingGraphs.push(...planGraphs.graphs);
+
+                const xmlPlans = resultWebviewState.executionPlanState.xmlPlans;
+                xmlPlans[`${e.batchId},${e.resultId}`] = e.xml;
+                console.log("plan", planGraphs.graphs.length);
+                const totalCost = existingGraphs.reduce((acc, graph) => acc + graph.root.cost, 0);
+
+                console.log(`total cost`, totalCost);
+
+                resultWebviewState.isExecutionPlan = true;
+                resultWebviewState.executionPlanState = {
+                    errorMessage: planGraphs.errorMessage,
+                    executionPlanGraphs: existingGraphs,
+                    loadState: ApiStatus.Loaded,
+                    totalCost: existingGraphs.reduce(
+                        (acc, graph) => acc + graph.root.cost + graph.root.subTreeCost,
+                        0,
+                    ),
+                    xmlPlans: xmlPlans,
+                };
+
+                this.updateWebviewState(queryRunner.uri, resultWebviewState);
+            });
+
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
                 startListener,
                 resultSetAvailableListener,
                 resultSetUpdatedListener,
                 resultSetCompleteListener,
-                resultSetListener,
                 batchStartListener,
                 onMessageListener,
                 onCompleteListener,
+                onExecutionPlanListener,
             );
 
             this._queryResultsMap.set(uri, queryRunnerState);
