@@ -19,6 +19,7 @@ import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelCont
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store, { SubKeys } from "./singletonStore";
 import { JsonFormattingEditProvider } from "../utils/jsonFormatter";
+import * as LocalizedConstants from "../constants/locConstants";
 
 export function getNewResultPaneViewColumn(
     uri: string,
@@ -332,6 +333,11 @@ export function registerCommonRequestHandlers(
     });
     webviewController.registerReducer("updateTotalCost", async (state, payload) => {
         return (await updateTotalCost(state, payload)) as qr.QueryResultWebviewState;
+    });
+    webviewController.onRequest(qr.ShowFilterDisabledMessageRequest.type, async () => {
+        this.vscodeWrapper.showInformationMessage(
+            LocalizedConstants.inMemoryDataProcessingThresholdExceeded,
+        );
     });
 }
 

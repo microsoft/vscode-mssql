@@ -494,7 +494,7 @@ export default class QueryRunner {
 
         this._resultSetCompleteEmitter.fire(resultSet);
 
-        if (resultSet.columnInfo[0].columnName === Constants.showPlanXmlColumnName) {
+        if (resultSet.columnInfo?.[0]?.columnName === Constants.showPlanXmlColumnName) {
             const result = await this.getRows(0, 1, resultSet.batchId, resultSet.id);
             this._executionPlanEmitter.fire({
                 uri: this.uri,
