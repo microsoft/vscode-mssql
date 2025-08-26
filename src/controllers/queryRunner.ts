@@ -28,6 +28,8 @@ import {
     ExecutionPlanOptions,
     QueryConnectionUriChangeRequest,
     QueryConnectionUriChangeParams,
+    QueryExecuteResultSetAvailableNotificationParams,
+    QueryExecuteResultSetUpdatedNotificationParams,
 } from "../models/contracts/queryExecute";
 import { QueryDisposeParams, QueryDisposeRequest } from "../models/contracts/queryDispose";
 import {
@@ -61,6 +63,13 @@ export interface QueryExecutionCompleteEvent {
     isRefresh?: boolean;
 }
 
+export interface ExecutionPlanEvent {
+    uri: string;
+    xml: string;
+    batchId: number;
+    resultId: number;
+}
+
 /*
  * Query Runner class which handles running a query, reports the results to the content manager,
  * and handles getting more rows from the service layer and disposing when the content is closed.
@@ -89,9 +98,23 @@ export default class QueryRunner {
         new vscode.EventEmitter<BatchSummary>();
     public onBatchComplete: vscode.Event<BatchSummary> = this._batchCompleteEmitter.event;
 
-    private _resultSetEmitter: vscode.EventEmitter<ResultSetSummary> =
+    private _resultSetAvailableEmitter: vscode.EventEmitter<ResultSetSummary> =
         new vscode.EventEmitter<ResultSetSummary>();
-    public onResultSet: vscode.Event<ResultSetSummary> = this._resultSetEmitter.event;
+    public onResultSetAvailable: vscode.Event<ResultSetSummary> =
+        this._resultSetAvailableEmitter.event;
+
+    private _resultSetUpdatedEmitter: vscode.EventEmitter<ResultSetSummary> =
+        new vscode.EventEmitter<ResultSetSummary>();
+    public onResultSetUpdated: vscode.Event<ResultSetSummary> = this._resultSetUpdatedEmitter.event;
+
+    private _resultSetCompleteEmitter: vscode.EventEmitter<ResultSetSummary> =
+        new vscode.EventEmitter<ResultSetSummary>();
+    public onResultSetComplete: vscode.Event<ResultSetSummary> =
+        this._resultSetCompleteEmitter.event;
+
+    private _executionPlanEmitter: vscode.EventEmitter<ExecutionPlanEvent> =
+        new vscode.EventEmitter<ExecutionPlanEvent>();
+    public onExecutionPlan: vscode.Event<ExecutionPlanEvent> = this._executionPlanEmitter.event;
 
     private _messageEmitter: vscode.EventEmitter<IResultMessage> =
         new vscode.EventEmitter<IResultMessage>();
@@ -422,14 +445,6 @@ export default class QueryRunner {
             }
 
             this._batchCompleteEmitter.fire(batchSet);
-            for (
-                let resultSetId = 0;
-                resultSetId < batchSet.resultSetSummaries.length;
-                resultSetId++
-            ) {
-                let resultSet = batchSet.resultSetSummaries[resultSetId];
-                this._resultSetEmitter.fire(resultSet);
-            }
         }
         // We're done with this query so shut down any waiting mechanisms
         this._statusView.executedQuery(uri);
@@ -444,13 +459,50 @@ export default class QueryRunner {
         return true;
     }
 
-    public handleResultSetComplete(result: QueryExecuteResultSetCompleteNotificationParams): void {
+    public handleResultSetAvailable(
+        result: QueryExecuteResultSetAvailableNotificationParams,
+    ): void {
+        let resultSet = result.resultSetSummary;
+        let batchSet = this._batchSets[resultSet.batchId];
+
+        // Initialize result set in the batch if it doesn't exist
+        if (!batchSet.resultSetSummaries[resultSet.id]) {
+            batchSet.resultSetSummaries[resultSet.id] = resultSet;
+        }
+
+        this._resultSetAvailableEmitter.fire(resultSet);
+    }
+
+    public handleResultSetUpdated(result: QueryExecuteResultSetUpdatedNotificationParams): void {
+        let resultSet = result.resultSetSummary;
+        let batchSet = this._batchSets[resultSet.batchId];
+
+        // Update the result set in the batch
+        batchSet.resultSetSummaries[resultSet.id] = resultSet;
+
+        this._resultSetUpdatedEmitter.fire(resultSet);
+    }
+
+    public async handleResultSetComplete(
+        result: QueryExecuteResultSetCompleteNotificationParams,
+    ): Promise<void> {
         let resultSet = result.resultSetSummary;
         let batchSet = this._batchSets[resultSet.batchId];
 
         // Store the result set in the batch and emit that a result set has completed
         batchSet.resultSetSummaries[resultSet.id] = resultSet;
-        this._resultSetEmitter.fire(resultSet);
+
+        this._resultSetCompleteEmitter.fire(resultSet);
+
+        if (resultSet.columnInfo[0].columnName === Constants.showPlanXmlColumnName) {
+            const result = await this.getRows(0, 1, resultSet.batchId, resultSet.id);
+            this._executionPlanEmitter.fire({
+                uri: this.uri,
+                xml: result.resultSubset.rows[0][0].displayValue,
+                batchId: resultSet.batchId,
+                resultId: resultSet.id,
+            });
+        }
     }
 
     public handleMessage(obj: QueryExecuteMessageParams): void {

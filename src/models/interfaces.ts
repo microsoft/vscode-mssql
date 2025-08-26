@@ -187,6 +187,7 @@ export class ResultSetSubset {
 
 export class ResultSetSummary {
     id: number;
+    batchId: number;
     rowCount: number;
     columnInfo: vscodeMssql.IDbColumn[];
 }

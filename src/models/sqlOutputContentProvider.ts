@@ -360,7 +360,7 @@ export class SqlOutputContentProvider {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
             });
-            const resultSetListener = queryRunner.onResultSet(
+            const resultSetListener = queryRunner.onResultSetComplete(
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
                         this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
@@ -440,10 +440,15 @@ export class SqlOutputContentProvider {
                 if (hasError) {
                     tabState = QueryResultPaneTabs.Messages;
                 } else {
-                    tabState =
-                        Object.keys(resultWebviewState.resultSetSummaries).length > 0
-                            ? QueryResultPaneTabs.Results
-                            : QueryResultPaneTabs.Messages;
+                    if (resultWebviewState.isExecutionPlan) {
+                        tabState = QueryResultPaneTabs.ExecutionPlan;
+                    } else {
+                        if (Object.keys(resultWebviewState.resultSetSummaries)?.length > 0) {
+                            tabState = QueryResultPaneTabs.Results;
+                        } else {
+                            tabState = QueryResultPaneTabs.Messages;
+                        }
+                    }
                 }
                 resultWebviewState.tabStates.resultPaneTab = tabState;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
