@@ -278,8 +278,8 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdAadAddAccount, () => this.addAadAccount());
             this.registerCommandWithArgs(Constants.cmdClearAzureTokenCache);
             this._event.on(Constants.cmdClearAzureTokenCache, () => this.onClearAzureTokenCache());
-            this.registerCommand(Constants.cmdShowExecutionPlanInResults);
-            this._event.on(Constants.cmdShowExecutionPlanInResults, () => {
+            this.registerCommand(Constants.cmdShowEstimatedPlan);
+            this._event.on(Constants.cmdShowEstimatedPlan, () => {
                 void this.onRunQuery({
                     includeEstimatedExecutionPlanXml: true,
                 });
