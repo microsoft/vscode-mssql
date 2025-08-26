@@ -10,7 +10,6 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import { registerCommonRequestHandlers } from "./utils";
-import * as LocalizedConstants from "../constants/locConstants";
 
 export class QueryResultWebviewPanelController extends ReactWebviewPanelController<
     qr.QueryResultWebviewState,
@@ -69,11 +68,6 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     private registerRpcHandlers() {
         this.onRequest(qr.GetWebviewLocationRequest.type, async () => {
             return qr.QueryResultWebviewLocation.Document;
-        });
-        this.onRequest(qr.ShowFilterDisabledMessageRequest.type, async () => {
-            this.vscodeWrapper.showInformationMessage(
-                LocalizedConstants.inMemoryDataProcessingThresholdExceeded,
-            );
         });
         registerCommonRequestHandlers(this, this._correlationId);
     }
