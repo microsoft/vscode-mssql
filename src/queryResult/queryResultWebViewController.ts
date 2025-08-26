@@ -198,11 +198,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         this.onRequest(qr.GetWebviewLocationRequest.type, async () => {
             return qr.QueryResultWebviewLocation.Panel;
         });
-        this.onRequest(qr.ShowFilterDisabledMessageRequest.type, async () => {
-            this.vscodeWrapper.showInformationMessage(
-                LocalizedConstants.inMemoryDataProcessingThresholdExceeded,
-            );
-        });
         registerCommonRequestHandlers(this, this._correlationId);
     }
 
@@ -327,7 +322,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             this._queryResultWebviewPanelControllerMap
                 .get(uri)
                 .updateState(this.getQueryResultState(uri));
-            this._queryResultWebviewPanelControllerMap.get(uri).revealToForeground();
         }
     }
 

@@ -22,7 +22,7 @@ import * as qr from "../sharedInterfaces/queryResult";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
-import { StateChangeNotification } from "../sharedInterfaces/webview";
+import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -455,6 +455,37 @@ export class SqlOutputContentProvider {
                 this.revealQueryResult(queryRunner.uri);
             });
 
+            const onExecutionPlanListener = queryRunner.onExecutionPlan(async (e) => {
+                const planGraphs = await this._executionPlanService.getExecutionPlan({
+                    graphFileContent: e.xml,
+                    graphFileType: "xml",
+                });
+
+                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
+                    e.uri,
+                );
+
+                const existingGraphs = resultWebviewState.executionPlanState.executionPlanGraphs;
+                existingGraphs.push(...planGraphs.graphs);
+
+                const xmlPlans = resultWebviewState.executionPlanState.xmlPlans;
+                xmlPlans[`${e.batchId},${e.resultId}`] = e.xml;
+
+                resultWebviewState.isExecutionPlan = true;
+                resultWebviewState.executionPlanState = {
+                    errorMessage: planGraphs.errorMessage,
+                    executionPlanGraphs: existingGraphs,
+                    loadState: ApiStatus.Loaded,
+                    totalCost: existingGraphs.reduce(
+                        (acc, graph) => acc + graph.root.cost + graph.root.subTreeCost,
+                        0,
+                    ),
+                    xmlPlans: xmlPlans,
+                };
+
+                this.updateWebviewState(queryRunner.uri, resultWebviewState);
+            });
+
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
                 startListener,
@@ -462,6 +493,7 @@ export class SqlOutputContentProvider {
                 batchStartListener,
                 onMessageListener,
                 onCompleteListener,
+                onExecutionPlanListener,
             );
 
             this._queryResultsMap.set(uri, queryRunnerState);
