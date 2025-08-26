@@ -308,27 +308,27 @@
                 },
                 {
                     "command": "mssql.disconnect",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && resourcePath not in mssql.runningQueries",
                     "group": "navigation@3"
                 },
                 {
                     "command": "mssql.changeDatabase",
-                    "when": "editorLangId == sql && !isInDiffEditor",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
                     "group": "navigation@4"
                 },
                 {
-                    "command": "mssql.showExecutionPlanInResults",
-                    "when": "editorLangId == sql && !isInDiffEditor",
+                    "command": "mssql.showEstimatedPlan",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
                     "group": "navigation@4"
                 },
                 {
                     "command": "mssql.enableActualPlan",
-                    "when": "editorLangId == sql && !isInDiffEditor && !(resource in mssql.executionPlan.urisWithActualPlanEnabled)",
+                    "when": "editorLangId == sql && !isInDiffEditor && (resource not in mssql.executionPlan.urisWithActualPlanEnabled) && (resourcePath not in mssql.runningQueries)",
                     "group": "navigation@5"
                 },
                 {
                     "command": "mssql.disableActualPlan",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.executionPlan.urisWithActualPlanEnabled",
+                    "when": "editorLangId == sql && !isInDiffEditor && (resource in mssql.executionPlan.urisWithActualPlanEnabled) && (resourcePath not in mssql.runningQueries)",
                     "group": "navigation@5"
                 }
             ],
@@ -1016,8 +1016,8 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.showExecutionPlanInResults",
-                "title": "%mssql.showExecutionPlanInResults%",
+                "command": "mssql.showEstimatedPlan",
+                "title": "%mssql.showEstimatedPlan%",
                 "category": "MS SQL",
                 "icon": {
                     "dark": "media/executionPlan_dark.svg",
@@ -2019,7 +2019,7 @@
                             "altText": "%mssql.walkthroughs.nextSteps.viewQueryPlan.altText%"
                         },
                         "completionEvents": [
-                            "onCommand:mssql.showExecutionPlanInResults",
+                            "onCommand:mssql.showEstimatedPlan",
                             "onCommand:mssql.enableActualPlan",
                             "onCommand:mssql.disableActualPlan"
                         ]

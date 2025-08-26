@@ -49,7 +49,7 @@
     "mssql.addAadAccount": "Add Microsoft Entra Account",
     "mssql.removeAadAccount": "Remove Microsoft Entra Account",
     "mssql.clearAzureAccountTokenCache": "Clear Microsoft Entra account token cache",
-    "mssql.showExecutionPlanInResults": "Estimated Plan",
+    "mssql.showEstimatedPlan": "Estimated Plan",
     "mssql.enableActualPlan": "Enable Actual Plan",
     "mssql.disableActualPlan": "Disable Actual Plan",
     "mssql.rebuildIntelliSenseCache": "Refresh IntelliSense Cache",
