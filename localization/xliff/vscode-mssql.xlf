@@ -2321,6 +2321,9 @@
       <source xml:lang="en">Select a valid {0} from the dropdown</source>
       <note>{0} is the type of the dropdown&apos;s contents, e.g &apos;resource group&apos; or &apos;server&apos;</note>
     </trans-unit>
+    <trans-unit id="++CODE++903e816918c1b2835c9186eed7375ce85cc0f6230c48afbaa979177517e8545d">
+      <source xml:lang="en">Select a workspace to view the databases in it.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a1205265db328a59a52187387e01e37a0e1d2b28210aa2e663f750eb8b7c8dcf">
       <source xml:lang="en">Select a {0} for filtering</source>
       <note>{0} is the type of the dropdown&apos;s contents, e.g &apos;resource group&apos; or &apos;server&apos;</note>

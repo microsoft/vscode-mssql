@@ -3,17 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent, useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
 import {
     Button,
     Field,
-    InputOnChangeData,
     Label,
     makeStyles,
-    MenuCheckedValueChangeData,
-    MenuCheckedValueChangeEvent,
     Dropdown,
     Option,
     OptionOnSelectData,
@@ -94,7 +91,6 @@ export const FabricBrowsePage = () => {
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     const [accounts, setAccounts] = useState<IAzureAccount[]>([]);
-    // const [selectedAccountId, setSelectedAccountId] = useState<string>("");
     const [selectedAccountName, setSelectedAccountName] = useState<string>("");
 
     // Load accounts from state when component mounts
@@ -150,7 +146,7 @@ export const FabricBrowsePage = () => {
         context!.selectFabricWorkspace(workspace.id);
     }
 
-    function handleServerSelected(selectedServer: FabricSqlDbInfo) {
+    function handleDatabaseSelected(selectedServer: FabricSqlDbInfo) {
         switch (selectedServer.type) {
             case SqlArtifactTypes.SqlAnalyticsEndpoint: {
                 // TODO: RPC to fetch server name
@@ -216,7 +212,7 @@ export const FabricBrowsePage = () => {
                             fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
                             onSelectTenantId={handleSelectTenantId}
                             onSelectWorkspace={handleSelectWorkspace}
-                            onSelectDatabase={handleServerSelected}
+                            onSelectDatabase={handleDatabaseSelected}
                         />
                     </div>
 
