@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { exec, execFile, spawn } from "child_process";
+import { execFile, spawn } from "child_process";
 import { promisify } from "util";
 import { arch, platform } from "os";
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeployment";
@@ -78,18 +78,50 @@ export const COMMANDS = {
         command: "docker",
         args: ["info"],
     }),
-    GET_DOCKER_PATH: 'powershell -Command "(Get-Command docker).Source"',
+    GET_DOCKER_PATH: (): DockerCommand => ({
+        command: "powershell",
+        args: ["(Get-Command docker).Source"],
+    }),
     START_DOCKER: (path: string) => ({
-        win32: `start "" "${path}"`,
-        darwin: "open -a Docker",
-        linux: "systemctl start docker",
+        win32: {
+            command: "cmd.exe",
+            args: ["/c", "start", "", sanitizeContainerInput(path)],
+        },
+        darwin: {
+            command: "open",
+            args: ["-a", "Docker"],
+        },
+        linux: {
+            command: "systemctl",
+            args: ["start", "docker"],
+        },
     }),
     CHECK_ENGINE: {
-        win32: `docker info --format '{{.OSType}}'`,
-        darwin: `cat "${process.env.HOME}/Library/Group Containers/group.com.docker/settings-store.json" | grep '"UseVirtualizationFrameworkRosetta": true' || exit 1`,
-        linux: "docker ps",
+        win32: {
+            command: "docker",
+            args: ["info", "--format", "{{.OSType}}"],
+        },
+        darwin: {
+            dockerCmd: {
+                command: "cat",
+                args: [
+                    `${process.env.HOME}/Library/Group Containers/group.com.docker/settings-store.json`,
+                ],
+            },
+            grepCmd: {
+                command: "grep",
+                args: ['"UseVirtualizationFrameworkRosetta": true'],
+            },
+        },
+        linux: {
+            command: "docker",
+            args: ["ps"],
+        },
     },
-    SWITCH_ENGINE: (path: string) => `powershell -Command "& \\"${path}\\" -SwitchLinuxEngine"`,
+    SWITCH_ENGINE: (path: string): DockerCommand => ({
+        command: "powershell",
+        args: [`& "${sanitizeContainerInput(path)}" -SwitchLinuxEngine`],
+    }),
     GET_CONTAINERS: (): DockerCommand => ({
         command: "docker",
         args: ["ps", "-a", "--format", "{{.ID}}"],
@@ -356,6 +388,37 @@ async function execDockerCommand(cmd: DockerCommand): Promise<string> {
 }
 
 /**
+ * Safe PowerShell command execution helper
+ */
+async function execPowerShellCommand(cmd: DockerCommand): Promise<string> {
+    try {
+        const powerShellExecutable = platform() === "win32" ? "powershell.exe" : "pwsh";
+        const { stdout } = await execFilePromise(powerShellExecutable, ["-Command", ...cmd.args], {
+            encoding: "utf8",
+            maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+        });
+        return stdout.trim();
+    } catch (error: any) {
+        throw error;
+    }
+}
+
+/**
+ * Safe system command execution helper for platform-specific system operations
+ */
+async function execSystemCommand(cmd: DockerCommand): Promise<string> {
+    try {
+        const { stdout } = await execFilePromise(cmd.command, cmd.args, {
+            encoding: "utf8",
+            maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+        });
+        return stdout.trim();
+    } catch (error: any) {
+        throw error;
+    }
+}
+
+/**
  * Safe command execution for commands with pipes (using spawn)
  */
 async function execDockerCommandWithPipe(
@@ -391,20 +454,6 @@ async function execDockerCommandWithPipe(
 
         dockerProcess.on("error", reject);
         pipeProcess.on("error", reject);
-    });
-}
-
-/**
- * Helper function to execute a command in the shell and return the output.
- * NOTE: This should only be used for legacy commands that absolutely require shell features.
- * New code should use execDockerCommand instead.
- */
-async function execCommand(command: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        exec(command, (error, stdout) => {
-            if (error) return reject(error);
-            resolve(stdout.trim());
-        });
     });
 }
 
@@ -452,15 +501,28 @@ export async function checkEngine(): Promise<DockerCommandParams> {
     }
 
     try {
-        const stdout = await execCommand(engineCommand);
-        if (platform() === Platform.Windows && stdout.trim() !== `'${Platform.Linux}'`) {
+        let stdout = "";
+        if (platform() === Platform.Windows) {
+            stdout = await execDockerCommand(engineCommand);
+        } else if (platform() === Platform.Mac) {
+            // For macOS, we need to use pipe commands to check Rosetta
+            stdout = await execDockerCommandWithPipe(
+                engineCommand.dockerCmd,
+                engineCommand.grepCmd,
+            );
+        } else {
+            // Linux
+            stdout = await execDockerCommand(engineCommand);
+        }
+
+        if (platform() === Platform.Windows && stdout.trim() !== `${Platform.Linux}`) {
             const confirmation = await vscode.window.showInformationMessage(
                 ContainerDeployment.switchToLinuxContainersConfirmation,
                 { modal: true },
                 msgYes,
             );
             if (confirmation === msgYes) {
-                await execCommand(COMMANDS.SWITCH_ENGINE(dockerCliPath));
+                await execPowerShellCommand(COMMANDS.SWITCH_ENGINE(dockerCliPath));
             } else {
                 throw new Error(ContainerDeployment.switchToLinuxContainersCanceled);
             }
@@ -515,7 +577,7 @@ export async function validateContainerName(containerName: string): Promise<stri
  */
 export async function getDockerPath(executable: string): Promise<string> {
     try {
-        const stdout = (await execCommand(COMMANDS.GET_DOCKER_PATH)).trim();
+        const stdout = await execPowerShellCommand(COMMANDS.GET_DOCKER_PATH());
         const fullPath = stdout.trim();
 
         const parts = fullPath.split(path.sep);
@@ -641,7 +703,8 @@ export async function startDocker(
             };
         }
     }
-    const startCommand = COMMANDS.START_DOCKER(dockerDesktopPath)[platform()];
+    const startCommands = COMMANDS.START_DOCKER(dockerDesktopPath);
+    const startCommand = startCommands[platform()];
 
     if (!startCommand) {
         return {
@@ -652,7 +715,7 @@ export async function startDocker(
 
     try {
         dockerLogger.appendLine("Waiting for Docker to start...");
-        await execCommand(startCommand);
+        await execSystemCommand(startCommand);
 
         let attempts = 0;
         const maxAttempts = 30;
