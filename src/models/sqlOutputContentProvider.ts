@@ -22,7 +22,7 @@ import * as qr from "../sharedInterfaces/queryResult";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
-import { StateChangeNotification } from "../sharedInterfaces/webview";
+import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -74,14 +74,12 @@ export class SqlOutputContentProvider {
             this,
         );
 
-        if (!isOpenQueryResultsInTabByDefaultEnabled()) {
-            this._context.subscriptions.push(
-                vscode.window.registerWebviewViewProvider(
-                    "queryResult",
-                    this._queryResultWebviewController,
-                ),
-            );
-        }
+        this._context.subscriptions.push(
+            vscode.window.registerWebviewViewProvider(
+                "queryResult",
+                this._queryResultWebviewController,
+            ),
+        );
 
         /**
          * Command to copy all messages to clipboard for the active query result
@@ -360,7 +358,7 @@ export class SqlOutputContentProvider {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
             });
-            const resultSetListener = queryRunner.onResultSet(
+            const resultSetCompleteListener = queryRunner.onResultSetComplete(
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
                         this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
@@ -440,23 +438,60 @@ export class SqlOutputContentProvider {
                 if (hasError) {
                     tabState = QueryResultPaneTabs.Messages;
                 } else {
-                    tabState =
-                        Object.keys(resultWebviewState.resultSetSummaries).length > 0
-                            ? QueryResultPaneTabs.Results
-                            : QueryResultPaneTabs.Messages;
+                    if (resultWebviewState.isExecutionPlan) {
+                        tabState = QueryResultPaneTabs.ExecutionPlan;
+                    } else {
+                        if (Object.keys(resultWebviewState.resultSetSummaries)?.length > 0) {
+                            tabState = QueryResultPaneTabs.Results;
+                        } else {
+                            tabState = QueryResultPaneTabs.Messages;
+                        }
+                    }
                 }
                 resultWebviewState.tabStates.resultPaneTab = tabState;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri);
             });
 
+            const onExecutionPlanListener = queryRunner.onExecutionPlan(async (e) => {
+                const planGraphs = await this._executionPlanService.getExecutionPlan({
+                    graphFileContent: e.xml,
+                    graphFileType: "xml",
+                });
+
+                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
+                    e.uri,
+                );
+
+                const existingGraphs = resultWebviewState.executionPlanState.executionPlanGraphs;
+                existingGraphs.push(...planGraphs.graphs);
+
+                const xmlPlans = resultWebviewState.executionPlanState.xmlPlans;
+                xmlPlans[`${e.batchId},${e.resultId}`] = e.xml;
+
+                resultWebviewState.isExecutionPlan = true;
+                resultWebviewState.executionPlanState = {
+                    errorMessage: planGraphs.errorMessage,
+                    executionPlanGraphs: existingGraphs,
+                    loadState: ApiStatus.Loaded,
+                    totalCost: existingGraphs.reduce(
+                        (acc, graph) => acc + graph.root.cost + graph.root.subTreeCost,
+                        0,
+                    ),
+                    xmlPlans: xmlPlans,
+                };
+
+                this.updateWebviewState(queryRunner.uri, resultWebviewState);
+            });
+
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
                 startListener,
-                resultSetListener,
+                resultSetCompleteListener,
                 batchStartListener,
                 onMessageListener,
                 onCompleteListener,
+                onExecutionPlanListener,
             );
 
             this._queryResultsMap.set(uri, queryRunnerState);

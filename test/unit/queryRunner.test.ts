@@ -305,7 +305,7 @@ suite("Query Runner tests", () => {
         testBatchCompleteNotification(true);
     });
 
-    test("Notification - ResultSet Complete w/no previous results", () => {
+    test("Notification - ResultSet Complete w/no previous results", async () => {
         // Setup: Create a resultset completion result
         let resultSetComplete: QueryExecuteResultSetCompleteNotificationParams = {
             ownerUri: "uri",
@@ -340,7 +340,7 @@ suite("Query Runner tests", () => {
             },
             resultSetSummaries: [],
         };
-        queryRunner.handleResultSetComplete(resultSetComplete);
+        await queryRunner.handleResultSetComplete(resultSetComplete);
 
         // Then:
         // ... The pre-existing batch should contain the result set we got back
@@ -351,7 +351,7 @@ suite("Query Runner tests", () => {
         );
     });
 
-    test("Notification - ResultSet complete w/previous results", () => {
+    test("Notification - ResultSet complete w/previous results", async () => {
         // Setup:
         // ... Create resultset completion results
         let resultSetComplete1: QueryExecuteResultSetCompleteNotificationParams = {
@@ -397,10 +397,10 @@ suite("Query Runner tests", () => {
             },
             resultSetSummaries: [],
         };
-        queryRunner.handleResultSetComplete(resultSetComplete1);
+        await queryRunner.handleResultSetComplete(resultSetComplete1);
 
         // ... And submit a second result set completion notification
-        queryRunner.handleResultSetComplete(resultSetComplete2);
+        await queryRunner.handleResultSetComplete(resultSetComplete2);
 
         // Then:
         // ... There should be two results in the batch summary
