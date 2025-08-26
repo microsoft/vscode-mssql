@@ -863,7 +863,6 @@
   "Password (SQL Login)": "Password (SQL Login)",
   "Save Password? If 'No', password will be required each time you connect": "Save Password? If 'No', password will be required each time you connect",
   "Profile Name": "Profile Name",
-  "[Optional] Enter a display name for this connection profile": "[Optional] Enter a display name for this connection profile",
   "Error occurred opening content in editor.": "Error occurred opening content in editor.",
   "Started saving results to ": "Started saving results to ",
   "Failed to save results. ": "Failed to save results. ",
@@ -1188,6 +1187,8 @@
   "Tenant ID": "Tenant ID",
   "Select a tenant": "Select a tenant",
   "Tenant ID is required": "Tenant ID is required",
+  "Enter profile name": "Enter profile name",
+  "[Optional] Enter a display name for this connection profile": "[Optional] Enter a display name for this connection profile",
   "Connection Group": "Connection Group",
   "Server is required": "Server is required",
   "User name is required": "User name is required",
@@ -1260,6 +1261,8 @@
   "Database Name": "Database Name",
   "Enter Database Name": "Enter Database Name",
   "Database Name is required": "Database Name is required",
+  "Database Description": "Database Description",
+  "Enter Database Description": "Enter Database Description",
   "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
     "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
     "comment": [
@@ -1401,7 +1404,6 @@
   "Enter container name": "Enter container name",
   "Enter port": "Enter port",
   "Enter hostname": "Enter hostname",
-  "Enter profile name": "Enter profile name",
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",

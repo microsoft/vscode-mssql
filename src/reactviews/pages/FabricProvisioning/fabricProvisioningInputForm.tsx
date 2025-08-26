@@ -139,7 +139,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                                         isAction: false,
                                         value: data.optionValue as string,
                                     });
-                                    state.loadWorkspaces(data.optionValue as string);
+                                    state.reloadFabricEnvironment(data.optionValue as string);
                                 },
                             }}
                         />

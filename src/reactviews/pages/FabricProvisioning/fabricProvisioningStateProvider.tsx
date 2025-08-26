@@ -39,10 +39,13 @@ const FabricProvisioningStateProvider: React.FC<FabricProvisioningProviderProps>
                         event: event,
                     });
                 },
-                loadWorkspaces: function (reloadWorkspacesWithTenantId?: string): void {
-                    webviewState?.extensionRpc.action("loadWorkspaces", {
-                        reloadWorkspacesWithTenantId: reloadWorkspacesWithTenantId,
+                reloadFabricEnvironment: function (newTenant: string): void {
+                    webviewState?.extensionRpc.action("reloadFabricEnvironment", {
+                        newTenant: newTenant,
                     });
+                },
+                loadWorkspaces: function (): void {
+                    webviewState?.extensionRpc.action("loadWorkspaces", {});
                 },
             }}>
             {children}

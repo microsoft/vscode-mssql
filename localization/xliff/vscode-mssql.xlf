@@ -792,6 +792,9 @@
       <source xml:lang="en">Database - {0}</source>
       <note>{0} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++cc2bc1468b131fa8c46d376dd879592e78af283343403eb011206e52450a7ad3">
+      <source xml:lang="en">Database Description</source>
+    </trans-unit>
     <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
       <source xml:lang="en">Database Name</source>
     </trans-unit>
@@ -943,6 +946,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1a77d555bedbf97481907d505c8c8ba64d32d3525b77122e16178dd4054c3c93">
       <source xml:lang="en">Ends With</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
+      <source xml:lang="en">Enter Database Description</source>
     </trans-unit>
     <trans-unit id="++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2">
       <source xml:lang="en">Enter Database Name</source>

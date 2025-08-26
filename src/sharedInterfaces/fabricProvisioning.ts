@@ -6,7 +6,7 @@
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
-import { IWorkspace } from "./fabric";
+import { ICapacity, IWorkspace } from "./fabric";
 
 export class FabricProvisioningWebviewState
     implements
@@ -27,6 +27,7 @@ export class FabricProvisioningWebviewState
     dialog: IDialogProps | undefined;
     public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
     public workspaces: IWorkspace[] = [];
+    public capacities: ICapacity[] = [];
     /** Used to track the form validation state */
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track fabric database provision state */
@@ -69,14 +70,24 @@ export interface FabricProvisioningContextProps
         FabricProvisioningFormItemSpec
     > {
     /**
+     * Reload fabric environment
+     * Used when account/ tenant is changed
+     */
+    reloadFabricEnvironment(newTenant: string): void;
+    /**
      * Loads the workspaces for the form.
      */
-    loadWorkspaces(reloadWorkspacesWithTenantId?: string): void;
+    loadWorkspaces(): void;
 }
 
 export interface FabricProvisioningReducers extends FormReducers<FabricProvisioningFormState> {
     /**
+     * Reload fabric environment
+     * Used when account/ tenant is changed
+     */
+    reloadFabricEnvironment: { newTenant: string };
+    /**
      * Loads the workspaces for the form.
      */
-    loadWorkspaces: { reloadWorkspacesWithTenantId?: string };
+    loadWorkspaces: {};
 }
