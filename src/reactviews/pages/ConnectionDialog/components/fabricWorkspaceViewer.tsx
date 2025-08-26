@@ -11,6 +11,7 @@ import {
     Text,
     Spinner,
     TableRowData,
+    Label,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -23,7 +24,7 @@ import {
     FabricWorkspaceInfo,
     SqlArtifactTypes,
 } from "../../../../sharedInterfaces/connectionDialog";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { Keys } from "../../../common/keys";
@@ -42,27 +43,13 @@ export const WorkspaceContentsList = ({
     typeFilter = [],
 }: WorkspaceContentsList) => {
     const styles = useFabricBrowserStyles();
-    // const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
 
     //#region Hooks
 
-    // useEffect(() => {
-    //     if (
-    //         fabricWorkspaces.length > 0 &&
-    //         (!selectedWorkspaceId || !fabricWorkspaces.some((w) => w.id === selectedWorkspaceId))
-    //     ) {
-    //         setSelectedWorkspaceId(fabricWorkspaces[0].id);
-    //     }
-    // }, [fabricWorkspaces.length]);
-
-    // const selectedWorkspace = useMemo(() => {
-    //     return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
-    // }, [fabricWorkspaces, selectedWorkspaceId]);
-
     const databasesForSelectedWorkspace = useMemo(() => {
         return selectedWorkspace?.databases || [];
-    }, [selectedWorkspace?.id]);
+    }, [selectedWorkspace?.id, selectedWorkspace?.loadStatus]);
 
     const items = useMemo(() => {
         const result: FabricSqlGridItem[] = [];
@@ -166,81 +153,136 @@ export const WorkspaceContentsList = ({
 
     //#endregion Hooks
 
+    //#region Helper Methods
+
+    const renderLoadingWorkspaces = () => (
+        <div className={styles.gridMessageContainer} role="status" aria-live="polite">
+            <Spinner size="medium" />
+            <Text className={styles.messageText}>{Loc.connectionDialog.loadingWorkspaces}</Text>
+        </div>
+    );
+
+    const renderWorkspacesError = () => (
+        <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
+            <ErrorCircleRegular className={styles.errorIcon} />
+            <Text className={styles.messageText}>
+                {fabricWorkspacesLoadStatus.message || Loc.connectionDialog.errorLoadingWorkspaces}
+            </Text>
+        </div>
+    );
+
+    const renderNoSelectedWorkspace = (message: string | undefined) => (
+        <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
+            {message || Loc.connectionDialog.selectAWorkspaceToViewDatabases}
+        </div>
+    );
+
+    const renderLoadingDatabases = () => (
+        <div className={styles.gridMessageContainer} role="status" aria-live="polite">
+            <Spinner size="medium" />
+            <Text className={styles.messageText}>
+                {Loc.connectionDialog.loadingDatabasesInWorkspace(selectedWorkspace?.displayName)}
+            </Text>
+        </div>
+    );
+
+    const renderDatabasesError = () => (
+        <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
+            <ErrorCircleRegular className={styles.errorIcon} />
+            <Text className={styles.messageText}>
+                {selectedWorkspace!.loadStatus.message ||
+                    Loc.connectionDialog.errorLoadingDatabases}
+            </Text>
+        </div>
+    );
+
+    const renderNoDatabasesFound = () => (
+        <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
+            {Loc.connectionDialog.noDatabasesFoundInWorkspace(selectedWorkspace?.displayName)}
+        </div>
+    );
+
+    const renderDataGrid = () => (
+        <DataGrid
+            items={items}
+            columns={columns}
+            getRowId={(item: FabricSqlGridItem) => item.id}
+            size="small"
+            focusMode="composite"
+            style={{
+                flexGrow: 1,
+                height: "100%",
+                overflow: "auto",
+            }}>
+            <DataGridHeader>
+                <DataGridRow>
+                    {({ renderHeaderCell }: { renderHeaderCell: () => React.ReactNode }) => (
+                        <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                    )}
+                </DataGridRow>
+            </DataGridHeader>
+            <DataGridBody<FabricSqlGridItem> itemSize={30} height={360} width={"100%"}>
+                {renderRow}
+            </DataGridBody>
+        </DataGrid>
+    );
+
+    const renderGridContent = (): React.ReactNode => {
+        // Workspace list states
+        if (fabricWorkspacesLoadStatus.status === ApiStatus.NotStarted) {
+            return undefined;
+        }
+
+        if (fabricWorkspacesLoadStatus.status === ApiStatus.Loading) {
+            return renderLoadingWorkspaces();
+        }
+
+        if (fabricWorkspacesLoadStatus.status === ApiStatus.Error) {
+            return renderWorkspacesError();
+        }
+
+        if (fabricWorkspacesLoadStatus.status === ApiStatus.Loaded && !selectedWorkspace) {
+            return renderNoSelectedWorkspace(fabricWorkspacesLoadStatus.message);
+        }
+
+        // Workspace selection states
+        if (!selectedWorkspace || selectedWorkspace.loadStatus.status === ApiStatus.NotStarted) {
+            // should only hit this state between renders while the state settles
+            return undefined;
+        }
+
+        if (selectedWorkspace.loadStatus.status === ApiStatus.Loading) {
+            return renderLoadingDatabases();
+        }
+
+        if (selectedWorkspace.loadStatus.status === ApiStatus.Error) {
+            return renderDatabasesError();
+        }
+
+        if (selectedWorkspace.loadStatus.status === ApiStatus.Loaded) {
+            if (databasesForSelectedWorkspace.length === 0) {
+                return renderNoDatabasesFound();
+            } else {
+                return renderDataGrid();
+            }
+        }
+
+        return (
+            <>
+                <Label>Unexpected state:</Label>
+                <Label>FabricWorkspaceLoadStatus: {fabricWorkspacesLoadStatus.status}</Label>
+                <Label>SelectedWorkspace: {selectedWorkspace?.id}</Label>
+                <Label>SelectedWorkspace.Status: {selectedWorkspace?.loadStatus.status}</Label>
+                <Label>SelectedWorkspace.Databases: {selectedWorkspace?.databases.length}</Label>
+            </>
+        );
+    };
+
+    //#endregion Helper Methods
+
     return (
         <div className={styles.container}>
-            <div className={styles.workspaceGrid}>
-                {fabricWorkspacesLoadStatus.status === ApiStatus.Loading ? (
-                    <div className={styles.gridMessageContainer} role="status" aria-live="polite">
-                        <Spinner size="medium" />
-                        <Text className={styles.messageText}>
-                            {Loc.connectionDialog.loadingWorkspaces}
-                        </Text>
-                    </div>
-                ) : fabricWorkspacesLoadStatus.status === ApiStatus.Error ? (
-                    <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
-                        <ErrorCircleRegular className={styles.errorIcon} />
-                        <Text className={styles.messageText}>
-                            {fabricWorkspacesLoadStatus.message ||
-                                Loc.connectionDialog.errorLoadingWorkspaces}
-                        </Text>
-                    </div>
-                ) : fabricWorkspacesLoadStatus.status === ApiStatus.Loaded && !selectedWorkspace ? (
-                    <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
-                        {Loc.connectionDialog.noWorkspacesFound}
-                    </div>
-                ) : selectedWorkspace &&
-                  selectedWorkspace.loadStatus.status === ApiStatus.Loading ? (
-                    <div className={styles.gridMessageContainer} role="status" aria-live="polite">
-                        <Spinner size="medium" />
-                        <Text className={styles.messageText}>
-                            {Loc.connectionDialog.loadingDatabasesInWorkspace(
-                                selectedWorkspace?.displayName,
-                            )}
-                        </Text>
-                    </div>
-                ) : selectedWorkspace && selectedWorkspace.loadStatus.status === ApiStatus.Error ? (
-                    <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
-                        <ErrorCircleRegular className={styles.errorIcon} />
-                        <Text className={styles.messageText}>
-                            {selectedWorkspace.loadStatus.message ||
-                                Loc.connectionDialog.errorLoadingDatabases}
-                        </Text>
-                    </div>
-                ) : selectedWorkspace &&
-                  selectedWorkspace.loadStatus.status === ApiStatus.Loaded &&
-                  items.length === 0 ? (
-                    <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
-                        {Loc.connectionDialog.noDatabasesFoundInWorkspace(
-                            selectedWorkspace?.displayName,
-                        )}
-                    </div>
-                ) : (
-                    <DataGrid
-                        items={items}
-                        columns={columns}
-                        getRowId={(item: FabricSqlGridItem) => item.id}
-                        size="small"
-                        focusMode="composite"
-                        style={{
-                            flexGrow: 1,
-                            height: "100%",
-                            overflow: "auto",
-                        }}>
-                        <DataGridHeader>
-                            <DataGridRow>
-                                {({
-                                    renderHeaderCell,
-                                }: {
-                                    renderHeaderCell: () => React.ReactNode;
-                                }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
-                            </DataGridRow>
-                        </DataGridHeader>
-                        <DataGridBody<FabricSqlGridItem> itemSize={30} height={360} width={"100%"}>
-                            {renderRow}
-                        </DataGridBody>
-                    </DataGrid>
-                )}
-            </div>
+            <div className={styles.workspaceGrid}>{renderGridContent()}</div>
         </div>
     );
 };

@@ -16,7 +16,14 @@ import {
     Input,
 } from "@fluentui/react-components";
 import { FabricWorkspaceInfo } from "../../../../sharedInterfaces/connectionDialog";
-import { useCallback, SyntheticEvent, useState, BaseSyntheticEvent, useMemo } from "react";
+import {
+    useCallback,
+    SyntheticEvent,
+    useState,
+    BaseSyntheticEvent,
+    useMemo,
+    useEffect,
+} from "react";
 import {
     ChevronDoubleLeftFilled,
     ChevronDoubleRightFilled,
@@ -70,6 +77,17 @@ export const WorkspacesList = ({
             workspace.displayName.toLowerCase().includes(searchTerm),
         );
     }, [workspaces, workspaceSearchFilter]);
+
+    // Automatically select the first workspace when workspaces are loaded and none is selected
+    useEffect(() => {
+        if (
+            fabricWorkspacesLoadStatus.status === ApiStatus.Loaded &&
+            workspaces.length > 0 &&
+            !selectedWorkspace
+        ) {
+            onSelectWorkspace(workspaces[0]);
+        }
+    }, [workspaces, selectedWorkspace, fabricWorkspacesLoadStatus.status, onSelectWorkspace]);
 
     const onSelectionChange = useCallback(
         (_: SyntheticEvent | Event, data: { selectedItems: SelectionItemId[] }) => {

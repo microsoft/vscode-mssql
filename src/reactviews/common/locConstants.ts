@@ -228,8 +228,8 @@ export class LocConstants {
             explorer: l10n.t("Explorer"),
             collapseWorkspaceExplorer: l10n.t("Collapse Workspace Explorer"),
             collapse: l10n.t("Collapse"),
-            noWorkspacesFound: l10n.t(
-                "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+            selectAWorkspaceToViewDatabases: l10n.t(
+                "Select a workspace to view the databases in it.",
             ),
             noDatabasesFoundInWorkspace: (workspaceName?: string) => {
                 if (workspaceName) {

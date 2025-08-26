@@ -1493,7 +1493,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.state.fabricWorkspaces = newWorkspaces.sort((a, b) =>
                     a.displayName.localeCompare(b.displayName),
                 );
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loaded };
+                state.fabricWorkspacesLoadStatus = {
+                    status: ApiStatus.Loaded,
+                    message:
+                        this.state.fabricWorkspaces.length === 0
+                            ? Loc.noWorkspacesFound
+                            : undefined,
+                };
             } catch (err) {
                 const message = `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`;
 
