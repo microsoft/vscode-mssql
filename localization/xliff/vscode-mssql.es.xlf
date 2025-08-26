@@ -4560,6 +4560,10 @@ Vea el plan estimado sin ejecutar la consulta, o vea el plan de consulta real de
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
         <target state="translated">Cuando se habilita, colorea el elemento de la barra de estado de la conexión con el color del grupo de conexión. Esta configuración está deshabilitada de forma predeterminada.  Esto usa el color de la carpeta del grupo de conexiones directamente y no lo modifica para garantizar el contraste con el tema VS Code actual. Los usuarios deben elegir colores del grupo de conexiones que funcionen bien con su tema.</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
+        <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
+        <target state="new">When enabled, connection groups will be collapsed instead of expanded at startup.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">Cuando se habilita, los objetos de base de datos del Explorador de objetos se clasificarán por esquema.</target>

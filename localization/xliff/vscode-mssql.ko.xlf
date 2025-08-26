@@ -4560,6 +4560,10 @@ See the estimated plan without running the query, or view the actual query plan 
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
         <target state="translated">사용하도록 설정하면 연결 상태 표시줄 항목의 색상이 연결 그룹의 색상으로 변경됩니다. 이 설정은 기본적으로 사용하지 않도록 설정되어 있습니다.  연결 그룹 폴더의 색상을 직접 사용하며, 현재 VS Code 테마와의 대비를 보장하기 위해 변경되지 않습니다. 사용자는 테마와 잘 어울리는 연결 그룹 색상을 선택해야 합니다.</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
+        <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
+        <target state="new">When enabled, connection groups will be collapsed instead of expanded at startup.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">사용하도록 설정하면 개체 탐색기의 데이터베이스 개체가 스키마로 분류됩니다.</target>
