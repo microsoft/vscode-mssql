@@ -13,6 +13,7 @@ import {
     Spinner,
     Input,
     TableRowData,
+    TableColumnSizingOptions,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -157,7 +158,13 @@ export const FabricWorkspaceViewer = ({
                 renderHeaderCell: () => `${Loc.connectionDialog.nameColumnHeader}`,
                 renderCell: (item) => (
                     <DataGridCell>
-                        <div style={{ display: "flex", alignItems: "center" }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: "100%",
+                                minWidth: 0,
+                            }}>
                             <img
                                 src={getItemIcon(item.type)}
                                 alt={item.typeDisplayName}
@@ -168,7 +175,7 @@ export const FabricWorkspaceViewer = ({
                                     flexShrink: 0,
                                 }}
                             />
-                            <Text truncate style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                            <Text truncate className={styles.hideTextOverflow}>
                                 {item.displayName}
                             </Text>
                         </div>
@@ -180,7 +187,9 @@ export const FabricWorkspaceViewer = ({
                 renderHeaderCell: () => `${Loc.connectionDialog.typeColumnHeader}`,
                 renderCell: (item) => (
                     <DataGridCell>
-                        <Text truncate>{item.typeDisplayName}</Text>
+                        <Text truncate className={styles.hideTextOverflow}>
+                            {item.typeDisplayName}
+                        </Text>
                     </DataGridCell>
                 ),
             }),
@@ -189,7 +198,9 @@ export const FabricWorkspaceViewer = ({
                 renderHeaderCell: () => `${Loc.connectionDialog.locationColumnHeader}`,
                 renderCell: (item) => (
                     <DataGridCell>
-                        <Text truncate>{item.workspaceName}</Text>
+                        <Text truncate className={styles.hideTextOverflow}>
+                            {item.workspaceName}
+                        </Text>
                     </DataGridCell>
                 ),
             }),
@@ -236,6 +247,21 @@ export const FabricWorkspaceViewer = ({
             </DataGridRow>
         );
     }
+
+    const columnSizingOptions: TableColumnSizingOptions = {
+        name: {
+            minWidth: 80,
+            defaultWidth: 120,
+        },
+        type: {
+            minWidth: 80,
+            defaultWidth: 110,
+        },
+        location: {
+            minWidth: 60,
+            defaultWidth: 70,
+        },
+    };
 
     return (
         <div className={styles.container}>
@@ -379,10 +405,14 @@ export const FabricWorkspaceViewer = ({
                         getRowId={(item: FabricSqlGridItem) => item.id}
                         size="small"
                         focusMode="composite"
+                        resizableColumns={true}
+                        columnSizingOptions={columnSizingOptions}
                         style={{
                             flexGrow: 1,
                             height: "100%",
-                            overflow: "auto",
+                            width: "100%",
+                            minWidth: 0,
+                            overflow: "hidden",
                         }}>
                         <DataGridHeader>
                             <DataGridRow>
@@ -393,7 +423,7 @@ export const FabricWorkspaceViewer = ({
                                 }) => <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>}
                             </DataGridRow>
                         </DataGridHeader>
-                        <DataGridBody<FabricSqlGridItem> itemSize={30} height={360} width={"100%"}>
+                        <DataGridBody<FabricSqlGridItem> itemSize={30} height={340} width="100%">
                             {renderRow}
                         </DataGridBody>
                     </DataGrid>

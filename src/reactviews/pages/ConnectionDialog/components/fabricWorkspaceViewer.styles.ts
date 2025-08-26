@@ -191,4 +191,9 @@ export const useStyles = makeStyles({
         wordWrap: "break-word",
         overflowWrap: "break-word",
     },
+    hideTextOverflow: {
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis",
+    },
 });
