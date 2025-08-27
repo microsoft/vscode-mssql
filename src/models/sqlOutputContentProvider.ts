@@ -670,7 +670,7 @@ export class SqlOutputContentProvider {
         // or removes the uri if the user is disabling it
         if (isEnable && !actualPlanStatuses.includes(uri)) {
             actualPlanStatuses.push(uri);
-        } else if (!isEnable) {
+        } else {
             this._actualPlanStatuses = actualPlanStatuses.filter((statusUri) => statusUri != uri);
         }
 
