@@ -268,7 +268,8 @@
             {
                 "language": "sql",
                 "scopeName": "source.sql",
-                "path": "./syntaxes/SQL.plist"
+                "path": "./syntaxes/SQL.plist",
+                "unbalancedBracketScopes": ["text.bracketed"]
             }
         ],
         "snippets": [
