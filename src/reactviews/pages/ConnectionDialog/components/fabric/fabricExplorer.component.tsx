@@ -40,7 +40,6 @@ export const FabricExplorer = ({
     const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
 
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
-    const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
 
     const selectedWorkspace = useMemo(() => {
         if (fabricWorkspaces.length === 0 || !selectedWorkspaceId) {
@@ -55,7 +54,6 @@ export const FabricExplorer = ({
     }
 
     function handleDatabaseSelected(database: FabricSqlDbInfo) {
-        setSelectedRowId(database.id);
         onSelectDatabase(database);
     }
 
