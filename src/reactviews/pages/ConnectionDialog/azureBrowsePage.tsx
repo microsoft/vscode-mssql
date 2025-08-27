@@ -24,24 +24,6 @@ import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comb
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 import { EntraSignInEmpty } from "./components/entraSignInEmpty.component";
 
-// const styles = makeStyles({
-//     icon: {
-//         width: "75px",
-//         height: "75px",
-//         marginBottom: "10px",
-//     },
-//     notSignedInContainer: {
-//         marginTop: "20px",
-//         display: "flex",
-//         flexDirection: "column",
-//         alignItems: "center",
-//         textAlign: "center",
-//     },
-//     signInLink: {
-//         marginTop: "8px",
-//     },
-// });
-
 export const azureLogoColor = () => {
     return require(`../../media/azure-color.svg`);
 };
