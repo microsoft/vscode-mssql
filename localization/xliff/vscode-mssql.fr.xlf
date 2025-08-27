@@ -864,6 +864,10 @@
         <source xml:lang="en">Connection error</source>
         <target state="translated">Erreur de connexion</target>
       </trans-unit>
+      <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
+        <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
+        <target state="new">Connection is not active. Please establish a connection before performing this action.</target>
+      </trans-unit>
       <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
         <source xml:lang="en">Connection not found for uri "{0}".</source>
         <note>{0} is the uri</note>
@@ -874,9 +878,24 @@
         <note>{0} is the profile ID</note>
         <target state="translated">Profil de connexion « {0} » introuvable.</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
+        <source xml:lang="en">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</source>
+        <note>{0} is the extension ID</note>
+        <target state="new">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6fc14523d003cf70290f0110eeafa850232518f52a0d26436b18c1e838cf1c27">
+        <source xml:lang="en">Connection sharing permission is required for extension: '{0}'</source>
+        <note>{0} is the extension ID</note>
+        <target state="new">Connection sharing permission is required for extension: '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">La chaîne de connexion est requise</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
+        <source xml:lang="en">Connection with ID "{0}" not found. Please verify the connection ID exists.</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Connection with ID "{0}" not found. Please verify the connection ID exists.</target>
       </trans-unit>
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
@@ -1447,6 +1466,11 @@ Erreur :
         <note>Failed to delete {0}.</note>
         <target state="translated">La suppression de {0} a échoué.</target>
       </trans-unit>
+      <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
+        <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</target>
+      </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
         <target state="translated">La récupération des jetons utilisateur a échoué.</target>
@@ -1810,6 +1834,10 @@ Erreur :
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">Largeur de colonne non valide</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ce86c72bcd330160b14a711a925bf6f8e24fdd6b26d4a7abbfa548e510648d5">
+        <source xml:lang="en">Invalid connection URI provided.</source>
+        <target state="new">Invalid connection URI provided.</target>
       </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
@@ -2192,6 +2220,10 @@ Erreur :
       <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
         <source xml:lang="en">No account selected</source>
         <target state="translated">Aucun compte sélectionné</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
+        <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
+        <target state="new">No active text editor found. Please open a file with an active database connection.</target>
       </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
