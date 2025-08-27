@@ -69,7 +69,7 @@ const useStyles = makeStyles({
 
 export const DesignerPropertiesPane = () => {
     const classes = useStyles();
-    const itemGroupStyles = useAccordionStyles();
+    const accordionStyles = useAccordionStyles();
     const context = useContext(TableDesignerContext);
     if (!context) {
         return null;
@@ -102,7 +102,7 @@ export const DesignerPropertiesPane = () => {
             return undefined;
         }
         return (
-            <AccordionItem value={group} className={itemGroupStyles.itemGroup} key={group}>
+            <AccordionItem value={group} className={accordionStyles.accordionItem} key={group}>
                 <AccordionHeader>{group}</AccordionHeader>
                 <AccordionPanel>
                     <div className={classes.group}>

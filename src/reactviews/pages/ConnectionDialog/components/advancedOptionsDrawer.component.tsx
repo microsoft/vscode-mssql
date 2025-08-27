@@ -40,7 +40,7 @@ export const AdvancedOptionsDrawer = ({
     const context = useContext(ConnectionDialogContext);
     const [searchSettingsText, setSearchSettingText] = useState<string>("");
     const [userOpenedSections, setUserOpenedSections] = useState<string[]>(["General"]);
-    const itemGroupStyles = useAccordionStyles();
+    const accordionStyles = useAccordionStyles();
 
     if (context === undefined) {
         return undefined;
@@ -124,7 +124,7 @@ export const AdvancedOptionsDrawer = ({
                                 <AccordionItem
                                     value={group.groupName}
                                     key={groupIndex}
-                                    className={itemGroupStyles.itemGroup}>
+                                    className={accordionStyles.accordionItem}>
                                     <AccordionHeader>{group.groupName}</AccordionHeader>
                                     <AccordionPanel>
                                         {group.options
