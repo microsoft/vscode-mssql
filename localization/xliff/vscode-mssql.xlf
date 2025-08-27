@@ -1105,6 +1105,9 @@
     <trans-unit id="++CODE++2669635517c6f110f77148287c814fbb91a8ee9fb366d1113794cf21f767d9a9">
       <source xml:lang="en">Fabric Account</source>
     </trans-unit>
+    <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
+      <source xml:lang="en">Fabric Workspaces</source>
+    </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
     </trans-unit>
@@ -2318,6 +2321,9 @@
       <source xml:lang="en">Select a valid {0} from the dropdown</source>
       <note>{0} is the type of the dropdown&apos;s contents, e.g &apos;resource group&apos; or &apos;server&apos;</note>
     </trans-unit>
+    <trans-unit id="++CODE++903e816918c1b2835c9186eed7375ce85cc0f6230c48afbaa979177517e8545d">
+      <source xml:lang="en">Select a workspace to view the databases in it.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a1205265db328a59a52187387e01e37a0e1d2b28210aa2e663f750eb8b7c8dcf">
       <source xml:lang="en">Select a {0} for filtering</source>
       <note>{0} is the type of the dropdown&apos;s contents, e.g &apos;resource group&apos; or &apos;server&apos;</note>
@@ -2823,9 +2829,6 @@
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
-    </trans-unit>
-    <trans-unit id="++CODE++1377264ba3b0a7172621971b49ac3e82e33b64b14328d9275d02807e67ea8460">
-      <source xml:lang="en">Workspaces</source>
     </trans-unit>
     <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
       <source xml:lang="en">Yes</source>

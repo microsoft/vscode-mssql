@@ -684,6 +684,10 @@ export class ConnectionDialog {
         });
     }
     public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+
+    public static noWorkspacesFound = l10n.t(
+        "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    );
 }
 
 export class FirewallRule {

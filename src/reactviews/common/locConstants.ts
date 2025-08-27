@@ -33,6 +33,7 @@ export class LocConstants {
             apply: l10n.t("Apply"),
             next: l10n.t("Next"),
             clearSelection: l10n.t("Clear Selection"),
+            clear: l10n.t("Clear"),
             find: l10n.t("Find"),
             findNext: l10n.t("Find Next"),
             findPrevious: l10n.t("Find Previous"),
@@ -210,7 +211,7 @@ export class LocConstants {
             myData: l10n.t("My Data"),
             recent: l10n.t("Recent"),
             favorites: l10n.t("Favorites"),
-            workspaces: l10n.t("Workspaces"),
+            fabricWorkspaces: l10n.t("Fabric Workspaces"),
             signIntoFabric: l10n.t("Sign into Fabric"),
             filterByKeyword: l10n.t("Filter by keyword"),
             filter: l10n.t("Filter"),
@@ -227,8 +228,8 @@ export class LocConstants {
             explorer: l10n.t("Explorer"),
             collapseWorkspaceExplorer: l10n.t("Collapse Workspace Explorer"),
             collapse: l10n.t("Collapse"),
-            noWorkspacesFound: l10n.t(
-                "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+            selectAWorkspaceToViewDatabases: l10n.t(
+                "Select a workspace to view the databases in it.",
             ),
             noDatabasesFoundInWorkspace: (workspaceName?: string) => {
                 if (workspaceName) {

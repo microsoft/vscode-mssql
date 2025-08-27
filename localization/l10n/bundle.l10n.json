@@ -101,6 +101,7 @@
   "Apply": "Apply",
   "Next": "Next",
   "Clear Selection": "Clear Selection",
+  "Clear": "Clear",
   "Find": "Find",
   "Find Next": "Find Next",
   "Find Previous": "Find Previous",
@@ -169,7 +170,6 @@
   "Property": "Property",
   "Operator": "Operator",
   "Value": "Value",
-  "Clear": "Clear",
   "Publishing Changes": "Publishing Changes",
   "Changes published successfully": "Changes published successfully",
   "Close Designer": "Close Designer",
@@ -242,7 +242,7 @@
   "My Data": "My Data",
   "Recent": "Recent",
   "Favorites": "Favorites",
-  "Workspaces": "Workspaces",
+  "Fabric Workspaces": "Fabric Workspaces",
   "Sign into Fabric": "Sign into Fabric",
   "Filter by keyword": "Filter by keyword",
   "Filter": "Filter",
@@ -255,7 +255,7 @@
   "Expand Workspace Explorer": "Expand Workspace Explorer",
   "Explorer": "Explorer",
   "Collapse Workspace Explorer": "Collapse Workspace Explorer",
-  "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+  "Select a workspace to view the databases in it.": "Select a workspace to view the databases in it.",
   "No databases found in workspace '{0}'./{0} is the name of the workspace": {
     "message": "No databases found in workspace '{0}'.",
     "comment": [
@@ -1262,6 +1262,7 @@
     ]
   },
   "Clear cache and refresh token": "Clear cache and refresh token",
+  "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
   "Add Firewall Rule to {0}/{0} is the server name": {
     "message": "Add Firewall Rule to {0}",
     "comment": [

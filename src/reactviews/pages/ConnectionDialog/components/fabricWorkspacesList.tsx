@@ -12,28 +12,82 @@ import {
     Text,
     mergeClasses,
     SelectionItemId,
+    Button,
+    Input,
 } from "@fluentui/react-components";
 import { FabricWorkspaceInfo } from "../../../../sharedInterfaces/connectionDialog";
-import { useCallback, SyntheticEvent } from "react";
-import { ErrorCircleRegular, PeopleTeamRegular } from "@fluentui/react-icons";
+import {
+    useCallback,
+    SyntheticEvent,
+    useState,
+    BaseSyntheticEvent,
+    useMemo,
+    useEffect,
+} from "react";
+import {
+    ChevronDoubleLeftFilled,
+    ChevronDoubleRightFilled,
+    DismissRegular,
+    ErrorCircleRegular,
+    PeopleTeamRegular,
+    SearchRegular,
+} from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../common/locConstants";
-import { useStyles } from "./fabricWorkspaceViewer.styles";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { useFabricBrowserStyles } from "./fabricWorkspaceViewer.styles";
+import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
+import { Keys } from "../../../common/keys";
 
-interface Props {
+interface FabricWorkspacesListProps {
     workspaces: FabricWorkspaceInfo[];
-    onWorkspaceSelect: (workspace: FabricWorkspaceInfo) => void;
+    onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;
     selectedWorkspace?: FabricWorkspaceInfo;
+    fabricWorkspacesLoadStatus: Status;
 }
 
-export const WorkspacesList = ({ workspaces, onWorkspaceSelect, selectedWorkspace }: Props) => {
-    const styles = useStyles();
+export const FabricWorkspacesList = ({
+    workspaces,
+    onSelectWorkspace,
+    selectedWorkspace,
+    fabricWorkspacesLoadStatus,
+}: FabricWorkspacesListProps) => {
+    const styles = useFabricBrowserStyles();
 
-    if (!workspaces || workspaces.length === 0) {
-        return <Label>{Loc.connectionDialog.noWorkspacesAvailable}</Label>;
-    }
+    const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
 
     const selectedItems: SelectionItemId[] = selectedWorkspace ? [selectedWorkspace.id] : [];
+
+    const toggleExplorer = () => {
+        setIsExplorerCollapsed(!isExplorerCollapsed);
+    };
+
+    const [workspaceSearchFilter, setWorkspaceSearchFilter] = useState("");
+
+    function handleClearWorkspaceSearch(e: BaseSyntheticEvent) {
+        setWorkspaceSearchFilter("");
+        e?.stopPropagation();
+        // buttonRef.current?.focus();
+    }
+
+    const filteredWorkspaces = useMemo(() => {
+        if (!workspaceSearchFilter.trim()) {
+            return workspaces;
+        }
+        const searchTerm = workspaceSearchFilter.toLowerCase();
+        return workspaces.filter((workspace) =>
+            workspace.displayName.toLowerCase().includes(searchTerm),
+        );
+    }, [workspaces, workspaceSearchFilter]);
+
+    // Automatically select the first workspace when workspaces are loaded and none is selected
+    useEffect(() => {
+        if (
+            fabricWorkspacesLoadStatus.status === ApiStatus.Loaded &&
+            workspaces.length > 0 &&
+            !selectedWorkspace
+        ) {
+            onSelectWorkspace(workspaces[0]);
+        }
+    }, [workspaces, selectedWorkspace, fabricWorkspacesLoadStatus.status, onSelectWorkspace]);
 
     const onSelectionChange = useCallback(
         (_: SyntheticEvent | Event, data: { selectedItems: SelectionItemId[] }) => {
@@ -41,69 +95,227 @@ export const WorkspacesList = ({ workspaces, onWorkspaceSelect, selectedWorkspac
                 const selectedId = data.selectedItems[0] as string;
                 const workspace = workspaces.find((w) => w.id === selectedId);
                 if (workspace) {
-                    onWorkspaceSelect(workspace);
+                    onSelectWorkspace(workspace);
                 }
             }
         },
-        [workspaces, onWorkspaceSelect],
+        [workspaces, onSelectWorkspace],
     );
 
     return (
-        <List
-            role="listbox"
-            aria-label={Loc.connectionDialog.workspaces}
-            selectionMode="single"
-            navigationMode="composite"
-            selectedItems={selectedItems}
-            onSelectionChange={onSelectionChange}>
-            {workspaces.map((workspace) => (
-                <ListItem
-                    key={workspace.id}
-                    value={workspace.id}
-                    className={mergeClasses(
-                        styles.workspaceItem,
-                        selectedItems.includes(workspace.id) && styles.workspaceItemSelected,
-                    )}
-                    aria-label={workspace.displayName}
-                    title={workspace.displayName}
-                    checkmark={null}>
-                    <div style={{ display: "flex", alignItems: "center", minHeight: "20px" }}>
-                        {/* Icon container with consistent styling */}
-                        <div className={styles.iconContainer}>
-                            {/* display error if workspace status is errored */}
-                            {workspace.loadStatus.status === ApiStatus.Error && (
-                                <Tooltip
-                                    content={workspace.loadStatus.message ?? ""}
-                                    relationship="label">
-                                    <ErrorCircleRegular style={{ width: "100%", height: "100%" }} />
-                                </Tooltip>
-                            )}
-                            {/* display loading spinner */}
-                            {workspace.loadStatus.status === ApiStatus.Loading && (
-                                <Spinner
-                                    size="extra-tiny"
-                                    style={{ width: "100%", height: "100%" }}
-                                />
-                            )}
-                            {/* display workspace icon */}
-                            {(workspace.loadStatus.status === ApiStatus.Loaded ||
-                                workspace.loadStatus.status === ApiStatus.NotStarted) && (
-                                <PeopleTeamRegular style={{ width: "100%", height: "100%" }} />
-                            )}
-                        </div>
-
-                        <Text
+        <div
+            className={
+                isExplorerCollapsed ? styles.workspaceExplorerCollapsed : styles.workspaceExplorer
+            }>
+            <div className={styles.workspaceHeader}>
+                {!isExplorerCollapsed && (
+                    <Input
+                        placeholder={Loc.connectionDialog.searchWorkspaces}
+                        value={workspaceSearchFilter}
+                        onChange={(e) => setWorkspaceSearchFilter(e.target.value)}
+                        contentBefore={<SearchRegular />}
+                        contentAfter={
+                            <DismissRegular
+                                style={{
+                                    cursor: "pointer",
+                                    visibility: workspaceSearchFilter ? "visible" : "hidden",
+                                }}
+                                onClick={handleClearWorkspaceSearch}
+                                onKeyDown={(e) => {
+                                    if (e.key === Keys.Enter) {
+                                        handleClearWorkspaceSearch(e);
+                                    }
+                                }}
+                                aria-label={Loc.common.clear}
+                                title={Loc.common.clear}
+                                role="button"
+                                tabIndex={workspaceSearchFilter ? 0 : -1}
+                            />
+                        }
+                        size="small"
+                        style={{ flex: 1 }}
+                    />
+                )}
+                <Button
+                    appearance="subtle"
+                    size="small"
+                    icon={
+                        isExplorerCollapsed ? (
+                            <ChevronDoubleRightFilled className={styles.collapseButtonIcon} />
+                        ) : (
+                            <ChevronDoubleLeftFilled className={styles.collapseButtonIcon} />
+                        )
+                    }
+                    onClick={toggleExplorer}
+                    onKeyDown={(e) => {
+                        if (e.key === Keys.Enter || e.key === Keys.Space) {
+                            toggleExplorer();
+                            e.preventDefault();
+                        }
+                    }}
+                    aria-label={
+                        isExplorerCollapsed
+                            ? Loc.connectionDialog.expandWorkspaceExplorer
+                            : Loc.connectionDialog.collapseWorkspaceExplorer
+                    }
+                    title={
+                        isExplorerCollapsed
+                            ? Loc.connectionDialog.expand
+                            : Loc.connectionDialog.collapse
+                    }
+                    className={isExplorerCollapsed ? styles.collapsedExplorerButton : undefined}
+                    style={{
+                        minWidth: "24px",
+                        height: "24px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                />
+            </div>
+            {!isExplorerCollapsed && (
+                <div className={styles.workspaceListContainer} style={{ position: "relative" }}>
+                    {fabricWorkspacesLoadStatus.status === ApiStatus.Loading && (
+                        <div
                             style={{
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                flex: 1,
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                padding: "16px",
                             }}>
-                            {workspace.displayName}
-                        </Text>
-                    </div>
-                </ListItem>
-            ))}
-        </List>
+                            <Spinner size="medium" />
+                            <Text className={styles.messageText}>
+                                {Loc.connectionDialog.loadingWorkspaces}
+                            </Text>
+                        </div>
+                    )}
+                    {fabricWorkspacesLoadStatus.status === ApiStatus.Error && (
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                padding: "16px",
+                            }}>
+                            <Tooltip
+                                content={
+                                    fabricWorkspacesLoadStatus.message ||
+                                    Loc.connectionDialog.errorLoadingWorkspaces
+                                }
+                                relationship="label">
+                                <ErrorCircleRegular className={styles.errorIcon} />
+                            </Tooltip>
+                            <Text className={styles.messageText}>
+                                {Loc.connectionDialog.errorLoadingWorkspaces}
+                            </Text>
+                        </div>
+                    )}
+                    {fabricWorkspacesLoadStatus.status === ApiStatus.Loaded && (
+                        <>
+                            {!filteredWorkspaces ||
+                                (filteredWorkspaces.length === 0 && (
+                                    <Label>{Loc.connectionDialog.noWorkspacesAvailable}</Label>
+                                ))}
+                            {filteredWorkspaces.length > 0 && (
+                                <List
+                                    role="listbox"
+                                    aria-label={Loc.connectionDialog.fabricWorkspaces}
+                                    selectionMode="single"
+                                    navigationMode="composite"
+                                    selectedItems={selectedItems}
+                                    onSelectionChange={onSelectionChange}>
+                                    {filteredWorkspaces.map((workspace) => (
+                                        <ListItem
+                                            key={workspace.id}
+                                            value={workspace.id}
+                                            className={mergeClasses(
+                                                styles.workspaceItem,
+                                                selectedItems.includes(workspace.id) &&
+                                                    styles.workspaceItemSelected,
+                                            )}
+                                            aria-label={workspace.displayName}
+                                            title={workspace.displayName}
+                                            // eslint-disable-next-line no-restricted-syntax
+                                            checkmark={null}>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    minHeight: "20px",
+                                                }}>
+                                                {/* Icon container with consistent styling */}
+                                                <div className={styles.iconContainer}>
+                                                    {/* display error if workspace status is errored */}
+                                                    {workspace.loadStatus.status ===
+                                                        ApiStatus.Error && (
+                                                        <Tooltip
+                                                            content={
+                                                                workspace.loadStatus.message ?? ""
+                                                            }
+                                                            relationship="label">
+                                                            <ErrorCircleRegular
+                                                                style={{
+                                                                    width: "100%",
+                                                                    height: "100%",
+                                                                }}
+                                                            />
+                                                        </Tooltip>
+                                                    )}
+                                                    {/* display loading spinner */}
+                                                    {workspace.loadStatus.status ===
+                                                        ApiStatus.Loading && (
+                                                        <Spinner
+                                                            size="extra-tiny"
+                                                            style={{
+                                                                width: "100%",
+                                                                height: "100%",
+                                                            }}
+                                                        />
+                                                    )}
+                                                    {/* display workspace icon */}
+                                                    {(workspace.loadStatus.status ===
+                                                        ApiStatus.Loaded ||
+                                                        workspace.loadStatus.status ===
+                                                            ApiStatus.NotStarted) && (
+                                                        <PeopleTeamRegular
+                                                            style={{
+                                                                width: "100%",
+                                                                height: "100%",
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
+
+                                                <Text
+                                                    style={{
+                                                        overflow: "hidden",
+                                                        textOverflow: "ellipsis",
+                                                        whiteSpace: "nowrap",
+                                                        flex: 1,
+                                                    }}>
+                                                    {workspace.displayName}
+                                                </Text>
+                                            </div>
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
+        </div>
     );
 };

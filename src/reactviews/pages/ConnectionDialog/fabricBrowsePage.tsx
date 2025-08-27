@@ -3,22 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent, useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import {
-    Button,
-    Field,
-    InputOnChangeData,
-    Label,
-    makeStyles,
-    MenuCheckedValueChangeData,
-    MenuCheckedValueChangeEvent,
-    Dropdown,
-    Option,
-    OptionOnSelectData,
-    SelectionEvents,
-} from "@fluentui/react-components";
+import { Button, Label, makeStyles } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
     AuthenticationType,
@@ -27,60 +15,15 @@ import {
     ConnectionDialogWebviewState,
     ConnectionInputMode,
     FabricSqlDbInfo,
-    IAzureAccount,
+    FabricWorkspaceInfo,
     IConnectionDialogProfile,
     SqlArtifactTypes,
 } from "../../../sharedInterfaces/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { FabricWorkspaceViewer } from "./components/fabricWorkspaceViewer";
-import FabricWorkspaceFilter from "./components/fabricWorkspaceFilter";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
-
-const useStyles = makeStyles({
-    icon: {
-        width: "75px",
-        height: "75px",
-        marginBottom: "10px",
-    },
-    notSignedInContainer: {
-        marginTop: "20px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-    },
-    signInLink: {
-        marginTop: "8px",
-    },
-    formRow: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    workspaceContainer: {
-        backgroundColor: "var(--vscode-editor-background)",
-        borderRadius: "4px",
-        border: "1px solid var(--vscode-panel-border)",
-    },
-    workspaceContentPadding: {
-        paddingLeft: "6px",
-        paddingBottom: "6px",
-        paddingTop: "6px",
-    },
-});
-
-export const fabricLogoColor = () => {
-    return require(`../../media/fabric-color.svg`);
-};
-
-const fabricAuthOptions: (keyof IConnectionDialogProfile)[] = [
-    "authenticationType",
-    "accountId",
-    "tenantId",
-];
+import { FabricExplorer } from "./components/fabric/fabricExplorer.component";
 
 export const FabricBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -88,76 +31,41 @@ export const FabricBrowsePage = () => {
         return undefined;
     }
 
-    const formStyles = useFormStyles();
     const styles = useStyles();
+    const formStyles = useFormStyles();
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
-    const [searchFilter, setSearchFilter] = useState<string>("");
-    const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
-
-    const [accounts, setAccounts] = useState<IAzureAccount[]>([]);
-    // const [selectedAccountId, setSelectedAccountId] = useState<string>("");
-    const [selectedAccountName, setSelectedAccountName] = useState<string>("");
-
-    // Load accounts from state when component mounts
     useEffect(() => {
         if (
             context.state.loadingAzureAccountsStatus === ApiStatus.Loaded &&
-            context.state.azureAccounts
+            context.state.azureAccounts &&
+            !context.state.selectedAccountId
         ) {
-            setAccounts(context.state.azureAccounts);
-
-            // Sync selectedAccountName with the globally stored selectedAccountId
-            if (context.state.selectedAccountId) {
-                const selectedAccount = context.state.azureAccounts.find(
-                    (account) => account.id === context.state.selectedAccountId,
-                );
-                if (selectedAccount) {
-                    setSelectedAccountName(selectedAccount.name);
-                }
-            } else if (context.state.azureAccounts.length > 0) {
-                // Set the first account as selected if no account is currently selected
-                handleAccountChange({} as any, {
-                    optionText: context.state.azureAccounts[0].name,
-                    optionValue: context.state.azureAccounts[0].id,
-                    selectedOptions: [context.state.azureAccounts[0].id],
-                });
+            const firstAccount = context.state.azureAccounts[0];
+            if (firstAccount) {
+                context.selectAzureAccount(firstAccount.id);
             }
         }
-    }, [
-        context.state.loadingAzureAccountsStatus,
-        context.state.azureAccounts,
-        context.state.selectedAccountId,
-    ]);
+    }, [context.state.loadingAzureAccountsStatus, context.state.azureAccounts]);
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
-    function handleSearchInputChanged(_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) {
-        setSearchFilter(data.value);
-    }
-
-    function handleFilterOptionChanged(
-        _: MenuCheckedValueChangeEvent,
-        { name, checkedItems }: MenuCheckedValueChangeData,
-    ) {
-        if (name === "sqlType") {
-            setTypeFilter(checkedItems);
-        }
-    }
-
-    function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
-        const accountName = data.optionText || "";
-        const accountId = data.optionValue || "";
-        setSelectedAccountName(accountName);
-        // setSelectedAccountId(accountId);
-
+    function handleSelectAccountId(accountId: string) {
         context!.selectAzureAccount(accountId);
     }
 
-    function handleServerSelected(selectedServer: FabricSqlDbInfo) {
+    function handleSelectTenantId(tenantId: string) {
+        context!.selectAzureTenant(tenantId);
+    }
+
+    function handleSelectWorkspace(workspace: FabricWorkspaceInfo) {
+        context!.selectFabricWorkspace(workspace.id);
+    }
+
+    function handleDatabaseSelected(selectedServer: FabricSqlDbInfo) {
         switch (selectedServer.type) {
             case SqlArtifactTypes.SqlAnalyticsEndpoint: {
                 // TODO: RPC to fetch server name
@@ -195,84 +103,60 @@ export const FabricBrowsePage = () => {
             />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
-                    <Field orientation="horizontal">
-                        <Label>{Loc.connectionDialog.fabricAccount}</Label>
-                        <Dropdown
-                            value={selectedAccountName}
-                            selectedOptions={
-                                context.state.selectedAccountId
-                                    ? [context.state.selectedAccountId]
-                                    : []
-                            }
-                            onOptionSelect={handleAccountChange}
-                            placeholder={Loc.connectionDialog.selectAnAccount}>
-                            {accounts.map((account) => (
-                                <Option key={account.id} value={account.id} text={account.name}>
-                                    {account.name}
-                                </Option>
-                            ))}
-                        </Dropdown>
-                    </Field>
-                    <Label>{Loc.connectionDialog.workspaces}</Label>
-                    <div className={styles.workspaceContainer}>
-                        <div className={styles.workspaceContentPadding}>
-                            <FabricWorkspaceFilter
-                                onSearchInputChanged={handleSearchInputChanged}
-                                onFilterOptionChanged={handleFilterOptionChanged}
-                                searchValue={searchFilter}
-                                selectedTypeFilters={typeFilter}
-                                selectTenantId={(id) => {
-                                    context.selectAzureTenant(id);
-                                }}
-                                azureTenants={context.state.azureTenants}
-                                selectedTenantId={context.state.selectedTenantId}
-                            />
-                            <FabricWorkspaceViewer
-                                fabricWorkspacesLoadStatus={
-                                    context.state.fabricWorkspacesLoadStatus
-                                }
-                                fabricWorkspaces={context.state.fabricWorkspaces}
-                                searchFilter={searchFilter}
-                                typeFilter={typeFilter}
-                                selectFabricWorkspace={context.selectFabricWorkspace}
-                                onSelectDatabase={handleServerSelected}
-                            />
-                        </div>
+                    <div className={styles.componentGroupHeader}>
+                        <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
+                    </div>
+                    <div className={styles.fabricBrowserContainer}>
+                        <FabricExplorer
+                            fabricWorkspaces={context.state.fabricWorkspaces}
+                            fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
+                            onSelectAccountId={handleSelectAccountId}
+                            onSelectTenantId={handleSelectTenantId}
+                            onSelectWorkspace={handleSelectWorkspace}
+                            onSelectDatabase={handleDatabaseSelected}
+                        />
                     </div>
 
                     {context.state.formState.server && (
                         <>
-                            {context.state.connectionComponents.mainOptions
-                                .filter(
-                                    (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
-                                )
-                                .map((inputName, idx) => {
-                                    const component =
-                                        context.state.formComponents[
-                                            inputName as keyof IConnectionDialogProfile
-                                        ];
-                                    if (component?.hidden !== false) {
-                                        return undefined;
-                                    }
+                            <div
+                                className={styles.componentGroupHeader}
+                                style={{ marginTop: "16px" }}>
+                                <Label>Connection Authentication</Label>
+                            </div>
+                            <div className={styles.connectionAuthGroup}>
+                                {context.state.connectionComponents.mainOptions
+                                    .filter(
+                                        (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
+                                    )
+                                    .map((inputName, idx) => {
+                                        const component =
+                                            context.state.formComponents[
+                                                inputName as keyof IConnectionDialogProfile
+                                            ];
+                                        if (component?.hidden !== false) {
+                                            return undefined;
+                                        }
 
-                                    return (
-                                        <FormField<
-                                            IConnectionDialogProfile,
-                                            ConnectionDialogWebviewState,
-                                            ConnectionDialogFormItemSpec,
-                                            ConnectionDialogContextProps
-                                        >
-                                            key={idx}
-                                            context={context}
-                                            component={component}
-                                            idx={idx}
-                                            props={{ orientation: "horizontal" }}
-                                            componentProps={{
-                                                disabled: inputName === "authenticationType",
-                                            }}
-                                        />
-                                    );
-                                })}
+                                        return (
+                                            <FormField<
+                                                IConnectionDialogProfile,
+                                                ConnectionDialogWebviewState,
+                                                ConnectionDialogFormItemSpec,
+                                                ConnectionDialogContextProps
+                                            >
+                                                key={idx}
+                                                context={context}
+                                                component={component}
+                                                idx={idx}
+                                                props={{ orientation: "horizontal" }}
+                                                componentProps={{
+                                                    disabled: inputName === "authenticationType",
+                                                }}
+                                            />
+                                        );
+                                    })}
+                            </div>
                         </>
                     )}
 
@@ -297,3 +181,43 @@ export const FabricBrowsePage = () => {
         </div>
     );
 };
+const useStyles = makeStyles({
+    icon: {
+        width: "75px",
+        height: "75px",
+        marginBottom: "10px",
+    },
+    signInLink: {
+        marginTop: "8px",
+    },
+    formRow: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    componentGroupHeader: {
+        marginBottom: "8px",
+    },
+    fabricBrowserContainer: {
+        padding: "8px",
+        border: "0.5px solid var(--vscode-editorWidget-border)",
+        borderRadius: "2px",
+    },
+    connectionAuthGroup: {
+        marginTop: "8px",
+        padding: "8px",
+        border: "0.5px solid var(--vscode-editorWidget-border)",
+        borderRadius: "2px",
+    },
+});
+
+export const fabricLogoColor = () => {
+    return require(`../../media/fabric-color.svg`);
+};
+
+const fabricAuthOptions: (keyof IConnectionDialogProfile)[] = [
+    "authenticationType",
+    "accountId",
+    "tenantId",
+];

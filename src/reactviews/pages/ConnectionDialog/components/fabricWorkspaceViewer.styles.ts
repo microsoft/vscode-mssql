@@ -5,35 +5,33 @@
 
 import { makeStyles, shorthands, tokens } from "@fluentui/react-components";
 
-export const useStyles = makeStyles({
+export const useFabricBrowserStyles = makeStyles({
     container: {
         display: "flex",
         height: "400px",
         width: "100%",
-        ...shorthands.gap("10px"),
+        gap: "10px",
         overflow: "hidden",
         marginTop: "10px",
     },
     workspaceExplorer: {
         display: "flex",
         flexDirection: "column",
-        width: "160px",
-        minWidth: "160px",
+        width: "250px",
+        minWidth: "250px",
         height: "100%",
-        borderRight: "1px solid var(--vscode-panel-border)",
-        transition: "width 0.2s ease-in-out",
         overflow: "hidden",
+        borderRight: "1px solid var(--vscode-panel-border)",
         backgroundColor: "var(--vscode-sideBar-background)",
     },
     workspaceExplorerCollapsed: {
-        width: "28px",
-        minWidth: "28px",
-        ...shorthands.overflow("visible"),
         display: "flex",
         flexDirection: "column",
+        width: "36px",
+        minWidth: "36px",
+        overflow: "visible",
         justifyContent: "flex-start",
         alignItems: "center",
-        paddingTop: "4px",
         borderRight: "1px solid var(--vscode-panel-border)",
         backgroundColor: "var(--vscode-sideBar-background)",
     },
@@ -62,9 +60,10 @@ export const useStyles = makeStyles({
     },
     workspaceHeader: {
         flexShrink: 0,
-        paddingTop: "4px",
-        paddingLeft: "4px",
-        paddingRight: "4px",
+        padding: "8px",
+        gap: "8px",
+        display: "flex",
+        alignItems: "center",
     },
     workspaceSearchBox: {
         marginTop: "4px",
@@ -190,5 +189,10 @@ export const useStyles = makeStyles({
         maxWidth: "100%",
         wordWrap: "break-word",
         overflowWrap: "break-word",
+    },
+    hideTextOverflowCell: {
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis",
     },
 });

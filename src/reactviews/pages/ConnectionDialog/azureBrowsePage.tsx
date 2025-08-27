@@ -6,7 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, makeStyles, Spinner } from "@fluentui/react-components";
+import { Button, Spinner } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
@@ -23,24 +23,6 @@ import { removeDuplicates } from "../../common/utils";
 import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
 import { EntraSignInEmpty } from "./components/entraSignInEmpty.component";
-
-const useStyles = makeStyles({
-    icon: {
-        width: "75px",
-        height: "75px",
-        marginBottom: "10px",
-    },
-    notSignedInContainer: {
-        marginTop: "20px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-    },
-    signInLink: {
-        marginTop: "8px",
-    },
-});
 
 export const azureLogoColor = () => {
     return require(`../../media/azure-color.svg`);

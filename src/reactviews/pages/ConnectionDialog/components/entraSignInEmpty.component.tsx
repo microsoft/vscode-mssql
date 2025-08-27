@@ -44,6 +44,10 @@ export const EntraSignInEmpty: React.FC<EntraSignInEmptyProps> = ({
 }) => {
     const styles = useStyles();
 
+    if (loadAccountStatus === ApiStatus.Loaded) {
+        return undefined;
+    }
+
     return (
         <div className={styles.notSignedInContainer}>
             {loadAccountStatus === ApiStatus.NotStarted && (

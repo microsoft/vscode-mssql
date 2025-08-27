@@ -67,7 +67,7 @@ const useStyles = makeStyles({
 
 type BrowseByOption = "myData" | "recent" | "favorites" | "none";
 
-const fabricWorkspaceBrowseBy = () => {
+const FabricBrowserBrowseByButtons = () => {
     const classes = useStyles();
     const [selectedOption, setSelectedOption] = useState<BrowseByOption>("myData");
 
@@ -111,4 +111,4 @@ const fabricWorkspaceBrowseBy = () => {
     );
 };
 
-export default fabricWorkspaceBrowseBy;
+export default FabricBrowserBrowseByButtons;
