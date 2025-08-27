@@ -37,19 +37,19 @@ import { useFabricBrowserStyles } from "./fabricWorkspaceViewer.styles";
 import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
 import { Keys } from "../../../common/keys";
 
-interface WorkspacesListProps {
+interface FabricWorkspacesListProps {
     workspaces: FabricWorkspaceInfo[];
     onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;
     selectedWorkspace?: FabricWorkspaceInfo;
     fabricWorkspacesLoadStatus: Status;
 }
 
-export const WorkspacesList = ({
+export const FabricWorkspacesList = ({
     workspaces,
     onSelectWorkspace,
     selectedWorkspace,
     fabricWorkspacesLoadStatus,
-}: WorkspacesListProps) => {
+}: FabricWorkspacesListProps) => {
     const styles = useFabricBrowserStyles();
 
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);

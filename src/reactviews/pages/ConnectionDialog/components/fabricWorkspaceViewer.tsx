@@ -36,7 +36,7 @@ import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
 const sqlAnalyticsEndpointIcon = require("../../../../reactviews/media/data_warehouse.svg");
 
-export const WorkspaceContentsList = ({
+export const FabricWorkspaceContentsList = ({
     onSelectDatabase,
     fabricWorkspacesLoadStatus,
     selectedWorkspace,

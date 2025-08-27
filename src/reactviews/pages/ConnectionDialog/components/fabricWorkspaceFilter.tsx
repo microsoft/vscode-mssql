@@ -30,7 +30,7 @@ import { themeType } from "../../../common/utils";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { IAzureAccount, IAzureTenant } from "../../../../sharedInterfaces/connectionDialog";
 
-const FabricWorkspaceFilter = ({
+const FabricBrowserHeader = ({
     onSearchInputChanged,
     onFilterOptionChanged: _onFilterOptionChanged,
     onSelectAccountId,
@@ -41,7 +41,7 @@ const FabricWorkspaceFilter = ({
     azureTenants = [],
     selectedAccountId = "",
     selectedTenantId = "",
-}: FabricExplorerFilterProps) => {
+}: FabricBrowserHeaderProps) => {
     // const context = useContext(ConnectionDialogContext);
     // const theme = context!.themeKind;
     const styles = useStyles();
@@ -176,9 +176,9 @@ const FabricWorkspaceFilter = ({
     );
 };
 
-export default FabricWorkspaceFilter;
+export default FabricBrowserHeader;
 
-interface FabricExplorerFilterProps {
+interface FabricBrowserHeaderProps {
     onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;
     onSearchInputChanged: (_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => void;

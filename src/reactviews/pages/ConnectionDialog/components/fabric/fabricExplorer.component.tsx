@@ -5,9 +5,9 @@
 
 import { ChangeEvent, useContext, useMemo, useState } from "react";
 import { ConnectionDialogContext } from "../../connectionDialogStateProvider";
-import FabricWorkspaceFilter from "../fabricWorkspaceFilter";
-import { WorkspaceContentsList } from "../fabricWorkspaceViewer";
-import { WorkspacesList } from "../fabricWorkspacesList";
+import FabricBrowserHeader from "../fabricWorkspaceFilter";
+import { FabricWorkspaceContentsList } from "../fabricWorkspaceViewer";
+import { FabricWorkspacesList } from "../fabricWorkspacesList";
 import {
     InputOnChangeData,
     MenuCheckedValueChangeData,
@@ -83,7 +83,7 @@ export const FabricExplorer = ({
 
     return (
         <>
-            <FabricWorkspaceFilter
+            <FabricBrowserHeader
                 searchValue={searchFilter}
                 selectedTypeFilters={typeFilter}
                 azureAccounts={context.state.azureAccounts}
@@ -96,13 +96,13 @@ export const FabricExplorer = ({
                 onFilterOptionChanged={handleFilterOptionChanged}
             />
             <div className={fabricStyles.container}>
-                <WorkspacesList
+                <FabricWorkspacesList
                     workspaces={fabricWorkspaces}
                     selectedWorkspace={selectedWorkspace}
                     fabricWorkspacesLoadStatus={fabricWorkspacesLoadStatus}
                     onSelectWorkspace={handleWorkspaceSelected}
                 />
-                <WorkspaceContentsList
+                <FabricWorkspaceContentsList
                     fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
                     selectedWorkspace={selectedWorkspace}
                     searchFilter={searchFilter}
