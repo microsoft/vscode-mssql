@@ -30,7 +30,7 @@ import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.compon
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
-import { useItemGroupStyles } from "../../common/styles";
+import { useAccordionStyles } from "../../common/styles";
 import { FabricExplorer } from "./components/fabric/fabricExplorer.component";
 
 const useStyles = makeStyles({
@@ -63,6 +63,11 @@ const useStyles = makeStyles({
         paddingBottom: "6px",
         paddingTop: "6px",
     },
+    connectionAuthGroup: {
+        padding: "10px",
+        border: "0.5px solid var(--vscode-editorWidget-border)",
+        borderRadius: "2px",
+    },
 });
 
 export const fabricLogoColor = () => {
@@ -83,53 +88,8 @@ export const FabricBrowsePage = () => {
 
     const styles = useStyles();
     const formStyles = useFormStyles();
-    const itemGroupStyles = useItemGroupStyles();
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
-
-    // const [accounts, setAccounts] = useState<IAzureAccount[]>([]);
-    // const [selectedAccountName, setSelectedAccountName] = useState<string>("");
-
-    // Load accounts from state when component mounts
-    // useEffect(() => {
-    //     if (
-    //         context.state.loadingAzureAccountsStatus === ApiStatus.Loaded &&
-    //         context.state.azureAccounts
-    //     ) {
-    //         setAccounts(context.state.azureAccounts);
-
-    //         // Sync selectedAccountName with the globally stored selectedAccountId
-    //         if (context.state.selectedAccountId) {
-    //             const selectedAccount = context.state.azureAccounts.find(
-    //                 (account) => account.id === context.state.selectedAccountId,
-    //             );
-    //             if (selectedAccount) {
-    //                 setSelectedAccountName(selectedAccount.name);
-    //             }
-    //         } else if (context.state.azureAccounts.length > 0) {
-    //             // Set the first account as selected if no account is currently selected
-    //             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //             handleAccountChange({} as any, {
-    //                 optionText: context.state.azureAccounts[0].name,
-    //                 optionValue: context.state.azureAccounts[0].id,
-    //                 selectedOptions: [context.state.azureAccounts[0].id],
-    //             });
-    //         }
-    //     }
-    // }, [
-    //     context.state.loadingAzureAccountsStatus,
-    //     context.state.azureAccounts,
-    //     context.state.selectedAccountId,
-    // ]);
-
-    // function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
-    //     const accountName = data.optionText || "";
-    //     const accountId = data.optionValue || "";
-    //     setSelectedAccountName(accountName);
-    //     // setSelectedAccountId(accountId);
-
-    //     context!.selectAzureAccount(accountId);
-    // }
 
     useEffect(() => {
         if (
@@ -215,7 +175,7 @@ export const FabricBrowsePage = () => {
                     </div>
 
                     {context.state.formState.server && (
-                        <div className={itemGroupStyles.itemGroup}>
+                        <div className={styles.connectionAuthGroup}>
                             {context.state.connectionComponents.mainOptions
                                 .filter(
                                     (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
