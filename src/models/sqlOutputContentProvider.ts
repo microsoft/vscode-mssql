@@ -344,6 +344,7 @@ export class SqlOutputContentProvider {
                     queryRunner.uri,
                 );
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+                resultWebviewState.isExecutionPlan = false;
                 if (isOpenQueryResultsInTabByDefaultEnabled()) {
                     await this._queryResultWebviewController.createPanelController(queryRunner.uri);
                 }
