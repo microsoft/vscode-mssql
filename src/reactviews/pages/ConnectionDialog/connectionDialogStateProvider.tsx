@@ -8,7 +8,9 @@ import {
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
+    FabricSqlDbInfo,
     GetConnectionDisplayNameRequest,
+    GetSqlAnalyticsEndpointUriFromFabricRequest,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 
@@ -103,14 +105,6 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 openConnectionStringDialog: function (): void {
                     webviewContext.extensionRpc.action("openConnectionStringDialog");
                 },
-                getConnectionDisplayName: async function (
-                    connectionProfile: IConnectionDialogProfile,
-                ): Promise<string> {
-                    return await webviewContext.extensionRpc.sendRequest(
-                        GetConnectionDisplayNameRequest.type,
-                        connectionProfile,
-                    );
-                },
                 signIntoAzureForFirewallRule: function (): void {
                     webviewContext.extensionRpc.action("signIntoAzureForFirewallRule");
                 },
@@ -137,6 +131,22 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                     webviewContext.extensionRpc.action("selectFabricWorkspace", {
                         workspaceId,
                     });
+                },
+                getConnectionDisplayName: async function (
+                    connectionProfile: IConnectionDialogProfile,
+                ): Promise<string> {
+                    return await webviewContext.extensionRpc.sendRequest(
+                        GetConnectionDisplayNameRequest.type,
+                        connectionProfile,
+                    );
+                },
+                getSqlAnalyticsEndpointUriFromFabric: async function (
+                    sqlDb: FabricSqlDbInfo,
+                ): Promise<string> {
+                    return await webviewContext.extensionRpc.sendRequest(
+                        GetSqlAnalyticsEndpointUriFromFabricRequest.type,
+                        sqlDb,
+                    );
                 },
             }}>
             {children}

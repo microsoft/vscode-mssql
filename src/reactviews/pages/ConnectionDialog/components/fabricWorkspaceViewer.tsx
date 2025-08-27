@@ -311,7 +311,7 @@ function getItemIcon(artifactType: string): string {
     }
 }
 
-function getTypeDisplayName(artifactType: string): string {
+export function getTypeDisplayName(artifactType: string): string {
     switch (artifactType) {
         case SqlArtifactTypes.SqlDatabase:
             return Loc.connectionDialog.sqlDatabase;

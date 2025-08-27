@@ -24,6 +24,7 @@ import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
 import { FabricExplorer } from "./components/fabric/fabricExplorer.component";
+import { getTypeDisplayName } from "./components/fabricWorkspaceViewer";
 
 export const FabricBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -65,22 +66,20 @@ export const FabricBrowsePage = () => {
         context!.selectFabricWorkspace(workspace.id);
     }
 
-    function handleDatabaseSelected(selectedServer: FabricSqlDbInfo) {
-        switch (selectedServer.type) {
+    async function handleDatabaseSelected(database: FabricSqlDbInfo) {
+        switch (database.type) {
             case SqlArtifactTypes.SqlAnalyticsEndpoint: {
-                // TODO: RPC to fetch server name
-                console.error("Selecting Fabric SQL Endpoints is not yet supported.");
-                return;
-
-                const serverUrl = "TODO";
+                const serverUrl = await context!.getSqlAnalyticsEndpointUriFromFabric(database);
                 setConnectionProperty("server", serverUrl);
-                setConnectionProperty("profileName", selectedServer.displayName);
-                setConnectionProperty("azureAuthType", AuthenticationType.AzureMFA);
+                setConnectionProperty("profileName", generateProfileName(database));
+                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+
+                return;
             }
             case SqlArtifactTypes.SqlDatabase:
-                setConnectionProperty("server", selectedServer.server);
-                setConnectionProperty("database", selectedServer.database);
-                setConnectionProperty("profileName", selectedServer.displayName);
+                setConnectionProperty("server", database.server);
+                setConnectionProperty("database", database.database);
+                setConnectionProperty("profileName", generateProfileName(database));
                 setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
 
                 return;
@@ -221,3 +220,7 @@ const fabricAuthOptions: (keyof IConnectionDialogProfile)[] = [
     "accountId",
     "tenantId",
 ];
+
+function generateProfileName(database: FabricSqlDbInfo) {
+    return `${database.displayName} (${getTypeDisplayName(database.type)})`;
+}

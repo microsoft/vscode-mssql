@@ -26,6 +26,7 @@ import {
     GetConnectionDisplayNameRequest,
     FabricWorkspaceInfo,
     IAzureAccount,
+    GetSqlAnalyticsEndpointUriFromFabricRequest,
 } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
@@ -79,6 +80,7 @@ import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewC
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FabricHelper } from "../fabric/fabricHelper";
+import { FabricSqlDbInfo } from "../sharedInterfaces/fabric";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 
@@ -558,6 +560,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             return state;
         });
+
         this.onRequest(GetConnectionDisplayNameRequest.type, async (payload) => {
             return getConnectionDisplayName(payload);
         });
@@ -676,6 +679,14 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             return state;
+        });
+
+        this.onRequest(GetSqlAnalyticsEndpointUriFromFabricRequest.type, async (payload) => {
+            return FabricHelper.getFabricSqlEndpointServerUri(
+                payload.id,
+                payload.workspaceId,
+                payload.tenantId,
+            );
         });
     }
 
@@ -1519,7 +1530,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.updateState(state);
 
         try {
-            const databases = [];
+            const databases: FabricSqlDbInfo[] = [];
             const errorMessages: string[] = [];
 
             try {
@@ -1553,7 +1564,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     displayName: db.displayName,
                     server: db.server,
                     type: db.type,
+                    workspaceId: workspace.id,
                     workspaceName: workspace.displayName,
+                    tenantId: workspace.tenantId,
                 };
             });
 

@@ -126,7 +126,9 @@ export interface FabricSqlDbInfo {
     displayName: string;
     database: string;
     type: string;
+    workspaceId: string;
     workspaceName: string;
+    tenantId: string;
 }
 
 export interface FabricWorkspaceInfo {
@@ -261,6 +263,7 @@ export interface ConnectionDialogContextProps
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
+    getSqlAnalyticsEndpointUriFromFabric: (sqlEndpoint: FabricSqlDbInfo) => Promise<string>;
 }
 
 export interface ConnectionDialogReducers extends FormReducers<IConnectionDialogProfile> {
@@ -305,5 +308,11 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
 export namespace GetConnectionDisplayNameRequest {
     export const type = new RequestType<IConnectionDialogProfile, string, void>(
         "getConnectionDisplayName",
+    );
+}
+
+export namespace GetSqlAnalyticsEndpointUriFromFabricRequest {
+    export const type = new RequestType<FabricSqlDbInfo, string, void>(
+        "getSqlAnalyticsEndpointUriFromFabric",
     );
 }

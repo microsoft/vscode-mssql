@@ -14,6 +14,7 @@ import {
 } from "../sharedInterfaces/fabric";
 import { HttpHelper } from "../http/httpHelper";
 import { AxiosResponse } from "axios";
+import { getErrorMessage } from "../utils/utils";
 
 export class FabricHelper {
     static readonly fabricUriBase = vscode.Uri.parse("https://api.fabric.microsoft.com/v1/");
@@ -161,7 +162,7 @@ export class FabricHelper {
                 ...response.value.map((endpoint) => {
                     return {
                         id: endpoint.id,
-                        server: undefined, // requires a second Fabric API call to populate; fill later to avoid throttling
+                        server: undefined, // requires a second Fabric API call to populate; fill later to avoid rate-limiting (50/API/user/minute)
                         displayName: endpoint.displayName,
                         database: "TO VALIDATE", // TODO: validate that warehouses don't have a database
                         workspaceName: resolvedWorkspace.displayName,
@@ -175,6 +176,28 @@ export class FabricHelper {
         }
 
         return result;
+    }
+
+    public static async getFabricSqlEndpointServerUri(
+        sqlEndpointId: string,
+        workspaceId: string,
+        tenantId?: string,
+    ): Promise<string> {
+        try {
+            const connectionStringResponse = await this.fetchFromFabric<{
+                connectionString: string;
+            }>(
+                `workspaces/${workspaceId}/sqlEndpoints/${sqlEndpointId}/connectionString`,
+                `Getting connection string for SQL Endpoint '${sqlEndpointId}' in workspace '${workspaceId}'`,
+                tenantId,
+            );
+
+            // Server URL is returned as the connectionString field.
+            return connectionStringResponse.connectionString;
+        } catch (error) {
+            console.error(`Error fetching server URL for SQL Endpoints: ${getErrorMessage(error)}`);
+            throw error;
+        }
     }
 
     /**
