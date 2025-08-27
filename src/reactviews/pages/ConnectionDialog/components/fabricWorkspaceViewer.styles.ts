@@ -190,4 +190,9 @@ export const useFabricBrowserStyles = makeStyles({
         wordWrap: "break-word",
         overflowWrap: "break-word",
     },
+    hideTextOverflowCell: {
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis",
+    },
 });

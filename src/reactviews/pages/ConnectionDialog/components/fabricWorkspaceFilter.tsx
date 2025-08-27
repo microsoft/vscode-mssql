@@ -3,47 +3,47 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent, useContext, useEffect, useState } from "react";
+import { ChangeEvent, /*useContext,*/ useEffect, useState } from "react";
 import {
     Dropdown,
     Input,
     InputOnChangeData,
     Label,
-    Menu,
-    MenuButton,
+    // Menu,
+    // MenuButton,
     MenuCheckedValueChangeData,
     MenuCheckedValueChangeEvent,
-    MenuItemRadio,
-    MenuList,
-    MenuPopover,
-    MenuTrigger,
+    // MenuItemRadio,
+    // MenuList,
+    // MenuPopover,
+    // MenuTrigger,
     Option,
     OptionOnSelectData,
     SelectionEvents,
-    Tooltip,
+    // Tooltip,
     makeStyles,
 } from "@fluentui/react-components";
 import { Search20Regular } from "@fluentui/react-icons";
 import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
 import { themeType } from "../../../common/utils";
-import { ConnectionDialogContext } from "../connectionDialogStateProvider";
+// import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { IAzureAccount, IAzureTenant } from "../../../../sharedInterfaces/connectionDialog";
 
 const FabricWorkspaceFilter = ({
     onSearchInputChanged,
-    onFilterOptionChanged,
+    onFilterOptionChanged: _onFilterOptionChanged,
     onSelectAccountId,
     onSelectTenantId,
     searchValue = "",
-    selectedTypeFilters = [],
+    selectedTypeFilters: _selectedTypeFilters = [],
     azureAccounts = [],
     azureTenants = [],
     selectedAccountId = "",
     selectedTenantId = "",
 }: FabricExplorerFilterProps) => {
-    const context = useContext(ConnectionDialogContext);
-    const theme = context!.themeKind;
+    // const context = useContext(ConnectionDialogContext);
+    // const theme = context!.themeKind;
     const styles = useStyles();
 
     const [selectedAccountName, setSelectedAccountName] = useState<string>("");
@@ -127,8 +127,17 @@ const FabricWorkspaceFilter = ({
                     </Dropdown>
                 </div>
             </div>
-            <div className={styles.filterSection}>
-                <Label className={styles.filterLabel}>{Loc.connectionDialog.filter}</Label>
+            <div className={styles.searchAndFilterSection}>
+                <Input
+                    className={styles.inputSection}
+                    placeholder={Loc.connectionDialog.filterByKeyword}
+                    contentAfter={
+                        <Search20Regular aria-label={Loc.connectionDialog.filterByKeyword} />
+                    }
+                    onChange={onSearchInputChanged}
+                    value={searchValue}
+                />
+                {/* <Label className={styles.filterLabel}>{Loc.connectionDialog.filter}</Label>
                 <Menu>
                     <MenuTrigger>
                         <Tooltip content={Loc.connectionDialog.filterByType} relationship="label">
@@ -161,7 +170,7 @@ const FabricWorkspaceFilter = ({
                             </MenuItemRadio>
                         </MenuList>
                     </MenuPopover>
-                </Menu>
+                </Menu> */}
             </div>
         </div>
     );
@@ -200,7 +209,7 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "flex-start",
+        alignItems: "flex-end",
         padding: "8px",
     },
     dropdownContainer: {
@@ -237,11 +246,12 @@ const useStyles = makeStyles({
     inputSection: {
         marginRight: "20px",
     },
-    filterSection: {
+    searchAndFilterSection: {
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
         flexShrink: 0,
+        marginLeft: "8px",
     },
     filterLabel: {
         marginRight: "5px",
