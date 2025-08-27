@@ -58,6 +58,7 @@ export interface IWorkspace {
         name: string;
         id: string;
     };
+    role?: WorkspaceRole;
 }
 
 export interface IFabricError {
@@ -68,19 +69,44 @@ export interface IFabricError {
 /**
  * IWorkspaceRole Fabric Workspace role as seen in api responses
  */
-export interface IWorkspaceRole {
+export interface IWorkspaceRoleAssignment {
     id: string;
-    role: string;
+    role: WorkspaceRole;
 }
 
 /**
- * The possible workspace roles within a Fabric workspace
+ * The possible workspace roles within a Fabric workspace, matching API response strings.
  */
 export enum WorkspaceRole {
-    Admin = "Admin",
+    Viewer = "Viewer",
     Member = "Member",
     Contributor = "Contributor",
-    Viewer = "Viewer",
+    Admin = "Admin",
+}
+
+/**
+ * Defines the hierarchy of roles for permission checks.
+ * Higher numbers mean higher privileges.
+ */
+export const WorkspaceRoleRank: Record<WorkspaceRole, number> = {
+    [WorkspaceRole.Viewer]: 0,
+    [WorkspaceRole.Member]: 1,
+    [WorkspaceRole.Contributor]: 2,
+    [WorkspaceRole.Admin]: 3,
+};
+
+/**
+ * Helper to check if a user has at least a required role.
+ *
+ * @param userRole The user's current role.
+ * @param requiredRole The role required for the action.
+ * @returns True if the user has sufficient permissions, false otherwise.
+ */
+export function hasWorkspacePermission(
+    userRole: WorkspaceRole,
+    requiredRole: WorkspaceRole,
+): boolean {
+    return WorkspaceRoleRank[userRole] >= WorkspaceRoleRank[requiredRole];
 }
 
 /**
@@ -103,6 +129,8 @@ export interface ISqlDbArtifact extends IArtifact {
         serverFqdn: string;
     };
 }
+
+export interface ISqlEndpointArtifact extends IArtifact {}
 
 export interface IOperationState {
     createdTimeUtc: string;

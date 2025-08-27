@@ -294,7 +294,8 @@ export function generateFormComponent<
                         return (
                             <Option
                                 key={(component.propertyName as string) + idx}
-                                value={option.value}>
+                                value={option.value}
+                                style={option.style}>
                                 {option.displayName}
                             </Option>
                         );
@@ -313,6 +314,9 @@ export function generateFormComponent<
                     options={component.options.map((opt) => ({
                         value: opt.value,
                         text: opt.displayName,
+                        style: opt.style,
+                        description: opt.description,
+                        icon: opt.icon,
                     }))}
                     placeholder={component.placeholder}
                     searchBoxPlaceholder={component.searchBoxPlaceholder}

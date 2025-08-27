@@ -29,7 +29,6 @@ export abstract class FormWebviewController<
 
     private registerFormRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            console.log("In form action");
             if (payload.event.isAction) {
                 const component = this.getFormComponent(this.state, payload.event.propertyName);
                 if (component && component.actionButtons) {
@@ -81,7 +80,8 @@ export abstract class FormWebviewController<
                 self.state,
                 formTarget[component.propertyName] as string | boolean | number,
             );
-            if (updateValidation) {
+            // if not passed in, it should update validation
+            if (updateValidation !== false) {
                 component.validation = validation;
             }
             if (!validation.isValid) {

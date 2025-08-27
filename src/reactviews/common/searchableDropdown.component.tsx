@@ -16,7 +16,7 @@ import {
     Text,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
-import { CSSProperties, useEffect, useId, useRef, useState } from "react";
+import { createElement, CSSProperties, useEffect, useId, useRef, useState } from "react";
 import { locConstants } from "./locConstants";
 
 export interface SearchableDropdownOptions {
@@ -28,6 +28,18 @@ export interface SearchableDropdownOptions {
      * Display text for the option. If not provided, the value will be used as the display text.
      */
     text?: string;
+    /**
+     * Option description
+     */
+    description?: string;
+    /**
+     * Option Icon
+     */
+    icon?: string;
+    /**
+     * Optional styling for the option
+     */
+    style?: any;
 }
 
 export interface SearchableDropdownProps {
@@ -202,6 +214,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     maxWidth: `${popoverWidth - 10}px`,
                     padding: "5px 0px",
                     margin: "2px",
+                    ...option.style,
                 }}
                 name={"dropdown-options"}
                 value={option.value}
@@ -216,7 +229,17 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         setIsSearchFocused(false);
                     }
                 }}>
-                {getOptionDisplayText(option)}
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                    }}>
+                    <span>{getOptionDisplayText(option)}</span>
+                    <span style={{ display: "flex", gap: "4px", marginRight: "12px" }}>
+                        {option.description && <div>{option.description}</div>}
+                        {option.icon && createElement((FluentIcons as any)[option.icon])}
+                    </span>
+                </div>
             </MenuItemRadio>
         ));
     };

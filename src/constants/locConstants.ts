@@ -747,6 +747,7 @@ export class Fabric {
     public static selectAWorkspace = l10n.t("Select a Workspace");
     public static searchWorkspaces = l10n.t("Search Workspaces");
     public static workspaceIsRequired = l10n.t("Workspace is required");
+    public static insufficientPermissions = l10n.t("Insufficient Permissions");
 }
 
 export class FabricProvisioning {
@@ -755,6 +756,9 @@ export class FabricProvisioning {
     public static databaseNameIsRequired = l10n.t("Database Name is required");
     public static databaseDescription = l10n.t("Database Description");
     public static enterDatabaseDescription = l10n.t("Enter Database Description");
+    public static workspacePermissionsError = l10n.t(
+        "Please select a workspace where you have sufficient permissions (Contributor or higher)",
+    );
 }
 
 export class QueryResult {

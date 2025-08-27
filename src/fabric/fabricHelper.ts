@@ -11,6 +11,9 @@ import {
     ICapacity,
     IOperationState,
     IOperationStatus,
+    ISqlDbArtifact,
+    ISqlEndpointArtifact,
+    IWorkspaceRoleAssignment,
 } from "../sharedInterfaces/fabric";
 import { HttpHelper } from "../http/httpHelper";
 import { AxiosResponse } from "axios";
@@ -136,6 +139,20 @@ export class FabricHelper {
         return result;
     }
 
+    public static async getRoleForWorkspace(
+        workspaceId: string,
+        tenantId?: string,
+    ): Promise<IWorkspaceRoleAssignment[] | undefined> {
+        try {
+            const response = await this.fetchFromFabric<{ value: IWorkspaceRoleAssignment[] }>(
+                `workspaces/${workspaceId}/roleAssignments`,
+                `listing role assignements for workspace '${workspaceId}'`,
+                tenantId,
+            );
+            return response.value;
+        } catch (err) {}
+    }
+
     public static async fetchFromFabric<TResponse>(
         api: string,
         reason: string,
@@ -177,8 +194,6 @@ export class FabricHelper {
             `Create workspace with capacity ${capacityId}`,
             tenantId,
         );
-
-        console.log(response);
 
         return response;
     }
@@ -360,26 +375,3 @@ function isFabricError(obj: any): obj is IFabricError {
         typeof obj.message === "string"
     );
 }
-
-/**
- * IArtifact as seen in api responses
- */
-export interface IArtifact {
-    id: string;
-    type: string;
-    displayName: string;
-    description: string | undefined;
-    workspaceId: string;
-    properties: unknown;
-}
-
-export interface ISqlDbArtifact extends IArtifact {
-    properties: {
-        connectionInfo: string;
-        connectionString: string;
-        databaseName: string;
-        serverFqdn: string;
-    };
-}
-
-export interface ISqlEndpointArtifact extends IArtifact {}

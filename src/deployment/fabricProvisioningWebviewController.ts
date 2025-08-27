@@ -25,6 +25,13 @@ import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locCo
 import { getAccountActionButtons } from "../connectionconfig/sharedConnectionDialogUtils";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
+import {
+    hasWorkspacePermission,
+    IWorkspace,
+    WorkspaceRole,
+    WorkspaceRoleRank,
+} from "../sharedInterfaces/fabric";
+import { tokens } from "@fluentui/react-components";
 
 export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormState,
@@ -99,7 +106,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         this.registerRpcHandlers();
         this.state.loadState = ApiStatus.Loaded;
         this.updateState();
-        this.getCapacities();
         this.getWorkspaces();
         console.log("Load stats: ", Date.now() - startTime);
     }
@@ -191,10 +197,23 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 isAdvancedOption: false,
                 placeholder: Fabric.selectAWorkspace,
                 searchBoxPlaceholder: Fabric.searchWorkspaces,
-                validate: (_state: FabricProvisioningWebviewState, value: string) => ({
-                    isValid: !!value,
-                    validationMessage: value ? "" : Fabric.workspaceIsRequired,
-                }),
+                validate(state: FabricProvisioningWebviewState, value: string) {
+                    {
+                        const workspaceRole = state.workspaces.find(
+                            (workspace) => workspace.id === value,
+                        ).role;
+                        const hasValidPermissions = hasWorkspacePermission(
+                            workspaceRole,
+                            WorkspaceRole.Contributor,
+                        );
+                        return {
+                            isValid: hasValidPermissions,
+                            validationMessage: hasValidPermissions
+                                ? ""
+                                : FabricProvisioning.workspacePermissionsError,
+                        };
+                    }
+                },
             }),
             databaseName: createFormItem({
                 propertyName: "databaseName",
@@ -285,36 +304,38 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private getWorkspaceOptions(): FormItemOptions[] {
-        return this.state.workspaces.map((workspace) => ({
-            displayName: workspace.displayName,
-            value: workspace.id,
-        }));
-    }
+        return this.state.workspaces.map((workspace) => {
+            const hasPermission = hasWorkspacePermission(workspace.role, WorkspaceRole.Contributor);
 
-    private getCapacities(tenantId?: string): void {
-        if (this.state.formState.tenantId === "" && !tenantId) return;
-        FabricHelper.getFabricCapacities(tenantId || this.state.formState.tenantId)
-            .then((capacities) => {
-                this.state.capacities = capacities;
-            })
-            .catch((err) => {
-                console.error("Failed to load capacities", err);
-            });
-        this.updateState();
+            return {
+                displayName: workspace.displayName,
+                value: workspace.id,
+                style: hasPermission ? {} : { color: tokens.colorNeutralForegroundDisabled },
+                description: hasPermission ? undefined : Fabric.insufficientPermissions,
+                icon: hasPermission ? undefined : "Warning20Regular",
+            };
+        });
     }
 
     private getWorkspaces(tenantId?: string): void {
-        if (this.state.formState.tenantId === "" && !tenantId) return;
-        FabricHelper.getFabricWorkspaces(tenantId || this.state.formState.tenantId)
+        const effectiveTenantId = tenantId || this.state.formState.tenantId;
+        if (!effectiveTenantId) return;
+
+        FabricHelper.getFabricWorkspaces(effectiveTenantId)
             .then((workspaces) => {
-                this.state.workspaces = workspaces;
+                return this.sortWorkspacesByPermission(workspaces, WorkspaceRole.Contributor);
+            })
+            .then((filteredWorkspaces) => {
+                this.state.workspaces = filteredWorkspaces;
+
                 const workspaceComponent = this.getFormComponent(this.state, "workspace");
                 workspaceComponent.options = this.getWorkspaceOptions();
+
+                this.updateState();
             })
             .catch((err) => {
                 console.error("Failed to load workspaces", err);
             });
-        this.updateState();
     }
 
     private provisionDatabase(tenantId?: string): void {
@@ -327,10 +348,60 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         )
             .then((database) => {
                 this.state.database = database;
+                this.updateState();
             })
             .catch((err) => {
                 console.error("Failed to create database", err);
             });
-        this.updateState();
+    }
+
+    private async getRoleForWorkspace(
+        workspace: IWorkspace,
+        tenantId?: string,
+    ): Promise<IWorkspace> {
+        if (this.state.formState.tenantId === "" && !tenantId) return;
+        workspace.role = WorkspaceRole.Viewer;
+        try {
+            const roles = await FabricHelper.getRoleForWorkspace(
+                workspace.id,
+                tenantId || this.state.formState.tenantId,
+            );
+            if (!roles) return workspace;
+            for (const role of roles) {
+                if (WorkspaceRoleRank[role.role] >= WorkspaceRoleRank[workspace.role]) {
+                    workspace.role = role.role;
+                }
+            }
+        } catch (err) {
+            console.error("Failed to get workspace role", err);
+        }
+        return workspace;
+    }
+
+    private async sortWorkspacesByPermission(
+        workspaces: IWorkspace[],
+        requiredRole: WorkspaceRole,
+        tenantId?: string,
+    ): Promise<IWorkspace[]> {
+        // Fetch all roles in parallel
+        const workspacesWithRoles = await Promise.all(
+            workspaces.map(async (workspace) => {
+                return await this.getRoleForWorkspace(workspace, tenantId);
+            }),
+        );
+
+        // Partition into allowed and not allowed
+        const withPermission: IWorkspace[] = [];
+        const withoutPermission: IWorkspace[] = [];
+
+        for (const workspace of workspacesWithRoles) {
+            if (hasWorkspacePermission(workspace.role, requiredRole)) {
+                withPermission.push(workspace);
+            } else {
+                withoutPermission.push(workspace);
+            }
+        }
+
+        return [...withPermission, ...withoutPermission];
     }
 }

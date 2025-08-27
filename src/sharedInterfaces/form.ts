@@ -107,6 +107,18 @@ export interface FormItemActionButton {
 export interface FormItemOptions {
     displayName: string;
     value: string;
+    /**
+     * Option description
+     */
+    description?: string;
+    /**
+     * Option Icon
+     */
+    icon?: string;
+    /**
+     * Optional styling for the option
+     */
+    style?: any;
 }
 
 /**
