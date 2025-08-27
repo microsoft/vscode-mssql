@@ -23,6 +23,7 @@ import { useFabricBrowserStyles } from "../fabricWorkspaceViewer.styles";
 export const FabricExplorer = ({
     fabricWorkspaces,
     fabricWorkspacesLoadStatus,
+    onSelectAccountId,
     onSelectTenantId,
     onSelectWorkspace,
     onSelectDatabase,
@@ -72,6 +73,10 @@ export const FabricExplorer = ({
         }
     }
 
+    function handleSelectAccountId(accountId: string) {
+        onSelectAccountId(accountId);
+    }
+
     function handleSelectTenantId(tenantId: string) {
         onSelectTenantId(tenantId);
     }
@@ -81,11 +86,14 @@ export const FabricExplorer = ({
             <FabricWorkspaceFilter
                 searchValue={searchFilter}
                 selectedTypeFilters={typeFilter}
+                azureAccounts={context.state.azureAccounts}
                 azureTenants={context.state.azureTenants}
+                selectedAccountId={context.state.selectedAccountId}
                 selectedTenantId={context.state.selectedTenantId}
+                onSelectAccountId={handleSelectAccountId}
+                onSelectTenantId={handleSelectTenantId}
                 onSearchInputChanged={handleSearchInputChanged}
                 onFilterOptionChanged={handleFilterOptionChanged}
-                onSelectTenantId={handleSelectTenantId}
             />
             <div className={fabricStyles.container}>
                 <WorkspacesList
@@ -109,6 +117,7 @@ export const FabricExplorer = ({
 export interface FabricExplorerProps {
     fabricWorkspaces: FabricWorkspaceInfo[];
     fabricWorkspacesLoadStatus: Status;
+    onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;
     onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;
     onSelectDatabase: (database: FabricSqlDbInfo) => void;

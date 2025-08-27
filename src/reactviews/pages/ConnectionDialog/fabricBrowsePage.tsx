@@ -8,11 +8,8 @@ import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
 import {
     Button,
-    Field,
     Label,
     makeStyles,
-    Dropdown,
-    Option,
     OptionOnSelectData,
     SelectionEvents,
 } from "@fluentui/react-components";
@@ -90,51 +87,72 @@ export const FabricBrowsePage = () => {
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
-    const [accounts, setAccounts] = useState<IAzureAccount[]>([]);
-    const [selectedAccountName, setSelectedAccountName] = useState<string>("");
+    // const [accounts, setAccounts] = useState<IAzureAccount[]>([]);
+    // const [selectedAccountName, setSelectedAccountName] = useState<string>("");
 
     // Load accounts from state when component mounts
+    // useEffect(() => {
+    //     if (
+    //         context.state.loadingAzureAccountsStatus === ApiStatus.Loaded &&
+    //         context.state.azureAccounts
+    //     ) {
+    //         setAccounts(context.state.azureAccounts);
+
+    //         // Sync selectedAccountName with the globally stored selectedAccountId
+    //         if (context.state.selectedAccountId) {
+    //             const selectedAccount = context.state.azureAccounts.find(
+    //                 (account) => account.id === context.state.selectedAccountId,
+    //             );
+    //             if (selectedAccount) {
+    //                 setSelectedAccountName(selectedAccount.name);
+    //             }
+    //         } else if (context.state.azureAccounts.length > 0) {
+    //             // Set the first account as selected if no account is currently selected
+    //             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //             handleAccountChange({} as any, {
+    //                 optionText: context.state.azureAccounts[0].name,
+    //                 optionValue: context.state.azureAccounts[0].id,
+    //                 selectedOptions: [context.state.azureAccounts[0].id],
+    //             });
+    //         }
+    //     }
+    // }, [
+    //     context.state.loadingAzureAccountsStatus,
+    //     context.state.azureAccounts,
+    //     context.state.selectedAccountId,
+    // ]);
+
+    // function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
+    //     const accountName = data.optionText || "";
+    //     const accountId = data.optionValue || "";
+    //     setSelectedAccountName(accountName);
+    //     // setSelectedAccountId(accountId);
+
+    //     context!.selectAzureAccount(accountId);
+    // }
+
     useEffect(() => {
         if (
             context.state.loadingAzureAccountsStatus === ApiStatus.Loaded &&
-            context.state.azureAccounts
+            context.state.azureAccounts &&
+            !context.state.selectedAccountId
         ) {
-            setAccounts(context.state.azureAccounts);
-
-            // Sync selectedAccountName with the globally stored selectedAccountId
-            if (context.state.selectedAccountId) {
-                const selectedAccount = context.state.azureAccounts.find(
-                    (account) => account.id === context.state.selectedAccountId,
-                );
-                if (selectedAccount) {
-                    setSelectedAccountName(selectedAccount.name);
-                }
-            } else if (context.state.azureAccounts.length > 0) {
-                // Set the first account as selected if no account is currently selected
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                handleAccountChange({} as any, {
-                    optionText: context.state.azureAccounts[0].name,
-                    optionValue: context.state.azureAccounts[0].id,
-                    selectedOptions: [context.state.azureAccounts[0].id],
-                });
+            const firstAccount = context.state.azureAccounts[0];
+            if (firstAccount) {
+                context.selectAzureAccount(firstAccount.id);
             }
         }
     }, [
         context.state.loadingAzureAccountsStatus,
         context.state.azureAccounts,
-        context.state.selectedAccountId,
+        // context.state.selectedAccountId
     ]);
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
-    function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
-        const accountName = data.optionText || "";
-        const accountId = data.optionValue || "";
-        setSelectedAccountName(accountName);
-        // setSelectedAccountId(accountId);
-
+    function handleSelectAccountId(accountId: string) {
         context!.selectAzureAccount(accountId);
     }
 
@@ -184,32 +202,12 @@ export const FabricBrowsePage = () => {
             />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
-                    <div className={formStyles.formComponentDiv}>
-                        <Field orientation="horizontal">
-                            <Label>{Loc.connectionDialog.fabricAccount}</Label>
-                            <Dropdown
-                                value={selectedAccountName}
-                                selectedOptions={
-                                    context.state.selectedAccountId
-                                        ? [context.state.selectedAccountId]
-                                        : []
-                                }
-                                onOptionSelect={handleAccountChange}
-                                placeholder={Loc.connectionDialog.selectAnAccount}>
-                                {accounts.map((account) => (
-                                    <Option key={account.id} value={account.id} text={account.name}>
-                                        {account.name}
-                                    </Option>
-                                ))}
-                            </Dropdown>
-                        </Field>
-                    </div>
-
                     <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
                     <div className={styles.workspaceContainer}>
                         <FabricExplorer
                             fabricWorkspaces={context.state.fabricWorkspaces}
                             fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
+                            onSelectAccountId={handleSelectAccountId}
                             onSelectTenantId={handleSelectTenantId}
                             onSelectWorkspace={handleSelectWorkspace}
                             onSelectDatabase={handleDatabaseSelected}
