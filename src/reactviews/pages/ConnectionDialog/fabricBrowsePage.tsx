@@ -6,13 +6,7 @@
 import { useContext, useState, useEffect } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import {
-    Button,
-    Label,
-    makeStyles,
-    OptionOnSelectData,
-    SelectionEvents,
-} from "@fluentui/react-components";
+import { Button, Label, makeStyles } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
     AuthenticationType,
@@ -22,7 +16,6 @@ import {
     ConnectionInputMode,
     FabricSqlDbInfo,
     FabricWorkspaceInfo,
-    IAzureAccount,
     IConnectionDialogProfile,
     SqlArtifactTypes,
 } from "../../../sharedInterfaces/connectionDialog";
@@ -30,55 +23,7 @@ import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.compon
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
-import { useAccordionStyles } from "../../common/styles";
 import { FabricExplorer } from "./components/fabric/fabricExplorer.component";
-
-const useStyles = makeStyles({
-    icon: {
-        width: "75px",
-        height: "75px",
-        marginBottom: "10px",
-    },
-    notSignedInContainer: {
-        marginTop: "20px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-    },
-    signInLink: {
-        marginTop: "8px",
-    },
-    formRow: {
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    workspaceContainer: {
-        backgroundColor: "var(--vscode-editor-background)",
-        borderRadius: "4px",
-        border: "1px solid var(--vscode-panel-border)",
-        paddingLeft: "6px",
-        paddingBottom: "6px",
-        paddingTop: "6px",
-    },
-    connectionAuthGroup: {
-        padding: "10px",
-        border: "0.5px solid var(--vscode-editorWidget-border)",
-        borderRadius: "2px",
-    },
-});
-
-export const fabricLogoColor = () => {
-    return require(`../../media/fabric-color.svg`);
-};
-
-const fabricAuthOptions: (keyof IConnectionDialogProfile)[] = [
-    "authenticationType",
-    "accountId",
-    "tenantId",
-];
 
 export const FabricBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -102,11 +47,7 @@ export const FabricBrowsePage = () => {
                 context.selectAzureAccount(firstAccount.id);
             }
         }
-    }, [
-        context.state.loadingAzureAccountsStatus,
-        context.state.azureAccounts,
-        // context.state.selectedAccountId
-    ]);
+    }, [context.state.loadingAzureAccountsStatus, context.state.azureAccounts]);
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
         context!.formAction({ propertyName, value, isAction: false });
@@ -162,8 +103,10 @@ export const FabricBrowsePage = () => {
             />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
-                    <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
-                    <div className={styles.workspaceContainer}>
+                    <div className={styles.componentGroupHeader}>
+                        <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
+                    </div>
+                    <div className={styles.fabricBrowserContainer}>
                         <FabricExplorer
                             fabricWorkspaces={context.state.fabricWorkspaces}
                             fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
@@ -175,39 +118,46 @@ export const FabricBrowsePage = () => {
                     </div>
 
                     {context.state.formState.server && (
-                        <div className={styles.connectionAuthGroup}>
-                            {context.state.connectionComponents.mainOptions
-                                .filter(
-                                    (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
-                                )
-                                .map((inputName, idx) => {
-                                    const component =
-                                        context.state.formComponents[
-                                            inputName as keyof IConnectionDialogProfile
-                                        ];
-                                    if (component?.hidden !== false) {
-                                        return undefined;
-                                    }
+                        <>
+                            <div
+                                className={styles.componentGroupHeader}
+                                style={{ marginTop: "16px" }}>
+                                <Label>Connection Authentication</Label>
+                            </div>
+                            <div className={styles.connectionAuthGroup}>
+                                {context.state.connectionComponents.mainOptions
+                                    .filter(
+                                        (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
+                                    )
+                                    .map((inputName, idx) => {
+                                        const component =
+                                            context.state.formComponents[
+                                                inputName as keyof IConnectionDialogProfile
+                                            ];
+                                        if (component?.hidden !== false) {
+                                            return undefined;
+                                        }
 
-                                    return (
-                                        <FormField<
-                                            IConnectionDialogProfile,
-                                            ConnectionDialogWebviewState,
-                                            ConnectionDialogFormItemSpec,
-                                            ConnectionDialogContextProps
-                                        >
-                                            key={idx}
-                                            context={context}
-                                            component={component}
-                                            idx={idx}
-                                            props={{ orientation: "horizontal" }}
-                                            componentProps={{
-                                                disabled: inputName === "authenticationType",
-                                            }}
-                                        />
-                                    );
-                                })}
-                        </div>
+                                        return (
+                                            <FormField<
+                                                IConnectionDialogProfile,
+                                                ConnectionDialogWebviewState,
+                                                ConnectionDialogFormItemSpec,
+                                                ConnectionDialogContextProps
+                                            >
+                                                key={idx}
+                                                context={context}
+                                                component={component}
+                                                idx={idx}
+                                                props={{ orientation: "horizontal" }}
+                                                componentProps={{
+                                                    disabled: inputName === "authenticationType",
+                                                }}
+                                            />
+                                        );
+                                    })}
+                            </div>
+                        </>
                     )}
 
                     <AdvancedOptionsDrawer
@@ -231,3 +181,43 @@ export const FabricBrowsePage = () => {
         </div>
     );
 };
+const useStyles = makeStyles({
+    icon: {
+        width: "75px",
+        height: "75px",
+        marginBottom: "10px",
+    },
+    signInLink: {
+        marginTop: "8px",
+    },
+    formRow: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    componentGroupHeader: {
+        marginBottom: "8px",
+    },
+    fabricBrowserContainer: {
+        padding: "8px",
+        border: "0.5px solid var(--vscode-editorWidget-border)",
+        borderRadius: "2px",
+    },
+    connectionAuthGroup: {
+        marginTop: "8px",
+        padding: "8px",
+        border: "0.5px solid var(--vscode-editorWidget-border)",
+        borderRadius: "2px",
+    },
+});
+
+export const fabricLogoColor = () => {
+    return require(`../../media/fabric-color.svg`);
+};
+
+const fabricAuthOptions: (keyof IConnectionDialogProfile)[] = [
+    "authenticationType",
+    "accountId",
+    "tenantId",
+];
