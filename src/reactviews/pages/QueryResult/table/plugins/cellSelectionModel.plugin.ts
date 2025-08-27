@@ -139,14 +139,6 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
         this.ranges = this.removeInvalidRanges(ranges);
         this.onSelectedRangesChanged.notify(this.ranges);
-        // this.webViewState.state.selection = JSON.parse(
-        //     JSON.stringify(this.ranges),
-        // ) as ISlickRange[];
-        // // Adjust selection to account for number column
-        // this.webViewState.state.selection.forEach((range) => {
-        //     range.fromCell = range.fromCell - 1;
-        //     range.toCell = range.toCell - 1;
-        // });
     }
 
     public getSelectedRanges(): Slick.Range[] {
@@ -632,62 +624,6 @@ export class CellSelectionModel<T extends Slick.SlickData>
             summary: await selectionSummaryHelper(this.getSelectedRanges(), this.grid, isSelection),
         });
     }
-
-    // private handleKeyDown(e: StandardKeyboardEvent) {
-    // 	let active = this.grid.getActiveCell();
-    // 	let metaKey = e.ctrlKey || e.metaKey;
-
-    // 	if (active && e.shiftKey && !metaKey && !e.altKey &&
-    // 		(e.keyCode === KeyCode.LeftArrow || e.keyCode === KeyCode.RightArrow || e.keyCode === KeyCode.UpArrow || e.keyCode === KeyCode.DownArrow)) {
-    // 		let ranges = this.getSelectedRanges(), last: Slick.Range;
-
-    // 		ranges = this.getSelectedRanges();
-    // 		if (!ranges.length) {
-    // 			ranges.push(new Slick.Range(active.row, active.cell));
-    // 		}
-
-    // 		// keyboard can work with last range only
-    // 		last = ranges.pop()!; // this is guarenteed since if ranges is empty we add one
-
-    // 		// can't handle selection out of active cell
-    // 		if (!last.contains(active.row, active.cell)) {
-    // 			last = new Slick.Range(active.row, active.cell);
-    // 		}
-
-    // 		let dRow = last.toRow - last.fromRow,
-    // 			dCell = last.toCell - last.fromCell,
-    // 			// walking direction
-    // 			dirRow = active.row === last.fromRow ? 1 : -1,
-    // 			dirCell = active.cell === last.fromCell ? 1 : -1;
-
-    // 		if (e.keyCode === KeyCode.LeftArrow) {
-    // 			dCell -= dirCell;
-    // 		} else if (e.keyCode === KeyCode.RightArrow) {
-    // 			dCell += dirCell;
-    // 		} else if (e.keyCode === KeyCode.UpArrow) {
-    // 			dRow -= dirRow;
-    // 		} else if (e.keyCode === KeyCode.DownArrow) {
-    // 			dRow += dirRow;
-    // 		}
-
-    // 		// define new selection range
-    // 		let new_last = new Slick.Range(active.row, active.cell, active.row + dirRow * dRow, active.cell + dirCell * dCell);
-    // 		if (this.removeInvalidRanges([new_last]).length) {
-    // 			ranges.push(new_last);
-    // 			let viewRow = dirRow > 0 ? new_last.toRow : new_last.fromRow;
-    // 			let viewCell = dirCell > 0 ? new_last.toCell : new_last.fromCell;
-    // 			this.grid.scrollRowIntoView(viewRow, false);
-    // 			this.grid.scrollCellIntoView(viewRow, viewCell, false);
-    // 		} else {
-    // 			ranges.push(last);
-    // 		}
-
-    // 		this.setSelectedRanges(ranges);
-
-    // 		e.preventDefault();
-    // 		e.stopPropagation();
-    // 	}
-    // }
 
     private handleAfterKeyboardNavigationEvent(): void {
         const activeCell = this.grid.getActiveCell();
