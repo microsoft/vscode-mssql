@@ -120,9 +120,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
         setShowNext(fabricProvisioningState.formValidationLoadState === ApiStatus.Loaded);
     }, [fabricProvisioningState]);
 
-    useEffect(() => {
-        state.loadWorkspaces();
-    }, [fabricProvisioningState.workspaces]);
+    useEffect(() => {}, [fabricProvisioningState.workspaces]);
 
     return showNext ? (
         <ProvisionFabricDatabasePage />

@@ -76,18 +76,9 @@ export interface FabricProvisioningContextProps
      */
     reloadFabricEnvironment(newTenant: string): void;
     /**
-     * Loads the workspaces for the form.
-     */
-    loadWorkspaces(): void;
-    /**
      * Handles the request for the database provisioning process
      */
     createDatabase(): void;
-    /**
-     * Loads the database provisioning status.
-     */
-    loadDatabaseProvisioningStatus(): void;
-
     /**
      * Creates a connection group based on the provided spec.
      */
@@ -107,18 +98,9 @@ export interface FabricProvisioningReducers extends FormReducers<FabricProvision
      */
     reloadFabricEnvironment: { newTenant: string };
     /**
-     * Loads the workspaces for the form.
-     */
-    loadWorkspaces: {};
-    /**
      * Handles the request for the database provisioning process
      */
     createDatabase: {};
-    /**
-     * Loads the database provisioning status.
-     */
-    loadDatabaseProvisioningStatus: {};
-
     /**
      * Handles the action of creating a connection group.
      */

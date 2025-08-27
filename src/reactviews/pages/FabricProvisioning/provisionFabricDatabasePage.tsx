@@ -14,9 +14,7 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
 
     if (!state || !fabricProvisioningState) return undefined;
 
-    useEffect(() => {
-        state.loadDatabaseProvisioningStatus();
-    }, [fabricProvisioningState.database]);
+    useEffect(() => {}, [fabricProvisioningState.database]);
 
     return (
         <div>

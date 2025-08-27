@@ -122,12 +122,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             await this.reloadFabricComponents(payload.newTenant);
             return state;
         });
-        this.registerReducer("loadWorkspaces", async (state, _payload) => {
-            if (this.state.workspaces) {
-                state.workspaces = this.state.workspaces;
-            }
-            return state;
-        });
         this.registerReducer("createDatabase", async (state, _payload) => {
             state.formValidationLoadState = ApiStatus.Loading;
             this.updateState(state);
@@ -138,12 +132,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             } else {
                 state.formValidationLoadState = ApiStatus.NotStarted;
             }
-            return state;
-        });
-        this.registerReducer("loadDatabaseProvisioningStatus", async (state, _payload) => {
-            if (this.state.database) {
-                state.database = this.state.database;
-            }
+            this.updateState(state);
             return state;
         });
         this.registerReducer("createConnectionGroup", async (state, payload) => {
@@ -239,11 +228,17 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 searchBoxPlaceholder: Fabric.searchWorkspaces,
                 validate(state: FabricProvisioningWebviewState, value: string) {
                     {
-                        const workspaceRole = state.workspaces.find(
+                        if (!value) {
+                            return {
+                                isValid: false,
+                                validationMessage: Fabric.workspaceIsRequired,
+                            };
+                        }
+                        const workspace = state.workspaces.find(
                             (workspace) => workspace.id === value,
-                        ).role;
+                        );
                         const hasValidPermissions = hasWorkspacePermission(
-                            workspaceRole,
+                            workspace.role,
                             WorkspaceRole.Contributor,
                         );
                         return {
@@ -367,10 +362,10 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             })
             .then((filteredWorkspaces) => {
                 this.state.workspaces = filteredWorkspaces;
-
-                const workspaceComponent = this.getFormComponent(this.state, "workspace");
-                workspaceComponent.options = this.getWorkspaceOptions();
-
+                const workspaceOptions = this.getWorkspaceOptions();
+                this.state.formComponents.workspace.options = workspaceOptions;
+                this.state.formState.workspace =
+                    workspaceOptions.length > 0 ? workspaceOptions[0].value : "";
                 this.updateState();
             })
             .catch((err) => {

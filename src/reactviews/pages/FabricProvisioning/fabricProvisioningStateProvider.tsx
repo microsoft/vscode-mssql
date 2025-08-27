@@ -45,14 +45,8 @@ const FabricProvisioningStateProvider: React.FC<FabricProvisioningProviderProps>
                         newTenant: newTenant,
                     });
                 },
-                loadWorkspaces: function (): void {
-                    webviewState?.extensionRpc.action("loadWorkspaces", {});
-                },
                 createDatabase: function (): void {
                     webviewState?.extensionRpc.action("createDatabase", {});
-                },
-                loadDatabaseProvisioningStatus: function (): void {
-                    webviewState?.extensionRpc.action("loadDatabaseProvisioningStatus", {});
                 },
                 createConnectionGroup: function (connectionGroupSpec: ConnectionGroupSpec): void {
                     webviewState?.extensionRpc.action("createConnectionGroup", {
