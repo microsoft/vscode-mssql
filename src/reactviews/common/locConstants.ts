@@ -857,6 +857,12 @@ export class LocConstants {
             ),
         };
     }
+
+    public get fabricProvisioning() {
+        return {
+            createDatabase: l10n.t("Create Database"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

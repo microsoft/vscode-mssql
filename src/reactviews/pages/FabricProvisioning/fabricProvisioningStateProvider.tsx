@@ -47,6 +47,12 @@ const FabricProvisioningStateProvider: React.FC<FabricProvisioningProviderProps>
                 loadWorkspaces: function (): void {
                     webviewState?.extensionRpc.action("loadWorkspaces", {});
                 },
+                createDatabase: function (): void {
+                    webviewState?.extensionRpc.action("createDatabase", {});
+                },
+                loadDatabaseProvisioningStatus: function (): void {
+                    webviewState?.extensionRpc.action("loadDatabaseProvisioningStatus", {});
+                },
             }}>
             {children}
         </FabricProvisioningContext.Provider>

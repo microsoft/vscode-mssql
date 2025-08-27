@@ -23,6 +23,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
+import { ProvisionFabricDatabasePage } from "./provisionFabricDatabasePage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -67,6 +68,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
 
     const { formComponents } = fabricProvisioningState;
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
+    const [showNext, setShowNext] = useState(false);
 
     const renderFormFields = (isAdvanced: boolean) =>
         Object.values(formComponents)
@@ -104,13 +106,21 @@ export const FabricProvisioningInputForm: React.FC = () => {
                 </div>
             ));
 
-    const handleSubmit = async () => {};
+    const handleSubmit = async () => {
+        await state.createDatabase();
+    };
+
+    useEffect(() => {
+        setShowNext(fabricProvisioningState.formValidationLoadState === ApiStatus.Loaded);
+    }, [fabricProvisioningState]);
 
     useEffect(() => {
         state.loadWorkspaces();
     }, [fabricProvisioningState.workspaces]);
 
-    return (
+    return showNext ? (
+        <ProvisionFabricDatabasePage />
+    ) : (
         <div>
             <div className={classes.outerDiv}>
                 <div className={classes.formDiv}>
@@ -189,7 +199,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             disabled>
                             <div className={classes.buttonContent}>
                                 <Spinner size="extra-tiny" />
-                                Loading
+                                {locConstants.fabricProvisioning.createDatabase}
                             </div>
                         </Button>
                     ) : (
@@ -198,7 +208,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             type="submit"
                             onClick={() => handleSubmit()}
                             appearance="primary">
-                            Submit
+                            {locConstants.fabricProvisioning.createDatabase}
                         </Button>
                     )}
                 </div>

@@ -6,7 +6,7 @@
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
-import { ICapacity, IWorkspace } from "./fabric";
+import { ICapacity, ISqlDbArtifact, IWorkspace } from "./fabric";
 
 export class FabricProvisioningWebviewState
     implements
@@ -25,9 +25,9 @@ export class FabricProvisioningWebviewState
     > = {};
     formErrors: string[] = [];
     dialog: IDialogProps | undefined;
-    public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
     public workspaces: IWorkspace[] = [];
     public capacities: ICapacity[] = [];
+    public database: ISqlDbArtifact | undefined = undefined;
     /** Used to track the form validation state */
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track fabric database provision state */
@@ -78,6 +78,14 @@ export interface FabricProvisioningContextProps
      * Loads the workspaces for the form.
      */
     loadWorkspaces(): void;
+    /**
+     * Handles the request for the database provisioning process
+     */
+    createDatabase(): void;
+    /**
+     * Loads the database provisioning status.
+     */
+    loadDatabaseProvisioningStatus(): void;
 }
 
 export interface FabricProvisioningReducers extends FormReducers<FabricProvisioningFormState> {
@@ -90,4 +98,12 @@ export interface FabricProvisioningReducers extends FormReducers<FabricProvision
      * Loads the workspaces for the form.
      */
     loadWorkspaces: {};
+    /**
+     * Handles the request for the database provisioning process
+     */
+    createDatabase: {};
+    /**
+     * Loads the database provisioning status.
+     */
+    loadDatabaseProvisioningStatus: {};
 }
