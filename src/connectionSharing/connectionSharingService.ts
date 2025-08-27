@@ -77,7 +77,8 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.getDatabaseForConnectionId",
-                (extensionId: string, connectionId: string) => this.getDatabaseForConnectionId(extensionId, connectionId),
+                (extensionId: string, connectionId: string) =>
+                    this.getDatabaseForConnectionId(extensionId, connectionId),
             ),
         );
 
@@ -365,7 +366,10 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         return connectionDetails.database;
     }
 
-    public async getDatabaseForConnectionId(extensionId: string, connectionId: string): Promise<string | undefined> {
+    public async getDatabaseForConnectionId(
+        extensionId: string,
+        connectionId: string,
+    ): Promise<string | undefined> {
         await this.validateExtensionPermission(extensionId);
 
         const connections =

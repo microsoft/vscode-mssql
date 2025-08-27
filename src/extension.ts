@@ -148,7 +148,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
                 return controller.connectionSharingService.getActiveDatabase(extensionId);
             },
             getDatabaseForConnectionId: (extensionId: string, connectionId: string) => {
-                return controller.connectionSharingService.getDatabaseForConnectionId(extensionId, connectionId);
+                return controller.connectionSharingService.getDatabaseForConnectionId(
+                    extensionId,
+                    connectionId,
+                );
             },
             connect: async (extensionId: string, connectionId: string): Promise<string> => {
                 return controller.connectionSharingService.connect(extensionId, connectionId);
