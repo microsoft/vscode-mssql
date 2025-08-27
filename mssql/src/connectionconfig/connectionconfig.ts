@@ -174,7 +174,11 @@ export class ConnectionConfig implements IConnectionConfig {
         }
 
         // filter out any connection with a group that isn't defined
-        const groupIds = new Set<string>((await this.getGroups()).map((g) => g.id));
+        // Merge user and workspace groups for group existence check
+        const userGroups = this.getGroupsFromSettings(ConfigurationTarget.Global);
+        const workspaceGroups = this.getGroupsFromSettings(ConfigurationTarget.Workspace);
+        const allGroups = [...userGroups, ...workspaceGroups];
+        const groupIds = new Set<string>(allGroups.map((g) => g.id));
         profiles = profiles.filter((p) => {
             if (!groupIds.has(p.groupId)) {
                 this._logger.warn(
