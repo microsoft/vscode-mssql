@@ -1792,6 +1792,33 @@
   },
   "Clear permissions for all extensions to access your connections": "Clear permissions for all extensions to access your connections",
   "All permissions for extensions to access your connections have been cleared.": "All permissions for extensions to access your connections have been cleared.",
+  "No active text editor found. Please open a file with an active database connection.": "No active text editor found. Please open a file with an active database connection.",
+  "Connection with ID \"{0}\" not found. Please verify the connection ID exists./{0} is the connection ID": {
+    "message": "Connection with ID \"{0}\" not found. Please verify the connection ID exists.",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Failed to establish connection with ID \"{0}\". Please check connection details and network connectivity./{0} is the connection ID": {
+    "message": "Failed to establish connection with ID \"{0}\". Please check connection details and network connectivity.",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Invalid connection URI provided.": "Invalid connection URI provided.",
+  "Connection is not active. Please establish a connection before performing this action.": "Connection is not active. Please establish a connection before performing this action.",
+  "Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this./{0} is the extension ID": {
+    "message": "Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.",
+    "comment": [
+      "{0} is the extension ID"
+    ]
+  },
+  "Connection sharing permission is required for extension: '{0}'/{0} is the extension ID": {
+    "message": "Connection sharing permission is required for extension: '{0}'",
+    "comment": [
+      "{0} is the extension ID"
+    ]
+  },
   "Create Connection Group": "Create Connection Group",
   "Edit Connection Group - {0}/{0} is the connection group name": {
     "message": "Edit Connection Group - {0}",
