@@ -75,9 +75,15 @@ export class ConnectionNode extends TreeNodeInfo {
         connectionProfile: ConnectionProfile;
     }) {
         const { nodeInfo, sessionId, parentNode, connectionProfile } = options;
+        // For database connections, ensure they are filterable to support Object Explorer filtering
+        // even if the SQL Tools Service doesn't return filterableProperties
+        const isFilterable =
+            nodeInfo.filterableProperties?.length > 0 ||
+            (connectionProfile.database ? true : false);
+
         this.context = {
             type: SERVER_NODE_CONNECTED,
-            filterable: nodeInfo.filterableProperties?.length > 0,
+            filterable: isFilterable,
             hasFilters: false,
             subType: connectionProfile.containerName
                 ? dockerContainer
