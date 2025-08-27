@@ -226,8 +226,21 @@
                 "id": "mssql.agent",
                 "name": "mssql",
                 "description": "Azure SQL Copilot agent",
-                "commands": [],
-                "isSticky": true
+                "isSticky": true,
+                "commands": [
+                    {
+                        "name": "runQuery",
+                        "description": "Execute a SQL query in the currently connected database and return results."
+                    },
+                    {
+                        "name": "explain",
+                        "description": "Provide natural language explanations for SQL/ORM code, queries, functions, or stored procedures."
+                    },
+                    {
+                        "name": "disconnect",
+                        "description": "Disconnect from the currently connected database."
+                    }
+                ]
             }
         ],
         "customEditors": [
