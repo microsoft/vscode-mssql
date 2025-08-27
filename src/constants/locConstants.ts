@@ -1551,6 +1551,41 @@ export class ConnectionSharing {
     public static AllPermissionsCleared = l10n.t(
         "All permissions for extensions to access your connections have been cleared.",
     );
+    public static noActiveEditorError = l10n.t(
+        "No active text editor found. Please open a file with an active database connection.",
+    );
+    public static connectionNotFoundError(connectionId: string) {
+        return l10n.t({
+            message: `Connection with ID "{0}" not found. Please verify the connection ID exists.`,
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    }
+    public static failedToEstablishConnectionError(connectionId: string) {
+        return l10n.t({
+            message: `Failed to establish connection with ID "{0}". Please check connection details and network connectivity.`,
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    }
+    public static invalidConnectionUri = l10n.t("Invalid connection URI provided.");
+    public static connectionNotActive = l10n.t(
+        "Connection is not active. Please establish a connection before performing this action.",
+    );
+    public static permissionDenied(extensionId: string) {
+        return l10n.t({
+            message: `Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.`,
+            args: [extensionId],
+            comment: ["{0} is the extension ID"],
+        });
+    }
+    public static permissionRequired(extensionId: string) {
+        return l10n.t({
+            message: `Connection sharing permission is required for extension: '{0}'`,
+            args: [extensionId],
+            comment: ["{0} is the extension ID"],
+        });
+    }
 }
 
 export class ConnectionGroup {

@@ -275,13 +275,13 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             if (currentStatus === "denied") {
                 throw new ConnectionSharingError(
                     ConnectionSharingErrorCode.PERMISSION_DENIED,
-                    `Connection sharing access has been denied for extension "${extensionId}". Use the permission management command to grant access.`,
+                    LocalizedConstants.ConnectionSharing.permissionDenied(extensionId),
                     extensionId,
                 );
             } else {
                 throw new ConnectionSharingError(
                     ConnectionSharingErrorCode.PERMISSION_REQUIRED,
-                    `Connection sharing permission is required for extension "${extensionId}". Please grant permission when prompted.`,
+                    LocalizedConstants.ConnectionSharing.permissionRequired(extensionId),
                     extensionId,
                 );
             }
@@ -292,14 +292,14 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         if (!connectionUri) {
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.INVALID_CONNECTION_URI,
-                "Invalid connection URI provided.",
+                LocalizedConstants.ConnectionSharing.invalidConnectionUri,
             );
         }
 
         if (!this._connectionManager.isConnected(connectionUri)) {
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.NO_ACTIVE_CONNECTION,
-                "No active connection found for the provided URI.",
+                LocalizedConstants.ConnectionSharing.connectionNotActive,
             );
         }
     }
@@ -319,7 +319,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         if (!activeEditor) {
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.NO_ACTIVE_EDITOR,
-                "No active text editor found. Please open a file with an active database connection.",
+                LocalizedConstants.ConnectionSharing.noActiveEditorError,
                 extensionId,
             );
         }
@@ -346,7 +346,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         if (!activeEditor) {
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.NO_ACTIVE_EDITOR,
-                "No active text editor found. Please open a file with an active database connection.",
+                LocalizedConstants.ConnectionSharing.noActiveEditorError,
                 extensionId,
             );
         }
@@ -400,7 +400,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.CONNECTION_NOT_FOUND,
-                `Connection with ID "${connectionId}" not found. Please verify the connection ID exists.`,
+                LocalizedConstants.ConnectionSharing.connectionNotFoundError(connectionId),
                 extensionId,
                 connectionId,
             );
@@ -421,7 +421,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.CONNECTION_FAILED,
-                `Failed to establish connection with ID "${connectionId}". Please check connection details and network connectivity.`,
+                LocalizedConstants.ConnectionSharing.failedToEstablishConnectionError(connectionId),
                 extensionId,
                 connectionId,
             );
@@ -436,7 +436,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         if (!connectionUri) {
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.INVALID_CONNECTION_URI,
-                "Invalid connection URI provided for disconnection.",
+                LocalizedConstants.ConnectionSharing.invalidConnectionUri,
             );
         }
         void this._connectionManager.disconnect(connectionUri);
@@ -457,14 +457,14 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             this._logger.error("Invalid connection URI provided for query execution.");
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.INVALID_CONNECTION_URI,
-                "Invalid connection URI provided for query execution.",
+                LocalizedConstants.ConnectionSharing.invalidConnectionUri,
             );
         }
 
         if (!this.isConnected(connectionUri)) {
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.NO_ACTIVE_CONNECTION,
-                "Connection is not active. Please establish a connection before executing queries.",
+                LocalizedConstants.ConnectionSharing.connectionNotActive,
             );
         }
 
