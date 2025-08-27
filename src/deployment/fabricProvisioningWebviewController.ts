@@ -25,7 +25,7 @@ import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locCo
 import { getAccountActionButtons } from "../connectionconfig/sharedConnectionDialogUtils";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
-import { FabricScopes } from "../sharedInterfaces/fabric";
+import { randomUUID } from "crypto";
 
 export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormState,
@@ -33,13 +33,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormItemSpec,
     FabricProvisioningReducers
 > {
-    // Fabric request definitions
-    readonly fabricScopes: FabricScopes[] = [
-        FabricScopes.ItemReadWrite,
-        FabricScopes.WorskpaceReadWrite,
-    ];
-    readonly fabricTokenRequestReason = "Provision workspaces and SQL Databases in Fabric";
-
     requiredInputs: FabricProvisioningFormItemSpec[];
     constructor(
         context: vscode.ExtensionContext,
@@ -109,8 +102,8 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         this.updateState();
         // this.getCapacities();
         // this.createWorkspace();
-        // this.provisionDatabase();
-        // this.getWorkspaces();
+        //  this.provisionDatabase();
+        this.getWorkspaces();
         console.log("Load stats: ", Date.now() - startTime);
     }
 
@@ -303,7 +296,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 this.state.workspaces = workspaces;
                 const workspaceComponent = this.getFormComponent(this.state, "workspace");
                 workspaceComponent.options = this.getWorkspaceOptions();
-                console.log(workspaces);
             })
             .catch((err) => {
                 console.error("Failed to load workspaces", err);
@@ -311,37 +303,38 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         this.updateState();
     }
 
-    // private createWorkspace(tenantId?: string): void {
-    //     if (this.state.formState.tenantId === "" && !tenantId) return;
-    //     FabricHelper.createWorkspace(
-    //         "74AA88A9-67E2-4072-9C63-B20ABCCD5947", // test capacity
-    //         "testExtensionWorkspace",
-    //         "test workspace create from vscode",
-    //         tenantId || this.state.formState.tenantId,
-    //     )
-    //         .then((workspace) => {
-    //             console.log(workspace);
-    //         })
-    //         .catch((err) => {
-    //             console.error("Failed to create workspaces", err);
-    //         });
-    //     this.updateState();
-    // }
+    private createWorkspace(tenantId?: string): void {
+        if (this.state.formState.tenantId === "" && !tenantId) return;
+        FabricHelper.createWorkspace(
+            "74AA88A9-67E2-4072-9C63-B20ABCCD5947", // test capacity
+            `testExtensionWorkspace${randomUUID()}`,
+            "test workspace create from vscode",
+            tenantId || this.state.formState.tenantId,
+        )
+            .then((workspace) => {
+                console.log(workspace);
+            })
+            .catch((err) => {
+                console.error("Failed to create workspaces", err);
+            });
+        this.updateState();
+    }
 
-    // private provisionDatabase(tenantId?: string): void {
-    //     if (this.state.formState.tenantId === "" && !tenantId) return;
-    //     FabricHelper.createFabricSqlDatabase(
-    //         "713e4fb1-4c16-47bf-9b14-fed39843ead0", // workspace id
-    //         "testExtensionDatabase",
-    //         "test database provision from vscode",
-    //         tenantId || this.state.formState.tenantId,
-    //     )
-    //         .then((database) => {
-    //             console.log(database);
-    //         })
-    //         .catch((err) => {
-    //             console.error("Failed to create database", err);
-    //         });
-    //     this.updateState();
-    // }
+    /*
+    private provisionDatabase(tenantId?: string): void {
+        if (this.state.formState.tenantId === "" && !tenantId) return;
+        FabricHelper.createFabricSqlDatabase(
+            "759b58de-8267-49b7-b321-086f8a53c08c", // workspace id
+            `testExtensionDatabase${randomUUID()}`,
+            "test database provision from vscode",
+            tenantId || this.state.formState.tenantId,
+        )
+            .then((database) => {
+                console.log(database);
+            })
+            .catch((err) => {
+                console.error("Failed to create database", err);
+            });
+        this.updateState();
+    } */
 }

@@ -8,10 +8,12 @@ import {
     FabricSqlDbInfo,
     IWorkspace,
     IFabricError,
-    FabricScopes,
     ICapacity,
+    IOperationState,
+    IOperationStatus,
 } from "../sharedInterfaces/fabric";
 import { HttpHelper } from "../http/httpHelper";
+import { AxiosResponse } from "axios";
 
 export class FabricHelper {
     static readonly fabricUriBase = vscode.Uri.parse("https://api.fabric.microsoft.com/v1/");
@@ -163,7 +165,7 @@ export class FabricHelper {
         tenantId?: string,
     ) {
         const response = await this.postToFabric<
-            { value: IWorkspace },
+            IWorkspace,
             { displayName: string; capacityId: string; description: string }
         >(
             `workspaces`,
@@ -176,7 +178,9 @@ export class FabricHelper {
             tenantId,
         );
 
-        return response.value;
+        console.log(response);
+
+        return response;
     }
 
     public static async createFabricSqlDatabase(
@@ -186,7 +190,7 @@ export class FabricHelper {
         tenantId?: string,
     ) {
         const response = await this.postToFabric<
-            { value: ISqlDbArtifact },
+            ISqlDbArtifact,
             { displayName: string; description: string }
         >(
             `workspaces/${workspaceId}/sqlDatabases`,
@@ -198,35 +202,81 @@ export class FabricHelper {
             tenantId,
         );
 
-        return response.value;
+        return response;
     }
 
     public static async postToFabric<TResponse, TPayload>(
         api: string,
         payload: TPayload,
         reason: string,
-        tenantId: string | undefined,
-        scopes?: FabricScopes[],
-    ) {
+        tenantId?: string,
+        scopes?: string[],
+    ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
         const httpHelper = new HttpHelper();
 
         const session = await this.createScopedFabricSession(tenantId, reason, scopes);
-        let token = session?.accessToken;
+        const token = session?.accessToken;
 
-        const response = await httpHelper.makePostRequest<TResponse, TPayload>(
+        let response = await httpHelper.makePostRequest<TResponse, TPayload>(
             uri.toString(),
             token,
             payload,
         );
-        const result = response.data;
 
-        if (isFabricError(result)) {
-            const errorMessage = `Fabric API error occurred (${result.errorCode}): ${result.message}`;
-            throw new Error(errorMessage);
+        if (response.status === 202) {
+            response = await this.handleLongRunningOperation(
+                response.headers["retry-after"] as string,
+                response.headers["location"],
+                httpHelper,
+                token,
+            );
         }
 
+        const result = response.data;
+        if (isFabricError(result)) {
+            throw new Error(`Fabric API error occurred (${result.errorCode}): ${result.message}`);
+        }
         return result;
+    }
+
+    /**
+     * Polls a long-running Fabric API operation until it completes, then fetches the final result.
+     *
+     * @param retryAfter - Initial retry interval in seconds from the POST response.
+     * @param location - The URL to poll for operation status.
+     * @param httpHelper - HttpHelper instance used to make requests.
+     * @param token - Optional authentication token.
+     * @returns The final response containing the completed operation’s result.
+     */
+    private static async handleLongRunningOperation<TResponse>(
+        retryAfter: string,
+        location: string,
+        httpHelper: HttpHelper,
+        token?: string,
+    ): Promise<AxiosResponse<TResponse, any>> {
+        const retryAfterInMs = parseInt(retryAfter, 10) || 30;
+
+        let longRunningResponse;
+        while (
+            !longRunningResponse ||
+            longRunningResponse.data.status === IOperationStatus.Running ||
+            longRunningResponse.data.status === IOperationStatus.NotStarted
+        ) {
+            await new Promise((resolve) => setTimeout(resolve, retryAfterInMs * 1000));
+            longRunningResponse = await httpHelper.makeGetRequest<IOperationState>(location, token);
+        }
+
+        if (longRunningResponse.data.status === IOperationStatus.Failed) {
+            throw new Error(
+                `Fabric API error occurred (${longRunningResponse.status}): ${longRunningResponse.data.error}`,
+            );
+        }
+
+        return await httpHelper.makeGetRequest<TResponse>(
+            longRunningResponse.headers["location"],
+            token,
+        );
     }
 
     /**
@@ -236,13 +286,13 @@ export class FabricHelper {
      *
      * @param tenantId - Optional tenant ID to scope the session to a specific tenant.
      * @param reason - A user-facing string explaining why the session is requested.
-     * @param fabricScopes - Additional Fabric scopes to request (default: []).
+     * @param fabricScopes - Additional Fabric scopes to request.
      * @returns A VS Code AuthenticationSession with the requested scopes.
      */
-    public static async createScopedFabricSession(
+    private static async createScopedFabricSession(
         tenantId: string | undefined,
         reason: string,
-        fabricScopes: FabricScopes[] = [FabricScopes.Default],
+        fabricScopes: string[] = [".default"],
     ): Promise<vscode.AuthenticationSession> {
         let scopes = fabricScopes.map((scope) => `${this.fabricTokenRequestUriBase}${scope}`);
 

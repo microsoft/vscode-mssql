@@ -5,12 +5,6 @@
 
 import { Status } from "./webview";
 
-export enum FabricScopes {
-    Default = ".default",
-    WorskpaceReadWrite = "Workspace.ReadWrite.All",
-    ItemReadWrite = "Item.ReadWrite.All",
-}
-
 export interface FabricSqlDbInfo {
     id: string;
     server: string;
@@ -108,4 +102,20 @@ export interface ISqlDbArtifact extends IArtifact {
         databaseName: string;
         serverFqdn: string;
     };
+}
+
+export interface IOperationState {
+    createdTimeUtc: string;
+    error: string;
+    lastUpdatedTimeUtc: string;
+    percentComplete: string;
+    status: IOperationStatus;
+}
+
+export enum IOperationStatus {
+    Undefined = "Undefined",
+    NotStarted = "NotStarted",
+    Running = "Running",
+    Succeeded = "Succeeded",
+    Failed = "Failed",
 }
