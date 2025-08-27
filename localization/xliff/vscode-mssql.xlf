@@ -1399,6 +1399,9 @@
     <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
       <source xml:lang="en">Instant Container Setup</source>
     </trans-unit>
+    <trans-unit id="++CODE++d6b6aeb8df7709976da0402b656ac1e508a9e25e2542e9c2c1aec56c241aebeb">
+      <source xml:lang="en">Insufficient Permissions</source>
+    </trans-unit>
     <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
       <source xml:lang="en">Integrated</source>
     </trans-unit>
@@ -1904,6 +1907,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d81d6eb21f473c77ba01056237fcd372e9021b555b36efc68d24d22a5d608ba5">
       <source xml:lang="en">Please make your password 8-128 characters long.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
+      <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
     </trans-unit>
     <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
       <source xml:lang="en">Port</source>

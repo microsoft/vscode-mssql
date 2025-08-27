@@ -24,6 +24,12 @@ import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
 import { ProvisionFabricDatabasePage } from "./provisionFabricDatabasePage";
+import {
+    CREATE_NEW_GROUP_ID,
+    CreateConnectionGroupDialogProps,
+} from "../../../sharedInterfaces/connectionGroup";
+import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
+import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -124,7 +130,44 @@ export const FabricProvisioningInputForm: React.FC = () => {
         <div>
             <div className={classes.outerDiv}>
                 <div className={classes.formDiv}>
+                    {fabricProvisioningState.dialog?.type === "createConnectionGroup" && (
+                        <ConnectionGroupDialog
+                            state={
+                                (fabricProvisioningState.dialog as CreateConnectionGroupDialogProps)
+                                    .props
+                            }
+                            saveConnectionGroup={state.createConnectionGroup}
+                            closeDialog={() => state.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
+                        />
+                    )}
                     {renderFormFields(false)}
+                    <FormField<
+                        FabricProvisioningFormState,
+                        FabricProvisioningWebviewState,
+                        FabricProvisioningFormItemSpec,
+                        FabricProvisioningContextProps
+                    >
+                        context={state}
+                        component={
+                            fabricProvisioningState.formComponents[
+                                "groupId"
+                            ] as FabricProvisioningFormItemSpec
+                        }
+                        idx={0}
+                        componentProps={{
+                            onSelect: (option: SearchableDropdownOptions) => {
+                                if (option.value === CREATE_NEW_GROUP_ID) {
+                                    state.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
+                                } else {
+                                    state.formAction({
+                                        propertyName: "groupId",
+                                        isAction: false,
+                                        value: option.value,
+                                    });
+                                }
+                            },
+                        }}
+                    />
                     {fabricProvisioningState.formState.accountId && (
                         <FormField<
                             FabricProvisioningFormState,

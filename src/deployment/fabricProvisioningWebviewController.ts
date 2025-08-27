@@ -32,6 +32,12 @@ import {
     WorkspaceRoleRank,
 } from "../sharedInterfaces/fabric";
 import { tokens } from "@fluentui/react-components";
+import {
+    createConnectionGroup,
+    getDefaultConnectionGroupDialogProps,
+} from "../controllers/connectionGroupWebviewController";
+import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
+import { TelemetryViews } from "../sharedInterfaces/telemetry";
 
 export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormState,
@@ -137,6 +143,40 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         this.registerReducer("loadDatabaseProvisioningStatus", async (state, _payload) => {
             if (this.state.database) {
                 state.database = this.state.database;
+            }
+            return state;
+        });
+        this.registerReducer("createConnectionGroup", async (state, payload) => {
+            const createConnectionGroupResult: IConnectionGroup | string =
+                await createConnectionGroup(
+                    payload.connectionGroupSpec,
+                    this.mainController.connectionManager,
+                    TelemetryViews.ConnectionDialog,
+                );
+            if (typeof createConnectionGroupResult === "string") {
+                // If the result is a string, it means there was an error creating the group
+                state.formErrors.push(createConnectionGroupResult);
+            } else {
+                // If the result is an IConnectionGroup, it means the group was created successfully
+                state.formState.groupId = createConnectionGroupResult.id;
+            }
+
+            state.formComponents.groupId.options =
+                await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
+
+            state.dialog = undefined;
+
+            this.updateState(state);
+            return state;
+        });
+
+        this.registerReducer("setConnectionGroupDialogState", async (state, payload) => {
+            if (payload.shouldOpen) {
+                state = getDefaultConnectionGroupDialogProps(
+                    state,
+                ) as FabricProvisioningWebviewState;
+            } else {
+                state.dialog = undefined;
             }
             return state;
         });

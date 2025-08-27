@@ -1259,11 +1259,13 @@
   "Select a Workspace": "Select a Workspace",
   "Search Workspaces": "Search Workspaces",
   "Workspace is required": "Workspace is required",
+  "Insufficient Permissions": "Insufficient Permissions",
   "Database Name": "Database Name",
   "Enter Database Name": "Enter Database Name",
   "Database Name is required": "Database Name is required",
   "Database Description": "Database Description",
   "Enter Database Description": "Enter Database Description",
+  "Please select a workspace where you have sufficient permissions (Contributor or higher)": "Please select a workspace where you have sufficient permissions (Contributor or higher)",
   "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
     "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
     "comment": [
