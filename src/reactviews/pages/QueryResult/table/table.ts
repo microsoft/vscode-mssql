@@ -323,11 +323,38 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         }
     }
 
+    /**
+     * Execute a rendering action while preserving the current selection and focus state
+     * @param action The action to execute
+     */
+    private withRenderPreservingSelection(action: () => void): void {
+        const hadFocus = this._container.contains(document.activeElement);
+        const activeCell = this._grid.getActiveCell();
+        const selectedRanges = this.getSelectedRanges();
+
+        action();
+
+        if (hadFocus) {
+            // Let SlickGrid finish its render tick before restoring focus/selection
+            setTimeout(() => {
+                this.focus();
+                if (activeCell) {
+                    this._grid.setActiveCell(activeCell.row, activeCell.cell);
+                }
+                if (selectedRanges?.length) {
+                    this.selectionModel.setSelectedRanges(selectedRanges);
+                }
+            }, 0);
+        }
+    }
+
     public rerenderGrid() {
-        this._grid.updateRowCount();
-        this._grid.setColumns(this._grid.getColumns());
-        this._grid.invalidateAllRows();
-        this._grid.render();
+        this.withRenderPreservingSelection(() => {
+            this._grid.updateRowCount();
+            this._grid.setColumns(this._grid.getColumns());
+            this._grid.invalidateAllRows();
+            this._grid.render();
+        });
     }
 
     private mapMouseEvent(slickEvent: Slick.Event<any>) {
@@ -369,18 +396,22 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     public invalidateRows(rows: number[], keepEditor: boolean) {
-        this._grid.invalidateRows(rows, keepEditor);
-        this._grid.render();
+        this.withRenderPreservingSelection(() => {
+            this._grid.invalidateRows(rows, keepEditor);
+            this._grid.render();
+        });
     }
 
     public updateRowCount() {
-        this._grid.updateRowCount();
-        this._grid.render();
-        if (this._autoscroll) {
-            this._grid.scrollRowIntoView(this._data.getLength() - 1, false);
-        }
-        this.ariaRowCount = this.grid.getDataLength();
-        this.ariaColumnCount = this.grid.getColumns().length;
+        this.withRenderPreservingSelection(() => {
+            this._grid.updateRowCount();
+            this._grid.render();
+            if (this._autoscroll) {
+                this._grid.scrollRowIntoView(this._data.getLength() - 1, false);
+            }
+            this.ariaRowCount = this.grid.getDataLength();
+            this.ariaColumnCount = this.grid.getColumns().length;
+        });
     }
 
     set columns(columns: Slick.Column<T>[]) {
