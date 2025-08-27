@@ -1250,9 +1250,12 @@ export default class QueryRunner {
 
                 let cellObjects = row.slice(rowSelection.fromCell, rowSelection.toCell + 1);
                 let cells = cellObjects.map((x) => {
-                    let displayValue = this.shouldRemoveNewLines()
-                        ? this.removeNewLines(x.displayValue)
-                        : x.displayValue;
+                    // For null values, use empty string instead of the displayValue (which contains "null")
+                    let displayValue = x.isNull
+                        ? ""
+                        : this.shouldRemoveNewLines()
+                          ? this.removeNewLines(x.displayValue)
+                          : x.displayValue;
                     return this.escapeCsvValue(displayValue, textIdentifier);
                 });
 
@@ -1334,12 +1337,18 @@ export default class QueryRunner {
 
                 let cellObjects = row.slice(rowSelection.fromCell, rowSelection.toCell + 1);
                 for (let cellObject of cellObjects) {
-                    let displayValue = this.shouldRemoveNewLines()
-                        ? this.removeNewLines(cellObject.displayValue)
-                        : cellObject.displayValue;
+                    let value: any;
+                    if (cellObject.isNull) {
+                        // For null values, use proper JSON null instead of parsing displayValue
+                        value = null;
+                    } else {
+                        let displayValue = this.shouldRemoveNewLines()
+                            ? this.removeNewLines(cellObject.displayValue)
+                            : cellObject.displayValue;
 
-                    // Try to parse numeric and boolean values
-                    let value = this.parseJsonValue(displayValue);
+                        // Try to parse numeric and boolean values
+                        value = this.parseJsonValue(displayValue);
+                    }
                     jsonObject[columnHeaders[columnIndex]] = value;
                     columnIndex++;
                 }

@@ -1162,6 +1162,120 @@ suite("Query Runner tests", () => {
             );
         });
 
+        test("Copies selection as CSV with null values", async () => {
+            setupMockConfig();
+            let configResult: { [key: string]: any } = {};
+            configResult[Constants.configSaveAsCsv] = {
+                delimiter: ",",
+                textIdentifier: '"',
+                lineSeperator: "\n",
+            };
+
+            // Create test data with null values
+            let testResultWithNulls: QueryExecuteSubsetResult = {
+                resultSubset: {
+                    rowCount: 3,
+                    rows: [
+                        [
+                            { isNull: false, displayValue: "1" },
+                            { isNull: true, displayValue: "null" },
+                            { isNull: false, displayValue: "3" },
+                        ],
+                        [
+                            { isNull: true, displayValue: "null" },
+                            { isNull: false, displayValue: "5" },
+                            { isNull: true, displayValue: "null" },
+                        ],
+                        [
+                            { isNull: false, displayValue: "7" },
+                            { isNull: false, displayValue: "8" },
+                            { isNull: false, displayValue: "9" },
+                        ],
+                    ],
+                },
+            };
+
+            let resultWithNulls: QueryExecuteCompleteNotificationResult = {
+                ownerUri: testuri,
+                batchSummaries: [
+                    {
+                        hasError: false,
+                        id: 0,
+                        selection: {
+                            startLine: 0,
+                            endLine: 0,
+                            startColumn: 3,
+                            endColumn: 3,
+                        },
+                        resultSetSummaries: <ResultSetSummary[]>[
+                            {
+                                id: 0,
+                                rowCount: 3,
+                                columnInfo: [
+                                    { columnName: "Col1" },
+                                    { columnName: "Col2" },
+                                    { columnName: "Col3" },
+                                ],
+                            },
+                        ],
+                        executionElapsed: undefined,
+                        executionStart: new Date().toISOString(),
+                        executionEnd: new Date().toISOString(),
+                    },
+                ],
+            };
+
+            let testRangeWithNulls: ISlickRange[] = [
+                { fromCell: 0, fromRow: 0, toCell: 2, toRow: 2 },
+            ];
+
+            // Setup mock to capture the actual CSV content
+            let capturedCsvContent: string = "";
+            testVscodeWrapper
+                .setup((x) => x.clipboardWriteText(TypeMoq.It.isAnyString()))
+                .callback((text: string) => {
+                    capturedCsvContent = text;
+                })
+                .returns(() => Promise.resolve());
+
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => Promise.resolve(testResultWithNulls));
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object,
+            );
+            queryRunner.uri = testuri;
+            queryRunner.handleQueryComplete(resultWithNulls);
+
+            await queryRunner.copyResultsAsCsv(testRangeWithNulls, 0, 0, true);
+
+            testVscodeWrapper.verify<void>(
+                (x) => x.clipboardWriteText(TypeMoq.It.isAnyString()),
+                TypeMoq.Times.once(),
+            );
+
+            // Verify that null values are exported as empty strings, not "null"
+            // Expected CSV: Col1,Col2,Col3\n1,,3\n,5,\n7,8,9
+            assert.ok(
+                capturedCsvContent.includes("1,,3"),
+                "First row should have empty value for null cell",
+            );
+            assert.ok(
+                capturedCsvContent.includes(",5,"),
+                "Second row should have empty values for null cells",
+            );
+            assert.ok(
+                !capturedCsvContent.includes(",null,"),
+                "CSV should not contain literal 'null' strings",
+            );
+        });
+
         test("Copies selection as JSON with headers", async () => {
             setupMockConfig();
             let queryRunner = new QueryRunner(
@@ -1179,6 +1293,122 @@ suite("Query Runner tests", () => {
             testVscodeWrapper.verify<void>(
                 (x) => x.clipboardWriteText(TypeMoq.It.isAnyString()),
                 TypeMoq.Times.once(),
+            );
+        });
+
+        test("Copies selection as JSON with null values", async () => {
+            setupMockConfig();
+
+            // Create test data with null values
+            let testResultWithNulls: QueryExecuteSubsetResult = {
+                resultSubset: {
+                    rowCount: 2,
+                    rows: [
+                        [
+                            { isNull: false, displayValue: "1" },
+                            { isNull: true, displayValue: "null" },
+                            { isNull: false, displayValue: "test" },
+                        ],
+                        [
+                            { isNull: true, displayValue: "null" },
+                            { isNull: false, displayValue: "42" },
+                            { isNull: true, displayValue: "null" },
+                        ],
+                    ],
+                },
+            };
+
+            let resultWithNulls: QueryExecuteCompleteNotificationResult = {
+                ownerUri: testuri,
+                batchSummaries: [
+                    {
+                        hasError: false,
+                        id: 0,
+                        selection: {
+                            startLine: 0,
+                            endLine: 0,
+                            startColumn: 3,
+                            endColumn: 3,
+                        },
+                        resultSetSummaries: <ResultSetSummary[]>[
+                            {
+                                id: 0,
+                                rowCount: 2,
+                                columnInfo: [
+                                    { columnName: "Col1" },
+                                    { columnName: "Col2" },
+                                    { columnName: "Col3" },
+                                ],
+                            },
+                        ],
+                        executionElapsed: undefined,
+                        executionStart: new Date().toISOString(),
+                        executionEnd: new Date().toISOString(),
+                    },
+                ],
+            };
+
+            let testRangeWithNulls: ISlickRange[] = [
+                { fromCell: 0, fromRow: 0, toCell: 2, toRow: 1 },
+            ];
+
+            // Setup mock to capture the actual JSON content
+            let capturedJsonContent: string = "";
+            testVscodeWrapper
+                .setup((x) => x.clipboardWriteText(TypeMoq.It.isAnyString()))
+                .callback((text: string) => {
+                    capturedJsonContent = text;
+                })
+                .returns(() => Promise.resolve());
+
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => Promise.resolve(testResultWithNulls));
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object,
+            );
+            queryRunner.uri = testuri;
+            queryRunner.handleQueryComplete(resultWithNulls);
+
+            await queryRunner.copyResultsAsJson(testRangeWithNulls, 0, 0, true);
+
+            testVscodeWrapper.verify<void>(
+                (x) => x.clipboardWriteText(TypeMoq.It.isAnyString()),
+                TypeMoq.Times.once(),
+            );
+
+            // Verify that null values are exported as proper JSON null, not "null" strings
+            let jsonData;
+            try {
+                jsonData = JSON.parse(capturedJsonContent);
+            } catch (e) {
+                assert.fail(
+                    `Generated JSON is invalid: ${e.message}. Content: ${capturedJsonContent}`,
+                );
+            }
+
+            assert.equal(jsonData.length, 2, "Should have 2 rows");
+
+            // First row: {Col1: 1, Col2: null, Col3: "test"}
+            assert.equal(jsonData[0].Col1, 1, "First row Col1 should be number 1");
+            assert.strictEqual(jsonData[0].Col2, null, "First row Col2 should be null");
+            assert.equal(jsonData[0].Col3, "test", "First row Col3 should be 'test'");
+
+            // Second row: {Col1: null, Col2: 42, Col3: null}
+            assert.strictEqual(jsonData[1].Col1, null, "Second row Col1 should be null");
+            assert.equal(jsonData[1].Col2, 42, "Second row Col2 should be number 42");
+            assert.strictEqual(jsonData[1].Col3, null, "Second row Col3 should be null");
+
+            // Ensure JSON string doesn't contain literal "null" strings
+            assert.ok(
+                !capturedJsonContent.includes('"null"'),
+                "JSON should not contain literal 'null' strings",
             );
         });
     });
