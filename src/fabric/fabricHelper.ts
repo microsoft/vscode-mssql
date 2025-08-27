@@ -17,11 +17,21 @@ import { AxiosResponse } from "axios";
 
 export class FabricHelper {
     static readonly fabricUriBase = vscode.Uri.parse("https://api.fabric.microsoft.com/v1/");
-    static readonly fabricTokenRequestUriBase = vscode.Uri.parse(
+    static readonly fabricScopeUriBase = vscode.Uri.parse(
         "https://analysis.windows.net/powerbi/api/",
     );
+    static readonly longRunningOperationCode = 202;
+    static readonly defaultRetryInMs = 30;
+    static readonly defaultScope = ".default";
     constructor() {}
 
+    /**
+     * Retrieves the list of Fabric capacities for a given tenant.
+     *
+     * @param tenantId The ID of the tenant for which to fetch Fabric capacities.
+     * @returns A promise that resolves to an array of `ICapacity` objects.
+     * @throws {Error} Throws an error if the underlying Fabric API request fails.
+     */
     public static async getFabricCapacities(tenantId: string): Promise<ICapacity[]> {
         const response = await this.fetchFromFabric<{ value: ICapacity[] }>(
             "capacities",
@@ -32,6 +42,13 @@ export class FabricHelper {
         return response.value;
     }
 
+    /**
+     * Retrieves the list of Fabric workspaces for a given tenant.
+     *
+     * @param tenantId The ID of the tenant for which to fetch Fabric workspaces.
+     * @returns A promise that resolves to an array of `IWorkspace` objects.
+     * @throws {Error} Throws an error if the underlying Fabric API request fails.
+     */
     public static async getFabricWorkspaces(tenantId: string): Promise<IWorkspace[]> {
         const response = await this.fetchFromFabric<{ value: IWorkspace[] }>(
             "workspaces",
@@ -42,6 +59,14 @@ export class FabricHelper {
         return response.value;
     }
 
+    /**
+     * Retrieves a specific Fabric workspace by its ID for a given tenant.
+     *
+     * @param workspaceId The ID of the workspace to fetch.
+     * @param tenantId The ID of the tenant that owns the workspace.
+     * @returns A promise that resolves to the `IWorkspace` object.
+     * @throws {Error} Throws an error if the underlying Fabric API request fails.
+     */
     public static async getFabricWorkspace(
         workspaceId: string,
         tenantId: string,
@@ -55,6 +80,15 @@ export class FabricHelper {
         return response;
     }
 
+    /**
+     * Retrieves the list of Fabric SQL databases for a given workspace.
+     *
+     * @param workspace The workspace object or workspace ID for which to fetch databases.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to an array of `FabricSqlDbInfo` objects
+     * @throws {Error} Throws an error if the underlying Fabric API request fails or if database
+     *         processing encounters an error.
+     */
     public static async getFabricDatabases(
         workspace: IWorkspace | string,
         tenantId?: string,
@@ -97,6 +131,13 @@ export class FabricHelper {
         return result;
     }
 
+    /**
+     * Retrieves the list of Fabric SQL endpoints for a given workspace.
+     *
+     * @param workspace The workspace object or workspace ID to fetch SQL endpoints from.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to an array of `FabricSqlDbInfo` objects.
+     */
     public static async getFabricSqlEndpoints(workspace: IWorkspace | string, tenantId?: string) {
         const workspacePromise =
             typeof workspace === "string"
@@ -136,28 +177,15 @@ export class FabricHelper {
         return result;
     }
 
-    public static async fetchFromFabric<TResponse>(
-        api: string,
-        reason: string,
-        tenantId: string | undefined,
-    ): Promise<TResponse> {
-        const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
-        const httpHelper = new HttpHelper();
-
-        const session = await this.createScopedFabricSession(tenantId, reason);
-        let token = session?.accessToken;
-
-        const response = await httpHelper.makeGetRequest<TResponse>(uri.toString(), token);
-        const result = response.data;
-
-        if (isFabricError(result)) {
-            const errorMessage = `Fabric API error occurred (${result.errorCode}): ${result.message}`;
-            throw new Error(errorMessage);
-        }
-
-        return result;
-    }
-
+    /**
+     * Creates a new Fabric workspace with the specified capacity, name, and description.
+     *
+     * @param capacityId The ID of the capacity to assign to the new workspace.
+     * @param displayName The display name for the new workspace.
+     * @param description A description for the new workspace.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to the created `IWorkspace` object.
+     */
     public static async createWorkspace(
         capacityId: string,
         displayName: string,
@@ -183,6 +211,15 @@ export class FabricHelper {
         return response;
     }
 
+    /**
+     * Creates a new Fabric SQL database within a specified workspace.
+     *
+     * @param workspaceId The ID of the workspace where the SQL database will be created.
+     * @param displayName The display name for the new SQL database.
+     * @param description A description for the new SQL database.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to the created `ISqlDbArtifact` object.
+     */
     public static async createFabricSqlDatabase(
         workspaceId: string,
         displayName: string,
@@ -205,6 +242,51 @@ export class FabricHelper {
         return response;
     }
 
+    /**
+     * Sends a Get request to the Fabric API and returns the response.
+     *
+     * @template TResponse The expected type of the response data.
+     * @param api The API endpoint path to fetch data from.
+     * @param reason A string describing the reason for the request, used for session context.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to the API response of type `TResponse`.
+     * @throws {Error} Throws an error if the API response contains a Fabric error.
+     */
+    public static async fetchFromFabric<TResponse>(
+        api: string,
+        reason: string,
+        tenantId: string | undefined,
+    ): Promise<TResponse> {
+        const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
+        const httpHelper = new HttpHelper();
+
+        const session = await this.getScopedFabricSession(tenantId, reason);
+        let token = session?.accessToken;
+
+        const response = await httpHelper.makeGetRequest<TResponse>(uri.toString(), token);
+        const result = response.data;
+
+        if (isFabricError(result)) {
+            const errorMessage = `Fabric API error occurred (${result.errorCode}): ${result.message}`;
+            throw new Error(errorMessage);
+        }
+
+        return result;
+    }
+
+    /**
+     * Sends a Post request to the Fabric API and returns the response.
+     *
+     * @template TResponse The expected type of the response data.
+     * @template TPayload The type of the payload being sent in the request.
+     * @param api The API endpoint path to which the POST request is sent.
+     * @param payload The request payload to send in the POST body.
+     * @param reason A string describing the reason for the request, used for session context.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @param scopes Optional array of scopes for the request session.
+     * @returns A promise that resolves to the API response of type `TResponse`.
+     * @throws {Error} Throws an error if the API response contains a Fabric error.
+     */
     public static async postToFabric<TResponse, TPayload>(
         api: string,
         payload: TPayload,
@@ -215,7 +297,7 @@ export class FabricHelper {
         const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
         const httpHelper = new HttpHelper();
 
-        const session = await this.createScopedFabricSession(tenantId, reason, scopes);
+        const session = await this.getScopedFabricSession(tenantId, reason, scopes);
         const token = session?.accessToken;
 
         let response = await httpHelper.makePostRequest<TResponse, TPayload>(
@@ -224,7 +306,7 @@ export class FabricHelper {
             payload,
         );
 
-        if (response.status === 202) {
+        if (response.status === this.longRunningOperationCode) {
             response = await this.handleLongRunningOperation(
                 response.headers["retry-after"] as string,
                 response.headers["location"],
@@ -255,7 +337,7 @@ export class FabricHelper {
         httpHelper: HttpHelper,
         token?: string,
     ): Promise<AxiosResponse<TResponse, any>> {
-        const retryAfterInMs = parseInt(retryAfter, 10) || 30;
+        const retryAfterInMs = parseInt(retryAfter, 10) || this.defaultRetryInMs;
 
         let longRunningResponse;
         while (
@@ -289,12 +371,12 @@ export class FabricHelper {
      * @param fabricScopes - Additional Fabric scopes to request.
      * @returns A VS Code AuthenticationSession with the requested scopes.
      */
-    private static async createScopedFabricSession(
+    private static async getScopedFabricSession(
         tenantId: string | undefined,
         reason: string,
-        fabricScopes: string[] = [".default"],
+        fabricScopes: string[] = [this.defaultScope],
     ): Promise<vscode.AuthenticationSession> {
-        let scopes = fabricScopes.map((scope) => `${this.fabricTokenRequestUriBase}${scope}`);
+        let scopes = fabricScopes.map((scope) => `${this.fabricScopeUriBase}${scope}`);
 
         if (tenantId) {
             scopes.push(`VSCODE_TENANT:${tenantId}`);
