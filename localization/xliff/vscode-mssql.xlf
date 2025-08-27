@@ -738,6 +738,9 @@
     <trans-unit id="++CODE++4b0281fd3c02c610c7ff9f781b1666d54182ee7c48812ea9332055a7814872ad">
       <source xml:lang="en">Create Container</source>
     </trans-unit>
+    <trans-unit id="++CODE++a4772bd4c2a746f4bf95ffea1f8e9f44d3a8db72e301280d2bba6338c61724b6">
+      <source xml:lang="en">Create Database</source>
+    </trans-unit>
     <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
       <source xml:lang="en">Create Firewall Rule</source>
     </trans-unit>
