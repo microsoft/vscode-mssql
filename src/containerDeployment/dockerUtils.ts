@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { execFile, spawn } from "child_process";
-import { promisify } from "util";
+import { spawn } from "child_process";
 import { arch, platform } from "os";
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/containerDeployment";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -68,6 +67,7 @@ export const rosettaErrorLink =
 
 /**
  * Commands used to interact with Docker.
+ * These return structured command objects.
  */
 export const COMMANDS = {
     CHECK_DOCKER: (): DockerCommand => ({
@@ -361,8 +361,6 @@ export function sanitizeContainerInput(name: string): string {
 
 //#region Docker Command Implementations
 
-const execFilePromise = promisify(execFile);
-
 /**
  * Interface for parameterized commands
  */
@@ -372,50 +370,57 @@ interface DockerCommand {
 }
 
 /**
- * Safe command execution helper that uses execFile to prevent shell injection
+ * Safe command execution helper that uses spawn
  */
 async function execDockerCommand(cmd: DockerCommand): Promise<string> {
-    try {
-        const { stdout } = await execFilePromise(cmd.command, cmd.args, {
-            encoding: "utf8",
-            maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+    return new Promise((resolve, reject) => {
+        const process = spawn(cmd.command, cmd.args, {
+            stdio: ["ignore", "pipe", "pipe"],
         });
-        return stdout.trim();
-    } catch (error: any) {
-        // Preserve the original error message and code
-        throw error;
-    }
+
+        let stdout = "";
+        let stderr = "";
+
+        process.stdout.on("data", (data) => {
+            stdout += data.toString();
+        });
+
+        process.stderr.on("data", (data) => {
+            stderr += data.toString();
+        });
+
+        process.on("close", (code) => {
+            if (code === 0) {
+                resolve(stdout.trim());
+            } else {
+                const error = new Error(stderr || `Command failed with exit code ${code}`);
+                (error as any).code = code;
+                reject(error);
+            }
+        });
+
+        process.on("error", (error) => {
+            reject(error);
+        });
+    });
 }
 
 /**
  * Safe PowerShell command execution helper
  */
 async function execPowerShellCommand(cmd: DockerCommand): Promise<string> {
-    try {
-        const powerShellExecutable = platform() === "win32" ? "powershell.exe" : "pwsh";
-        const { stdout } = await execFilePromise(powerShellExecutable, ["-Command", ...cmd.args], {
-            encoding: "utf8",
-            maxBuffer: 10 * 1024 * 1024, // 10MB buffer
-        });
-        return stdout.trim();
-    } catch (error: any) {
-        throw error;
-    }
+    const powerShellExecutable = platform() === "win32" ? "powershell.exe" : "pwsh";
+    return execDockerCommand({
+        command: powerShellExecutable,
+        args: ["-Command", ...cmd.args],
+    });
 }
 
 /**
  * Safe system command execution helper for platform-specific system operations
  */
 async function execSystemCommand(cmd: DockerCommand): Promise<string> {
-    try {
-        const { stdout } = await execFilePromise(cmd.command, cmd.args, {
-            encoding: "utf8",
-            maxBuffer: 10 * 1024 * 1024, // 10MB buffer
-        });
-        return stdout.trim();
-    } catch (error: any) {
-        throw error;
-    }
+    return execDockerCommand(cmd);
 }
 
 /**
