@@ -92,7 +92,7 @@ const FabricWorkspaceFilter = ({
     }
 
     return (
-        <div className={styles.filterContainer}>
+        <div className={styles.headerContainer}>
             <div className={styles.dropdownContainer}>
                 <div className={styles.dropdownGroup}>
                     <Label className={styles.dropdownLabel}>Account</Label>
@@ -196,12 +196,12 @@ export const filterIcon = (colorTheme: ColorThemeKind) => {
 };
 
 const useStyles = makeStyles({
-    filterContainer: {
+    headerContainer: {
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-start",
-        marginRight: "6px",
+        padding: "8px",
     },
     dropdownContainer: {
         display: "flex",
@@ -212,20 +212,8 @@ const useStyles = makeStyles({
     dropdownGroup: {
         display: "flex",
         flexDirection: "column",
-        width: "120px",
-    },
-    inputSection: {
-        marginRight: "20px",
-    },
-    filterLabel: {
-        marginRight: "5px",
-        fontSize: "12px",
-        marginBottom: "4px",
-        display: "block",
-    },
-    filterIcon: {
-        width: "20px",
-        height: "20px",
+        width: "200px",
+        flexShrink: 0,
     },
     dropdownLabel: {
         fontSize: "12px",
@@ -233,7 +221,8 @@ const useStyles = makeStyles({
         display: "block",
     },
     compactDropdown: {
-        width: "120px",
+        width: "200px",
+        minWidth: "200px",
         fontSize: "12px",
         "& .fui-Dropdown__button": {
             fontSize: "12px",
@@ -245,10 +234,23 @@ const useStyles = makeStyles({
             minHeight: "24px",
         },
     },
+    inputSection: {
+        marginRight: "20px",
+    },
     filterSection: {
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
         flexShrink: 0,
+    },
+    filterLabel: {
+        marginRight: "5px",
+        fontSize: "12px",
+        marginBottom: "4px",
+        display: "block",
+    },
+    filterIcon: {
+        width: "20px",
+        height: "20px",
     },
 });
