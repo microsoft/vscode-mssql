@@ -16,9 +16,6 @@ import { stubTelemetry } from "./utils";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
 
-// We'll import dockerUtils dynamically in tests that need fresh instances
-// const dockerUtils = require("../../src/containerDeployment/dockerUtils");
-
 suite("Docker Utilities", () => {
     let sandbox: sinon.SinonSandbox;
     let node: ConnectionNode;
