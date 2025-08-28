@@ -58,7 +58,6 @@ export class ConnectionConfig implements IConnectionConfig {
 
     public getWorkspaceConnectionsGroup(): IConnectionGroup | undefined {
         const rootGroup = this.getRootGroup();
-        console.log("ROOT GROUP FOUND: " + rootGroup.id);
         if (!rootGroup) return undefined;
         const groups = this.getAllConnectionGroups();
         return groups.find(
@@ -329,7 +328,6 @@ export class ConnectionConfig implements IConnectionConfig {
             // If target is workspace, parent should be Workspace Connections group
             if (target === ConfigurationTarget.Workspace) {
                 group.parentId = this.getWorkspaceConnectionsGroupId();
-                console.log("workspace id:" + group.parentId);
             } else {
                 group.parentId = this.getUserConnectionsGroupId();
             }
@@ -670,10 +668,32 @@ export class ConnectionConfig implements IConnectionConfig {
     public getGroupsFromSettings(
         configLocation: ConfigTarget = ConfigurationTarget.Global,
     ): IConnectionGroup[] {
-        return this.getArrayFromSettings<IConnectionGroup>(
+        const groups = this.getArrayFromSettings<IConnectionGroup>(
             Constants.connectionGroupsArrayName,
             configLocation,
         );
+        // Ensure scope is set for legacy groups
+        const expectedScope =
+            configLocation === ConfigurationTarget.Workspace ? "workspace" : "user";
+        let changed = false;
+        for (const group of groups) {
+            if (!group.scope) {
+                group.scope = expectedScope;
+                changed = true;
+            }
+        }
+        // If any legacy group was updated, write back
+        if (changed) {
+            if (configLocation === ConfigurationTarget.Workspace) {
+                void this.writeConnectionGroupsToSettingsWithTarget(
+                    groups,
+                    ConfigurationTarget.Workspace,
+                );
+            } else {
+                void this.writeConnectionGroupsToSettings(groups);
+            }
+        }
+        return groups;
     }
 
     /**
@@ -684,6 +704,11 @@ export class ConnectionConfig implements IConnectionConfig {
         profiles: IConnectionProfile[],
         target: ConfigTarget = ConfigurationTarget.Global,
     ): Promise<void> {
+        // Ensure scope is set before writing
+        const expectedScope = target === ConfigurationTarget.Workspace ? "workspace" : "user";
+        for (const conn of profiles) {
+            conn.scope = conn.scope || expectedScope;
+        }
         await this._vscodeWrapper.setConfiguration(
             Constants.extensionName,
             Constants.connectionsArrayName,
@@ -703,6 +728,11 @@ export class ConnectionConfig implements IConnectionConfig {
         connGroups: IConnectionGroup[],
         target: ConfigTarget,
     ): Promise<void> {
+        // Ensure scope is set before writing
+        const expectedScope = target === ConfigurationTarget.Workspace ? "workspace" : "user";
+        for (const group of connGroups) {
+            group.scope = group.scope || expectedScope;
+        }
         await this._vscodeWrapper.setConfiguration(
             Constants.extensionName,
             Constants.connectionGroupsArrayName,
