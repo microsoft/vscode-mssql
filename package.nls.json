@@ -175,6 +175,7 @@
     "mssql.newTable": "New Table",
     "mssql.editTable": "Edit Table",
     "mssql.editConnection": "Edit Connection",
+    "mssql.setAsWorkspaceDefault": "Set as Workspace Default",
     "mssql.filterNode": "Filter",
     "mssql.clearFilters": "Clear Filters",
     "mssql.openExecutionPlanFile": "Open Execution Plan File",

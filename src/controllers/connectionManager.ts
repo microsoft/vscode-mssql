@@ -1047,6 +1047,131 @@ export default class ConnectionManager {
     }
 
     /**
+     * Gets the default connection from configuration if available
+     */
+    public async getDefaultConnectionFromConfig(
+        fileUri: string,
+    ): Promise<IConnectionInfo | undefined> {
+        // Get configuration from the workspace
+        const config = this.vscodeWrapper.getConfiguration(
+            Constants.extensionConfigSectionName,
+            fileUri,
+        );
+        const defaultConnectionId = config.get<string>(Constants.configDefaultConnectionId);
+
+        // Check if default connection id is configured
+        if (!defaultConnectionId) {
+            this._logger.logDebug(LocalizedConstants.msgNoDefaultConnectionIdConfigured);
+            return undefined;
+        }
+
+        // Debug logging
+        this._logger.logDebug(LocalizedConstants.msgCheckingDefaultConnection(fileUri));
+        this._logger.logDebug(
+            LocalizedConstants.msgDefaultConnectionIdFromConfig(defaultConnectionId),
+        );
+
+        // Get connection by ID using connectionConfig
+        const matchingConnection =
+            await this._connectionStore.connectionConfig.getConnectionById(defaultConnectionId);
+
+        if (matchingConnection) {
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgFoundMatchingConnection(defaultConnectionId),
+            );
+        } else {
+            this.vscodeWrapper.logToOutputChannel(
+                LocalizedConstants.msgNoMatchingConnectionFound(defaultConnectionId),
+            );
+        }
+
+        return matchingConnection;
+    }
+
+    /**
+     * Checks if the given connection profile is the default connection
+     * @param connectionProfile The connection profile to check
+     * @param fileUri Optional file URI to get workspace-specific config, defaults to active editor
+     * @returns true if this is the default connection, false otherwise
+     */
+    public async isDefaultConnection(
+        connectionProfile: IConnectionProfile,
+        fileUri?: string,
+    ): Promise<boolean> {
+        if (!connectionProfile?.id) {
+            return false;
+        }
+
+        // Use the active editor URI if none provided, or fall back to workspace configuration
+        const uri = fileUri || this.vscodeWrapper.activeTextEditorUri;
+
+        // Get configuration from the workspace
+        // If no URI is available, use workspace-level configuration
+        const config = this.vscodeWrapper.getConfiguration(
+            Constants.extensionConfigSectionName,
+            uri, // This can be undefined, which will use workspace-level config
+        );
+        const defaultConnectionId = config.get<string>(Constants.configDefaultConnectionId);
+
+        return defaultConnectionId === connectionProfile.id;
+    }
+
+    /**
+     * Attempts to connect using the default connection configuration if available
+     */
+    public async connectWithDefaultConnection(fileUri: string): Promise<boolean> {
+        this._logger.logDebug(LocalizedConstants.msgSearchingForDefaultConnection(fileUri));
+
+        const defaultConnection = await this.getDefaultConnectionFromConfig(fileUri);
+        if (!defaultConnection) {
+            this._logger.logDebug(LocalizedConstants.msgNoDefaultConnectionAvailable);
+            return false;
+        }
+
+        this._logger.logDebug(LocalizedConstants.msgAttemptingToConnectWithDefaultConnection);
+
+        try {
+            // close any active connection first
+            await this.disconnect(fileUri);
+
+            // attempt to connect with the default connection
+            const result = await this.connect(fileUri, defaultConnection);
+
+            if (result) {
+                this._logger.logDebug(
+                    LocalizedConstants.msgConnectedToDefaultConnection(
+                        defaultConnection.server || "connection string",
+                    ),
+                );
+                return true;
+            }
+
+            this._logger.logDebug(LocalizedConstants.msgConnectionAttemptFailed);
+
+            // Show toaster notification for connection failure
+            const connectionInfo = this.getConnectionInfo(fileUri);
+            const errorMessage =
+                connectionInfo?.errorMessage || LocalizedConstants.msgUnknownErrorOccurred;
+            this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.msgDefaultConnectionFailed(errorMessage),
+            );
+
+            return false;
+        } catch (error) {
+            this._logger.logDebug(
+                LocalizedConstants.msgFailedToConnectWithDefaultConnection(error.message),
+            );
+
+            // Show toaster notification for exception
+            this.vscodeWrapper.showErrorMessage(
+                LocalizedConstants.msgDefaultConnectionFailed(error.message),
+            );
+
+            return false;
+        }
+    }
+
+    /**
      * Helper to show all connections and perform connect logic.
      */
     public async showConnectionsAndConnect(fileUri: string): Promise<IConnectionInfo> {

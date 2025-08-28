@@ -103,6 +103,7 @@ export const cmdDisableActualPlan = "mssql.disableActualPlan";
 export const cmdNewTable = "mssql.newTable";
 export const cmdEditTable = "mssql.editTable";
 export const cmdEditConnection = "mssql.editConnection";
+export const cmdSetAsWorkspaceDefault = "mssql.setAsWorkspaceDefault";
 export const cmdLaunchUserFeedback = "mssql.userFeedback";
 export const cmdDesignSchema = "mssql.schemaDesigner";
 export const cmdDeployLocalDockerContainer = "mssql.deployLocalDockerContainer";
@@ -220,6 +221,7 @@ export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeature
 export const configEnableRichExperiences = "mssql.enableRichExperiences";
 export const configEnableRichExperiencesDoNotShowPrompt =
     "mssql.enableRichExperiencesDoNotShowPrompt";
+export const configDefaultConnectionId = "defaultConnectionId";
 export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
 export const configUseLegacyConnectionExperience = "mssql.useLegacyConnectionExperience";
