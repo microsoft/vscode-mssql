@@ -220,7 +220,6 @@ export default class QueryRunner {
             );
             return;
         }
-        this._handleQueryCleanup();
         return queryCancelResult;
     }
 
