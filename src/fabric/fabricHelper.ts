@@ -152,7 +152,7 @@ export class FabricHelper {
             );
             return response.value;
         } catch (err) {
-            // console.log(err);
+            console.log(err);
         }
     }
 

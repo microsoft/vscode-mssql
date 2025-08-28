@@ -747,7 +747,8 @@ export class Fabric {
     public static selectAWorkspace = l10n.t("Select a Workspace");
     public static searchWorkspaces = l10n.t("Search Workspaces");
     public static workspaceIsRequired = l10n.t("Workspace is required");
-    public static insufficientPermissions = l10n.t("Insufficient Permissions");
+    public static insufficientWorkspacePermissions = l10n.t("Insufficient Worskpace Permissions");
+    public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
 }
 
 export class FabricProvisioning {

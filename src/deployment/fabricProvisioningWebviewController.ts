@@ -46,6 +46,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormItemSpec,
     FabricProvisioningReducers
 > {
+    defaultWorkspacePermissionsCap = 20;
     requiredInputs: FabricProvisioningFormItemSpec[];
     constructor(
         context: vscode.ExtensionContext,
@@ -123,12 +124,39 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             await this.reloadFabricComponents(payload.newTenant);
             return state;
         });
+        this.registerReducer("handleWorkspaceFormAction", async (state, payload) => {
+            const workspace = state.workspacesWithPermissions[payload.workspaceId];
+            if (workspace && !workspace.role) {
+                delete state.workspacesWithPermissions[workspace.id];
+                const workspaceWithRole = await this.getRoleForWorkspace(
+                    workspace,
+                    state.formState.tenantId,
+                );
+                if (hasWorkspacePermission(workspaceWithRole.role, WorkspaceRole.Contributor)) {
+                    state.workspacesWithPermissions[workspaceWithRole.id] = workspaceWithRole;
+                } else {
+                    state.workspacesWithoutPermissions[workspaceWithRole.id] = workspaceWithRole;
+                }
+                this.state.workspacesWithPermissions = state.workspacesWithPermissions;
+                this.state.workspacesWithoutPermissions = state.workspacesWithoutPermissions;
+                state.formComponents.workspace.options = this.getWorkspaceOptions();
+            }
+            state.formState.workspace = payload.workspaceId;
+            const workspaceComponent = this.getFormComponent(state, "workspace");
+            const validation = workspaceComponent.validate(state, state.formState.workspace);
+            workspaceComponent.validation = validation;
+            if (!validation.isValid) {
+                state.formErrors.push("workspace");
+            }
+            return state;
+        });
         this.registerReducer("createDatabase", async (state, _payload) => {
             state.formValidationLoadState = ApiStatus.Loading;
             this.updateState(state);
             state.formErrors = await this.validateForm(state.formState);
             if (state.formErrors.length === 0) {
                 this.provisionDatabase();
+                state.deploymentStartTime = Date.now().toLocaleString();
                 state.formValidationLoadState = ApiStatus.Loaded;
             } else {
                 state.formValidationLoadState = ApiStatus.NotStarted;
@@ -229,22 +257,18 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 searchBoxPlaceholder: Fabric.searchWorkspaces,
                 validate(state: FabricProvisioningWebviewState, value: string) {
                     {
+                        console.log(state.workspaces);
+                        console.log(value);
                         if (!value) {
                             return {
                                 isValid: false,
                                 validationMessage: Fabric.workspaceIsRequired,
                             };
                         }
-                        const workspace = state.workspaces.find(
-                            (workspace) => workspace.id === value,
-                        );
-                        const hasValidPermissions = hasWorkspacePermission(
-                            workspace.role,
-                            WorkspaceRole.Contributor,
-                        );
+                        const hasPermission = value in state.workspacesWithPermissions;
                         return {
-                            isValid: hasValidPermissions,
-                            validationMessage: hasValidPermissions
+                            isValid: hasPermission,
+                            validationMessage: hasPermission
                                 ? ""
                                 : FabricProvisioning.workspacePermissionsError,
                         };
@@ -334,6 +358,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private async reloadFabricComponents(tenantId?: string) {
+        this.state.capacityIds = new Set<string>();
         this.state.userGroupIds = new Set<string>();
         this.state.workspaces = [];
         this.updateState();
@@ -341,14 +366,25 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private getWorkspaceOptions(): FormItemOptions[] {
-        return this.state.workspaces.map((workspace) => {
-            const hasPermission = hasWorkspacePermission(workspace.role, WorkspaceRole.Contributor);
+        const orderedWorkspaces = [
+            ...Object.values(this.state.workspacesWithPermissions),
+            ...Object.values(this.state.workspacesWithoutPermissions),
+        ];
+        return orderedWorkspaces.map((workspace) => {
+            const hasPermission = workspace.id in this.state.workspacesWithPermissions;
+
+            let description = "";
+            if (workspace.hasCapacityPermissionsForProvisioning === false) {
+                description = Fabric.insufficientCapacityPermissions;
+            } else if (!hasPermission) {
+                description = Fabric.insufficientWorkspacePermissions;
+            }
 
             return {
                 displayName: workspace.displayName,
                 value: workspace.id,
                 style: hasPermission ? {} : { color: tokens.colorNeutralForegroundDisabled },
-                description: hasPermission ? undefined : Fabric.insufficientPermissions,
+                description: description,
                 icon: hasPermission ? undefined : "Warning20Regular",
             };
         });
@@ -356,8 +392,14 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
 
     private getWorkspaces(tenantId?: string): void {
         if (this.state.formState.tenantId === "" && !tenantId) return;
+
         const startTime = Date.now();
-        FabricHelper.getFabricWorkspaces(tenantId || this.state.formState.tenantId)
+        tenantId = tenantId || this.state.formState.tenantId;
+
+        this.getCapacities(tenantId)
+            .then(() => {
+                return FabricHelper.getFabricWorkspaces(tenantId);
+            })
             .then((workspaces) => {
                 return this.sortWorkspacesByPermission(workspaces, WorkspaceRole.Contributor);
             })
@@ -392,6 +434,19 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             });
     }
 
+    private async getCapacities(tenantId?: string): Promise<void> {
+        if (this.state.formState.tenantId === "" && !tenantId) return;
+        if (this.state.capacityIds.size !== 0) return;
+        try {
+            const capacities = await FabricHelper.getFabricCapacities(
+                tenantId || this.state.formState.tenantId,
+            );
+            this.state.capacityIds = new Set(capacities.map((capacities) => capacities.id));
+        } catch (err) {
+            console.error("Failed to load capacities", err);
+        }
+    }
+
     private async getRoleForWorkspace(
         workspace: IWorkspace,
         tenantId?: string,
@@ -423,31 +478,56 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         requiredRole: WorkspaceRole,
         tenantId?: string,
     ): Promise<IWorkspace[]> {
+        // Ensure userGroupIds are loaded
         if (this.state.userGroupIds.size === 0) {
             const userId = this.state.formState.accountId.split(".")[0];
             const userGroups = await fetchUserGroups(userId);
             this.state.userGroupIds = new Set(userGroups.map((userGroup) => userGroup.id));
             this.state.userGroupIds.add(userId);
         }
-        // Fetch all roles in parallel
-        const workspacesWithRoles = await Promise.all(
-            workspaces.map(async (workspace) => {
-                return await this.getRoleForWorkspace(workspace, tenantId); // getting rate limited right now
-            }),
-        );
 
-        // Partition into allowed and not allowed
-        const withPermission: IWorkspace[] = [];
-        const withoutPermission: IWorkspace[] = [];
+        const workspacesWithValidOrUnknownCapacities: Record<string, IWorkspace> = {};
 
-        for (const workspace of workspacesWithRoles) {
-            if (hasWorkspacePermission(workspace.role, requiredRole)) {
-                withPermission.push(workspace);
+        for (const workspace of workspaces) {
+            // Track all workspaces in the global map
+            this.state.workspaces[workspace.id] = workspace;
+
+            if (workspace.capacityId && !this.state.capacityIds.has(workspace.capacityId)) {
+                workspace.hasCapacityPermissionsForProvisioning = false;
+                this.state.workspacesWithoutPermissions[workspace.id] = workspace;
             } else {
-                withoutPermission.push(workspace);
+                workspacesWithValidOrUnknownCapacities[workspace.id] = workspace;
             }
         }
 
-        return [...withPermission, ...withoutPermission];
+        // Fetch all roles in parallel if it won't hit rate limits
+        if (
+            Object.keys(workspacesWithValidOrUnknownCapacities).length <
+            this.defaultWorkspacePermissionsCap
+        ) {
+            const workspacesWithRoles = await Promise.all(
+                Object.values(workspacesWithValidOrUnknownCapacities).map(async (workspace) => {
+                    return await this.getRoleForWorkspace(workspace, tenantId);
+                }),
+            );
+
+            for (const workspace of workspacesWithRoles) {
+                if (hasWorkspacePermission(workspace.role, requiredRole)) {
+                    this.state.workspacesWithPermissions[workspace.id] = workspace;
+                } else {
+                    this.state.workspacesWithoutPermissions[workspace.id] = workspace;
+                }
+                // Also keep workspace in the global map
+                this.state.workspaces[workspace.id] = workspace;
+            }
+        } else {
+            this.state.workspacesWithPermissions = workspacesWithValidOrUnknownCapacities;
+        }
+
+        // Merge both
+        return [
+            ...Object.values(this.state.workspacesWithPermissions),
+            ...Object.values(this.state.workspacesWithoutPermissions),
+        ];
     }
 }

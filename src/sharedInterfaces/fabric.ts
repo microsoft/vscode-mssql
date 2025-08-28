@@ -59,6 +59,7 @@ export interface IWorkspace {
         id: string;
     };
     role?: WorkspaceRole;
+    hasCapacityPermissionsForProvisioning?: boolean;
 }
 
 export interface IFabricError {

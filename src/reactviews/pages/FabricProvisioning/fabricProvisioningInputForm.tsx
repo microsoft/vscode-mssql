@@ -30,6 +30,8 @@ import {
 } from "../../../sharedInterfaces/connectionGroup";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
+import { FormItemOptions } from "../../../sharedInterfaces/form";
+import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -126,6 +128,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
         <ProvisionFabricDatabasePage />
     ) : (
         <div>
+            <FabricProvisioningHeader paddingLeft="20px" />
             <div className={classes.outerDiv}>
                 <div className={classes.formDiv}>
                     {fabricProvisioningState.dialog?.type === "createConnectionGroup" && (
@@ -195,7 +198,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             }}
                         />
                     )}
-                    {fabricProvisioningState.workspaces.length > 0 && (
+                    {fabricProvisioningState.workspaces.length > 0 ? (
                         <FormField<
                             FabricProvisioningFormState,
                             FabricProvisioningWebviewState,
@@ -209,8 +212,19 @@ export const FabricProvisioningInputForm: React.FC = () => {
                                 ] as FabricProvisioningFormItemSpec
                             }
                             idx={0}
+                            componentProps={{
+                                onSelect: async (option: FormItemOptions) => {
+                                    await state.handleWorkspaceFormAction(option.value);
+                                },
+                            }}
                         />
+                    ) : (
+                        <div className={classes.buttonContent}>
+                            <Spinner size="tiny" />
+                            Loading workspaces....
+                        </div>
                     )}
+
                     <div>
                         <Button
                             icon={

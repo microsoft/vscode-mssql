@@ -6,7 +6,7 @@
 import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
-import { ICapacity, ISqlDbArtifact, IWorkspace } from "./fabric";
+import { ISqlDbArtifact, IWorkspace } from "./fabric";
 import { ConnectionGroupSpec } from "./connectionGroup";
 
 export class FabricProvisioningWebviewState
@@ -26,9 +26,12 @@ export class FabricProvisioningWebviewState
     > = {};
     formErrors: string[] = [];
     dialog: IDialogProps | undefined;
+    workspacesWithPermissions: Record<string, IWorkspace> = {};
+    workspacesWithoutPermissions: Record<string, IWorkspace> = {};
+    capacityIds: Set<string> = new Set<string>();
+    userGroupIds: Set<string> = new Set<string>();
+    public deploymentStartTime: string = "";
     public workspaces: IWorkspace[] = [];
-    public capacities: ICapacity[] = [];
-    public userGroupIds: Set<string> = new Set<string>();
     public database: ISqlDbArtifact | undefined = undefined;
     /** Used to track the form validation state */
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
@@ -77,6 +80,10 @@ export interface FabricProvisioningContextProps
      */
     reloadFabricEnvironment(newTenant: string): void;
     /**
+     * Handle workspace form action
+     */
+    handleWorkspaceFormAction(workspaceId: string): void;
+    /**
      * Handles the request for the database provisioning process
      */
     createDatabase(): void;
@@ -98,6 +105,10 @@ export interface FabricProvisioningReducers extends FormReducers<FabricProvision
      * Used when account/ tenant is changed
      */
     reloadFabricEnvironment: { newTenant: string };
+    /**
+     * Handle workspace form action
+     */
+    handleWorkspaceFormAction: { workspaceId: string };
     /**
      * Handles the request for the database provisioning process
      */

@@ -45,6 +45,11 @@ const FabricProvisioningStateProvider: React.FC<FabricProvisioningProviderProps>
                         newTenant: newTenant,
                     });
                 },
+                handleWorkspaceFormAction: function (workspaceId: string): void {
+                    webviewState?.extensionRpc.action("handleWorkspaceFormAction", {
+                        workspaceId: workspaceId,
+                    });
+                },
                 createDatabase: function (): void {
                     webviewState?.extensionRpc.action("createDatabase", {});
                 },
