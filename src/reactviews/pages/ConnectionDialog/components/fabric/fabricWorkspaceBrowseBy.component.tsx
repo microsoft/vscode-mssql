@@ -8,6 +8,52 @@ import { Text, ToggleButton, makeStyles, tokens } from "@fluentui/react-componen
 import { StarRegular, HistoryRegular, PersonCircleRegular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
 
+const FabricBrowserBrowseByButtons = () => {
+    const classes = useStyles();
+    const [selectedOption, setSelectedOption] = useState<BrowseByOption>("myData");
+
+    const handleButtonClick = (option: BrowseByOption) => {
+        if (selectedOption === option) {
+            // If clicking the same button, uncheck it
+            setSelectedOption("none");
+        } else {
+            // Otherwise, select the clicked button
+            setSelectedOption(option);
+        }
+    };
+
+    return (
+        <div className={classes.container}>
+            <Text className={classes.label}>{Loc.connectionDialog.browseBy}</Text>
+            <div className={classes.buttonGroup}>
+                <ToggleButton
+                    appearance="transparent"
+                    icon={<PersonCircleRegular />}
+                    onClick={() => handleButtonClick("myData")}
+                    checked={selectedOption === "myData"}>
+                    {Loc.connectionDialog.myData}
+                </ToggleButton>
+                <ToggleButton
+                    appearance="transparent"
+                    icon={<HistoryRegular />}
+                    onClick={() => handleButtonClick("recent")}
+                    checked={selectedOption === "recent"}>
+                    {Loc.connectionDialog.recent}
+                </ToggleButton>
+                <ToggleButton
+                    appearance="transparent"
+                    icon={<StarRegular />}
+                    onClick={() => handleButtonClick("favorites")}
+                    checked={selectedOption === "favorites"}>
+                    {Loc.connectionDialog.favorites}
+                </ToggleButton>
+            </div>
+        </div>
+    );
+};
+
+export default FabricBrowserBrowseByButtons;
+
 const useStyles = makeStyles({
     container: {
         display: "flex",
@@ -66,49 +112,3 @@ const useStyles = makeStyles({
 });
 
 type BrowseByOption = "myData" | "recent" | "favorites" | "none";
-
-const FabricBrowserBrowseByButtons = () => {
-    const classes = useStyles();
-    const [selectedOption, setSelectedOption] = useState<BrowseByOption>("myData");
-
-    const handleButtonClick = (option: BrowseByOption) => {
-        if (selectedOption === option) {
-            // If clicking the same button, uncheck it
-            setSelectedOption("none");
-        } else {
-            // Otherwise, select the clicked button
-            setSelectedOption(option);
-        }
-    };
-
-    return (
-        <div className={classes.container}>
-            <Text className={classes.label}>{Loc.connectionDialog.browseBy}</Text>
-            <div className={classes.buttonGroup}>
-                <ToggleButton
-                    appearance="transparent"
-                    icon={<PersonCircleRegular />}
-                    onClick={() => handleButtonClick("myData")}
-                    checked={selectedOption === "myData"}>
-                    {Loc.connectionDialog.myData}
-                </ToggleButton>
-                <ToggleButton
-                    appearance="transparent"
-                    icon={<HistoryRegular />}
-                    onClick={() => handleButtonClick("recent")}
-                    checked={selectedOption === "recent"}>
-                    {Loc.connectionDialog.recent}
-                </ToggleButton>
-                <ToggleButton
-                    appearance="transparent"
-                    icon={<StarRegular />}
-                    onClick={() => handleButtonClick("favorites")}
-                    checked={selectedOption === "favorites"}>
-                    {Loc.connectionDialog.favorites}
-                </ToggleButton>
-            </div>
-        </div>
-    );
-};
-
-export default FabricBrowserBrowseByButtons;

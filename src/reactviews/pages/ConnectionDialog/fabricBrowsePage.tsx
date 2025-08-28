@@ -14,11 +14,13 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
+    IConnectionDialogProfile,
+} from "../../../sharedInterfaces/connectionDialog";
+import {
     FabricSqlDbInfo,
     FabricWorkspaceInfo,
-    IConnectionDialogProfile,
     SqlArtifactTypes,
-} from "../../../sharedInterfaces/connectionDialog";
+} from "../../../sharedInterfaces/fabric";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
 import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
@@ -84,7 +86,7 @@ export const FabricBrowsePage = () => {
 
                 return;
             default:
-                console.error("Unknown server type selected.");
+                context!.log("Unknown server type selected.", "error");
         }
     }
 
@@ -105,7 +107,7 @@ export const FabricBrowsePage = () => {
                     <div className={styles.componentGroupHeader}>
                         <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
                     </div>
-                    <div className={styles.fabricBrowserContainer}>
+                    <div className={styles.componentGroupContainer}>
                         <FabricExplorer
                             fabricWorkspaces={context.state.fabricWorkspaces}
                             fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
@@ -121,9 +123,9 @@ export const FabricBrowsePage = () => {
                             <div
                                 className={styles.componentGroupHeader}
                                 style={{ marginTop: "16px" }}>
-                                <Label>Connection Authentication</Label>
+                                <Label>{Loc.connectionDialog.connectionAuthentication}</Label>
                             </div>
-                            <div className={styles.connectionAuthGroup}>
+                            <div className={styles.componentGroupContainer}>
                                 {context.state.connectionComponents.mainOptions
                                     .filter(
                                         (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
@@ -198,13 +200,7 @@ const useStyles = makeStyles({
     componentGroupHeader: {
         marginBottom: "8px",
     },
-    fabricBrowserContainer: {
-        padding: "8px",
-        border: "0.5px solid var(--vscode-editorWidget-border)",
-        borderRadius: "2px",
-    },
-    connectionAuthGroup: {
-        marginTop: "8px",
+    componentGroupContainer: {
         padding: "8px",
         border: "0.5px solid var(--vscode-editorWidget-border)",
         borderRadius: "2px",

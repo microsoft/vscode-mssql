@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as os from "os";
 import * as vscode from "vscode";
 import { shallowEqualObjects } from "shallow-equal";
 
@@ -34,6 +35,7 @@ import {
     ConnectionDialog as Loc,
     Common as LocCommon,
     Azure as LocAzure,
+    Fabric as LocFabric,
     refreshTokenLabel,
 } from "../constants/locConstants";
 import {
@@ -651,6 +653,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             await this.loadFabricWorkspaces(state, state.selectedAccountId, state.selectedTenantId);
 
+            // Fabric REST API rate-limits to 50 requests/user/minute,
+            // so only auto-load contents of workspaces if they're below a safe threshold
             if (state.fabricWorkspaces.length <= FABRIC_WORKSPACE_AUTOLOAD_LIMIT) {
                 this.updateState(state);
 
@@ -807,7 +811,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     try {
                         return self.initializeConnectionForDialog(conn);
                     } catch (err) {
-                        console.error(
+                        self.logger.error(
                             `Error initializing ${connType} connection: ${getErrorMessage(err)}`,
                         );
 
@@ -869,7 +873,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         if (erroredInputs.length > 0) {
             this.state.connectionStatus = ApiStatus.Error;
-            console.warn("One more more inputs have errors: " + erroredInputs.join(", "));
+            this.logger.warn("One more more inputs have errors: " + erroredInputs.join(", "));
             return state;
         }
 
@@ -1418,7 +1422,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         } catch (error) {
             state.formError = l10n.t("Error loading Azure databases.");
             state.loadingAzureServersStatus = ApiStatus.Error;
-            console.error(state.formError + "\n" + getErrorMessage(error));
+            this.logger.error(state.formError + os.EOL + getErrorMessage(error));
 
             endActivity.endFailed(
                 error,
@@ -1444,9 +1448,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 `Loaded ${servers.length} servers for subscription ${azSub.name} (${azSub.subscriptionId})`,
             );
         } catch (error) {
-            console.error(
-                Loc.errorLoadingAzureDatabases(azSub.name, azSub.subscriptionId),
-                +"\n" + getErrorMessage(error),
+            this.logger.error(
+                Loc.errorLoadingAzureDatabases(azSub.name, azSub.subscriptionId) +
+                    os.EOL +
+                    getErrorMessage(error),
             );
 
             sendErrorEvent(
@@ -1475,15 +1480,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             const newWorkspaces: FabricWorkspaceInfo[] = [];
 
+            // Fetch the full tenant info to confirm token permissions
             const tenant = await VsCodeAzureHelper.getTenant(vscodeAccount, tenantId);
 
             if (!tenant) {
                 const message = `Failed to get tenant '${tenantId}' for account '${vscodeAccount.label}'.`;
+                const locMessage = LocAzure.failedToGetTenantForAccount(
+                    tenantId,
+                    vscodeAccount.label,
+                );
 
                 this.logger.error(message);
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message };
-
-                return;
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
             }
 
             try {
@@ -1513,9 +1521,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 };
             } catch (err) {
                 const message = `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`;
+                const locMessage = LocFabric.failedToGetWorkspacesForTenant(
+                    tenant.displayName,
+                    tenant.tenantId,
+                );
 
                 this.logger.error(message);
-                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message };
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
             }
         } catch (err) {
             state.formError = getErrorMessage(err);
@@ -1526,6 +1538,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         state: ConnectionDialogWebviewState,
         workspace: FabricWorkspaceInfo,
     ): Promise<void> {
+        // 1. Display loading status
         workspace.loadStatus = { status: ApiStatus.Loading };
         this.updateState(state);
 
@@ -1533,18 +1546,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const databases: FabricSqlDbInfo[] = [];
             const errorMessages: string[] = [];
 
+            // 2. Load SQL databases from Fabric
             try {
                 databases.push(
                     ...(await FabricHelper.getFabricDatabases(workspace.id, workspace.tenantId)),
                 );
             } catch (error) {
                 const errorMessage = getErrorMessage(error);
-                console.error(
+                this.logger.error(
                     `Error loading Fabric databases for workspace ${workspace.id}: ${errorMessage}`,
                 );
+
                 errorMessages.push(errorMessage);
             }
 
+            // 3. Load SQL Analytics endpoints from Fabric
             try {
                 databases.push(
                     ...(await FabricHelper.getFabricSqlEndpoints(workspace.id, workspace.tenantId)),
@@ -1557,6 +1573,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 errorMessages.push(errorMessage);
             }
 
+            // 4. Construct state and check for errors
             workspace.databases = databases.map((db) => {
                 return {
                     id: db.id,

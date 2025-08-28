@@ -8,15 +8,8 @@ import { ConnectionDialogContext } from "../../connectionDialogStateProvider";
 import FabricExplorerHeader from "./fabricExplorerHeader.component";
 import { FabricWorkspaceContentsList } from "./fabricWorkspaceContentsList.component";
 import { FabricWorkspacesList } from "./fabricWorkspacesList.component";
-import {
-    InputOnChangeData,
-    MenuCheckedValueChangeData,
-    MenuCheckedValueChangeEvent,
-} from "@fluentui/react-components";
-import {
-    FabricSqlDbInfo,
-    FabricWorkspaceInfo,
-} from "../../../../../sharedInterfaces/connectionDialog";
+import { InputOnChangeData } from "@fluentui/react-components";
+import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../../../../../sharedInterfaces/fabric";
 import { Status } from "../../../../../sharedInterfaces/webview";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
 
@@ -37,7 +30,6 @@ export const FabricExplorer = ({
     const fabricStyles = useFabricExplorerStyles();
 
     const [searchFilter, setSearchFilter] = useState<string>("");
-    const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
 
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | undefined>(undefined);
 
@@ -62,15 +54,6 @@ export const FabricExplorer = ({
         onSelectWorkspace(workspace);
     }
 
-    function handleFilterOptionChanged(
-        _: MenuCheckedValueChangeEvent,
-        { name, checkedItems }: MenuCheckedValueChangeData,
-    ) {
-        if (name === "sqlType") {
-            setTypeFilter(checkedItems);
-        }
-    }
-
     function handleSelectAccountId(accountId: string) {
         onSelectAccountId(accountId);
     }
@@ -83,7 +66,6 @@ export const FabricExplorer = ({
         <>
             <FabricExplorerHeader
                 searchValue={searchFilter}
-                selectedTypeFilters={typeFilter}
                 azureAccounts={context.state.azureAccounts}
                 azureTenants={context.state.azureTenants}
                 selectedAccountId={context.state.selectedAccountId}
@@ -91,7 +73,6 @@ export const FabricExplorer = ({
                 onSelectAccountId={handleSelectAccountId}
                 onSelectTenantId={handleSelectTenantId}
                 onSearchInputChanged={handleSearchInputChanged}
-                onFilterOptionChanged={handleFilterOptionChanged}
             />
             <div className={fabricStyles.container}>
                 <FabricWorkspacesList
@@ -104,7 +85,6 @@ export const FabricExplorer = ({
                     fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
                     selectedWorkspace={selectedWorkspace}
                     searchFilter={searchFilter}
-                    typeFilter={typeFilter}
                     onSelectDatabase={handleDatabaseSelected}
                 />
             </div>

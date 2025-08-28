@@ -15,7 +15,7 @@ import {
     Button,
     Input,
 } from "@fluentui/react-components";
-import { FabricWorkspaceInfo } from "../../../../../sharedInterfaces/connectionDialog";
+import { FabricWorkspaceInfo } from "../../../../../sharedInterfaces/fabric";
 import {
     useCallback,
     SyntheticEvent,
@@ -65,7 +65,6 @@ export const FabricWorkspacesList = ({
     function handleClearWorkspaceSearch(e: BaseSyntheticEvent) {
         setWorkspaceSearchFilter("");
         e?.stopPropagation();
-        // buttonRef.current?.focus();
     }
 
     const filteredWorkspaces = useMemo(() => {
@@ -160,35 +159,16 @@ export const FabricWorkspacesList = ({
                     }
                     title={
                         isExplorerCollapsed
-                            ? Loc.connectionDialog.expand
-                            : Loc.connectionDialog.collapse
+                            ? Loc.connectionDialog.expandWorkspaceExplorer
+                            : Loc.connectionDialog.collapseWorkspaceExplorer
                     }
-                    className={isExplorerCollapsed ? styles.collapsedExplorerButton : undefined}
-                    style={{
-                        minWidth: "24px",
-                        height: "24px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
+                    className={styles.collapseWorkspaceListButton}
                 />
             </div>
             {!isExplorerCollapsed && (
                 <div className={styles.workspaceListContainer} style={{ position: "relative" }}>
                     {fabricWorkspacesLoadStatus.status === ApiStatus.Loading && (
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                padding: "16px",
-                            }}>
+                        <div className={styles.workspaceListMessageContainer}>
                             <Spinner size="medium" />
                             <Text className={styles.messageText}>
                                 {Loc.connectionDialog.loadingWorkspaces}
@@ -196,19 +176,7 @@ export const FabricWorkspacesList = ({
                         </div>
                     )}
                     {fabricWorkspacesLoadStatus.status === ApiStatus.Error && (
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                padding: "16px",
-                            }}>
+                        <div className={styles.workspaceListMessageContainer}>
                             <Tooltip
                                 content={
                                     fabricWorkspacesLoadStatus.message ||

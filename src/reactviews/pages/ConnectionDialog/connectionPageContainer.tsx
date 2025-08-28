@@ -286,7 +286,7 @@ export const ConnectionInfoFormContainer = () => {
                                     <div className={styles.inputLink}>
                                         <Image
                                             src={fabricIcon(context.themeKind)}
-                                            alt="Fabric"
+                                            alt={"Fabric"}
                                             height={20}
                                             width={20}
                                             style={{ marginRight: "8px" }}

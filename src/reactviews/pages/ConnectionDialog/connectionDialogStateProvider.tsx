@@ -3,23 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { createContext } from "react";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
-    FabricSqlDbInfo,
     GetConnectionDisplayNameRequest,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
-
-import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
+import { FabricSqlDbInfo } from "../../../sharedInterfaces/fabric";
 
 const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 

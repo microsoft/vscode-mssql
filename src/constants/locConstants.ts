@@ -729,6 +729,24 @@ export class Azure {
             ],
         });
     };
+
+    public static failedToGetTenantForAccount = (tenantId: string, accountName: string) => {
+        return l10n.t({
+            message: "Failed to get tenant '{0}' for account '{1}'.",
+            args: [tenantId, accountName],
+            comment: ["{0} is the tenant id", "{1} is the account name"],
+        });
+    };
+}
+
+export class Fabric {
+    public static failedToGetWorkspacesForTenant = (tenantName: string, tenantId: string) => {
+        return l10n.t({
+            message: "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
+            args: [tenantName, tenantId],
+            comment: ["{0} is the tenant name", "{1} is the tenant id"],
+        });
+    };
 }
 
 export class Accounts {

@@ -56,6 +56,8 @@ export class LocConstants {
             showPassword: l10n.t("Show password"),
             hidePassword: l10n.t("Hide password"),
             dismiss: l10n.t("Dismiss"),
+            expand: l10n.t("Expand"),
+            collapse: l10n.t("Collapse"),
         };
     }
 
@@ -224,10 +226,8 @@ export class LocConstants {
             typeColumnHeader: l10n.t("Type"),
             locationColumnHeader: l10n.t("Location (Workspace)"),
             expandWorkspaceExplorer: l10n.t("Expand Workspace Explorer"),
-            expand: l10n.t("Expand"),
             explorer: l10n.t("Explorer"),
             collapseWorkspaceExplorer: l10n.t("Collapse Workspace Explorer"),
-            collapse: l10n.t("Collapse"),
             selectAWorkspaceToViewDatabases: l10n.t(
                 "Select a workspace to view the databases in it.",
             ),
@@ -325,6 +325,7 @@ export class LocConstants {
             },
             errorLoadingWorkspaces: l10n.t("Error loading workspaces"),
             errorLoadingDatabases: l10n.t("Error loading databases"),
+            connectionAuthentication: l10n.t("Connection Authentication"),
         };
     }
 

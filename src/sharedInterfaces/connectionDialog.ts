@@ -10,6 +10,7 @@ import { ApiStatus, Status } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
 import { RequestType } from "vscode-jsonrpc/browser";
+import { FabricSqlDbInfo, FabricWorkspaceInfo } from "./fabric";
 
 export class ConnectionDialogWebviewState
     implements
@@ -118,52 +119,6 @@ export interface AzureSqlServerInfo {
     resourceGroup: string;
     subscription: string;
     uri: string;
-}
-
-export interface FabricSqlDbInfo {
-    id: string;
-    server: string;
-    displayName: string;
-    database: string;
-    type: string;
-    workspaceId: string;
-    workspaceName: string;
-    tenantId: string;
-}
-
-export interface FabricWorkspaceInfo {
-    id: string;
-    displayName: string;
-    tenantId: string;
-    databases: FabricSqlDbInfo[];
-    loadStatus: Status;
-}
-
-export enum SqlArtifactTypes {
-    SqlDatabase = "SQLDatabase",
-    SqlAnalyticsEndpoint = "SQLEndpoint",
-}
-
-/**
- * IWorkspace Fabric workspace as seen in api responses
- */
-export interface IWorkspace {
-    id: string;
-    capacityId?: string; // supplied when getting a single workspace, but only sometimes when getting all workspaces (perhaps newer workspaces?)
-    type: string;
-    displayName: string;
-    description: string;
-    databases: string[];
-    sqlAnalyticsEndpoints: string[];
-    workspace: {
-        name: string;
-        id: string;
-    };
-}
-
-export interface IFabricError {
-    errorCode: string;
-    message: string;
 }
 
 export interface ConnectionComponentsInfo {

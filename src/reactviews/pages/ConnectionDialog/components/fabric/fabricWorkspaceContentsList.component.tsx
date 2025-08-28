@@ -24,7 +24,7 @@ import {
     FabricSqlDbInfo,
     FabricWorkspaceInfo,
     SqlArtifactTypes,
-} from "../../../../../sharedInterfaces/connectionDialog";
+} from "../../../../../sharedInterfaces/fabric";
 import { useState, useMemo } from "react";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
@@ -33,29 +33,29 @@ import { useFabricExplorerStyles } from "./fabricExplorer.styles";
 import { ApiStatus, Status } from "../../../../../sharedInterfaces/webview";
 
 // Icon imports for database types
-const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
-const sqlAnalyticsEndpointIcon = require("../../../../reactviews/media/data_warehouse.svg");
+const sqlDatabaseIcon = require("../../../../media/sql_db.svg");
+const sqlAnalyticsEndpointIcon = require("../../../../media/data_warehouse.svg");
 
 export const FabricWorkspaceContentsList = ({
     onSelectDatabase,
     fabricWorkspacesLoadStatus,
     selectedWorkspace,
     searchFilter = "",
-    typeFilter = [],
 }: WorkspaceContentsList) => {
     const styles = useFabricExplorerStyles();
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
 
     //#region Hooks
 
-    const databasesForSelectedWorkspace = useMemo(() => {
-        return selectedWorkspace?.databases || [];
-    }, [selectedWorkspace?.id, selectedWorkspace?.loadStatus]);
-
+    // Hook to update the list of items based on selected workspace and search query
     const items = useMemo(() => {
-        const result: FabricSqlGridItem[] = [];
-        if (databasesForSelectedWorkspace && databasesForSelectedWorkspace.length > 0) {
-            databasesForSelectedWorkspace.forEach((db) => {
+        if (!selectedWorkspace?.databases) {
+            return [];
+        }
+
+        let result: FabricSqlGridItem[] = [];
+        if (selectedWorkspace?.databases && selectedWorkspace.databases.length > 0) {
+            selectedWorkspace.databases.forEach((db) => {
                 result.push({
                     ...db,
                     typeDisplayName: getTypeDisplayName(db.type),
@@ -63,27 +63,19 @@ export const FabricWorkspaceContentsList = ({
             });
         }
 
-        let filteredResult = result;
-
         if (searchFilter.trim()) {
             const searchTerm = searchFilter.toLowerCase();
-            filteredResult = filteredResult.filter(
+            result = result.filter(
                 (item) =>
                     item.displayName.toLowerCase().includes(searchTerm) ||
-                    item.typeDisplayName.toLowerCase().includes(searchTerm) ||
-                    item.workspaceName.toLowerCase().includes(searchTerm),
+                    item.typeDisplayName.toLowerCase().includes(searchTerm),
             );
         }
 
-        if (typeFilter.length > 0 && !typeFilter.includes("Show All")) {
-            filteredResult = filteredResult.filter((item) =>
-                typeFilter.includes(item.typeDisplayName),
-            );
-        }
+        return result;
+    }, [selectedWorkspace?.id, selectedWorkspace?.loadStatus, searchFilter]);
 
-        return filteredResult;
-    }, [databasesForSelectedWorkspace, searchFilter, typeFilter]);
-
+    // Memo for creating the column definitions when the component first mounts
     const columns = useMemo(
         (): TableColumnDefinition<FabricSqlGridItem>[] => [
             createTableColumn<FabricSqlGridItem>({
@@ -172,7 +164,7 @@ export const FabricWorkspaceContentsList = ({
         }
 
         if (selectedWorkspace.loadStatus.status === ApiStatus.Loaded) {
-            if (databasesForSelectedWorkspace.length === 0) {
+            if (selectedWorkspace.databases.length === 0) {
                 return renderNoDatabasesFound();
             } else {
                 return renderDataGrid();
@@ -191,14 +183,14 @@ export const FabricWorkspaceContentsList = ({
     };
 
     const renderLoadingWorkspaces = () => (
-        <div className={styles.gridMessageContainer} role="status" aria-live="polite">
+        <div className={styles.workspaceContentMessageContainer} role="status" aria-live="polite">
             <Spinner size="medium" />
             <Text className={styles.messageText}>{Loc.connectionDialog.loadingWorkspaces}</Text>
         </div>
     );
 
     const renderWorkspacesError = () => (
-        <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
+        <div className={styles.workspaceContentMessageContainer} role="alert" aria-live="polite">
             <ErrorCircleRegular className={styles.errorIcon} />
             <Text className={styles.messageText}>
                 {fabricWorkspacesLoadStatus.message || Loc.connectionDialog.errorLoadingWorkspaces}
@@ -207,13 +199,13 @@ export const FabricWorkspaceContentsList = ({
     );
 
     const renderNoSelectedWorkspace = (message: string | undefined) => (
-        <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
+        <div className={styles.workspaceContentMessageContainer} role="alert" aria-live="polite">
             {message || Loc.connectionDialog.selectAWorkspaceToViewDatabases}
         </div>
     );
 
     const renderLoadingDatabases = () => (
-        <div className={styles.gridMessageContainer} role="status" aria-live="polite">
+        <div className={styles.workspaceContentMessageContainer} role="status" aria-live="polite">
             <Spinner size="medium" />
             <Text className={styles.messageText}>
                 {Loc.connectionDialog.loadingDatabasesInWorkspace(selectedWorkspace?.displayName)}
@@ -222,7 +214,7 @@ export const FabricWorkspaceContentsList = ({
     );
 
     const renderDatabasesError = () => (
-        <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
+        <div className={styles.workspaceContentMessageContainer} role="alert" aria-live="polite">
             <ErrorCircleRegular className={styles.errorIcon} />
             <Text className={styles.messageText}>
                 {selectedWorkspace!.loadStatus.message ||
@@ -232,7 +224,7 @@ export const FabricWorkspaceContentsList = ({
     );
 
     const renderNoDatabasesFound = () => (
-        <div className={styles.gridMessageContainer} role="alert" aria-live="polite">
+        <div className={styles.workspaceContentMessageContainer} role="alert" aria-live="polite">
             {Loc.connectionDialog.noDatabasesFoundInWorkspace(selectedWorkspace?.displayName)}
         </div>
     );
@@ -307,6 +299,7 @@ function getItemIcon(artifactType: string): string {
         case SqlArtifactTypes.SqlAnalyticsEndpoint:
             return sqlAnalyticsEndpointIcon;
         default:
+            console.error(`Unknown artifact type for getItemIcon(): ${artifactType}`);
             return sqlDatabaseIcon;
     }
 }
@@ -318,6 +311,7 @@ export function getTypeDisplayName(artifactType: string): string {
         case SqlArtifactTypes.SqlAnalyticsEndpoint:
             return Loc.connectionDialog.sqlAnalyticsEndpoint;
         default:
+            console.error(`Unknown artifact type for getTypeDisplayName(): ${artifactType}`);
             return artifactType;
     }
 }
@@ -342,9 +336,5 @@ const columnSizingOptions: TableColumnSizingOptions = {
     type: {
         minWidth: 80,
         defaultWidth: 110,
-    },
-    location: {
-        minWidth: 60,
-        defaultWidth: 70,
     },
 };

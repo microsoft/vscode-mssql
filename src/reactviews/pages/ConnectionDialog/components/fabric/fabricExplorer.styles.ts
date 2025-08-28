@@ -112,13 +112,12 @@ export const useFabricExplorerStyles = makeStyles({
     collapseButtonIcon: {
         fontSize: "12px",
     },
-    collapsedExplorerButton: {
+    collapseWorkspaceListButton: {
         width: "24px",
         height: "24px",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        margin: "0 auto",
     },
     headerRow: {
         backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
@@ -145,7 +144,19 @@ export const useFabricExplorerStyles = makeStyles({
             backgroundColor: "var(--vscode-list-activeSelectionBackground)",
         },
     },
-    gridMessageContainer: {
+    workspaceListMessageContainer: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        padding: "16px",
+    },
+    workspaceContentMessageContainer: {
         padding: "16px",
         color: "var(--vscode-descriptionForeground)",
         height: "100%",

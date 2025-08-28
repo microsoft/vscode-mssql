@@ -3,36 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent, /*useContext,*/ useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import {
     Dropdown,
     Input,
     InputOnChangeData,
     Label,
-    // Menu,
-    // MenuButton,
-    MenuCheckedValueChangeData,
-    MenuCheckedValueChangeEvent,
-    // MenuItemRadio,
-    // MenuList,
-    // MenuPopover,
-    // MenuTrigger,
     Option,
     OptionOnSelectData,
     SelectionEvents,
-    // Tooltip,
     makeStyles,
 } from "@fluentui/react-components";
 import { Search20Regular } from "@fluentui/react-icons";
 import { ColorThemeKind } from "../../../../../sharedInterfaces/webview";
 import { themeType } from "../../../../common/utils";
-// import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { IAzureAccount, IAzureTenant } from "../../../../../sharedInterfaces/connectionDialog";
 
 const FabricExplorerHeader = ({
     onSearchInputChanged,
-    onFilterOptionChanged: _onFilterOptionChanged,
     onSelectAccountId,
     onSelectTenantId,
     searchValue = "",
@@ -42,8 +31,6 @@ const FabricExplorerHeader = ({
     selectedAccountId = "",
     selectedTenantId = "",
 }: FabricBrowserHeaderProps) => {
-    // const context = useContext(ConnectionDialogContext);
-    // const theme = context!.themeKind;
     const styles = useStyles();
 
     const [selectedAccountName, setSelectedAccountName] = useState<string>("");
@@ -137,40 +124,6 @@ const FabricExplorerHeader = ({
                     onChange={onSearchInputChanged}
                     value={searchValue}
                 />
-                {/* <Label className={styles.filterLabel}>{Loc.connectionDialog.filter}</Label>
-                <Menu>
-                    <MenuTrigger>
-                        <Tooltip content={Loc.connectionDialog.filterByType} relationship="label">
-                            <MenuButton
-                                icon={
-                                    <img
-                                        src={filterIcon(theme)}
-                                        alt={Loc.connectionDialog.filter}
-                                        className={styles.filterIcon}
-                                    />
-                                }
-                                appearance="subtle"
-                            />
-                        </Tooltip>
-                    </MenuTrigger>
-                    <MenuPopover>
-                        <MenuList
-                            checkedValues={{ sqlType: selectedTypeFilters }}
-                            onCheckedValueChange={onFilterOptionChanged}>
-                            <MenuItemRadio name="sqlType" value={Loc.connectionDialog.showAll}>
-                                {Loc.connectionDialog.showAll}
-                            </MenuItemRadio>
-                            <MenuItemRadio
-                                name="sqlType"
-                                value={Loc.connectionDialog.sqlAnalyticsEndpoint}>
-                                {Loc.connectionDialog.sqlAnalyticsEndpoint}
-                            </MenuItemRadio>
-                            <MenuItemRadio name="sqlType" value={Loc.connectionDialog.sqlDatabase}>
-                                {Loc.connectionDialog.sqlDatabase}
-                            </MenuItemRadio>
-                        </MenuList>
-                    </MenuPopover>
-                </Menu> */}
             </div>
         </div>
     );
@@ -182,11 +135,6 @@ interface FabricBrowserHeaderProps {
     onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;
     onSearchInputChanged: (_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => void;
-    onFilterOptionChanged: (
-        _: MenuCheckedValueChangeEvent,
-        { name, checkedItems }: MenuCheckedValueChangeData,
-    ) => void;
-
     azureAccounts: IAzureAccount[];
     azureTenants: IAzureTenant[];
     selectedAccountId: string | undefined;
@@ -199,8 +147,8 @@ export const filterIcon = (colorTheme: ColorThemeKind) => {
     const theme = themeType(colorTheme);
     const filterIcon =
         theme === "dark"
-            ? require("../../../media/filter_inverse.svg")
-            : require("../../../media/filter.svg");
+            ? require("../../../../media/filter_inverse.svg")
+            : require("../../../../media/filter.svg");
     return filterIcon;
 };
 
