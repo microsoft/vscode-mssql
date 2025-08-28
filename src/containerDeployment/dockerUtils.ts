@@ -58,7 +58,7 @@ export const dockerLogger = Logger.create(
     vscode.window.createOutputChannel(dockerDeploymentLoggerChannelName),
 );
 
-const dockerInstallErrorLink = "https://docs.docker.com/engine/install/";
+const dockerInstallErrorLink = "https://www.docker.com/products/docker-desktop/";
 // Exported for testing purposes
 export const windowsContainersErrorLink =
     "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
