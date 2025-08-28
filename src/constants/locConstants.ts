@@ -747,6 +747,73 @@ export class Fabric {
             comment: ["{0} is the tenant name", "{1} is the tenant id"],
         });
     };
+
+    public static listingCapacitiesForTenant = (tenantId: string) => {
+        return l10n.t({
+            message: "Listing Fabric capacities for tenant '{0}'",
+            args: [tenantId],
+            comment: ["{0} is the tenant ID"],
+        });
+    };
+
+    public static listingWorkspacesForTenant = (tenantId: string) => {
+        return l10n.t({
+            message: "Listing Fabric workspaces for tenant '{0}'",
+            args: [tenantId],
+            comment: ["{0} is the tenant ID"],
+        });
+    };
+
+    public static gettingWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Getting Fabric workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static listingSqlDatabasesForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing Fabric SQL Databases for workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static listingSqlEndpointsForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing Fabric SQL Endpoints for workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static gettingConnectionStringForSqlEndpoint = (
+        sqlEndpointId: string,
+        workspaceId: string,
+    ) => {
+        return l10n.t({
+            message: "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'",
+            args: [sqlEndpointId, workspaceId],
+            comment: ["{0} is the SQL endpoint ID", "{1} is the workspace ID"],
+        });
+    };
+
+    public static createWorkspaceWithCapacity = (capacityId: string) => {
+        return l10n.t({
+            message: "Creating workspace with capacity {0}",
+            args: [capacityId],
+            comment: ["{0} is the capacity ID"],
+        });
+    };
+
+    public static createSqlDatabaseForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Creating SQL Database for workspace {0}",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
 }
 
 export class Accounts {
