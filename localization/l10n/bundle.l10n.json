@@ -222,7 +222,6 @@
   "A firewall rule is required to access this server.": "A firewall rule is required to access this server.",
   "Add Firewall Rule": "Add Firewall Rule",
   "Sign into Azure in order to add a firewall rule.": "Sign into Azure in order to add a firewall rule.",
-  "Tenant": "Tenant",
   "Rule name": "Rule name",
   "Add my client IP ({0})/{0} is the IP address of the client": {
     "message": "Add my client IP ({0})",
@@ -344,6 +343,8 @@
   "Click to sign into an Azure account": "Click to sign into an Azure account",
   "Currently signed in as:": "Currently signed in as:",
   "Loading Azure Accounts": "Loading Azure Accounts",
+  "Tenant": "Tenant",
+  "Select a tenant": "Select a tenant",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
@@ -1229,7 +1230,6 @@
   "Connection Dialog": "Connection Dialog",
   "Azure Account is required": "Azure Account is required",
   "Save Password": "Save Password",
-  "Select a tenant": "Select a tenant",
   "Tenant ID is required": "Tenant ID is required",
   "Connection Group": "Connection Group",
   "Server is required": "Server is required",
