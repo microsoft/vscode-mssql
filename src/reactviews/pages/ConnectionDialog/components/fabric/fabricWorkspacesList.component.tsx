@@ -15,7 +15,7 @@ import {
     Button,
     Input,
 } from "@fluentui/react-components";
-import { FabricWorkspaceInfo } from "../../../../sharedInterfaces/connectionDialog";
+import { FabricWorkspaceInfo } from "../../../../../sharedInterfaces/connectionDialog";
 import {
     useCallback,
     SyntheticEvent,
@@ -32,10 +32,10 @@ import {
     PeopleTeamRegular,
     SearchRegular,
 } from "@fluentui/react-icons";
-import { locConstants as Loc } from "../../../common/locConstants";
-import { useFabricBrowserStyles } from "./fabricWorkspaceViewer.styles";
-import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
-import { Keys } from "../../../common/keys";
+import { locConstants as Loc } from "../../../../common/locConstants";
+import { useFabricExplorerStyles } from "./fabricExplorer.styles";
+import { ApiStatus, Status } from "../../../../../sharedInterfaces/webview";
+import { Keys } from "../../../../common/keys";
 
 interface FabricWorkspacesListProps {
     workspaces: FabricWorkspaceInfo[];
@@ -50,7 +50,7 @@ export const FabricWorkspacesList = ({
     selectedWorkspace,
     fabricWorkspacesLoadStatus,
 }: FabricWorkspacesListProps) => {
-    const styles = useFabricBrowserStyles();
+    const styles = useFabricExplorerStyles();
 
     const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
 

@@ -5,7 +5,7 @@
 
 import { makeStyles, shorthands, tokens } from "@fluentui/react-components";
 
-export const useFabricBrowserStyles = makeStyles({
+export const useFabricExplorerStyles = makeStyles({
     container: {
         display: "flex",
         height: "400px",

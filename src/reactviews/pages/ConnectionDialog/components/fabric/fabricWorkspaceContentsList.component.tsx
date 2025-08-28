@@ -24,13 +24,13 @@ import {
     FabricSqlDbInfo,
     FabricWorkspaceInfo,
     SqlArtifactTypes,
-} from "../../../../sharedInterfaces/connectionDialog";
+} from "../../../../../sharedInterfaces/connectionDialog";
 import { useState, useMemo } from "react";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
-import { locConstants as Loc } from "../../../common/locConstants";
-import { Keys } from "../../../common/keys";
-import { useFabricBrowserStyles } from "./fabricWorkspaceViewer.styles";
-import { ApiStatus, Status } from "../../../../sharedInterfaces/webview";
+import { locConstants as Loc } from "../../../../common/locConstants";
+import { Keys } from "../../../../common/keys";
+import { useFabricExplorerStyles } from "./fabricExplorer.styles";
+import { ApiStatus, Status } from "../../../../../sharedInterfaces/webview";
 
 // Icon imports for database types
 const sqlDatabaseIcon = require("../../../../reactviews/media/sql_db.svg");
@@ -43,7 +43,7 @@ export const FabricWorkspaceContentsList = ({
     searchFilter = "",
     typeFilter = [],
 }: WorkspaceContentsList) => {
-    const styles = useFabricBrowserStyles();
+    const styles = useFabricExplorerStyles();
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
 
     //#region Hooks

@@ -5,9 +5,9 @@
 
 import { ChangeEvent, useContext, useMemo, useState } from "react";
 import { ConnectionDialogContext } from "../../connectionDialogStateProvider";
-import FabricBrowserHeader from "../fabricWorkspaceFilter";
-import { FabricWorkspaceContentsList } from "../fabricWorkspaceViewer";
-import { FabricWorkspacesList } from "../fabricWorkspacesList";
+import FabricExplorerHeader from "./fabricExplorerHeader.component";
+import { FabricWorkspaceContentsList } from "./fabricWorkspaceContentsList.component";
+import { FabricWorkspacesList } from "./fabricWorkspacesList.component";
 import {
     InputOnChangeData,
     MenuCheckedValueChangeData,
@@ -18,7 +18,7 @@ import {
     FabricWorkspaceInfo,
 } from "../../../../../sharedInterfaces/connectionDialog";
 import { Status } from "../../../../../sharedInterfaces/webview";
-import { useFabricBrowserStyles } from "../fabricWorkspaceViewer.styles";
+import { useFabricExplorerStyles } from "./fabricExplorer.styles";
 
 export const FabricExplorer = ({
     fabricWorkspaces,
@@ -34,7 +34,7 @@ export const FabricExplorer = ({
         return undefined;
     }
 
-    const fabricStyles = useFabricBrowserStyles();
+    const fabricStyles = useFabricExplorerStyles();
 
     const [searchFilter, setSearchFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string[]>(["Show All"]);
@@ -81,7 +81,7 @@ export const FabricExplorer = ({
 
     return (
         <>
-            <FabricBrowserHeader
+            <FabricExplorerHeader
                 searchValue={searchFilter}
                 selectedTypeFilters={typeFilter}
                 azureAccounts={context.state.azureAccounts}

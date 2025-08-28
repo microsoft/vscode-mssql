@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { Text, ToggleButton, makeStyles, tokens } from "@fluentui/react-components";
 import { StarRegular, HistoryRegular, PersonCircleRegular } from "@fluentui/react-icons";
-import { locConstants as Loc } from "../../../common/locConstants";
+import { locConstants as Loc } from "../../../../common/locConstants";
 
 const useStyles = makeStyles({
     container: {

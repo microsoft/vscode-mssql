@@ -24,7 +24,7 @@ import { locConstants as Loc } from "../../common/locConstants";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
 import { FabricExplorer } from "./components/fabric/fabricExplorer.component";
-import { getTypeDisplayName } from "./components/fabricWorkspaceViewer";
+import { getTypeDisplayName } from "./components/fabric/fabricWorkspaceContentsList.component";
 
 export const FabricBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);

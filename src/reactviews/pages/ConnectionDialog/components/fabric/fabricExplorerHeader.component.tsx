@@ -24,13 +24,13 @@ import {
     makeStyles,
 } from "@fluentui/react-components";
 import { Search20Regular } from "@fluentui/react-icons";
-import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
-import { themeType } from "../../../common/utils";
+import { ColorThemeKind } from "../../../../../sharedInterfaces/webview";
+import { themeType } from "../../../../common/utils";
 // import { ConnectionDialogContext } from "../connectionDialogStateProvider";
-import { locConstants as Loc } from "../../../common/locConstants";
-import { IAzureAccount, IAzureTenant } from "../../../../sharedInterfaces/connectionDialog";
+import { locConstants as Loc } from "../../../../common/locConstants";
+import { IAzureAccount, IAzureTenant } from "../../../../../sharedInterfaces/connectionDialog";
 
-const FabricBrowserHeader = ({
+const FabricExplorerHeader = ({
     onSearchInputChanged,
     onFilterOptionChanged: _onFilterOptionChanged,
     onSelectAccountId,
@@ -176,7 +176,7 @@ const FabricBrowserHeader = ({
     );
 };
 
-export default FabricBrowserHeader;
+export default FabricExplorerHeader;
 
 interface FabricBrowserHeaderProps {
     onSelectAccountId: (accountId: string) => void;
