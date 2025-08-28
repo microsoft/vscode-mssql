@@ -26,6 +26,7 @@ import { getErrorMessage } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
 import { Logger } from "../models/logger";
+import { handleChatCommand } from "./chatCommands";
 
 export interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -251,7 +252,7 @@ export const createSqlAgentRequestHandler = (
             }
         }
 
-        const prompt = request.prompt.trim();
+        let prompt = request.prompt.trim();
         const model = request.model;
 
         try {
@@ -288,7 +289,31 @@ export const createSqlAgentRequestHandler = (
                     correlationId: correlationId,
                     message: "No connection URI found. Sending prompt to default language model.",
                 });
+
+                // Handle chat commands first
+                const commandResult = await handleChatCommand(
+                    request,
+                    stream,
+                    controller,
+                    connectionUri,
+                );
+                if (commandResult.handled) {
+                    if (commandResult.errorMessage) {
+                        stream.markdown(commandResult.errorMessage);
+                    }
+                    return {
+                        metadata: { command: request.command || "", correlationId: correlationId },
+                    };
+                }
+
+                // Show not connected message only if not handled by commands
                 stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.notConnected}\n\n`);
+
+                // Apply prompt template if this is a prompt substitute command
+                if (commandResult.promptToAdd) {
+                    prompt = commandResult.promptToAdd + prompt;
+                }
+
                 await sendToDefaultLanguageModel(
                     prompt,
                     model,
@@ -306,6 +331,30 @@ export const createSqlAgentRequestHandler = (
                 `${SERVER_DATABASE_LABEL_PREFIX} ${loc.server(connection.credentials.server)}  \n` +
                 `${SERVER_DATABASE_LABEL_PREFIX} ${loc.database(connection.credentials.database)}\n\n`;
             stream.markdown(connectionMessage);
+
+            // TODO: Some commands (like connectionDetails) may show duplicate connection labels
+            // since they display their own connection info and this section already shows it
+
+            // Handle chat commands
+            const commandResult = await handleChatCommand(
+                request,
+                stream,
+                controller,
+                connectionUri,
+            );
+            if (commandResult.handled) {
+                if (commandResult.errorMessage) {
+                    stream.markdown(commandResult.errorMessage);
+                }
+                return {
+                    metadata: { command: request.command || "", correlationId: correlationId },
+                };
+            }
+
+            // Apply prompt template if this is a prompt substitute command
+            if (commandResult.promptToAdd) {
+                prompt = commandResult.promptToAdd + prompt;
+            }
 
             const success = await copilotService.startConversation(
                 conversationUri,
